@@ -306,7 +306,7 @@ export default function LabResultsPage() {
                   </SelectContent>
                 </Select>
                 
-                <Button className="bg-medical-blue hover:bg-blue-700">
+                <Button onClick={handleOrderTest} className="bg-medical-blue hover:bg-blue-700">
                   <Plus className="h-4 w-4 mr-2" />
                   Order Lab Test
                 </Button>
@@ -400,16 +400,16 @@ export default function LabResultsPage() {
                       </div>
                       
                       <div className="flex gap-2 ml-4">
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={() => handleViewResult(result)}>
                           <Eye className="h-4 w-4 mr-1" />
                           View
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={() => handleDownloadResult(result.id)}>
                           <Download className="h-4 w-4 mr-1" />
                           Download
                         </Button>
                         {result.status === 'completed' && (
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => handleShareResult(result)}>
                             <User className="h-4 w-4 mr-1" />
                             Review
                           </Button>

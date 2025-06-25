@@ -306,7 +306,10 @@ export default function UserManagement() {
                           disabled={createUserMutation.isPending}
                           className="bg-medical-blue hover:bg-blue-700"
                         >
-                          {createUserMutation.isPending ? "Creating..." : "Create User"}
+                          {createUserMutation.isPending ? 
+                            (editingUser ? "Updating..." : "Creating...") : 
+                            (editingUser ? "Update User" : "Create User")
+                          }
                         </Button>
                       </div>
                     </form>
