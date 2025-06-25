@@ -26,7 +26,7 @@ import { Separator } from "@/components/ui/separator";
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Patients", href: "/patients", icon: Users },
-  { name: "Calendar", href: "/calendar", icon: Calendar },
+  { name: "Appointments", href: "/appointments", icon: Calendar },
   { name: "Prescriptions", href: "/prescriptions", icon: Pill },
   { name: "Lab Results", href: "/lab-results", icon: FlaskConical },
   { name: "Imaging", href: "/imaging", icon: FileImage },

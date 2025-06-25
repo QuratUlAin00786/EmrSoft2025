@@ -41,6 +41,9 @@ export async function tenantMiddleware(req: TenantRequest, res: Response, next: 
         const { db } = await import("../db");
         const orgs = await db.select().from(organizations).limit(1);
         organization = orgs[0];
+        
+        // Log for debugging
+        console.log(`Using fallback organization: ${organization?.name} (${organization?.subdomain})`);
       } catch (error) {
         console.log("Error fetching fallback organization:", error);
       }
