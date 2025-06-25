@@ -123,19 +123,22 @@ MediCore EMR is a multi-tenant Electronic Medical Records (EMR) system designed 
 - **SQL Injection Prevention**: Parameterized queries through Drizzle ORM
 
 ## Changelog
-- June 25, 2025: Enhanced EMR system with comprehensive features:
-  - Added appointment calendar with month/week/day views
-  - Implemented detailed consultation notes with AI suggestions
-  - Created comprehensive patient family and social history tracking
-  - Added prescription management with drug interaction checks
-  - Implemented multi-language localization (English UK/US, Arabic SA/AE, French, Spanish, German)
-  - Enhanced patient records with NHS numbers and detailed medical history
-  - Added doctor/medical staff management with department assignments
-  - Integrated AI-powered risk assessment and treatment recommendations
-  - Implemented complete multi-tenant architecture with sample data seeding
+- June 25, 2025: Major EMR enhancement with semble.io-inspired features:
+  - **Custom Forms & Surveys**: Comprehensive form builder with drag-drop interface
+  - **Advanced Form Templates**: Pre-built medical forms (intake, screening, consent, surveys)
+  - **Form Analytics**: Response tracking, completion rates, demographic analysis
+  - **Advanced Features**: AI validation, webhooks, conditional logic, HIPAA/GDPR compliance
+  - **Multi-page Forms**: Progress tracking, auto-save, branching logic
+  - **Medical Form Types**: Pain scales, symptom checkers, vital signs, signature pads
+  - **Response Management**: Detailed analytics, export capabilities, flag system
+  - **Smart Routing**: Automated form routing based on responses
+  - **Integration Suite**: Webhook endpoints, API access, database synchronization
+  - **Compliance Tools**: End-to-end encryption, audit trails, role-based access
+  - Fixed tenant middleware for development environment
+- Previous: appointment calendar, consultation notes, patient history, localization, AI insights
 - June 24, 2025: Initial setup
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
-Requested features: Calendar appointments, consultation notes, prescriptions, family history, doctor management, localization support.
+Requested features: semble.io-style custom forms, surveys, questionnaires, advanced form builder, analytics, compliance tools, automation features, integration capabilities.
