@@ -45,24 +45,7 @@ interface LabResult {
   criticalValues?: boolean;
 }
 
-export default function LabResultsPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [showNewOrder, setShowNewOrder] = useState(false);
-
-  const { data: labResults = [], isLoading, error } = useQuery<LabResult[]>({
-    queryKey: ["/api/lab-results"],
-  });
-
-  const filteredResults = labResults.filter(result => {
-    const matchesSearch = searchQuery === "" || 
-      result.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      result.testType.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" || result.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
+// Mock data will be defined above
 
   const mockLabResults: LabResult[] = [
   {
@@ -189,15 +172,232 @@ const testCategories = [
   "Toxicology"
 ];
 
-// Mock data for lab results
-const mockLabResults: LabResult[] = [
-  {
-    id: "lab_001",
-    patientId: "p_001",
-    patientName: "Sarah Johnson",
-    testType: "Complete Blood Count (CBC)",
-    orderedBy: "Dr. Sarah Smith",
-    orderedAt: "2024-01-15T09:00:00Z",
+export default function LabResultsPage() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("All Tests");
+  const [selectedResult, setSelectedResult] = useState<LabResult | null>(null);
+
+  const { data: labResults = mockLabResults, isLoading } = useQuery({
+    queryKey: ["/api/lab-results", statusFilter, categoryFilter],
+    enabled: true,
+  });
+
+  const filteredResults = labResults.filter(result => {
+    const matchesSearch = !searchQuery || 
+      result.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      result.testType.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" || result.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  return (
+    <>
+      <Header 
+        title="Lab Results" 
+        subtitle="View and manage laboratory test results"
+      />
+      
+      <div className="flex-1 overflow-auto p-6">
+        <div className="space-y-6">
+          {/* Quick Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Pending Results</p>
+                    <p className="text-2xl font-bold">{filteredResults.filter(r => r.status === 'pending').length}</p>
+                  </div>
+                  <Clock className="h-8 w-8 text-yellow-600" />
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Critical Values</p>
+                    <p className="text-2xl font-bold">{filteredResults.filter(r => r.criticalValues).length}</p>
+                  </div>
+                  <AlertTriangle className="h-8 w-8 text-red-600" />
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Completed Today</p>
+                    <p className="text-2xl font-bold">
+                      {filteredResults.filter(r => r.status === 'completed' && 
+                        new Date(r.completedAt || '').toDateString() === new Date().toDateString()).length}
+                    </p>
+                  </div>
+                  <Check className="h-8 w-8 text-green-600" />
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Total Results</p>
+                    <p className="text-2xl font-bold">{filteredResults.length}</p>
+                  </div>
+                  <FileText className="h-8 w-8 text-blue-600" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Filters */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-4">
+                <div className="relative flex-1 max-w-sm">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search lab results..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="reviewed">Reviewed</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Button className="bg-medical-blue hover:bg-blue-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Order Lab Test
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Lab Results List */}
+          <div className="space-y-4">
+            {filteredResults.length === 0 ? (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-600 mb-2">No lab results found</h3>
+                  <p className="text-gray-600">Try adjusting your search terms or filters</p>
+                </CardContent>
+              </Card>
+            ) : (
+              filteredResults.map((result) => (
+                <Card key={result.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-3">
+                          <h3 className="text-lg font-semibold">{result.patientName}</h3>
+                          <Badge className={getStatusColor(result.status)}>
+                            {result.status}
+                          </Badge>
+                          {result.criticalValues && (
+                            <Badge variant="destructive" className="flex items-center gap-1">
+                              <AlertTriangle className="h-3 w-3" />
+                              Critical
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        <div className="space-y-2 mb-4">
+                          <p className="text-sm text-gray-600">
+                            <strong>Test:</strong> {result.testType}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            <strong>Ordered by:</strong> {result.orderedBy}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            <strong>Collected:</strong> {format(new Date(result.collectedAt), 'MMM dd, yyyy HH:mm')}
+                          </p>
+                          {result.completedAt && (
+                            <p className="text-sm text-gray-600">
+                              <strong>Completed:</strong> {format(new Date(result.completedAt), 'MMM dd, yyyy HH:mm')}
+                            </p>
+                          )}
+                        </div>
+                        
+                        {result.results && result.results.length > 0 && (
+                          <div className="mt-4">
+                            <h4 className="font-medium mb-2">Results:</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              {result.results.map((res, index) => (
+                                <div key={index} className={`p-3 rounded-lg border ${
+                                  res.status === 'normal' ? 'bg-green-50 border-green-200' :
+                                  res.status === 'critical' ? 'bg-red-50 border-red-200' :
+                                  'bg-yellow-50 border-yellow-200'
+                                }`}>
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-medium">{res.name}</span>
+                                    <Badge className={getResultStatusColor(res.status)}>
+                                      {res.status.replace('_', ' ')}
+                                    </Badge>
+                                  </div>
+                                  <div className="text-sm text-gray-600 mt-1">
+                                    <span className="font-medium">{res.value} {res.unit}</span>
+                                    <span className="ml-2">Ref: {res.referenceRange}</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {result.notes && (
+                          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <h4 className="font-medium text-blue-800 mb-1">Notes</h4>
+                            <p className="text-sm text-blue-700">{result.notes}</p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex gap-2 ml-4">
+                        <Button variant="outline" size="sm">
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <Download className="h-4 w-4 mr-1" />
+                          Download
+                        </Button>
+                        {result.status === 'completed' && (
+                          <Button variant="outline" size="sm">
+                            <User className="h-4 w-4 mr-1" />
+                            Review
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
     collectedAt: "2024-01-15T10:30:00Z",
     completedAt: "2024-01-15T14:45:00Z",
     status: "completed",

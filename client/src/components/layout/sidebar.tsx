@@ -18,6 +18,7 @@ import {
   Receipt
 } from "lucide-react";
 import { useTenant } from "@/hooks/use-tenant";
+import haloLogoPath from "@assets/Screenshot 2025-06-25 at 12.40.02_1750837361778.png";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -57,12 +58,14 @@ export function Sidebar() {
       {/* Logo Section */}
       <div className="p-6 border-b border-neutral-100">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-medical-blue rounded-lg flex items-center justify-center">
-            <Heart className="h-6 w-6 text-white" />
-          </div>
+          <img 
+            src={haloLogoPath} 
+            alt="Halo Health" 
+            className="h-10 w-auto"
+          />
           <div>
             <h1 className="text-xl font-bold text-gray-900">
-              {tenant?.brandName || "MediCore EMR"}
+              {tenant?.brandName || "Halo Health"}
             </h1>
             <p className="text-xs text-neutral-600">
               {tenant?.region} Healthcare
