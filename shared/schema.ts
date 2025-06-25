@@ -45,6 +45,7 @@ export const patients = pgTable("patients", {
   dateOfBirth: timestamp("date_of_birth").notNull(),
   email: text("email"),
   phone: text("phone"),
+  nhsNumber: text("nhs_number"), // NHS number for UK patients
   address: jsonb("address").$type<{
     street?: string;
     city?: string;
@@ -62,11 +63,29 @@ export const patients = pgTable("patients", {
     name?: string;
     relationship?: string;
     phone?: string;
+    email?: string;
   }>().default({}),
   medicalHistory: jsonb("medical_history").$type<{
     allergies?: string[];
     chronicConditions?: string[];
     medications?: string[];
+    familyHistory?: {
+      father?: string[];
+      mother?: string[];
+      siblings?: string[];
+      grandparents?: string[];
+    };
+    socialHistory?: {
+      smoking?: string;
+      alcohol?: string;
+      occupation?: string;
+      maritalStatus?: string;
+    };
+    immunizations?: Array<{
+      vaccine: string;
+      date: string;
+      provider: string;
+    }>;
   }>().default({}),
   riskLevel: varchar("risk_level", { length: 10 }).notNull().default("low"), // low, medium, high
   isActive: boolean("is_active").notNull().default(true),
