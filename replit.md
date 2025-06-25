@@ -124,6 +124,9 @@ MediCore EMR is a multi-tenant Electronic Medical Records (EMR) system designed 
 
 ## Changelog
 - June 25, 2025: Major EMR enhancement with complete clinical workflow coverage:
+  - **NHS-Compliant Consultations**: Full UK NHS-standard consultation interface with structured note-taking
+  - **Patient Management Automation**: Intelligent alerts for repeat prescriptions, lab follow-ups, chronic disease reviews
+  - **Clinical Decision Support**: Automated reminders for medication reviews, overdue appointments, test results
   - **Complete Clinical Modules**: Prescriptions, Lab Results, Imaging, Billing fully implemented
   - **Enhanced Navigation**: Renamed Calendar to Appointments, added all clinical sections
   - **New Appointment Creation**: Functional appointment booking with patient selection

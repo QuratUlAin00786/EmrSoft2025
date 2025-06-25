@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
-import { Search, Eye, FileText, Calendar } from "lucide-react";
+import { ConsultationDialog } from "@/components/consultation/consultation-dialog";
+import { Search, Eye, FileText, Calendar, Stethoscope } from "lucide-react";
 import type { Patient } from "@/types";
 
 function getPatientInitials(firstName: string, lastName: string): string {
@@ -64,6 +65,22 @@ interface PatientListProps {
 
 export function PatientList({ onSelectPatient }: PatientListProps = {}) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [showConsultation, setShowConsultation] = useState(false);
+  const [selectedPatientForConsultation, setSelectedPatientForConsultation] = useState<any>(null);
+
+  const startConsultation = (patient: any) => {
+    setSelectedPatientForConsultation({
+      id: patient.id,
+      firstName: patient.firstName,
+      lastName: patient.lastName,
+      dateOfBirth: patient.dateOfBirth,
+      nhsNumber: patient.nhsNumber,
+      medicalHistory: patient.medicalHistory?.chronicConditions || [],
+      allergies: patient.medicalHistory?.allergies || [],
+      currentMedications: patient.medicalHistory?.currentMedications || []
+    });
+    setShowConsultation(true);
+  };
   
   const { data: patients, isLoading, error } = useQuery<Patient[]>({
     queryKey: ["/api/patients", { limit: 100 }],
@@ -262,6 +279,13 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
           </div>
         )}
       </CardContent>
+      
+      {/* Consultation Dialog */}
+      <ConsultationDialog
+        open={showConsultation}
+        onOpenChange={setShowConsultation}
+        patient={selectedPatientForConsultation}
+      />
     </Card>
   );
 }
