@@ -185,7 +185,7 @@ const getSeverityColor = (severity: string) => {
   }
 };
 
-export default function PrescriptionsPage() {
+function PrescriptionsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
@@ -532,3 +532,5 @@ export default function PrescriptionsPage() {
     </>
   );
 }
+
+export default PrescriptionsPage;
