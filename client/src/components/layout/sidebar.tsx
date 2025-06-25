@@ -9,7 +9,8 @@ import {
   UserCog, 
   Settings, 
   Heart,
-  Crown
+  Crown,
+  FileText
 } from "lucide-react";
 import { useTenant } from "@/hooks/use-tenant";
 import { useAuth } from "@/hooks/use-auth";
@@ -20,9 +21,9 @@ import { Separator } from "@/components/ui/separator";
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Patients", href: "/patients", icon: Users },
-  { name: "Appointments", href: "/appointments", icon: Calendar },
-  { name: "AI Insights", href: "/ai-insights", icon: Brain, badge: "NEW" },
-  { name: "Billing", href: "/billing", icon: CreditCard },
+  { name: "Calendar", href: "/calendar", icon: Calendar },
+  { name: "Forms", href: "/forms", icon: FileText, badge: "NEW" },
+  { name: "AI Insights", href: "/ai-insights", icon: Brain },
 ];
 
 const adminNavigation = [

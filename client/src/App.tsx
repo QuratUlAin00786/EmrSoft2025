@@ -16,6 +16,8 @@ import AiInsights from "@/pages/ai-insights";
 import UserManagement from "@/pages/user-management";
 import Subscription from "@/pages/subscription";
 import Settings from "@/pages/settings";
+import CalendarPage from "@/pages/calendar";
+import FormsPage from "@/pages/forms";
 import NotFound from "@/pages/not-found";
 
 function ProtectedApp() {
