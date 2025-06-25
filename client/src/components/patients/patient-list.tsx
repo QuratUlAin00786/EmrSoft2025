@@ -1,14 +1,15 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
-import { LoadingSpinner } from "@/components/common/loading-spinner";
-import { ConsultationDialog } from "@/components/consultation/consultation-dialog";
-import { Search, Eye, FileText, Calendar, Stethoscope } from "lucide-react";
-import type { Patient } from "@/types";
+import { Calendar, Eye, User, Phone, MapPin, AlertTriangle, Clock, Heart, Bell, FileText, Stethoscope } from "lucide-react";
+import { useLocation } from "wouter";
+import { formatDistanceToNow } from "date-fns";
+import { PatientSearch, SearchFilters } from "./patient-search";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 function getPatientInitials(firstName: string, lastName: string): string {
   return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();

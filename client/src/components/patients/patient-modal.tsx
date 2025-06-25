@@ -268,7 +268,19 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
                         <FormItem>
                           <FormLabel>Phone Number</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="+44 123 456 7890" />
+                            <Input 
+                              {...field} 
+                              placeholder="+44 123 456 7890"
+                              type="tel"
+                              onChange={(e) => {
+                                // Auto-format UK phone numbers
+                                let value = e.target.value.replace(/[^\d+]/g, '');
+                                if (value.startsWith('0')) {
+                                  value = '+44' + value.substring(1);
+                                }
+                                field.onChange(value);
+                              }}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
