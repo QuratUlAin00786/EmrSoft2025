@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TenantProvider } from "@/hooks/use-tenant";
 import { AuthProvider } from "@/hooks/use-auth";
+import { LocaleProvider } from "@/hooks/use-locale";
 import { Sidebar } from "@/components/layout/sidebar";
 import { LoadingPage } from "@/components/common/loading-spinner";
 

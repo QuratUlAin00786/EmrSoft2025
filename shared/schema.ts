@@ -53,7 +53,6 @@ export const patients = pgTable("patients", {
     postcode?: string;
     country?: string;
   }>().default({}),
-  nhsNumber: text("nhs_number"), // UK specific
   insuranceInfo: jsonb("insurance_info").$type<{
     provider?: string;
     policyNumber?: string;

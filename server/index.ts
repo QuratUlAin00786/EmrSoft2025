@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { seedDatabase } from "./seed-data";
 
 const app = express();
 app.use(express.json());
@@ -46,6 +47,15 @@ app.use((req, res, next) => {
     res.status(status).json({ message });
     throw err;
   });
+
+  // Seed database on startup in development
+  if (process.env.NODE_ENV === "development") {
+    try {
+      await seedDatabase();
+    } catch (error) {
+      console.log("Database already seeded or seeding failed:", error.message);
+    }
+  }
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route

@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Header } from "@/components/layout/header";
 import { PatientList } from "@/components/patients/patient-list";
 import { PatientModal } from "@/components/patients/patient-modal";
+import ConsultationNotes from "@/components/medical/consultation-notes";
+import PatientFamilyHistory from "@/components/patients/patient-family-history";
 import { Button } from "@/components/ui/button";
 import { UserPlus } from "lucide-react";
 
