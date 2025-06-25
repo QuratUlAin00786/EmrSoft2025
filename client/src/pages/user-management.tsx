@@ -14,7 +14,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
-import { UserPlus, Search, Shield, Heart } from "lucide-react";
+import { UserPlus, Search, Shield, Heart, User as UserIcon } from "lucide-react";
 import type { User } from "@/types";
 
 const createUserSchema = z.object({
@@ -38,9 +38,9 @@ const roleColors = {
 
 const roleIcons = {
   admin: Shield,
-  doctor: User,
+  doctor: UserIcon,
   nurse: Heart,
-  receptionist: User
+  receptionist: UserIcon
 };
 
 function getInitials(firstName: string, lastName: string): string {
