@@ -51,6 +51,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Tenant info endpoint (unprotected for initial load)
+  app.get("/api/tenant/info", tenantMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.tenant) {
+        return res.status(404).json({ error: "Tenant not found" });
+      }
+      
+      res.json(req.tenant);
+    } catch (error) {
+      console.error("Tenant info error:", error);
+      res.status(500).json({ error: "Failed to fetch tenant information" });
+    }
+  });
+
   // Protected routes (auth required)
   app.use("/api", authMiddleware);
 
