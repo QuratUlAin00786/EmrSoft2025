@@ -1,0 +1,426 @@
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { z } from "zod";
+import { storage } from "./storage";
+import { authService } from "./services/auth";
+import { aiService } from "./services/ai";
+import { tenantMiddleware, authMiddleware, requireRole, gdprComplianceMiddleware, type TenantRequest } from "./middleware/tenant";
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Apply tenant and GDPR middleware to all API routes
+  app.use("/api", tenantMiddleware);
+  app.use("/api", gdprComplianceMiddleware);
+
+  // Authentication routes (no auth required)
+  app.post("/api/auth/login", async (req: TenantRequest, res) => {
+    try {
+      const { email, password } = z.object({
+        email: z.string().email(),
+        password: z.string().min(6)
+      }).parse(req.body);
+
+      const user = await storage.getUserByEmail(email, req.tenant!.id);
+      if (!user || !user.isActive) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      const isValidPassword = await authService.comparePassword(password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      const token = authService.generateToken(user);
+      
+      // Update last login
+      await storage.updateUser(user.id, user.organizationId, { lastLoginAt: new Date() });
+
+      res.json({
+        token,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          department: user.department
+        }
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ error: "Login failed" });
+    }
+  });
+
+  // Protected routes (auth required)
+  app.use("/api", authMiddleware);
+
+  // Dashboard routes
+  app.get("/api/dashboard/stats", async (req: TenantRequest, res) => {
+    try {
+      const stats = await storage.getDashboardStats(req.tenant!.id);
+      res.json(stats);
+    } catch (error) {
+      console.error("Dashboard stats error:", error);
+      res.status(500).json({ error: "Failed to fetch dashboard stats" });
+    }
+  });
+
+  app.get("/api/dashboard/ai-insights", async (req: TenantRequest, res) => {
+    try {
+      const insights = await storage.getAiInsightsByOrganization(req.tenant!.id, 10);
+      res.json(insights);
+    } catch (error) {
+      console.error("AI insights error:", error);
+      res.status(500).json({ error: "Failed to fetch AI insights" });
+    }
+  });
+
+  // Patient routes
+  app.get("/api/patients", async (req: TenantRequest, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 50;
+      const patients = await storage.getPatientsByOrganization(req.tenant!.id, limit);
+      res.json(patients);
+    } catch (error) {
+      console.error("Patients fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch patients" });
+    }
+  });
+
+  app.get("/api/patients/:id", async (req: TenantRequest, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      const patient = await storage.getPatient(patientId, req.tenant!.id);
+      
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+
+      // Get medical records
+      const medicalRecords = await storage.getMedicalRecordsByPatient(patientId, req.tenant!.id);
+      
+      // Get AI insights for this patient
+      const aiInsights = await storage.getAiInsightsByPatient(patientId, req.tenant!.id);
+
+      res.json({
+        ...patient,
+        medicalRecords,
+        aiInsights
+      });
+    } catch (error) {
+      console.error("Patient fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch patient" });
+    }
+  });
+
+  app.post("/api/patients", requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      const patientData = z.object({
+        firstName: z.string().min(1),
+        lastName: z.string().min(1),
+        dateOfBirth: z.string().transform(str => new Date(str)),
+        email: z.string().email().optional(),
+        phone: z.string().optional(),
+        nhsNumber: z.string().optional(),
+        address: z.object({
+          street: z.string().optional(),
+          city: z.string().optional(),
+          state: z.string().optional(),
+          postcode: z.string().optional(),
+          country: z.string().optional()
+        }).optional(),
+        emergencyContact: z.object({
+          name: z.string().optional(),
+          relationship: z.string().optional(),
+          phone: z.string().optional()
+        }).optional(),
+        medicalHistory: z.object({
+          allergies: z.array(z.string()).optional(),
+          chronicConditions: z.array(z.string()).optional(),
+          medications: z.array(z.string()).optional()
+        }).optional()
+      }).parse(req.body);
+
+      // Generate patient ID
+      const patientCount = await storage.getPatientsByOrganization(req.tenant!.id, 999999);
+      const patientId = `P${(patientCount.length + 1).toString().padStart(6, '0')}`;
+
+      const patient = await storage.createPatient({
+        ...patientData,
+        organizationId: req.tenant!.id,
+        patientId,
+        address: patientData.address || {},
+        emergencyContact: patientData.emergencyContact || {},
+        medicalHistory: patientData.medicalHistory || {}
+      });
+
+      // Generate AI insights for new patient
+      if (req.tenant!.settings?.features?.aiEnabled) {
+        try {
+          const insights = await aiService.generatePreventiveCareReminders(patient);
+          
+          for (const insight of insights) {
+            await storage.createAiInsight({
+              organizationId: req.tenant!.id,
+              patientId: patient.id,
+              ...insight
+            });
+          }
+        } catch (aiError) {
+          console.error("AI insights generation failed:", aiError);
+        }
+      }
+
+      res.status(201).json(patient);
+    } catch (error) {
+      console.error("Patient creation error:", error);
+      res.status(500).json({ error: "Failed to create patient" });
+    }
+  });
+
+  // Medical records routes
+  app.post("/api/patients/:id/records", requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      
+      const recordData = z.object({
+        type: z.enum(["consultation", "prescription", "lab_result", "imaging"]),
+        title: z.string().min(1),
+        notes: z.string().optional(),
+        diagnosis: z.string().optional(),
+        treatment: z.string().optional(),
+        prescription: z.object({
+          medications: z.array(z.object({
+            name: z.string(),
+            dosage: z.string(),
+            frequency: z.string(),
+            duration: z.string()
+          })).optional()
+        }).optional()
+      }).parse(req.body);
+
+      const record = await storage.createMedicalRecord({
+        ...recordData,
+        organizationId: req.tenant!.id,
+        patientId,
+        providerId: req.user!.id,
+        prescription: recordData.prescription || {},
+        attachments: [],
+        aiSuggestions: {}
+      });
+
+      // Generate AI insights for prescriptions
+      if (recordData.type === "prescription" && recordData.prescription?.medications && req.tenant!.settings?.features?.aiEnabled) {
+        try {
+          const patient = await storage.getPatient(patientId, req.tenant!.id);
+          if (patient) {
+            const insights = await aiService.analyzePrescription(
+              recordData.prescription.medications,
+              {
+                age: new Date().getFullYear() - new Date(patient.dateOfBirth).getFullYear(),
+                allergies: patient.medicalHistory?.allergies || [],
+                conditions: patient.medicalHistory?.chronicConditions || []
+              }
+            );
+
+            for (const insight of insights) {
+              await storage.createAiInsight({
+                organizationId: req.tenant!.id,
+                patientId,
+                ...insight
+              });
+            }
+          }
+        } catch (aiError) {
+          console.error("AI prescription analysis failed:", aiError);
+        }
+      }
+
+      res.status(201).json(record);
+    } catch (error) {
+      console.error("Medical record creation error:", error);
+      res.status(500).json({ error: "Failed to create medical record" });
+    }
+  });
+
+  // Appointments routes
+  app.get("/api/appointments", async (req: TenantRequest, res) => {
+    try {
+      const date = req.query.date ? new Date(req.query.date as string) : new Date();
+      const appointments = await storage.getAppointmentsByOrganization(req.tenant!.id, date);
+      res.json(appointments);
+    } catch (error) {
+      console.error("Appointments fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch appointments" });
+    }
+  });
+
+  app.post("/api/appointments", requireRole(["doctor", "nurse", "receptionist", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      const appointmentData = z.object({
+        patientId: z.number(),
+        providerId: z.number(),
+        title: z.string().min(1),
+        description: z.string().optional(),
+        scheduledAt: z.string().transform(str => new Date(str)),
+        duration: z.number().default(30),
+        type: z.enum(["consultation", "follow_up", "procedure"]).default("consultation"),
+        location: z.string().optional(),
+        isVirtual: z.boolean().default(false)
+      }).parse(req.body);
+
+      const appointment = await storage.createAppointment({
+        ...appointmentData,
+        organizationId: req.tenant!.id,
+        description: appointmentData.description || ""
+      });
+
+      res.status(201).json(appointment);
+    } catch (error) {
+      console.error("Appointment creation error:", error);
+      res.status(500).json({ error: "Failed to create appointment" });
+    }
+  });
+
+  // User management routes (admin only)
+  app.get("/api/users", requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const users = await storage.getUsersByOrganization(req.tenant!.id);
+      
+      // Remove password from response
+      const safeUsers = users.map(user => {
+        const { password, ...safeUser } = user;
+        return safeUser;
+      });
+
+      res.json(safeUsers);
+    } catch (error) {
+      console.error("Users fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch users" });
+    }
+  });
+
+  app.post("/api/users", requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const userData = z.object({
+        email: z.string().email(),
+        username: z.string().min(3),
+        password: z.string().min(6),
+        firstName: z.string().min(1),
+        lastName: z.string().min(1),
+        role: z.enum(["admin", "doctor", "nurse", "receptionist"]),
+        department: z.string().optional()
+      }).parse(req.body);
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(userData.email, req.tenant!.id);
+      if (existingUser) {
+        return res.status(400).json({ error: "User with this email already exists" });
+      }
+
+      // Hash password
+      const hashedPassword = await authService.hashPassword(userData.password);
+
+      const user = await storage.createUser({
+        ...userData,
+        organizationId: req.tenant!.id,
+        password: hashedPassword
+      });
+
+      // Remove password from response
+      const { password, ...safeUser } = user;
+      res.status(201).json(safeUser);
+    } catch (error) {
+      console.error("User creation error:", error);
+      res.status(500).json({ error: "Failed to create user" });
+    }
+  });
+
+  // Subscription management routes
+  app.get("/api/subscription", requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const subscription = await storage.getSubscription(req.tenant!.id);
+      if (!subscription) {
+        return res.status(404).json({ error: "Subscription not found" });
+      }
+      res.json(subscription);
+    } catch (error) {
+      console.error("Subscription fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch subscription" });
+    }
+  });
+
+  // AI insights routes
+  app.post("/api/ai/analyze-patient/:id", requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      
+      const patient = await storage.getPatient(patientId, req.tenant!.id);
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+
+      const medicalRecords = await storage.getMedicalRecordsByPatient(patientId, req.tenant!.id);
+      
+      const insights = await aiService.analyzePatientRisk(patient, medicalRecords);
+      
+      // Save insights to database
+      for (const insight of insights) {
+        await storage.createAiInsight({
+          organizationId: req.tenant!.id,
+          patientId,
+          ...insight
+        });
+      }
+
+      res.json(insights);
+    } catch (error) {
+      console.error("AI analysis error:", error);
+      res.status(500).json({ error: "Failed to analyze patient" });
+    }
+  });
+
+  app.patch("/api/ai/insights/:id", requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      const insightId = parseInt(req.params.id);
+      
+      const updateData = z.object({
+        status: z.enum(["active", "dismissed", "resolved"]).optional()
+      }).parse(req.body);
+
+      const insight = await storage.updateAiInsight(insightId, req.tenant!.id, updateData);
+      
+      if (!insight) {
+        return res.status(404).json({ error: "AI insight not found" });
+      }
+
+      res.json(insight);
+    } catch (error) {
+      console.error("AI insight update error:", error);
+      res.status(500).json({ error: "Failed to update AI insight" });
+    }
+  });
+
+  // Organization settings routes
+  app.get("/api/organization/settings", requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const organization = await storage.getOrganization(req.tenant!.id);
+      if (!organization) {
+        return res.status(404).json({ error: "Organization not found" });
+      }
+      
+      res.json({
+        name: organization.name,
+        region: organization.region,
+        brandName: organization.brandName,
+        settings: organization.settings
+      });
+    } catch (error) {
+      console.error("Settings fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch settings" });
+    }
+  });
+
+  const httpServer = createServer(app);
+  return httpServer;
+}

@@ -1,0 +1,160 @@
+export interface DashboardStats {
+  totalPatients: number;
+  todayAppointments: number;
+  aiSuggestions: number;
+  revenue: number;
+}
+
+export interface AiInsight {
+  id: number;
+  type: "risk_alert" | "drug_interaction" | "treatment_suggestion" | "preventive_care";
+  title: string;
+  description: string;
+  severity: "low" | "medium" | "high" | "critical";
+  actionRequired: boolean;
+  confidence: number;
+  patientId?: number;
+  status: "active" | "dismissed" | "resolved";
+  createdAt: string;
+  metadata: {
+    relatedConditions?: string[];
+    suggestedActions?: string[];
+    references?: string[];
+  };
+}
+
+export interface Patient {
+  id: number;
+  patientId: string;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  email?: string;
+  phone?: string;
+  nhsNumber?: string;
+  address: {
+    street?: string;
+    city?: string;
+    state?: string;
+    postcode?: string;
+    country?: string;
+  };
+  emergencyContact: {
+    name?: string;
+    relationship?: string;
+    phone?: string;
+  };
+  medicalHistory: {
+    allergies?: string[];
+    chronicConditions?: string[];
+    medications?: string[];
+  };
+  riskLevel: "low" | "medium" | "high";
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface User {
+  id: number;
+  email: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  role: "admin" | "doctor" | "nurse" | "receptionist";
+  department?: string;
+  isActive: boolean;
+  lastLoginAt?: string;
+  createdAt: string;
+}
+
+export interface MedicalRecord {
+  id: number;
+  type: "consultation" | "prescription" | "lab_result" | "imaging";
+  title: string;
+  notes?: string;
+  diagnosis?: string;
+  treatment?: string;
+  prescription: {
+    medications?: Array<{
+      name: string;
+      dosage: string;
+      frequency: string;
+      duration: string;
+    }>;
+  };
+  attachments: string[];
+  aiSuggestions: {
+    riskAssessment?: string;
+    recommendations?: string[];
+    drugInteractions?: string[];
+  };
+  createdAt: string;
+}
+
+export interface Appointment {
+  id: number;
+  patientId: number;
+  providerId: number;
+  title: string;
+  description?: string;
+  scheduledAt: string;
+  duration: number;
+  status: "scheduled" | "completed" | "cancelled" | "no_show";
+  type: "consultation" | "follow_up" | "procedure";
+  location?: string;
+  isVirtual: boolean;
+  createdAt: string;
+}
+
+export interface Subscription {
+  id: number;
+  plan: "starter" | "professional" | "enterprise";
+  status: "trial" | "active" | "suspended" | "cancelled";
+  userLimit: number;
+  currentUsers: number;
+  monthlyPrice?: number;
+  trialEndsAt?: string;
+  nextBillingAt?: string;
+  features: {
+    aiInsights?: boolean;
+    advancedReporting?: boolean;
+    apiAccess?: boolean;
+    whiteLabel?: boolean;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Organization {
+  id: number;
+  name: string;
+  subdomain: string;
+  region: "UK" | "EU" | "ME" | "SA" | "US";
+  brandName: string;
+  settings: {
+    theme?: { primaryColor?: string; logoUrl?: string };
+    compliance?: { gdprEnabled?: boolean; dataResidency?: string };
+    features?: { aiEnabled?: boolean; billingEnabled?: boolean };
+  };
+  subscriptionStatus: "trial" | "active" | "suspended" | "cancelled";
+  createdAt: string;
+}
+
+export interface AuthUser {
+  id: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  department?: string;
+}
+
+export interface TenantInfo {
+  id: number;
+  name: string;
+  subdomain: string;
+  region: string;
+  brandName: string;
+  settings: any;
+}

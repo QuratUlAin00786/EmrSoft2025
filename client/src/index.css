@@ -1,0 +1,310 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(210, 100%, 46%);
+  --primary-foreground: hsl(210, 100%, 99%);
+  --secondary: hsl(60, 4.8%, 95.9%);
+  --secondary-foreground: hsl(24, 9.8%, 10%);
+  --accent: hsl(60, 4.8%, 95.9%);
+  --accent-foreground: hsl(24, 9.8%, 10%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(20, 14.3%, 4.1%);
+  --radius: 0.5rem;
+  
+  /* Medical-specific colors */
+  --medical-blue: hsl(210, 100%, 46%);
+  --medical-green: hsl(142, 70%, 45%);
+  --medical-orange: hsl(15, 100%, 60%);
+  --neutral-50: hsl(210, 20%, 98%);
+  --neutral-100: hsl(220, 14%, 91%);
+  --neutral-600: hsl(215, 16%, 47%);
+}
+
+.dark {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(210, 100%, 46%);
+  --primary-foreground: hsl(210, 100%, 99%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
+  --radius: 0.5rem;
+  
+  /* Medical colors for dark mode */
+  --medical-blue: hsl(210, 100%, 60%);
+  --medical-green: hsl(142, 70%, 60%);
+  --medical-orange: hsl(15, 100%, 70%);
+  --neutral-50: hsl(240, 10%, 6%);
+  --neutral-100: hsl(240, 3.7%, 15.9%);
+  --neutral-600: hsl(240, 5%, 64.9%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Inter', 'Source Sans Pro', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold;
+  }
+}
+
+@layer components {
+  .medical-gradient {
+    background: linear-gradient(135deg, var(--medical-blue), hsl(210, 100%, 56%));
+  }
+  
+  .ai-gradient {
+    background: linear-gradient(135deg, hsl(270, 100%, 60%), hsl(210, 100%, 46%));
+  }
+  
+  .glass-effect {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .medical-shadow {
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1), 0 2px 4px -1px rgba(59, 130, 246, 0.06);
+  }
+  
+  .status-indicator {
+    position: relative;
+  }
+  
+  .status-indicator::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--medical-green);
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { 
+      opacity: 1; 
+    }
+    50% { 
+      opacity: 0.5; 
+    }
+  }
+  
+  .sidebar-nav {
+    @apply flex flex-col space-y-1;
+  }
+  
+  .sidebar-nav-item {
+    @apply flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors;
+  }
+  
+  .sidebar-nav-item.active {
+    @apply text-white;
+    background-color: var(--medical-blue);
+  }
+  
+  .sidebar-nav-item:not(.active) {
+    @apply text-neutral-600 hover:bg-neutral-50;
+  }
+  
+  .dashboard-card {
+    @apply bg-white rounded-xl border border-neutral-100 p-6 shadow-sm hover:shadow-md transition-shadow;
+  }
+  
+  .stats-card {
+    @apply dashboard-card flex items-center justify-between;
+  }
+  
+  .ai-insight-card {
+    @apply p-4 rounded-lg border flex items-start space-x-4;
+  }
+  
+  .ai-insight-card.risk-alert {
+    @apply bg-blue-50 border-blue-100;
+  }
+  
+  .ai-insight-card.treatment-success {
+    @apply bg-green-50 border-green-100;
+  }
+  
+  .ai-insight-card.drug-interaction {
+    @apply bg-yellow-50 border-yellow-100;
+  }
+  
+  .patient-status-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  
+  .patient-status-badge.high-risk {
+    @apply bg-red-100 text-red-800;
+  }
+  
+  .patient-status-badge.stable {
+    @apply bg-green-100 text-green-800;
+  }
+  
+  .patient-status-badge.monitoring {
+    @apply bg-yellow-100 text-yellow-800;
+  }
+  
+  .medical-form {
+    @apply space-y-6;
+  }
+  
+  .medical-form .form-group {
+    @apply space-y-2;
+  }
+  
+  .medical-form label {
+    @apply block text-sm font-medium text-gray-700;
+  }
+  
+  .medical-form input, 
+  .medical-form textarea, 
+  .medical-form select {
+    @apply w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent transition-colors;
+  }
+  
+  .medical-form .required::after {
+    content: ' *';
+    @apply text-red-500;
+  }
+}
+
+@layer utilities {
+  .text-medical-blue {
+    color: var(--medical-blue);
+  }
+  
+  .text-medical-green {
+    color: var(--medical-green);
+  }
+  
+  .text-medical-orange {
+    color: var(--medical-orange);
+  }
+  
+  .bg-medical-blue {
+    background-color: var(--medical-blue);
+  }
+  
+  .bg-medical-green {
+    background-color: var(--medical-green);
+  }
+  
+  .bg-medical-orange {
+    background-color: var(--medical-orange);
+  }
+  
+  .border-medical-blue {
+    border-color: var(--medical-blue);
+  }
+  
+  .ring-medical-blue {
+    --tw-ring-color: var(--medical-blue);
+  }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from { 
+      opacity: 0; 
+      transform: translateY(10px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+  }
+}
+
+/* Medical data tables */
+.medical-table {
+  @apply w-full border-collapse;
+}
+
+.medical-table th {
+  @apply text-left text-sm font-medium text-neutral-600 pb-3 border-b border-neutral-200;
+}
+
+.medical-table td {
+  @apply py-3 text-sm border-b border-neutral-100;
+}
+
+.medical-table tr:hover {
+  @apply bg-neutral-50;
+}
+
+/* Responsive design helpers */
+@media (max-width: 768px) {
+  .dashboard-card {
+    @apply p-4;
+  }
+  
+  .stats-card {
+    @apply flex-col items-start space-y-3;
+  }
+  
+  .sidebar-nav-item {
+    @apply px-2 py-3;
+  }
+}
+
+/* Print styles for medical records */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .medical-header {
+    @apply border-b-2 border-gray-300 pb-4 mb-6;
+  }
+  
+  .medical-content {
+    @apply text-black;
+  }
+}
