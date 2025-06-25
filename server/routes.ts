@@ -31,8 +31,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const token = authService.generateToken(user);
       
-      // Update last login
-      await storage.updateUser(user.id, user.organizationId, { lastLoginAt: new Date() });
+      // Update last login - remove this for now due to schema issues
+      // await storage.updateUser(user.id, user.organizationId, { lastLoginAt: new Date() });
 
       res.json({
         token,
@@ -163,7 +163,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             await storage.createAiInsight({
               organizationId: req.tenant!.id,
               patientId: patient.id,
-              ...insight
+              type: insight.type,
+              title: insight.title,
+              description: insight.description,
+              severity: insight.severity,
+              actionRequired: insight.actionRequired,
+              confidence: insight.confidence.toString()
             });
           }
         } catch (aiError) {
@@ -227,7 +232,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               await storage.createAiInsight({
                 organizationId: req.tenant!.id,
                 patientId,
-                ...insight
+                type: insight.type,
+                title: insight.title,
+                description: insight.description,
+                severity: insight.severity,
+                actionRequired: insight.actionRequired,
+                confidence: insight.confidence.toString()
               });
             }
           }
@@ -369,7 +379,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.createAiInsight({
           organizationId: req.tenant!.id,
           patientId,
-          ...insight
+          type: insight.type,
+          title: insight.title,
+          description: insight.description,
+          severity: insight.severity,
+          actionRequired: insight.actionRequired,
+          confidence: insight.confidence.toString()
         });
       }
 

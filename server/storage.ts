@@ -104,13 +104,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(user: InsertUser): Promise<User> {
-    const [created] = await db.insert(users).values(user).returning();
+    const [created] = await db.insert(users).values([user]).returning();
     return created;
   }
 
   async updateUser(id: number, organizationId: number, updates: Partial<InsertUser>): Promise<User | undefined> {
     const [updated] = await db.update(users)
-      .set({ ...updates, lastLoginAt: new Date() })
+      .set({ ...updates })
       .where(and(eq(users.id, id), eq(users.organizationId, organizationId)))
       .returning();
     return updated || undefined;
@@ -207,7 +207,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createAppointment(appointment: InsertAppointment): Promise<Appointment> {
-    const [created] = await db.insert(appointments).values(appointment).returning();
+    const [created] = await db.insert(appointments).values([appointment]).returning();
     return created;
   }
 
