@@ -10,7 +10,12 @@ import {
   Settings, 
   Heart,
   Crown,
-  FileText
+  FileText,
+  Pill,
+  FlaskConical,
+  Stethoscope,
+  FileImage,
+  Receipt
 } from "lucide-react";
 import { useTenant } from "@/hooks/use-tenant";
 import { useAuth } from "@/hooks/use-auth";
@@ -22,8 +27,12 @@ const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Patients", href: "/patients", icon: Users },
   { name: "Calendar", href: "/calendar", icon: Calendar },
+  { name: "Prescriptions", href: "/prescriptions", icon: Pill },
+  { name: "Lab Results", href: "/lab-results", icon: FlaskConical },
+  { name: "Imaging", href: "/imaging", icon: FileImage },
   { name: "Forms", href: "/forms", icon: FileText, badge: "NEW" },
   { name: "AI Insights", href: "/ai-insights", icon: Brain },
+  { name: "Billing", href: "/billing", icon: Receipt },
 ];
 
 const adminNavigation = [
