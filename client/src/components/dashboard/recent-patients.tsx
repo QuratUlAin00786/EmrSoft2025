@@ -111,7 +111,14 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           Recent Patients
-          <Button variant="link" size="sm" className="text-medical-blue hover:text-blue-700">
+          <Button 
+            variant="link" 
+            size="sm" 
+            className="text-medical-blue hover:text-blue-700"
+            onClick={() => {
+              window.location.href = "/patients";
+            }}
+          >
             View All
           </Button>
         </CardTitle>

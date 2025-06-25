@@ -107,6 +107,12 @@ export function SchedulePanel() {
                   : "text-neutral-400 cursor-not-allowed"
               }`}
               disabled={appointment.status !== "scheduled"}
+              onClick={() => {
+                if (appointment.status === "scheduled") {
+                  // Start consultation or join meeting
+                  console.log("Starting consultation for appointment:", appointment.id);
+                }
+              }}
             >
               {appointment.status === "scheduled" ? "Join" : "Completed"}
             </Button>
@@ -115,7 +121,14 @@ export function SchedulePanel() {
         
         {appointments.length > 4 && (
           <div className="text-center pt-4">
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                // Navigate to full calendar view
+                window.location.href = "/calendar";
+              }}
+            >
               View Full Schedule
             </Button>
           </div>

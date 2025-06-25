@@ -171,7 +171,13 @@ export function AiInsightsPanel() {
         
         {insights.length > 3 && (
           <div className="text-center pt-4">
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                window.location.href = "/ai-insights";
+              }}
+            >
               View All Insights ({insights.length})
             </Button>
           </div>

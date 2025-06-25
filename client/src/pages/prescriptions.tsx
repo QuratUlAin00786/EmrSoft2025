@@ -166,8 +166,23 @@ export default function PrescriptionsPage() {
   }
 ];
 
-const handleCreatePrescription = (formData: any) => {
-  // This will be handled by the mutation
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'active': return 'bg-green-100 text-green-800';
+    case 'completed': return 'bg-blue-100 text-blue-800';
+    case 'cancelled': return 'bg-red-100 text-red-800';
+    case 'pending': return 'bg-yellow-100 text-yellow-800';
+    default: return 'bg-gray-100 text-gray-800';
+  }
+};
+
+const getSeverityColor = (severity: string) => {
+  switch (severity) {
+    case 'minor': return 'bg-yellow-100 text-yellow-800';
+    case 'moderate': return 'bg-orange-100 text-orange-800';
+    case 'major': return 'bg-red-100 text-red-800';
+    default: return 'bg-gray-100 text-gray-800';
+  }
 };
 
 export default function PrescriptionsPage() {
