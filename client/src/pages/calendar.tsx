@@ -3,13 +3,24 @@ import AppointmentCalendar from "@/components/calendar/appointment-calendar";
 import { DoctorList } from "@/components/doctors/doctor-list";
 import { Button } from "@/components/ui/button";
 import { Calendar, Plus, Users } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
+import { useLocation } from "wouter";
 
 export default function CalendarPage() {
   const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
   const [showNewAppointment, setShowNewAppointment] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [location] = useLocation();
+  
+  // Check for patientId in URL params to auto-book appointment
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const patientId = urlParams.get('patientId');
+    if (patientId) {
+      setShowNewAppointment(true);
+    }
+  }, [location]);
 
   return (
     <>

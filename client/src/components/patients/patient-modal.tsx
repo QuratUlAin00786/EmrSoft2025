@@ -111,7 +111,6 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
 
   const createPatientMutation = useMutation({
     mutationFn: async (data: PatientFormData) => {
-      // Transform string fields to arrays for medical history
       const transformedData = {
         ...data,
         email: data.email || undefined,
@@ -153,52 +152,6 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
     form.reset();
     setShowAiInsights(false);
   };
-
-  // Calculate age for AI insights
-  const calculateAge = (dateOfBirth: string) => {
-    if (!dateOfBirth) return 0;
-    const today = new Date();
-    const birthDate = new Date(dateOfBirth);
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    return age;
-  };
-
-  const getAiInsights = () => {
-    const watchedValues = form.watch();
-    const age = calculateAge(watchedValues.dateOfBirth);
-    const hasChronicConditions = watchedValues.medicalHistory?.chronicConditions;
-    const hasAllergies = watchedValues.medicalHistory?.allergies;
-
-    const insights = [];
-
-    if (age > 0) {
-      if (age >= 65) {
-        insights.push("Consider scheduling regular cardiovascular screenings for this senior patient.");
-      }
-      if (age >= 50) {
-        insights.push("Recommend routine cancer screenings appropriate for this age group.");
-      }
-      if (age >= 40) {
-        insights.push("Annual health checkups and diabetes screening recommended.");
-      }
-    }
-
-    if (hasChronicConditions) {
-      insights.push("Monitor chronic conditions closely and ensure medication compliance.");
-    }
-
-    if (hasAllergies) {
-      insights.push("Alert: Document all allergies clearly to prevent adverse reactions.");
-    }
-
-    return insights;
-  };
-
-  const aiInsights = tenant?.settings?.features?.aiEnabled ? getAiInsights() : [];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -410,38 +363,10 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
 
                     <FormField
                       control={form.control}
-                      name="insuranceInfo.groupNumber"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Group Number</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Enter group number" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
                       name="insuranceInfo.effectiveDate"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Effective Date</FormLabel>
-                          <FormControl>
-                            <Input type="date" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="insuranceInfo.expirationDate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Expiration Date</FormLabel>
                           <FormControl>
                             <Input type="date" {...field} />
                           </FormControl>
@@ -465,43 +390,6 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
                             />
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="insuranceInfo.deductible"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Deductible Amount (£)</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              {...field} 
-                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                              placeholder="0" 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="insuranceInfo.isActive"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>Insurance Active</FormLabel>
-                          </div>
                         </FormItem>
                       )}
                     />
@@ -544,92 +432,12 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
 
                     <FormField
                       control={form.control}
-                      name="address.state"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>State/County</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Enter state or county" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
                       name="address.postcode"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Postcode</FormLabel>
                           <FormControl>
                             <Input {...field} placeholder="Enter postcode" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="address.country"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Country</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Enter country" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Address Information */}
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">Address Information</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="md:col-span-2">
-                      <FormField
-                        control={form.control}
-                        name="address.street"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Street Address</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="123 Main Street" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    
-                    <FormField
-                      control={form.control}
-                      name="address.city"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>City</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="London" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="address.postcode"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Postcode</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="SW1A 1AA" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -643,7 +451,7 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
               <Card>
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold mb-4">Emergency Contact</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="emergencyContact.name"
@@ -651,27 +459,13 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
                         <FormItem>
                           <FormLabel>Contact Name</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="John Doe" />
+                            <Input {...field} placeholder="Enter emergency contact name" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    
-                    <FormField
-                      control={form.control}
-                      name="emergencyContact.relationship"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Relationship</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Spouse, Parent, etc." />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
+
                     <FormField
                       control={form.control}
                       name="emergencyContact.phone"
@@ -689,91 +483,8 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
                 </CardContent>
               </Card>
 
-              {/* Medical History */}
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">Medical History</h3>
-                  <div className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="medicalHistory.allergies"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Allergies</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              {...field} 
-                              placeholder="List any known allergies (separate with commas)"
-                              rows={2}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="medicalHistory.chronicConditions"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Chronic Conditions</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              {...field} 
-                              placeholder="List any chronic conditions (separate with commas)"
-                              rows={2}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="medicalHistory.medications"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Current Medications</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              {...field} 
-                              placeholder="List current medications (separate with commas)"
-                              rows={2}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* AI Insights */}
-              {tenant?.settings?.features?.aiEnabled && aiInsights.length > 0 && (
-                <Card className="bg-purple-50 border-purple-200">
-                  <CardContent className="p-6">
-                    <div className="flex items-center space-x-2 mb-4">
-                      <Brain className="h-5 w-5 text-purple-600" />
-                      <h3 className="text-lg font-semibold text-purple-900">AI Health Insights</h3>
-                      <Badge className="ai-gradient text-white">AI</Badge>
-                    </div>
-                    <div className="space-y-2">
-                      {aiInsights.map((insight, index) => (
-                        <p key={index} className="text-sm text-purple-700 flex items-start space-x-2">
-                          <span className="text-purple-500 font-bold">•</span>
-                          <span>{insight}</span>
-                        </p>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Form Actions */}
-              <div className="flex justify-end space-x-3 pt-6 border-t">
+              {/* Submit Button */}
+              <div className="flex justify-end gap-3 pt-4">
                 <Button 
                   type="button" 
                   variant="outline" 
@@ -787,8 +498,17 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
                   disabled={createPatientMutation.isPending}
                   className="bg-medical-blue hover:bg-blue-700"
                 >
-                  <Save className="h-4 w-4 mr-2" />
-                  {createPatientMutation.isPending ? "Creating..." : "Save Patient"}
+                  {createPatientMutation.isPending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Create Patient
+                    </>
+                  )}
                 </Button>
               </div>
             </form>
