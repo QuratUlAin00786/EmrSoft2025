@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
-import { Calendar, Eye, User, Phone, MapPin, AlertTriangle, Clock, Heart, Bell, FileText, Stethoscope } from "lucide-react";
+import { Calendar, Eye, User, Phone, MapPin, AlertTriangle, Clock, Bell, FileText } from "lucide-react";
 import { useLocation } from "wouter";
 import { formatDistanceToNow } from "date-fns";
 import { PatientSearch, SearchFilters } from "./patient-search";
@@ -28,36 +28,26 @@ function calculateAge(dateOfBirth: string): number {
   return age;
 }
 
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-GB', { 
-    day: '2-digit', 
-    month: '2-digit', 
-    year: 'numeric' 
-  });
-}
-
 function getRiskLevelColor(riskLevel: string) {
-  switch (riskLevel) {
-    case "high":
-      return "bg-red-100 text-red-800";
-    case "medium":
-      return "bg-yellow-100 text-yellow-800";
-    case "low":
-    default:
-      return "bg-green-100 text-green-800";
+  switch (riskLevel?.toLowerCase()) {
+    case 'low': return 'bg-green-100 text-green-800';
+    case 'medium': return 'bg-yellow-100 text-yellow-800';
+    case 'high': return 'bg-orange-100 text-orange-800';
+    case 'critical': return 'bg-red-100 text-red-800';
+    default: return 'bg-gray-100 text-gray-800';
   }
 }
 
 function getConditionColor(condition?: string) {
-  if (!condition) return "bg-gray-100 text-gray-800";
+  if (!condition) return 'bg-gray-100 text-gray-600';
   
   const lowerCondition = condition.toLowerCase();
-  if (lowerCondition.includes("diabetes")) return "bg-yellow-100 text-yellow-800";
-  if (lowerCondition.includes("hypertension") || lowerCondition.includes("blood pressure")) return "bg-blue-100 text-blue-800";
-  if (lowerCondition.includes("heart") || lowerCondition.includes("cardiac")) return "bg-red-100 text-red-800";
-  if (lowerCondition.includes("pain")) return "bg-orange-100 text-orange-800";
-  return "bg-gray-100 text-gray-800";
+  if (lowerCondition.includes('diabetes')) return 'bg-purple-100 text-purple-700';
+  if (lowerCondition.includes('hypertension') || lowerCondition.includes('blood pressure')) return 'bg-red-100 text-red-700';
+  if (lowerCondition.includes('asthma') || lowerCondition.includes('respiratory')) return 'bg-blue-100 text-blue-700';
+  if (lowerCondition.includes('heart') || lowerCondition.includes('cardiac')) return 'bg-pink-100 text-pink-700';
+  
+  return 'bg-gray-100 text-gray-600';
 }
 
 interface PatientListProps {
@@ -65,239 +55,319 @@ interface PatientListProps {
 }
 
 export function PatientList({ onSelectPatient }: PatientListProps = {}) {
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
-  const [showConsultation, setShowConsultation] = useState(false);
-  const [selectedPatientForConsultation, setSelectedPatientForConsultation] = useState<any>(null);
+  const [searchFilters, setSearchFilters] = useState<SearchFilters>({ searchType: 'all' });
+  const [filteredPatients, setFilteredPatients] = useState<any[]>([]);
 
-  const startConsultation = (patient: any) => {
-    setSelectedPatientForConsultation({
-      id: patient.id,
-      firstName: patient.firstName,
-      lastName: patient.lastName,
-      dateOfBirth: patient.dateOfBirth,
-      nhsNumber: patient.nhsNumber,
-      medicalHistory: patient.medicalHistory?.chronicConditions || [],
-      allergies: patient.medicalHistory?.allergies || [],
-      currentMedications: patient.medicalHistory?.currentMedications || []
-    });
-    setShowConsultation(true);
-  };
-  
-  const { data: patients, isLoading, error } = useQuery<Patient[]>({
-    queryKey: ["/api/patients", { limit: 100 }],
+  const { data: patients, isLoading, error } = useQuery({
+    queryKey: ["/api/patients"],
+    queryFn: () => fetch("/api/patients").then(res => res.json())
   });
 
-  const filteredPatients = patients?.filter(patient => {
-    if (!searchQuery) return true;
+  const sendReminderMutation = useMutation({
+    mutationFn: async (patientId: number) => {
+      return apiRequest('POST', `/api/patients/${patientId}/send-reminder`, {
+        type: 'appointment_reminder',
+        message: 'Please remember your upcoming appointment'
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Reminder sent",
+        description: "Patient has been notified about their appointment",
+      });
+    }
+  });
+
+  const flagPatientMutation = useMutation({
+    mutationFn: async ({ patientId, flag }: { patientId: number; flag: string }) => {
+      return apiRequest('PATCH', `/api/patients/${patientId}`, {
+        flags: [flag]
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
+      toast({
+        title: "Patient flagged",
+        description: "Flag has been added to patient record",
+      });
+    }
+  });
+
+  const handleViewPatient = (patient: any) => {
+    if (onSelectPatient) {
+      onSelectPatient(patient);
+    } else {
+      setLocation(`/patients/${patient.id}`);
+    }
+  };
+
+  const handleBookAppointment = (patient: any) => {
+    setLocation(`/appointments?patientId=${patient.id}`);
+  };
+
+  const handleSearch = (query: string, filters: SearchFilters) => {
+    setSearchQuery(query);
+    setSearchFilters(filters);
     
-    const query = searchQuery.toLowerCase();
-    const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
-    const patientId = patient.patientId.toLowerCase();
-    const email = patient.email?.toLowerCase() || "";
-    const phone = patient.phone || "";
-    const nhsNumber = patient.nhsNumber || "";
+    if (!patients) return;
     
-    return (
-      fullName.includes(query) ||
-      patientId.includes(query) ||
-      email.includes(query) ||
-      phone.includes(query) ||
-      nhsNumber.includes(query)
-    );
-  }) || [];
+    let filtered = [...patients];
+    
+    if (query.trim()) {
+      const searchTerm = query.toLowerCase().trim();
+      filtered = filtered.filter(patient => {
+        switch (filters.searchType) {
+          case 'name':
+            return `${patient.firstName} ${patient.lastName}`.toLowerCase().includes(searchTerm);
+          case 'postcode':
+            return patient.address?.postcode?.toLowerCase().includes(searchTerm);
+          case 'phone':
+            return patient.phone?.toLowerCase().includes(searchTerm);
+          case 'nhsNumber':
+            return patient.nhsNumber?.toLowerCase().includes(searchTerm);
+          case 'email':
+            return patient.email?.toLowerCase().includes(searchTerm);
+          default:
+            return `${patient.firstName} ${patient.lastName}`.toLowerCase().includes(searchTerm) ||
+                   patient.address?.postcode?.toLowerCase().includes(searchTerm) ||
+                   patient.phone?.toLowerCase().includes(searchTerm) ||
+                   patient.nhsNumber?.toLowerCase().includes(searchTerm) ||
+                   patient.email?.toLowerCase().includes(searchTerm);
+        }
+      });
+    }
+    
+    if (filters.insuranceProvider && filters.insuranceProvider !== '') {
+      filtered = filtered.filter(patient => 
+        patient.insuranceInfo?.provider === filters.insuranceProvider
+      );
+    }
+    
+    if (filters.riskLevel) {
+      filtered = filtered.filter(patient => patient.riskLevel === filters.riskLevel);
+    }
+    
+    setFilteredPatients(filtered);
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    setSearchFilters({ searchType: 'all' });
+    setFilteredPatients([]);
+  };
+
+  const handleSendReminder = (patientId: number) => {
+    sendReminderMutation.mutate(patientId);
+  };
+
+  const handleFlagPatient = (patientId: number, flag: string) => {
+    flagPatientMutation.mutate({ patientId, flag });
+  };
 
   if (isLoading) {
     return (
-      <Card>
-        <CardContent className="flex items-center justify-center h-64">
-          <LoadingSpinner size="lg" />
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue"></div>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Card>
-        <CardContent className="text-center py-8">
-          <p className="text-neutral-600">
-            Unable to load patient data. Please try again later.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="text-center py-8">
+        <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+        <p className="text-red-600">Failed to load patients</p>
+      </div>
     );
   }
 
+  const displayPatients = searchQuery || Object.keys(searchFilters).length > 1 
+    ? filteredPatients 
+    : patients || [];
+
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>All Patients ({patients?.length || 0})</CardTitle>
-          <div className="relative w-80">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
-            <Input
-              placeholder="Search by name, ID, email, phone, or NHS number..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900">Patients</h2>
+        <div className="text-sm text-gray-500">
+          {displayPatients.length} patient{displayPatients.length !== 1 ? 's' : ''} found
         </div>
-      </CardHeader>
-      <CardContent>
-        {filteredPatients.length === 0 ? (
-          <div className="text-center py-12">
-            {searchQuery ? (
-              <>
-                <Search className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
-                <p className="text-neutral-600">No patients found matching "{searchQuery}"</p>
-                <p className="text-sm text-neutral-500 mt-2">
-                  Try adjusting your search terms or browse all patients.
-                </p>
-              </>
-            ) : (
-              <>
-                <FileText className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
-                <p className="text-neutral-600">No patients found.</p>
-                <p className="text-sm text-neutral-500 mt-2">
-                  Add your first patient to get started.
-                </p>
-              </>
-            )}
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="medical-table">
-              <thead>
-                <tr>
-                  <th>Patient</th>
-                  <th>Age</th>
-                  <th>Contact</th>
-                  <th>Primary Condition</th>
-                  <th>Risk Level</th>
-                  <th>Last Updated</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredPatients.map((patient) => {
-                  const age = calculateAge(patient.dateOfBirth);
-                  const primaryCondition = patient.medicalHistory.chronicConditions?.[0];
-                  
-                  return (
-                    <tr key={patient.id} className="hover:bg-neutral-50">
-                      <td className="py-4">
-                        <div className="flex items-center space-x-3">
-                          <Avatar>
-                            <AvatarContent className="bg-blue-100 text-medical-blue font-semibold">
-                              {getPatientInitials(patient.firstName, patient.lastName)}
-                            </AvatarContent>
-                            <AvatarFallback>
-                              {getPatientInitials(patient.firstName, patient.lastName)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium text-gray-900">
-                              {patient.firstName} {patient.lastName}
-                            </p>
-                            <p className="text-sm text-neutral-600">
-                              ID: {patient.patientId}
-                            </p>
-                            {patient.nhsNumber && (
-                              <p className="text-xs text-neutral-500">
-                                NHS: {patient.nhsNumber}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-4 text-sm text-neutral-600">
-                        {age} years
-                        <br />
-                        <span className="text-xs text-neutral-500">
-                          {formatDate(patient.dateOfBirth)}
-                        </span>
-                      </td>
-                      <td className="py-4 text-sm text-neutral-600">
-                        {patient.email && (
-                          <div className="mb-1">{patient.email}</div>
-                        )}
-                        {patient.phone && (
-                          <div className="text-xs">{patient.phone}</div>
-                        )}
-                        {!patient.email && !patient.phone && (
-                          <span className="text-neutral-400">No contact info</span>
-                        )}
-                      </td>
-                      <td className="py-4">
-                        {primaryCondition ? (
-                          <Badge 
-                            variant="secondary" 
-                            className={getConditionColor(primaryCondition)}
-                          >
-                            {primaryCondition}
-                          </Badge>
-                        ) : (
-                          <span className="text-sm text-neutral-500">No conditions</span>
-                        )}
-                      </td>
-                      <td className="py-4">
+      </div>
+
+      <PatientSearch onSearch={handleSearch} onClear={handleClearSearch} />
+
+      {displayPatients.length === 0 ? (
+        <div className="text-center py-12">
+          <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No patients found</h3>
+          <p className="text-gray-500">
+            {searchQuery ? "Try adjusting your search criteria" : "No patients have been added yet"}
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {displayPatients.map((patient: any) => (
+            <Card key={patient.id} className="hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-3">
+                    <Avatar className="h-12 w-12">
+                      <AvatarFallback className="bg-medical-blue text-white font-semibold">
+                        {getPatientInitials(patient.firstName, patient.lastName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <CardTitle className="text-lg">
+                        {patient.firstName} {patient.lastName}
+                      </CardTitle>
+                      <p className="text-sm text-neutral-600">
+                        Age {calculateAge(patient.dateOfBirth)} • {patient.patientId}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end space-y-1">
+                    {patient.riskLevel && (
+                      <Badge className={`text-xs ${getRiskLevelColor(patient.riskLevel)}`}>
+                        {patient.riskLevel}
+                      </Badge>
+                    )}
+                    {patient.insuranceInfo?.provider && (
+                      <Badge variant="outline" className="text-xs">
+                        {patient.insuranceInfo.provider.toUpperCase()}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="space-y-3">
+                <div className="space-y-2 text-sm">
+                  {patient.phone && (
+                    <div className="flex items-center text-neutral-600">
+                      <Phone className="h-4 w-4 mr-2" />
+                      {patient.phone}
+                    </div>
+                  )}
+                  {patient.address?.postcode && (
+                    <div className="flex items-center text-neutral-600">
+                      <MapPin className="h-4 w-4 mr-2" />
+                      {patient.address.postcode}
+                      {patient.address.city && `, ${patient.address.city}`}
+                    </div>
+                  )}
+                  {patient.email && (
+                    <div className="flex items-center text-neutral-600 truncate">
+                      <User className="h-4 w-4 mr-2" />
+                      {patient.email}
+                    </div>
+                  )}
+                </div>
+
+                {patient.medicalHistory?.chronicConditions && patient.medicalHistory.chronicConditions.length > 0 && (
+                  <div className="space-y-1">
+                    <p className="text-xs font-medium text-neutral-700">Conditions:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {patient.medicalHistory.chronicConditions.slice(0, 2).map((condition: string, index: number) => (
                         <Badge 
-                          variant="secondary"
-                          className={getRiskLevelColor(patient.riskLevel)}
+                          key={index} 
+                          variant="outline" 
+                          className={`text-xs ${getConditionColor(condition)}`}
                         >
-                          {patient.riskLevel.charAt(0).toUpperCase() + patient.riskLevel.slice(1)}
+                          {condition}
                         </Badge>
-                      </td>
-                      <td className="py-4 text-sm text-neutral-600">
-                        {formatDate(patient.updatedAt)}
-                      </td>
-                      <td className="py-4">
-                        <div className="flex items-center space-x-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            className="text-medical-blue hover:text-blue-700"
-                            onClick={() => startConsultation(patient)}
-                          >
-                            <Stethoscope className="h-4 w-4 mr-1" />
-                            Consultation
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            className="text-medical-blue hover:text-blue-700"
-                            onClick={() => onSelectPatient?.(patient)}
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            View
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            className="text-medical-green hover:text-green-700"
-                            onClick={() => window.location.href = `/calendar?patientId=${patient.id}`}
-                          >
-                            <Calendar className="h-4 w-4 mr-1" />
-                            Book
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </CardContent>
-      
-      {/* Consultation Dialog */}
-      <ConsultationDialog
-        open={showConsultation}
-        onOpenChange={setShowConsultation}
-        patient={selectedPatientForConsultation}
-      />
-    </Card>
+                      ))}
+                      {patient.medicalHistory.chronicConditions.length > 2 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{patient.medicalHistory.chronicConditions.length - 2} more
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {patient.lastVisit && (
+                  <div className="flex items-center text-xs text-neutral-500">
+                    <Clock className="h-3 w-3 mr-1" />
+                    Last visit: {formatDistanceToNow(new Date(patient.lastVisit), { addSuffix: true })}
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleViewPatient(patient)}
+                      className="flex-1"
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      View
+                    </Button>
+                    <Button 
+                      size="sm"
+                      onClick={() => handleBookAppointment(patient)}
+                      className="flex-1 bg-medical-blue hover:bg-blue-700"
+                    >
+                      <Calendar className="h-4 w-4 mr-1" />
+                      Book
+                    </Button>
+                  </div>
+                  
+                  <div className="flex gap-1">
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      onClick={() => handleSendReminder(patient.id)}
+                      disabled={sendReminderMutation.isPending}
+                      className="flex-1 text-xs h-7"
+                    >
+                      <Bell className="h-3 w-3 mr-1" />
+                      Remind
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      onClick={() => setLocation(`/patients/${patient.id}/records`)}
+                      className="flex-1 text-xs h-7"
+                    >
+                      <FileText className="h-3 w-3 mr-1" />
+                      Records
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      onClick={() => handleFlagPatient(patient.id, 'follow-up')}
+                      disabled={flagPatientMutation.isPending}
+                      className="flex-1 text-xs h-7"
+                    >
+                      <AlertTriangle className="h-3 w-3 mr-1" />
+                      Flag
+                    </Button>
+                  </div>
+                </div>
+
+                {patient.alerts && patient.alerts.length > 0 && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-2">
+                    <div className="flex items-center text-red-700 text-xs font-medium mb-1">
+                      <AlertTriangle className="h-3 w-3 mr-1" />
+                      Urgent Alerts
+                    </div>
+                    {patient.alerts.slice(0, 2).map((alert: any, index: number) => (
+                      <p key={index} className="text-xs text-red-600">
+                        {alert.message || alert}
+                      </p>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
