@@ -390,7 +390,7 @@ export default function ImagingPage() {
                         </div>
                       </div>
 
-                      {study.images.length > 0 && (
+                      {study.images && study.images.length > 0 && (
                         <div className="mb-4">
                           <h4 className="font-medium text-sm text-gray-700 mb-2">Image Series</h4>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-2">

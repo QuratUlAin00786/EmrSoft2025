@@ -28,7 +28,8 @@ import {
   Smile,
   BarChart3,
   Clock,
-  CheckCircle
+  CheckCircle,
+  Eye
 } from "lucide-react";
 import { FormTemplate } from "./form-builder";
 
