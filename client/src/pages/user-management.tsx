@@ -108,11 +108,7 @@ export default function UserManagement() {
     setShowCreateModal(true);
   };
 
-  const handleDeleteUser = async (userId: number) => {
-    if (window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
-      deleteUserMutation.mutate(userId);
-    }
-  };
+
 
   const handleCreateUser = () => {
     setEditingUser(null);
@@ -181,9 +177,7 @@ export default function UserManagement() {
     );
   }
 
-  const handleCreateUser = (data: CreateUserData) => {
-    createUserMutation.mutate(data);
-  };
+
 
   const handleDeleteUser = (userId: number) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
