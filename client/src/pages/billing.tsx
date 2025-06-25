@@ -210,7 +210,7 @@ export default function BillingPage() {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [activeTab, setActiveTab] = useState("invoices");
 
-  const { data: invoices = mockInvoices, isLoading } = useQuery({
+  const { data: invoices = mockInvoices, isLoading: invoicesLoading } = useQuery({
     queryKey: ["/api/billing/invoices", statusFilter],
     enabled: true,
   });
@@ -261,7 +261,7 @@ export default function BillingPage() {
     return invoices.reduce((sum, invoice) => sum + (invoice.totalAmount - invoice.paidAmount), 0);
   };
 
-  if (isLoading) {
+  if (invoicesLoading) {
     return (
       <div className="space-y-6">
         {[1, 2, 3].map(i => (
