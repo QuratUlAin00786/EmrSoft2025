@@ -266,6 +266,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                             variant="ghost" 
                             size="sm"
                             className="text-medical-blue hover:text-blue-700"
+                            onClick={() => onSelectPatient?.(patient)}
                           >
                             <Eye className="h-4 w-4 mr-1" />
                             View
@@ -274,6 +275,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                             variant="ghost" 
                             size="sm"
                             className="text-medical-green hover:text-green-700"
+                            onClick={() => window.location.href = `/calendar?patientId=${patient.id}`}
                           >
                             <Calendar className="h-4 w-4 mr-1" />
                             Book

@@ -4,9 +4,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -28,6 +30,18 @@ const patientSchema = z.object({
     state: z.string().optional(),
     postcode: z.string().optional(),
     country: z.string().optional()
+  }).optional(),
+  insuranceInfo: z.object({
+    provider: z.string().optional(),
+    policyNumber: z.string().optional(),
+    groupNumber: z.string().optional(),
+    memberNumber: z.string().optional(),
+    planType: z.string().optional(),
+    effectiveDate: z.string().optional(),
+    expirationDate: z.string().optional(),
+    copay: z.number().optional(),
+    deductible: z.number().optional(),
+    isActive: z.boolean().optional()
   }).optional(),
   emergencyContact: z.object({
     name: z.string().optional(),
@@ -69,6 +83,18 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
         state: "",
         postcode: "",
         country: tenant?.region === "UK" ? "United Kingdom" : ""
+      },
+      insuranceInfo: {
+        provider: "",
+        policyNumber: "",
+        groupNumber: "",
+        memberNumber: "",
+        planType: "",
+        effectiveDate: "",
+        expirationDate: "",
+        copay: 0,
+        deductible: 0,
+        isActive: true
       },
       emergencyContact: {
         name: "",
@@ -277,13 +303,286 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
                           <FormItem>
                             <FormLabel>NHS Number</FormLabel>
                             <FormControl>
-                              <Input {...field} placeholder="xxx xxx xxxx" />
+                              <Input {...field} placeholder="000 000 0000" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                     )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Health Insurance Information */}
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="text-lg font-semibold mb-4">Health Insurance Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="insuranceInfo.provider"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Insurance Provider</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select insurance provider" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="nhs">NHS (National Health Service)</SelectItem>
+                              <SelectItem value="bupa">Bupa</SelectItem>
+                              <SelectItem value="axa-ppp">AXA PPP Healthcare</SelectItem>
+                              <SelectItem value="vitality">Vitality Health</SelectItem>
+                              <SelectItem value="aviva">Aviva Health</SelectItem>
+                              <SelectItem value="simply-health">Simply Health</SelectItem>
+                              <SelectItem value="wpa">WPA</SelectItem>
+                              <SelectItem value="benenden">Benenden Health</SelectItem>
+                              <SelectItem value="healix">Healix Health Services</SelectItem>
+                              <SelectItem value="sovereign">Sovereign Health Care</SelectItem>
+                              <SelectItem value="exeter-friendly">Exeter Friendly Society</SelectItem>
+                              <SelectItem value="self-pay">Self-Pay</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="insuranceInfo.planType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Plan Type</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select plan type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="comprehensive">Comprehensive</SelectItem>
+                              <SelectItem value="standard">Standard</SelectItem>
+                              <SelectItem value="basic">Basic</SelectItem>
+                              <SelectItem value="dental-only">Dental Only</SelectItem>
+                              <SelectItem value="optical-only">Optical Only</SelectItem>
+                              <SelectItem value="mental-health">Mental Health</SelectItem>
+                              <SelectItem value="maternity">Maternity</SelectItem>
+                              <SelectItem value="specialist">Specialist</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="insuranceInfo.policyNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Policy Number</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter policy number" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="insuranceInfo.memberNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Member Number</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter member number" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="insuranceInfo.groupNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Group Number</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter group number" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="insuranceInfo.effectiveDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Effective Date</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="insuranceInfo.expirationDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Expiration Date</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="insuranceInfo.copay"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Copay Amount (£)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              {...field} 
+                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                              placeholder="0" 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="insuranceInfo.deductible"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Deductible Amount (£)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              {...field} 
+                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                              placeholder="0" 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="insuranceInfo.isActive"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>Insurance Active</FormLabel>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Address Information */}
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="text-lg font-semibold mb-4">Address Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="address.street"
+                      render={({ field }) => (
+                        <FormItem className="md:col-span-2">
+                          <FormLabel>Street Address</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter street address" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="address.city"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>City</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter city" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="address.state"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>State/County</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter state or county" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="address.postcode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Postcode</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter postcode" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="address.country"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Country</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter country" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
                 </CardContent>
               </Card>

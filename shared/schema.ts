@@ -57,6 +57,13 @@ export const patients = pgTable("patients", {
     provider?: string;
     policyNumber?: string;
     groupNumber?: string;
+    memberNumber?: string;
+    planType?: string;
+    effectiveDate?: string;
+    expirationDate?: string;
+    copay?: number;
+    deductible?: number;
+    isActive?: boolean;
   }>().default({}),
   emergencyContact: jsonb("emergency_contact").$type<{
     name?: string;
