@@ -35,7 +35,19 @@ export default function Patients() {
           </Button>
         </div>
 
-        <PatientList />
+        <PatientList onSelectPatient={setSelectedPatient} />
+        
+        {selectedPatient && (
+          <div className="grid gap-6 lg:grid-cols-2 mt-6">
+            <ConsultationNotes patientId={selectedPatient.id} />
+            <PatientFamilyHistory 
+              patient={selectedPatient} 
+              onUpdate={(updates) => {
+                setSelectedPatient({ ...selectedPatient, ...updates });
+              }} 
+            />
+          </div>
+        )}
       </div>
 
       <PatientModal 
