@@ -58,11 +58,10 @@ function LoginScreen() {
           <div className="flex flex-col items-center text-center mb-6">
             <img 
               src={haloLogoPath} 
-              alt="Halo Health" 
+              alt="EMR Logo" 
               className="h-20 w-auto mb-3"
             />
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Halo Health</h1>
               <p className="text-sm text-gray-500 mt-1">EMR, UK Healthcare</p>
             </div>
           </div>

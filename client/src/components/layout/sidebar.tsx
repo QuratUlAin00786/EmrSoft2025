@@ -60,11 +60,10 @@ export function Sidebar() {
         <div className="flex flex-col items-center text-center">
           <img 
             src={haloLogoPath} 
-            alt="Halo Health" 
+            alt="EMR Logo" 
             className="h-16 w-auto mb-2"
           />
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Halo Health</h1>
             <p className="text-xs text-gray-500 mt-1">EMR, UK Healthcare</p>
           </div>
         </div>

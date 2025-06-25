@@ -67,6 +67,7 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showAiInsights, setShowAiInsights] = useState(false);
+  const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
 
   const form = useForm<PatientFormData>({
     resolver: zodResolver(patientSchema),
@@ -151,6 +152,32 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
     onOpenChange(false);
     form.reset();
     setShowAiInsights(false);
+    setAddressSuggestions([]);
+  };
+
+  const handlePostcodeLookup = async (postcode: string) => {
+    if (!postcode || postcode.length < 5) return;
+    
+    try {
+      // Using a free UK postcode API for address lookup
+      const response = await fetch(`https://api.postcodes.io/postcodes/${postcode.replace(/\s+/g, '')}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.result) {
+          // Auto-fill address fields
+          form.setValue('address.city', data.result.admin_district || '');
+          form.setValue('address.state', data.result.admin_county || '');
+          form.setValue('address.country', 'United Kingdom');
+          
+          toast({
+            title: "Address found",
+            description: `Location: ${data.result.admin_district}, ${data.result.admin_county}`,
+          });
+        }
+      }
+    } catch (error) {
+      console.log('Postcode lookup not available');
+    }
   };
 
   return (
@@ -404,6 +431,38 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
+                      name="address.postcode"
+                      render={({ field }) => (
+                        <FormItem className="md:col-span-2">
+                          <FormLabel>Postcode (Auto-lookup)</FormLabel>
+                          <FormControl>
+                            <div className="flex gap-2">
+                              <Input 
+                                {...field} 
+                                placeholder="Enter postcode (e.g., SW1A 1AA)"
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  handlePostcodeLookup(e.target.value);
+                                }}
+                              />
+                              <Button 
+                                type="button" 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handlePostcodeLookup(field.value)}
+                                disabled={!field.value || field.value.length < 5}
+                              >
+                                Lookup
+                              </Button>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
                       name="address.street"
                       render={({ field }) => (
                         <FormItem className="md:col-span-2">
@@ -421,7 +480,7 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
                       name="address.city"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>City</FormLabel>
+                          <FormLabel>City/Town</FormLabel>
                           <FormControl>
                             <Input {...field} placeholder="Enter city" />
                           </FormControl>
@@ -432,13 +491,39 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
 
                     <FormField
                       control={form.control}
-                      name="address.postcode"
+                      name="address.state"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Postcode</FormLabel>
+                          <FormLabel>County/State</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="Enter postcode" />
+                            <Input {...field} placeholder="Enter county" />
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="address.country"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Country</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select country" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="United Kingdom">United Kingdom</SelectItem>
+                              <SelectItem value="Ireland">Ireland</SelectItem>
+                              <SelectItem value="United States">United States</SelectItem>
+                              <SelectItem value="Canada">Canada</SelectItem>
+                              <SelectItem value="Australia">Australia</SelectItem>
+                              <SelectItem value="Other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
