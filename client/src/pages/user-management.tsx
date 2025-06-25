@@ -94,19 +94,7 @@ export default function UserManagement() {
     },
   });
 
-  const handleEditUser = (user: User) => {
-    setEditingUser(user);
-    form.reset({
-      email: user.email,
-      username: user.username,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      role: user.role,
-      department: user.department || "",
-      password: ""
-    });
-    setShowCreateModal(true);
-  };
+
 
 
 
@@ -185,10 +173,7 @@ export default function UserManagement() {
     }
   };
 
-  const handleEditUser = (user: User) => {
-    console.log('Edit user:', user);
-    // Implementation for edit modal would go here
-  };
+
 
   return (
     <>
@@ -448,7 +433,19 @@ export default function UserManagement() {
                                 variant="link" 
                                 size="sm" 
                                 className="text-medical-blue hover:text-blue-700"
-                                onClick={() => handleEditUser(user)}
+                                onClick={() => {
+                                  setEditingUser(user);
+                                  form.reset({
+                                    email: user.email,
+                                    username: user.username,
+                                    firstName: user.firstName,
+                                    lastName: user.lastName,
+                                    role: user.role,
+                                    department: user.department || "",
+                                    password: ""
+                                  });
+                                  setShowCreateModal(true);
+                                }}
                               >
                                 Edit
                               </Button>
@@ -456,7 +453,11 @@ export default function UserManagement() {
                                 variant="link" 
                                 size="sm" 
                                 className="text-red-600 hover:text-red-700"
-                                onClick={() => handleDeleteUser(user.id)}
+                                onClick={() => {
+                                  if (window.confirm("Are you sure you want to delete this user?")) {
+                                    deleteUserMutation.mutate(user.id);
+                                  }
+                                }}
                                 disabled={deleteUserMutation.isPending}
                               >
                                 {user.isActive ? "Deactivate" : "Activate"}
