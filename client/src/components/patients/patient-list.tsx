@@ -58,7 +58,11 @@ function getConditionColor(condition?: string) {
   return "bg-gray-100 text-gray-800";
 }
 
-export function PatientList() {
+interface PatientListProps {
+  onSelectPatient?: (patient: any) => void;
+}
+
+export function PatientList({ onSelectPatient }: PatientListProps = {}) {
   const [searchQuery, setSearchQuery] = useState("");
   
   const { data: patients, isLoading, error } = useQuery<Patient[]>({

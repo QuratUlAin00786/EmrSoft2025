@@ -5,6 +5,7 @@ import { RecentPatients } from "@/components/dashboard/recent-patients";
 import { SchedulePanel } from "@/components/dashboard/schedule-panel";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { SubscriptionStatus } from "@/components/dashboard/subscription-status";
+import AppointmentCalendar from "@/components/calendar/appointment-calendar";
 import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
 import { PatientModal } from "@/components/patients/patient-modal";
@@ -48,14 +49,14 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content - 2 columns */}
           <div className="lg:col-span-2 space-y-6">
-            <AiInsightsPanel />
+            <AppointmentCalendar />
             <RecentPatients />
           </div>
 
           {/* Sidebar - 1 column */}
           <div className="space-y-6">
-            <SchedulePanel />
             <QuickActions onAction={handleQuickAction} />
+            <AiInsightsPanel />
             {user?.role === "admin" && <SubscriptionStatus />}
           </div>
         </div>

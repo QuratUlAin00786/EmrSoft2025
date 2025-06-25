@@ -9,6 +9,7 @@ import { UserPlus } from "lucide-react";
 
 export default function Patients() {
   const [showPatientModal, setShowPatientModal] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState<any>(null);
 
   return (
     <>

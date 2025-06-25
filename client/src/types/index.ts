@@ -32,22 +32,39 @@ export interface Patient {
   email?: string;
   phone?: string;
   nhsNumber?: string;
-  address: {
+  address?: {
     street?: string;
     city?: string;
     state?: string;
     postcode?: string;
     country?: string;
   };
-  emergencyContact: {
+  emergencyContact?: {
     name?: string;
     relationship?: string;
     phone?: string;
   };
-  medicalHistory: {
+  medicalHistory?: {
     allergies?: string[];
     chronicConditions?: string[];
     medications?: string[];
+    familyHistory?: {
+      father?: string[];
+      mother?: string[];
+      siblings?: string[];
+      grandparents?: string[];
+    };
+    socialHistory?: {
+      smoking?: string;
+      alcohol?: string;
+      occupation?: string;
+      maritalStatus?: string;
+    };
+    immunizations?: Array<{
+      vaccine: string;
+      date: string;
+      provider: string;
+    }>;
   };
   riskLevel: "low" | "medium" | "high";
   isActive: boolean;
