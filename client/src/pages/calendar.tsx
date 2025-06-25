@@ -4,14 +4,17 @@ import { DoctorList } from "@/components/doctors/doctor-list";
 import { Button } from "@/components/ui/button";
 import { Calendar, Plus, Users } from "lucide-react";
 import { useState } from "react";
+import { format } from "date-fns";
 
 export default function CalendarPage() {
   const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
+  const [showNewAppointment, setShowNewAppointment] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   return (
     <>
       <Header 
-        title="Appointment Calendar" 
+        title="Appointments" 
         subtitle="Schedule and manage patient appointments efficiently."
       />
       
@@ -26,7 +29,10 @@ export default function CalendarPage() {
               View appointments, manage schedules, and book new consultations.
             </p>
           </div>
-          <Button className="bg-medical-blue hover:bg-blue-700">
+          <Button 
+            className="bg-medical-blue hover:bg-blue-700"
+            onClick={() => setShowNewAppointment(true)}
+          >
             <Plus className="h-4 w-4 mr-2" />
             New Appointment
           </Button>

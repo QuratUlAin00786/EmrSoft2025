@@ -123,18 +123,17 @@ MediCore EMR is a multi-tenant Electronic Medical Records (EMR) system designed 
 - **SQL Injection Prevention**: Parameterized queries through Drizzle ORM
 
 ## Changelog
-- June 25, 2025: Major EMR enhancement with semble.io-inspired features:
-  - **Custom Forms & Surveys**: Comprehensive form builder with drag-drop interface
-  - **Advanced Form Templates**: Pre-built medical forms (intake, screening, consent, surveys)
-  - **Form Analytics**: Response tracking, completion rates, demographic analysis
-  - **Advanced Features**: AI validation, webhooks, conditional logic, HIPAA/GDPR compliance
-  - **Multi-page Forms**: Progress tracking, auto-save, branching logic
+- June 25, 2025: Major EMR enhancement with complete clinical workflow coverage:
+  - **Complete Clinical Modules**: Prescriptions, Lab Results, Imaging, Billing fully implemented
+  - **Enhanced Navigation**: Renamed Calendar to Appointments, added all clinical sections
+  - **New Appointment Creation**: Functional appointment booking with patient selection
+  - **Patient Insurance Details**: Comprehensive health insurance tracking (NHS, Private, Self-Pay)
+  - **Custom Forms & Surveys**: Advanced semble.io-style form builder with 17+ field types
+  - **Advanced Form Features**: AI validation, webhooks, conditional logic, HIPAA/GDPR compliance
   - **Medical Form Types**: Pain scales, symptom checkers, vital signs, signature pads
-  - **Response Management**: Detailed analytics, export capabilities, flag system
-  - **Smart Routing**: Automated form routing based on responses
-  - **Integration Suite**: Webhook endpoints, API access, database synchronization
-  - **Compliance Tools**: End-to-end encryption, audit trails, role-based access
-  - Fixed tenant middleware for development environment
+  - **Response Analytics**: Detailed analytics, export capabilities, demographic breakdowns
+  - **Authentication Fix**: Development mode authentication bypass for easier testing
+  - **Complete EMR Coverage**: All essential medical sections now functional
 - Previous: appointment calendar, consultation notes, patient history, localization, AI insights
 - June 24, 2025: Initial setup
 

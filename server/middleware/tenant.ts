@@ -76,6 +76,18 @@ export async function tenantMiddleware(req: TenantRequest, res: Response, next: 
 
 export async function authMiddleware(req: TenantRequest, res: Response, next: NextFunction) {
   try {
+    // Skip authentication in development mode for easier testing
+    if (process.env.NODE_ENV === "development") {
+      // Create a mock user for development
+      req.user = {
+        id: 1,
+        email: "demo@demo.com",
+        role: "admin",
+        organizationId: req.tenant?.id || 1
+      };
+      return next();
+    }
+
     const token = authService.extractTokenFromHeader(req.get("Authorization"));
     
     if (!token) {
