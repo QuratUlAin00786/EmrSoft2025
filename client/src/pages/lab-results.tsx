@@ -45,7 +45,26 @@ interface LabResult {
   criticalValues?: boolean;
 }
 
-const mockLabResults: LabResult[] = [
+export default function LabResultsPage() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [showNewOrder, setShowNewOrder] = useState(false);
+
+  const { data: labResults = [], isLoading, error } = useQuery<LabResult[]>({
+    queryKey: ["/api/lab-results"],
+  });
+
+  const filteredResults = labResults.filter(result => {
+    const matchesSearch = searchQuery === "" || 
+      result.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      result.testType.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" || result.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  const mockLabResults: LabResult[] = [
   {
     id: "lab_001",
     patientId: "p_001",

@@ -58,7 +58,43 @@ interface Prescription {
   }>;
 }
 
-const mockPrescriptions: Prescription[] = [
+export default function PrescriptionsPage() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [showNewPrescription, setShowNewPrescription] = useState(false);
+  const queryClient = useQueryClient();
+
+  const { data: prescriptions = [], isLoading, error } = useQuery<Prescription[]>({
+    queryKey: ["/api/prescriptions"],
+  });
+
+  const createPrescriptionMutation = useMutation({
+    mutationFn: async (prescriptionData: any) => {
+      const response = await fetch("/api/prescriptions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(prescriptionData),
+      });
+      if (!response.ok) throw new Error("Failed to create prescription");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/prescriptions"] });
+      setShowNewPrescription(false);
+    },
+  });
+
+  const filteredPrescriptions = prescriptions.filter(prescription => {
+    const matchesSearch = searchQuery === "" || 
+      prescription.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      prescription.medications.some(med => med.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    const matchesStatus = statusFilter === "all" || prescription.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  const mockPrescriptions: Prescription[] = [
   {
     id: "rx_001",
     patientId: "p_001",
