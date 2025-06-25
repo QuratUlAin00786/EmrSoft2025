@@ -64,6 +64,7 @@ export default function UserManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const queryClient = useQueryClient();
 
   const { data: users, isLoading, error } = useQuery<User[]>({
@@ -72,14 +73,52 @@ export default function UserManagement() {
 
   const createUserMutation = useMutation({
     mutationFn: async (userData: CreateUserData) => {
-      return apiRequest('POST', '/api/users', userData);
+      const endpoint = editingUser ? `/api/users/${editingUser.id}` : "/api/users";
+      const method = editingUser ? "PUT" : "POST";
+      return apiRequest(method, endpoint, userData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
       setShowCreateModal(false);
+      setEditingUser(null);
       form.reset();
     }
   });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      return apiRequest('DELETE', `/api/users/${userId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+    },
+  });
+
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    form.reset({
+      email: user.email,
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      department: user.department || "",
+      password: ""
+    });
+    setShowCreateModal(true);
+  };
+
+  const handleDeleteUser = async (userId: number) => {
+    if (window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
+      deleteUserMutation.mutate(userId);
+    }
+  };
+
+  const handleCreateUser = () => {
+    setEditingUser(null);
+    form.reset();
+    setShowCreateModal(true);
+  };
 
   const form = useForm<CreateUserData>({
     resolver: zodResolver(createUserSchema),

@@ -443,8 +443,14 @@ export default function ImagingPage() {
                       <Button variant="outline" size="sm" onClick={() => setSelectedStudy(study)}>
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => console.log('Download study:', study.id)}>
                         <Download className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => console.log('Share study:', study.id)}>
+                        <Share className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => console.log('Generate report:', study.id)}>
+                        <FileText className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>

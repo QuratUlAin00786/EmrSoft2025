@@ -62,6 +62,41 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({ searchType: 'all' });
   const [filteredPatients, setFilteredPatients] = useState<any[]>([]);
 
+  const handleViewPatient = (patient: any) => {
+    console.log('Viewing patient:', patient.firstName, patient.lastName);
+    if (onSelectPatient) {
+      onSelectPatient(patient);
+    }
+    toast({
+      title: "Patient Profile",
+      description: `Opening profile for ${patient.firstName} ${patient.lastName}`,
+    });
+  };
+
+  const handleBookAppointment = (patient: any) => {
+    console.log('Book appointment with', patient.firstName, patient.lastName);
+    toast({
+      title: "Appointment Booking",
+      description: `Opening appointment scheduler for ${patient.firstName} ${patient.lastName}`,
+    });
+  };
+
+  const handleRemindPatient = (patient: any) => {
+    sendReminderMutation.mutate(patient.id);
+  };
+
+  const handleViewRecords = (patient: any) => {
+    console.log('View records for:', patient.firstName, patient.lastName);
+    toast({
+      title: "Medical Records",
+      description: `Opening medical records for ${patient.firstName} ${patient.lastName}`,
+    });
+  };
+
+  const handleFlagPatient = (patient: any) => {
+    flagPatientMutation.mutate(patient.id);
+  };
+
   const { data: patients, isLoading, error } = useQuery({
     queryKey: ["/api/patients"],
     queryFn: () => fetch("/api/patients").then(res => res.json())

@@ -525,20 +525,20 @@ export default function PrescriptionsPage() {
                       </div>
                       
                       <div className="flex gap-2 ml-4">
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={() => handleViewPrescription(prescription)}>
                           <Eye className="h-4 w-4 mr-1" />
                           View
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={() => handlePrintPrescription(prescription.id)}>
                           <Printer className="h-4 w-4 mr-1" />
                           Print
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={() => handleSendToPharmacy(prescription.id)}>
                           <Send className="h-4 w-4 mr-1" />
                           Send to Pharmacy
                         </Button>
                         {prescription.status === 'active' && (
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => handleEditPrescription(prescription)}>
                             <Edit className="h-4 w-4 mr-1" />
                             Edit
                           </Button>
