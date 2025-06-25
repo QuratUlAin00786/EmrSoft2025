@@ -58,15 +58,7 @@ interface Prescription {
   }>;
 }
 
-export default function PrescriptionsPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [showNewPrescription, setShowNewPrescription] = useState(false);
-  const queryClient = useQueryClient();
-
-  const { data: prescriptions = [], isLoading, error } = useQuery<Prescription[]>({
-    queryKey: ["/api/prescriptions"],
-  });
+// Mock data removed - will use API data
 
   const createPrescriptionMutation = useMutation({
     mutationFn: async (prescriptionData: any) => {
@@ -185,7 +177,7 @@ const getSeverityColor = (severity: string) => {
   }
 };
 
-function PrescriptionsPage() {
+export default function PrescriptionsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
@@ -532,5 +524,3 @@ function PrescriptionsPage() {
     </>
   );
 }
-
-export default PrescriptionsPage;

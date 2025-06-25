@@ -159,18 +159,15 @@ export default function ImagingPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showNewOrder, setShowNewOrder] = useState(false);
 
-  const { data: imagingStudies = [], isLoading, error } = useQuery({
-    queryKey: ["/api/imaging"],
-  });
   const [modalityFilter, setModalityFilter] = useState<string>("all");
   const [selectedStudy, setSelectedStudy] = useState<ImagingStudy | null>(null);
 
-  const { data: imagingStudies = mockImagingStudies, isLoading } = useQuery({
+  const { data: studies = mockImagingStudies, isLoading } = useQuery({
     queryKey: ["/api/imaging", statusFilter, modalityFilter],
     enabled: true,
   });
 
-  const filteredStudies = imagingStudies.filter(study => {
+  const filteredStudies = studies.filter(study => {
     const matchesSearch = !searchQuery || 
       study.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       study.studyType.toLowerCase().includes(searchQuery.toLowerCase()) ||
