@@ -21,13 +21,31 @@ export interface TenantRequest extends Request {
 export async function tenantMiddleware(req: TenantRequest, res: Response, next: NextFunction) {
   try {
     // Extract tenant from subdomain or header
-    const subdomain = req.get("X-Tenant-Subdomain") || extractSubdomainFromHost(req.get("host"));
+    let subdomain = req.get("X-Tenant-Subdomain") || extractSubdomainFromHost(req.get("host"));
+    
+    // Default to demo for development when no subdomain is found
+    if (!subdomain && process.env.NODE_ENV === "development") {
+      subdomain = "demo";
+    }
     
     if (!subdomain) {
       return res.status(400).json({ error: "Tenant subdomain required" });
     }
 
-    const organization = await storage.getOrganizationBySubdomain(subdomain);
+    let organization = await storage.getOrganizationBySubdomain(subdomain);
+    
+    // For development, try to get any organization if demo not found
+    if (!organization && process.env.NODE_ENV === "development") {
+      try {
+        const { organizations } = await import("@shared/schema");
+        const { db } = await import("../db");
+        const orgs = await db.select().from(organizations).limit(1);
+        organization = orgs[0];
+      } catch (error) {
+        console.log("Error fetching fallback organization:", error);
+      }
+    }
+    
     if (!organization) {
       return res.status(404).json({ error: "Organization not found" });
     }

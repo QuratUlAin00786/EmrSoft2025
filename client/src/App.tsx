@@ -26,6 +26,8 @@ function ProtectedApp() {
         <Switch>
           <Route path="/" component={Dashboard} />
           <Route path="/patients" component={Patients} />
+          <Route path="/calendar" component={CalendarPage} />
+          <Route path="/forms" component={FormsPage} />
           <Route path="/ai-insights" component={AiInsights} />
           <Route path="/users" component={UserManagement} />
           <Route path="/subscription" component={Subscription} />
