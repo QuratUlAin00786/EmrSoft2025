@@ -189,16 +189,7 @@ const testCategories = [
   "Toxicology"
 ];
 
-function LabResultsPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [categoryFilter, setCategoryFilter] = useState<string>("All Tests");
-  const [selectedResult, setSelectedResult] = useState<LabResult | null>(null);
-
-  const { data: labResults = mockLabResults, isLoading } = useQuery({
-    queryKey: ["/api/lab-results", statusFilter, categoryFilter],
-    enabled: true,
-  });
+// Removed duplicate function declaration
 
   const filteredResults = labResults.filter(result => {
     const matchesSearch = !searchQuery || 
@@ -465,5 +456,3 @@ function LabResultsPage() {
     </>
   );
 }
-
-export default LabResultsPage;
