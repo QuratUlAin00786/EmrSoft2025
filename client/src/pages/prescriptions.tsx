@@ -94,6 +94,10 @@ export default function PrescriptionsPage() {
     return matchesSearch && matchesStatus;
   });
 
+  const handleCreatePrescription = (formData: any) => {
+    createPrescriptionMutation.mutate(formData);
+  };
+
   const mockPrescriptions: Prescription[] = [
   {
     id: "rx_001",
@@ -161,6 +165,10 @@ export default function PrescriptionsPage() {
     ]
   }
 ];
+
+const handleCreatePrescription = (formData: any) => {
+  // This will be handled by the mutation
+};
 
 export default function PrescriptionsPage() {
   const [searchQuery, setSearchQuery] = useState("");

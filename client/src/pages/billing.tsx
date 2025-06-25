@@ -202,6 +202,11 @@ const mockInvoices: Invoice[] = [
 export default function BillingPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [showNewInvoice, setShowNewInvoice] = useState(false);
+
+  const { data: billingData = [], isLoading, error } = useQuery({
+    queryKey: ["/api/billing"],
+  });
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [activeTab, setActiveTab] = useState("invoices");
 

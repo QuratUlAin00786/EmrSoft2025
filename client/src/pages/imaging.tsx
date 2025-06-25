@@ -157,6 +157,11 @@ const mockImagingStudies: ImagingStudy[] = [
 export default function ImagingPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [showNewOrder, setShowNewOrder] = useState(false);
+
+  const { data: imagingStudies = [], isLoading, error } = useQuery({
+    queryKey: ["/api/imaging"],
+  });
   const [modalityFilter, setModalityFilter] = useState<string>("all");
   const [selectedStudy, setSelectedStudy] = useState<ImagingStudy | null>(null);
 

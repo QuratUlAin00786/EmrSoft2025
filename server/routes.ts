@@ -436,6 +436,284 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Prescription Management Routes
+  app.get("/api/prescriptions", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      // Mock prescription data for now - replace with actual database queries
+      const prescriptions = [
+        {
+          id: "rx_001",
+          patientId: "p_001",
+          patientName: "Sarah Johnson",
+          providerId: req.user.id,
+          providerName: "Dr. Sarah Smith",
+          medications: [
+            {
+              name: "Lisinopril",
+              dosage: "10mg",
+              frequency: "Once daily",
+              duration: "30 days",
+              quantity: 30,
+              refills: 5,
+              instructions: "Take with or without food. Monitor blood pressure.",
+              genericAllowed: true
+            }
+          ],
+          diagnosis: "Hypertension",
+          status: "active",
+          prescribedAt: new Date().toISOString(),
+          pharmacy: {
+            name: "City Pharmacy",
+            address: "123 Main St, London",
+            phone: "+44 20 7946 0958"
+          }
+        }
+      ];
+
+      res.json(prescriptions);
+    } catch (error) {
+      console.error("Error fetching prescriptions:", error);
+      res.status(500).json({ error: "Failed to fetch prescriptions" });
+    }
+  });
+
+  app.post("/api/prescriptions", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const prescriptionData = req.body;
+      
+      // Create new prescription - replace with actual database insertion
+      const newPrescription = {
+        id: `rx_${Date.now()}`,
+        ...prescriptionData,
+        providerId: req.user.id,
+        prescribedAt: new Date().toISOString(),
+        status: "active"
+      };
+
+      res.status(201).json(newPrescription);
+    } catch (error) {
+      console.error("Error creating prescription:", error);
+      res.status(500).json({ error: "Failed to create prescription" });
+    }
+  });
+
+  // Lab Results Routes
+  app.get("/api/lab-results", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      // Mock lab results data
+      const labResults = [
+        {
+          id: "lab_001",
+          patientId: "p_001",
+          patientName: "Sarah Johnson",
+          testType: "Complete Blood Count (CBC)",
+          orderedBy: "Dr. Sarah Smith",
+          orderedAt: "2024-01-15T09:00:00Z",
+          collectedAt: "2024-01-15T10:30:00Z",
+          completedAt: "2024-01-15T14:45:00Z",
+          status: "completed",
+          results: [
+            {
+              name: "White Blood Cells",
+              value: "7.2",
+              unit: "×10³/µL",
+              referenceRange: "4.0-11.0",
+              status: "normal"
+            },
+            {
+              name: "Hemoglobin",
+              value: "13.5",
+              unit: "g/dL",
+              referenceRange: "12.0-15.5",
+              status: "normal"
+            }
+          ]
+        }
+      ];
+
+      res.json(labResults);
+    } catch (error) {
+      console.error("Error fetching lab results:", error);
+      res.status(500).json({ error: "Failed to fetch lab results" });
+    }
+  });
+
+  app.post("/api/lab-results", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const labData = req.body;
+      
+      const newLabResult = {
+        id: `lab_${Date.now()}`,
+        ...labData,
+        orderedBy: req.user.email,
+        orderedAt: new Date().toISOString(),
+        status: "pending"
+      };
+
+      res.status(201).json(newLabResult);
+    } catch (error) {
+      console.error("Error creating lab order:", error);
+      res.status(500).json({ error: "Failed to create lab order" });
+    }
+  });
+
+  // Imaging Routes
+  app.get("/api/imaging", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const imagingStudies = [
+        {
+          id: "img_001",
+          patientId: "p_001",
+          patientName: "Sarah Johnson",
+          studyType: "Chest X-Ray",
+          modality: "XR",
+          orderedBy: "Dr. Sarah Smith",
+          orderedAt: "2024-01-15T09:00:00Z",
+          scheduledAt: "2024-01-16T14:00:00Z",
+          completedAt: "2024-01-16T14:30:00Z",
+          status: "completed",
+          findings: "No acute cardiopulmonary abnormalities identified.",
+          impression: "Normal chest radiograph",
+          radiologist: "Dr. Michael Johnson",
+          priority: "routine"
+        }
+      ];
+
+      res.json(imagingStudies);
+    } catch (error) {
+      console.error("Error fetching imaging studies:", error);
+      res.status(500).json({ error: "Failed to fetch imaging studies" });
+    }
+  });
+
+  // Billing Routes
+  app.get("/api/billing", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const billingData = [
+        {
+          id: "bill_001",
+          patientId: "p_001",
+          patientName: "Sarah Johnson",
+          appointmentId: "apt_001",
+          serviceDate: "2024-01-15T10:00:00Z",
+          services: [
+            {
+              code: "99213",
+              description: "Office visit - Established patient",
+              quantity: 1,
+              unitPrice: 150.00,
+              total: 150.00
+            }
+          ],
+          subtotal: 150.00,
+          tax: 0.00,
+          total: 150.00,
+          status: "pending",
+          dueDate: "2024-02-15T00:00:00Z",
+          insuranceClaim: {
+            provider: "NHS",
+            claimNumber: "NHS123456",
+            status: "submitted",
+            coveredAmount: 150.00
+          }
+        }
+      ];
+
+      res.json(billingData);
+    } catch (error) {
+      console.error("Error fetching billing data:", error);
+      res.status(500).json({ error: "Failed to fetch billing data" });
+    }
+  });
+
+  // Forms Routes
+  app.get("/api/forms", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const forms = [
+        {
+          id: "form_001",
+          title: "Patient Intake Form",
+          description: "Comprehensive new patient registration",
+          category: "intake",
+          status: "published",
+          fields: [
+            {
+              id: "1",
+              type: "text",
+              label: "Full Name",
+              required: true
+            },
+            {
+              id: "2",
+              type: "email",
+              label: "Email Address",
+              required: true
+            }
+          ],
+          createdAt: new Date().toISOString(),
+          responses: 45
+        }
+      ];
+
+      res.json(forms);
+    } catch (error) {
+      console.error("Error fetching forms:", error);
+      res.status(500).json({ error: "Failed to fetch forms" });
+    }
+  });
+
+  app.post("/api/forms", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const formData = req.body;
+      
+      const newForm = {
+        id: `form_${Date.now()}`,
+        ...formData,
+        createdBy: req.user.id,
+        createdAt: new Date().toISOString(),
+        status: "draft",
+        responses: 0
+      };
+
+      res.status(201).json(newForm);
+    } catch (error) {
+      console.error("Error creating form:", error);
+      res.status(500).json({ error: "Failed to create form" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
