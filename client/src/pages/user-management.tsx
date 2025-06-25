@@ -142,6 +142,21 @@ export default function UserManagement() {
     );
   }
 
+  const handleCreateUser = (data: CreateUserData) => {
+    createUserMutation.mutate(data);
+  };
+
+  const handleDeleteUser = (userId: number) => {
+    if (window.confirm('Are you sure you want to delete this user?')) {
+      deleteUserMutation.mutate(userId);
+    }
+  };
+
+  const handleEditUser = (user: User) => {
+    console.log('Edit user:', user);
+    // Implementation for edit modal would go here
+  };
+
   return (
     <>
       <Header 

@@ -122,6 +122,36 @@ export default function FormsPage() {
     }));
   };
 
+  const handleDuplicateForm = (form: FormTemplate) => {
+    const duplicatedForm = {
+      ...form,
+      id: `form_${Date.now()}`,
+      title: `${form.title} (Copy)`,
+      isActive: false
+    };
+    console.log('Duplicating form:', duplicatedForm);
+  };
+
+  const handleShareForm = (form: FormTemplate) => {
+    const shareUrl = `${window.location.origin}/forms/share/${form.id}`;
+    navigator.clipboard.writeText(shareUrl);
+    console.log('Form shared:', shareUrl);
+  };
+
+  const handleDeleteForm = (formId: string) => {
+    if (window.confirm('Are you sure you want to delete this form?')) {
+      console.log('Deleting form:', formId);
+    }
+  };
+
+  const handlePreviewForm = (form: FormTemplate) => {
+    setState(prev => ({
+      ...prev,
+      activeTab: 'preview',
+      previewForm: form
+    }));
+  };
+
   const getStatusColor = (form: FormTemplate) => {
     if (!form.isActive) return "bg-gray-100 text-gray-800";
     return "bg-green-100 text-green-800";
