@@ -377,7 +377,7 @@ export default function BillingPage() {
                     </Select>
                   </div>
                   
-                  <Button>
+                  <Button onClick={() => setShowNewInvoice(true)}>
                     <Plus className="h-4 w-4 mr-2" />
                     New Invoice
                   </Button>
@@ -463,10 +463,10 @@ export default function BillingPage() {
                         <Button variant="outline" size="sm" onClick={() => setSelectedInvoice(invoice)}>
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={() => console.log('Download invoice:', invoice.id)}>
                           <Download className="h-4 w-4" />
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={() => console.log('Send invoice:', invoice.id)}>
                           <Send className="h-4 w-4" />
                         </Button>
                       </div>

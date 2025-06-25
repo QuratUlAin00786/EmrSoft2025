@@ -408,10 +408,21 @@ export default function UserManagement() {
                           </td>
                           <td className="py-3">
                             <div className="flex items-center space-x-2">
-                              <Button variant="link" size="sm" className="text-medical-blue hover:text-blue-700">
+                              <Button 
+                                variant="link" 
+                                size="sm" 
+                                className="text-medical-blue hover:text-blue-700"
+                                onClick={() => handleEditUser(user)}
+                              >
                                 Edit
                               </Button>
-                              <Button variant="link" size="sm" className="text-red-600 hover:text-red-700">
+                              <Button 
+                                variant="link" 
+                                size="sm" 
+                                className="text-red-600 hover:text-red-700"
+                                onClick={() => handleDeleteUser(user.id)}
+                                disabled={deleteUserMutation.isPending}
+                              >
                                 {user.isActive ? "Deactivate" : "Activate"}
                               </Button>
                             </div>

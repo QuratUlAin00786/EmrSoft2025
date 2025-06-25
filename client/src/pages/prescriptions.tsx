@@ -195,6 +195,33 @@ export default function PrescriptionsPage() {
     },
   });
 
+  const handleCreatePrescription = () => {
+    setShowNewPrescription(true);
+  };
+
+  const handleViewPrescription = (prescription: Prescription) => {
+    setSelectedPrescription(prescription);
+  };
+
+  const handlePrintPrescription = (prescriptionId: string) => {
+    console.log('Printing prescription:', prescriptionId);
+  };
+
+  const handleSendToPharmacy = (prescriptionId: string) => {
+    console.log('Sending to pharmacy:', prescriptionId);
+  };
+
+  const handleEditPrescription = (prescription: Prescription) => {
+    setSelectedPrescription(prescription);
+    setShowNewPrescription(true);
+  };
+
+  const handleCancelPrescription = (prescriptionId: string) => {
+    if (window.confirm('Are you sure you want to cancel this prescription?')) {
+      console.log('Cancelling prescription:', prescriptionId);
+    }
+  };
+
   const filteredPrescriptions = prescriptions.filter(prescription => {
     const matchesSearch = !searchQuery || 
       prescription.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -205,9 +232,7 @@ export default function PrescriptionsPage() {
     return matchesSearch && matchesStatus;
   });
 
-  const handleCreatePrescription = (formData: any) => {
-    createPrescriptionMutation.mutate(formData);
-  };
+
 
   if (isLoading) {
     return (

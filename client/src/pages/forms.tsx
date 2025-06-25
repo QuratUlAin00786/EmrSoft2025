@@ -380,7 +380,7 @@ export default function FormsPage() {
                           >
                             <BarChart3 className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button variant="ghost" size="sm" onClick={() => handlePreviewForm(form)}>
                             <Eye className="h-4 w-4" />
                           </Button>
                           <Button 
@@ -390,13 +390,13 @@ export default function FormsPage() {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button variant="ghost" size="sm" onClick={() => handleDuplicateForm(form)}>
                             <Copy className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button variant="ghost" size="sm" onClick={() => handleShareForm(form)}>
                             <Share className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                          <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700" onClick={() => handleDeleteForm(form.id)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
