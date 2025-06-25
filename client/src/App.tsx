@@ -8,6 +8,7 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { LocaleProvider } from "@/hooks/use-locale";
 import { Sidebar } from "@/components/layout/sidebar";
 import { LoadingPage } from "@/components/common/loading-spinner";
+import haloLogoPath from "@assets/Screenshot 2025-06-25 at 12.40.02_1750837361778.png";
 
 // Pages
 import Dashboard from "@/pages/dashboard";
@@ -49,16 +50,48 @@ function ProtectedApp() {
   );
 }
 
+function LoginScreen() {
+  return (
+    <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="max-w-md w-full space-y-8 p-6">
+        <div className="text-center">
+          <div className="flex justify-center mb-6">
+            <img 
+              src={haloLogoPath} 
+              alt="Halo Health" 
+              className="h-16 w-auto"
+            />
+          </div>
+          <h2 className="mt-6 text-3xl font-bold text-gray-900">
+            Welcome to Halo Health EMR
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Multi-tenant healthcare management system
+          </p>
+        </div>
+        
+        <div className="mt-8 space-y-6">
+          <p className="text-center text-sm text-gray-600">
+            Development mode - Authentication bypassed
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <TenantProvider>
           <AuthProvider>
-            <div className="min-h-screen">
-              <ProtectedApp />
-            </div>
-            <Toaster />
+            <LocaleProvider>
+              <div className="min-h-screen">
+                <ProtectedApp />
+              </div>
+              <Toaster />
+            </LocaleProvider>
           </AuthProvider>
         </TenantProvider>
       </TooltipProvider>

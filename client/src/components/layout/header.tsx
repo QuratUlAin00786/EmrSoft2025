@@ -3,6 +3,7 @@ import { useTenant } from "@/hooks/use-tenant";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import haloLogoPath from "@assets/Screenshot 2025-06-25 at 12.40.02_1750837361778.png";
 
 interface HeaderProps {
   title: string;
@@ -16,11 +17,18 @@ export function Header({ title, subtitle }: HeaderProps) {
   return (
     <header className="bg-white shadow-sm border-b border-neutral-100 p-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-          {subtitle && (
-            <p className="text-neutral-600 mt-1">{subtitle}</p>
-          )}
+        <div className="flex items-center gap-4">
+          <img 
+            src={haloLogoPath} 
+            alt="Halo Health" 
+            className="h-8 w-auto"
+          />
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+            {subtitle && (
+              <p className="text-neutral-600 mt-1">{subtitle}</p>
+            )}
+          </div>
         </div>
         
         <div className="flex items-center space-x-4">

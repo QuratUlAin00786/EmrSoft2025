@@ -189,17 +189,56 @@ const testCategories = [
   "Toxicology"
 ];
 
-// Removed duplicate function declaration
+// Mock data for lab results
+const mockLabResults: LabResult[] = [
+  {
+    id: "lab_001",
+    patientId: "p_001",
+    patientName: "Sarah Johnson",
+    testType: "Complete Blood Count (CBC)",
+    orderedBy: "Dr. Sarah Smith",
+    orderedAt: "2024-01-15T09:00:00Z",
+    collectedAt: "2024-01-15T10:30:00Z",
+    completedAt: "2024-01-15T14:45:00Z",
+    status: "completed",
+    results: [
+      {
+        name: "White Blood Cells",
+        value: "7.2",
+        unit: "×10³/µL",
+        referenceRange: "4.0-11.0",
+        status: "normal"
+      },
+      {
+        name: "Hemoglobin",
+        value: "13.5",
+        unit: "g/dL",
+        referenceRange: "12.0-15.5",
+        status: "normal"
+      }
+    ]
+  }
+];
 
-  const filteredResults = labResults.filter(result => {
-    const matchesSearch = !searchQuery || 
-      result.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      result.testType.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" || result.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'pending': return 'bg-yellow-100 text-yellow-800';
+    case 'in_progress': return 'bg-blue-100 text-blue-800';
+    case 'completed': return 'bg-green-100 text-green-800';
+    case 'reviewed': return 'bg-purple-100 text-purple-800';
+    default: return 'bg-gray-100 text-gray-800';
+  }
+};
+
+const getResultStatusColor = (status: string) => {
+  switch (status) {
+    case 'normal': return 'bg-green-100 text-green-800';
+    case 'abnormal_high': return 'bg-orange-100 text-orange-800';
+    case 'abnormal_low': return 'bg-orange-100 text-orange-800';
+    case 'critical': return 'bg-red-100 text-red-800';
+    default: return 'bg-gray-100 text-gray-800';
+  }
+};
 
   const getStatusColor = (status: string) => {
     switch (status) {
