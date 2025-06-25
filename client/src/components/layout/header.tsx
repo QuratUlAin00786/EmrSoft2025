@@ -17,18 +17,11 @@ export function Header({ title, subtitle }: HeaderProps) {
   return (
     <header className="bg-white shadow-sm border-b border-neutral-100 p-6">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <img 
-            src={haloLogoPath} 
-            alt="Halo Health" 
-            className="h-8 w-auto"
-          />
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-            {subtitle && (
-              <p className="text-neutral-600 mt-1">{subtitle}</p>
-            )}
-          </div>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+          {subtitle && (
+            <p className="text-neutral-600 mt-1">{subtitle}</p>
+          )}
         </div>
         
         <div className="flex items-center space-x-4">

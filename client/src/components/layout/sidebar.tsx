@@ -57,19 +57,15 @@ export function Sidebar() {
     <aside className="w-64 bg-white shadow-lg flex flex-col h-screen">
       {/* Logo Section */}
       <div className="p-6 border-b border-neutral-100">
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-col items-center text-center">
           <img 
             src={haloLogoPath} 
             alt="Halo Health" 
-            className="h-10 w-auto"
+            className="h-16 w-auto mb-2"
           />
           <div>
-            <h1 className="text-xl font-bold text-gray-900">
-              {tenant?.brandName || "Halo Health"}
-            </h1>
-            <p className="text-xs text-neutral-600">
-              {tenant?.region} Healthcare
-            </p>
+            <h1 className="text-xl font-bold text-gray-900">Halo Health</h1>
+            <p className="text-xs text-gray-500 mt-1">EMR, UK Healthcare</p>
           </div>
         </div>
       </div>

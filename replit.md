@@ -147,3 +147,4 @@ MediCore EMR is a multi-tenant Electronic Medical Records (EMR) system designed 
 
 Preferred communication style: Simple, everyday language.
 Requested features: semble.io-style custom forms, surveys, questionnaires, advanced form builder, analytics, compliance tools, automation features, integration capabilities.
+Logo preferences: Enlarged logo size with "EMR, UK Healthcare" subtitle, removed from dashboard header, kept above sidebar menu and at login screen.
