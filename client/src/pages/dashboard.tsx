@@ -5,6 +5,8 @@ import { RecentPatients } from "@/components/dashboard/recent-patients";
 import { SchedulePanel } from "@/components/dashboard/schedule-panel";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { SubscriptionStatus } from "@/components/dashboard/subscription-status";
+import { PatientAlerts } from "@/components/alerts/patient-alerts";
+import { ConsultationDialog } from "@/components/consultation/consultation-dialog";
 import AppointmentCalendar from "@/components/calendar/appointment-calendar";
 import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
@@ -13,6 +15,13 @@ import { PatientModal } from "@/components/patients/patient-modal";
 export default function Dashboard() {
   const { user } = useAuth();
   const [showPatientModal, setShowPatientModal] = useState(false);
+  const [showConsultation, setShowConsultation] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState<any>(null);
+
+  const startConsultation = (patient?: any) => {
+    setSelectedPatient(patient);
+    setShowConsultation(true);
+  };
 
   const handleQuickAction = (action: string) => {
     switch (action) {
@@ -30,6 +39,9 @@ export default function Dashboard() {
       case "prescribe":
         // TODO: Implement prescription creation modal
         console.log("Open prescription creator");
+        break;
+      case "consultation":
+        startConsultation();
         break;
       default:
         console.log(`Unknown action: ${action}`);

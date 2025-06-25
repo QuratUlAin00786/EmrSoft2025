@@ -257,6 +257,15 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                             variant="ghost" 
                             size="sm"
                             className="text-medical-blue hover:text-blue-700"
+                            onClick={() => startConsultation(patient)}
+                          >
+                            <Stethoscope className="h-4 w-4 mr-1" />
+                            Consultation
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="text-medical-blue hover:text-blue-700"
                           >
                             <Eye className="h-4 w-4 mr-1" />
                             View

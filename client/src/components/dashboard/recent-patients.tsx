@@ -4,7 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
+import { Stethoscope, Calendar } from "lucide-react";
 import type { Patient } from "@/types";
+
+interface RecentPatientsProps {
+  onStartConsultation?: (patient: any) => void;
+}
 
 function getPatientInitials(firstName: string, lastName: string): string {
   return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
@@ -44,7 +49,7 @@ function getConditionColor(condition?: string) {
   return "bg-gray-100 text-gray-800";
 }
 
-export function RecentPatients() {
+export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}) {
   const { data: patients, isLoading, error } = useQuery<Patient[]>({
     queryKey: ["/api/patients", { limit: 10 }],
   });
