@@ -174,7 +174,7 @@ export default function ImagingPage() {
   };
 
   const handleDownloadStudy = (studyId: string) => {
-    const study = studies.find(s => s.id === studyId);
+    const study = (studies as any || []).find((s: any) => s.id === studyId);
     if (study) {
       toast({
         title: "Download Study",
@@ -203,7 +203,7 @@ export default function ImagingPage() {
   };
 
   const handleGenerateReport = (studyId: string) => {
-    const study = studies.find(s => s.id === studyId);
+    const study = (studies as any || []).find((s: any) => s.id === studyId);
     if (study) {
       toast({
         title: "Generate Report",
@@ -217,7 +217,7 @@ export default function ImagingPage() {
     enabled: true,
   });
 
-  const filteredStudies = studies.filter(study => {
+  const filteredStudies = (studies as any || []).filter((study: any) => {
     const matchesSearch = !searchQuery || 
       study.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       study.studyType.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -393,7 +393,7 @@ export default function ImagingPage() {
 
           {/* Imaging Studies List */}
           <div className="space-y-4">
-            {filteredStudies.map((study) => (
+            {filteredStudies.map((study: any) => (
               <Card key={study.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
@@ -444,7 +444,7 @@ export default function ImagingPage() {
                         <div className="mb-4">
                           <h4 className="font-medium text-sm text-gray-700 mb-2">Image Series</h4>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                            {study.images.map((series) => (
+                            {study.images.map((series: any) => (
                               <div key={series.id} className="bg-gray-50 p-3 rounded-lg">
                                 <div className="font-medium text-sm">{series.seriesDescription}</div>
                                 <div className="text-xs text-gray-600">
