@@ -96,12 +96,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createOrganization(organization: InsertOrganization): Promise<Organization> {
-    const [created] = await db.insert(organizations).values([organization]).returning();
+    const [created] = await db.insert(organizations).values(organization).returning();
     return created;
   }
 
   async updateOrganization(id: number, updates: Partial<InsertOrganization>): Promise<Organization | undefined> {
-    const [updated] = await db.update(organizations).set({ ...updates }).where(eq(organizations.id, id)).returning();
+    const [updated] = await db.update(organizations).set({ 
+      ...updates,
+      updatedAt: new Date(),
+    }).where(eq(organizations.id, id)).returning();
     return updated || undefined;
   }
 
