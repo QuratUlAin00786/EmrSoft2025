@@ -101,6 +101,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
   });
   const [newAllergy, setNewAllergy] = useState("");
   const [newChronicCondition, setNewChronicCondition] = useState("");
+  const [editingCondition, setEditingCondition] = useState<FamilyCondition | null>(null);
 
   const familyHistory = patient.medicalHistory?.familyHistory || {
     father: [],
@@ -109,7 +110,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
     grandparents: []
   };
 
-  const socialHistory: SocialHistory = patient.medicalHistory?.socialHistory || {
+  const defaultSocialHistory: SocialHistory = {
     smoking: { status: "never" },
     alcohol: { status: "never" },
     drugs: { status: "never" },
@@ -120,12 +121,11 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
   };
 
   const [editedSocialHistory, setEditedSocialHistory] = useState<SocialHistory>(() => {
-    // Ensure proper type structure for social history
     const currentSocialHistory = patient.medicalHistory?.socialHistory;
-    if (currentSocialHistory && typeof currentSocialHistory.smoking === 'object') {
+    if (currentSocialHistory && typeof currentSocialHistory === 'object' && currentSocialHistory.smoking && typeof currentSocialHistory.smoking === 'object') {
       return currentSocialHistory as SocialHistory;
     }
-    return socialHistory;
+    return defaultSocialHistory;
   });
 
   const saveSocialHistory = () => {
@@ -681,7 +681,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                         Known Allergies
                       </h4>
                       <div className="space-y-2 mb-4">
-                        {patient.medicalHistory?.allergies?.length > 0 ? (
+                        {patient.medicalHistory?.allergies && patient.medicalHistory.allergies.length > 0 ? (
                           patient.medicalHistory.allergies.map((allergy, index) => (
                             <div key={index} className="flex items-center justify-between p-2 bg-red-50 rounded">
                               <span className="text-red-800">{allergy}</span>
@@ -716,7 +716,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                         Chronic Conditions
                       </h4>
                       <div className="space-y-2 mb-4">
-                        {patient.medicalHistory?.chronicConditions?.length > 0 ? (
+                        {patient.medicalHistory?.chronicConditions && patient.medicalHistory.chronicConditions.length > 0 ? (
                           patient.medicalHistory.chronicConditions.map((condition, index) => (
                             <div key={index} className="flex items-center justify-between p-2 bg-blue-50 rounded">
                               <span className="text-blue-800">{condition}</span>

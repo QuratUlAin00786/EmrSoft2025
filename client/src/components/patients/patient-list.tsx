@@ -242,10 +242,10 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                       <CardTitle className="text-lg flex items-center gap-2">
                         {patient.firstName} {patient.lastName}
                         {patient.medicalHistory?.allergies && patient.medicalHistory.allergies.length > 0 && (
-                          <AlertTriangle className="h-4 w-4 text-red-500" title="Has allergies" />
+                          <AlertTriangle className="h-4 w-4 text-red-500" />
                         )}
                         {patient.medicalHistory?.chronicConditions && patient.medicalHistory.chronicConditions.length > 0 && (
-                          <Clock className="h-4 w-4 text-orange-500" title="Has chronic conditions" />
+                          <Clock className="h-4 w-4 text-orange-500" />
                         )}
                       </CardTitle>
                       <p className="text-sm text-neutral-600">
