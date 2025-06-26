@@ -57,6 +57,14 @@ export interface IStorage {
   createSubscription(subscription: InsertSubscription): Promise<Subscription>;
   updateSubscription(organizationId: number, updates: Partial<InsertSubscription>): Promise<Subscription | undefined>;
 
+  // Consultations
+  getConsultation(id: number, organizationId: number): Promise<Consultation | undefined>;
+  getConsultationsByOrganization(organizationId: number, limit?: number): Promise<Consultation[]>;
+  getConsultationsByPatient(patientId: number, organizationId: number): Promise<Consultation[]>;
+  getConsultationsByProvider(providerId: number, organizationId: number): Promise<Consultation[]>;
+  createConsultation(consultation: InsertConsultation): Promise<Consultation>;
+  updateConsultation(id: number, organizationId: number, updates: Partial<InsertConsultation>): Promise<Consultation | undefined>;
+
   // Dashboard Stats
   getDashboardStats(organizationId: number): Promise<{
     totalPatients: number;

@@ -185,6 +185,40 @@ export const subscriptions = pgTable("subscriptions", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Consultations
+export const consultations = pgTable("consultations", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  appointmentId: integer("appointment_id"),
+  patientId: integer("patient_id").notNull(),
+  providerId: integer("provider_id").notNull(),
+  consultationType: varchar("consultation_type", { length: 20 }).notNull(), // routine, urgent, follow_up, emergency
+  chiefComplaint: text("chief_complaint"),
+  historyOfPresentIllness: text("history_of_present_illness"),
+  vitals: jsonb("vitals").$type<{
+    bloodPressure?: string;
+    heartRate?: string;
+    temperature?: string;
+    respiratoryRate?: string;
+    oxygenSaturation?: string;
+    weight?: string;
+    height?: string;
+  }>().default({}),
+  physicalExam: text("physical_exam"),
+  assessment: text("assessment"),
+  diagnosis: text("diagnosis").array(),
+  treatmentPlan: text("treatment_plan"),
+  prescriptions: text("prescriptions").array(),
+  followUpInstructions: text("follow_up_instructions"),
+  consultationNotes: text("consultation_notes"),
+  status: varchar("status", { length: 20 }).notNull().default("in_progress"), // in_progress, completed, cancelled
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time"),
+  duration: integer("duration"), // in minutes
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Relations
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   users: many(users),
@@ -259,6 +293,25 @@ export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
   }),
 }));
 
+export const consultationsRelations = relations(consultations, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [consultations.organizationId],
+    references: [organizations.id],
+  }),
+  appointment: one(appointments, {
+    fields: [consultations.appointmentId],
+    references: [appointments.id],
+  }),
+  patient: one(patients, {
+    fields: [consultations.patientId],
+    references: [patients.id],
+  }),
+  provider: one(users, {
+    fields: [consultations.providerId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertOrganizationSchema = createInsertSchema(organizations).omit({
   id: true,
@@ -298,6 +351,12 @@ export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({
   updatedAt: true,
 });
 
+export const insertConsultationSchema = createInsertSchema(consultations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type Organization = typeof organizations.$inferSelect;
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
@@ -319,3 +378,6 @@ export type InsertAiInsight = z.infer<typeof insertAiInsightSchema>;
 
 export type Subscription = typeof subscriptions.$inferSelect;
 export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
+
+export type Consultation = typeof consultations.$inferSelect;
+export type InsertConsultation = z.infer<typeof insertConsultationSchema>;
