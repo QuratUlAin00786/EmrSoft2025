@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Users, Heart, AlertTriangle, Edit, Trash2, Activity } from "lucide-react";
+import { Plus, Users, Heart, AlertTriangle, Edit, Trash2, Activity, Save } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import type { Patient } from "@/types";
 
 interface PatientFamilyHistoryProps {
@@ -81,6 +82,7 @@ const commonVaccines = [
 ];
 
 export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamilyHistoryProps) {
+  const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("family");
   const [newCondition, setNewCondition] = useState<Partial<FamilyCondition>>({
@@ -125,12 +127,24 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
   });
 
   const saveSocialHistory = () => {
-    onUpdate({
-      medicalHistory: {
-        ...patient.medicalHistory,
-        socialHistory: editedSocialHistory
-      }
-    });
+    try {
+      onUpdate({
+        medicalHistory: {
+          ...patient.medicalHistory,
+          socialHistory: editedSocialHistory
+        }
+      });
+      toast({
+        title: "Social History Saved",
+        description: "Patient social history has been updated successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save social history. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const immunizations = patient.medicalHistory?.immunizations || [];
@@ -451,6 +465,12 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                         />
                       </div>
                     </div>
+                  </div>
+                  <div className="flex justify-end mt-6">
+                    <Button onClick={saveSocialHistory} className="px-6">
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Social History
+                    </Button>
                   </div>
                 </TabsContent>
 
