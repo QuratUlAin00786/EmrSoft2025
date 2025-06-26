@@ -39,7 +39,7 @@ export function PatientSearch({ onSearch, onClear }: PatientSearchProps) {
 
   const activeFiltersCount = Object.values(filters).filter(v => 
     v !== undefined && v !== 'all' && v !== ''
-  ).length - (filters.searchType === 'all' ? 1 : 0);
+  ).length - 1; // Subtract 1 for searchType which is always present
 
   return (
     <div className="space-y-4">
@@ -109,16 +109,16 @@ export function PatientSearch({ onSearch, onClear }: PatientSearchProps) {
             <div>
               <label className="text-sm font-medium text-gray-600 mb-2 block">Insurance Provider</label>
               <Select 
-                value={filters.insuranceProvider || ''} 
+                value={filters.insuranceProvider || 'all'} 
                 onValueChange={(value) => 
-                  setFilters(prev => ({ ...prev, insuranceProvider: value || undefined }))
+                  setFilters(prev => ({ ...prev, insuranceProvider: value === 'all' ? undefined : value }))
                 }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Any provider" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any provider</SelectItem>
+                  <SelectItem value="all">Any provider</SelectItem>
                   <SelectItem value="nhs">NHS</SelectItem>
                   <SelectItem value="bupa">Bupa</SelectItem>
                   <SelectItem value="axa-ppp">AXA PPP</SelectItem>
@@ -132,16 +132,16 @@ export function PatientSearch({ onSearch, onClear }: PatientSearchProps) {
             <div>
               <label className="text-sm font-medium text-gray-600 mb-2 block">Risk Level</label>
               <Select 
-                value={filters.riskLevel || ''} 
-                onValueChange={(value: SearchFilters['riskLevel']) => 
-                  setFilters(prev => ({ ...prev, riskLevel: value || undefined }))
+                value={filters.riskLevel || 'all'} 
+                onValueChange={(value) => 
+                  setFilters(prev => ({ ...prev, riskLevel: value === 'all' ? undefined : value as SearchFilters['riskLevel'] }))
                 }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Any risk level" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any risk level</SelectItem>
+                  <SelectItem value="all">Any risk level</SelectItem>
                   <SelectItem value="low">Low Risk</SelectItem>
                   <SelectItem value="medium">Medium Risk</SelectItem>
                   <SelectItem value="high">High Risk</SelectItem>
@@ -153,16 +153,16 @@ export function PatientSearch({ onSearch, onClear }: PatientSearchProps) {
             <div>
               <label className="text-sm font-medium text-gray-600 mb-2 block">Last Visit</label>
               <Select 
-                value={filters.lastVisit || ''} 
-                onValueChange={(value: SearchFilters['lastVisit']) => 
-                  setFilters(prev => ({ ...prev, lastVisit: value || undefined }))
+                value={filters.lastVisit || 'all'} 
+                onValueChange={(value) => 
+                  setFilters(prev => ({ ...prev, lastVisit: value === 'all' ? undefined : value as SearchFilters['lastVisit'] }))
                 }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Any time" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any time</SelectItem>
+                  <SelectItem value="all">Any time</SelectItem>
                   <SelectItem value="week">Past week</SelectItem>
                   <SelectItem value="month">Past month</SelectItem>
                   <SelectItem value="quarter">Past 3 months</SelectItem>
