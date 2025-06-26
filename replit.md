@@ -123,10 +123,12 @@ MediCore EMR is a multi-tenant Electronic Medical Records (EMR) system designed 
 - **SQL Injection Prevention**: Parameterized queries through Drizzle ORM
 
 ## Changelog
-- June 26, 2025: Medical indicator icons system completed and verified:
+- June 26, 2025: Enhanced patient interface and medical indicator system:
+  - **Prominent Medical Records Access**: Large "Medical Records" button as primary action on patient cards
   - **Medical Alert Icons**: Red triangle icons for allergies, orange clock icons for chronic conditions
   - **Visual Patient Safety**: Instant identification of patients with allergies and medical conditions
   - **Tooltip Integration**: Hover tooltips show detailed allergy and condition information
+  - **Improved Button Hierarchy**: Primary actions (Records, Book Appointment) prominently displayed
   - **Data Persistence**: Fixed medical history data preservation across all sections
   - **Icon Display Logic**: Proper rendering logic for multiple medical indicators per patient
 - June 26, 2025: Complete button functionality implementation and system fixes:

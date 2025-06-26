@@ -232,14 +232,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {displayPatients.map((patient: any) => {
-            // Debug John Abraham's allergies
-            if (patient.firstName === 'John' && patient.lastName === 'Abrhama') {
-              console.log('John Abraham allergies check:');
-              console.log('- allergies array:', patient.medicalHistory?.allergies);
-              console.log('- allergies exist:', !!patient.medicalHistory?.allergies);
-              console.log('- allergies length:', patient.medicalHistory?.allergies?.length);
-              console.log('- allergies > 0:', patient.medicalHistory?.allergies && patient.medicalHistory.allergies.length > 0);
-            }
+
             
             return (
               <Card key={patient.id} className="hover:shadow-md transition-shadow">
@@ -350,27 +343,38 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                 )}
 
                 <div className="space-y-2">
+                  {/* Primary action buttons - Medical Records prominently featured */}
                   <div className="flex gap-2">
                     <Button 
-                      size="sm" 
+                      size="default"
                       variant="outline"
-                      onClick={() => handleViewPatient(patient)}
-                      className="flex-1"
+                      onClick={() => setLocation(`/patients/${patient.id}/records`)}
+                      className="flex-1 border-medical-blue text-medical-blue hover:bg-medical-blue hover:text-white"
                     >
-                      <Eye className="h-4 w-4 mr-1" />
-                      View
+                      <FileText className="h-4 w-4 mr-2" />
+                      Medical Records
                     </Button>
                     <Button 
-                      size="sm"
+                      size="default"
                       onClick={() => handleBookAppointment(patient)}
                       className="flex-1 bg-medical-blue hover:bg-blue-700"
                     >
-                      <Calendar className="h-4 w-4 mr-1" />
-                      Book
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Book Appointment
                     </Button>
                   </div>
                   
+                  {/* Secondary actions */}
                   <div className="flex gap-1">
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      onClick={() => handleViewPatient(patient)}
+                      className="flex-1 text-xs h-7"
+                    >
+                      <Eye className="h-3 w-3 mr-1" />
+                      View
+                    </Button>
                     <Button 
                       size="sm" 
                       variant="ghost"
@@ -380,15 +384,6 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                     >
                       <Bell className="h-3 w-3 mr-1" />
                       Remind
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="ghost"
-                      onClick={() => setLocation(`/patients/${patient.id}/records`)}
-                      className="flex-1 text-xs h-7"
-                    >
-                      <FileText className="h-3 w-3 mr-1" />
-                      Records
                     </Button>
                     <Button 
                       size="sm" 
