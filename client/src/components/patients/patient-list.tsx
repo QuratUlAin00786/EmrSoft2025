@@ -239,8 +239,14 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <CardTitle className="text-lg">
+                      <CardTitle className="text-lg flex items-center gap-2">
                         {patient.firstName} {patient.lastName}
+                        {patient.medicalHistory?.allergies && patient.medicalHistory.allergies.length > 0 && (
+                          <AlertTriangle className="h-4 w-4 text-red-500" title="Has allergies" />
+                        )}
+                        {patient.medicalHistory?.chronicConditions && patient.medicalHistory.chronicConditions.length > 0 && (
+                          <Clock className="h-4 w-4 text-orange-500" title="Has chronic conditions" />
+                        )}
                       </CardTitle>
                       <p className="text-sm text-neutral-600">
                         Age {calculateAge(patient.dateOfBirth)} • {patient.patientId}

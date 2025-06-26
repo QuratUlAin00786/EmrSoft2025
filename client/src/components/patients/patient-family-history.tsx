@@ -99,6 +99,8 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
     site: "",
     notes: ""
   });
+  const [newAllergy, setNewAllergy] = useState("");
+  const [newChronicCondition, setNewChronicCondition] = useState("");
 
   const familyHistory = patient.medicalHistory?.familyHistory || {
     father: [],
@@ -145,6 +147,70 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
         variant: "destructive",
       });
     }
+  };
+
+  const addAllergy = () => {
+    if (newAllergy.trim()) {
+      const currentAllergies = patient.medicalHistory?.allergies || [];
+      onUpdate({
+        medicalHistory: {
+          ...patient.medicalHistory,
+          allergies: [...currentAllergies, newAllergy.trim()]
+        }
+      });
+      setNewAllergy("");
+      toast({
+        title: "Allergy Added",
+        description: "New allergy has been added to patient record.",
+      });
+    }
+  };
+
+  const removeAllergy = (index: number) => {
+    const currentAllergies = patient.medicalHistory?.allergies || [];
+    const updatedAllergies = currentAllergies.filter((_, i) => i !== index);
+    onUpdate({
+      medicalHistory: {
+        ...patient.medicalHistory,
+        allergies: updatedAllergies
+      }
+    });
+    toast({
+      title: "Allergy Removed",
+      description: "Allergy has been removed from patient record.",
+    });
+  };
+
+  const addChronicCondition = () => {
+    if (newChronicCondition.trim()) {
+      const currentConditions = patient.medicalHistory?.chronicConditions || [];
+      onUpdate({
+        medicalHistory: {
+          ...patient.medicalHistory,
+          chronicConditions: [...currentConditions, newChronicCondition.trim()]
+        }
+      });
+      setNewChronicCondition("");
+      toast({
+        title: "Condition Added",
+        description: "New chronic condition has been added to patient record.",
+      });
+    }
+  };
+
+  const removeChronicCondition = (index: number) => {
+    const currentConditions = patient.medicalHistory?.chronicConditions || [];
+    const updatedConditions = currentConditions.filter((_, i) => i !== index);
+    onUpdate({
+      medicalHistory: {
+        ...patient.medicalHistory,
+        chronicConditions: updatedConditions
+      }
+    });
+    toast({
+      title: "Condition Removed",
+      description: "Chronic condition has been removed from patient record.",
+    });
   };
 
   const immunizations = patient.medicalHistory?.immunizations || [];
@@ -614,15 +680,34 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                         <AlertTriangle className="h-4 w-4 text-red-500" />
                         Known Allergies
                       </h4>
-                      <div className="space-y-2">
-                        {patient.medicalHistory?.allergies?.map((allergy, index) => (
-                          <div key={index} className="flex items-center justify-between p-2 bg-red-50 rounded">
-                            <span className="text-red-800">{allergy}</span>
-                            <Button variant="ghost" size="sm">
-                              <Trash2 className="h-4 w-4 text-red-600" />
-                            </Button>
-                          </div>
-                        )) || <p className="text-sm text-gray-500">No known allergies</p>}
+                      <div className="space-y-2 mb-4">
+                        {patient.medicalHistory?.allergies?.length > 0 ? (
+                          patient.medicalHistory.allergies.map((allergy, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 bg-red-50 rounded">
+                              <span className="text-red-800">{allergy}</span>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => removeAllergy(index)}
+                              >
+                                <Trash2 className="h-4 w-4 text-red-600" />
+                              </Button>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-sm text-gray-500">No known allergies</p>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Add new allergy"
+                          value={newAllergy}
+                          onChange={(e) => setNewAllergy(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && addAllergy()}
+                        />
+                        <Button onClick={addAllergy} size="sm">
+                          <Plus className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                     <div>
@@ -630,15 +715,34 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                         <Activity className="h-4 w-4 text-blue-500" />
                         Chronic Conditions
                       </h4>
-                      <div className="space-y-2">
-                        {patient.medicalHistory?.chronicConditions?.map((condition, index) => (
-                          <div key={index} className="flex items-center justify-between p-2 bg-blue-50 rounded">
-                            <span className="text-blue-800">{condition}</span>
-                            <Button variant="ghost" size="sm">
-                              <Trash2 className="h-4 w-4 text-blue-600" />
-                            </Button>
-                          </div>
-                        )) || <p className="text-sm text-gray-500">No chronic conditions</p>}
+                      <div className="space-y-2 mb-4">
+                        {patient.medicalHistory?.chronicConditions?.length > 0 ? (
+                          patient.medicalHistory.chronicConditions.map((condition, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 bg-blue-50 rounded">
+                              <span className="text-blue-800">{condition}</span>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => removeChronicCondition(index)}
+                              >
+                                <Trash2 className="h-4 w-4 text-blue-600" />
+                              </Button>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-sm text-gray-500">No chronic conditions</p>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Add new condition"
+                          value={newChronicCondition}
+                          onChange={(e) => setNewChronicCondition(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && addChronicCondition()}
+                        />
+                        <Button onClick={addChronicCondition} size="sm">
+                          <Plus className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   </div>
