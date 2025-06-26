@@ -122,7 +122,12 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
 
   const [editedSocialHistory, setEditedSocialHistory] = useState<SocialHistory>(() => {
     const currentSocialHistory = patient.medicalHistory?.socialHistory;
-    if (currentSocialHistory && typeof currentSocialHistory === 'object' && currentSocialHistory.smoking && typeof currentSocialHistory.smoking === 'object') {
+    // Check if the social history has the correct structure
+    if (currentSocialHistory && 
+        typeof currentSocialHistory === 'object' && 
+        currentSocialHistory.smoking && 
+        typeof currentSocialHistory.smoking === 'object' &&
+        'status' in currentSocialHistory.smoking) {
       return currentSocialHistory as SocialHistory;
     }
     return defaultSocialHistory;
@@ -837,19 +842,19 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                 <div className="border rounded-lg p-3">
                   <div className="font-medium text-sm">Smoking</div>
                   <div className="text-sm text-gray-600 capitalize">
-                    {socialHistory.smoking.status.replace('_', ' ')}
+                    {editedSocialHistory.smoking.status.replace('_', ' ')}
                   </div>
                 </div>
                 <div className="border rounded-lg p-3">
                   <div className="font-medium text-sm">Alcohol</div>
                   <div className="text-sm text-gray-600 capitalize">
-                    {socialHistory.alcohol.status}
+                    {editedSocialHistory.alcohol.status}
                   </div>
                 </div>
                 <div className="border rounded-lg p-3">
                   <div className="font-medium text-sm">Exercise</div>
                   <div className="text-sm text-gray-600 capitalize">
-                    {socialHistory.exercise.frequency.replace('_', ' ')}
+                    {editedSocialHistory.exercise.frequency.replace('_', ' ')}
                   </div>
                 </div>
               </div>
@@ -857,19 +862,19 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                 <div className="border rounded-lg p-3">
                   <div className="font-medium text-sm">Occupation</div>
                   <div className="text-sm text-gray-600">
-                    {socialHistory.occupation || "Not specified"}
+                    {editedSocialHistory.occupation || "Not specified"}
                   </div>
                 </div>
                 <div className="border rounded-lg p-3">
                   <div className="font-medium text-sm">Marital Status</div>
                   <div className="text-sm text-gray-600 capitalize">
-                    {socialHistory.maritalStatus}
+                    {editedSocialHistory.maritalStatus}
                   </div>
                 </div>
                 <div className="border rounded-lg p-3">
                   <div className="font-medium text-sm">Education</div>
                   <div className="text-sm text-gray-600">
-                    {socialHistory.education || "Not specified"}
+                    {editedSocialHistory.education || "Not specified"}
                   </div>
                 </div>
               </div>
