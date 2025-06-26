@@ -225,7 +225,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         patientId,
         address: patientData.address || {},
         emergencyContact: patientData.emergencyContact || {},
-        medicalHistory: patientData.medicalHistory || {}
+        medicalHistory: {
+          allergies: patientData.medicalHistory?.allergies || [],
+          chronicConditions: patientData.medicalHistory?.chronicConditions || [],
+          medications: patientData.medicalHistory?.medications || [],
+          ...patientData.medicalHistory
+        }
       });
 
       // Generate AI insights for new patient
@@ -254,6 +259,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Patient creation error:", error);
       res.status(500).json({ error: "Failed to create patient" });
+    }
+  });
+
+  // Update patient medical history
+  app.patch("/api/patients/:id/medical-history", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      const { allergies, chronicConditions, medications } = req.body;
+
+      const patient = await storage.getPatient(patientId, req.tenant!.id);
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+
+      const updatedPatient = await storage.updatePatient(patientId, req.tenant!.id, {
+        medicalHistory: {
+          ...patient.medicalHistory,
+          allergies: allergies || patient.medicalHistory?.allergies || [],
+          chronicConditions: chronicConditions || patient.medicalHistory?.chronicConditions || [],
+          medications: medications || patient.medicalHistory?.medications || []
+        }
+      });
+
+      res.json(updatedPatient);
+    } catch (error) {
+      console.error("Error updating patient medical history:", error);
+      res.status(500).json({ error: "Failed to update medical history" });
     }
   });
 
