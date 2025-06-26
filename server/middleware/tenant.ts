@@ -10,6 +10,7 @@ export interface TenantRequest extends Request {
     region: string;
     settings: any;
   };
+  organizationId: number;
   user?: {
     id: number;
     email: string;

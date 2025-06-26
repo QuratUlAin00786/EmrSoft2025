@@ -384,34 +384,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         method: z.enum(["email", "sms", "whatsapp", "system"]).default("system")
       }).parse(req.body);
 
-      const patient = await storage.getPatient(patientId, req.organization!.id);
+      const patient = await storage.getPatient(patientId, req.organizationId);
       
       if (!patient) {
         return res.status(404).json({ error: "Patient not found" });
       }
 
       // Check if a reminder was sent recently to prevent spam
-      const lastReminder = await storage.getLastReminderSent(patientId, req.tenant!.id, reminderData.type);
+      const lastReminder = await storage.getLastReminderSent(patientId, req.organizationId, reminderData.type);
       if (lastReminder) {
-        const timeSinceLastReminder = new Date().getTime() - new Date(lastReminder.sentAt).getTime();
+        const timeSinceLastReminder = new Date().getTime() - new Date(lastReminder.createdAt).getTime();
         const hoursSinceLastReminder = timeSinceLastReminder / (1000 * 60 * 60);
         
         if (hoursSinceLastReminder < 24) {
           return res.status(429).json({ 
             error: 'Reminder already sent within the last 24 hours',
-            lastSent: lastReminder.sentAt
+            lastSent: lastReminder.createdAt
           });
         }
       }
 
       // Create patient communication record
       const communication = await storage.createPatientCommunication({
-        organizationId: req.tenant!.id,
+        organizationId: req.organizationId,
         patientId,
         type: 'reminder',
         method: reminderData.method,
-        content: reminderData.message || `${reminderData.type} sent to patient`,
-        sentAt: new Date(),
+        message: reminderData.message || `${reminderData.type} sent to patient`,
         sentBy: req.user!.id,
         metadata: {
           reminderType: reminderData.type,
