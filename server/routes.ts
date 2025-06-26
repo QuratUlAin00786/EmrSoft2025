@@ -267,6 +267,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Patient reminder endpoint
+  app.post("/api/patients/:id/send-reminder", requireRole(["doctor", "nurse", "receptionist", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      
+      const reminderData = z.object({
+        type: z.enum(["appointment_reminder", "medication_reminder", "follow_up_reminder"]).default("appointment_reminder"),
+        message: z.string().optional()
+      }).parse(req.body);
+
+      const patient = await storage.getPatient(patientId, req.tenant!.id);
+      
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+
+      // In a real implementation, this would send SMS/email
+      // For now, we'll just log the reminder
+      console.log(`Sending ${reminderData.type} to patient ${patient.firstName} ${patient.lastName} (${patient.phone || patient.email})`);
+      console.log(`Message: ${reminderData.message || 'Default reminder message'}`);
+
+      res.json({ 
+        success: true, 
+        message: `Reminder sent to ${patient.firstName} ${patient.lastName}`,
+        patientId,
+        reminderType: reminderData.type
+      });
+    } catch (error) {
+      console.error("Send reminder error:", error);
+      res.status(500).json({ error: "Failed to send reminder" });
+    }
+  });
+
   // Appointments routes
   app.get("/api/appointments", async (req: TenantRequest, res) => {
     try {

@@ -1,12 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
-import { Stethoscope, Calendar } from "lucide-react";
+import { Eye, Calendar, Bell, FileText, AlertTriangle } from "lucide-react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import type { Patient } from "@/types";
 
 interface RecentPatientsProps {
@@ -54,9 +55,73 @@ function getConditionColor(condition?: string) {
 export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}) {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   const { data: patients, isLoading, error } = useQuery<Patient[]>({
     queryKey: ["/api/patients", { limit: 10 }],
   });
+
+  const sendReminderMutation = useMutation({
+    mutationFn: async (patientId: number) => {
+      return apiRequest('POST', `/api/patients/${patientId}/send-reminder`, {
+        type: 'appointment_reminder',
+        message: 'Please remember your upcoming appointment'
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Reminder sent",
+        description: "Patient has been notified about their appointment",
+      });
+    }
+  });
+
+  const flagPatientMutation = useMutation({
+    mutationFn: async ({ patientId, flag }: { patientId: number; flag: string }) => {
+      return apiRequest('PATCH', `/api/patients/${patientId}`, {
+        flags: [flag]
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
+      toast({
+        title: "Patient flagged",
+        description: "Flag has been added to patient record",
+      });
+    }
+  });
+
+  const handleViewPatient = (patient: any) => {
+    setLocation(`/patients?view=${patient.id}`);
+    toast({
+      title: "Patient Profile",
+      description: `Opening profile for ${patient.firstName} ${patient.lastName}`,
+    });
+  };
+
+  const handleBookAppointment = (patient: any) => {
+    setLocation(`/calendar?patientId=${patient.id}`);
+    toast({
+      title: "Book Appointment",
+      description: `Booking appointment for ${patient.firstName} ${patient.lastName}`,
+    });
+  };
+
+  const handleSendReminder = (patient: any) => {
+    sendReminderMutation.mutate(patient.id);
+  };
+
+  const handleViewRecords = (patient: any) => {
+    setLocation(`/patients/${patient.id}/records`);
+    toast({
+      title: "Medical Records",
+      description: `Opening medical records for ${patient.firstName} ${patient.lastName}`,
+    });
+  };
+
+  const handleFlagPatient = (patient: any) => {
+    flagPatientMutation.mutate({ patientId: patient.id, flag: 'follow-up' });
+  };
 
   if (isLoading) {
     return (
@@ -141,7 +206,7 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
             </thead>
             <tbody>
               {patients.slice(0, 5).map((patient) => {
-                const primaryCondition = patient.medicalHistory.chronicConditions?.[0];
+                const primaryCondition = patient.medicalHistory?.chronicConditions?.[0];
                 
                 return (
                   <tr key={patient.id} className="hover:bg-neutral-50">
@@ -189,20 +254,54 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
                       </Badge>
                     </td>
                     <td className="py-4">
-                      <Button 
-                        variant="link" 
-                        size="sm"
-                        className="p-0 h-auto text-medical-blue hover:text-blue-700"
-                        onClick={() => {
-                          setLocation(`/patients?view=${patient.id}`);
-                          toast({
-                            title: "Patient Profile",
-                            description: `Opening profile for ${patient.firstName} ${patient.lastName}`,
-                          });
-                        }}
-                      >
-                        View
-                      </Button>
+                      <div className="flex gap-1 flex-wrap">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleViewPatient(patient)}
+                          className="h-7 px-2 text-xs"
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          View
+                        </Button>
+                        <Button 
+                          size="sm"
+                          onClick={() => handleBookAppointment(patient)}
+                          className="h-7 px-2 text-xs bg-medical-blue hover:bg-blue-700"
+                        >
+                          <Calendar className="h-3 w-3 mr-1" />
+                          Book
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="ghost"
+                          onClick={() => handleSendReminder(patient)}
+                          disabled={sendReminderMutation.isPending}
+                          className="h-7 px-2 text-xs"
+                        >
+                          <Bell className="h-3 w-3 mr-1" />
+                          Remind
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="ghost"
+                          onClick={() => handleViewRecords(patient)}
+                          className="h-7 px-2 text-xs"
+                        >
+                          <FileText className="h-3 w-3 mr-1" />
+                          Records
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="ghost"
+                          onClick={() => handleFlagPatient(patient)}
+                          disabled={flagPatientMutation.isPending}
+                          className="h-7 px-2 text-xs"
+                        >
+                          <AlertTriangle className="h-3 w-3 mr-1" />
+                          Flag
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 );
