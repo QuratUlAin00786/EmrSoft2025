@@ -368,7 +368,7 @@ export default function ConsultationNotes({ patientId }: ConsultationNotesProps)
                       Prescribed Medications:
                     </h5>
                     <div className="space-y-2">
-                      {record.prescription.medications.map((med, index) => (
+                      {record.prescription.medications.map((med: any, index: number) => (
                         <div key={index} className="bg-green-50 p-2 rounded text-sm">
                           <strong>{med.name}</strong> - {med.dosage}, {med.frequency}
                           {med.duration && <span> for {med.duration}</span>}
@@ -385,7 +385,7 @@ export default function ConsultationNotes({ patientId }: ConsultationNotesProps)
                       AI Recommendations:
                     </h5>
                     <ul className="text-sm text-blue-700 space-y-1">
-                      {record.aiSuggestions.recommendations.map((rec, index) => (
+                      {record.aiSuggestions.recommendations.map((rec: any, index: number) => (
                         <li key={index} className="flex items-start gap-1">
                           <span className="text-blue-600">•</span>
                           {rec}
