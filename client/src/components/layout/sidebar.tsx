@@ -48,6 +48,9 @@ const navigation = [
   { name: "Clinical Decision Support", href: "/clinical-decision-support", icon: Brain },
   { name: "Telemedicine", href: "/telemedicine", icon: Video },
   { name: "Population Health", href: "/population-health", icon: Users },
+  { name: "Mobile Health", href: "/mobile-health", icon: Smartphone },
+  { name: "Voice Documentation", href: "/voice-documentation", icon: Mic },
+  { name: "Financial Intelligence", href: "/financial-intelligence", icon: Calculator },
   { name: "Billing", href: "/billing", icon: Receipt },
 ];
 

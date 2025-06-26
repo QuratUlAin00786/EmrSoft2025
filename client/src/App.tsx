@@ -30,6 +30,9 @@ import PatientPortal from "@/pages/patient-portal";
 import ClinicalDecisionSupport from "@/pages/clinical-decision-support";
 import Telemedicine from "@/pages/telemedicine";
 import PopulationHealth from "@/pages/population-health";
+import MobileHealth from "@/pages/mobile-health";
+import VoiceDocumentation from "@/pages/voice-documentation";
+import FinancialIntelligence from "@/pages/financial-intelligence";
 import NotFound from "@/pages/not-found";
 
 function ProtectedApp() {
@@ -57,6 +60,9 @@ function ProtectedApp() {
           <Route path="/clinical-decision-support" component={ClinicalDecisionSupport} />
           <Route path="/telemedicine" component={Telemedicine} />
           <Route path="/population-health" component={PopulationHealth} />
+          <Route path="/mobile-health" component={MobileHealth} />
+          <Route path="/voice-documentation" component={VoiceDocumentation} />
+          <Route path="/financial-intelligence" component={FinancialIntelligence} />
           <Route path="/users" component={UserManagement} />
           <Route path="/subscription" component={Subscription} />
           <Route path="/settings" component={Settings} />
