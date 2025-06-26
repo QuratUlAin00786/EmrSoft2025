@@ -586,6 +586,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user
+  app.patch("/api/users/:id", requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const updates = req.body;
+      
+      // Hash password if provided
+      if (updates.password) {
+        updates.password = await authService.hashPassword(updates.password);
+      }
+
+      const user = await storage.updateUser(userId, req.tenant!.id, updates);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Remove password from response
+      const { password, ...safeUser } = user;
+      res.json(safeUser);
+    } catch (error) {
+      console.error("User update error:", error);
+      res.status(500).json({ error: "Failed to update user" });
+    }
+  });
+
+  // Delete user
+  app.delete("/api/users/:id", requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const success = await storage.deleteUser(userId, req.tenant!.id);
+      
+      if (!success) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      res.json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error("User deletion error:", error);
+      res.status(500).json({ error: "Failed to delete user" });
+    }
+  });
+
   // Subscription management routes
   app.get("/api/subscription", requireRole(["admin"]), async (req: TenantRequest, res) => {
     try {

@@ -1,5 +1,5 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications,
+  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Patient, type InsertPatient,
@@ -7,7 +7,8 @@ import {
   type Appointment, type InsertAppointment,
   type AiInsight, type InsertAiInsight,
   type Subscription, type InsertSubscription,
-  type PatientCommunication, type InsertPatientCommunication
+  type PatientCommunication, type InsertPatientCommunication,
+  type Consultation, type InsertConsultation
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count } from "drizzle-orm";
@@ -377,6 +378,57 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(patientCommunications.sentAt))
       .limit(1);
     return lastReminder;
+  }
+
+  // Consultation Methods Implementation
+  async getConsultation(id: number, organizationId: number): Promise<Consultation | undefined> {
+    const [consultation] = await db
+      .select()
+      .from(consultations)
+      .where(and(eq(consultations.id, id), eq(consultations.organizationId, organizationId)));
+    return consultation;
+  }
+
+  async getConsultationsByOrganization(organizationId: number, limit = 50): Promise<Consultation[]> {
+    return await db
+      .select()
+      .from(consultations)
+      .where(eq(consultations.organizationId, organizationId))
+      .orderBy(desc(consultations.createdAt))
+      .limit(limit);
+  }
+
+  async getConsultationsByPatient(patientId: number, organizationId: number): Promise<Consultation[]> {
+    return await db
+      .select()
+      .from(consultations)
+      .where(and(eq(consultations.patientId, patientId), eq(consultations.organizationId, organizationId)))
+      .orderBy(desc(consultations.createdAt));
+  }
+
+  async getConsultationsByProvider(providerId: number, organizationId: number): Promise<Consultation[]> {
+    return await db
+      .select()
+      .from(consultations)
+      .where(and(eq(consultations.providerId, providerId), eq(consultations.organizationId, organizationId)))
+      .orderBy(desc(consultations.createdAt));
+  }
+
+  async createConsultation(consultation: InsertConsultation): Promise<Consultation> {
+    const [created] = await db
+      .insert(consultations)
+      .values(consultation)
+      .returning();
+    return created;
+  }
+
+  async updateConsultation(id: number, organizationId: number, updates: Partial<InsertConsultation>): Promise<Consultation | undefined> {
+    const [updated] = await db
+      .update(consultations)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(eq(consultations.id, id), eq(consultations.organizationId, organizationId)))
+      .returning();
+    return updated;
   }
 }
 

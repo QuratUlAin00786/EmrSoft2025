@@ -1,479 +1,512 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Header } from "@/components/layout/header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
-import { LoadingSpinner } from "@/components/common/loading-spinner";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { apiRequest } from "@/lib/queryClient";
-import { UserPlus, Search, Shield, Heart, User as UserIcon } from "lucide-react";
-import type { User } from "@/types";
+import { Plus, Edit, Trash2, UserPlus, Shield, Stethoscope, Users, Calendar } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Header } from "@/components/layout/header";
 
-const createUserSchema = z.object({
+const userSchema = z.object({
   email: z.string().email("Invalid email address"),
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   role: z.enum(["admin", "doctor", "nurse", "receptionist"]),
-  department: z.string().optional()
+  department: z.string().optional(),
+  password: z.string().min(6, "Password must be at least 6 characters").optional(),
 });
 
-type CreateUserData = z.infer<typeof createUserSchema>;
+type UserFormData = z.infer<typeof userSchema>;
 
-const roleColors = {
-  admin: "bg-purple-100 text-purple-800",
-  doctor: "bg-blue-100 text-blue-800",
-  nurse: "bg-green-100 text-green-800",
-  receptionist: "bg-orange-100 text-orange-800"
-};
-
-const roleIcons = {
-  admin: Shield,
-  doctor: UserIcon,
-  nurse: Heart,
-  receptionist: UserIcon
-};
-
-function getInitials(firstName: string, lastName: string): string {
-  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-}
-
-function formatLastLogin(lastLoginAt?: string): string {
-  if (!lastLoginAt) return "Never";
-  
-  const date = new Date(lastLoginAt);
-  const now = new Date();
-  const diffTime = Math.abs(now.getTime() - date.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
-  if (diffDays === 1) return "1 day ago";
-  if (diffDays < 7) return `${diffDays} days ago`;
-  return date.toLocaleDateString();
+interface User {
+  id: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  department?: string;
+  isActive: boolean;
+  lastLoginAt?: string;
+  createdAt: string;
 }
 
 export default function UserManagement() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState<string>("all");
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const queryClient = useQueryClient();
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const { data: users, isLoading, error } = useQuery<User[]>({
+  const { data: users = [], isLoading, refetch } = useQuery<User[]>({
     queryKey: ["/api/users"],
   });
 
-  const createUserMutation = useMutation({
-    mutationFn: async (userData: CreateUserData) => {
-      const endpoint = editingUser ? `/api/users/${editingUser.id}` : "/api/users";
-      const method = editingUser ? "PUT" : "POST";
-      return apiRequest(method, endpoint, userData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
-      setShowCreateModal(false);
-      setEditingUser(null);
-      form.reset();
-    }
-  });
-
-  const deleteUserMutation = useMutation({
-    mutationFn: async (userId: number) => {
-      return apiRequest('DELETE', `/api/users/${userId}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
-    },
-  });
-
-
-
-
-
-  const handleCreateUser = () => {
-    setEditingUser(null);
-    form.reset();
-    setShowCreateModal(true);
-  };
-
-  const form = useForm<CreateUserData>({
-    resolver: zodResolver(createUserSchema),
+  const form = useForm<UserFormData>({
+    resolver: zodResolver(userSchema),
     defaultValues: {
       email: "",
-      username: "",
-      password: "",
       firstName: "",
       lastName: "",
       role: "doctor",
-      department: ""
-    }
+      department: "",
+      password: "",
+    },
   });
 
-  const onSubmit = (data: CreateUserData) => {
-    createUserMutation.mutate(data);
+  const createUserMutation = useMutation({
+    mutationFn: (userData: UserFormData) => {
+      const payload = {
+        ...userData,
+        username: userData.email, // Use email as username
+      };
+      return apiRequest("/api/users", "POST", payload);
+    },
+    onSuccess: () => {
+      toast({
+        title: "User created successfully",
+        description: "The new user has been added to the system.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      setIsCreateModalOpen(false);
+      form.reset();
+    },
+    onError: () => {
+      toast({
+        title: "Error creating user",
+        description: "There was a problem creating the user. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateUserMutation = useMutation({
+    mutationFn: ({ id, userData }: { id: number; userData: Partial<UserFormData> }) => {
+      return apiRequest(`/api/users/${id}`, "PATCH", userData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "User updated successfully",
+        description: "The user information has been updated.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      setEditingUser(null);
+      form.reset();
+    },
+    onError: () => {
+      toast({
+        title: "Error updating user",
+        description: "There was a problem updating the user. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: (userId: number) => {
+      return apiRequest(`/api/users/${userId}`, "DELETE");
+    },
+    onSuccess: () => {
+      toast({
+        title: "User deleted successfully",
+        description: "The user has been removed from the system.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+    },
+    onError: () => {
+      toast({
+        title: "Error deleting user",
+        description: "There was a problem deleting the user. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: UserFormData) => {
+    if (editingUser) {
+      updateUserMutation.mutate({ id: editingUser.id, userData: data });
+    } else {
+      createUserMutation.mutate(data);
+    }
   };
 
-  const filteredUsers = users?.filter(user => {
-    const matchesSearch = searchQuery === "" || 
-      `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesRole = roleFilter === "all" || user.role === roleFilter;
-    
-    return matchesSearch && matchesRole;
-  }) || [];
+  const handleEdit = (user: User) => {
+    setEditingUser(user);
+    form.reset({
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role as any,
+      department: user.department || "",
+      password: "", // Don't pre-fill password for security
+    });
+  };
 
-  if (isLoading) {
-    return (
-      <>
-        <Header 
-          title="User Management" 
-          subtitle="Manage team members and their permissions."
-        />
-        <div className="flex-1 flex items-center justify-center">
-          <LoadingSpinner size="lg" />
-        </div>
-      </>
-    );
-  }
+  const handleDelete = (userId: number) => {
+    deleteUserMutation.mutate(userId);
+  };
 
-  if (error) {
-    return (
-      <>
-        <Header 
-          title="User Management" 
-          subtitle="Manage team members and their permissions."
-        />
-        <div className="flex-1 p-6">
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case "admin":
+        return <Shield className="h-4 w-4" />;
+      case "doctor":
+        return <Stethoscope className="h-4 w-4" />;
+      case "nurse":
+        return <Users className="h-4 w-4" />;
+      case "receptionist":
+        return <Calendar className="h-4 w-4" />;
+      default:
+        return <Users className="h-4 w-4" />;
+    }
+  };
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case "admin":
+        return "bg-red-100 text-red-800";
+      case "doctor":
+        return "bg-blue-100 text-blue-800";
+      case "nurse":
+        return "bg-green-100 text-green-800";
+      case "receptionist":
+        return "bg-yellow-100 text-yellow-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const filteredUsers = users.filter(
+    (user) =>
+      user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.role.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const userCounts = users.reduce((acc, user) => {
+    acc[user.role] = (acc[user.role] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Header title="User Management" subtitle="Manage system users and their permissions" />
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
-            <CardContent className="text-center py-8">
-              <p className="text-neutral-600">
-                Unable to load user data. Please try again later.
-              </p>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Users</p>
+                  <p className="text-2xl font-bold">{users.length}</p>
+                </div>
+                <Users className="h-8 w-8 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Doctors</p>
+                  <p className="text-2xl font-bold">{userCounts.doctor || 0}</p>
+                </div>
+                <Stethoscope className="h-8 w-8 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Nurses</p>
+                  <p className="text-2xl font-bold">{userCounts.nurse || 0}</p>
+                </div>
+                <Users className="h-8 w-8 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Staff</p>
+                  <p className="text-2xl font-bold">{(userCounts.receptionist || 0) + (userCounts.admin || 0)}</p>
+                </div>
+                <Calendar className="h-8 w-8 text-yellow-600" />
+              </div>
             </CardContent>
           </Card>
         </div>
-      </>
-    );
-  }
 
+        {/* Header and Controls */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex-1">
+            <Input
+              placeholder="Search users by name, email, or role..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-md"
+            />
+          </div>
+          
+          <Dialog open={isCreateModalOpen || !!editingUser} onOpenChange={(open) => {
+            if (!open) {
+              setIsCreateModalOpen(false);
+              setEditingUser(null);
+              form.reset();
+            }
+          }}>
+            <DialogTrigger asChild>
+              <Button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2">
+                <UserPlus className="h-4 w-4" />
+                Add New User
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingUser ? "Edit User" : "Add New User"}
+                </DialogTitle>
+                <DialogDescription>
+                  {editingUser 
+                    ? "Update the user's information and permissions."
+                    : "Create a new user account with appropriate role and permissions."
+                  }
+                </DialogDescription>
+              </DialogHeader>
+              
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">First Name</Label>
+                    <Input
+                      id="firstName"
+                      {...form.register("firstName")}
+                      className={form.formState.errors.firstName ? "border-red-500" : ""}
+                    />
+                    {form.formState.errors.firstName && (
+                      <p className="text-sm text-red-500">{form.formState.errors.firstName.message}</p>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input
+                      id="lastName"
+                      {...form.register("lastName")}
+                      className={form.formState.errors.lastName ? "border-red-500" : ""}
+                    />
+                    {form.formState.errors.lastName && (
+                      <p className="text-sm text-red-500">{form.formState.errors.lastName.message}</p>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    {...form.register("email")}
+                    className={form.formState.errors.email ? "border-red-500" : ""}
+                  />
+                  {form.formState.errors.email && (
+                    <p className="text-sm text-red-500">{form.formState.errors.email.message}</p>
+                  )}
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="role">Role</Label>
+                  <Select onValueChange={(value) => form.setValue("role", value as any)} defaultValue={form.getValues("role")}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="admin">Administrator</SelectItem>
+                      <SelectItem value="doctor">Doctor</SelectItem>
+                      <SelectItem value="nurse">Nurse</SelectItem>
+                      <SelectItem value="receptionist">Receptionist</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {form.formState.errors.role && (
+                    <p className="text-sm text-red-500">{form.formState.errors.role.message}</p>
+                  )}
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="department">Department (Optional)</Label>
+                  <Input
+                    id="department"
+                    {...form.register("department")}
+                    placeholder="e.g., Cardiology, Emergency, etc."
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="password">
+                    {editingUser ? "New Password (Optional)" : "Password"}
+                  </Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    {...form.register("password")}
+                    className={form.formState.errors.password ? "border-red-500" : ""}
+                  />
+                  {form.formState.errors.password && (
+                    <p className="text-sm text-red-500">{form.formState.errors.password.message}</p>
+                  )}
+                </div>
+                
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setIsCreateModalOpen(false);
+                      setEditingUser(null);
+                      form.reset();
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={createUserMutation.isPending || updateUserMutation.isPending}
+                  >
+                    {createUserMutation.isPending || updateUserMutation.isPending ? 
+                      "Saving..." : 
+                      (editingUser ? "Update User" : "Create User")
+                    }
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
 
-
-  const handleDeleteUser = (userId: number) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      deleteUserMutation.mutate(userId);
-    }
-  };
-
-
-
-  return (
-    <>
-      <Header 
-        title="User Management" 
-        subtitle="Manage team members and their permissions."
-      />
-      
-      <div className="flex-1 overflow-auto p-6">
+        {/* Users List */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Team Members</CardTitle>
-              <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-                <DialogTrigger asChild>
-                  <Button className="bg-medical-blue hover:bg-blue-700">
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Add User
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>Add New User</DialogTitle>
-                  </DialogHeader>
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="firstName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>First Name</FormLabel>
-                              <FormControl>
-                                <Input {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="lastName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Last Name</FormLabel>
-                              <FormControl>
-                                <Input {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <Input type="email" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="username"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Username</FormLabel>
-                            <FormControl>
-                              <Input {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Password</FormLabel>
-                            <FormControl>
-                              <Input type="password" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="role"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Role</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select role" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="admin">Administrator</SelectItem>
-                                  <SelectItem value="doctor">Doctor</SelectItem>
-                                  <SelectItem value="nurse">Nurse</SelectItem>
-                                  <SelectItem value="receptionist">Receptionist</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="department"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Department</FormLabel>
-                              <FormControl>
-                                <Input placeholder="e.g. Cardiology" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      
-                      <div className="flex justify-end space-x-2 pt-4">
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          onClick={() => setShowCreateModal(false)}
-                        >
-                          Cancel
-                        </Button>
-                        <Button 
-                          type="submit" 
-                          disabled={createUserMutation.isPending}
-                          className="bg-medical-blue hover:bg-blue-700"
-                        >
-                          {createUserMutation.isPending ? 
-                            (editingUser ? "Updating..." : "Creating...") : 
-                            (editingUser ? "Update User" : "Create User")
-                          }
-                        </Button>
-                      </div>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
-            </div>
+            <CardTitle>System Users</CardTitle>
           </CardHeader>
           <CardContent>
-            {/* Filters */}
-            <div className="flex items-center space-x-4 mb-6">
-              <div className="relative flex-1 max-w-sm">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                <Input
-                  placeholder="Search users..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Select value={roleFilter} onValueChange={setRoleFilter}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Filter by role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Roles</SelectItem>
-                  <SelectItem value="admin">Administrators</SelectItem>
-                  <SelectItem value="doctor">Doctors</SelectItem>
-                  <SelectItem value="nurse">Nurses</SelectItem>
-                  <SelectItem value="receptionist">Receptionists</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Users Table */}
-            {filteredUsers.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-neutral-600">No users found matching your criteria.</p>
+            {isLoading ? (
+              <div className="text-center py-8">Loading users...</div>
+            ) : filteredUsers.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                {searchTerm ? "No users found matching your search." : "No users found."}
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="medical-table">
-                  <thead>
-                    <tr>
-                      <th>User</th>
-                      <th>Role</th>
-                      <th>Department</th>
-                      <th>Status</th>
-                      <th>Last Active</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredUsers.map((user) => {
-                      const RoleIcon = roleIcons[user.role as keyof typeof roleIcons];
+              <div className="space-y-4">
+                {filteredUsers.map((user) => (
+                  <div
+                    key={user.id}
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        {getRoleIcon(user.role)}
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-gray-900">
+                          {user.firstName} {user.lastName}
+                        </h3>
+                        <p className="text-sm text-gray-500">{user.email}</p>
+                        {user.department && (
+                          <p className="text-xs text-gray-400">{user.department}</p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3">
+                      <Badge className={getRoleColor(user.role)}>
+                        {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                      </Badge>
                       
-                      return (
-                        <tr key={user.id}>
-                          <td className="py-3">
-                            <div className="flex items-center space-x-3">
-                              <Avatar>
-                                <AvatarContent className="bg-medical-blue text-white font-semibold">
-                                  {getInitials(user.firstName, user.lastName)}
-                                </AvatarContent>
-                                <AvatarFallback>
-                                  {getInitials(user.firstName, user.lastName)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-medium text-gray-900">
-                                  {user.firstName} {user.lastName}
-                                </p>
-                                <p className="text-sm text-neutral-600">{user.email}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-3">
-                            <Badge 
-                              variant="secondary"
-                              className={`${roleColors[user.role as keyof typeof roleColors]} flex items-center space-x-1 w-fit`}
-                            >
-                              <RoleIcon className="w-3 h-3" />
-                              <span>{user.role.charAt(0).toUpperCase() + user.role.slice(1)}</span>
-                            </Badge>
-                          </td>
-                          <td className="py-3 text-sm text-neutral-600">
-                            {user.department || "—"}
-                          </td>
-                          <td className="py-3">
-                            <Badge 
-                              variant="secondary"
-                              className={user.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}
-                            >
-                              {user.isActive ? "Active" : "Inactive"}
-                            </Badge>
-                          </td>
-                          <td className="py-3 text-sm text-neutral-600">
-                            {formatLastLogin(user.lastLoginAt)}
-                          </td>
-                          <td className="py-3">
-                            <div className="flex items-center space-x-2">
-                              <Button 
-                                variant="link" 
-                                size="sm" 
-                                className="text-medical-blue hover:text-blue-700"
-                                onClick={() => {
-                                  setEditingUser(user);
-                                  form.reset({
-                                    email: user.email,
-                                    username: user.username,
-                                    firstName: user.firstName,
-                                    lastName: user.lastName,
-                                    role: user.role,
-                                    department: user.department || "",
-                                    password: ""
-                                  });
-                                  setShowCreateModal(true);
-                                }}
+                      <Badge variant={user.isActive ? "default" : "secondary"}>
+                        {user.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                      
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEdit(user)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete User</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete {user.firstName} {user.lastName}? 
+                                This action cannot be undone and will remove all their access to the system.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDelete(user.id)}
+                                className="bg-red-600 hover:bg-red-700"
                               >
-                                Edit
-                              </Button>
-                              <Button 
-                                variant="link" 
-                                size="sm" 
-                                className="text-red-600 hover:text-red-700"
-                                onClick={() => {
-                                  if (window.confirm("Are you sure you want to delete this user?")) {
-                                    deleteUserMutation.mutate(user.id);
-                                  }
-                                }}
-                                disabled={deleteUserMutation.isPending}
-                              >
-                                {user.isActive ? "Deactivate" : "Activate"}
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                                Delete User
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>
         </Card>
       </div>
-    </>
+    </div>
   );
 }
