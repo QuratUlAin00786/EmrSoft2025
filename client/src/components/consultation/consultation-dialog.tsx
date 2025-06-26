@@ -83,6 +83,7 @@ export function ConsultationDialog({ open, onOpenChange, patient }: Consultation
   });
 
   const calculateAge = (dateOfBirth: string) => {
+    if (!dateOfBirth) return 0;
     const today = new Date();
     const birthDate = new Date(dateOfBirth);
     let age = today.getFullYear() - birthDate.getFullYear();
@@ -159,11 +160,17 @@ export function ConsultationDialog({ open, onOpenChange, patient }: Consultation
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
-                  <p className="font-medium">{patient.firstName} {patient.lastName}</p>
-                  <p className="text-sm text-gray-600">Age: {calculateAge(patient.dateOfBirth)} years</p>
-                  <p className="text-sm text-gray-600">DOB: {format(new Date(patient.dateOfBirth), 'dd/MM/yyyy')}</p>
-                  {patient.nhsNumber && (
-                    <p className="text-sm text-gray-600">NHS: {patient.nhsNumber}</p>
+                  {patient ? (
+                    <>
+                      <p className="font-medium">{patient.firstName} {patient.lastName}</p>
+                      <p className="text-sm text-gray-600">Age: {calculateAge(patient.dateOfBirth)} years</p>
+                      <p className="text-sm text-gray-600">DOB: {format(new Date(patient.dateOfBirth), 'dd/MM/yyyy')}</p>
+                      {patient.nhsNumber && (
+                        <p className="text-sm text-gray-600">NHS: {patient.nhsNumber}</p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-sm text-gray-500">No patient selected - General consultation</p>
                   )}
                 </div>
 
