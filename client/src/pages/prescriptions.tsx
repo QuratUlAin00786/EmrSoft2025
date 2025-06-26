@@ -346,7 +346,13 @@ export default function PrescriptionsPage() {
                   </SelectContent>
                 </Select>
                 
-
+                <Dialog open={showNewPrescription} onOpenChange={setShowNewPrescription}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-medical-blue hover:bg-blue-700">
+                      <Plus className="h-4 w-4 mr-2" />
+                      New Prescription
+                    </Button>
+                  </DialogTrigger>
                   <DialogContent className="max-w-2xl">
                     <DialogHeader>
                       <DialogTitle>Create New Prescription</DialogTitle>
