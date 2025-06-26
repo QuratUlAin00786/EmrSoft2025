@@ -81,6 +81,33 @@ export interface IStorage {
     aiSuggestions: number;
     revenue: number;
   }>;
+
+  // Forms
+  getForms(organizationId: number): Promise<any[]>;
+  createForm(form: any, organizationId: number): Promise<any>;
+  
+  // Analytics
+  getAnalytics(organizationId: number): Promise<any>;
+  
+  // Automation
+  getAutomationRules(organizationId: number): Promise<any[]>;
+  getAutomationStats(organizationId: number): Promise<any>;
+  toggleAutomationRule(ruleId: string, organizationId: number): Promise<any>;
+  
+  // Messaging
+  getConversations(organizationId: number): Promise<any[]>;
+  getMessages(conversationId: string, organizationId: number): Promise<any[]>;
+  sendMessage(messageData: any, organizationId: number): Promise<any>;
+  getMessageCampaigns(organizationId: number): Promise<any[]>;
+  createMessageCampaign(campaignData: any, organizationId: number): Promise<any>;
+  
+  // Integrations
+  getIntegrations(organizationId: number): Promise<any[]>;
+  connectIntegration(integrationData: any, organizationId: number): Promise<any>;
+  getWebhooks(organizationId: number): Promise<any[]>;
+  createWebhook(webhookData: any, organizationId: number): Promise<any>;
+  getApiKeys(organizationId: number): Promise<any[]>;
+  createApiKey(apiKeyData: any, organizationId: number): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -462,6 +489,306 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(consultations.id, id), eq(consultations.organizationId, organizationId)))
       .returning();
     return updated;
+  }
+  async getForms(organizationId: number): Promise<any[]> {
+    // Mock implementation - replace with actual database logic
+    return [];
+  }
+
+  async createForm(form: any, organizationId: number): Promise<any> {
+    // Mock implementation - replace with actual database logic
+    return { ...form, id: Date.now().toString(), organizationId };
+  }
+
+  async getAnalytics(organizationId: number): Promise<any> {
+    // Mock analytics data - replace with actual database queries
+    return {
+      overview: {
+        totalPatients: 1247,
+        newPatients: 89,
+        totalAppointments: 456,
+        completedAppointments: 398,
+        revenue: 125800,
+        averageWaitTime: 18,
+        patientSatisfaction: 4.6,
+        noShowRate: 8.2
+      },
+      trends: {
+        patientGrowth: [
+          { month: "Jan", total: 1050, new: 67 },
+          { month: "Feb", total: 1089, new: 72 },
+          { month: "Mar", total: 1134, new: 81 },
+          { month: "Apr", total: 1178, new: 79 },
+          { month: "May", total: 1208, new: 85 },
+          { month: "Jun", total: 1247, new: 89 }
+        ],
+        appointmentVolume: [
+          { date: "2024-06-10", scheduled: 45, completed: 42, cancelled: 2, noShow: 1 },
+          { date: "2024-06-11", scheduled: 52, completed: 47, cancelled: 3, noShow: 2 },
+          { date: "2024-06-12", scheduled: 48, completed: 44, cancelled: 2, noShow: 2 },
+          { date: "2024-06-13", scheduled: 51, completed: 46, cancelled: 3, noShow: 2 },
+          { date: "2024-06-14", scheduled: 49, completed: 45, cancelled: 2, noShow: 2 }
+        ],
+        revenue: [
+          { month: "Jan", amount: 98500, target: 100000 },
+          { month: "Feb", amount: 102300, target: 105000 },
+          { month: "Mar", amount: 118900, target: 115000 },
+          { month: "Apr", amount: 121500, target: 120000 },
+          { month: "May", amount: 119800, target: 122000 },
+          { month: "Jun", amount: 125800, target: 125000 }
+        ]
+      }
+    };
+  }
+
+  async getAutomationRules(organizationId: number): Promise<any[]> {
+    // Mock automation rules - replace with actual database queries
+    return [
+      {
+        id: "1",
+        name: "Appointment Reminder",
+        description: "Send SMS reminder 24 hours before appointment",
+        trigger: {
+          type: "appointment_scheduled",
+          conditions: [],
+          timeDelay: { value: 24, unit: "hours" }
+        },
+        actions: [{
+          type: "send_sms",
+          config: {
+            template: "appointment_reminder",
+            message: "Hello {{patient_name}}, you have an appointment tomorrow at {{appointment_time}} with {{provider_name}}."
+          }
+        }],
+        status: "active",
+        category: "appointment",
+        createdAt: "2024-06-01T10:00:00Z",
+        updatedAt: "2024-06-25T15:30:00Z",
+        lastTriggered: "2024-06-26T14:00:00Z",
+        triggerCount: 145,
+        successRate: 98.6
+      }
+    ];
+  }
+
+  async getAutomationStats(organizationId: number): Promise<any> {
+    // Mock automation stats - replace with actual database queries
+    return {
+      totalRules: 12,
+      activeRules: 9,
+      totalTriggers: 1847,
+      successfulExecutions: 1782,
+      failedExecutions: 65,
+      averageResponseTime: 2.3,
+      topPerformingRules: [
+        { id: "3", name: "Lab Results Notification", triggerCount: 67, successRate: 100.0 },
+        { id: "1", name: "Appointment Reminder", triggerCount: 145, successRate: 98.6 },
+        { id: "2", name: "Post-Visit Follow-up", triggerCount: 89, successRate: 96.6 }
+      ],
+      recentActivity: [
+        {
+          id: "act_1",
+          ruleName: "Appointment Reminder",
+          trigger: "appointment_scheduled",
+          action: "send_sms",
+          status: "success",
+          timestamp: "2024-06-26T16:45:00Z",
+          details: "SMS sent to +44 7700 900123"
+        }
+      ]
+    };
+  }
+
+  async toggleAutomationRule(ruleId: string, organizationId: number): Promise<any> {
+    // Mock implementation - replace with actual database logic
+    return { id: ruleId, status: "active", organizationId };
+  }
+
+  // Messaging implementations
+  async getConversations(organizationId: number): Promise<any[]> {
+    // Mock conversations data
+    return [
+      {
+        id: "conv_1",
+        participants: [
+          { id: "user_1", name: "Dr. Sarah Johnson", role: "doctor" },
+          { id: "user_2", name: "John Smith", role: "patient" }
+        ],
+        lastMessage: {
+          id: "msg_1",
+          senderId: "user_2",
+          subject: "Appointment Follow-up",
+          content: "Thank you for the consultation today.",
+          timestamp: "2024-06-26T14:30:00Z",
+          priority: "normal"
+        },
+        unreadCount: 0,
+        isPatientConversation: true
+      }
+    ];
+  }
+
+  async getMessages(conversationId: string, organizationId: number): Promise<any[]> {
+    // Mock messages data
+    return [
+      {
+        id: "msg_1",
+        senderId: "user_2",
+        senderName: "John Smith",
+        senderRole: "patient",
+        recipientId: "user_1",
+        recipientName: "Dr. Sarah Johnson",
+        subject: "Appointment Follow-up",
+        content: "Thank you for the consultation today. I have a follow-up question about the medication you prescribed.",
+        timestamp: "2024-06-26T14:30:00Z",
+        isRead: true,
+        priority: "normal",
+        type: "patient",
+        isStarred: false
+      }
+    ];
+  }
+
+  async sendMessage(messageData: any, organizationId: number): Promise<any> {
+    // Mock implementation
+    return { 
+      id: Date.now().toString(), 
+      ...messageData, 
+      timestamp: new Date().toISOString(),
+      organizationId 
+    };
+  }
+
+  async getMessageCampaigns(organizationId: number): Promise<any[]> {
+    // Mock campaigns data
+    return [
+      {
+        id: "camp_1",
+        name: "Flu Vaccination Reminder",
+        type: "email",
+        status: "sent",
+        subject: "Annual Flu Vaccination Available",
+        content: "Book your flu vaccination appointment today.",
+        recipientCount: 150,
+        sentCount: 150,
+        openRate: 65,
+        clickRate: 12,
+        createdAt: "2024-06-20T10:00:00Z",
+        template: "vaccination_reminder"
+      }
+    ];
+  }
+
+  async createMessageCampaign(campaignData: any, organizationId: number): Promise<any> {
+    // Mock implementation
+    return { 
+      id: Date.now().toString(), 
+      ...campaignData, 
+      createdAt: new Date().toISOString(),
+      organizationId 
+    };
+  }
+
+  // Integration implementations
+  async getIntegrations(organizationId: number): Promise<any[]> {
+    // Mock integrations data
+    return [
+      {
+        id: "int_1",
+        name: "NHS Digital Integration",
+        description: "Connect with NHS Digital services for patient data exchange",
+        category: "clinical",
+        status: "connected",
+        provider: "NHS Digital",
+        features: ["Patient lookup", "Care records", "Prescription sync"],
+        lastSync: "2024-06-26T12:00:00Z",
+        syncFrequency: "Every 4 hours",
+        isActive: true,
+        connectionCount: 1247
+      },
+      {
+        id: "int_2", 
+        name: "Twilio SMS Gateway",
+        description: "Send SMS notifications and reminders to patients",
+        category: "messaging",
+        status: "connected",
+        provider: "Twilio",
+        features: ["SMS sending", "Delivery tracking", "Two-way messaging"],
+        lastSync: "2024-06-26T15:30:00Z",
+        syncFrequency: "Real-time",
+        isActive: true,
+        connectionCount: 89
+      }
+    ];
+  }
+
+  async connectIntegration(integrationData: any, organizationId: number): Promise<any> {
+    // Mock implementation
+    return { 
+      id: Date.now().toString(), 
+      ...integrationData, 
+      status: "connected",
+      organizationId 
+    };
+  }
+
+  async getWebhooks(organizationId: number): Promise<any[]> {
+    // Mock webhooks data
+    return [
+      {
+        id: "webhook_1",
+        name: "Patient Registration Webhook",
+        url: "https://external-system.com/webhooks/patient-registration",
+        events: ["patient.created", "patient.updated"],
+        status: "active",
+        lastTriggered: "2024-06-26T14:45:00Z",
+        totalCalls: 145,
+        successRate: 98.6,
+        headers: { "Authorization": "Bearer ***" },
+        retryPolicy: "exponential",
+        timeout: 30
+      }
+    ];
+  }
+
+  async createWebhook(webhookData: any, organizationId: number): Promise<any> {
+    // Mock implementation
+    return { 
+      id: Date.now().toString(), 
+      ...webhookData, 
+      status: "active",
+      totalCalls: 0,
+      successRate: 100,
+      organizationId 
+    };
+  }
+
+  async getApiKeys(organizationId: number): Promise<any[]> {
+    // Mock API keys data
+    return [
+      {
+        id: "key_1",
+        name: "Integration API Key",
+        keyPrefix: "emr_live_12345",
+        permissions: ["read", "write"],
+        lastUsed: "2024-06-26T13:20:00Z",
+        isActive: true,
+        usageCount: 2847,
+        rateLimit: 1000
+      }
+    ];
+  }
+
+  async createApiKey(apiKeyData: any, organizationId: number): Promise<any> {
+    // Mock implementation - in real implementation, generate secure API key
+    return { 
+      id: Date.now().toString(), 
+      ...apiKeyData, 
+      keyPrefix: `emr_live_${Math.random().toString(36).substr(2, 9)}`,
+      isActive: true,
+      usageCount: 0,
+      organizationId 
+    };
   }
 }
 

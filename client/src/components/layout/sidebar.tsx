@@ -20,7 +20,7 @@ import {
   Zap,
   Globe,
   MessageSquare,
-  Link
+  Link as LinkIcon
 } from "lucide-react";
 import { useTenant } from "@/hooks/use-tenant";
 import haloLogoPath from "@assets/Screenshot 2025-06-25 at 12.40.02_1750837361778.png";
