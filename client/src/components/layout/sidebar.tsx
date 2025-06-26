@@ -34,10 +34,10 @@ const navigation = [
   { name: "Prescriptions", href: "/prescriptions", icon: Pill },
   { name: "Lab Results", href: "/lab-results", icon: FlaskConical },
   { name: "Imaging", href: "/imaging", icon: FileImage },
-  { name: "Forms", href: "/forms", icon: FileText, badge: "NEW" },
-  { name: "Analytics", href: "/analytics", icon: BarChart3, badge: "NEW" },
-  { name: "Automation", href: "/automation", icon: Zap, badge: "NEW" },
-  { name: "Patient Portal", href: "/patient-portal", icon: Globe, badge: "NEW" },
+  { name: "Forms", href: "/forms", icon: FileText },
+  { name: "Analytics", href: "/analytics", icon: BarChart3 },
+  { name: "Automation", href: "/automation", icon: Zap },
+  { name: "Patient Portal", href: "/patient-portal", icon: Globe },
   { name: "AI Insights", href: "/ai-insights", icon: Brain },
   { name: "Billing", href: "/billing", icon: Receipt },
 ];
@@ -88,11 +88,6 @@ export function Sidebar() {
                 )}>
                   <item.icon className="h-5 w-5" />
                   <span>{item.name}</span>
-                  {item.badge && (
-                    <span className="ml-auto bg-medical-orange text-white text-xs px-2 py-1 rounded-full">
-                      {item.badge}
-                    </span>
-                  )}
                 </a>
               </Link>
             );
