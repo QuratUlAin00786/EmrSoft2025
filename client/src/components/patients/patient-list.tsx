@@ -232,7 +232,14 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {displayPatients.map((patient: any) => {
-
+            // Debug John Abraham's allergies
+            if (patient.firstName === 'John' && patient.lastName === 'Abrhama') {
+              console.log('John Abraham allergies check:');
+              console.log('- allergies array:', patient.medicalHistory?.allergies);
+              console.log('- allergies exist:', !!patient.medicalHistory?.allergies);
+              console.log('- allergies length:', patient.medicalHistory?.allergies?.length);
+              console.log('- allergies > 0:', patient.medicalHistory?.allergies && patient.medicalHistory.allergies.length > 0);
+            }
             
             return (
               <Card key={patient.id} className="hover:shadow-md transition-shadow">
