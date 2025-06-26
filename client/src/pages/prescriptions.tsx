@@ -546,7 +546,7 @@ export default function PrescriptionsPage() {
                         
                         <div className="space-y-3">
                           <h4 className="font-medium">Medications:</h4>
-                          {prescription.medications.map((medication, index) => (
+                          {prescription.medications.map((medication: any, index: number) => (
                             <div key={index} className="bg-gray-50 rounded-lg p-3">
                               <div className="flex items-center justify-between mb-2">
                                 <span className="font-medium">{medication.name}</span>
@@ -568,11 +568,11 @@ export default function PrescriptionsPage() {
                           <div className="mt-4">
                             <h4 className="font-medium text-red-800 mb-2">Drug Interactions:</h4>
                             <div className="space-y-2">
-                              {prescription.interactions.map((interaction, index) => (
+                              {prescription.interactions.map((interaction: any, index: number) => (
                                 <div key={index} className="flex items-start gap-2 p-2 bg-red-50 rounded-lg">
                                   <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5" />
                                   <div>
-                                    <Badge className={getSeverityColor(interaction.severity)} size="sm">
+                                    <Badge className={getSeverityColor(interaction.severity)}>
                                       {interaction.severity}
                                     </Badge>
                                     <p className="text-sm text-red-800 mt-1">{interaction.description}</p>
