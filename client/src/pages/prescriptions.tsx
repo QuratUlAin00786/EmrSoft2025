@@ -214,7 +214,7 @@ export default function PrescriptionsPage() {
     });
     
     // In a real implementation, this would generate a PDF and send to printer
-    const prescription = prescriptions.find(p => p.id === prescriptionId);
+    const prescription = Array.isArray(prescriptions) ? prescriptions.find((p: any) => p.id === prescriptionId) : null;
     if (prescription) {
       const printWindow = window.open('', '_blank');
       if (printWindow) {
@@ -277,16 +277,15 @@ export default function PrescriptionsPage() {
     }
   };
 
-  const filteredPrescriptions = prescriptions.filter(prescription => {
+  const filteredPrescriptions = Array.isArray(prescriptions) ? prescriptions.filter((prescription: any) => {
     const matchesSearch = !searchQuery || 
       prescription.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      prescription.medications.some(med => med.name.toLowerCase().includes(searchQuery.toLowerCase()));
+      prescription.medications.some((med: any) => med.name.toLowerCase().includes(searchQuery.toLowerCase()));
     
     const matchesStatus = statusFilter === "all" || prescription.status === statusFilter;
     
     return matchesSearch && matchesStatus;
   }) : [];
-
 
 
   if (isLoading) {
