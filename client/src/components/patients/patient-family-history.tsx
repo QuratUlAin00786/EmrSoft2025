@@ -115,6 +115,24 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
     exercise: { frequency: "none" }
   };
 
+  const [editedSocialHistory, setEditedSocialHistory] = useState<SocialHistory>(() => {
+    // Ensure proper type structure for social history
+    const currentSocialHistory = patient.medicalHistory?.socialHistory;
+    if (currentSocialHistory && typeof currentSocialHistory.smoking === 'object') {
+      return currentSocialHistory as SocialHistory;
+    }
+    return socialHistory;
+  });
+
+  const saveSocialHistory = () => {
+    onUpdate({
+      medicalHistory: {
+        ...patient.medicalHistory,
+        socialHistory: editedSocialHistory
+      }
+    });
+  };
+
   const immunizations = patient.medicalHistory?.immunizations || [];
 
   const addFamilyCondition = () => {
@@ -318,7 +336,15 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                     <div className="space-y-4">
                       <div>
                         <Label>Smoking Status</Label>
-                        <Select defaultValue={socialHistory.smoking.status}>
+                        <Select 
+                          value={editedSocialHistory.smoking.status}
+                          onValueChange={(value: any) => 
+                            setEditedSocialHistory({
+                              ...editedSocialHistory,
+                              smoking: { ...editedSocialHistory.smoking, status: value }
+                            })
+                          }
+                        >
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
@@ -331,7 +357,15 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                       </div>
                       <div>
                         <Label>Alcohol Consumption</Label>
-                        <Select defaultValue={socialHistory.alcohol.status}>
+                        <Select 
+                          value={editedSocialHistory.alcohol.status}
+                          onValueChange={(value: any) => 
+                            setEditedSocialHistory({
+                              ...editedSocialHistory,
+                              alcohol: { ...editedSocialHistory.alcohol, status: value }
+                            })
+                          }
+                        >
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
@@ -345,7 +379,15 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                       </div>
                       <div>
                         <Label>Exercise Frequency</Label>
-                        <Select defaultValue={socialHistory.exercise.frequency}>
+                        <Select 
+                          value={editedSocialHistory.exercise.frequency}
+                          onValueChange={(value: any) => 
+                            setEditedSocialHistory({
+                              ...editedSocialHistory,
+                              exercise: { ...editedSocialHistory.exercise, frequency: value }
+                            })
+                          }
+                        >
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
@@ -361,11 +403,28 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                     <div className="space-y-4">
                       <div>
                         <Label>Occupation</Label>
-                        <Input defaultValue={socialHistory.occupation} placeholder="Current or former occupation" />
+                        <Input 
+                          value={editedSocialHistory.occupation}
+                          onChange={(e) => 
+                            setEditedSocialHistory({
+                              ...editedSocialHistory,
+                              occupation: e.target.value
+                            })
+                          }
+                          placeholder="Current or former occupation" 
+                        />
                       </div>
                       <div>
                         <Label>Marital Status</Label>
-                        <Select defaultValue={socialHistory.maritalStatus}>
+                        <Select 
+                          value={editedSocialHistory.maritalStatus}
+                          onValueChange={(value: any) => 
+                            setEditedSocialHistory({
+                              ...editedSocialHistory,
+                              maritalStatus: value
+                            })
+                          }
+                        >
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
@@ -380,7 +439,16 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                       </div>
                       <div>
                         <Label>Education Level</Label>
-                        <Input defaultValue={socialHistory.education} placeholder="Highest education level" />
+                        <Input 
+                          value={editedSocialHistory.education}
+                          onChange={(e) => 
+                            setEditedSocialHistory({
+                              ...editedSocialHistory,
+                              education: e.target.value
+                            })
+                          }
+                          placeholder="Highest education level" 
+                        />
                       </div>
                     </div>
                   </div>
