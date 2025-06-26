@@ -1,8 +1,8 @@
-# MediCore EMR System
+# Averox EMR System
 
 ## Overview
 
-MediCore EMR is a multi-tenant Electronic Medical Records (EMR) system designed for healthcare organizations. It provides comprehensive patient management, appointment scheduling, AI-powered insights, and secure multi-tenant architecture with region-specific data compliance.
+Averox EMR is a multi-tenant Electronic Medical Records (EMR) system designed for healthcare organizations. It provides comprehensive patient management, appointment scheduling, AI-powered insights, and secure multi-tenant architecture with region-specific data compliance.
 
 ## System Architecture
 
@@ -227,6 +227,7 @@ MediCore EMR is a multi-tenant Electronic Medical Records (EMR) system designed 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
-Requested features: semble.io-style custom forms, surveys, questionnaires, advanced form builder, analytics, compliance tools, automation features, integration capabilities.
-Logo preferences: Enlarged logo size with "EMR, UK Healthcare" subtitle only (no brand name), removed from dashboard header, kept above sidebar menu and at login screen.
+Requested features: Advanced custom forms, surveys, questionnaires, form builder, analytics, compliance tools, automation features, integration capabilities.
+Logo preferences: Enlarged logo size with "Averox Ltd Healthcare Solutions" subtitle, removed from dashboard header, kept above sidebar menu and at login screen.
 Patient form requirements: Comprehensive health insurance section with UK insurance providers dropdown, fully functional view/book buttons for appointment scheduling.
+Branding: Complete removal of all external provider references, replaced with Averox Ltd branding throughout entire system including developer tools.

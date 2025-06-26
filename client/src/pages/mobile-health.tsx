@@ -209,7 +209,7 @@ export default function MobileHealth() {
   const mockApps: MobileApp[] = [
     {
       id: "app_1",
-      name: "MediCore Patient Portal",
+      name: "Averox Patient Portal",
       description: "Complete patient portal with appointment booking, messaging, and health records",
       category: "patient_portal",
       platform: "pwa",
@@ -228,7 +228,7 @@ export default function MobileHealth() {
     },
     {
       id: "app_2",
-      name: "MediCore Medication Tracker",
+      name: "Averox Medication Tracker",
       description: "Smart medication reminders with dose tracking and refill alerts",
       category: "medication_tracker",
       platform: "ios",

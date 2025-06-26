@@ -27,7 +27,7 @@ import {
   Calculator
 } from "lucide-react";
 import { useTenant } from "@/hooks/use-tenant";
-import haloLogoPath from "@assets/Screenshot 2025-06-25 at 12.40.02_1750837361778.png";
+import averoxLogoPath from "@assets/Screenshot 2025-06-25 at 12.40.02_1750837361778.png";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -79,12 +79,12 @@ export function Sidebar() {
       <div className="p-6 border-b border-neutral-100">
         <div className="flex flex-col items-center text-center">
           <img 
-            src={haloLogoPath} 
-            alt="EMR Logo" 
+            src={averoxLogoPath} 
+            alt="Averox EMR Logo" 
             className="h-16 w-auto mb-2"
           />
           <div>
-            <p className="text-xs text-gray-500 mt-1">EMR, UK Healthcare</p>
+            <p className="text-xs text-gray-500 mt-1">Averox Ltd Healthcare Solutions</p>
           </div>
         </div>
       </div>

@@ -8,7 +8,7 @@ export async function seedDatabase() {
 
     // Create sample organization
     const [org] = await db.insert(organizations).values([{
-      name: "MediCore Healthcare",
+      name: "Averox Healthcare",
       subdomain: "demo",
       region: "UK",
       brandName: "MediCore Demo",
