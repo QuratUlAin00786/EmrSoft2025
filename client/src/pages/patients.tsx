@@ -146,6 +146,7 @@ export default function Patients() {
 
           <div className="mt-6">
             <PatientFamilyHistory 
+              key={patient.id}
               patient={patient} 
               onUpdate={(updates) => {
                 setSelectedPatient({ ...selectedPatient, ...updates });
