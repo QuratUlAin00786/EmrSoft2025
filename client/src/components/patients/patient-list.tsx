@@ -241,40 +241,40 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
             
             return (
               <Card key={patient.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Avatar className="h-12 w-12">
-                      <AvatarFallback className="bg-medical-blue text-white font-semibold">
-                        {getPatientInitials(patient.firstName, patient.lastName)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        {patient.firstName} {patient.lastName}
-                        <TooltipProvider>
-                          {patient.medicalHistory?.allergies && patient.medicalHistory.allergies.length > 0 && (
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <AlertTriangle className="h-4 w-4 text-red-500" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Allergies: {patient.medicalHistory.allergies.join(', ')}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
-                          {patient.medicalHistory?.chronicConditions && patient.medicalHistory.chronicConditions.length > 0 && (
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <Clock className="h-4 w-4 text-orange-500" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Conditions: {patient.medicalHistory.chronicConditions.join(', ')}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
-                        </TooltipProvider>
-                      </CardTitle>
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="h-12 w-12">
+                        <AvatarFallback className="bg-medical-blue text-white font-semibold">
+                          {getPatientInitials(patient.firstName, patient.lastName)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          {patient.firstName} {patient.lastName}
+                          <TooltipProvider>
+                            {patient.medicalHistory?.allergies && patient.medicalHistory.allergies.length > 0 && (
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <AlertTriangle className="h-4 w-4 text-red-500" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Allergies: {patient.medicalHistory.allergies.join(', ')}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
+                            {patient.medicalHistory?.chronicConditions && patient.medicalHistory.chronicConditions.length > 0 && (
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Clock className="h-4 w-4 text-orange-500" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Conditions: {patient.medicalHistory.chronicConditions.join(', ')}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
+                          </TooltipProvider>
+                        </CardTitle>
                       <p className="text-sm text-neutral-600">
                         Age {calculateAge(patient.dateOfBirth)} • {patient.patientId}
                       </p>
@@ -416,10 +416,10 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                 )}
               </CardContent>
             </Card>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
