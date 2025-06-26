@@ -123,6 +123,14 @@ MediCore EMR is a multi-tenant Electronic Medical Records (EMR) system designed 
 - **SQL Injection Prevention**: Parameterized queries through Drizzle ORM
 
 ## Changelog
+- June 26, 2025: **semble.io Competition Features - Complete Platform Overhaul**:
+  - **Advanced Form Builder**: Drag-and-drop interface with conditional logic, custom field types, form templates, real-time preview
+  - **Patient Portal System**: Complete patient-facing interface with appointment booking, messaging, lab results, medication management
+  - **Analytics & Reporting Dashboard**: Comprehensive analytics with 6 major sections - overview, patients, clinical, financial, performance, quality metrics
+  - **Automation & Workflow Engine**: 8 trigger types, 5 action types, template management, activity monitoring, success rate tracking
+  - **Enhanced Communication System**: Flag and reminder functionality with 24-hour spam prevention, communication history tracking
+  - **Runtime Error Fixes**: Resolved imaging page Share icon import issue for full application stability
+  - **semble.io Feature Parity**: Now competitive with advanced form builders, patient engagement tools, automation workflows, and comprehensive analytics
 - June 26, 2025: Enhanced patient interface and medical indicator system:
   - **Prominent Medical Records Access**: Large "Medical Records" button as primary action on patient cards
   - **Medical Alert Icons**: Red triangle icons for allergies, orange clock icons for chronic conditions
