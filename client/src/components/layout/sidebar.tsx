@@ -18,7 +18,9 @@ import {
   Receipt,
   BarChart3,
   Zap,
-  Globe
+  Globe,
+  MessageSquare,
+  Link
 } from "lucide-react";
 import { useTenant } from "@/hooks/use-tenant";
 import haloLogoPath from "@assets/Screenshot 2025-06-25 at 12.40.02_1750837361778.png";
@@ -35,6 +37,8 @@ const navigation = [
   { name: "Lab Results", href: "/lab-results", icon: FlaskConical },
   { name: "Imaging", href: "/imaging", icon: FileImage },
   { name: "Forms", href: "/forms", icon: FileText },
+  { name: "Messaging", href: "/messaging", icon: MessageSquare },
+  { name: "Integrations", href: "/integrations", icon: LinkIcon },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Automation", href: "/automation", icon: Zap },
   { name: "Patient Portal", href: "/patient-portal", icon: Globe },
