@@ -161,7 +161,7 @@ export default function LabResultsPage() {
   };
 
   const handleDownloadResult = (resultId: string) => {
-    const result = labResults.find(r => r.id === resultId);
+    const result = labResults?.find((r: any) => r.id === resultId);
     if (result) {
       toast({
         title: "Download Report",
@@ -169,7 +169,7 @@ export default function LabResultsPage() {
       });
       
       // Simulate PDF download
-      const blob = new Blob([`Lab Results Report\n\nPatient: ${result.patientName}\nTest: ${result.testType}\nDate: ${new Date(result.orderedAt).toLocaleDateString()}\n\nResults:\n${result.results.map(r => `${r.name}: ${r.value} ${r.unit} (${r.referenceRange})`).join('\n')}`], 
+      const blob = new Blob([`Lab Results Report\n\nPatient: ${result.patientName}\nTest: ${result.testType}\nDate: ${new Date(result.orderedAt).toLocaleDateString()}\n\nResults:\n${result.results.map((r: any) => `${r.name}: ${r.value} ${r.unit} (${r.referenceRange})`).join('\n')}`], 
         { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -191,7 +191,7 @@ export default function LabResultsPage() {
   };
 
   const handleFlagCritical = (resultId: string) => {
-    const result = labResults.find(r => r.id === resultId);
+    const result = labResults?.find((r: any) => r.id === resultId);
     if (result) {
       toast({
         title: "Critical Value Flagged",
@@ -202,7 +202,7 @@ export default function LabResultsPage() {
     }
   };
 
-  const filteredResults = labResults.filter(result => {
+  const filteredResults = labResults?.filter((result: any) => {
     const matchesSearch = !searchQuery || 
       result.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       result.testType.toLowerCase().includes(searchQuery.toLowerCase());
