@@ -232,19 +232,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {displayPatients.map((patient: any) => {
-            // Debug logging for John Abraham
-            if (patient.firstName === 'John' && patient.lastName === 'Abrhama') {
-              console.log('=== JOHN ABRAHAM DEBUG ===');
-              console.log('Full patient object:', patient);
-              console.log('Medical history:', patient.medicalHistory);
-              console.log('Allergies exist?', !!patient.medicalHistory?.allergies);
-              console.log('Allergies array:', patient.medicalHistory?.allergies);
-              console.log('Allergies length:', patient.medicalHistory?.allergies?.length);
-              console.log('Chronic conditions exist?', !!patient.medicalHistory?.chronicConditions);
-              console.log('Chronic conditions array:', patient.medicalHistory?.chronicConditions);
-              console.log('Chronic conditions length:', patient.medicalHistory?.chronicConditions?.length);
-              console.log('=== END DEBUG ===');
-            }
+
             
             return (
               <Card key={patient.id} className="hover:shadow-md transition-shadow">
