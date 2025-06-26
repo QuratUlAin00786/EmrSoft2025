@@ -1,12 +1,13 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions,
+  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Patient, type InsertPatient,
   type MedicalRecord, type InsertMedicalRecord,
   type Appointment, type InsertAppointment,
   type AiInsight, type InsertAiInsight,
-  type Subscription, type InsertSubscription
+  type Subscription, type InsertSubscription,
+  type PatientCommunication, type InsertPatientCommunication
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count } from "drizzle-orm";
@@ -64,6 +65,13 @@ export interface IStorage {
   getConsultationsByProvider(providerId: number, organizationId: number): Promise<Consultation[]>;
   createConsultation(consultation: InsertConsultation): Promise<Consultation>;
   updateConsultation(id: number, organizationId: number, updates: Partial<InsertConsultation>): Promise<Consultation | undefined>;
+
+  // Patient Communications
+  getPatientCommunication(id: number, organizationId: number): Promise<PatientCommunication | undefined>;
+  getPatientCommunications(patientId: number, organizationId: number): Promise<PatientCommunication[]>;
+  createPatientCommunication(communication: InsertPatientCommunication): Promise<PatientCommunication>;
+  updatePatientCommunication(id: number, organizationId: number, updates: Partial<InsertPatientCommunication>): Promise<PatientCommunication | undefined>;
+  getLastReminderSent(patientId: number, organizationId: number, type: string): Promise<PatientCommunication | undefined>;
 
   // Dashboard Stats
   getDashboardStats(organizationId: number): Promise<{
@@ -320,6 +328,55 @@ export class DatabaseStorage implements IStorage {
       aiSuggestions: aiSuggestionsResult?.count || 0,
       revenue: 89240, // This would be calculated from billing data
     };
+  }
+
+  // Patient Communications Implementation
+  async getPatientCommunication(id: number, organizationId: number): Promise<PatientCommunication | undefined> {
+    const [communication] = await db
+      .select()
+      .from(patientCommunications)
+      .where(and(eq(patientCommunications.id, id), eq(patientCommunications.organizationId, organizationId)));
+    return communication;
+  }
+
+  async getPatientCommunications(patientId: number, organizationId: number): Promise<PatientCommunication[]> {
+    return await db
+      .select()
+      .from(patientCommunications)
+      .where(and(eq(patientCommunications.patientId, patientId), eq(patientCommunications.organizationId, organizationId)))
+      .orderBy(desc(patientCommunications.createdAt));
+  }
+
+  async createPatientCommunication(communication: InsertPatientCommunication): Promise<PatientCommunication> {
+    const [newCommunication] = await db
+      .insert(patientCommunications)
+      .values(communication)
+      .returning();
+    return newCommunication;
+  }
+
+  async updatePatientCommunication(id: number, organizationId: number, updates: Partial<InsertPatientCommunication>): Promise<PatientCommunication | undefined> {
+    const [updatedCommunication] = await db
+      .update(patientCommunications)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(eq(patientCommunications.id, id), eq(patientCommunications.organizationId, organizationId)))
+      .returning();
+    return updatedCommunication;
+  }
+
+  async getLastReminderSent(patientId: number, organizationId: number, type: string): Promise<PatientCommunication | undefined> {
+    const [lastReminder] = await db
+      .select()
+      .from(patientCommunications)
+      .where(and(
+        eq(patientCommunications.patientId, patientId),
+        eq(patientCommunications.organizationId, organizationId),
+        eq(patientCommunications.type, type),
+        eq(patientCommunications.status, "sent")
+      ))
+      .orderBy(desc(patientCommunications.sentAt))
+      .limit(1);
+    return lastReminder;
   }
 }
 

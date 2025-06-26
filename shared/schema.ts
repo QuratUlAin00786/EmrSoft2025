@@ -418,6 +418,12 @@ export const insertConsultationSchema = createInsertSchema(consultations).omit({
   updatedAt: true,
 });
 
+export const insertPatientCommunicationSchema = createInsertSchema(patientCommunications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type Organization = typeof organizations.$inferSelect;
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
@@ -442,3 +448,6 @@ export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
 
 export type Consultation = typeof consultations.$inferSelect;
 export type InsertConsultation = z.infer<typeof insertConsultationSchema>;
+
+export type PatientCommunication = typeof patientCommunications.$inferSelect;
+export type InsertPatientCommunication = z.infer<typeof insertPatientCommunicationSchema>;
