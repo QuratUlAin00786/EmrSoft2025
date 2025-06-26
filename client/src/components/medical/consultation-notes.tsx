@@ -13,6 +13,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { FileText, Plus, Calendar, User, Stethoscope, Pill, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import type { MedicalRecord } from "@/types";
@@ -46,6 +47,7 @@ interface ConsultationNotesProps {
 export default function ConsultationNotes({ patientId }: ConsultationNotesProps) {
   const [isAddingNote, setIsAddingNote] = useState(false);
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: medicalRecords = [], isLoading } = useQuery({
     queryKey: [`/api/patients/${patientId}/records`],
@@ -53,7 +55,7 @@ export default function ConsultationNotes({ patientId }: ConsultationNotesProps)
   });
 
   const form = useForm({
-    resolver: zodResolver(consultationSchema),
+    resolver: zodResolver(consultationFormSchema),
     defaultValues: {
       type: "consultation",
       title: "",
@@ -68,14 +70,22 @@ export default function ConsultationNotes({ patientId }: ConsultationNotesProps)
 
   const createRecordMutation = useMutation({
     mutationFn: (data: any) => 
-      apiRequest(`/api/patients/${patientId}/records`, {
-        method: "POST",
-        body: data
-      }),
+      apiRequest("POST", `/api/patients/${patientId}/records`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/patients/${patientId}/records`] });
       setIsAddingNote(false);
       form.reset();
+      toast({
+        title: "Record saved successfully",
+        description: "The medical record has been saved to the patient's file.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error saving record",
+        description: error.message || "Failed to save the medical record. Please try again.",
+        variant: "destructive",
+      });
     }
   });
 
@@ -228,22 +238,22 @@ export default function ConsultationNotes({ patientId }: ConsultationNotesProps)
                     <div className="border rounded-lg p-4">
                       <h4 className="font-medium mb-4">Prescribed Medications</h4>
                       <div className="space-y-4">
-                        {form.watch("medications")?.map((_, index) => (
+                        {(form.watch("medications") || []).map((_, index) => (
                           <div key={index} className="grid grid-cols-4 gap-3 p-3 border rounded">
                             <Input
-                              {...form.register(`medications.${index}.name`)}
+                              {...form.register(`medications.${index}.name` as any)}
                               placeholder="Medication name"
                             />
                             <Input
-                              {...form.register(`medications.${index}.dosage`)}
+                              {...form.register(`medications.${index}.dosage` as any)}
                               placeholder="Dosage (e.g., 10mg)"
                             />
                             <Input
-                              {...form.register(`medications.${index}.frequency`)}
+                              {...form.register(`medications.${index}.frequency` as any)}
                               placeholder="Frequency (e.g., twice daily)"
                             />
                             <Input
-                              {...form.register(`medications.${index}.duration`)}
+                              {...form.register(`medications.${index}.duration` as any)}
                               placeholder="Duration (e.g., 30 days)"
                             />
                           </div>
