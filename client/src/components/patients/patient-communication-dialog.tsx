@@ -68,6 +68,9 @@ export function PatientCommunicationDialog({ open, onOpenChange, patient, mode }
     enabled: !!patient?.id && open,
   });
 
+  // Type-safe access to communications
+  const communicationsList = communications as any;
+
   // Check for recent reminders to prevent spam
   const { data: lastReminder } = useQuery({
     queryKey: ['/api/patients', patient?.id, 'last-reminder', selectedType],
@@ -365,13 +368,13 @@ export function PatientCommunicationDialog({ open, onOpenChange, patient, mode }
 
             {communicationsLoading ? (
               <div className="text-center py-4">Loading history...</div>
-            ) : communications.length === 0 ? (
+            ) : communicationsList.length === 0 ? (
               <div className="text-center py-4 text-gray-500">
                 No communication history found
               </div>
             ) : (
               <div className="space-y-3 max-h-96 overflow-y-auto">
-                {communications.map((comm: PatientCommunication) => {
+                {(communicationsList || []).map((comm: any) => {
                   const MethodIcon = COMMUNICATION_METHODS[comm.method as keyof typeof COMMUNICATION_METHODS]?.icon || MessageSquare;
                   
                   return (
