@@ -3,8 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, MapPin, User, Video } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Calendar, Clock, MapPin, User, Video, Stethoscope, FileText } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 import type { Appointment } from "@/types";
 
 const statusColors = {
@@ -23,6 +25,10 @@ const typeColors = {
 export default function AppointmentCalendar() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<"month" | "week" | "day">("month");
+  const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+  const [showAppointmentDetails, setShowAppointmentDetails] = useState(false);
+  const [showConsultation, setShowConsultation] = useState(false);
+  const { toast } = useToast();
 
   const { data: appointments = [], isLoading } = useQuery({
     queryKey: ["/api/appointments"],
@@ -320,11 +326,34 @@ export default function AppointmentCalendar() {
                     </div>
                     
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setSelectedAppointment(appointment);
+                          setShowAppointmentDetails(true);
+                          toast({
+                            title: "Appointment Details",
+                            description: "Viewing appointment information",
+                          });
+                        }}
+                      >
+                        <FileText className="h-4 w-4 mr-1" />
                         View Details
                       </Button>
                       {appointment.status === "scheduled" && (
-                        <Button size="sm">
+                        <Button 
+                          size="sm"
+                          onClick={() => {
+                            setSelectedAppointment(appointment);
+                            setShowConsultation(true);
+                            toast({
+                              title: "Starting Consultation",
+                              description: `Beginning consultation for Patient ${appointment.patientId}`,
+                            });
+                          }}
+                        >
+                          <Stethoscope className="h-4 w-4 mr-1" />
                           Start Consultation
                         </Button>
                       )}
@@ -336,6 +365,111 @@ export default function AppointmentCalendar() {
           )}
         </CardContent>
       </Card>
+
+      {/* Appointment Details Dialog */}
+      <Dialog open={showAppointmentDetails} onOpenChange={setShowAppointmentDetails}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-blue-600" />
+              Appointment Details
+            </DialogTitle>
+          </DialogHeader>
+          {selectedAppointment && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-medium text-gray-700 mb-2">Patient Information</h4>
+                  <p className="text-sm"><strong>Patient ID:</strong> {selectedAppointment.patientId}</p>
+                  <p className="text-sm"><strong>Type:</strong> {selectedAppointment.type}</p>
+                  <p className="text-sm"><strong>Status:</strong> 
+                    <Badge className={`ml-2 ${statusColors[selectedAppointment.status]}`}>
+                      {selectedAppointment.status}
+                    </Badge>
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-700 mb-2">Appointment Details</h4>
+                  <p className="text-sm"><strong>Date:</strong> {format(new Date(selectedAppointment.scheduledAt), "PPP")}</p>
+                  <p className="text-sm"><strong>Time:</strong> {format(new Date(selectedAppointment.scheduledAt), "h:mm a")}</p>
+                  <p className="text-sm"><strong>Duration:</strong> {selectedAppointment.duration} minutes</p>
+                </div>
+              </div>
+              
+              {selectedAppointment.description && (
+                <div>
+                  <h4 className="font-medium text-gray-700 mb-2">Description</h4>
+                  <p className="text-sm text-gray-600">{selectedAppointment.description}</p>
+                </div>
+              )}
+              
+              <div className="flex gap-2 pt-4">
+                <Button 
+                  onClick={() => {
+                    setShowAppointmentDetails(false);
+                    setShowConsultation(true);
+                    toast({
+                      title: "Starting Consultation",
+                      description: `Beginning consultation for Patient ${selectedAppointment.patientId}`,
+                    });
+                  }}
+                  disabled={selectedAppointment.status !== "scheduled"}
+                >
+                  <Stethoscope className="h-4 w-4 mr-2" />
+                  Start Consultation
+                </Button>
+                <Button variant="outline" onClick={() => setShowAppointmentDetails(false)}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Consultation Dialog */}
+      <Dialog open={showConsultation} onOpenChange={setShowConsultation}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Stethoscope className="h-5 w-5 text-blue-600" />
+              Patient Consultation - {selectedAppointment ? `Patient ${selectedAppointment.patientId}` : "New Consultation"}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedAppointment && (
+            <div className="space-y-4">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-medium text-blue-900 mb-2">Appointment Information</h4>
+                <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium text-blue-800">Patient ID:</span> {selectedAppointment.patientId}
+                  </div>
+                  <div>
+                    <span className="font-medium text-blue-800">Type:</span> {selectedAppointment.type}
+                  </div>
+                  <div>
+                    <span className="font-medium text-blue-800">Time:</span> {format(new Date(selectedAppointment.scheduledAt), "h:mm a")}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="text-center py-8">
+                <Stethoscope className="h-16 w-16 text-medical-blue mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Consultation Interface</h3>
+                <p className="text-gray-600 mb-4">Full consultation interface would be implemented here</p>
+                <div className="flex gap-2 justify-center">
+                  <Button onClick={() => setShowConsultation(false)}>
+                    End Consultation
+                  </Button>
+                  <Button variant="outline" onClick={() => setShowConsultation(false)}>
+                    Save & Close
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
