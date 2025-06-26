@@ -411,7 +411,7 @@ export default function AnalyticsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Avg Wait Time</p>
-                      <p className="text-2xl font-bold">{analyticsData.overview.averageWaitTime}min</p>
+                      <p className="text-2xl font-bold">{(analyticsData as any)?.overview?.averageWaitTime || 0}min</p>
                       <p className="text-xs text-green-600 flex items-center mt-1">
                         <TrendingDown className="h-3 w-3 mr-1" />
                         -2min vs last month

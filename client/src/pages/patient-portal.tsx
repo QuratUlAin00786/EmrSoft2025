@@ -322,7 +322,7 @@ export default function PatientPortal() {
               </Button>
               <Avatar>
                 <AvatarFallback>
-                  {portalData.patient.firstName[0]}{portalData.patient.lastName[0]}
+                  {(portalData as any)?.patient?.firstName?.[0] || 'P'}{(portalData as any)?.patient?.lastName?.[0] || 'P'}
                 </AvatarFallback>
               </Avatar>
             </div>
@@ -348,27 +348,27 @@ export default function PatientPortal() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5" />
-                  Welcome back, {portalData.patient.firstName}!
+                  Welcome back, {(portalData as any)?.patient?.firstName || 'Patient'}!
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="text-center">
                     <Calendar className="h-8 w-8 mx-auto mb-2 text-blue-500" />
-                    <div className="text-2xl font-bold">{portalData.upcomingAppointments.length}</div>
+                    <div className="text-2xl font-bold">{(portalData as any)?.upcomingAppointments?.length || 0}</div>
                     <div className="text-sm text-gray-600">Upcoming Appointments</div>
                   </div>
                   <div className="text-center">
                     <MessageSquare className="h-8 w-8 mx-auto mb-2 text-green-500" />
                     <div className="text-2xl font-bold">
-                      {portalData.messages.filter(m => !m.read).length}
+                      {((portalData as any)?.messages || []).filter((m: any) => !m.read).length}
                     </div>
                     <div className="text-sm text-gray-600">Unread Messages</div>
                   </div>
                   <div className="text-center">
                     <FileText className="h-8 w-8 mx-auto mb-2 text-orange-500" />
                     <div className="text-2xl font-bold">
-                      {portalData.forms.filter(f => f.status === 'pending').length}
+                      {((portalData as any)?.forms || []).filter((f: any) => f.status === 'pending').length}
                     </div>
                     <div className="text-sm text-gray-600">Pending Forms</div>
                   </div>
@@ -410,7 +410,7 @@ export default function PatientPortal() {
                   <CardTitle>Next Appointment</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {portalData.upcomingAppointments.length > 0 ? (
+                  {((portalData as any)?.upcomingAppointments?.length || 0) > 0 ? (
                     <div className="space-y-3">
                       {portalData.upcomingAppointments.slice(0, 2).map((appointment) => (
                         <div key={appointment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">

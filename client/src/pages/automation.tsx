@@ -355,7 +355,7 @@ export default function AutomationPage() {
     }
   });
 
-  const filteredRules = automationRules.filter(rule => {
+  const filteredRules = (automationRules as any || []).filter((rule: any) => {
     const matchesStatus = statusFilter === "all" || rule.status === statusFilter;
     const matchesCategory = categoryFilter === "all" || rule.category === categoryFilter;
     return matchesStatus && matchesCategory;
