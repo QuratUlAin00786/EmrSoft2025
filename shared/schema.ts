@@ -259,6 +259,9 @@ export const patientCommunications = pgTable("patient_communications", {
     retryCount?: number;
     cost?: number;
     provider?: string; // Twilio, SendGrid, etc.
+    flagType?: "urgent" | "follow-up" | "billing" | "general";
+    priority?: "low" | "medium" | "high" | "urgent";
+    method?: string;
   }>().default({}),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

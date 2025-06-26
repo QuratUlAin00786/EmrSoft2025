@@ -77,10 +77,7 @@ export function PatientCommunicationDialog({ open, onOpenChange, patient, mode }
   // Send reminder mutation
   const sendReminderMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest(`/api/patients/${patient?.id}/send-reminder`, {
-        method: 'POST',
-        body: JSON.stringify(data)
-      });
+      return apiRequest('POST', `/api/patients/${patient?.id}/send-reminder`, data);
     },
     onSuccess: () => {
       toast({
@@ -103,10 +100,7 @@ export function PatientCommunicationDialog({ open, onOpenChange, patient, mode }
   // Create flag mutation
   const createFlagMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest(`/api/patients/${patient?.id}/flags`, {
-        method: 'POST',
-        body: JSON.stringify(data)
-      });
+      return apiRequest('POST', `/api/patients/${patient?.id}/flags`, data);
     },
     onSuccess: () => {
       toast({

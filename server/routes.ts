@@ -391,7 +391,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if a reminder was sent recently to prevent spam
-      const lastReminder = await storage.getLastReminderSent(patientId, req.organization!.id, reminderData.type);
+      const lastReminder = await storage.getLastReminderSent(patientId, req.tenant!.id, reminderData.type);
       if (lastReminder) {
         const timeSinceLastReminder = new Date().getTime() - new Date(lastReminder.sentAt).getTime();
         const hoursSinceLastReminder = timeSinceLastReminder / (1000 * 60 * 60);
@@ -406,7 +406,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create patient communication record
       const communication = await storage.createPatientCommunication({
-        organizationId: req.organization!.id,
+        organizationId: req.tenant!.id,
         patientId,
         type: 'reminder',
         method: reminderData.method,
@@ -415,7 +415,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sentBy: req.user!.id,
         metadata: {
           reminderType: reminderData.type,
-          contactMethod: reminderData.method
+          method: reminderData.method
         }
       });
 
@@ -433,6 +433,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Send reminder error:", error);
       res.status(500).json({ error: "Failed to send reminder" });
+    }
+  });
+
+  // Patient flag endpoint
+  app.post("/api/patients/:id/flags", requireRole(["doctor", "nurse", "receptionist", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      
+      const flagData = z.object({
+        flagType: z.enum(["urgent", "follow-up", "billing", "general"]).default("general"),
+        reason: z.string().min(1),
+        priority: z.enum(["low", "medium", "high", "urgent"]).default("medium")
+      }).parse(req.body);
+
+      const patient = await storage.getPatient(patientId, req.tenant!.id);
+      
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+
+      // Create patient communication record for flag
+      const communication = await storage.createPatientCommunication({
+        organizationId: req.tenant!.id,
+        patientId,
+        type: 'flag',
+        method: 'system',
+        content: `Patient flagged: ${flagData.flagType} - ${flagData.reason}`,
+        sentAt: new Date(),
+        sentBy: req.user!.id,
+        metadata: {
+          flagType: flagData.flagType,
+          priority: flagData.priority
+        }
+      });
+
+      res.json({ 
+        success: true, 
+        message: `Flag created for ${patient.firstName} ${patient.lastName}`,
+        communication,
+        patientId,
+        flagType: flagData.flagType
+      });
+    } catch (error) {
+      console.error("Patient flag error:", error);
+      res.status(500).json({ error: "Failed to create patient flag" });
+    }
+  });
+
+  // Get patient communications
+  app.get("/api/patients/:id/communications", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      const communications = await storage.getPatientCommunications(patientId, req.tenant!.id);
+      res.json(communications);
+    } catch (error) {
+      console.error('Error fetching patient communications:', error);
+      res.status(500).json({ error: 'Failed to fetch communications' });
     }
   });
 
