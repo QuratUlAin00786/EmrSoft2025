@@ -1,4 +1,5 @@
 import { Header } from "@/components/layout/header";
+import { Link } from "wouter";
 import { StatsOverview } from "@/components/dashboard/stats-overview";
 import { AiInsightsPanel } from "@/components/dashboard/ai-insights-panel";
 import { RecentPatients } from "@/components/dashboard/recent-patients";
