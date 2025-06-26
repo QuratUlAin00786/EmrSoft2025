@@ -1,31 +1,45 @@
-import { UserPlus, CalendarPlus, Bot, Pill } from "lucide-react";
+import { UserPlus, CalendarPlus, Bot, Pill, FileText, MessageSquare } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 
 const quickActions = [
   {
     title: "Add New Patient",
     icon: UserPlus,
     color: "text-medical-blue",
-    action: "addPatient"
+    action: "Add New Patient"
   },
   {
     title: "Schedule Appointment", 
     icon: CalendarPlus,
     color: "text-medical-green",
-    action: "scheduleAppointment"
-  },
-  {
-    title: "AI Assistant Chat",
-    icon: Bot,
-    color: "text-purple-600", 
-    action: "aiChat"
+    action: "Schedule Appointment"
   },
   {
     title: "Create Prescription",
     icon: Pill,
     color: "text-medical-orange",
-    action: "prescribe"
+    action: "Create Prescription"
+  },
+  {
+    title: "Medical Records",
+    icon: FileText,
+    color: "text-blue-600",
+    action: "Medical Records"
+  },
+  {
+    title: "AI Assistant",
+    icon: Bot,
+    color: "text-purple-600", 
+    action: "AI Assistant"
+  },
+  {
+    title: "Start Consultation",
+    icon: MessageSquare,
+    color: "text-green-600",
+    action: "consultation"
   }
 ];
 
@@ -34,12 +48,59 @@ interface QuickActionsProps {
 }
 
 export function QuickActions({ onAction }: QuickActionsProps) {
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+
   const handleAction = (action: string) => {
     if (onAction) {
       onAction(action);
     } else {
-      console.log(`Quick action: ${action}`);
-      // Default implementations would go here
+      // Default navigation behavior
+      switch (action) {
+        case "Add New Patient":
+          setLocation("/patients");
+          toast({
+            title: "Patient Management",
+            description: "Opening patient registration",
+          });
+          break;
+        case "Schedule Appointment":
+          setLocation("/calendar");
+          toast({
+            title: "Appointment Calendar",
+            description: "Opening appointment scheduler",
+          });
+          break;
+        case "Create Prescription":
+          setLocation("/prescriptions");
+          toast({
+            title: "Prescription Manager",
+            description: "Opening prescription system",
+          });
+          break;
+        case "Medical Records":
+          setLocation("/patients");
+          toast({
+            title: "Medical Records",
+            description: "Opening patient records",
+          });
+          break;
+        case "AI Assistant":
+          setLocation("/ai-insights");
+          toast({
+            title: "AI Assistant",
+            description: "Opening AI insights panel",
+          });
+          break;
+        case "consultation":
+          toast({
+            title: "Consultation",
+            description: "Starting patient consultation",
+          });
+          break;
+        default:
+          console.log(`Quick action: ${action}`);
+      }
     }
   };
 
@@ -53,11 +114,11 @@ export function QuickActions({ onAction }: QuickActionsProps) {
           <Button
             key={action.action}
             variant="outline"
-            className="w-full justify-start space-x-3 h-auto p-3 hover:bg-neutral-50 transition-colors"
+            className="w-full justify-start space-x-3 h-auto p-3 hover:bg-medical-blue hover:text-white transition-colors"
             onClick={() => handleAction(action.action)}
           >
             <action.icon className={`h-5 w-5 ${action.color}`} />
-            <span className="text-sm font-medium text-gray-900">
+            <span className="text-sm font-medium">
               {action.title}
             </span>
           </Button>

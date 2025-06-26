@@ -11,9 +11,13 @@ import AppointmentCalendar from "@/components/calendar/appointment-calendar";
 import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
 import { PatientModal } from "@/components/patients/patient-modal";
+import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
   const [showPatientModal, setShowPatientModal] = useState(false);
   const [showConsultation, setShowConsultation] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
@@ -25,23 +29,47 @@ export default function Dashboard() {
 
   const handleQuickAction = (action: string) => {
     switch (action) {
-      case "addPatient":
+      case "Add New Patient":
         setShowPatientModal(true);
+        toast({
+          title: "Patient Registration",
+          description: "Opening new patient registration form",
+        });
         break;
-      case "scheduleAppointment":
-        // TODO: Implement appointment scheduling modal
-        console.log("Open appointment scheduler");
+      case "Schedule Appointment":
+        setLocation("/calendar");
+        toast({
+          title: "Appointment Scheduler",
+          description: "Opening appointment calendar",
+        });
         break;
-      case "aiChat":
-        // TODO: Implement AI assistant chat interface
-        console.log("Open AI assistant chat");
+      case "AI Assistant":
+        setLocation("/ai-insights");
+        toast({
+          title: "AI Assistant",
+          description: "Opening AI insights and recommendations",
+        });
         break;
-      case "prescribe":
-        // TODO: Implement prescription creation modal
-        console.log("Open prescription creator");
+      case "Create Prescription":
+        setLocation("/prescriptions");
+        toast({
+          title: "Prescription Manager",
+          description: "Opening prescription management system",
+        });
+        break;
+      case "Medical Records":
+        setLocation("/patients");
+        toast({
+          title: "Patient Records",
+          description: "Opening patient medical records",
+        });
         break;
       case "consultation":
         startConsultation();
+        toast({
+          title: "Consultation Started",
+          description: "Opening patient consultation interface",
+        });
         break;
       default:
         console.log(`Unknown action: ${action}`);
