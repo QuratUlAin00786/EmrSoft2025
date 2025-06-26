@@ -85,6 +85,7 @@ const commonVaccines = [
 
 export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamilyHistoryProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("family");
   const [newCondition, setNewCondition] = useState<Partial<FamilyCondition>>({
@@ -104,6 +105,27 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
   const [newAllergy, setNewAllergy] = useState("");
   const [newChronicCondition, setNewChronicCondition] = useState("");
   const [editingCondition, setEditingCondition] = useState<FamilyCondition | null>(null);
+
+  const updateMedicalHistoryMutation = useMutation({
+    mutationFn: async (medicalHistory: any) => {
+      return apiRequest('PATCH', `/api/patients/${patient.id}/medical-history`, medicalHistory);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/patients/${patient.id}`] });
+      toast({
+        title: "Medical history updated",
+        description: "Patient medical information has been saved successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error updating medical history",
+        description: "Failed to save medical information. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
 
   const familyHistory = patient.medicalHistory?.familyHistory || {
     father: [],
@@ -159,64 +181,78 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
   const addAllergy = () => {
     if (newAllergy.trim()) {
       const currentAllergies = patient.medicalHistory?.allergies || [];
+      const updatedAllergies = [...currentAllergies, newAllergy.trim()];
+      
+      updateMedicalHistoryMutation.mutate({
+        allergies: updatedAllergies,
+        chronicConditions: patient.medicalHistory?.chronicConditions || [],
+        medications: patient.medicalHistory?.medications || []
+      });
+      
       onUpdate({
         medicalHistory: {
           ...patient.medicalHistory,
-          allergies: [...currentAllergies, newAllergy.trim()]
+          allergies: updatedAllergies
         }
       });
       setNewAllergy("");
-      toast({
-        title: "Allergy Added",
-        description: "New allergy has been added to patient record.",
-      });
     }
   };
 
   const removeAllergy = (index: number) => {
     const currentAllergies = patient.medicalHistory?.allergies || [];
     const updatedAllergies = currentAllergies.filter((_, i) => i !== index);
+    
+    updateMedicalHistoryMutation.mutate({
+      allergies: updatedAllergies,
+      chronicConditions: patient.medicalHistory?.chronicConditions || [],
+      medications: patient.medicalHistory?.medications || []
+    });
+    
     onUpdate({
       medicalHistory: {
         ...patient.medicalHistory,
         allergies: updatedAllergies
       }
     });
-    toast({
-      title: "Allergy Removed",
-      description: "Allergy has been removed from patient record.",
-    });
   };
 
   const addChronicCondition = () => {
     if (newChronicCondition.trim()) {
       const currentConditions = patient.medicalHistory?.chronicConditions || [];
+      const updatedConditions = [...currentConditions, newChronicCondition.trim()];
+      
+      updateMedicalHistoryMutation.mutate({
+        allergies: patient.medicalHistory?.allergies || [],
+        chronicConditions: updatedConditions,
+        medications: patient.medicalHistory?.medications || []
+      });
+      
       onUpdate({
         medicalHistory: {
           ...patient.medicalHistory,
-          chronicConditions: [...currentConditions, newChronicCondition.trim()]
+          chronicConditions: updatedConditions
         }
       });
       setNewChronicCondition("");
-      toast({
-        title: "Condition Added",
-        description: "New chronic condition has been added to patient record.",
-      });
     }
   };
 
   const removeChronicCondition = (index: number) => {
     const currentConditions = patient.medicalHistory?.chronicConditions || [];
     const updatedConditions = currentConditions.filter((_, i) => i !== index);
+    
+    updateMedicalHistoryMutation.mutate({
+      allergies: patient.medicalHistory?.allergies || [],
+      chronicConditions: updatedConditions,
+      medications: patient.medicalHistory?.medications || []
+    });
+    
     onUpdate({
       medicalHistory: {
         ...patient.medicalHistory,
         chronicConditions: updatedConditions
       }
-    });
-    toast({
-      title: "Condition Removed",
-      description: "Chronic condition has been removed from patient record.",
     });
   };
 
