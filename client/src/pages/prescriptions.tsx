@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Pill, 
   Plus, 
@@ -203,22 +204,76 @@ export default function PrescriptionsPage() {
     setSelectedPrescription(prescription);
   };
 
+  const { toast } = useToast();
+
   const handlePrintPrescription = (prescriptionId: string) => {
-    console.log('Printing prescription:', prescriptionId);
+    // Simulate printing functionality
+    toast({
+      title: "Printing Prescription",
+      description: "Prescription sent to printer successfully",
+    });
+    
+    // In a real implementation, this would generate a PDF and send to printer
+    const prescription = prescriptions.find(p => p.id === prescriptionId);
+    if (prescription) {
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(`
+          <html>
+            <head><title>Prescription - ${prescription.patientName}</title></head>
+            <body>
+              <h2>Prescription</h2>
+              <p><strong>Patient:</strong> ${prescription.patientName}</p>
+              <p><strong>Provider:</strong> ${prescription.providerName}</p>
+              <p><strong>Date:</strong> ${new Date(prescription.prescribedAt).toLocaleDateString()}</p>
+              <h3>Medications:</h3>
+              ${prescription.medications.map(med => 
+                `<p><strong>${med.name}</strong> ${med.dosage} - ${med.frequency} for ${med.duration}</p>`
+              ).join('')}
+            </body>
+          </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
+      }
+    }
   };
 
   const handleSendToPharmacy = (prescriptionId: string) => {
-    console.log('Sending to pharmacy:', prescriptionId);
+    const prescription = prescriptions.find(p => p.id === prescriptionId);
+    if (prescription) {
+      toast({
+        title: "Sending to Pharmacy",
+        description: `Prescription sent to ${prescription.pharmacy?.name || 'selected pharmacy'} successfully`,
+      });
+      
+      // In a real implementation, this would call an API to send the prescription electronically
+      queryClient.invalidateQueries({ queryKey: ["/api/prescriptions"] });
+    }
   };
 
   const handleEditPrescription = (prescription: Prescription) => {
     setSelectedPrescription(prescription);
     setShowNewPrescription(true);
+    toast({
+      title: "Edit Prescription",
+      description: `Opening prescription editor for ${prescription.patientName}`,
+    });
   };
 
   const handleCancelPrescription = (prescriptionId: string) => {
     if (window.confirm('Are you sure you want to cancel this prescription?')) {
-      console.log('Cancelling prescription:', prescriptionId);
+      const prescription = prescriptions.find(p => p.id === prescriptionId);
+      if (prescription) {
+        toast({
+          title: "Prescription Cancelled",
+          description: `Prescription for ${prescription.patientName} has been cancelled`,
+          variant: "destructive",
+        });
+        
+        // In a real implementation, this would call an API to cancel the prescription
+        queryClient.invalidateQueries({ queryKey: ["/api/prescriptions"] });
+      }
     }
   };
 

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/layout/header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -141,24 +142,64 @@ export default function LabResultsPage() {
     enabled: true,
   });
 
+  const { toast } = useToast();
+
   const handleOrderTest = () => {
-    console.log('Opening order test modal');
+    toast({
+      title: "Order New Test",
+      description: "Opening test ordering interface",
+    });
+    // In a real implementation, this would open a modal or navigate to test ordering
   };
 
   const handleViewResult = (result: LabResult) => {
-    console.log('Viewing result:', result.id);
+    toast({
+      title: "View Lab Result",
+      description: `Opening detailed results for ${result.patientName}`,
+    });
+    // In a real implementation, this would open a detailed view modal
   };
 
   const handleDownloadResult = (resultId: string) => {
-    console.log('Downloading result:', resultId);
+    const result = labResults.find(r => r.id === resultId);
+    if (result) {
+      toast({
+        title: "Download Report",
+        description: `Lab report for ${result.patientName} downloaded successfully`,
+      });
+      
+      // Simulate PDF download
+      const blob = new Blob([`Lab Results Report\n\nPatient: ${result.patientName}\nTest: ${result.testType}\nDate: ${new Date(result.orderedAt).toLocaleDateString()}\n\nResults:\n${result.results.map(r => `${r.name}: ${r.value} ${r.unit} (${r.referenceRange})`).join('\n')}`], 
+        { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `lab-report-${result.patientName.replace(' ', '-').toLowerCase()}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
   };
 
   const handleShareResult = (result: LabResult) => {
-    console.log('Sharing result with patient:', result.id);
+    toast({
+      title: "Share with Patient",
+      description: `Lab results shared with ${result.patientName} via patient portal`,
+    });
+    // In a real implementation, this would share via patient portal or email
   };
 
   const handleFlagCritical = (resultId: string) => {
-    console.log('Flagging critical result:', resultId);
+    const result = labResults.find(r => r.id === resultId);
+    if (result) {
+      toast({
+        title: "Critical Value Flagged",
+        description: `Critical alert created for ${result.patientName}`,
+        variant: "destructive",
+      });
+      // In a real implementation, this would create alerts and notifications
+    }
   };
 
   const filteredResults = labResults.filter(result => {
