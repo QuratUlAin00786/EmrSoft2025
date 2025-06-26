@@ -15,7 +15,10 @@ import {
   FlaskConical,
   Stethoscope,
   FileImage,
-  Receipt
+  Receipt,
+  BarChart3,
+  Zap,
+  Globe
 } from "lucide-react";
 import { useTenant } from "@/hooks/use-tenant";
 import haloLogoPath from "@assets/Screenshot 2025-06-25 at 12.40.02_1750837361778.png";
@@ -32,6 +35,9 @@ const navigation = [
   { name: "Lab Results", href: "/lab-results", icon: FlaskConical },
   { name: "Imaging", href: "/imaging", icon: FileImage },
   { name: "Forms", href: "/forms", icon: FileText, badge: "NEW" },
+  { name: "Analytics", href: "/analytics", icon: BarChart3, badge: "NEW" },
+  { name: "Automation", href: "/automation", icon: Zap, badge: "NEW" },
+  { name: "Patient Portal", href: "/patient-portal", icon: Globe, badge: "NEW" },
   { name: "AI Insights", href: "/ai-insights", icon: Brain },
   { name: "Billing", href: "/billing", icon: Receipt },
 ];

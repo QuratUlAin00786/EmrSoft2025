@@ -4,7 +4,7 @@ import { Header } from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DatePickerWithRange } from "@/components/ui/date-range-picker";
+import { Button as DateButton } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -296,10 +296,14 @@ export default function AnalyticsPage() {
                 <Filter className="h-4 w-4" />
                 <span className="text-sm font-medium">Filters:</span>
               </div>
-              <DatePickerWithRange
-                date={dateRange}
-                onDateChange={setDateRange}
-              />
+              <div className="flex items-center gap-2">
+                <span className="text-sm">Date Range:</span>
+                <select className="border rounded px-2 py-1 text-sm">
+                  <option>Last 30 Days</option>
+                  <option>Last 90 Days</option>
+                  <option>Last Year</option>
+                </select>
+              </div>
               <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="All Departments" />

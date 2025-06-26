@@ -23,6 +23,9 @@ import PrescriptionsPage from "@/pages/prescriptions";
 import LabResultsPage from "@/pages/lab-results";
 import ImagingPage from "@/pages/imaging";
 import BillingPage from "@/pages/billing";
+import AnalyticsPage from "@/pages/analytics";
+import AutomationPage from "@/pages/automation";
+import PatientPortal from "@/pages/patient-portal";
 import NotFound from "@/pages/not-found";
 
 function ProtectedApp() {
@@ -41,6 +44,9 @@ function ProtectedApp() {
           <Route path="/imaging" component={ImagingPage} />
           <Route path="/forms" component={FormsPage} />
           <Route path="/billing" component={BillingPage} />
+          <Route path="/analytics" component={AnalyticsPage} />
+          <Route path="/automation" component={AutomationPage} />
+          <Route path="/patient-portal" component={PatientPortal} />
           <Route path="/ai-insights" component={AiInsights} />
           <Route path="/users" component={UserManagement} />
           <Route path="/subscription" component={Subscription} />
