@@ -234,9 +234,16 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
           {displayPatients.map((patient: any) => {
             // Debug logging for John Abraham
             if (patient.firstName === 'John' && patient.lastName === 'Abrhama') {
-              console.log('John Abraham medical history:', patient.medicalHistory);
-              console.log('Allergies:', patient.medicalHistory?.allergies);
-              console.log('Chronic conditions:', patient.medicalHistory?.chronicConditions);
+              console.log('=== JOHN ABRAHAM DEBUG ===');
+              console.log('Full patient object:', patient);
+              console.log('Medical history:', patient.medicalHistory);
+              console.log('Allergies exist?', !!patient.medicalHistory?.allergies);
+              console.log('Allergies array:', patient.medicalHistory?.allergies);
+              console.log('Allergies length:', patient.medicalHistory?.allergies?.length);
+              console.log('Chronic conditions exist?', !!patient.medicalHistory?.chronicConditions);
+              console.log('Chronic conditions array:', patient.medicalHistory?.chronicConditions);
+              console.log('Chronic conditions length:', patient.medicalHistory?.chronicConditions?.length);
+              console.log('=== END DEBUG ===');
             }
             
             return (
