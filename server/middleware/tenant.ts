@@ -10,7 +10,7 @@ export interface TenantRequest extends Request {
     region: string;
     settings: any;
   };
-  organizationId: number;
+  organizationId?: number;
   user?: {
     id: number;
     email: string;
@@ -67,6 +67,7 @@ export async function tenantMiddleware(req: TenantRequest, res: Response, next: 
       region: organization.region,
       settings: organization.settings || {}
     };
+    req.organizationId = organization.id;
 
     next();
   } catch (error) {

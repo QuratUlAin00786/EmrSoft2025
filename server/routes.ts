@@ -8,8 +8,8 @@ import { tenantMiddleware, authMiddleware, requireRole, gdprComplianceMiddleware
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Apply tenant and GDPR middleware to all API routes
-  app.use("/api", tenantMiddleware);
-  app.use("/api", gdprComplianceMiddleware);
+  app.use("/api", tenantMiddleware as any);
+  app.use("/api", gdprComplianceMiddleware as any);
 
   // Authentication routes (no auth required)
   app.post("/api/auth/login", async (req: TenantRequest, res) => {
@@ -384,14 +384,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         method: z.enum(["email", "sms", "whatsapp", "system"]).default("system")
       }).parse(req.body);
 
-      const patient = await storage.getPatient(patientId, req.organizationId);
+      const patient = await storage.getPatient(patientId, req.organizationId!);
       
       if (!patient) {
         return res.status(404).json({ error: "Patient not found" });
       }
 
       // Check if a reminder was sent recently to prevent spam
-      const lastReminder = await storage.getLastReminderSent(patientId, req.organizationId, reminderData.type);
+      const lastReminder = await storage.getLastReminderSent(patientId, req.organizationId!, reminderData.type);
       if (lastReminder) {
         const timeSinceLastReminder = new Date().getTime() - new Date(lastReminder.createdAt).getTime();
         const hoursSinceLastReminder = timeSinceLastReminder / (1000 * 60 * 60);
@@ -406,7 +406,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create patient communication record
       const communication = await storage.createPatientCommunication({
-        organizationId: req.organizationId,
+        organizationId: req.organizationId!,
         patientId,
         type: 'reminder',
         method: reminderData.method,
@@ -458,8 +458,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         patientId,
         type: 'flag',
         method: 'system',
-        content: `Patient flagged: ${flagData.flagType} - ${flagData.reason}`,
-        sentAt: new Date(),
+        message: `Patient flagged: ${flagData.flagType} - ${flagData.reason}`,
         sentBy: req.user!.id,
         metadata: {
           flagType: flagData.flagType,
