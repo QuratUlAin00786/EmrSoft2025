@@ -275,7 +275,7 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
     enabled: true,
   });
 
-  const filteredInvoices = invoices.filter(invoice => {
+  const filteredInvoices = Array.isArray(invoices) ? invoices.filter((invoice: any) => {
     const matchesSearch = !searchQuery || 
       invoice.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       invoice.id.toLowerCase().includes(searchQuery.toLowerCase());
@@ -314,11 +314,11 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
   };
 
   const getTotalRevenue = () => {
-    return invoices.reduce((sum, invoice) => sum + invoice.paidAmount, 0);
+    return Array.isArray(invoices) ? invoices.reduce((sum: number, invoice: any) => sum + invoice.paidAmount, 0) : 0;
   };
 
   const getOutstandingAmount = () => {
-    return invoices.reduce((sum, invoice) => sum + (invoice.totalAmount - invoice.paidAmount), 0);
+    return Array.isArray(invoices) ? invoices.reduce((sum: number, invoice: any) => sum + (invoice.totalAmount - invoice.paidAmount), 0) : 0;
   };
 
   if (invoicesLoading) {

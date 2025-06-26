@@ -227,7 +227,7 @@ export default function PrescriptionsPage() {
               <p><strong>Provider:</strong> ${prescription.providerName}</p>
               <p><strong>Date:</strong> ${new Date(prescription.prescribedAt).toLocaleDateString()}</p>
               <h3>Medications:</h3>
-              ${prescription.medications.map(med => 
+              ${prescription.medications.map((med: any) => 
                 `<p><strong>${med.name}</strong> ${med.dosage} - ${med.frequency} for ${med.duration}</p>`
               ).join('')}
             </body>
@@ -285,7 +285,7 @@ export default function PrescriptionsPage() {
     const matchesStatus = statusFilter === "all" || prescription.status === statusFilter;
     
     return matchesSearch && matchesStatus;
-  });
+  }) : [];
 
 
 
