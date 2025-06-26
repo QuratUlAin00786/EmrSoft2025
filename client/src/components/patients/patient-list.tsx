@@ -349,18 +349,18 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                       size="default"
                       variant="outline"
                       onClick={() => setLocation(`/patients/${patient.id}/records`)}
-                      className="flex-1 border-medical-blue text-medical-blue hover:bg-medical-blue hover:text-white"
+                      className="flex-1 border-medical-blue text-medical-blue hover:bg-medical-blue hover:text-white text-sm"
                     >
-                      <FileText className="h-4 w-4 mr-2" />
-                      Medical Records
+                      <FileText className="h-4 w-4 mr-1" />
+                      Records
                     </Button>
                     <Button 
                       size="default"
                       onClick={() => handleBookAppointment(patient)}
-                      className="flex-1 bg-medical-blue hover:bg-blue-700"
+                      className="flex-1 bg-medical-blue hover:bg-blue-700 text-sm"
                     >
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Book Appointment
+                      <Calendar className="h-4 w-4 mr-1" />
+                      Book
                     </Button>
                   </div>
                   
