@@ -994,6 +994,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Analytics endpoints
+  app.get("/api/analytics", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const analytics = await storage.getAnalytics(req.tenant!.id);
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching analytics:", error);
+      res.status(500).json({ error: "Failed to fetch analytics" });
+    }
+  });
+
+  // Automation endpoints
+  app.get("/api/automation/rules", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const rules = await storage.getAutomationRules(req.tenant!.id);
+      res.json(rules);
+    } catch (error) {
+      console.error("Error fetching automation rules:", error);
+      res.status(500).json({ error: "Failed to fetch automation rules" });
+    }
+  });
+
+  app.get("/api/automation/stats", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const stats = await storage.getAutomationStats(req.tenant!.id);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching automation stats:", error);
+      res.status(500).json({ error: "Failed to fetch automation stats" });
+    }
+  });
+
+  app.post("/api/automation/rules/:id/toggle", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const rule = await storage.toggleAutomationRule(req.params.id, req.tenant!.id);
+      res.json(rule);
+    } catch (error) {
+      console.error("Error toggling automation rule:", error);
+      res.status(500).json({ error: "Failed to toggle automation rule" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
