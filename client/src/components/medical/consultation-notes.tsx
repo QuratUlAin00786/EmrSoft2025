@@ -55,7 +55,6 @@ export default function ConsultationNotes({ patientId }: ConsultationNotesProps)
   });
 
   const form = useForm({
-    resolver: zodResolver(consultationFormSchema),
     defaultValues: {
       type: "consultation",
       title: "",
@@ -64,6 +63,7 @@ export default function ConsultationNotes({ patientId }: ConsultationNotesProps)
       treatment: "",
       medications: [],
       followUpRequired: false,
+      followUpDate: "",
       referrals: []
     }
   });
@@ -263,7 +263,7 @@ export default function ConsultationNotes({ patientId }: ConsultationNotesProps)
                           variant="outline"
                           onClick={() => {
                             const current = form.watch("medications") || [];
-                            form.setValue("medications", [...current, { name: "", dosage: "", frequency: "", duration: "" }]);
+                            form.setValue("medications", [...current, { name: "", dosage: "", frequency: "", duration: "" }] as any);
                           }}
                         >
                           <Plus className="h-4 w-4 mr-2" />
@@ -287,7 +287,7 @@ export default function ConsultationNotes({ patientId }: ConsultationNotesProps)
                         <Label htmlFor="followUpDate">Follow-up Date</Label>
                         <Input
                           type="date"
-                          {...form.register("followUpDate")}
+                          {...form.register("followUpDate" as any)}
                         />
                       </div>
                     )}
@@ -315,7 +315,7 @@ export default function ConsultationNotes({ patientId }: ConsultationNotesProps)
         </div>
       </CardHeader>
       <CardContent>
-        {medicalRecords.length === 0 ? (
+        {Array.isArray(medicalRecords) && medicalRecords.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
             <p>No medical records found</p>
@@ -323,7 +323,7 @@ export default function ConsultationNotes({ patientId }: ConsultationNotesProps)
           </div>
         ) : (
           <div className="space-y-4">
-            {medicalRecords.map((record: MedicalRecord) => (
+            {Array.isArray(medicalRecords) && (medicalRecords as any[]).map((record: any) => (
               <div key={record.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
