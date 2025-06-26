@@ -410,7 +410,7 @@ export default function LabResultsPage() {
                           <div className="mt-4">
                             <h4 className="font-medium mb-2">Results:</h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                              {result.results.map((res, index) => (
+                              {result.results.map((res: any, index: number) => (
                                 <div key={index} className={`p-3 rounded-lg border ${
                                   res.status === 'normal' ? 'bg-green-50 border-green-200' :
                                   res.status === 'critical' ? 'bg-red-50 border-red-200' :

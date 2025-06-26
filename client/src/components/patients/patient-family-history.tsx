@@ -149,9 +149,9 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
     // Check if the social history has the correct structure
     if (currentSocialHistory && 
         typeof currentSocialHistory === 'object' && 
-        currentSocialHistory.smoking && 
-        typeof currentSocialHistory.smoking === 'object' &&
-        'status' in currentSocialHistory.smoking) {
+        (currentSocialHistory as any).smoking && 
+        typeof (currentSocialHistory as any).smoking === 'object' &&
+        'status' in (currentSocialHistory as any).smoking) {
       return currentSocialHistory as SocialHistory;
     }
     return defaultSocialHistory;

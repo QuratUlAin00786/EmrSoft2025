@@ -504,7 +504,7 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
                         <div className="bg-gray-50 p-3 rounded-lg">
                           <h4 className="font-medium text-sm text-gray-700 mb-2">Services</h4>
                           <div className="space-y-1">
-                            {invoice.items.slice(0, 2).map((item, index) => (
+                            {invoice.items.slice(0, 2).map((item: any, index: number) => (
                               <div key={index} className="flex justify-between text-sm">
                                 <span>{item.description}</span>
                                 <span>{formatCurrency(item.total)}</span>

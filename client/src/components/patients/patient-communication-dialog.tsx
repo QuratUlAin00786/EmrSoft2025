@@ -198,7 +198,7 @@ export function PatientCommunicationDialog({ open, onOpenChange, patient, mode }
   const canSendReminder = () => {
     if (!lastReminder) return true;
     
-    const lastSent = new Date(lastReminder.sentAt);
+    const lastSent = new Date((lastReminder as any).sentAt);
     const hoursSinceLastReminder = (Date.now() - lastSent.getTime()) / (1000 * 60 * 60);
     
     // Prevent reminders within 24 hours for same type

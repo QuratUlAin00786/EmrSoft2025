@@ -222,7 +222,7 @@ export function ConsultationDialog({ open, onOpenChange, patient }: Consultation
                   <div>
                     <h4 className="text-sm font-medium text-red-700">Allergies</h4>
                     <div className="space-y-1">
-                      {patient.allergies.map((allergy, index) => (
+                      {patient.allergies.map((allergy: any, index: number) => (
                         <Badge key={index} variant="destructive" className="text-xs">
                           {allergy}
                         </Badge>
@@ -235,7 +235,7 @@ export function ConsultationDialog({ open, onOpenChange, patient }: Consultation
                   <div>
                     <h4 className="text-sm font-medium">Current Medications</h4>
                     <div className="space-y-1">
-                      {patient.currentMedications.map((med, index) => (
+                      {patient.currentMedications.map((med: any, index: number) => (
                         <p key={index} className="text-xs text-gray-600">{med}</p>
                       ))}
                     </div>
