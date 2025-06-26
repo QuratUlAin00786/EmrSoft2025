@@ -139,6 +139,7 @@ MediCore EMR is a multi-tenant Electronic Medical Records (EMR) system designed 
   - **JSX Syntax Fixes**: Resolved all compilation errors preventing application startup
   - **Server Configuration**: Fixed port binding and frontend-backend connection issues
   - **Immunization Functionality**: Complete immunization tracking system with form interface, vaccine selection, and medical history integration
+  - **Medical History Data Persistence**: Fixed critical bug where family and social history data was being deleted on any medical history update. Backend now properly preserves all medical history sections when saving changes.
 - June 25, 2025: Comprehensive patient management system completed
 - June 24, 2025: Initial setup
 
