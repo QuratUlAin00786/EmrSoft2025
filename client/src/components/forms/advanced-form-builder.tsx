@@ -535,7 +535,7 @@ export function AdvancedFormBuilder({ form, onSave, onCancel }: AdvancedFormBuil
                   <Select
                     value={selectedField.conditional?.field || ''}
                     onValueChange={(value) => updateField(selectedField.id, {
-                      conditional: value ? { ...selectedField.conditional, field: value } : undefined
+                      conditional: value ? { ...selectedField.conditional, field: value, value: selectedField.conditional?.value || "" } : undefined
                     })}
                   >
                     <SelectTrigger>

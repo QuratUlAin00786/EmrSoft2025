@@ -364,10 +364,10 @@ export default function AnalyticsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Total Patients</p>
-                      <p className="text-2xl font-bold">{analyticsData.overview.totalPatients.toLocaleString()}</p>
+                      <p className="text-2xl font-bold">{(analyticsData as any)?.overview?.totalPatients?.toLocaleString() || '0'}</p>
                       <p className="text-xs text-green-600 flex items-center mt-1">
                         <TrendingUp className="h-3 w-3 mr-1" />
-                        +{analyticsData.overview.newPatients} this month
+                        +{(analyticsData as any)?.overview?.newPatients || 0} this month
                       </p>
                     </div>
                     <Users className="h-8 w-8 text-blue-500" />
@@ -380,9 +380,9 @@ export default function AnalyticsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Appointments</p>
-                      <p className="text-2xl font-bold">{analyticsData.overview.totalAppointments.toLocaleString()}</p>
+                      <p className="text-2xl font-bold">{(analyticsData as any)?.overview?.totalAppointments?.toLocaleString() || '0'}</p>
                       <p className="text-xs text-gray-600 mt-1">
-                        {Math.round((analyticsData.overview.completedAppointments / analyticsData.overview.totalAppointments) * 100)}% completion rate
+                        {Math.round(((analyticsData as any)?.overview?.completedAppointments || 0) / ((analyticsData as any)?.overview?.totalAppointments || 1) * 100)}% completion rate
                       </p>
                     </div>
                     <Calendar className="h-8 w-8 text-green-500" />
@@ -395,7 +395,7 @@ export default function AnalyticsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Revenue</p>
-                      <p className="text-2xl font-bold">{formatCurrency(analyticsData.overview.revenue)}</p>
+                      <p className="text-2xl font-bold">{formatCurrency((analyticsData as any)?.overview?.revenue || 0)}</p>
                       <p className="text-xs text-green-600 flex items-center mt-1">
                         <TrendingUp className="h-3 w-3 mr-1" />
                         +5.2% vs last month

@@ -162,7 +162,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
       onUpdate({
         medicalHistory: {
           ...patient.medicalHistory,
-          socialHistory: editedSocialHistory
+          socialHistory: editedSocialHistory as any
         }
       });
       toast({
