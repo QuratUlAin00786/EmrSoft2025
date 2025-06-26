@@ -48,7 +48,7 @@ export default function ConsultationNotes({ patientId }: ConsultationNotesProps)
   const queryClient = useQueryClient();
 
   const { data: medicalRecords = [], isLoading } = useQuery({
-    queryKey: ["/api/patients", patientId, "records"],
+    queryKey: [`/api/patients/${patientId}/records`],
     enabled: !!patientId,
   });
 
@@ -70,10 +70,10 @@ export default function ConsultationNotes({ patientId }: ConsultationNotesProps)
     mutationFn: (data: any) => 
       apiRequest(`/api/patients/${patientId}/records`, {
         method: "POST",
-        body: JSON.stringify(data)
+        body: data
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/patients", patientId, "records"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/patients/${patientId}/records`] });
       setIsAddingNote(false);
       form.reset();
     }

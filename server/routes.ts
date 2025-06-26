@@ -139,6 +139,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create medical record for patient
+  app.post("/api/patients/:id/records", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      
+      const recordData = z.object({
+        type: z.string(),
+        title: z.string(),
+        notes: z.string(),
+        diagnosis: z.string().optional(),
+        treatment: z.string().optional(),
+        prescription: z.object({
+          medications: z.array(z.object({
+            name: z.string(),
+            dosage: z.string(),
+            frequency: z.string(),
+            duration: z.string(),
+            instructions: z.string().optional()
+          })).optional()
+        }).optional(),
+        followUpRequired: z.boolean().optional(),
+        followUpDate: z.string().optional(),
+        referrals: z.array(z.object({
+          specialist: z.string(),
+          reason: z.string(),
+          urgency: z.string()
+        })).optional()
+      }).parse(req.body);
+
+      const record = await storage.createMedicalRecord({
+        patientId,
+        organizationId: req.tenant!.id,
+        providerId: req.user!.id, // Use the authenticated user as the provider
+        type: recordData.type,
+        title: recordData.title,
+        notes: recordData.notes,
+        diagnosis: recordData.diagnosis,
+        treatment: recordData.treatment,
+        prescription: recordData.prescription || {}
+      });
+
+      res.status(201).json(record);
+    } catch (error) {
+      console.error("Medical record creation error:", error);
+      res.status(500).json({ error: "Failed to create medical record" });
+    }
+  });
+
   app.post("/api/patients", requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
     try {
       const patientData = z.object({
