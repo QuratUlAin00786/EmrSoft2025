@@ -4,11 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
-import { Calendar, Eye, User, Phone, MapPin, AlertTriangle, Clock, Bell, FileText } from "lucide-react";
+import { Calendar, Eye, User, Phone, MapPin, AlertTriangle, Clock, Bell, FileText, Flag } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLocation } from "wouter";
 import { formatDistanceToNow } from "date-fns";
 import { PatientSearch, SearchFilters } from "./patient-search";
+import { PatientCommunicationDialog } from "./patient-communication-dialog";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -62,13 +63,34 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({ searchType: 'all' });
   const [filteredPatients, setFilteredPatients] = useState<any[]>([]);
+  const [communicationDialog, setCommunicationDialog] = useState<{
+    open: boolean;
+    patient: any | null;
+    mode: "flag" | "reminder";
+  }>({
+    open: false,
+    patient: null,
+    mode: "reminder"
+  });
 
 
 
 
 
   const handleRemindPatient = (patient: any) => {
-    sendReminderMutation.mutate(patient.id);
+    setCommunicationDialog({
+      open: true,
+      patient,
+      mode: "reminder"
+    });
+  };
+
+  const handleFlagPatient = (patient: any) => {
+    setCommunicationDialog({
+      open: true,
+      patient,
+      mode: "flag"
+    });
   };
 
   const handleViewRecords = (patient: any) => {
@@ -77,6 +99,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
       title: "Medical Records",
       description: `Opening medical records for ${patient.firstName} ${patient.lastName}`,
     });
+    setLocation(`/patients/${patient.id}/records`);
   };
 
 
@@ -88,35 +111,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
     staleTime: 0
   });
 
-  const sendReminderMutation = useMutation({
-    mutationFn: async (patientId: number) => {
-      return apiRequest('POST', `/api/patients/${patientId}/send-reminder`, {
-        type: 'appointment_reminder',
-        message: 'Please remember your upcoming appointment'
-      });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Reminder sent",
-        description: "Patient has been notified about their appointment",
-      });
-    }
-  });
 
-  const flagPatientMutation = useMutation({
-    mutationFn: async ({ patientId, flag }: { patientId: number; flag: string }) => {
-      return apiRequest('PATCH', `/api/patients/${patientId}`, {
-        flags: [flag]
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
-      toast({
-        title: "Patient flagged",
-        description: "Flag has been added to patient record",
-      });
-    }
-  });
 
   const handleViewPatient = (patient: any) => {
     if (onSelectPatient) {
@@ -181,12 +176,13 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
     setFilteredPatients([]);
   };
 
-  const handleSendReminder = (patientId: number) => {
-    sendReminderMutation.mutate(patientId);
-  };
-
-  const handleFlagPatient = (patientId: number, flag: string) => {
-    flagPatientMutation.mutate({ patientId, flag });
+  const handleBookAppointment = (patient: any) => {
+    console.log('Booking appointment for:', patient.firstName, patient.lastName);
+    toast({
+      title: "Book Appointment",
+      description: `Opening appointment booking for ${patient.firstName} ${patient.lastName}`,
+    });
+    setLocation(`/calendar?patientId=${patient.id}`);
   };
 
   if (isLoading) {
@@ -378,8 +374,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                     <Button 
                       size="sm" 
                       variant="ghost"
-                      onClick={() => handleSendReminder(patient.id)}
-                      disabled={sendReminderMutation.isPending}
+                      onClick={() => handleRemindPatient(patient)}
                       className="flex-1 text-xs h-7"
                     >
                       <Bell className="h-3 w-3 mr-1" />
@@ -388,11 +383,10 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                     <Button 
                       size="sm" 
                       variant="ghost"
-                      onClick={() => handleFlagPatient(patient.id, 'follow-up')}
-                      disabled={flagPatientMutation.isPending}
+                      onClick={() => handleFlagPatient(patient)}
                       className="flex-1 text-xs h-7"
                     >
-                      <AlertTriangle className="h-3 w-3 mr-1" />
+                      <Flag className="h-3 w-3 mr-1" />
                       Flag
                     </Button>
                   </div>
