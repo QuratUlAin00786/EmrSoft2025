@@ -186,7 +186,10 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
       updateMedicalHistoryMutation.mutate({
         allergies: updatedAllergies,
         chronicConditions: patient.medicalHistory?.chronicConditions || [],
-        medications: patient.medicalHistory?.medications || []
+        medications: patient.medicalHistory?.medications || [],
+        familyHistory: patient.medicalHistory?.familyHistory || {},
+        socialHistory: patient.medicalHistory?.socialHistory || {},
+        immunizations: patient.medicalHistory?.immunizations || []
       });
       
       onUpdate({
@@ -206,7 +209,10 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
     updateMedicalHistoryMutation.mutate({
       allergies: updatedAllergies,
       chronicConditions: patient.medicalHistory?.chronicConditions || [],
-      medications: patient.medicalHistory?.medications || []
+      medications: patient.medicalHistory?.medications || [],
+      familyHistory: patient.medicalHistory?.familyHistory || {},
+      socialHistory: patient.medicalHistory?.socialHistory || {},
+      immunizations: patient.medicalHistory?.immunizations || []
     });
     
     onUpdate({
@@ -225,7 +231,10 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
       updateMedicalHistoryMutation.mutate({
         allergies: patient.medicalHistory?.allergies || [],
         chronicConditions: updatedConditions,
-        medications: patient.medicalHistory?.medications || []
+        medications: patient.medicalHistory?.medications || [],
+        familyHistory: patient.medicalHistory?.familyHistory || {},
+        socialHistory: patient.medicalHistory?.socialHistory || {},
+        immunizations: patient.medicalHistory?.immunizations || []
       });
       
       onUpdate({
@@ -245,7 +254,10 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
     updateMedicalHistoryMutation.mutate({
       allergies: patient.medicalHistory?.allergies || [],
       chronicConditions: updatedConditions,
-      medications: patient.medicalHistory?.medications || []
+      medications: patient.medicalHistory?.medications || [],
+      familyHistory: patient.medicalHistory?.familyHistory || {},
+      socialHistory: patient.medicalHistory?.socialHistory || {},
+      immunizations: patient.medicalHistory?.immunizations || []
     });
     
     onUpdate({
@@ -257,6 +269,19 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
   };
 
   const immunizations = patient.medicalHistory?.immunizations || [];
+
+  const handleSaveAllChanges = () => {
+    // Save the complete medical history including all sections
+    updateMedicalHistoryMutation.mutate({
+      allergies: patient.medicalHistory?.allergies || [],
+      chronicConditions: patient.medicalHistory?.chronicConditions || [],
+      medications: patient.medicalHistory?.medications || [],
+      familyHistory: patient.medicalHistory?.familyHistory || {},
+      socialHistory: patient.medicalHistory?.socialHistory || {},
+      immunizations: patient.medicalHistory?.immunizations || []
+    });
+    setIsEditing(false);
+  };
 
   const addFamilyCondition = () => {
     if (!newCondition.relative || !newCondition.condition) return;
@@ -796,8 +821,8 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                 <Button variant="outline" onClick={() => setIsEditing(false)}>
                   Cancel
                 </Button>
-                <Button onClick={() => setIsEditing(false)}>
-                  Save Changes
+                <Button onClick={handleSaveAllChanges} disabled={updateMedicalHistoryMutation.isPending}>
+                  {updateMedicalHistoryMutation.isPending ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
             </DialogContent>

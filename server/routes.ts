@@ -266,20 +266,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/patients/:id/medical-history", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
       const patientId = parseInt(req.params.id);
-      const { allergies, chronicConditions, medications } = req.body;
+      const medicalHistoryUpdate = req.body;
 
       const patient = await storage.getPatient(patientId, req.tenant!.id);
       if (!patient) {
         return res.status(404).json({ error: "Patient not found" });
       }
 
+      // Preserve all existing medical history and merge with updates
+      const updatedMedicalHistory = {
+        ...patient.medicalHistory,
+        ...medicalHistoryUpdate,
+        // Ensure arrays are properly handled
+        allergies: medicalHistoryUpdate.allergies || patient.medicalHistory?.allergies || [],
+        chronicConditions: medicalHistoryUpdate.chronicConditions || patient.medicalHistory?.chronicConditions || [],
+        medications: medicalHistoryUpdate.medications || patient.medicalHistory?.medications || [],
+        familyHistory: {
+          ...patient.medicalHistory?.familyHistory,
+          ...medicalHistoryUpdate.familyHistory
+        },
+        socialHistory: {
+          ...patient.medicalHistory?.socialHistory,
+          ...medicalHistoryUpdate.socialHistory
+        },
+        immunizations: medicalHistoryUpdate.immunizations || patient.medicalHistory?.immunizations || []
+      };
+
       const updatedPatient = await storage.updatePatient(patientId, req.tenant!.id, {
-        medicalHistory: {
-          ...patient.medicalHistory,
-          allergies: allergies || patient.medicalHistory?.allergies || [],
-          chronicConditions: chronicConditions || patient.medicalHistory?.chronicConditions || [],
-          medications: medications || patient.medicalHistory?.medications || []
-        }
+        medicalHistory: updatedMedicalHistory
       });
 
       res.json(updatedPatient);
