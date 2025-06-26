@@ -26,7 +26,8 @@ import {
   AlertTriangle,
   Phone,
   Mail,
-  MapPin
+  MapPin,
+  Eye
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 

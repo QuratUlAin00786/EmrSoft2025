@@ -419,16 +419,16 @@ export function PatientCommunicationDialog({ open, onOpenChange, patient, mode }
           <h4 className="font-medium mb-2">Patient Contact Information</h4>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <span className="font-medium">Email:</span> {patient.contactInfo?.email || "Not provided"}
+              <span className="font-medium">Email:</span> {patient.email || "Not provided"}
             </div>
             <div>
-              <span className="font-medium">Phone:</span> {patient.contactInfo?.phone || "Not provided"}
+              <span className="font-medium">Phone:</span> {patient.phone || "Not provided"}
             </div>
             <div>
-              <span className="font-medium">Mobile:</span> {patient.contactInfo?.mobile || "Not provided"}
+              <span className="font-medium">Mobile:</span> {patient.phone || "Not provided"}
             </div>
             <div>
-              <span className="font-medium">Preferred Contact:</span> {patient.contactInfo?.preferredMethod || "Not specified"}
+              <span className="font-medium">Preferred Contact:</span> {"Email"}
             </div>
           </div>
         </div>
