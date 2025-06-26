@@ -28,6 +28,7 @@ export default function AppointmentCalendar() {
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [showAppointmentDetails, setShowAppointmentDetails] = useState(false);
   const [showConsultation, setShowConsultation] = useState(false);
+  const [showNewAppointment, setShowNewAppointment] = useState(false);
   const { toast } = useToast();
 
   const { data: appointments = [], isLoading } = useQuery({
@@ -124,6 +125,19 @@ export default function AppointmentCalendar() {
                 onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1))}
               >
                 Next
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  setShowNewAppointment(true);
+                  toast({
+                    title: "New Appointment",
+                    description: "Opening appointment booking form",
+                  });
+                }}
+                className="bg-medical-blue text-white hover:bg-blue-700"
+              >
+                + New Appointment
               </Button>
             </div>
           </div>
@@ -468,6 +482,109 @@ export default function AppointmentCalendar() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* New Appointment Dialog */}
+      <Dialog open={showNewAppointment} onOpenChange={setShowNewAppointment}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-blue-600" />
+              Schedule New Appointment
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Patient</label>
+                <select className="w-full p-2 border border-gray-300 rounded-md">
+                  <option value="">Select patient...</option>
+                  <option value="1">Sarah Smith (P001)</option>
+                  <option value="2">Emily Johnson (P002)</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Provider</label>
+                <select className="w-full p-2 border border-gray-300 rounded-md">
+                  <option value="">Select provider...</option>
+                  <option value="1">Dr. Sarah Johnson</option>
+                  <option value="2">Dr. Michael Chen</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Date</label>
+                <input 
+                  type="date" 
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  defaultValue={format(selectedDate, "yyyy-MM-dd")}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Time</label>
+                <input 
+                  type="time" 
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  defaultValue="09:00"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Type</label>
+                <select className="w-full p-2 border border-gray-300 rounded-md">
+                  <option value="consultation">Consultation</option>
+                  <option value="follow_up">Follow-up</option>
+                  <option value="procedure">Procedure</option>
+                  <option value="emergency">Emergency</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Duration (minutes)</label>
+                <select className="w-full p-2 border border-gray-300 rounded-md">
+                  <option value="15">15 minutes</option>
+                  <option value="30" selected>30 minutes</option>
+                  <option value="45">45 minutes</option>
+                  <option value="60">60 minutes</option>
+                </select>
+              </div>
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Description</label>
+              <textarea 
+                className="w-full p-2 border border-gray-300 rounded-md"
+                rows={3}
+                placeholder="Enter appointment details..."
+              />
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <input type="checkbox" id="virtual" className="rounded" />
+              <label htmlFor="virtual" className="text-sm text-gray-700">Virtual appointment</label>
+            </div>
+            
+            <div className="flex gap-2 pt-4">
+              <Button 
+                onClick={() => {
+                  setShowNewAppointment(false);
+                  toast({
+                    title: "Appointment Scheduled",
+                    description: "New appointment has been successfully scheduled",
+                  });
+                }}
+              >
+                Schedule Appointment
+              </Button>
+              <Button variant="outline" onClick={() => setShowNewAppointment(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
