@@ -69,6 +69,7 @@ export default function AppointmentCalendar() {
                 variant={viewMode === "month" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setViewMode("month")}
+                className={viewMode === "month" ? "bg-medical-blue text-white" : ""}
               >
                 Month
               </Button>
@@ -76,6 +77,7 @@ export default function AppointmentCalendar() {
                 variant={viewMode === "week" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setViewMode("week")}
+                className={viewMode === "week" ? "bg-medical-blue text-white" : ""}
               >
                 Week
               </Button>
@@ -83,6 +85,7 @@ export default function AppointmentCalendar() {
                 variant={viewMode === "day" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setViewMode("day")}
+                className={viewMode === "day" ? "bg-medical-blue text-white" : ""}
               >
                 Day
               </Button>
@@ -119,50 +122,138 @@ export default function AppointmentCalendar() {
             </div>
           </div>
 
-          {/* Calendar Grid */}
-          <div className="grid grid-cols-7 gap-1 mb-4">
-            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
-              <div key={day} className="p-2 text-sm font-medium text-center text-gray-500">
-                {day}
-              </div>
-            ))}
-            {calendarDays.map(day => {
-              const dayAppointments = getAppointmentsForDate(day);
-              const isSelected = isSameDay(day, selectedDate);
-              const isCurrentDay = isToday(day);
-              
-              return (
-                <button
-                  key={day.toISOString()}
-                  onClick={() => setSelectedDate(day)}
-                  className={`
-                    p-2 text-sm border rounded-lg hover:bg-gray-50 transition-colors
-                    ${isSelected ? "bg-blue-100 border-blue-300" : "border-gray-200"}
-                    ${isCurrentDay ? "bg-blue-50 font-semibold" : ""}
-                  `}
-                >
-                  <div className="text-center">
-                    <div className={isCurrentDay ? "text-blue-600" : ""}>
-                      {format(day, "d")}
+          {/* Calendar Views */}
+          {viewMode === "month" && (
+            <div className="grid grid-cols-7 gap-1 mb-4">
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
+                <div key={day} className="p-2 text-sm font-medium text-center text-gray-500">
+                  {day}
+                </div>
+              ))}
+              {calendarDays.map(day => {
+                const dayAppointments = getAppointmentsForDate(day);
+                const isSelected = isSameDay(day, selectedDate);
+                const isCurrentDay = isToday(day);
+                
+                return (
+                  <button
+                    key={day.toISOString()}
+                    onClick={() => setSelectedDate(day)}
+                    className={`
+                      p-2 text-sm border rounded-lg hover:bg-gray-50 transition-colors
+                      ${isSelected ? "bg-blue-100 border-blue-300" : "border-gray-200"}
+                      ${isCurrentDay ? "bg-blue-50 font-semibold" : ""}
+                    `}
+                  >
+                    <div className="text-center">
+                      <div className={isCurrentDay ? "text-blue-600" : ""}>
+                        {format(day, "d")}
+                      </div>
+                      {dayAppointments.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1 justify-center">
+                          {dayAppointments.slice(0, 2).map((apt, index) => (
+                            <div
+                              key={index}
+                              className="w-2 h-2 rounded-full bg-blue-500"
+                            />
+                          ))}
+                          {dayAppointments.length > 2 && (
+                            <div className="text-xs text-gray-500">+{dayAppointments.length - 2}</div>
+                          )}
+                        </div>
+                      )}
                     </div>
-                    {dayAppointments.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1 justify-center">
-                        {dayAppointments.slice(0, 2).map((apt, index) => (
-                          <div
-                            key={index}
-                            className="w-2 h-2 rounded-full bg-blue-500"
-                          />
-                        ))}
-                        {dayAppointments.length > 2 && (
-                          <div className="text-xs text-gray-500">+{dayAppointments.length - 2}</div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {viewMode === "week" && (
+            <div className="mb-4">
+              <div className="text-center font-medium text-gray-700 mb-4">
+                Week View - {format(selectedDate, "MMMM yyyy")}
+              </div>
+              <div className="grid grid-cols-8 gap-1">
+                <div className="p-2 text-sm font-medium text-gray-500">Time</div>
+                {Array.from({ length: 7 }, (_, i) => {
+                  const weekStart = new Date(selectedDate);
+                  weekStart.setDate(selectedDate.getDate() - selectedDate.getDay() + i);
+                  return (
+                    <div key={i} className="p-2 text-sm font-medium text-center text-gray-500">
+                      <div>{format(weekStart, "EEE")}</div>
+                      <div className="text-xs">{format(weekStart, "MMM d")}</div>
+                    </div>
+                  );
+                })}
+                {Array.from({ length: 12 }, (_, hour) => {
+                  const timeSlot = hour + 8;
+                  return (
+                    <div key={hour} className="contents">
+                      <div className="p-2 text-sm text-gray-500">
+                        {timeSlot.toString().padStart(2, '0')}:00
+                      </div>
+                      {Array.from({ length: 7 }, (_, dayIndex) => {
+                        const weekDay = new Date(selectedDate);
+                        weekDay.setDate(selectedDate.getDate() - selectedDate.getDay() + dayIndex);
+                        const dayAppointments = getAppointmentsForDate(weekDay);
+                        const hourAppointments = dayAppointments.filter((apt: any) => 
+                          new Date(apt.scheduledAt).getHours() === timeSlot
+                        );
+                        return (
+                          <div key={dayIndex} className="p-1 border border-gray-200 min-h-[60px]">
+                            {hourAppointments.map((apt: any) => (
+                              <div key={apt.id} className="text-xs p-1 bg-medical-blue text-white rounded mb-1">
+                                Patient {apt.patientId}
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {viewMode === "day" && (
+            <div className="mb-4">
+              <div className="text-center font-medium text-gray-700 mb-4">
+                {format(selectedDate, "EEEE, MMMM d, yyyy")}
+              </div>
+              <div className="space-y-2">
+                {Array.from({ length: 12 }, (_, hour) => {
+                  const timeSlot = hour + 8;
+                  const hourAppointments = selectedDateAppointments.filter((apt: any) => 
+                    new Date(apt.scheduledAt).getHours() === timeSlot
+                  );
+                  return (
+                    <div key={hour} className="flex items-start border-b border-gray-100 py-2">
+                      <div className="w-16 text-sm text-gray-500 pt-1">
+                        {timeSlot.toString().padStart(2, '0')}:00
+                      </div>
+                      <div className="flex-1 ml-4">
+                        {hourAppointments.length > 0 ? (
+                          hourAppointments.map((apt: any) => (
+                            <div key={apt.id} className="p-3 bg-medical-blue text-white rounded mb-2">
+                              <div className="font-medium">Patient ID: {apt.patientId}</div>
+                              <div className="text-sm">{apt.type}</div>
+                              <div className="text-xs">
+                                {format(new Date(apt.scheduledAt), "h:mm a")} ({apt.duration} min)
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-gray-400 text-sm py-2">No appointments</div>
                         )}
                       </div>
-                    )}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
