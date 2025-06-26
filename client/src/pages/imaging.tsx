@@ -17,7 +17,8 @@ import {
   FileText,
   Monitor,
   Camera,
-  Zap
+  Zap,
+  Share
 } from "lucide-react";
 import { format } from "date-fns";
 
