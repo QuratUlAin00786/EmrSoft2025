@@ -41,7 +41,7 @@ export default function AppointmentCalendar() {
   const calendarDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
   const getAppointmentsForDate = (date: Date) => {
-    return appointments.filter((apt: Appointment) => 
+    return (appointments as any || []).filter((apt: any) => 
       isSameDay(new Date(apt.scheduledAt), date)
     );
   };
@@ -171,7 +171,7 @@ export default function AppointmentCalendar() {
                       </div>
                       {dayAppointments.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-1 justify-center">
-                          {dayAppointments.slice(0, 2).map((apt, index) => (
+                          {dayAppointments.slice(0, 2).map((apt: any, index: number) => (
                             <div
                               key={index}
                               className="w-2 h-2 rounded-full bg-blue-500"
@@ -397,7 +397,7 @@ export default function AppointmentCalendar() {
                   <p className="text-sm"><strong>Patient ID:</strong> {selectedAppointment.patientId}</p>
                   <p className="text-sm"><strong>Type:</strong> {selectedAppointment.type}</p>
                   <p className="text-sm"><strong>Status:</strong> 
-                    <Badge className={`ml-2 ${statusColors[selectedAppointment.status]}`}>
+                    <Badge className={`ml-2 ${(statusColors as any)[selectedAppointment.status] || 'bg-gray-100'}`}>
                       {selectedAppointment.status}
                     </Badge>
                   </p>

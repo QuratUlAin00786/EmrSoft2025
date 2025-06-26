@@ -296,7 +296,7 @@ export function PatientCommunicationDialog({ open, onOpenChange, patient, mode }
                   <Alert>
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
-                      A {COMMUNICATION_TYPES[selectedType as keyof typeof COMMUNICATION_TYPES]} was sent {formatDistanceToNow(new Date(lastReminder.sentAt), { addSuffix: true })}. 
+                      A {COMMUNICATION_TYPES[selectedType as keyof typeof COMMUNICATION_TYPES]} was sent {formatDistanceToNow(new Date((lastReminder as any).sentAt), { addSuffix: true })}. 
                       Please wait 24 hours before sending another similar reminder.
                     </AlertDescription>
                   </Alert>

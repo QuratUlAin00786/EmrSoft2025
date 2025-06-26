@@ -152,7 +152,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
         (currentSocialHistory as any).smoking && 
         typeof (currentSocialHistory as any).smoking === 'object' &&
         'status' in (currentSocialHistory as any).smoking) {
-      return currentSocialHistory as SocialHistory;
+      return currentSocialHistory as unknown as SocialHistory;
     }
     return defaultSocialHistory;
   });
