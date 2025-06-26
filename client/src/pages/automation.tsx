@@ -429,10 +429,10 @@ export default function AutomationPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Total Rules</p>
-                      <p className="text-2xl font-bold">{automationStats.totalRules}</p>
+                      <p className="text-2xl font-bold">{((automationStats as any)?.)totalRules}</p>
                       <p className="text-xs text-green-600 flex items-center mt-1">
                         <CheckCircle className="h-3 w-3 mr-1" />
-                        {automationStats.activeRules} active
+                        {((automationStats as any)?.)activeRules} active
                       </p>
                     </div>
                     <Zap className="h-8 w-8 text-blue-500" />
@@ -445,7 +445,7 @@ export default function AutomationPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Total Triggers</p>
-                      <p className="text-2xl font-bold">{automationStats.totalTriggers.toLocaleString()}</p>
+                      <p className="text-2xl font-bold">{((automationStats as any)?.)totalTriggers.toLocaleString()}</p>
                       <p className="text-xs text-gray-600 mt-1">This month</p>
                     </div>
                     <Activity className="h-8 w-8 text-green-500" />
@@ -459,11 +459,11 @@ export default function AutomationPage() {
                     <div>
                       <p className="text-sm font-medium text-gray-600">Success Rate</p>
                       <p className="text-2xl font-bold">
-                        {Math.round((automationStats.successfulExecutions / automationStats.totalTriggers) * 100)}%
+                        {Math.round((((automationStats as any)?.)successfulExecutions / ((automationStats as any)?.)totalTriggers) * 100)}%
                       </p>
                       <p className="text-xs text-green-600 flex items-center mt-1">
                         <TrendingUp className="h-3 w-3 mr-1" />
-                        {automationStats.successfulExecutions} successful
+                        {((automationStats as any)?.)successfulExecutions} successful
                       </p>
                     </div>
                     <CheckCircle className="h-8 w-8 text-green-500" />
@@ -476,7 +476,7 @@ export default function AutomationPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Response Time</p>
-                      <p className="text-2xl font-bold">{automationStats.averageResponseTime}s</p>
+                      <p className="text-2xl font-bold">{((automationStats as any)?.)averageResponseTime}s</p>
                       <p className="text-xs text-gray-600 mt-1">Average execution</p>
                     </div>
                     <Clock className="h-8 w-8 text-purple-500" />
@@ -492,7 +492,7 @@ export default function AutomationPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {automationStats.topPerformingRules.map((rule, index) => (
+                  {((automationStats as any)?.topPerformingRules || []).map((rule: any, index: number) => (
                     <div key={rule.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
@@ -520,7 +520,7 @@ export default function AutomationPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {automationStats.recentActivity.slice(0, 5).map((activity) => (
+                  {((automationStats as any)?.)recentActivity.slice(0, 5).map((activity: any) => (
                     <div key={activity.id} className="flex items-center gap-3 p-3 border rounded-lg">
                       <div className="flex items-center gap-2">
                         {getTriggerIcon(activity.trigger)}
@@ -642,7 +642,7 @@ export default function AutomationPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-6">
-              {filteredRules.map((rule) => (
+              {filteredRules.map((rule: any) => (
                 <Card key={rule.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
@@ -677,7 +677,7 @@ export default function AutomationPage() {
                           <div>
                             <h4 className="font-medium text-sm text-gray-700 mb-2">Actions</h4>
                             <div className="space-y-1">
-                              {rule.actions.map((action, index) => (
+                              {rule.actions.map((action: any) => (
                                 <div key={index} className="flex items-center gap-2 text-sm">
                                   {getActionIcon(action.type)}
                                   <span className="capitalize">{action.type.replace('_', ' ')}</span>
@@ -747,7 +747,7 @@ export default function AutomationPage() {
             <Card>
               <CardContent className="p-0">
                 <div className="divide-y">
-                  {automationStats.recentActivity.map((activity) => (
+                  {((automationStats as any)?.)recentActivity.map((activity: any) => (
                     <div key={activity.id} className="p-6">
                       <div className="flex items-start justify-between">
                         <div className="flex items-start gap-3">
@@ -797,7 +797,7 @@ export default function AutomationPage() {
                     { name: "Post-Visit Survey", usage: 89 },
                     { name: "Lab Results Ready", usage: 67 },
                     { name: "No-Show Follow-up", usage: 12 }
-                  ].map((template, index) => (
+                  ].map((template: any) => (
                     <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center gap-2">
                         <Mail className="h-4 w-4 text-blue-500" />
@@ -824,7 +824,7 @@ export default function AutomationPage() {
                     { name: "Appointment Confirmation", usage: 45 },
                     { name: "Test Results Available", usage: 18 },
                     { name: "Emergency Alert", usage: 3 }
-                  ].map((template, index) => (
+                  ].map((template: any) => (
                     <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center gap-2">
                         <Phone className="h-4 w-4 text-green-500" />

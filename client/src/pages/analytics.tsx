@@ -431,7 +431,7 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
-                    <AreaChart data={analyticsData.trends.patientGrowth}>
+                    <AreaChart data={((analyticsData as any)?.trends?.patientGrowth || [])}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="month" />
                       <YAxis />
@@ -449,7 +449,7 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={analyticsData.trends.appointmentVolume}>
+                    <BarChart data={((analyticsData as any)?.)trends.appointmentVolume}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="date" tickFormatter={(value) => format(new Date(value), 'MMM d')} />
                       <YAxis />
@@ -472,11 +472,11 @@ export default function AnalyticsPage() {
                 <CardContent>
                   <div className="text-center">
                     <div className="text-4xl font-bold text-green-600 mb-2">
-                      {analyticsData.overview.patientSatisfaction}/5.0
+                      {((analyticsData as any)?.)overview.patientSatisfaction}/5.0
                     </div>
                     <div className="text-sm text-gray-600">Average Rating</div>
                     <div className="mt-4 space-y-2">
-                      {[5, 4, 3, 2, 1].map((star) => (
+                      {[5, 4, 3, 2, 1].map((star: any) => (
                         <div key={star} className="flex items-center gap-2">
                           <span className="text-sm w-4">{star}</span>
                           <div className="flex-1 bg-gray-200 rounded-full h-2">
@@ -500,7 +500,7 @@ export default function AnalyticsPage() {
                   <ResponsiveContainer width="100%" height={250}>
                     <PieChart>
                       <Pie
-                        data={analyticsData.demographics.ageGroups}
+                        data={((analyticsData as any)?.)demographics.ageGroups}
                         cx="50%"
                         cy="50%"
                         innerRadius={40}
@@ -508,7 +508,7 @@ export default function AnalyticsPage() {
                         dataKey="count"
                         label={({ range, percentage }) => `${range}: ${percentage}%`}
                       >
-                        {analyticsData.demographics.ageGroups.map((entry, index) => (
+                        {((analyticsData as any)?.)demographics.ageGroups.map((entry: any) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
@@ -525,21 +525,21 @@ export default function AnalyticsPage() {
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">No-Show Rate</span>
-                    <span className="text-sm text-red-600">{analyticsData.overview.noShowRate}%</span>
+                    <span className="text-sm text-red-600">{((analyticsData as any)?.)overview.noShowRate}%</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Avg Wait Time</span>
-                    <span className="text-sm text-green-600">{analyticsData.overview.averageWaitTime} min</span>
+                    <span className="text-sm text-green-600">{((analyticsData as any)?.)overview.averageWaitTime} min</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Completion Rate</span>
                     <span className="text-sm text-green-600">
-                      {Math.round((analyticsData.overview.completedAppointments / analyticsData.overview.totalAppointments) * 100)}%
+                      {Math.round((((analyticsData as any)?.)overview.completedAppointments / ((analyticsData as any)?.)overview.totalAppointments) * 100)}%
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Patient Satisfaction</span>
-                    <span className="text-sm text-green-600">{analyticsData.overview.patientSatisfaction}/5.0</span>
+                    <span className="text-sm text-green-600">{((analyticsData as any)?.)overview.patientSatisfaction}/5.0</span>
                   </div>
                 </CardContent>
               </Card>
@@ -554,7 +554,7 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={analyticsData.demographics.ageGroups}>
+                    <BarChart data={((analyticsData as any)?.)demographics.ageGroups}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="range" />
                       <YAxis />
@@ -573,14 +573,14 @@ export default function AnalyticsPage() {
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
-                        data={analyticsData.demographics.insuranceTypes}
+                        data={((analyticsData as any)?.)demographics.insuranceTypes}
                         cx="50%"
                         cy="50%"
                         outerRadius={80}
                         dataKey="count"
                         label={({ type, percentage }) => `${type}: ${percentage}%`}
                       >
-                        {analyticsData.demographics.insuranceTypes.map((entry, index) => (
+                        {((analyticsData as any)?.)demographics.insuranceTypes.map((entry: any) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
@@ -597,7 +597,7 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={400}>
-                  <LineChart data={analyticsData.trends.patientGrowth}>
+                  <LineChart data={((analyticsData as any)?.)trends.patientGrowth}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
@@ -618,7 +618,7 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {analyticsData.clinical.topDiagnoses.map((diagnosis, index) => (
+                    {((analyticsData as any)?.)clinical.topDiagnoses.map((diagnosis: any) => (
                       <div key={index} className="flex items-center justify-between">
                         <div className="flex-1">
                           <div className="font-medium">{diagnosis.diagnosis}</div>
@@ -645,7 +645,7 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {analyticsData.clinical.medicationUsage.map((med, index) => (
+                    {((analyticsData as any)?.)clinical.medicationUsage.map((med: any) => (
                       <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div>
                           <div className="font-medium">{med.medication}</div>
@@ -670,7 +670,7 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={analyticsData.clinical.topProcedures}>
+                  <BarChart data={((analyticsData as any)?.)clinical.topProcedures}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="procedure" angle={-45} textAnchor="end" height={100} />
                     <YAxis yAxisId="left" />
@@ -691,7 +691,7 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={analyticsData.trends.revenue}>
+                  <BarChart data={((analyticsData as any)?.)trends.revenue}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis tickFormatter={(value) => `£${(value / 1000)}k`} />
@@ -710,7 +710,7 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {analyticsData.performance.departmentMetrics.map((dept, index) => (
+                    {((analyticsData as any)?.)performance.departmentMetrics.map((dept: any) => (
                       <div key={index} className="flex items-center justify-between">
                         <span className="font-medium">{dept.department}</span>
                         <span className="text-green-600 font-semibold">
@@ -728,7 +728,7 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={250}>
-                    <BarChart data={analyticsData.performance.providerStats}>
+                    <BarChart data={((analyticsData as any)?.)performance.providerStats}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="provider" angle={-45} textAnchor="end" height={60} />
                       <YAxis tickFormatter={(value) => `£${(value / 1000)}k`} />
@@ -759,7 +759,7 @@ export default function AnalyticsPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {analyticsData.performance.providerStats.map((provider, index) => (
+                      {((analyticsData as any)?.)performance.providerStats.map((provider: any) => (
                         <tr key={index} className="border-b">
                           <td className="p-2 font-medium">{provider.provider}</td>
                           <td className="p-2">{provider.appointments}</td>
@@ -787,7 +787,7 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={analyticsData.performance.departmentMetrics}>
+                  <BarChart data={((analyticsData as any)?.)performance.departmentMetrics}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="department" />
                     <YAxis />
@@ -806,7 +806,7 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {analyticsData.quality.qualityMetrics.map((metric, index) => (
+                  {((analyticsData as any)?.)quality.qualityMetrics.map((metric: any) => (
                     <div key={index} className="p-4 border rounded-lg">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-medium text-sm">{metric.metric}</span>
@@ -837,7 +837,7 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={analyticsData.quality.patientOutcomes}>
+                  <BarChart data={((analyticsData as any)?.)quality.patientOutcomes}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="outcome" angle={-45} textAnchor="end" height={100} />
                     <YAxis />

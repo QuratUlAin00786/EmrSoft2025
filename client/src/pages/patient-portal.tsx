@@ -412,7 +412,7 @@ export default function PatientPortal() {
                 <CardContent>
                   {((portalData as any)?.upcomingAppointments?.length || 0) > 0 ? (
                     <div className="space-y-3">
-                      {portalData.upcomingAppointments.slice(0, 2).map((appointment) => (
+                      {((portalData as any)?.upcomingAppointments || []).slice(0, 2).map((appointment: any) => (
                         <div key={appointment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                           <div>
                             <div className="font-medium">{appointment.type}</div>
@@ -445,9 +445,9 @@ export default function PatientPortal() {
                   <CardTitle>Recent Messages</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {portalData.messages.length > 0 ? (
+                  {((portalData as any)?.)messages.length > 0 ? (
                     <div className="space-y-3">
-                      {portalData.messages.slice(0, 3).map((message) => (
+                      {((portalData as any)?.)messages.slice(0, 3).map((message: any) => (
                         <div key={message.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
@@ -496,7 +496,7 @@ export default function PatientPortal() {
                   <CardTitle>Upcoming Appointments</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {portalData.upcomingAppointments.map((appointment) => (
+                  {((portalData as any)?.)upcomingAppointments.map((appointment: any) => (
                     <div key={appointment.id} className="border rounded-lg p-4">
                       <div className="flex items-start justify-between mb-3">
                         <div>
@@ -585,7 +585,7 @@ export default function PatientPortal() {
             <Card>
               <CardContent className="p-0">
                 <div className="divide-y">
-                  {portalData.medications.map((medication) => (
+                  {((portalData as any)?.)medications.map((medication: any) => (
                     <div key={medication.id} className="p-6">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -622,7 +622,7 @@ export default function PatientPortal() {
             </div>
 
             <div className="space-y-4">
-              {portalData.labResults.map((result) => (
+              {((portalData as any)?.)labResults.map((result: any) => (
                 <Card key={result.id}>
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -641,7 +641,7 @@ export default function PatientPortal() {
                   {result.results && (
                     <CardContent>
                       <div className="space-y-2">
-                        {result.results.map((item, index) => (
+                        {result.results.map((item: any) => (
                           <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                             <span className="font-medium">{item.parameter}</span>
                             <div className="text-right">
@@ -674,7 +674,7 @@ export default function PatientPortal() {
             </div>
 
             <div className="space-y-4">
-              {portalData.messages.map((message) => (
+              {((portalData as any)?.)messages.map((message: any) => (
                 <Card key={message.id} className={!message.read ? 'border-blue-200 bg-blue-50' : ''}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
@@ -710,7 +710,7 @@ export default function PatientPortal() {
             </div>
 
             <div className="space-y-4">
-              {portalData.forms.map((form) => (
+              {((portalData as any)?.)forms.map((form: any) => (
                 <Card key={form.id}>
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
@@ -753,28 +753,28 @@ export default function PatientPortal() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium">First Name</label>
-                      <Input value={portalData.patient.firstName} />
+                      <Input value={((portalData as any)?.)patient.firstName} />
                     </div>
                     <div>
                       <label className="text-sm font-medium">Last Name</label>
-                      <Input value={portalData.patient.lastName} />
+                      <Input value={((portalData as any)?.)patient.lastName} />
                     </div>
                   </div>
                   <div>
                     <label className="text-sm font-medium">Email</label>
-                    <Input value={portalData.patient.email} />
+                    <Input value={((portalData as any)?.)patient.email} />
                   </div>
                   <div>
                     <label className="text-sm font-medium">Phone</label>
-                    <Input value={portalData.patient.phone} />
+                    <Input value={((portalData as any)?.)patient.phone} />
                   </div>
                   <div>
                     <label className="text-sm font-medium">Date of Birth</label>
-                    <Input type="date" value={portalData.patient.dateOfBirth} />
+                    <Input type="date" value={((portalData as any)?.)patient.dateOfBirth} />
                   </div>
                   <div>
                     <label className="text-sm font-medium">NHS Number</label>
-                    <Input value={portalData.patient.nhsNumber} disabled />
+                    <Input value={((portalData as any)?.)patient.nhsNumber} disabled />
                   </div>
                   <Button>Update Information</Button>
                 </CardContent>
@@ -787,16 +787,16 @@ export default function PatientPortal() {
                 <CardContent className="space-y-4">
                   <div>
                     <label className="text-sm font-medium">Street Address</label>
-                    <Input value={portalData.patient.address.street} />
+                    <Input value={((portalData as any)?.)patient.address.street} />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium">City</label>
-                      <Input value={portalData.patient.address.city} />
+                      <Input value={((portalData as any)?.)patient.address.city} />
                     </div>
                     <div>
                       <label className="text-sm font-medium">Postcode</label>
-                      <Input value={portalData.patient.address.postcode} />
+                      <Input value={((portalData as any)?.)patient.address.postcode} />
                     </div>
                   </div>
                   
@@ -804,16 +804,16 @@ export default function PatientPortal() {
                     <h4 className="font-medium mb-3">Emergency Contact</h4>
                     <div>
                       <label className="text-sm font-medium">Name</label>
-                      <Input value={portalData.patient.emergencyContact.name} />
+                      <Input value={((portalData as any)?.)patient.emergencyContact.name} />
                     </div>
                     <div className="grid grid-cols-2 gap-4 mt-2">
                       <div>
                         <label className="text-sm font-medium">Relationship</label>
-                        <Input value={portalData.patient.emergencyContact.relationship} />
+                        <Input value={((portalData as any)?.)patient.emergencyContact.relationship} />
                       </div>
                       <div>
                         <label className="text-sm font-medium">Phone</label>
-                        <Input value={portalData.patient.emergencyContact.phone} />
+                        <Input value={((portalData as any)?.)patient.emergencyContact.phone} />
                       </div>
                     </div>
                   </div>
