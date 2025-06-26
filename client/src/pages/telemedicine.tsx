@@ -1,0 +1,647 @@
+import { useState, useRef, useEffect } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { 
+  Video,
+  VideoOff,
+  Mic,
+  MicOff,
+  Phone,
+  PhoneOff,
+  Camera,
+  CameraOff,
+  Monitor,
+  Users,
+  Clock,
+  Calendar,
+  FileText,
+  Stethoscope,
+  Heart,
+  Activity,
+  Settings,
+  Square,
+  Play,
+  Pause,
+  Download,
+  Share2,
+  MessageSquare,
+  MonitorSpeaker
+} from "lucide-react";
+import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
+
+interface Consultation {
+  id: string;
+  patientId: string;
+  patientName: string;
+  providerId: string;
+  providerName: string;
+  type: 'video' | 'audio' | 'screen_share';
+  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'waiting';
+  scheduledTime: string;
+  duration?: number;
+  notes?: string;
+  recordings?: Array<{
+    id: string;
+    name: string;
+    duration: number;
+    size: string;
+    url: string;
+  }>;
+  prescriptions?: Array<{
+    medication: string;
+    dosage: string;
+    instructions: string;
+  }>;
+  vitalSigns?: {
+    heartRate?: number;
+    bloodPressure?: string;
+    temperature?: number;
+    oxygenSaturation?: number;
+  };
+}
+
+interface WaitingRoom {
+  patientId: string;
+  patientName: string;
+  appointmentTime: string;
+  waitTime: number;
+  priority: 'normal' | 'urgent';
+  status: 'waiting' | 'ready' | 'in_call';
+}
+
+export default function Telemedicine() {
+  const [activeTab, setActiveTab] = useState("consultations");
+  const [currentCall, setCurrentCall] = useState<Consultation | null>(null);
+  const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+  const [isAudioEnabled, setIsAudioEnabled] = useState(true);
+  const [isRecording, setIsRecording] = useState(false);
+  const [callNotes, setCallNotes] = useState("");
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const { toast } = useToast();
+
+  // Fetch consultations
+  const { data: consultations, isLoading: consultationsLoading } = useQuery({
+    queryKey: ["/api/telemedicine/consultations"],
+    enabled: true
+  });
+
+  // Fetch waiting room
+  const { data: waitingRoom, isLoading: waitingLoading } = useQuery({
+    queryKey: ["/api/telemedicine/waiting-room"],
+    enabled: true,
+    refetchInterval: 30000 // Refresh every 30 seconds
+  });
+
+  // Start consultation mutation
+  const startConsultationMutation = useMutation({
+    mutationFn: async (consultationId: string) => {
+      const response = await fetch(`/api/telemedicine/consultations/${consultationId}/start`, {
+        method: "POST",
+        credentials: "include"
+      });
+      if (!response.ok) throw new Error("Failed to start consultation");
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setCurrentCall(data);
+      queryClient.invalidateQueries({ queryKey: ["/api/telemedicine/consultations"] });
+      toast({ title: "Consultation started" });
+    },
+    onError: () => {
+      toast({ title: "Failed to start consultation", variant: "destructive" });
+    }
+  });
+
+  // End consultation mutation
+  const endConsultationMutation = useMutation({
+    mutationFn: async (data: { consultationId: string; notes: string; duration: number }) => {
+      const response = await fetch(`/api/telemedicine/consultations/${data.consultationId}/end`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes: data.notes, duration: data.duration }),
+        credentials: "include"
+      });
+      if (!response.ok) throw new Error("Failed to end consultation");
+      return response.json();
+    },
+    onSuccess: () => {
+      setCurrentCall(null);
+      setCallNotes("");
+      queryClient.invalidateQueries({ queryKey: ["/api/telemedicine/consultations"] });
+      toast({ title: "Consultation ended and notes saved" });
+    }
+  });
+
+  // Mock data
+  const mockConsultations: Consultation[] = [
+    {
+      id: "consult_1",
+      patientId: "patient_1",
+      patientName: "Sarah Johnson",
+      providerId: "provider_1",
+      providerName: "Dr. Emily Watson",
+      type: "video",
+      status: "scheduled",
+      scheduledTime: "2024-06-26T15:00:00Z",
+      vitalSigns: {
+        heartRate: 72,
+        bloodPressure: "120/80",
+        temperature: 98.6,
+        oxygenSaturation: 98
+      }
+    },
+    {
+      id: "consult_2",
+      patientId: "patient_2",
+      patientName: "Michael Chen",
+      providerId: "provider_1",
+      providerName: "Dr. Emily Watson",
+      type: "video",
+      status: "completed",
+      scheduledTime: "2024-06-26T14:00:00Z",
+      duration: 25,
+      notes: "Follow-up consultation for hypertension management. Patient reports improved symptoms.",
+      recordings: [{
+        id: "rec_1",
+        name: "Consultation Recording",
+        duration: 25,
+        size: "150 MB",
+        url: "#"
+      }],
+      prescriptions: [{
+        medication: "Lisinopril",
+        dosage: "10mg",
+        instructions: "Take once daily in the morning"
+      }]
+    }
+  ];
+
+  const mockWaitingRoom: WaitingRoom[] = [
+    {
+      patientId: "patient_3",
+      patientName: "Emma Davis",
+      appointmentTime: "2024-06-26T15:30:00Z",
+      waitTime: 5,
+      priority: "normal",
+      status: "waiting"
+    },
+    {
+      patientId: "patient_4",
+      patientName: "James Wilson",
+      appointmentTime: "2024-06-26T15:15:00Z",
+      waitTime: 12,
+      priority: "urgent",
+      status: "ready"
+    }
+  ];
+
+  // Initialize video stream when component mounts
+  useEffect(() => {
+    if (videoRef.current && currentCall) {
+      navigator.mediaDevices.getUserMedia({ video: isVideoEnabled, audio: isAudioEnabled })
+        .then(stream => {
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+        })
+        .catch(err => {
+          console.error("Error accessing media devices:", err);
+          toast({ 
+            title: "Camera/microphone access denied", 
+            description: "Please allow access to continue with video consultation",
+            variant: "destructive" 
+          });
+        });
+    }
+  }, [currentCall, isVideoEnabled, isAudioEnabled]);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "in_progress": return "bg-green-100 text-green-800";
+      case "scheduled": return "bg-blue-100 text-blue-800";
+      case "completed": return "bg-gray-100 text-gray-800";
+      case "cancelled": return "bg-red-100 text-red-800";
+      case "waiting": return "bg-yellow-100 text-yellow-800";
+      default: return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const toggleVideo = () => {
+    setIsVideoEnabled(!isVideoEnabled);
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      const videoTrack = stream.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.enabled = !isVideoEnabled;
+      }
+    }
+  };
+
+  const toggleAudio = () => {
+    setIsAudioEnabled(!isAudioEnabled);
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      const audioTrack = stream.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = !isAudioEnabled;
+      }
+    }
+  };
+
+  const toggleRecording = () => {
+    setIsRecording(!isRecording);
+    toast({ 
+      title: isRecording ? "Recording stopped" : "Recording started",
+      description: isRecording ? "Consultation recording has been saved" : "Consultation is now being recorded"
+    });
+  };
+
+  const endCall = () => {
+    if (currentCall) {
+      endConsultationMutation.mutate({
+        consultationId: currentCall.id,
+        notes: callNotes,
+        duration: 15 // Mock duration
+      });
+    }
+  };
+
+  // Video consultation interface
+  if (currentCall) {
+    return (
+      <div className="h-screen bg-gray-900 flex flex-col">
+        {/* Video area */}
+        <div className="flex-1 relative">
+          <div className="absolute inset-0">
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              className="w-full h-full object-cover"
+            />
+          </div>
+          
+          {/* Patient info overlay */}
+          <div className="absolute top-4 left-4 bg-black bg-opacity-50 text-white p-3 rounded-lg">
+            <div className="flex items-center gap-3">
+              <Avatar>
+                <AvatarFallback>{currentCall.patientName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+              </Avatar>
+              <div>
+                <div className="font-medium">{currentCall.patientName}</div>
+                <div className="text-sm opacity-75">Video Consultation</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Recording indicator */}
+          {isRecording && (
+            <div className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1 rounded-full flex items-center gap-2">
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+              <span className="text-sm">Recording</span>
+            </div>
+          )}
+
+          {/* Call duration */}
+          <div className="absolute top-4 right-20 bg-black bg-opacity-50 text-white px-3 py-1 rounded">
+            <Clock className="w-4 h-4 inline mr-1" />
+            <span className="text-sm">00:15:32</span>
+          </div>
+        </div>
+
+        {/* Controls */}
+        <div className="bg-gray-800 p-4">
+          <div className="flex justify-center gap-4">
+            <Button
+              size="lg"
+              variant={isVideoEnabled ? "secondary" : "destructive"}
+              onClick={toggleVideo}
+              className="rounded-full w-12 h-12"
+            >
+              {isVideoEnabled ? <Video className="w-6 h-6" /> : <VideoOff className="w-6 h-6" />}
+            </Button>
+            
+            <Button
+              size="lg"
+              variant={isAudioEnabled ? "secondary" : "destructive"}
+              onClick={toggleAudio}
+              className="rounded-full w-12 h-12"
+            >
+              {isAudioEnabled ? <Mic className="w-6 h-6" /> : <MicOff className="w-6 h-6" />}
+            </Button>
+
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={toggleRecording}
+              className="rounded-full w-12 h-12"
+            >
+              {isRecording ? <Square className="w-6 h-6 text-red-500" /> : <Square className="w-6 h-6" />}
+            </Button>
+
+            <Button
+              size="lg"
+              variant="outline"
+              className="rounded-full w-12 h-12"
+            >
+              <MonitorSpeaker className="w-6 h-6" />
+            </Button>
+
+            <Button
+              size="lg"
+              variant="outline"
+              className="rounded-full w-12 h-12"
+            >
+              <MessageSquare className="w-6 h-6" />
+            </Button>
+
+            <Button
+              size="lg"
+              variant="destructive"
+              onClick={endCall}
+              className="rounded-full w-12 h-12"
+            >
+              <PhoneOff className="w-6 h-6" />
+            </Button>
+          </div>
+
+          {/* Notes area */}
+          <div className="mt-4 max-w-md mx-auto">
+            <Input
+              placeholder="Add consultation notes..."
+              value={callNotes}
+              onChange={(e) => setCallNotes(e.target.value)}
+              className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Telemedicine</h1>
+          <p className="text-gray-600 mt-1">Virtual consultations and remote patient care</p>
+        </div>
+        <div className="flex gap-3">
+          <Button>
+            <Calendar className="w-4 h-4 mr-2" />
+            Schedule Consultation
+          </Button>
+          <Button variant="outline">
+            <Settings className="w-4 h-4 mr-2" />
+            Settings
+          </Button>
+        </div>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="consultations">Consultations</TabsTrigger>
+          <TabsTrigger value="waiting">Waiting Room</TabsTrigger>
+          <TabsTrigger value="recordings">Recordings</TabsTrigger>
+          <TabsTrigger value="monitoring">Remote Monitoring</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="consultations" className="space-y-4">
+          <div className="grid gap-4">
+            {mockConsultations.map((consultation) => (
+              <Card key={consultation.id}>
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <Avatar className="w-8 h-8">
+                          <AvatarFallback>
+                            {consultation.patientName.split(' ').map(n => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        {consultation.patientName}
+                      </CardTitle>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {format(new Date(consultation.scheduledTime), 'MMM dd, yyyy HH:mm')}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className={getStatusColor(consultation.status)}>
+                        {consultation.status.replace('_', ' ')}
+                      </Badge>
+                      <Badge variant="outline">
+                        {consultation.type}
+                      </Badge>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {consultation.vitalSigns && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="flex items-center gap-2">
+                        <Heart className="w-4 h-4 text-red-500" />
+                        <div>
+                          <div className="text-sm font-medium">{consultation.vitalSigns.heartRate} BPM</div>
+                          <div className="text-xs text-gray-500">Heart Rate</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Activity className="w-4 h-4 text-blue-500" />
+                        <div>
+                          <div className="text-sm font-medium">{consultation.vitalSigns.bloodPressure}</div>
+                          <div className="text-xs text-gray-500">Blood Pressure</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Stethoscope className="w-4 h-4 text-green-500" />
+                        <div>
+                          <div className="text-sm font-medium">{consultation.vitalSigns.temperature}°F</div>
+                          <div className="text-xs text-gray-500">Temperature</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Monitor className="w-4 h-4 text-purple-500" />
+                        <div>
+                          <div className="text-sm font-medium">{consultation.vitalSigns.oxygenSaturation}%</div>
+                          <div className="text-xs text-gray-500">O2 Sat</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {consultation.notes && (
+                    <div>
+                      <h4 className="font-medium text-sm mb-1">Consultation Notes</h4>
+                      <p className="text-sm text-gray-600">{consultation.notes}</p>
+                    </div>
+                  )}
+
+                  {consultation.prescriptions && (
+                    <div>
+                      <h4 className="font-medium text-sm mb-2">Prescriptions</h4>
+                      <div className="space-y-2">
+                        {consultation.prescriptions.map((rx, idx) => (
+                          <div key={idx} className="bg-blue-50 p-3 rounded border">
+                            <div className="font-medium text-sm">{rx.medication} {rx.dosage}</div>
+                            <div className="text-xs text-gray-600">{rx.instructions}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    {consultation.status === "scheduled" && (
+                      <Button
+                        onClick={() => startConsultationMutation.mutate(consultation.id)}
+                        disabled={startConsultationMutation.isPending}
+                      >
+                        <Video className="w-4 h-4 mr-2" />
+                        Start Consultation
+                      </Button>
+                    )}
+                    {consultation.status === "completed" && consultation.recordings && (
+                      <Button variant="outline">
+                        <Play className="w-4 h-4 mr-2" />
+                        View Recording
+                      </Button>
+                    )}
+                    <Button variant="outline">
+                      <FileText className="w-4 h-4 mr-2" />
+                      View Notes
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="waiting" className="space-y-4">
+          <div className="grid gap-4">
+            {mockWaitingRoom.map((patient) => (
+              <Card key={patient.patientId} className={patient.priority === 'urgent' ? 'border-red-200 bg-red-50' : ''}>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarFallback>
+                          {patient.patientName.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium">{patient.patientName}</div>
+                        <div className="text-sm text-gray-600">
+                          Scheduled: {format(new Date(patient.appointmentTime), 'HH:mm')}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-orange-600">{patient.waitTime}min</div>
+                        <div className="text-xs text-gray-500">Waiting</div>
+                      </div>
+                      {patient.priority === 'urgent' && (
+                        <Badge variant="destructive">Urgent</Badge>
+                      )}
+                      <Button
+                        onClick={() => {
+                          const mockConsultation: Consultation = {
+                            id: `consult_${patient.patientId}`,
+                            patientId: patient.patientId,
+                            patientName: patient.patientName,
+                            providerId: "provider_1",
+                            providerName: "Dr. Emily Watson",
+                            type: "video",
+                            status: "in_progress",
+                            scheduledTime: patient.appointmentTime
+                          };
+                          setCurrentCall(mockConsultation);
+                        }}
+                      >
+                        <Video className="w-4 h-4 mr-2" />
+                        Start Call
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="recordings" className="space-y-4">
+          <div className="grid gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Consultation Recordings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {mockConsultations
+                    .filter(c => c.recordings && c.recordings.length > 0)
+                    .map((consultation) => (
+                    <div key={consultation.id} className="flex items-center justify-between p-3 border rounded">
+                      <div className="flex items-center gap-3">
+                        <Play className="w-5 h-5 text-blue-500" />
+                        <div>
+                          <div className="font-medium">{consultation.patientName}</div>
+                          <div className="text-sm text-gray-600">
+                            {format(new Date(consultation.scheduledTime), 'MMM dd, yyyy')} • 
+                            {consultation.recordings![0].duration} min • {consultation.recordings![0].size}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline">
+                          <Play className="w-4 h-4 mr-1" />
+                          Play
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          <Download className="w-4 h-4 mr-1" />
+                          Download
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          <Share2 className="w-4 h-4 mr-1" />
+                          Share
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="monitoring" className="space-y-4">
+          <div className="grid gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Remote Patient Monitoring</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 mb-4">
+                  Monitor patients remotely with connected devices and real-time health data.
+                </p>
+                <Button>
+                  <Monitor className="w-4 h-4 mr-2" />
+                  Set Up Monitoring
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}

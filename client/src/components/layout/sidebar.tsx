@@ -20,7 +20,9 @@ import {
   Zap,
   Globe,
   MessageSquare,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Video,
+  Users
 } from "lucide-react";
 import { useTenant } from "@/hooks/use-tenant";
 import haloLogoPath from "@assets/Screenshot 2025-06-25 at 12.40.02_1750837361778.png";
@@ -43,6 +45,9 @@ const navigation = [
   { name: "Automation", href: "/automation", icon: Zap },
   { name: "Patient Portal", href: "/patient-portal", icon: Globe },
   { name: "AI Insights", href: "/ai-insights", icon: Brain },
+  { name: "Clinical Decision Support", href: "/clinical-decision-support", icon: Brain },
+  { name: "Telemedicine", href: "/telemedicine", icon: Video },
+  { name: "Population Health", href: "/population-health", icon: Users },
   { name: "Billing", href: "/billing", icon: Receipt },
 ];
 

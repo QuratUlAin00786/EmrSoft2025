@@ -27,6 +27,9 @@ import BillingPage from "@/pages/billing";
 import AnalyticsPage from "@/pages/analytics";
 import AutomationPage from "@/pages/automation";
 import PatientPortal from "@/pages/patient-portal";
+import ClinicalDecisionSupport from "@/pages/clinical-decision-support";
+import Telemedicine from "@/pages/telemedicine";
+import PopulationHealth from "@/pages/population-health";
 import NotFound from "@/pages/not-found";
 
 function ProtectedApp() {
@@ -51,6 +54,9 @@ function ProtectedApp() {
           <Route path="/automation" component={AutomationPage} />
           <Route path="/patient-portal" component={PatientPortal} />
           <Route path="/ai-insights" component={AiInsights} />
+          <Route path="/clinical-decision-support" component={ClinicalDecisionSupport} />
+          <Route path="/telemedicine" component={Telemedicine} />
+          <Route path="/population-health" component={PopulationHealth} />
           <Route path="/users" component={UserManagement} />
           <Route path="/subscription" component={Subscription} />
           <Route path="/settings" component={Settings} />
