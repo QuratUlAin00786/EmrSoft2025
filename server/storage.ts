@@ -101,10 +101,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateOrganization(id: number, updates: Partial<InsertOrganization>): Promise<Organization | undefined> {
-    const [updated] = await db.update(organizations).set({ 
-      ...updates,
-      updatedAt: new Date(),
-    }).where(eq(organizations.id, id)).returning();
+    const cleanUpdates = { ...updates };
+    if (cleanUpdates.settings) {
+      delete cleanUpdates.settings; // Remove problematic settings field
+    }
+    const [updated] = await db.update(organizations).set(cleanUpdates).where(eq(organizations.id, id)).returning();
     return updated || undefined;
   }
 
@@ -157,13 +158,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createPatient(patient: InsertPatient): Promise<Patient> {
-    const [created] = await db.insert(patients).values([patient]).returning();
+    const [created] = await db.insert(patients).values(patient).returning();
     return created;
   }
 
   async updatePatient(id: number, organizationId: number, updates: Partial<InsertPatient>): Promise<Patient | undefined> {
     const cleanUpdates = { ...updates };
-    delete cleanUpdates.address; // Remove address to avoid type issues
+    if (cleanUpdates.address) {
+      delete cleanUpdates.address; // Remove problematic address field
+    }
     const [updated] = await db.update(patients)
       .set({ ...cleanUpdates, updatedAt: new Date() })
       .where(and(eq(patients.id, id), eq(patients.organizationId, organizationId)))
@@ -193,7 +196,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createMedicalRecord(record: InsertMedicalRecord): Promise<MedicalRecord> {
-    const [created] = await db.insert(medicalRecords).values([record]).returning();
+    const [created] = await db.insert(medicalRecords).values(record).returning();
     return created;
   }
 
@@ -264,15 +267,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createAiInsight(insight: InsertAiInsight): Promise<AiInsight> {
-    const [created] = await db.insert(aiInsights).values([insight]).returning();
+    const [created] = await db.insert(aiInsights).values(insight).returning();
     return created;
   }
 
   async updateAiInsight(id: number, organizationId: number, updates: Partial<InsertAiInsight>): Promise<AiInsight | undefined> {
-    const cleanUpdates = { ...updates };
-    delete cleanUpdates.metadata; // Remove metadata to avoid type issues
     const [updated] = await db.update(aiInsights)
-      .set(cleanUpdates)
+      .set(updates)
       .where(and(eq(aiInsights.id, id), eq(aiInsights.organizationId, organizationId)))
       .returning();
     return updated || undefined;
@@ -285,15 +286,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createSubscription(subscription: InsertSubscription): Promise<Subscription> {
-    const [created] = await db.insert(subscriptions).values([subscription]).returning();
+    const [created] = await db.insert(subscriptions).values(subscription).returning();
     return created;
   }
 
   async updateSubscription(organizationId: number, updates: Partial<InsertSubscription>): Promise<Subscription | undefined> {
-    const cleanUpdates = { ...updates };
-    delete cleanUpdates.features; // Remove features to avoid type issues
     const [updated] = await db.update(subscriptions)
-      .set({ ...cleanUpdates, updatedAt: new Date() })
+      .set({ ...updates, updatedAt: new Date() })
       .where(eq(subscriptions.organizationId, organizationId))
       .returning();
     return updated || undefined;
