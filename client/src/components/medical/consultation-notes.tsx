@@ -42,9 +42,11 @@ const consultationSchema = z.object({
 
 interface ConsultationNotesProps {
   patientId: number;
+  patientName?: string;
+  patientNumber?: string;
 }
 
-export default function ConsultationNotes({ patientId }: ConsultationNotesProps) {
+export default function ConsultationNotes({ patientId, patientName, patientNumber }: ConsultationNotesProps) {
   const [isAddingNote, setIsAddingNote] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -141,10 +143,17 @@ export default function ConsultationNotes({ patientId }: ConsultationNotesProps)
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Medical Records & Consultation Notes
-          </CardTitle>
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Medical Records & Consultation Notes
+            </CardTitle>
+            {patientName && (
+              <p className="text-sm text-muted-foreground mt-1">
+                {patientName} • Patient ID: {patientNumber}
+              </p>
+            )}
+          </div>
           <Dialog open={isAddingNote} onOpenChange={setIsAddingNote}>
             <DialogTrigger asChild>
               <Button>

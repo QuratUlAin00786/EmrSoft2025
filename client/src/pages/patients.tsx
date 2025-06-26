@@ -135,7 +135,12 @@ export default function Patients() {
 
             {/* Medical Records */}
             <div className="lg:col-span-2">
-              <ConsultationNotes patientId={patient.id} />
+              <ConsultationNotes 
+                key={patient.id}
+                patientId={patient.id} 
+                patientName={`${patient.firstName} ${patient.lastName}`}
+                patientNumber={patient.patientId}
+              />
             </div>
           </div>
 

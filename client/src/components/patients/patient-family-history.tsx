@@ -353,10 +353,15 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Complete Patient History
-          </CardTitle>
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Complete Patient History
+            </CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              {patient.firstName} {patient.lastName} • Patient ID: {patient.patientId}
+            </p>
+          </div>
           <Dialog open={isEditing} onOpenChange={setIsEditing}>
             <DialogTrigger asChild>
               <Button variant="outline">
