@@ -33,6 +33,7 @@ function ProtectedApp() {
         <Switch>
           <Route path="/" component={Dashboard} />
           <Route path="/patients" component={Patients} />
+          <Route path="/patients/:id/records" component={Patients} />
           <Route path="/calendar" component={CalendarPage} />
           <Route path="/appointments" component={CalendarPage} />
           <Route path="/prescriptions" component={PrescriptionsPage} />

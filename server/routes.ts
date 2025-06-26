@@ -127,6 +127,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get patient medical records only
+  app.get("/api/patients/:id/records", async (req: TenantRequest, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      const records = await storage.getMedicalRecordsByPatient(patientId, req.tenant!.id);
+      res.json(records);
+    } catch (error) {
+      console.error("Medical records fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch medical records" });
+    }
+  });
+
   app.post("/api/patients", requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
     try {
       const patientData = z.object({
