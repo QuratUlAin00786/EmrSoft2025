@@ -443,7 +443,7 @@ export default function MobileHealth() {
                         onClick={() => syncDeviceMutation.mutate(device.id)}
                         disabled={syncDeviceMutation.isPending || device.status === 'syncing'}
                       >
-                        <Sync className="w-4 h-4 mr-1" />
+                        <RotateCcw className="w-4 h-4 mr-1" />
                         Sync Now
                       </Button>
                       <Button size="sm" variant="outline">
