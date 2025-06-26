@@ -51,6 +51,16 @@ interface SocialHistory {
   };
 }
 
+interface Immunization {
+  id: string;
+  vaccine: string;
+  date: string;
+  provider: string;
+  lot?: string;
+  site?: string;
+  notes?: string;
+}
+
 const commonConditions = [
   "Heart Disease", "Diabetes", "Cancer", "Hypertension", "Stroke", "Depression",
   "Anxiety", "Asthma", "COPD", "Kidney Disease", "Liver Disease", "Arthritis",
@@ -64,6 +74,12 @@ const relatives = [
   "Daughter", "Son", "Other"
 ];
 
+const commonVaccines = [
+  "COVID-19", "Influenza", "Tetanus", "Diphtheria", "Pertussis", "MMR (Measles, Mumps, Rubella)",
+  "Polio", "Hepatitis A", "Hepatitis B", "Varicella (Chickenpox)", "Pneumococcal", "Meningococcal",
+  "HPV", "Shingles", "Tdap", "IPV", "Rotavirus", "Hib", "BCG"
+];
+
 export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamilyHistoryProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("family");
@@ -71,6 +87,15 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
     relative: "",
     condition: "",
     severity: "mild"
+  });
+  const [showImmunizationForm, setShowImmunizationForm] = useState(false);
+  const [newImmunization, setNewImmunization] = useState<Partial<Immunization>>({
+    vaccine: "",
+    date: "",
+    provider: "",
+    lot: "",
+    site: "",
+    notes: ""
   });
 
   const familyHistory = patient.medicalHistory?.familyHistory || {
@@ -114,6 +139,39 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
     });
 
     setNewCondition({ relative: "", condition: "", severity: "mild" });
+  };
+
+  const addImmunization = () => {
+    if (!newImmunization.vaccine || !newImmunization.date || !newImmunization.provider) return;
+
+    const immunization: Immunization = {
+      id: Date.now().toString(),
+      vaccine: newImmunization.vaccine!,
+      date: newImmunization.date!,
+      provider: newImmunization.provider!,
+      lot: newImmunization.lot,
+      site: newImmunization.site,
+      notes: newImmunization.notes
+    };
+
+    const updatedImmunizations = [...immunizations, immunization];
+
+    onUpdate({
+      medicalHistory: {
+        ...patient.medicalHistory,
+        immunizations: updatedImmunizations
+      }
+    });
+
+    setNewImmunization({
+      vaccine: "",
+      date: "",
+      provider: "",
+      lot: "",
+      site: "",
+      notes: ""
+    });
+    setShowImmunizationForm(false);
   };
 
   const getSeverityColor = (severity: string) => {
@@ -350,10 +408,114 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                         ))
                       )}
                     </div>
-                    <Button className="w-full mt-4" variant="outline">
+                    <Button 
+                      className="w-full mt-4" 
+                      variant="outline"
+                      onClick={() => setShowImmunizationForm(true)}
+                    >
                       <Plus className="h-4 w-4 mr-2" />
                       Add Immunization
                     </Button>
+
+                    {showImmunizationForm && (
+                      <div className="mt-4 p-4 border rounded-lg bg-gray-50">
+                        <h5 className="font-medium mb-3">New Immunization Record</h5>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label>Vaccine</Label>
+                            <Select
+                              value={newImmunization.vaccine}
+                              onValueChange={(value) => setNewImmunization({...newImmunization, vaccine: value})}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select vaccine" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {commonVaccines.map((vaccine) => (
+                                  <SelectItem key={vaccine} value={vaccine}>
+                                    {vaccine}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label>Date Administered</Label>
+                            <Input
+                              type="date"
+                              value={newImmunization.date}
+                              onChange={(e) => setNewImmunization({...newImmunization, date: e.target.value})}
+                            />
+                          </div>
+                          <div>
+                            <Label>Healthcare Provider</Label>
+                            <Input
+                              placeholder="Provider name or clinic"
+                              value={newImmunization.provider}
+                              onChange={(e) => setNewImmunization({...newImmunization, provider: e.target.value})}
+                            />
+                          </div>
+                          <div>
+                            <Label>Lot Number (Optional)</Label>
+                            <Input
+                              placeholder="Vaccine lot number"
+                              value={newImmunization.lot}
+                              onChange={(e) => setNewImmunization({...newImmunization, lot: e.target.value})}
+                            />
+                          </div>
+                          <div>
+                            <Label>Administration Site (Optional)</Label>
+                            <Select
+                              value={newImmunization.site}
+                              onValueChange={(value) => setNewImmunization({...newImmunization, site: value})}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select site" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="left-arm">Left Arm</SelectItem>
+                                <SelectItem value="right-arm">Right Arm</SelectItem>
+                                <SelectItem value="left-thigh">Left Thigh</SelectItem>
+                                <SelectItem value="right-thigh">Right Thigh</SelectItem>
+                                <SelectItem value="oral">Oral</SelectItem>
+                                <SelectItem value="nasal">Nasal</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="col-span-2">
+                            <Label>Notes (Optional)</Label>
+                            <Textarea
+                              placeholder="Additional notes or reactions"
+                              value={newImmunization.notes}
+                              onChange={(e) => setNewImmunization({...newImmunization, notes: e.target.value})}
+                              rows={2}
+                            />
+                          </div>
+                        </div>
+                        <div className="flex gap-2 mt-4">
+                          <Button onClick={addImmunization} size="sm">
+                            Add Record
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              setShowImmunizationForm(false);
+                              setNewImmunization({
+                                vaccine: "",
+                                date: "",
+                                provider: "",
+                                lot: "",
+                                site: "",
+                                notes: ""
+                              });
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </TabsContent>
 
