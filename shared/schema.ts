@@ -94,6 +94,25 @@ export const patients = pgTable("patients", {
     }>;
   }>().default({}),
   riskLevel: varchar("risk_level", { length: 10 }).notNull().default("low"), // low, medium, high
+  flags: jsonb("flags").$type<{
+    type?: string; // follow-up, urgent, billing, insurance, etc.
+    reason?: string;
+    addedBy?: string;
+    addedAt?: string;
+    resolved?: boolean;
+    resolvedAt?: string;
+    resolvedBy?: string;
+  }[]>().default([]),
+  communicationPreferences: jsonb("communication_preferences").$type<{
+    preferredMethod?: "email" | "sms" | "phone" | "whatsapp";
+    emailNotifications?: boolean;
+    smsNotifications?: boolean;
+    appointmentReminders?: boolean;
+    medicationReminders?: boolean;
+    followUpReminders?: boolean;
+    marketingCommunications?: boolean;
+    emergencyContactOnly?: boolean;
+  }>().default({}),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -219,6 +238,32 @@ export const consultations = pgTable("consultations", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Patient Communications Tracking
+export const patientCommunications = pgTable("patient_communications", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  patientId: integer("patient_id").notNull().references(() => patients.id),
+  sentBy: integer("sent_by").notNull().references(() => users.id),
+  type: varchar("type", { length: 50 }).notNull(), // appointment_reminder, medication_reminder, follow_up_reminder, billing_notice, marketing
+  method: varchar("method", { length: 20 }).notNull(), // email, sms, phone, whatsapp
+  status: varchar("status", { length: 20 }).notNull().default("pending"), // pending, sent, delivered, failed, opened, clicked
+  message: text("message").notNull(),
+  scheduledFor: timestamp("scheduled_for"),
+  sentAt: timestamp("sent_at"),
+  deliveredAt: timestamp("delivered_at"),
+  errorMessage: text("error_message"),
+  metadata: jsonb("metadata").$type<{
+    appointmentId?: number;
+    reminderType?: string;
+    urgency?: "low" | "medium" | "high";
+    retryCount?: number;
+    cost?: number;
+    provider?: string; // Twilio, SendGrid, etc.
+  }>().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Relations
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   users: many(users),
@@ -243,6 +288,22 @@ export const patientsRelations = relations(patients, ({ one, many }) => ({
   medicalRecords: many(medicalRecords),
   appointments: many(appointments),
   aiInsights: many(aiInsights),
+  communications: many(patientCommunications),
+}));
+
+export const patientCommunicationsRelations = relations(patientCommunications, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [patientCommunications.organizationId],
+    references: [organizations.id],
+  }),
+  patient: one(patients, {
+    fields: [patientCommunications.patientId],
+    references: [patients.id],
+  }),
+  sentByUser: one(users, {
+    fields: [patientCommunications.sentBy],
+    references: [users.id],
+  }),
 }));
 
 export const medicalRecordsRelations = relations(medicalRecords, ({ one }) => ({
