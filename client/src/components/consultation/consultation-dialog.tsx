@@ -27,16 +27,7 @@ import { format } from "date-fns";
 interface ConsultationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  patient?: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    dateOfBirth: string;
-    nhsNumber?: string;
-    medicalHistory?: string[];
-    allergies?: string[];
-    currentMedications?: string[];
-  };
+  patient?: any;
 }
 
 export function ConsultationDialog({ open, onOpenChange, patient }: ConsultationDialogProps) {
@@ -145,7 +136,9 @@ export function ConsultationDialog({ open, onOpenChange, patient }: Consultation
     onOpenChange(false);
   };
 
-  if (!patient) return null;
+  // Allow consultation dialog without a patient for general consultations
+
+  console.log('ConsultationDialog render:', { open, patient });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -153,7 +146,7 @@ export function ConsultationDialog({ open, onOpenChange, patient }: Consultation
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Stethoscope className="h-5 w-5 text-blue-600" />
-            NHS Consultation - {patient.firstName} {patient.lastName}
+            {patient ? `NHS Consultation - ${patient.firstName} ${patient.lastName}` : "New Patient Consultation"}
           </DialogTitle>
         </DialogHeader>
 
@@ -218,7 +211,7 @@ export function ConsultationDialog({ open, onOpenChange, patient }: Consultation
                 </div>
 
                 {/* Allergies & Medications */}
-                {patient.allergies && patient.allergies.length > 0 && (
+                {patient?.allergies && patient.allergies.length > 0 && (
                   <div>
                     <h4 className="text-sm font-medium text-red-700">Allergies</h4>
                     <div className="space-y-1">
@@ -231,7 +224,7 @@ export function ConsultationDialog({ open, onOpenChange, patient }: Consultation
                   </div>
                 )}
 
-                {patient.currentMedications && patient.currentMedications.length > 0 && (
+                {patient?.currentMedications && patient.currentMedications.length > 0 && (
                   <div>
                     <h4 className="text-sm font-medium">Current Medications</h4>
                     <div className="space-y-1">

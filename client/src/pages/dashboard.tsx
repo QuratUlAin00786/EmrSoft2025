@@ -23,8 +23,14 @@ export default function Dashboard() {
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
 
   const startConsultation = (patient?: any) => {
-    setSelectedPatient(patient);
+    console.log('startConsultation called with patient:', patient);
+    setSelectedPatient(patient || null);
     setShowConsultation(true);
+    console.log('showConsultation set to true');
+    toast({
+      title: "Consultation Started",
+      description: "Opening patient consultation interface",
+    });
   };
 
   const handleQuickAction = (action: string) => {
@@ -65,6 +71,7 @@ export default function Dashboard() {
         });
         break;
       case "consultation":
+        console.log('Starting consultation from quick action');
         startConsultation();
         break;
       default:
