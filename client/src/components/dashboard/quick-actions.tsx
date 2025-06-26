@@ -93,10 +93,7 @@ export function QuickActions({ onAction }: QuickActionsProps) {
           });
           break;
         case "consultation":
-          toast({
-            title: "Consultation",
-            description: "Starting patient consultation",
-          });
+          // This will be handled by the parent component
           break;
         default:
           console.log(`Quick action: ${action}`);

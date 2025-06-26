@@ -66,10 +66,6 @@ export default function Dashboard() {
         break;
       case "consultation":
         startConsultation();
-        toast({
-          title: "Consultation Started",
-          description: "Opening patient consultation interface",
-        });
         break;
       default:
         console.log(`Unknown action: ${action}`);
@@ -105,6 +101,12 @@ export default function Dashboard() {
       <PatientModal 
         open={showPatientModal}
         onOpenChange={setShowPatientModal}
+      />
+      
+      <ConsultationDialog 
+        open={showConsultation}
+        onOpenChange={setShowConsultation}
+        patient={selectedPatient}
       />
     </>
   );
