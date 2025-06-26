@@ -161,7 +161,7 @@ export default function LabResultsPage() {
   };
 
   const handleDownloadResult = (resultId: string) => {
-    const result = labResults?.find((r: any) => r.id === resultId);
+    const result = Array.isArray(labResults) ? labResults.find((r: any) => r.id === resultId) : null;
     if (result) {
       toast({
         title: "Download Report",
@@ -191,7 +191,7 @@ export default function LabResultsPage() {
   };
 
   const handleFlagCritical = (resultId: string) => {
-    const result = labResults?.find((r: any) => r.id === resultId);
+    const result = Array.isArray(labResults) ? labResults.find((r: any) => r.id === resultId) : null;
     if (result) {
       toast({
         title: "Critical Value Flagged",
@@ -202,7 +202,7 @@ export default function LabResultsPage() {
     }
   };
 
-  const filteredResults = labResults?.filter((result: any) => {
+  const filteredResults = Array.isArray(labResults) ? labResults.filter((result: any) => {
     const matchesSearch = !searchQuery || 
       result.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       result.testType.toLowerCase().includes(searchQuery.toLowerCase());
@@ -210,7 +210,7 @@ export default function LabResultsPage() {
     const matchesStatus = statusFilter === "all" || result.status === statusFilter;
     
     return matchesSearch && matchesStatus;
-  });
+  }) : [];
 
   const getStatusColor = (status: string) => {
     switch (status) {

@@ -221,7 +221,7 @@ export default function BillingPage() {
   };
 
   const handleDownloadInvoice = (invoiceId: string) => {
-    const invoice = invoices?.find((inv: any) => inv.id === invoiceId);
+    const invoice = Array.isArray(invoices) ? invoices.find((inv: any) => inv.id === invoiceId) : null;
     if (invoice) {
       toast({
         title: "Download Invoice",
@@ -261,7 +261,7 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
   };
 
   const handleSendInvoice = (invoiceId: string) => {
-    const invoice = invoices?.find((inv: any) => inv.id === invoiceId);
+    const invoice = Array.isArray(invoices) ? invoices.find((inv: any) => inv.id === invoiceId) : null;
     if (invoice) {
       toast({
         title: "Send Invoice",
@@ -283,7 +283,7 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
     const matchesStatus = statusFilter === "all" || invoice.status === statusFilter;
     
     return matchesSearch && matchesStatus;
-  });
+  }) : [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
