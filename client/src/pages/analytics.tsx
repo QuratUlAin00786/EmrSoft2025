@@ -1,12 +1,8 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Header } from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button as DateButton } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   BarChart, 
   Bar, 
@@ -24,22 +20,19 @@ import {
   Area
 } from "recharts";
 import { 
-  TrendingUp,
-  TrendingDown,
-  Users,
-  Calendar,
-  DollarSign,
-  Activity,
+  TrendingUp, 
+  TrendingDown, 
+  Users, 
+  Calendar, 
+  DollarSign, 
   Clock,
-  FileText,
+  Activity,
   AlertTriangle,
   CheckCircle,
   Download,
-  Filter,
-  Share,
-  RefreshCw
+  Filter
 } from "lucide-react";
-import { format, subDays, subMonths } from "date-fns";
+import { format } from "date-fns";
 
 interface AnalyticsData {
   overview: {
@@ -137,693 +130,387 @@ interface AnalyticsData {
 
 const mockAnalyticsData: AnalyticsData = {
   overview: {
-    totalPatients: 2847,
-    newPatients: 156,
-    totalAppointments: 1234,
-    completedAppointments: 1089,
-    revenue: 145670,
-    averageWaitTime: 12,
+    totalPatients: 1247,
+    newPatients: 89,
+    totalAppointments: 456,
+    completedAppointments: 398,
+    revenue: 125800,
+    averageWaitTime: 18,
     patientSatisfaction: 4.6,
     noShowRate: 8.2
   },
   trends: {
     patientGrowth: [
-      { month: 'Jan', total: 2650, new: 120 },
-      { month: 'Feb', total: 2720, new: 135 },
-      { month: 'Mar', total: 2780, new: 142 },
-      { month: 'Apr', total: 2825, new: 148 },
-      { month: 'May', total: 2847, new: 156 }
+      { month: "Jan", total: 1050, new: 67 },
+      { month: "Feb", total: 1089, new: 72 },
+      { month: "Mar", total: 1134, new: 81 },
+      { month: "Apr", total: 1178, new: 79 },
+      { month: "May", total: 1208, new: 85 },
+      { month: "Jun", total: 1247, new: 89 }
     ],
     appointmentVolume: [
-      { date: '2024-01-15', scheduled: 45, completed: 42, cancelled: 2, noShow: 1 },
-      { date: '2024-01-16', scheduled: 52, completed: 48, cancelled: 3, noShow: 1 },
-      { date: '2024-01-17', scheduled: 38, completed: 35, cancelled: 1, noShow: 2 },
-      { date: '2024-01-18', scheduled: 41, completed: 38, cancelled: 2, noShow: 1 },
-      { date: '2024-01-19', scheduled: 47, completed: 43, cancelled: 2, noShow: 2 }
+      { date: "2024-06-10", scheduled: 45, completed: 42, cancelled: 2, noShow: 1 },
+      { date: "2024-06-11", scheduled: 52, completed: 47, cancelled: 3, noShow: 2 },
+      { date: "2024-06-12", scheduled: 48, completed: 44, cancelled: 2, noShow: 2 },
+      { date: "2024-06-13", scheduled: 51, completed: 46, cancelled: 3, noShow: 2 },
+      { date: "2024-06-14", scheduled: 49, completed: 45, cancelled: 2, noShow: 2 }
     ],
     revenue: [
-      { month: 'Jan', amount: 142500, target: 140000 },
-      { month: 'Feb', amount: 138200, target: 140000 },
-      { month: 'Mar', amount: 145600, target: 140000 },
-      { month: 'Apr', amount: 148900, target: 140000 },
-      { month: 'May', amount: 145670, target: 140000 }
+      { month: "Jan", amount: 98500, target: 100000 },
+      { month: "Feb", amount: 102300, target: 105000 },
+      { month: "Mar", amount: 118900, target: 115000 },
+      { month: "Apr", amount: 121500, target: 120000 },
+      { month: "May", amount: 119800, target: 122000 },
+      { month: "Jun", amount: 125800, target: 125000 }
     ]
   },
   demographics: {
     ageGroups: [
-      { range: '0-18', count: 485, percentage: 17.0 },
-      { range: '19-35', count: 712, percentage: 25.0 },
-      { range: '36-50', count: 825, percentage: 29.0 },
-      { range: '51-65', count: 540, percentage: 19.0 },
-      { range: '65+', count: 285, percentage: 10.0 }
+      { range: "0-18", count: 187, percentage: 15 },
+      { range: "19-35", count: 312, percentage: 25 },
+      { range: "36-50", count: 374, percentage: 30 },
+      { range: "51-65", count: 249, percentage: 20 },
+      { range: "65+", count: 125, percentage: 10 }
     ],
     gender: [
-      { type: 'Female', count: 1482, percentage: 52.1 },
-      { type: 'Male', count: 1298, percentage: 45.6 },
-      { type: 'Other', count: 67, percentage: 2.3 }
+      { type: "Female", count: 673, percentage: 54 },
+      { type: "Male", count: 574, percentage: 46 }
     ],
     insuranceTypes: [
-      { type: 'NHS', count: 1986, percentage: 69.8 },
-      { type: 'Private', count: 542, percentage: 19.0 },
-      { type: 'Self-Pay', count: 319, percentage: 11.2 }
+      { type: "NHS", count: 748, percentage: 60 },
+      { type: "Private", count: 374, percentage: 30 },
+      { type: "Self-Pay", count: 125, percentage: 10 }
     ]
   },
   clinical: {
     topDiagnoses: [
-      { diagnosis: 'Hypertension', count: 285, percentage: 12.5 },
-      { diagnosis: 'Type 2 Diabetes', count: 198, percentage: 8.7 },
-      { diagnosis: 'Anxiety Disorders', count: 167, percentage: 7.3 },
-      { diagnosis: 'Upper Respiratory Infection', count: 145, percentage: 6.4 },
-      { diagnosis: 'Depression', count: 132, percentage: 5.8 }
+      { diagnosis: "Hypertension", count: 145, percentage: 18.2 },
+      { diagnosis: "Type 2 Diabetes", count: 128, percentage: 16.1 },
+      { diagnosis: "Anxiety Disorders", count: 98, percentage: 12.3 },
+      { diagnosis: "Depression", count: 87, percentage: 10.9 },
+      { diagnosis: "Asthma", count: 76, percentage: 9.5 }
     ],
     topProcedures: [
-      { procedure: 'Annual Physical Exam', count: 425, revenue: 42500 },
-      { procedure: 'Blood Work Panel', count: 312, revenue: 18720 },
-      { procedure: 'ECG', count: 198, revenue: 11880 },
-      { procedure: 'Vaccination', count: 156, revenue: 4680 },
-      { procedure: 'Wound Care', count: 98, revenue: 7840 }
+      { procedure: "Annual Physical Exam", count: 234, revenue: 23400 },
+      { procedure: "Blood Pressure Monitoring", count: 189, revenue: 9450 },
+      { procedure: "Diabetes Management", count: 156, revenue: 18720 },
+      { procedure: "Mental Health Consultation", count: 98, revenue: 14700 },
+      { procedure: "Respiratory Assessment", count: 87, revenue: 8700 }
     ],
     medicationUsage: [
-      { medication: 'Lisinopril', prescriptions: 185, trend: 5.2 },
-      { medication: 'Metformin', prescriptions: 142, trend: 3.1 },
-      { medication: 'Sertraline', prescriptions: 98, trend: -2.4 },
-      { medication: 'Amoxicillin', prescriptions: 87, trend: 12.5 },
-      { medication: 'Simvastatin', prescriptions: 76, trend: 1.8 }
+      { medication: "Lisinopril", prescriptions: 145, trend: 8.5 },
+      { medication: "Metformin", prescriptions: 128, trend: 12.3 },
+      { medication: "Sertraline", prescriptions: 98, trend: -2.1 },
+      { medication: "Albuterol", prescriptions: 76, trend: 5.7 },
+      { medication: "Atorvastatin", prescriptions: 67, trend: 3.2 }
     ]
   },
   performance: {
     providerStats: [
-      { provider: 'Dr. Sarah Smith', appointments: 312, avgDuration: 18, patientSatisfaction: 4.8, revenue: 31200 },
-      { provider: 'Dr. Michael Chen', appointments: 287, avgDuration: 22, patientSatisfaction: 4.6, revenue: 28700 },
-      { provider: 'Dr. Emma Wilson', appointments: 245, avgDuration: 19, patientSatisfaction: 4.7, revenue: 24500 },
-      { provider: 'Dr. James Brown', appointments: 198, avgDuration: 25, patientSatisfaction: 4.5, revenue: 19800 }
+      { provider: "Dr. Sarah Johnson", appointments: 145, avgDuration: 22, patientSatisfaction: 4.8, revenue: 21750 },
+      { provider: "Dr. Michael Chen", appointments: 132, avgDuration: 19, patientSatisfaction: 4.7, revenue: 19800 },
+      { provider: "Dr. Emily Davis", appointments: 128, avgDuration: 25, patientSatisfaction: 4.6, revenue: 19200 },
+      { provider: "Dr. James Wilson", appointments: 119, avgDuration: 21, patientSatisfaction: 4.5, revenue: 17850 },
+      { provider: "Dr. Lisa Anderson", appointments: 98, avgDuration: 24, patientSatisfaction: 4.7, revenue: 14700 }
     ],
     departmentMetrics: [
-      { department: 'General Practice', utilization: 85, waitTime: 12, satisfaction: 4.6 },
-      { department: 'Cardiology', utilization: 78, waitTime: 18, satisfaction: 4.4 },
-      { department: 'Dermatology', utilization: 92, waitTime: 25, satisfaction: 4.2 },
-      { department: 'Mental Health', utilization: 73, waitTime: 8, satisfaction: 4.8 }
+      { department: "Primary Care", utilization: 87, waitTime: 15, satisfaction: 4.6 },
+      { department: "Cardiology", utilization: 92, waitTime: 22, satisfaction: 4.7 },
+      { department: "Mental Health", utilization: 78, waitTime: 12, satisfaction: 4.8 },
+      { department: "Endocrinology", utilization: 85, waitTime: 18, satisfaction: 4.5 },
+      { department: "Pulmonology", utilization: 73, waitTime: 16, satisfaction: 4.4 }
     ]
   },
   quality: {
     qualityMetrics: [
-      { metric: 'Patient Safety Score', value: 95, target: 90, status: 'good' },
-      { metric: 'Infection Control Rate', value: 98, target: 95, status: 'good' },
-      { metric: 'Medication Error Rate', value: 0.3, target: 0.5, status: 'good' },
-      { metric: 'Readmission Rate', value: 12, target: 10, status: 'warning' },
-      { metric: 'Mortality Rate', value: 2.1, target: 2.0, status: 'warning' }
+      { metric: "Patient Safety Score", value: 95, target: 90, status: "good" },
+      { metric: "Readmission Rate", value: 8.2, target: 10, status: "good" },
+      { metric: "Medication Adherence", value: 78, target: 85, status: "warning" },
+      { metric: "Preventive Care Completion", value: 82, target: 80, status: "good" },
+      { metric: "Clinical Quality Score", value: 88, target: 90, status: "warning" }
     ],
     patientOutcomes: [
-      { outcome: 'Treatment Success Rate', rate: 94.2, benchmark: 92.0 },
-      { outcome: 'Patient Compliance', rate: 87.5, benchmark: 85.0 },
-      { outcome: 'Recovery Time', rate: 89.3, benchmark: 88.0 },
-      { outcome: 'Quality of Life Score', rate: 8.2, benchmark: 7.8 }
+      { outcome: "Diabetes Control (HbA1c <7%)", rate: 76, benchmark: 70 },
+      { outcome: "Hypertension Control", rate: 83, benchmark: 80 },
+      { outcome: "Depression Remission", rate: 68, benchmark: 65 },
+      { outcome: "Asthma Control", rate: 81, benchmark: 75 }
     ]
   }
 };
 
-const COLORS = ['#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+const COLORS = ['#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 export default function AnalyticsPage() {
-  const [dateRange, setDateRange] = useState({
-    from: subMonths(new Date(), 1),
-    to: new Date()
-  });
-  const [selectedDepartment, setSelectedDepartment] = useState("all");
-  const [selectedProvider, setSelectedProvider] = useState("all");
-
   const { data: analyticsData = mockAnalyticsData, isLoading } = useQuery({
-    queryKey: ["/api/analytics", dateRange, selectedDepartment, selectedProvider],
-    enabled: true,
+    queryKey: ['/api/analytics'],
   });
 
-  const formatCurrency = (value: number) => {
+  // Type-safe data access
+  const analytics = analyticsData as AnalyticsData;
+
+  const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-GB', {
       style: 'currency',
       currency: 'GBP'
-    }).format(value);
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'good': return 'text-green-600 bg-green-100';
-      case 'warning': return 'text-yellow-600 bg-yellow-100';
-      case 'critical': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
-  };
-
-  const getTrendIcon = (trend: number) => {
-    if (trend > 0) return <TrendingUp className="h-4 w-4 text-green-500" />;
-    if (trend < 0) return <TrendingDown className="h-4 w-4 text-red-500" />;
-    return null;
+    }).format(amount);
   };
 
   if (isLoading) {
-    return <div className="flex items-center justify-center h-64">Loading analytics...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
   return (
-    <>
-      <Header title="Analytics & Reporting" />
-      
-      <div className="p-6 space-y-6">
-        {/* Filters */}
+    <div className="p-6 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
+          <p className="text-gray-600 mt-1">Comprehensive insights into practice performance</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="sm">
+            <Filter className="h-4 w-4 mr-2" />
+            Filter
+          </Button>
+          <Button variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+        </div>
+      </div>
+
+      {/* Key Metrics Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4" />
-                <span className="text-sm font-medium">Filters:</span>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Patients</p>
+                <p className="text-2xl font-bold">{analytics.overview.totalPatients.toLocaleString()}</p>
+                <p className="text-xs text-green-600 flex items-center mt-1">
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                  +{analytics.overview.newPatients} this month
+                </p>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm">Date Range:</span>
-                <select className="border rounded px-2 py-1 text-sm">
-                  <option>Last 30 Days</option>
-                  <option>Last 90 Days</option>
-                  <option>Last Year</option>
-                </select>
-              </div>
-              <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="All Departments" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Departments</SelectItem>
-                  <SelectItem value="general">General Practice</SelectItem>
-                  <SelectItem value="cardiology">Cardiology</SelectItem>
-                  <SelectItem value="dermatology">Dermatology</SelectItem>
-                  <SelectItem value="mental-health">Mental Health</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={selectedProvider} onValueChange={setSelectedProvider}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="All Providers" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Providers</SelectItem>
-                  <SelectItem value="dr-smith">Dr. Sarah Smith</SelectItem>
-                  <SelectItem value="dr-chen">Dr. Michael Chen</SelectItem>
-                  <SelectItem value="dr-wilson">Dr. Emma Wilson</SelectItem>
-                  <SelectItem value="dr-brown">Dr. James Brown</SelectItem>
-                </SelectContent>
-              </Select>
-              <div className="flex gap-2 ml-auto">
-                <Button variant="outline" size="sm">
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Export
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Share className="h-4 w-4 mr-2" />
-                  Share
-                </Button>
-              </div>
+              <Users className="h-8 w-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>
 
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="patients">Patients</TabsTrigger>
-            <TabsTrigger value="clinical">Clinical</TabsTrigger>
-            <TabsTrigger value="financial">Financial</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
-            <TabsTrigger value="quality">Quality</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
-            {/* Key Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Total Patients</p>
-                      <p className="text-2xl font-bold">{(analyticsData as any)?.overview?.totalPatients?.toLocaleString() || '0'}</p>
-                      <p className="text-xs text-green-600 flex items-center mt-1">
-                        <TrendingUp className="h-3 w-3 mr-1" />
-                        +{(analyticsData as any)?.overview?.newPatients || 0} this month
-                      </p>
-                    </div>
-                    <Users className="h-8 w-8 text-blue-500" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Appointments</p>
-                      <p className="text-2xl font-bold">{(analyticsData as any)?.overview?.totalAppointments?.toLocaleString() || '0'}</p>
-                      <p className="text-xs text-gray-600 mt-1">
-                        {Math.round(((analyticsData as any)?.overview?.completedAppointments || 0) / ((analyticsData as any)?.overview?.totalAppointments || 1) * 100)}% completion rate
-                      </p>
-                    </div>
-                    <Calendar className="h-8 w-8 text-green-500" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Revenue</p>
-                      <p className="text-2xl font-bold">{formatCurrency((analyticsData as any)?.overview?.revenue || 0)}</p>
-                      <p className="text-xs text-green-600 flex items-center mt-1">
-                        <TrendingUp className="h-3 w-3 mr-1" />
-                        +5.2% vs last month
-                      </p>
-                    </div>
-                    <DollarSign className="h-8 w-8 text-yellow-500" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Avg Wait Time</p>
-                      <p className="text-2xl font-bold">{(analyticsData as any)?.overview?.averageWaitTime || 0}min</p>
-                      <p className="text-xs text-green-600 flex items-center mt-1">
-                        <TrendingDown className="h-3 w-3 mr-1" />
-                        -2min vs last month
-                      </p>
-                    </div>
-                    <Clock className="h-8 w-8 text-purple-500" />
-                  </div>
-                </CardContent>
-              </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Appointments</p>
+                <p className="text-2xl font-bold">{analytics.overview.totalAppointments.toLocaleString()}</p>
+                <p className="text-xs text-blue-600 flex items-center mt-1">
+                  {Math.round((analytics.overview.completedAppointments / analytics.overview.totalAppointments) * 100)}% completion rate
+                </p>
+              </div>
+              <Calendar className="h-8 w-8 text-green-500" />
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Patient Growth Trend</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <AreaChart data={((analyticsData as any)?.trends?.patientGrowth || [])}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
-                      <Area type="monotone" dataKey="total" stackId="1" stroke="#0ea5e9" fill="#0ea5e9" fillOpacity={0.8} />
-                      <Area type="monotone" dataKey="new" stackId="2" stroke="#10b981" fill="#10b981" fillOpacity={0.8} />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Appointment Volume</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={((analyticsData as any)?.)trends.appointmentVolume}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" tickFormatter={(value) => format(new Date(value), 'MMM d')} />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="completed" stackId="a" fill="#10b981" />
-                      <Bar dataKey="cancelled" stackId="a" fill="#f59e0b" />
-                      <Bar dataKey="noShow" stackId="a" fill="#ef4444" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Revenue</p>
+                <p className="text-2xl font-bold">{formatCurrency(analytics.overview.revenue)}</p>
+                <p className="text-xs text-green-600 flex items-center mt-1">
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                  +5.2% vs last month
+                </p>
+              </div>
+              <DollarSign className="h-8 w-8 text-green-600" />
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Patient Satisfaction & Quality Metrics */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Patient Satisfaction</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center">
-                    <div className="text-4xl font-bold text-green-600 mb-2">
-                      {((analyticsData as any)?.)overview.patientSatisfaction}/5.0
-                    </div>
-                    <div className="text-sm text-gray-600">Average Rating</div>
-                    <div className="mt-4 space-y-2">
-                      {[5, 4, 3, 2, 1].map((star: any) => (
-                        <div key={star} className="flex items-center gap-2">
-                          <span className="text-sm w-4">{star}</span>
-                          <div className="flex-1 bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-yellow-400 h-2 rounded-full" 
-                              style={{ width: `${Math.random() * 80 + 20}%` }}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Demographics</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={250}>
-                    <PieChart>
-                      <Pie
-                        data={((analyticsData as any)?.)demographics.ageGroups}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={40}
-                        outerRadius={80}
-                        dataKey="count"
-                        label={({ range, percentage }) => `${range}: ${percentage}%`}
-                      >
-                        {((analyticsData as any)?.)demographics.ageGroups.map((entry: any) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Key Performance Indicators</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">No-Show Rate</span>
-                    <span className="text-sm text-red-600">{((analyticsData as any)?.)overview.noShowRate}%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Avg Wait Time</span>
-                    <span className="text-sm text-green-600">{((analyticsData as any)?.)overview.averageWaitTime} min</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Completion Rate</span>
-                    <span className="text-sm text-green-600">
-                      {Math.round((((analyticsData as any)?.)overview.completedAppointments / ((analyticsData as any)?.)overview.totalAppointments) * 100)}%
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Patient Satisfaction</span>
-                    <span className="text-sm text-green-600">{((analyticsData as any)?.)overview.patientSatisfaction}/5.0</span>
-                  </div>
-                </CardContent>
-              </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Avg Wait Time</p>
+                <p className="text-2xl font-bold">{analytics.overview.averageWaitTime}min</p>
+                <p className="text-xs text-green-600 flex items-center mt-1">
+                  <TrendingDown className="h-3 w-3 mr-1" />
+                  -2min vs last month
+                </p>
+              </div>
+              <Clock className="h-8 w-8 text-purple-500" />
             </div>
-          </TabsContent>
+          </CardContent>
+        </Card>
+      </div>
 
-          <TabsContent value="patients" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Patient Demographics by Age</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={((analyticsData as any)?.)demographics.ageGroups}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="range" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#0ea5e9" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
+      {/* Analytics Tabs */}
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="patients">Patients</TabsTrigger>
+          <TabsTrigger value="clinical">Clinical</TabsTrigger>
+          <TabsTrigger value="financial">Financial</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="quality">Quality</TabsTrigger>
+        </TabsList>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Insurance Distribution</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={((analyticsData as any)?.)demographics.insuranceTypes}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        dataKey="count"
-                        label={({ type, percentage }) => `${type}: ${percentage}%`}
-                      >
-                        {((analyticsData as any)?.)demographics.insuranceTypes.map((entry: any) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Patient Growth */}
             <Card>
               <CardHeader>
-                <CardTitle>Patient Registration Trends</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <LineChart data={((analyticsData as any)?.)trends.patientGrowth}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="total" stroke="#0ea5e9" strokeWidth={3} />
-                    <Line type="monotone" dataKey="new" stroke="#10b981" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="clinical" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Top Diagnoses</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {((analyticsData as any)?.)clinical.topDiagnoses.map((diagnosis: any) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="font-medium">{diagnosis.diagnosis}</div>
-                          <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                            <div 
-                              className="bg-blue-500 h-2 rounded-full" 
-                              style={{ width: `${diagnosis.percentage * 8}%` }}
-                            />
-                          </div>
-                        </div>
-                        <div className="text-right ml-4">
-                          <div className="font-semibold">{diagnosis.count}</div>
-                          <div className="text-xs text-gray-600">{diagnosis.percentage}%</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Medication Usage Trends</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {((analyticsData as any)?.)clinical.medicationUsage.map((med: any) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div>
-                          <div className="font-medium">{med.medication}</div>
-                          <div className="text-sm text-gray-600">{med.prescriptions} prescriptions</div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {getTrendIcon(med.trend)}
-                          <span className={`text-sm font-medium ${med.trend > 0 ? 'text-green-600' : med.trend < 0 ? 'text-red-600' : 'text-gray-600'}`}>
-                            {med.trend > 0 ? '+' : ''}{med.trend}%
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Procedure Revenue</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={((analyticsData as any)?.)clinical.topProcedures}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="procedure" angle={-45} textAnchor="end" height={100} />
-                    <YAxis yAxisId="left" />
-                    <YAxis yAxisId="right" orientation="right" />
-                    <Tooltip />
-                    <Bar yAxisId="left" dataKey="count" fill="#0ea5e9" name="Count" />
-                    <Bar yAxisId="right" dataKey="revenue" fill="#10b981" name="Revenue (£)" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="financial" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Revenue vs Target</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={((analyticsData as any)?.)trends.revenue}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis tickFormatter={(value) => `£${(value / 1000)}k`} />
-                    <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                    <Bar dataKey="amount" fill="#0ea5e9" name="Actual Revenue" />
-                    <Bar dataKey="target" fill="#e5e7eb" name="Target Revenue" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Revenue by Department</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {((analyticsData as any)?.)performance.departmentMetrics.map((dept: any) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <span className="font-medium">{dept.department}</span>
-                        <span className="text-green-600 font-semibold">
-                          {formatCurrency(dept.utilization * 1000)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Provider Revenue</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={250}>
-                    <BarChart data={((analyticsData as any)?.)performance.providerStats}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="provider" angle={-45} textAnchor="end" height={60} />
-                      <YAxis tickFormatter={(value) => `£${(value / 1000)}k`} />
-                      <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                      <Bar dataKey="revenue" fill="#10b981" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="performance" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Provider Performance</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left p-2">Provider</th>
-                        <th className="text-left p-2">Appointments</th>
-                        <th className="text-left p-2">Avg Duration</th>
-                        <th className="text-left p-2">Satisfaction</th>
-                        <th className="text-left p-2">Revenue</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {((analyticsData as any)?.)performance.providerStats.map((provider: any) => (
-                        <tr key={index} className="border-b">
-                          <td className="p-2 font-medium">{provider.provider}</td>
-                          <td className="p-2">{provider.appointments}</td>
-                          <td className="p-2">{provider.avgDuration} min</td>
-                          <td className="p-2">
-                            <div className="flex items-center gap-1">
-                              <span>{provider.patientSatisfaction}</span>
-                              <Activity className="h-4 w-4 text-yellow-500" />
-                            </div>
-                          </td>
-                          <td className="p-2 text-green-600 font-semibold">
-                            {formatCurrency(provider.revenue)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Department Utilization</CardTitle>
+                <CardTitle>Patient Growth Trend</CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={((analyticsData as any)?.)performance.departmentMetrics}>
+                  <AreaChart data={analytics.trends.patientGrowth}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="department" />
+                    <XAxis dataKey="month" />
                     <YAxis />
                     <Tooltip />
-                    <Bar dataKey="utilization" fill="#0ea5e9" name="Utilization %" />
+                    <Area type="monotone" dataKey="total" stackId="1" stroke="#0ea5e9" fill="#0ea5e9" fillOpacity={0.8} />
+                    <Area type="monotone" dataKey="new" stackId="2" stroke="#10b981" fill="#10b981" fillOpacity={0.8} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Appointment Volume */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Appointment Volume</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={analytics.trends.appointmentVolume}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" tickFormatter={(value) => format(new Date(value), 'MMM d')} />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="completed" stackId="a" fill="#10b981" />
+                    <Bar dataKey="cancelled" stackId="a" fill="#f59e0b" />
+                    <Bar dataKey="noShow" stackId="a" fill="#ef4444" />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
 
-          <TabsContent value="quality" className="space-y-6">
+          {/* Patient Satisfaction */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Patient Satisfaction</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-center p-8">
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-green-600 mb-2">
+                    {analytics.overview.patientSatisfaction}/5.0
+                  </div>
+                  <div className="text-sm text-gray-600">Average Rating</div>
+                  <div className="mt-4 space-y-2">
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="w-16">No Shows:</span>
+                      <div className="flex-1 bg-gray-200 rounded-full h-2">
+                        <div className="bg-red-500 h-2 rounded-full" style={{ width: `${analytics.overview.noShowRate}%` }}></div>
+                      </div>
+                      <span className="text-sm text-red-600">{analytics.overview.noShowRate}%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="patients" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Age Demographics */}
             <Card>
               <CardHeader>
-                <CardTitle>Quality Metrics</CardTitle>
+                <CardTitle>Age Demographics</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {((analyticsData as any)?.)quality.qualityMetrics.map((metric: any) => (
-                    <div key={index} className="p-4 border rounded-lg">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium text-sm">{metric.metric}</span>
-                        <Badge className={getStatusColor(metric.status)}>
-                          {metric.status}
-                        </Badge>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={analytics.demographics.ageGroups}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ range, percentage }) => `${range}: ${percentage}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="count"
+                    >
+                      {analytics.demographics.ageGroups.map((entry: any, index: number) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Insurance Types */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Insurance Distribution</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={analytics.demographics.insuranceTypes}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ type, percentage }) => `${type}: ${percentage}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="count"
+                    >
+                      {analytics.demographics.insuranceTypes.map((entry: any, index: number) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="clinical" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Top Diagnoses */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Diagnoses</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {analytics.clinical.topDiagnoses.map((diagnosis: any, index: number) => (
+                    <div key={index} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <span className="text-sm font-bold text-blue-600">#{index + 1}</span>
+                        </div>
+                        <div>
+                          <div className="font-medium">{diagnosis.diagnosis}</div>
+                          <div className="text-sm text-gray-600">{diagnosis.count} cases</div>
+                        </div>
                       </div>
-                      <div className="text-2xl font-bold mb-1">{metric.value}%</div>
-                      <div className="text-xs text-gray-600">Target: {metric.target}%</div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                        <div 
-                          className={`h-2 rounded-full ${
-                            metric.status === 'good' ? 'bg-green-500' :
-                            metric.status === 'warning' ? 'bg-yellow-500' : 'bg-red-500'
-                          }`}
-                          style={{ width: `${Math.min((metric.value / metric.target) * 100, 100)}%` }}
-                        />
+                      <div className="text-right">
+                        <div className="font-semibold">{diagnosis.percentage}%</div>
                       </div>
                     </div>
                   ))}
@@ -831,26 +518,179 @@ export default function AnalyticsPage() {
               </CardContent>
             </Card>
 
+            {/* Medication Usage */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Medications</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {analytics.clinical.medicationUsage.map((med: any, index: number) => (
+                    <div key={index} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                          <span className="text-sm font-bold text-green-600">#{index + 1}</span>
+                        </div>
+                        <div>
+                          <div className="font-medium">{med.medication}</div>
+                          <div className="text-sm text-gray-600">{med.prescriptions} prescriptions</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className={`font-semibold ${med.trend > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {med.trend > 0 ? '+' : ''}{med.trend}%
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="financial" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Revenue Trends</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={400}>
+                <LineChart data={analytics.trends.revenue}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis tickFormatter={(value) => formatCurrency(value)} />
+                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                  <Line type="monotone" dataKey="amount" stroke="#10b981" strokeWidth={3} />
+                  <Line type="monotone" dataKey="target" stroke="#94a3b8" strokeDasharray="5 5" />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="performance" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Department Metrics */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Department Performance</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {analytics.performance.departmentMetrics.map((dept: any, index: number) => (
+                    <div key={index} className="p-4 border rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium">{dept.department}</h4>
+                        <Badge variant={dept.utilization > 85 ? 'default' : 'secondary'}>
+                          {dept.utilization}% utilized
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-600">Wait Time:</span>
+                          <span className="ml-2 font-medium">{dept.waitTime} min</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Satisfaction:</span>
+                          <span className="ml-2 font-medium">{dept.satisfaction}/5.0</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Provider Stats */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Providers</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {analytics.performance.providerStats.map((provider: any, index: number) => (
+                    <div key={index} className="p-4 border rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium">{provider.provider}</h4>
+                        <Badge variant="outline">{provider.appointments} appointments</Badge>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-sm">
+                        <div>
+                          <span className="text-gray-600">Duration:</span>
+                          <span className="ml-1 font-medium">{provider.avgDuration}min</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Rating:</span>
+                          <span className="ml-1 font-medium">{provider.patientSatisfaction}/5.0</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Revenue:</span>
+                          <span className="ml-1 font-medium">{formatCurrency(provider.revenue)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="quality" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Quality Metrics */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Quality Metrics</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {analytics.quality.qualityMetrics.map((metric: any, index: number) => (
+                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-3 h-3 rounded-full ${
+                          metric.status === 'good' ? 'bg-green-500' : 
+                          metric.status === 'warning' ? 'bg-yellow-500' : 'bg-red-500'
+                        }`}></div>
+                        <div>
+                          <div className="font-medium">{metric.metric}</div>
+                          <div className="text-sm text-gray-600">Target: {metric.target}</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-semibold">{metric.value}</div>
+                        <Badge variant={metric.status === 'good' ? 'default' : metric.status === 'warning' ? 'secondary' : 'destructive'}>
+                          {metric.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Patient Outcomes */}
             <Card>
               <CardHeader>
                 <CardTitle>Patient Outcomes</CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={((analyticsData as any)?.)quality.patientOutcomes}>
+                  <BarChart data={analytics.quality.patientOutcomes}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="outcome" angle={-45} textAnchor="end" height={100} />
+                    <XAxis dataKey="outcome" />
                     <YAxis />
                     <Tooltip />
-                    <Bar dataKey="rate" fill="#0ea5e9" name="Actual Rate" />
-                    <Bar dataKey="benchmark" fill="#e5e7eb" name="Benchmark" />
+                    <Bar dataKey="rate" fill="#10b981" />
+                    <Bar dataKey="benchmark" fill="#94a3b8" />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

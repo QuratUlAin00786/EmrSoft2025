@@ -1,11 +1,8 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Header } from "@/components/layout/header";
+import { useQuery, useMutation, queryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -24,16 +21,15 @@ import {
   Phone,
   Bell,
   Users,
-  FileText,
-  Zap,
   Activity,
-  Settings,
   CheckCircle,
   AlertTriangle,
   TrendingUp,
+  Settings,
   Filter
 } from "lucide-react";
 import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 
 interface AutomationRule {
   id: string;
@@ -98,255 +94,154 @@ interface AutomationStats {
 
 const mockAutomationRules: AutomationRule[] = [
   {
-    id: "rule_001",
-    name: "Appointment Reminder - 24 Hours",
-    description: "Send email reminder 24 hours before scheduled appointment",
+    id: "1",
+    name: "Appointment Reminder",
+    description: "Send SMS reminder 24 hours before appointment",
     trigger: {
       type: "appointment_scheduled",
-      conditions: [
-        { field: "status", operator: "equals", value: "confirmed" }
-      ],
+      conditions: [],
       timeDelay: { value: 24, unit: "hours" }
     },
-    actions: [
-      {
-        type: "send_email",
-        config: {
-          template: "appointment_reminder",
-          subject: "Appointment Reminder - Tomorrow",
-          message: "This is a friendly reminder of your appointment tomorrow at {appointment_time} with {provider_name}."
-        }
+    actions: [{
+      type: "send_sms",
+      config: {
+        template: "appointment_reminder",
+        message: "Hello {{patient_name}}, you have an appointment tomorrow at {{appointment_time}} with {{provider_name}}."
       }
-    ],
+    }],
     status: "active",
     category: "appointment",
-    createdAt: "2024-01-01T00:00:00Z",
-    updatedAt: "2024-01-15T10:30:00Z",
-    lastTriggered: "2024-01-20T14:00:00Z",
-    triggerCount: 156,
-    successRate: 98.5
+    createdAt: "2024-06-01T10:00:00Z",
+    updatedAt: "2024-06-25T15:30:00Z",
+    lastTriggered: "2024-06-26T14:00:00Z",
+    triggerCount: 145,
+    successRate: 98.6
   },
   {
-    id: "rule_002",
-    name: "Post-Visit Follow-up Survey",
-    description: "Send patient satisfaction survey 2 hours after appointment completion",
+    id: "2",
+    name: "Post-Visit Follow-up",
+    description: "Send follow-up email after completed appointment",
     trigger: {
       type: "appointment_completed",
-      conditions: [
-        { field: "type", operator: "not_equals", value: "emergency" }
-      ],
+      conditions: [],
       timeDelay: { value: 2, unit: "hours" }
+    },
+    actions: [{
+      type: "send_email",
+      config: {
+        template: "post_visit_followup",
+        subject: "Thank you for your visit",
+        message: "Thank you for visiting us today. Please don't hesitate to contact us if you have any questions."
+      }
+    }],
+    status: "active",
+    category: "communication",
+    createdAt: "2024-06-02T10:00:00Z",
+    updatedAt: "2024-06-24T12:00:00Z",
+    lastTriggered: "2024-06-26T16:30:00Z",
+    triggerCount: 89,
+    successRate: 96.6
+  },
+  {
+    id: "3",
+    name: "Lab Results Notification",
+    description: "Notify patient when lab results are ready",
+    trigger: {
+      type: "lab_result_ready",
+      conditions: []
     },
     actions: [
       {
         type: "send_email",
         config: {
-          template: "satisfaction_survey",
-          subject: "How was your visit today?",
-          message: "We'd love to hear about your experience today. Please take a moment to complete our brief survey."
+          template: "lab_results_ready",
+          subject: "Your lab results are ready",
+          message: "Your lab results are now available in your patient portal."
         }
-      }
-    ],
-    status: "active",
-    category: "communication",
-    createdAt: "2024-01-05T00:00:00Z",
-    updatedAt: "2024-01-15T10:30:00Z",
-    lastTriggered: "2024-01-20T16:30:00Z",
-    triggerCount: 89,
-    successRate: 96.2
-  },
-  {
-    id: "rule_003",
-    name: "Lab Results Notification",
-    description: "Notify patient and provider when lab results are ready",
-    trigger: {
-      type: "lab_result_ready",
-      conditions: [
-        { field: "status", operator: "equals", value: "completed" }
-      ]
-    },
-    actions: [
+      },
       {
         type: "send_notification",
         config: {
-          recipient: "patient",
-          message: "Your lab results are ready for review.",
+          message: "New lab results available for {{patient_name}}",
           priority: "medium"
-        }
-      },
-      {
-        type: "create_task",
-        config: {
-          assignTo: "ordering_provider",
-          message: "Review and communicate lab results to patient",
-          priority: "high",
-          dueDate: "24_hours"
         }
       }
     ],
     status: "active",
     category: "clinical",
-    createdAt: "2024-01-08T00:00:00Z",
-    updatedAt: "2024-01-15T10:30:00Z",
-    lastTriggered: "2024-01-20T12:15:00Z",
+    createdAt: "2024-06-03T10:00:00Z",
+    updatedAt: "2024-06-20T09:15:00Z",
+    lastTriggered: "2024-06-26T11:45:00Z",
     triggerCount: 67,
     successRate: 100.0
-  },
-  {
-    id: "rule_004",
-    name: "Medication Refill Reminder",
-    description: "Remind patients to refill medication 3 days before running out",
-    trigger: {
-      type: "medication_due",
-      conditions: [
-        { field: "refills_remaining", operator: "greater_than", value: "0" }
-      ],
-      timeDelay: { value: 3, unit: "days" }
-    },
-    actions: [
-      {
-        type: "send_sms",
-        config: {
-          message: "Your {medication_name} prescription is running low. Please contact us to refill.",
-          priority: "medium"
-        }
-      }
-    ],
-    status: "active",
-    category: "clinical",
-    createdAt: "2024-01-10T00:00:00Z",
-    updatedAt: "2024-01-15T10:30:00Z",
-    lastTriggered: "2024-01-19T09:00:00Z",
-    triggerCount: 23,
-    successRate: 91.3
-  },
-  {
-    id: "rule_005",
-    name: "No-Show Follow-up",
-    description: "Send follow-up message and reschedule option for no-show appointments",
-    trigger: {
-      type: "no_show",
-      conditions: [
-        { field: "status", operator: "equals", value: "no_show" }
-      ],
-      timeDelay: { value: 2, unit: "hours" }
-    },
-    actions: [
-      {
-        type: "send_email",
-        config: {
-          template: "no_show_followup",
-          subject: "We missed you today - Let's reschedule",
-          message: "We noticed you missed your appointment today. Please click here to reschedule at your convenience."
-        }
-      },
-      {
-        type: "create_task",
-        config: {
-          assignTo: "front_desk",
-          message: "Follow up with patient who missed appointment - attempt to reschedule",
-          priority: "medium"
-        }
-      }
-    ],
-    status: "active",
-    category: "appointment",
-    createdAt: "2024-01-12T00:00:00Z",
-    updatedAt: "2024-01-15T10:30:00Z",
-    lastTriggered: "2024-01-18T11:30:00Z",
-    triggerCount: 12,
-    successRate: 83.3
   }
 ];
 
 const mockAutomationStats: AutomationStats = {
-  totalRules: 5,
-  activeRules: 5,
-  totalTriggers: 347,
-  successfulExecutions: 334,
-  failedExecutions: 13,
-  averageResponseTime: 2.4,
+  totalRules: 12,
+  activeRules: 9,
+  totalTriggers: 1847,
+  successfulExecutions: 1782,
+  failedExecutions: 65,
+  averageResponseTime: 2.3,
   topPerformingRules: [
-    { id: "rule_003", name: "Lab Results Notification", triggerCount: 67, successRate: 100.0 },
-    { id: "rule_001", name: "Appointment Reminder - 24 Hours", triggerCount: 156, successRate: 98.5 },
-    { id: "rule_002", name: "Post-Visit Follow-up Survey", triggerCount: 89, successRate: 96.2 }
+    { id: "3", name: "Lab Results Notification", triggerCount: 67, successRate: 100.0 },
+    { id: "1", name: "Appointment Reminder", triggerCount: 145, successRate: 98.6 },
+    { id: "2", name: "Post-Visit Follow-up", triggerCount: 89, successRate: 96.6 }
   ],
   recentActivity: [
     {
-      id: "act_001",
-      ruleName: "Appointment Reminder - 24 Hours",
+      id: "act_1",
+      ruleName: "Appointment Reminder",
       trigger: "appointment_scheduled",
-      action: "send_email",
+      action: "send_sms",
       status: "success",
-      timestamp: "2024-01-20T14:00:00Z",
-      details: "Email sent to sarah.johnson@email.com"
+      timestamp: "2024-06-26T16:45:00Z",
+      details: "SMS sent to +44 7700 900123"
     },
     {
-      id: "act_002",
-      ruleName: "Post-Visit Follow-up Survey",
-      trigger: "appointment_completed",
-      action: "send_email",
-      status: "success",
-      timestamp: "2024-01-20T16:30:00Z",
-      details: "Survey sent to patient after consultation"
-    },
-    {
-      id: "act_003",
+      id: "act_2",
       ruleName: "Lab Results Notification",
       trigger: "lab_result_ready",
-      action: "send_notification",
+      action: "send_email",
       status: "success",
-      timestamp: "2024-01-20T12:15:00Z",
-      details: "Patient and provider notified of completed CBC results"
+      timestamp: "2024-06-26T16:30:00Z",
+      details: "Email sent to patient@example.com"
     },
     {
-      id: "act_004",
-      ruleName: "Medication Refill Reminder",
-      trigger: "medication_due",
-      action: "send_sms",
+      id: "act_3",
+      ruleName: "Post-Visit Follow-up",
+      trigger: "appointment_completed",
+      action: "send_email",
       status: "failed",
-      timestamp: "2024-01-19T09:00:00Z",
-      details: "SMS delivery failed - invalid phone number"
+      timestamp: "2024-06-26T16:15:00Z",
+      details: "Invalid email address"
     }
   ]
 };
 
 export default function AutomationPage() {
-  const [selectedRule, setSelectedRule] = useState<AutomationRule | null>(null);
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const { toast } = useToast();
 
-  const queryClient = useQueryClient();
-
-  const { data: automationRules = mockAutomationRules } = useQuery({
-    queryKey: ["/api/automation/rules"],
-    enabled: true,
+  const { data: automationRules = mockAutomationRules, isLoading: rulesLoading } = useQuery({
+    queryKey: ['/api/automation/rules'],
   });
 
-  const { data: automationStats = mockAutomationStats } = useQuery({
-    queryKey: ["/api/automation/stats"],
-    enabled: true,
+  const { data: automationStats = mockAutomationStats, isLoading: statsLoading } = useQuery({
+    queryKey: ['/api/automation/stats'],
   });
+
+  // Type-safe data access
+  const rules = automationRules as AutomationRule[];
+  const stats = automationStats as AutomationStats;
 
   const toggleRuleMutation = useMutation({
-    mutationFn: async ({ ruleId, status }: { ruleId: string; status: 'active' | 'paused' }) => {
-      const response = await fetch(`/api/automation/rules/${ruleId}/toggle`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/automation/rules"] });
-    }
-  });
-
-  const deleteRuleMutation = useMutation({
     mutationFn: async (ruleId: string) => {
-      const response = await fetch(`/api/automation/rules/${ruleId}`, {
-        method: 'DELETE'
+      const response = await fetch(`/api/automation/rules/${ruleId}/toggle`, {
+        method: 'POST',
       });
       return response.json();
     },
@@ -355,7 +250,7 @@ export default function AutomationPage() {
     }
   });
 
-  const filteredRules = (automationRules as any || []).filter((rule: any) => {
+  const filteredRules = rules.filter((rule: AutomationRule) => {
     const matchesStatus = statusFilter === "all" || rule.status === statusFilter;
     const matchesCategory = categoryFilter === "all" || rule.category === categoryFilter;
     return matchesStatus && matchesCategory;
@@ -363,128 +258,288 @@ export default function AutomationPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'active': return <Badge className="bg-green-100 text-green-800">Active</Badge>;
-      case 'paused': return <Badge className="bg-yellow-100 text-yellow-800">Paused</Badge>;
-      case 'draft': return <Badge className="bg-gray-100 text-gray-800">Draft</Badge>;
-      case 'success': return <Badge className="bg-green-100 text-green-800">Success</Badge>;
-      case 'failed': return <Badge className="bg-red-100 text-red-800">Failed</Badge>;
-      case 'pending': return <Badge className="bg-blue-100 text-blue-800">Pending</Badge>;
-      default: return <Badge>{status}</Badge>;
+      case 'active':
+        return <Badge className="bg-green-100 text-green-800">Active</Badge>;
+      case 'paused':
+        return <Badge variant="secondary">Paused</Badge>;
+      case 'draft':
+        return <Badge variant="outline">Draft</Badge>;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
     }
   };
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'appointment': return <Calendar className="h-4 w-4" />;
-      case 'communication': return <MessageSquare className="h-4 w-4" />;
-      case 'clinical': return <FileText className="h-4 w-4" />;
-      case 'administrative': return <Settings className="h-4 w-4" />;
-      case 'billing': return <TrendingUp className="h-4 w-4" />;
-      default: return <Activity className="h-4 w-4" />;
+      case 'appointment':
+        return <Calendar className="h-4 w-4" />;
+      case 'communication':
+        return <MessageSquare className="h-4 w-4" />;
+      case 'clinical':
+        return <Activity className="h-4 w-4" />;
+      case 'administrative':
+        return <Settings className="h-4 w-4" />;
+      case 'billing':
+        return <TrendingUp className="h-4 w-4" />;
+      default:
+        return <Bell className="h-4 w-4" />;
     }
   };
 
-  const getTriggerIcon = (triggerType: string) => {
-    switch (triggerType) {
-      case 'appointment_scheduled': return <Calendar className="h-4 w-4" />;
-      case 'appointment_completed': return <CheckCircle className="h-4 w-4" />;
-      case 'form_submitted': return <FileText className="h-4 w-4" />;
-      case 'patient_registered': return <Users className="h-4 w-4" />;
-      case 'lab_result_ready': return <Activity className="h-4 w-4" />;
-      case 'medication_due': return <Bell className="h-4 w-4" />;
-      case 'no_show': return <AlertTriangle className="h-4 w-4" />;
-      case 'time_based': return <Clock className="h-4 w-4" />;
-      default: return <Zap className="h-4 w-4" />;
-    }
-  };
-
-  const getActionIcon = (actionType: string) => {
-    switch (actionType) {
-      case 'send_email': return <Mail className="h-4 w-4" />;
-      case 'send_sms': return <Phone className="h-4 w-4" />;
-      case 'create_task': return <CheckCircle className="h-4 w-4" />;
-      case 'send_notification': return <Bell className="h-4 w-4" />;
-      default: return <Activity className="h-4 w-4" />;
-    }
-  };
+  if (rulesLoading || statsLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <Header title="Automation & Workflows" />
-      
-      <div className="p-6 space-y-6">
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="rules">Automation Rules</TabsTrigger>
-            <TabsTrigger value="activity">Activity Log</TabsTrigger>
-            <TabsTrigger value="templates">Templates</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
-            {/* Key Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Total Rules</p>
-                      <p className="text-2xl font-bold">{((automationStats as any)?.)totalRules}</p>
-                      <p className="text-xs text-green-600 flex items-center mt-1">
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        {((automationStats as any)?.)activeRules} active
-                      </p>
-                    </div>
-                    <Zap className="h-8 w-8 text-blue-500" />
+    <div className="p-6 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Automation</h1>
+          <p className="text-gray-600 mt-1">Streamline workflows with intelligent automation</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="sm">
+            <Filter className="h-4 w-4 mr-2" />
+            Filter
+          </Button>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Rule
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Create Automation Rule</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Rule Name</label>
+                  <Input placeholder="Enter rule name" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Description</label>
+                  <Input placeholder="Describe what this rule does" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium">Trigger</label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select trigger" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="appointment_scheduled">Appointment Scheduled</SelectItem>
+                        <SelectItem value="appointment_completed">Appointment Completed</SelectItem>
+                        <SelectItem value="lab_result_ready">Lab Result Ready</SelectItem>
+                        <SelectItem value="patient_registered">Patient Registered</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Total Triggers</p>
-                      <p className="text-2xl font-bold">{((automationStats as any)?.)totalTriggers.toLocaleString()}</p>
-                      <p className="text-xs text-gray-600 mt-1">This month</p>
-                    </div>
-                    <Activity className="h-8 w-8 text-green-500" />
+                  <div>
+                    <label className="text-sm font-medium">Category</label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="appointment">Appointment</SelectItem>
+                        <SelectItem value="communication">Communication</SelectItem>
+                        <SelectItem value="clinical">Clinical</SelectItem>
+                        <SelectItem value="administrative">Administrative</SelectItem>
+                        <SelectItem value="billing">Billing</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={() => setIsCreateDialogOpen(false)}>
+                    Create Rule
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
 
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Success Rate</p>
-                      <p className="text-2xl font-bold">
-                        {Math.round((((automationStats as any)?.)successfulExecutions / ((automationStats as any)?.)totalTriggers) * 100)}%
-                      </p>
-                      <p className="text-xs text-green-600 flex items-center mt-1">
-                        <TrendingUp className="h-3 w-3 mr-1" />
-                        {((automationStats as any)?.)successfulExecutions} successful
-                      </p>
-                    </div>
-                    <CheckCircle className="h-8 w-8 text-green-500" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Response Time</p>
-                      <p className="text-2xl font-bold">{((automationStats as any)?.)averageResponseTime}s</p>
-                      <p className="text-xs text-gray-600 mt-1">Average execution</p>
-                    </div>
-                    <Clock className="h-8 w-8 text-purple-500" />
-                  </div>
-                </CardContent>
-              </Card>
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Rules</p>
+                <p className="text-2xl font-bold">{stats.totalRules}</p>
+              </div>
+              <Settings className="h-8 w-8 text-blue-500" />
             </div>
+          </CardContent>
+        </Card>
 
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Active Rules</p>
+                <p className="text-2xl font-bold">{stats.activeRules}</p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-green-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Success Rate</p>
+                <p className="text-2xl font-bold">
+                  {Math.round((stats.successfulExecutions / stats.totalTriggers) * 100)}%
+                </p>
+              </div>
+              <TrendingUp className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Avg Response</p>
+                <p className="text-2xl font-bold">{stats.averageResponseTime}s</p>
+              </div>
+              <Clock className="h-8 w-8 text-purple-500" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Tabs defaultValue="rules" className="w-full">
+        <TabsList>
+          <TabsTrigger value="rules">Automation Rules</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="activity">Recent Activity</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="rules" className="space-y-6">
+          {/* Filters */}
+          <div className="flex items-center gap-4">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="paused">Paused</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="appointment">Appointment</SelectItem>
+                <SelectItem value="communication">Communication</SelectItem>
+                <SelectItem value="clinical">Clinical</SelectItem>
+                <SelectItem value="administrative">Administrative</SelectItem>
+                <SelectItem value="billing">Billing</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Rules List */}
+          <div className="space-y-4">
+            {filteredRules.map((rule: AutomationRule) => (
+              <Card key={rule.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        {getCategoryIcon(rule.category)}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="font-semibold text-lg">{rule.name}</h3>
+                          {getStatusBadge(rule.status)}
+                          <Badge variant="outline" className="text-xs">
+                            {rule.category}
+                          </Badge>
+                        </div>
+                        <p className="text-gray-600 mb-3">{rule.description}</p>
+                        
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-500">Triggered:</span>
+                            <span className="ml-2 font-medium">{rule.triggerCount} times</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Success Rate:</span>
+                            <span className="ml-2 font-medium">{rule.successRate}%</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Last Run:</span>
+                            <span className="ml-2 font-medium">
+                              {rule.lastTriggered ? format(new Date(rule.lastTriggered), 'MMM d, HH:mm') : 'Never'}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Actions:</span>
+                            <span className="ml-2 font-medium">{rule.actions.length}</span>
+                          </div>
+                        </div>
+
+                        {rule.actions.length > 0 && (
+                          <div className="mt-4">
+                            <div className="text-sm text-gray-600 mb-2">Actions:</div>
+                            <div className="flex flex-wrap gap-2">
+                              {rule.actions.map((action: any, index: number) => (
+                                <Badge key={index} variant="secondary" className="text-xs">
+                                  {action.type.replace('_', ' ')}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={rule.status === 'active'}
+                        onCheckedChange={() => toggleRuleMutation.mutate(rule.id)}
+                        disabled={toggleRuleMutation.isPending}
+                      />
+                      <Button variant="outline" size="sm">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="performance" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Top Performing Rules */}
             <Card>
               <CardHeader>
@@ -492,7 +547,7 @@ export default function AutomationPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {((automationStats as any)?.topPerformingRules || []).map((rule: any, index: number) => (
+                  {stats.topPerformingRules.map((rule: any, index: number) => (
                     <div key={rule.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
@@ -500,12 +555,12 @@ export default function AutomationPage() {
                         </div>
                         <div>
                           <div className="font-medium">{rule.name}</div>
-                          <div className="text-sm text-gray-600">{rule.triggerCount} triggers</div>
+                          <div className="text-sm text-gray-600">{rule.triggerCount} executions</div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-bold text-green-600">{rule.successRate}%</div>
-                        <div className="text-xs text-gray-600">Success rate</div>
+                        <div className="font-semibold text-green-600">{rule.successRate}%</div>
+                        <div className="text-xs text-gray-500">success rate</div>
                       </div>
                     </div>
                   ))}
@@ -513,337 +568,77 @@ export default function AutomationPage() {
               </CardContent>
             </Card>
 
-            {/* Recent Activity Preview */}
+            {/* Execution Trends */}
             <Card>
               <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
+                <CardTitle>Execution Statistics</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {((automationStats as any)?.)recentActivity.slice(0, 5).map((activity: any) => (
-                    <div key={activity.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                      <div className="flex items-center gap-2">
-                        {getTriggerIcon(activity.trigger)}
-                        {getActionIcon(activity.action)}
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium">{activity.ruleName}</div>
-                        <div className="text-sm text-gray-600">{activity.details}</div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {getStatusBadge(activity.status)}
-                        <span className="text-xs text-gray-500">
-                          {format(new Date(activity.timestamp), 'MMM d, HH:mm')}
-                        </span>
-                      </div>
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-green-600 mb-2">
+                      {Math.round((stats.successfulExecutions / stats.totalTriggers) * 100)}%
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="rules" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-bold">Automation Rules</h2>
-                <div className="flex items-center gap-2">
-                  <Filter className="h-4 w-4" />
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="paused">Paused</SelectItem>
-                      <SelectItem value="draft">Draft</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
-                      <SelectItem value="appointment">Appointment</SelectItem>
-                      <SelectItem value="communication">Communication</SelectItem>
-                      <SelectItem value="clinical">Clinical</SelectItem>
-                      <SelectItem value="administrative">Administrative</SelectItem>
-                      <SelectItem value="billing">Billing</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Rule
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Create New Automation Rule</DialogTitle>
-                  </DialogHeader>
+                    <div className="text-sm text-gray-600">Overall Success Rate</div>
+                  </div>
+                  
                   <div className="space-y-4">
-                    <div>
-                      <Label>Rule Name</Label>
-                      <Input placeholder="Enter rule name" />
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Successful</span>
+                      <span className="text-green-600 font-semibold">{stats.successfulExecutions}</span>
                     </div>
-                    <div>
-                      <Label>Description</Label>
-                      <Textarea placeholder="Describe what this rule does" />
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Failed</span>
+                      <span className="text-red-600 font-semibold">{stats.failedExecutions}</span>
                     </div>
-                    <div>
-                      <Label>Trigger Event</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select trigger" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="appointment_scheduled">Appointment Scheduled</SelectItem>
-                          <SelectItem value="appointment_completed">Appointment Completed</SelectItem>
-                          <SelectItem value="form_submitted">Form Submitted</SelectItem>
-                          <SelectItem value="patient_registered">Patient Registered</SelectItem>
-                          <SelectItem value="lab_result_ready">Lab Result Ready</SelectItem>
-                          <SelectItem value="medication_due">Medication Due</SelectItem>
-                          <SelectItem value="no_show">No Show</SelectItem>
-                          <SelectItem value="time_based">Time Based</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label>Action Type</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select action" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="send_email">Send Email</SelectItem>
-                          <SelectItem value="send_sms">Send SMS</SelectItem>
-                          <SelectItem value="create_task">Create Task</SelectItem>
-                          <SelectItem value="send_notification">Send Notification</SelectItem>
-                          <SelectItem value="update_patient">Update Patient</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex justify-end gap-2">
-                      <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
-                        Cancel
-                      </Button>
-                      <Button onClick={() => setShowCreateDialog(false)}>
-                        Create Rule
-                      </Button>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Total Triggers</span>
+                      <span className="font-semibold">{stats.totalTriggers}</span>
                     </div>
                   </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-
-            <div className="grid grid-cols-1 gap-6">
-              {filteredRules.map((rule: any) => (
-                <Card key={rule.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="flex items-center gap-2">
-                            {getCategoryIcon(rule.category)}
-                            <h3 className="text-lg font-semibold">{rule.name}</h3>
-                          </div>
-                          {getStatusBadge(rule.status)}
-                          <Badge variant="outline" className="capitalize">
-                            {rule.category}
-                          </Badge>
-                        </div>
-                        
-                        <p className="text-gray-600 mb-4">{rule.description}</p>
-                        
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-                          <div>
-                            <h4 className="font-medium text-sm text-gray-700 mb-2">Trigger</h4>
-                            <div className="flex items-center gap-2 text-sm">
-                              {getTriggerIcon(rule.trigger.type)}
-                              <span className="capitalize">{rule.trigger.type.replace('_', ' ')}</span>
-                              {rule.trigger.timeDelay && (
-                                <span className="text-gray-500">
-                                  (after {rule.trigger.timeDelay.value} {rule.trigger.timeDelay.unit})
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <h4 className="font-medium text-sm text-gray-700 mb-2">Actions</h4>
-                            <div className="space-y-1">
-                              {rule.actions.map((action: any) => (
-                                <div key={index} className="flex items-center gap-2 text-sm">
-                                  {getActionIcon(action.type)}
-                                  <span className="capitalize">{action.type.replace('_', ' ')}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-6 text-sm text-gray-600">
-                          <span>Triggered: {rule.triggerCount} times</span>
-                          <span>Success rate: {rule.successRate}%</span>
-                          {rule.lastTriggered && (
-                            <span>Last: {format(new Date(rule.lastTriggered), 'MMM d, yyyy')}</span>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2 ml-4">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => toggleRuleMutation.mutate({
-                            ruleId: rule.id,
-                            status: rule.status === 'active' ? 'paused' : 'active'
-                          })}
-                        >
-                          {rule.status === 'active' ? (
-                            <>
-                              <Pause className="h-4 w-4 mr-2" />
-                              Pause
-                            </>
-                          ) : (
-                            <>
-                              <Play className="h-4 w-4 mr-2" />
-                              Activate
-                            </>
-                          )}
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => setSelectedRule(rule)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => deleteRuleMutation.mutate(rule.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="activity" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Activity Log</h2>
-              <Button variant="outline">
-                <Filter className="h-4 w-4 mr-2" />
-                Filter
-              </Button>
-            </div>
-
-            <Card>
-              <CardContent className="p-0">
-                <div className="divide-y">
-                  {((automationStats as any)?.)recentActivity.map((activity: any) => (
-                    <div key={activity.id} className="p-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-3">
-                          <div className="flex items-center gap-1">
-                            {getTriggerIcon(activity.trigger)}
-                            {getActionIcon(activity.action)}
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold">{activity.ruleName}</h3>
-                            <p className="text-gray-600 mt-1">{activity.details}</p>
-                            <div className="text-sm text-gray-500 mt-2">
-                              Trigger: {activity.trigger} → Action: {activity.action}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {getStatusBadge(activity.status)}
-                          <span className="text-sm text-gray-500">
-                            {format(new Date(activity.timestamp), 'MMM d, yyyy HH:mm')}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
+        </TabsContent>
 
-          <TabsContent value="templates" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Message Templates</h2>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Template
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Email Templates</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {[
-                    { name: "Appointment Reminder", usage: 156 },
-                    { name: "Post-Visit Survey", usage: 89 },
-                    { name: "Lab Results Ready", usage: 67 },
-                    { name: "No-Show Follow-up", usage: 12 }
-                  ].map((template: any) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-blue-500" />
-                        <span className="font-medium">{template.name}</span>
+        <TabsContent value="activity" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Activity</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {stats.recentActivity.map((activity: any) => (
+                  <div key={activity.id} className="flex items-center gap-4 p-4 border rounded-lg">
+                    <div className={`w-3 h-3 rounded-full ${
+                      activity.status === 'success' ? 'bg-green-500' : 
+                      activity.status === 'failed' ? 'bg-red-500' : 'bg-yellow-500'
+                    }`}></div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-medium">{activity.ruleName}</span>
+                        <Badge variant="outline" className="text-xs">
+                          {activity.trigger}
+                        </Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          {activity.action}
+                        </Badge>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600">{template.usage} uses</span>
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                      <div className="text-sm text-gray-600">
+                        {activity.details}
                       </div>
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>SMS Templates</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {[
-                    { name: "Medication Reminder", usage: 23 },
-                    { name: "Appointment Confirmation", usage: 45 },
-                    { name: "Test Results Available", usage: 18 },
-                    { name: "Emergency Alert", usage: 3 }
-                  ].map((template: any) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-green-500" />
-                        <span className="font-medium">{template.name}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600">{template.usage} uses</span>
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </div>
+                    <div className="text-right text-sm text-gray-500">
+                      {format(new Date(activity.timestamp), 'MMM d, HH:mm')}
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
