@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
 import { Calendar, Eye, User, Phone, MapPin, AlertTriangle, Clock, Bell, FileText } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLocation } from "wouter";
 import { formatDistanceToNow } from "date-fns";
 import { PatientSearch, SearchFilters } from "./patient-search";
@@ -82,7 +83,9 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
 
   const { data: patients, isLoading, error } = useQuery({
     queryKey: ["/api/patients"],
-    queryFn: () => fetch("/api/patients").then(res => res.json())
+    queryFn: () => fetch("/api/patients").then(res => res.json()),
+    refetchOnMount: true,
+    staleTime: 0
   });
 
   const sendReminderMutation = useMutation({
@@ -228,8 +231,16 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {displayPatients.map((patient: any) => (
-            <Card key={patient.id} className="hover:shadow-md transition-shadow">
+          {displayPatients.map((patient: any) => {
+            // Debug logging for John Abraham
+            if (patient.firstName === 'John' && patient.lastName === 'Abrhama') {
+              console.log('John Abraham medical history:', patient.medicalHistory);
+              console.log('Allergies:', patient.medicalHistory?.allergies);
+              console.log('Chronic conditions:', patient.medicalHistory?.chronicConditions);
+            }
+            
+            return (
+              <Card key={patient.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3">
@@ -241,12 +252,28 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                     <div>
                       <CardTitle className="text-lg flex items-center gap-2">
                         {patient.firstName} {patient.lastName}
-                        {patient.medicalHistory?.allergies && patient.medicalHistory.allergies.length > 0 && (
-                          <AlertTriangle className="h-4 w-4 text-red-500" />
-                        )}
-                        {patient.medicalHistory?.chronicConditions && patient.medicalHistory.chronicConditions.length > 0 && (
-                          <Clock className="h-4 w-4 text-orange-500" />
-                        )}
+                        <TooltipProvider>
+                          {patient.medicalHistory?.allergies && patient.medicalHistory.allergies.length > 0 && (
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <AlertTriangle className="h-4 w-4 text-red-500" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Allergies: {patient.medicalHistory.allergies.join(', ')}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          {patient.medicalHistory?.chronicConditions && patient.medicalHistory.chronicConditions.length > 0 && (
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Clock className="h-4 w-4 text-orange-500" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Conditions: {patient.medicalHistory.chronicConditions.join(', ')}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                        </TooltipProvider>
                       </CardTitle>
                       <p className="text-sm text-neutral-600">
                         Age {calculateAge(patient.dateOfBirth)} • {patient.patientId}
@@ -389,7 +416,8 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                 )}
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
