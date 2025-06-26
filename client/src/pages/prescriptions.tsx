@@ -240,7 +240,7 @@ export default function PrescriptionsPage() {
   };
 
   const handleSendToPharmacy = (prescriptionId: string) => {
-    const prescription = prescriptions.find(p => p.id === prescriptionId);
+    const prescription = Array.isArray(prescriptions) ? prescriptions.find((p: any) => p.id === prescriptionId) : null;
     if (prescription) {
       toast({
         title: "Sending to Pharmacy",
@@ -263,7 +263,7 @@ export default function PrescriptionsPage() {
 
   const handleCancelPrescription = (prescriptionId: string) => {
     if (window.confirm('Are you sure you want to cancel this prescription?')) {
-      const prescription = prescriptions.find(p => p.id === prescriptionId);
+      const prescription = Array.isArray(prescriptions) ? prescriptions.find((p: any) => p.id === prescriptionId) : null;
       if (prescription) {
         toast({
           title: "Prescription Cancelled",
@@ -327,7 +327,7 @@ export default function PrescriptionsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Active Prescriptions</p>
-                    <p className="text-2xl font-bold">{filteredPrescriptions.filter(p => p.status === 'active').length}</p>
+                    <p className="text-2xl font-bold">{filteredPrescriptions.filter((p: any) => p.status === 'active').length}</p>
                   </div>
                   <Pill className="h-8 w-8 text-green-600" />
                 </div>
@@ -339,7 +339,7 @@ export default function PrescriptionsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Pending Approval</p>
-                    <p className="text-2xl font-bold">{filteredPrescriptions.filter(p => p.status === 'pending').length}</p>
+                    <p className="text-2xl font-bold">{filteredPrescriptions.filter((p: any) => p.status === 'pending').length}</p>
                   </div>
                   <Clock className="h-8 w-8 text-yellow-600" />
                 </div>
@@ -352,7 +352,7 @@ export default function PrescriptionsPage() {
                   <div>
                     <p className="text-sm font-medium text-gray-600">Drug Interactions</p>
                     <p className="text-2xl font-bold">
-                      {filteredPrescriptions.filter(p => p.interactions && p.interactions.length > 0).length}
+                      {filteredPrescriptions.filter((p: any) => p.interactions && p.interactions.length > 0).length}
                     </p>
                   </div>
                   <AlertTriangle className="h-8 w-8 text-red-600" />
