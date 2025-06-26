@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { Stethoscope, Calendar } from "lucide-react";
+import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 import type { Patient } from "@/types";
 
 interface RecentPatientsProps {
@@ -50,6 +52,8 @@ function getConditionColor(condition?: string) {
 }
 
 export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}) {
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
   const { data: patients, isLoading, error } = useQuery<Patient[]>({
     queryKey: ["/api/patients", { limit: 10 }],
   });
@@ -189,6 +193,13 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
                         variant="link" 
                         size="sm"
                         className="p-0 h-auto text-medical-blue hover:text-blue-700"
+                        onClick={() => {
+                          setLocation(`/patients?view=${patient.id}`);
+                          toast({
+                            title: "Patient Profile",
+                            description: `Opening profile for ${patient.firstName} ${patient.lastName}`,
+                          });
+                        }}
                       >
                         View
                       </Button>
