@@ -30,7 +30,7 @@ export default function CalendarPage() {
       />
       
       <div className="flex-1 overflow-auto p-6">
-        <div className="flex items-center justify-between mb-6">
+        <div className="mb-6">
           <div>
             <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
               <Calendar className="h-5 w-5" />
@@ -40,13 +40,6 @@ export default function CalendarPage() {
               View appointments, manage schedules, and book new consultations.
             </p>
           </div>
-          <Button 
-            className="bg-medical-blue hover:bg-blue-700"
-            onClick={() => setShowNewAppointment(true)}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            New Appointment
-          </Button>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">

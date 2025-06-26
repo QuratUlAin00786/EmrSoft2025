@@ -545,9 +545,9 @@ export default function AppointmentCalendar() {
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 block">Duration (minutes)</label>
-                <select className="w-full p-2 border border-gray-300 rounded-md">
+                <select className="w-full p-2 border border-gray-300 rounded-md" defaultValue="30">
                   <option value="15">15 minutes</option>
-                  <option value="30" selected>30 minutes</option>
+                  <option value="30">30 minutes</option>
                   <option value="45">45 minutes</option>
                   <option value="60">60 minutes</option>
                 </select>
