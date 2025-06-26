@@ -1036,6 +1036,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Messaging endpoints
+  app.get("/api/messaging/conversations", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const conversations = await storage.getConversations(req.tenant!.id);
+      res.json(conversations);
+    } catch (error) {
+      console.error("Error fetching conversations:", error);
+      res.status(500).json({ error: "Failed to fetch conversations" });
+    }
+  });
+
+  app.get("/api/messaging/messages/:conversationId", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const messages = await storage.getMessages(req.params.conversationId, req.tenant!.id);
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      res.status(500).json({ error: "Failed to fetch messages" });
+    }
+  });
+
+  app.post("/api/messaging/send", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const message = await storage.sendMessage(req.body, req.tenant!.id);
+      res.json(message);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      res.status(500).json({ error: "Failed to send message" });
+    }
+  });
+
+  app.get("/api/messaging/campaigns", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const campaigns = await storage.getMessageCampaigns(req.tenant!.id);
+      res.json(campaigns);
+    } catch (error) {
+      console.error("Error fetching campaigns:", error);
+      res.status(500).json({ error: "Failed to fetch campaigns" });
+    }
+  });
+
+  app.post("/api/messaging/campaigns", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const campaign = await storage.createMessageCampaign(req.body, req.tenant!.id);
+      res.json(campaign);
+    } catch (error) {
+      console.error("Error creating campaign:", error);
+      res.status(500).json({ error: "Failed to create campaign" });
+    }
+  });
+
+  // Integration endpoints
+  app.get("/api/integrations", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const integrations = await storage.getIntegrations(req.tenant!.id);
+      res.json(integrations);
+    } catch (error) {
+      console.error("Error fetching integrations:", error);
+      res.status(500).json({ error: "Failed to fetch integrations" });
+    }
+  });
+
+  app.post("/api/integrations/connect", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const integration = await storage.connectIntegration(req.body, req.tenant!.id);
+      res.json(integration);
+    } catch (error) {
+      console.error("Error connecting integration:", error);
+      res.status(500).json({ error: "Failed to connect integration" });
+    }
+  });
+
+  app.get("/api/integrations/webhooks", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const webhooks = await storage.getWebhooks(req.tenant!.id);
+      res.json(webhooks);
+    } catch (error) {
+      console.error("Error fetching webhooks:", error);
+      res.status(500).json({ error: "Failed to fetch webhooks" });
+    }
+  });
+
+  app.post("/api/integrations/webhooks", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const webhook = await storage.createWebhook(req.body, req.tenant!.id);
+      res.json(webhook);
+    } catch (error) {
+      console.error("Error creating webhook:", error);
+      res.status(500).json({ error: "Failed to create webhook" });
+    }
+  });
+
+  app.get("/api/integrations/api-keys", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const apiKeys = await storage.getApiKeys(req.tenant!.id);
+      res.json(apiKeys);
+    } catch (error) {
+      console.error("Error fetching API keys:", error);
+      res.status(500).json({ error: "Failed to fetch API keys" });
+    }
+  });
+
+  app.post("/api/integrations/api-keys", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const apiKey = await storage.createApiKey(req.body, req.tenant!.id);
+      res.json(apiKey);
+    } catch (error) {
+      console.error("Error creating API key:", error);
+      res.status(500).json({ error: "Failed to create API key" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
