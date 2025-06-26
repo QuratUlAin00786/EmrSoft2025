@@ -373,30 +373,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Patient reminder endpoint
+  // Enhanced patient reminder endpoint with communication tracking
   app.post("/api/patients/:id/send-reminder", requireRole(["doctor", "nurse", "receptionist", "admin"]), async (req: TenantRequest, res) => {
     try {
       const patientId = parseInt(req.params.id);
       
       const reminderData = z.object({
         type: z.enum(["appointment_reminder", "medication_reminder", "follow_up_reminder"]).default("appointment_reminder"),
-        message: z.string().optional()
+        message: z.string().optional(),
+        method: z.enum(["email", "sms", "whatsapp", "system"]).default("system")
       }).parse(req.body);
 
-      const patient = await storage.getPatient(patientId, req.tenant!.id);
+      const patient = await storage.getPatient(patientId, req.organization!.id);
       
       if (!patient) {
         return res.status(404).json({ error: "Patient not found" });
       }
 
+      // Check if a reminder was sent recently to prevent spam
+      const lastReminder = await storage.getLastReminderSent(patientId, req.organization!.id, reminderData.type);
+      if (lastReminder) {
+        const timeSinceLastReminder = new Date().getTime() - new Date(lastReminder.sentAt).getTime();
+        const hoursSinceLastReminder = timeSinceLastReminder / (1000 * 60 * 60);
+        
+        if (hoursSinceLastReminder < 24) {
+          return res.status(429).json({ 
+            error: 'Reminder already sent within the last 24 hours',
+            lastSent: lastReminder.sentAt
+          });
+        }
+      }
+
+      // Create patient communication record
+      const communication = await storage.createPatientCommunication({
+        organizationId: req.organization!.id,
+        patientId,
+        type: 'reminder',
+        method: reminderData.method,
+        content: reminderData.message || `${reminderData.type} sent to patient`,
+        sentAt: new Date(),
+        sentBy: req.user!.id,
+        metadata: {
+          reminderType: reminderData.type,
+          contactMethod: reminderData.method
+        }
+      });
+
       // In a real implementation, this would send SMS/email
-      // For now, we'll just log the reminder
-      console.log(`Sending ${reminderData.type} to patient ${patient.firstName} ${patient.lastName} (${patient.phone || patient.email})`);
+      console.log(`Sending ${reminderData.type} to patient ${patient.firstName} ${patient.lastName} via ${reminderData.method}`);
       console.log(`Message: ${reminderData.message || 'Default reminder message'}`);
 
       res.json({ 
         success: true, 
         message: `Reminder sent to ${patient.firstName} ${patient.lastName}`,
+        communication,
         patientId,
         reminderType: reminderData.type
       });

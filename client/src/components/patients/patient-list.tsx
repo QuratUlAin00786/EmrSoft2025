@@ -121,9 +121,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
     }
   };
 
-  const handleBookAppointment = (patient: any) => {
-    setLocation(`/appointments?patientId=${patient.id}`);
-  };
+
 
   const handleSearch = (query: string, filters: SearchFilters) => {
     setSearchQuery(query);
@@ -184,6 +182,8 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
     });
     setLocation(`/calendar?patientId=${patient.id}`);
   };
+
+
 
   if (isLoading) {
     return (
@@ -407,10 +407,18 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                 )}
               </CardContent>
             </Card>
-              );
-            })}
-          </div>
-        )}
+          );
+        })}
       </div>
-    );
-  }
+    )}
+
+    {/* Enhanced Communication Dialog */}
+    <PatientCommunicationDialog
+      open={communicationDialog.open}
+      onOpenChange={(open) => setCommunicationDialog(prev => ({ ...prev, open }))}
+      patient={communicationDialog.patient}
+      mode={communicationDialog.mode}
+    />
+  </div>
+);
+}
