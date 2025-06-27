@@ -49,6 +49,7 @@ interface ConsultationNotesProps {
 
 export default function ConsultationNotes({ patientId, patientName, patientNumber }: ConsultationNotesProps) {
   const [isAddingNote, setIsAddingNote] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<any>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -103,6 +104,35 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
       referrals: []
     }
   });
+
+  // Reset form when editing a record
+  useEffect(() => {
+    if (editingRecord) {
+      form.reset({
+        type: editingRecord.type || "consultation",
+        title: editingRecord.title || "",
+        notes: editingRecord.notes || "",
+        diagnosis: editingRecord.diagnosis || "",
+        treatment: editingRecord.treatment || "",
+        medications: editingRecord.prescription?.medications || [],
+        followUpRequired: false,
+        followUpDate: "",
+        referrals: []
+      });
+    } else {
+      form.reset({
+        type: "consultation",
+        title: "",
+        notes: "",
+        diagnosis: "",
+        treatment: "",
+        medications: [],
+        followUpRequired: false,
+        followUpDate: "",
+        referrals: []
+      });
+    }
+  }, [editingRecord, form]);
 
   const [isSavingRecord, setIsSavingRecord] = useState(false);
 
@@ -206,7 +236,12 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
               </p>
             )}
           </div>
-          <Dialog open={isAddingNote} onOpenChange={setIsAddingNote}>
+          <Dialog open={isAddingNote} onOpenChange={(open) => {
+            setIsAddingNote(open);
+            if (!open) {
+              setEditingRecord(null);
+            }
+          }}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
@@ -215,7 +250,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
             </DialogTrigger>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Add Medical Record</DialogTitle>
+                <DialogTitle>{editingRecord ? 'Edit Medical Record' : 'Add Medical Record'}</DialogTitle>
               </DialogHeader>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <Tabs defaultValue="basic" className="w-full">
@@ -359,7 +394,10 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setIsAddingNote(false)}
+                    onClick={() => {
+                      setIsAddingNote(false);
+                      setEditingRecord(null);
+                    }}
                   >
                     Cancel
                   </Button>
@@ -367,7 +405,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     type="submit"
                     disabled={isSavingRecord}
                   >
-                    {isSavingRecord ? "Saving..." : "Save Record"}
+                    {isSavingRecord ? "Saving..." : (editingRecord ? "Update Record" : "Save Record")}
                   </Button>
                 </div>
               </form>
@@ -396,9 +434,21 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                       {record.type}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Calendar className="h-4 w-4" />
-                    {format(new Date(record.createdAt), "MMM d, yyyy 'at' h:mm a")}
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm text-gray-500 flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      {format(new Date(record.createdAt), "MMM d, yyyy 'at' h:mm a")}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setEditingRecord(record);
+                        setIsAddingNote(true);
+                      }}
+                    >
+                      Edit
+                    </Button>
                   </div>
                 </div>
 
