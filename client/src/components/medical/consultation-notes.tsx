@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,10 +51,43 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: medicalRecords = [], isLoading } = useQuery({
-    queryKey: [`/api/patients/${patientId}/records`],
-    enabled: !!patientId,
-  });
+  const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMedicalRecords = async () => {
+      if (!patientId) return;
+      
+      try {
+        setIsLoading(true);
+        console.log(`Fetching medical records for patient ${patientId}...`);
+        
+        const response = await fetch(`/api/patients/${patientId}/records`, {
+          headers: {
+            'X-Tenant-Subdomain': 'demo'
+          },
+          credentials: 'include'
+        });
+        
+        console.log("Medical records response status:", response.status);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log("Fetched medical records data:", data);
+        setMedicalRecords(data || []);
+      } catch (err) {
+        console.error("Error fetching medical records:", err);
+        setMedicalRecords([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMedicalRecords();
+  }, [patientId]);
 
   const form = useForm({
     defaultValues: {
@@ -70,26 +103,44 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
     }
   });
 
-  const createRecordMutation = useMutation({
-    mutationFn: (data: any) => 
-      apiRequest("POST", `/api/patients/${patientId}/records`, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/patients/${patientId}/records`] });
+  const [isSavingRecord, setIsSavingRecord] = useState(false);
+
+  const saveRecord = async (data: any) => {
+    try {
+      setIsSavingRecord(true);
+      
+      const response = await fetch(`/api/patients/${patientId}/records`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Tenant-Subdomain': 'demo'
+        },
+        credentials: 'include',
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const newRecord = await response.json();
+      setMedicalRecords(prev => [newRecord, ...prev]);
       setIsAddingNote(false);
       form.reset();
       toast({
         title: "Record saved successfully",
         description: "The medical record has been saved to the patient's file.",
       });
-    },
-    onError: (error: any) => {
+    } catch (error: any) {
       toast({
         title: "Error saving record",
         description: error.message || "Failed to save the medical record. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSavingRecord(false);
     }
-  });
+  };
 
   const onSubmit = (data: any) => {
     const formattedData = {
@@ -98,7 +149,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
         medications: data.medications || []
       }
     };
-    createRecordMutation.mutate(formattedData);
+    saveRecord(formattedData);
   };
 
   const getRecordIcon = (type: string) => {
