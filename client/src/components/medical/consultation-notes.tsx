@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import PrescriptionWarnings from "./prescription-warnings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -435,6 +436,13 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                         </div>
                       ))}
                     </div>
+                    
+                    {/* Real-time Prescription Safety Warnings */}
+                    <PrescriptionWarnings 
+                      patientId={patientId}
+                      medications={record.prescription.medications}
+                      recordId={record.id}
+                    />
                   </div>
                 )}
 

@@ -39,6 +39,7 @@ export interface IStorage {
   getMedicalRecord(id: number, organizationId: number): Promise<MedicalRecord | undefined>;
   getMedicalRecordsByPatient(patientId: number, organizationId: number): Promise<MedicalRecord[]>;
   createMedicalRecord(record: InsertMedicalRecord): Promise<MedicalRecord>;
+  updateMedicalRecord(id: number, organizationId: number, updates: Partial<InsertMedicalRecord>): Promise<MedicalRecord | undefined>;
 
   // Appointments
   getAppointment(id: number, organizationId: number): Promise<Appointment | undefined>;
@@ -231,6 +232,15 @@ export class DatabaseStorage implements IStorage {
     delete cleanRecord.data; // Remove complex nested type to avoid compilation errors
     const [created] = await db.insert(medicalRecords).values([cleanRecord]).returning();
     return created;
+  }
+
+  async updateMedicalRecord(id: number, organizationId: number, updates: Partial<InsertMedicalRecord>): Promise<MedicalRecord | undefined> {
+    const [updatedRecord] = await db
+      .update(medicalRecords)
+      .set({ ...updates })
+      .where(and(eq(medicalRecords.id, id), eq(medicalRecords.organizationId, organizationId)))
+      .returning();
+    return updatedRecord;
   }
 
   // Appointments

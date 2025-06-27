@@ -334,41 +334,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         aiSuggestions: {}
       });
 
-      // Generate AI insights for prescriptions with safety analysis
-      if (recordData.type === "prescription" && recordData.prescription?.medications) {
-        try {
-          const patient = await storage.getPatient(patientId, req.tenant!.id);
-          if (patient) {
-            const safetyAnalysis = await aiService.analyzePrescription(
-              recordData.prescription.medications,
-              {
-                age: new Date().getFullYear() - new Date(patient.dateOfBirth).getFullYear(),
-                allergies: patient.medicalHistory?.allergies || [],
-                conditions: patient.medicalHistory?.chronicConditions || []
-              }
-            );
-            
-            // Update the record with safety analysis
-            const updatedRecord = await storage.updateMedicalRecord(record.id, req.tenant!.id, {
-              aiSuggestions: {
-                safetyAnalysis,
-                riskAssessment: safetyAnalysis.interactions.length > 0 || safetyAnalysis.allergyWarnings.length > 0 ? "High" : "Low",
-                recommendations: [
-                  ...safetyAnalysis.interactions.map(i => i.recommendation),
-                  ...safetyAnalysis.allergyWarnings.map(a => a.recommendation),
-                  ...safetyAnalysis.contraindications.map(c => c.recommendation)
-                ].filter(Boolean)
-              }
-            });
-            
-            res.json(updatedRecord || record);
-            return;
-          }
-        } catch (aiError) {
-          console.error("AI prescription analysis failed:", aiError);
-        }
-      }
-
       res.status(201).json(record);
     } catch (error) {
       console.error("Medical record creation error:", error);
@@ -377,6 +342,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Enhanced patient reminder endpoint with communication tracking
+  // Prescription safety check endpoint
+  app.post("/api/prescription/safety-check", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const safetyData = z.object({
+        patientId: z.number(),
+        medications: z.array(z.object({
+          name: z.string(),
+          dosage: z.string(),
+          frequency: z.string().optional(),
+          duration: z.string().optional()
+        }))
+      }).parse(req.body);
+
+      const patient = await storage.getPatient(safetyData.patientId, req.tenant!.id);
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+
+      const safetyAnalysis = await aiService.analyzePrescription(
+        safetyData.medications,
+        {
+          age: new Date().getFullYear() - new Date(patient.dateOfBirth).getFullYear(),
+          allergies: patient.medicalHistory?.allergies || [],
+          conditions: patient.medicalHistory?.chronicConditions || []
+        }
+      );
+
+      res.json({
+        success: true,
+        patientId: safetyData.patientId,
+        analysis: safetyAnalysis,
+        riskLevel: safetyAnalysis.interactions.length > 0 || safetyAnalysis.allergyWarnings.length > 0 || safetyAnalysis.contraindications.length > 0 ? "high" : "low",
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Prescription safety check error:", error);
+      res.status(500).json({ error: "Failed to perform safety check" });
+    }
+  });
+
   app.post("/api/patients/:id/send-reminder", requireRole(["doctor", "nurse", "receptionist", "admin"]), async (req: TenantRequest, res) => {
     try {
       const patientId = parseInt(req.params.id);
