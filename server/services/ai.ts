@@ -58,29 +58,132 @@ export class AiService {
     }
   }
 
-  async analyzePrescription(medications: Array<{ name: string; dosage: string }>, patientData: { age: number; allergies: string[]; conditions: string[] }): Promise<AiInsightData[]> {
+  async analyzePrescription(medications: Array<{ name: string; dosage: string; frequency?: string; duration?: string }>, patientData: { age: number; allergies: string[]; conditions: string[] }): Promise<{
+    interactions: Array<{
+      severity: 'minor' | 'moderate' | 'major' | 'critical';
+      description: string;
+      medications: string[];
+      recommendation: string;
+    }>;
+    allergyWarnings: Array<{
+      medication: string;
+      allergen: string;
+      severity: 'low' | 'medium' | 'high';
+      recommendation: string;
+    }>;
+    doseWarnings: Array<{
+      medication: string;
+      issue: string;
+      severity: 'low' | 'medium' | 'high';
+      recommendation: string;
+    }>;
+    contraindications: Array<{
+      medication: string;
+      condition: string;
+      severity: 'moderate' | 'high' | 'critical';
+      recommendation: string;
+    }>;
+    ageWarnings: Array<{
+      medication: string;
+      issue: string;
+      recommendation: string;
+    }>;
+  }> {
     try {
       const response = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
         messages: [
           {
             role: "system",
-            content: `You are a clinical pharmacist AI. Analyze medication combinations for potential interactions, contraindications, and dosing concerns. Provide detailed analysis in JSON format with specific recommendations.`
+            content: `You are a clinical pharmacist AI specializing in medication safety analysis. Analyze prescribed medications for:
+
+1. Drug-drug interactions (check each medication against every other medication)
+2. Drug-allergy conflicts (cross-reference with patient allergies)
+3. Dosing concerns (check for appropriate dosing based on age, weight, conditions)
+4. Contraindications (medications that shouldn't be used with patient's conditions)
+5. Age-related concerns (pediatric/geriatric considerations)
+
+Provide comprehensive analysis in JSON format with this exact structure:
+{
+  "interactions": [
+    {
+      "severity": "minor|moderate|major|critical",
+      "description": "detailed explanation",
+      "medications": ["drug1", "drug2"],
+      "recommendation": "specific action to take"
+    }
+  ],
+  "allergyWarnings": [
+    {
+      "medication": "drug name",
+      "allergen": "specific allergen",
+      "severity": "low|medium|high",
+      "recommendation": "specific action"
+    }
+  ],
+  "doseWarnings": [
+    {
+      "medication": "drug name",
+      "issue": "specific dosing concern",
+      "severity": "low|medium|high",
+      "recommendation": "dosing adjustment needed"
+    }
+  ],
+  "contraindications": [
+    {
+      "medication": "drug name",
+      "condition": "patient condition",
+      "severity": "moderate|high|critical",
+      "recommendation": "alternative or monitoring needed"
+    }
+  ],
+  "ageWarnings": [
+    {
+      "medication": "drug name",
+      "issue": "age-related concern",
+      "recommendation": "monitoring or adjustment needed"
+    }
+  ]
+}
+
+Be thorough and specific in your analysis. Include real clinical knowledge about drug interactions, contraindications, and safety concerns.`
           },
           {
             role: "user",
-            content: `Check for drug interactions and safety concerns: Medications: ${JSON.stringify(medications)}, Patient: ${JSON.stringify(patientData)}`
+            content: `Analyze these medications for a ${patientData.age}-year-old patient:
+
+Medications: ${medications.map(med => `${med.name} ${med.dosage} ${med.frequency || ''} ${med.duration || ''}`).join('; ')}
+
+Patient Allergies: ${patientData.allergies.join(', ') || 'None listed'}
+
+Patient Conditions: ${patientData.conditions.join(', ') || 'None listed'}
+
+Please provide a comprehensive safety analysis focusing on clinically significant interactions and contraindications.`
           }
         ],
         response_format: { type: "json_object" },
-        max_tokens: 800
+        max_tokens: 1500
       });
 
       const result = JSON.parse(response.choices[0].message.content || "{}");
-      return this.formatAiInsights(result);
+      
+      // Ensure the response has the expected structure
+      return {
+        interactions: result.interactions || [],
+        allergyWarnings: result.allergyWarnings || [],
+        doseWarnings: result.doseWarnings || [],
+        contraindications: result.contraindications || [],
+        ageWarnings: result.ageWarnings || []
+      };
     } catch (error) {
       console.error("Prescription analysis error:", error);
-      return [];
+      return {
+        interactions: [],
+        allergyWarnings: [],
+        doseWarnings: [],
+        contraindications: [],
+        ageWarnings: []
+      };
     }
   }
 

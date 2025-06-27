@@ -334,12 +334,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         aiSuggestions: {}
       });
 
-      // Generate AI insights for prescriptions
-      if (recordData.type === "prescription" && recordData.prescription?.medications && req.tenant!.settings?.features?.aiEnabled) {
+      // Generate AI insights for prescriptions with safety analysis
+      if (recordData.type === "prescription" && recordData.prescription?.medications) {
         try {
           const patient = await storage.getPatient(patientId, req.tenant!.id);
           if (patient) {
-            const insights = await aiService.analyzePrescription(
+            const safetyAnalysis = await aiService.analyzePrescription(
               recordData.prescription.medications,
               {
                 age: new Date().getFullYear() - new Date(patient.dateOfBirth).getFullYear(),
@@ -347,19 +347,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 conditions: patient.medicalHistory?.chronicConditions || []
               }
             );
-
-            for (const insight of insights) {
-              await storage.createAiInsight({
-                organizationId: req.tenant!.id,
-                patientId,
-                type: insight.type,
-                title: insight.title,
-                description: insight.description,
-                severity: insight.severity,
-                actionRequired: insight.actionRequired,
-                confidence: insight.confidence.toString()
-              });
-            }
+            
+            // Update the record with safety analysis
+            const updatedRecord = await storage.updateMedicalRecord(record.id, req.tenant!.id, {
+              aiSuggestions: {
+                safetyAnalysis,
+                riskAssessment: safetyAnalysis.interactions.length > 0 || safetyAnalysis.allergyWarnings.length > 0 ? "High" : "Low",
+                recommendations: [
+                  ...safetyAnalysis.interactions.map(i => i.recommendation),
+                  ...safetyAnalysis.allergyWarnings.map(a => a.recommendation),
+                  ...safetyAnalysis.contraindications.map(c => c.recommendation)
+                ].filter(Boolean)
+              }
+            });
+            
+            res.json(updatedRecord || record);
+            return;
           }
         } catch (aiError) {
           console.error("AI prescription analysis failed:", aiError);

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/layout/header";
 import { PatientList } from "@/components/patients/patient-list";
 import { PatientModal } from "@/components/patients/patient-modal";
@@ -18,17 +17,45 @@ export default function Patients() {
   const [, setLocation] = useLocation();
   const patientId = params.id ? parseInt(params.id) : null;
   
-  // Fetch specific patient data if viewing records
-  const { data: patient, isLoading: patientLoading } = useQuery<any>({
-    queryKey: [`/api/patients/${patientId}`],
-    enabled: !!patientId,
-  });
+  // State for patient data
+  const [patient, setPatient] = useState<any>(null);
+  const [patientLoading, setPatientLoading] = useState(false);
 
-  // Fetch patient medical records
-  const { data: medicalRecords } = useQuery<any[]>({
-    queryKey: [`/api/patients/${patientId}/records`],
-    enabled: !!patientId,
-  });
+  // Fetch specific patient data if viewing records
+  useEffect(() => {
+    const fetchPatient = async () => {
+      if (!patientId) return;
+      
+      try {
+        setPatientLoading(true);
+        console.log(`Fetching patient ${patientId} data...`);
+        
+        const response = await fetch(`/api/patients/${patientId}`, {
+          headers: {
+            'X-Tenant-Subdomain': 'demo'
+          },
+          credentials: 'include'
+        });
+        
+        console.log("Patient response status:", response.status);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log("Fetched patient data:", data);
+        setPatient(data);
+      } catch (err) {
+        console.error("Error fetching patient:", err);
+        setPatient(null);
+      } finally {
+        setPatientLoading(false);
+      }
+    };
+
+    fetchPatient();
+  }, [patientId]);
 
   useEffect(() => {
     if (patient) {
