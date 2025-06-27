@@ -47,7 +47,11 @@ const statCards = [
 export function StatsOverview() {
   const { data: stats, isLoading, error } = useQuery<DashboardStats>({
     queryKey: ["/api/dashboard/stats"],
+    retry: 3,
+    retryDelay: 1000,
   });
+
+  console.log("StatsOverview:", { stats, isLoading, error });
 
   if (isLoading) {
     return (
