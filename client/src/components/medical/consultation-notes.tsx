@@ -310,14 +310,14 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
             if (!open) {
               setEditingRecord(null);
             }
-          }}>
+          }} modal={true}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Record
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" id="medical-record-dialog">
               <DialogHeader>
                 <DialogTitle>{editingRecord ? 'Edit Medical Record' : 'Add Medical Record'}</DialogTitle>
               </DialogHeader>
@@ -511,7 +511,10 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log("Edit button clicked for record:", record);
                         setEditingRecord(record);
                         setIsAddingNote(true);
                       }}

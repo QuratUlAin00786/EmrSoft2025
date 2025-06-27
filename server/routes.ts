@@ -341,6 +341,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update medical record endpoint
+  app.patch("/api/patients/:patientId/records/:recordId", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const patientId = parseInt(req.params.patientId);
+      const recordId = parseInt(req.params.recordId);
+      
+      const updateData = z.object({
+        type: z.enum(["consultation", "prescription", "lab_result", "imaging"]).optional(),
+        title: z.string().optional(),
+        notes: z.string().optional(),
+        diagnosis: z.string().optional(),
+        treatment: z.string().optional(),
+        prescription: z.object({
+          medications: z.array(z.object({
+            name: z.string(),
+            dosage: z.string(),
+            frequency: z.string(),
+            duration: z.string()
+          })).optional()
+        }).optional()
+      }).parse(req.body);
+
+      const existingRecord = await storage.getMedicalRecord(recordId, req.tenant!.id);
+      if (!existingRecord || existingRecord.patientId !== patientId) {
+        return res.status(404).json({ error: "Medical record not found" });
+      }
+
+      const updatedRecord = await storage.updateMedicalRecord(recordId, req.tenant!.id, {
+        ...updateData,
+        prescription: updateData.prescription || existingRecord.prescription || {}
+      });
+
+      if (!updatedRecord) {
+        return res.status(404).json({ error: "Failed to update medical record" });
+      }
+
+      res.json(updatedRecord);
+    } catch (error) {
+      console.error("Medical record update error:", error);
+      res.status(500).json({ error: "Failed to update medical record" });
+    }
+  });
+
   // Enhanced patient reminder endpoint with communication tracking
   // Prescription safety check endpoint
   app.post("/api/prescription/safety-check", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
