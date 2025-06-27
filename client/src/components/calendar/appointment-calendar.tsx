@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,10 +30,41 @@ export default function AppointmentCalendar() {
   const [showNewAppointment, setShowNewAppointment] = useState(false);
   const { toast } = useToast();
 
-  const { data: appointments = [], isLoading } = useQuery({
-    queryKey: ["/api/appointments"],
-    enabled: true,
-  });
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        setIsLoading(true);
+        console.log("Fetching appointments from calendar...");
+        
+        const response = await fetch('/api/appointments', {
+          headers: {
+            'X-Tenant-Subdomain': 'demo'
+          },
+          credentials: 'include'
+        });
+        
+        console.log("Appointments response status:", response.status);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log("Fetched appointments data:", data);
+        setAppointments(data || []);
+      } catch (err) {
+        console.error("Error fetching appointments:", err);
+        setAppointments([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAppointments();
+  }, []);
 
   const monthStart = startOfMonth(selectedDate);
   const monthEnd = endOfMonth(selectedDate);
