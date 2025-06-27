@@ -136,6 +136,57 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
 
   const [isSavingRecord, setIsSavingRecord] = useState(false);
 
+  const updateRecord = async (recordId: number, data: any) => {
+    try {
+      setIsSavingRecord(true);
+      
+      const response = await fetch(`/api/patients/${patientId}/records/${recordId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Tenant-Subdomain': 'demo'
+        },
+        credentials: 'include',
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      toast({
+        title: "Success",
+        description: "Medical record updated successfully",
+      });
+
+      // Refresh the records list
+      const fetchResponse = await fetch(`/api/patients/${patientId}/records`, {
+        headers: {
+          'X-Tenant-Subdomain': 'demo'
+        },
+        credentials: 'include'
+      });
+      
+      if (fetchResponse.ok) {
+        const updatedRecords = await fetchResponse.json();
+        setMedicalRecords(updatedRecords || []);
+      }
+
+      setIsAddingNote(false);
+      setEditingRecord(null);
+      form.reset();
+    } catch (error) {
+      console.error("Error updating record:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update medical record",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingRecord(false);
+    }
+  };
+
   const saveRecord = async (data: any) => {
     try {
       setIsSavingRecord(true);
@@ -173,14 +224,32 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
     }
   };
 
-  const onSubmit = (data: any) => {
-    const formattedData = {
-      ...data,
-      prescription: {
-        medications: data.medications || []
-      }
-    };
-    saveRecord(formattedData);
+  const onSubmit = async (data: any) => {
+    if (editingRecord) {
+      // Update existing record
+      await updateRecord(editingRecord.id, {
+        type: data.type,
+        title: data.title,
+        notes: data.notes,
+        diagnosis: data.diagnosis,
+        treatment: data.treatment,
+        prescription: {
+          medications: data.medications || []
+        }
+      });
+    } else {
+      // Create new record
+      await saveRecord({
+        type: data.type,
+        title: data.title,
+        notes: data.notes,
+        diagnosis: data.diagnosis,
+        treatment: data.treatment,
+        prescription: {
+          medications: data.medications || []
+        }
+      });
+    }
   };
 
   const getRecordIcon = (type: string) => {
