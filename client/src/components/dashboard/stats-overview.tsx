@@ -52,6 +52,15 @@ export function StatsOverview() {
   });
 
   console.log("StatsOverview:", { stats, isLoading, error });
+  console.log("Stats data:", stats);
+  if (stats) {
+    console.log("Individual values:", {
+      totalPatients: stats.totalPatients,
+      todayAppointments: stats.todayAppointments, 
+      aiSuggestions: stats.aiSuggestions,
+      revenue: stats.revenue
+    });
+  }
 
   if (isLoading) {
     return (
@@ -95,6 +104,13 @@ export function StatsOverview() {
         const formattedValue = card.prefix 
           ? `${card.prefix}${value.toLocaleString()}`
           : value.toLocaleString();
+
+        console.log(`Card ${card.title}:`, { 
+          key: card.key, 
+          rawValue: stats?.[card.key], 
+          value, 
+          formattedValue 
+        });
 
         return (
           <Card key={card.title} className="dashboard-card hover:shadow-md transition-shadow">

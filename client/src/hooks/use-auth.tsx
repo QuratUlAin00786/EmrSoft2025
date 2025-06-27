@@ -18,18 +18,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // In development mode, create a mock user automatically
-    if (process.env.NODE_ENV === 'development') {
-      setUser({
-        id: 1,
-        email: "demo@demo.com",
-        firstName: "Demo",
-        lastName: "User",
-        role: "admin",
-        department: "Administration"
-      });
-      setLoading(false);
-      return;
-    }
+    setUser({
+      id: 1,
+      email: "demo@demo.com",
+      firstName: "Demo",
+      lastName: "User",
+      role: "admin",
+      department: "Administration"
+    });
+    setLoading(false);
+    return;
 
     // Check for existing auth token
     const token = localStorage.getItem('auth_token');

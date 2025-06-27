@@ -42,26 +42,25 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const token = localStorage.getItem('auth_token');
     const headers: Record<string, string> = {
       'X-Tenant-Subdomain': 'demo'
     };
-    
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
 
     const res = await fetch(queryKey[0] as string, {
       credentials: "include",
       headers
     });
 
+    console.log("Query response status:", res.status);
+
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
       return null;
     }
 
     await throwIfResNotOk(res);
-    return await res.json();
+    const data = await res.json();
+    console.log("Query response data:", data);
+    return data;
   };
 
 export const queryClient = new QueryClient({
