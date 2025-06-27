@@ -364,9 +364,9 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                   </Button>
                   <Button
                     type="submit"
-                    disabled={createRecordMutation.isPending}
+                    disabled={isSavingRecord}
                   >
-                    {createRecordMutation.isPending ? "Saving..." : "Save Record"}
+                    {isSavingRecord ? "Saving..." : "Save Record"}
                   </Button>
                 </div>
               </form>
