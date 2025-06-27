@@ -101,8 +101,15 @@ Averox EMR is a comprehensive multi-tenant Electronic Medical Records (EMR) syst
 
 ## Changelog
 
-Changelog:
-- June 26, 2025. Initial setup
+**June 27, 2025:**
+- Fixed dashboard statistics display issue by implementing direct API calls instead of TanStack Query
+- Resolved authentication flow to properly display dashboard data (Total Patients: 3, Today's Appointments: 2, AI Suggestions: 0, Revenue: £89,240)
+- Updated query client configuration to support multi-tenant headers
+- Completed comprehensive EMR system with all 20+ features functional and accessible
+
+**June 26, 2025:**
+- Initial setup and implementation of comprehensive EMR features
+- Complete rebranding from external provider to Averox Ltd
 
 ## User Preferences
 

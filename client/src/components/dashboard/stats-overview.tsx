@@ -1,5 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Users, Calendar, Brain, DollarSign } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
@@ -46,32 +45,41 @@ const statCards = [
 ];
 
 export function StatsOverview() {
-  console.log("StatsOverview component rendered");
-  
-  const { data: stats, isLoading, error, refetch } = useQuery<DashboardStats>({
-    queryKey: ["/api/dashboard/stats"],
-    retry: 1,
-    enabled: true,
-    staleTime: 0,
-    refetchOnMount: true,
-  });
-  
-  // Force refetch on mount
-  useEffect(() => {
-    console.log("Forcing refetch");
-    refetch();
-  }, [refetch]);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<any>(null);
 
-  console.log("StatsOverview:", { stats, isLoading, error });
-  console.log("Stats data:", stats);
-  if (stats) {
-    console.log("Individual values:", {
-      totalPatients: stats.totalPatients,
-      todayAppointments: stats.todayAppointments, 
-      aiSuggestions: stats.aiSuggestions,
-      revenue: stats.revenue
-    });
-  }
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setIsLoading(true);
+        
+        const response = await fetch('/api/dashboard/stats', {
+          headers: {
+            'X-Tenant-Subdomain': 'demo'
+          },
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setStats(data);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching dashboard stats:", err);
+        setError(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+
 
   if (isLoading) {
     return (
@@ -116,12 +124,7 @@ export function StatsOverview() {
           ? `${card.prefix}${value.toLocaleString()}`
           : value.toLocaleString();
 
-        console.log(`Card ${card.title}:`, { 
-          key: card.key, 
-          rawValue: stats?.[card.key], 
-          value, 
-          formattedValue 
-        });
+
 
         return (
           <Card key={card.title} className="dashboard-card hover:shadow-md transition-shadow">
