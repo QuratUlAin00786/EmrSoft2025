@@ -306,8 +306,10 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
             )}
           </div>
           <Dialog open={isAddingNote} onOpenChange={(open) => {
+            console.log("🔥 MEDICAL RECORD DIALOG STATE CHANGE:", open);
             setIsAddingNote(open);
             if (!open) {
+              console.log("🔥 CLEARING EDITING RECORD");
               setEditingRecord(null);
             }
           }} modal={true}>
@@ -514,12 +516,15 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        console.log("Edit button clicked for record:", record);
+                        console.log("🔥 MEDICAL RECORD EDIT BUTTON CLICKED:", record);
+                        console.log("🔥 Setting editingRecord:", record);
+                        console.log("🔥 Setting isAddingNote to true");
+                        alert(`Editing medical record: ${record.title || 'Untitled'}`);
                         setEditingRecord(record);
                         setIsAddingNote(true);
                       }}
                     >
-                      Edit
+                      Edit Medical Record
                     </Button>
                   </div>
                 </div>
