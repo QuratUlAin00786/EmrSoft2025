@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { Users, Calendar, Brain, DollarSign } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
@@ -45,11 +46,21 @@ const statCards = [
 ];
 
 export function StatsOverview() {
-  const { data: stats, isLoading, error } = useQuery<DashboardStats>({
+  console.log("StatsOverview component rendered");
+  
+  const { data: stats, isLoading, error, refetch } = useQuery<DashboardStats>({
     queryKey: ["/api/dashboard/stats"],
-    retry: 3,
-    retryDelay: 1000,
+    retry: 1,
+    enabled: true,
+    staleTime: 0,
+    refetchOnMount: true,
   });
+  
+  // Force refetch on mount
+  useEffect(() => {
+    console.log("Forcing refetch");
+    refetch();
+  }, [refetch]);
 
   console.log("StatsOverview:", { stats, isLoading, error });
   console.log("Stats data:", stats);

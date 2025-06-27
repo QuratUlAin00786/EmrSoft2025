@@ -29,14 +29,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
     return;
 
-    // Check for existing auth token
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      // Validate token and get user info
-      validateToken(token);
-    } else {
-      setLoading(false);
-    }
+    // Skip the rest in development mode
+    // const token = localStorage.getItem('auth_token');
+    // if (token) {
+    //   validateToken(token);
+    // } else {
+    //   setLoading(false);
+    // }
   }, []);
 
   const validateToken = async (token: string) => {

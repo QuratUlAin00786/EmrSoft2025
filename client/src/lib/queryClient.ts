@@ -46,6 +46,9 @@ export const getQueryFn: <T>(options: {
       'X-Tenant-Subdomain': 'demo'
     };
 
+    console.log("Making request to:", queryKey[0]);
+    console.log("Request headers:", headers);
+    
     const res = await fetch(queryKey[0] as string, {
       credentials: "include",
       headers
@@ -69,8 +72,8 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      staleTime: Infinity,
-      retry: false,
+      staleTime: 0,
+      retry: 1,
     },
     mutations: {
       retry: false,
