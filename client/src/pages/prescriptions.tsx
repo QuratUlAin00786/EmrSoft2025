@@ -175,7 +175,7 @@ export default function PrescriptionsPage() {
   const [showNewPrescription, setShowNewPrescription] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: prescriptions = mockPrescriptions, isLoading } = useQuery({
+  const { data: prescriptions = [], isLoading } = useQuery({
     queryKey: ["/api/prescriptions", statusFilter],
     enabled: true,
   });
