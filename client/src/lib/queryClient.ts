@@ -51,7 +51,7 @@ export const getQueryFn: <T>(options: {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    console.log("Making request to:", queryKey[0]);
+    console.log("Making request to:", queryKey[0], "with auth token:", !!token);
     console.log("Request headers:", headers);
     
     const res = await fetch(queryKey[0] as string, {

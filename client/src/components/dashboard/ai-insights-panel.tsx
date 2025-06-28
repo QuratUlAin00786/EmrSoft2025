@@ -44,13 +44,7 @@ export function AiInsightsPanel() {
     queryKey: ["/api/dashboard/ai-insights"],
   });
 
-  // Debug AI insights data
-  console.log("AI Insights Debug:", { insights, isLoading, error, insightsLength: insights?.length });
-  
-  // If there's an error but we have insights data cached, use it
-  if (error && !insights) {
-    console.log("AI Insights has error, trying to force reload...");
-  }
+
 
 
 
