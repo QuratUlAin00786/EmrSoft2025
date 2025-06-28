@@ -140,6 +140,8 @@ export default function LabResultsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showOrderDialog, setShowOrderDialog] = useState(false);
+  const [showViewDialog, setShowViewDialog] = useState(false);
+  const [selectedResult, setSelectedResult] = useState<LabResult | null>(null);
   const [orderFormData, setOrderFormData] = useState({
     patientId: "",
     patientName: "",
@@ -219,11 +221,8 @@ export default function LabResultsPage() {
   };
 
   const handleViewResult = (result: LabResult) => {
-    toast({
-      title: "View Lab Result",
-      description: `Opening detailed results for ${result.patientName}`,
-    });
-    // In a real implementation, this would open a detailed view modal
+    setSelectedResult(result);
+    setShowViewDialog(true);
   };
 
   const handleDownloadResult = (resultId: string) => {
@@ -619,6 +618,122 @@ export default function LabResultsPage() {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Lab Result Dialog */}
+      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Lab Result Details</DialogTitle>
+          </DialogHeader>
+          {selectedResult && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Patient</Label>
+                  <p className="text-lg font-semibold">{selectedResult.patientName}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Patient ID</Label>
+                  <p className="text-lg">{selectedResult.patientId}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Test Type</Label>
+                  <p className="text-lg">{selectedResult.testType}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Status</Label>
+                  <Badge 
+                    variant={
+                      selectedResult.status === 'completed' ? 'default' : 
+                      selectedResult.status === 'pending' ? 'secondary' : 
+                      selectedResult.status === 'processing' ? 'outline' : 'destructive'
+                    }
+                  >
+                    {selectedResult.status}
+                  </Badge>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Ordered By</Label>
+                  <p className="text-lg">{selectedResult.orderedBy}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Ordered Date</Label>
+                  <p className="text-lg">{format(new Date(selectedResult.orderedAt), "PPP")}</p>
+                </div>
+                {selectedResult.collectedAt && (
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Collected Date</Label>
+                    <p className="text-lg">{format(new Date(selectedResult.collectedAt), "PPP")}</p>
+                  </div>
+                )}
+                {selectedResult.completedAt && (
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Completed Date</Label>
+                    <p className="text-lg">{format(new Date(selectedResult.completedAt), "PPP")}</p>
+                  </div>
+                )}
+              </div>
+
+              {selectedResult.results && selectedResult.results.length > 0 && (
+                <div>
+                  <Label className="text-lg font-semibold mb-4 block">Test Results</Label>
+                  <div className="space-y-3">
+                    {selectedResult.results.map((result: any, index: number) => (
+                      <div key={index} className="border rounded-lg p-4">
+                        <div className="flex justify-between items-center">
+                          <div className="flex-1">
+                            <p className="font-medium">{result.name}</p>
+                            <p className="text-sm text-gray-600">Reference Range: {result.referenceRange}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-lg font-semibold">{result.value} {result.unit}</p>
+                            <Badge 
+                              variant={
+                                result.status === 'normal' ? 'default' : 
+                                result.status === 'abnormal_high' || result.status === 'abnormal_low' ? 'secondary' : 
+                                'destructive'
+                              }
+                              className="ml-2"
+                            >
+                              {result.status.replace('_', ' ')}
+                            </Badge>
+                          </div>
+                        </div>
+                        {result.flag && (
+                          <p className="text-sm text-yellow-600 mt-2">⚠️ {result.flag}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedResult.notes && (
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Clinical Notes</Label>
+                  <p className="text-sm mt-1 p-3 bg-gray-50 rounded-md">{selectedResult.notes}</p>
+                </div>
+              )}
+
+              {selectedResult.criticalValues && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-red-800 font-medium">⚠️ Critical Values Alert</p>
+                  <p className="text-red-600 text-sm">This result contains critical values that require immediate attention.</p>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-4">
+                <Button variant="outline" onClick={() => setShowViewDialog(false)}>
+                  Close
+                </Button>
+                <Button onClick={() => handleDownloadResult(selectedResult.id)} className="bg-medical-blue hover:bg-blue-700">
+                  Download Report
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </>
