@@ -184,11 +184,7 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
             className="text-medical-blue hover:text-blue-700 text-sm font-medium hover:underline"
             onClick={() => {
               console.log("View All button clicked - navigating to /patients");
-              setLocation("/patients");
-              toast({
-                title: "Patient Directory",
-                description: "Opening complete patient directory",
-              });
+              window.location.href = "/patients";
             }}
           >
             View All
