@@ -32,6 +32,21 @@ export default function AppointmentCalendar() {
 
   const [appointments, setAppointments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCreatingAppointment, setIsCreatingAppointment] = useState(false);
+  
+  // Form state for new appointment
+  const [formData, setFormData] = useState({
+    patientId: "",
+    providerId: "",
+    title: "",
+    description: "",
+    date: format(new Date(), "yyyy-MM-dd"),
+    time: "09:00",
+    type: "consultation",
+    duration: "30",
+    isVirtual: false,
+    location: ""
+  });
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -65,6 +80,86 @@ export default function AppointmentCalendar() {
 
     fetchAppointments();
   }, []);
+
+  const createAppointment = async () => {
+    if (!formData.patientId || !formData.providerId || !formData.title) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setIsCreatingAppointment(true);
+      
+      // Combine date and time into a proper datetime
+      const scheduledAt = new Date(`${formData.date}T${formData.time}`);
+      
+      const appointmentData = {
+        patientId: parseInt(formData.patientId),
+        providerId: parseInt(formData.providerId),
+        title: formData.title,
+        description: formData.description,
+        scheduledAt: scheduledAt.toISOString(),
+        duration: parseInt(formData.duration),
+        type: formData.type,
+        location: formData.isVirtual ? "Virtual" : formData.location,
+        isVirtual: formData.isVirtual
+      };
+
+      const response = await fetch('/api/appointments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Tenant-Subdomain': 'demo'
+        },
+        credentials: 'include',
+        body: JSON.stringify(appointmentData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const newAppointment = await response.json();
+      
+      // Add the new appointment to the list
+      setAppointments(prev => [...prev, newAppointment]);
+      
+      // Reset form and close dialog
+      setFormData({
+        patientId: "",
+        providerId: "",
+        title: "",
+        description: "",
+        date: format(selectedDate, "yyyy-MM-dd"),
+        time: "09:00",
+        type: "consultation",
+        duration: "30",
+        isVirtual: false,
+        location: ""
+      });
+      
+      setShowNewAppointment(false);
+      
+      toast({
+        title: "Appointment Scheduled",
+        description: "New appointment has been successfully created",
+      });
+      
+    } catch (error) {
+      console.error("Error creating appointment:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create appointment. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCreatingAppointment(false);
+    }
+  };
 
   const monthStart = startOfMonth(selectedDate);
   const monthEnd = endOfMonth(selectedDate);
@@ -527,21 +622,44 @@ export default function AppointmentCalendar() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Patient</label>
-                <select className="w-full p-2 border border-gray-300 rounded-md">
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Patient *</label>
+                <select 
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  value={formData.patientId}
+                  onChange={(e) => setFormData(prev => ({ ...prev, patientId: e.target.value }))}
+                >
                   <option value="">Select patient...</option>
                   <option value="1">Sarah Smith (P001)</option>
                   <option value="2">Emily Johnson (P002)</option>
+                  <option value="3">Michael Brown (P003)</option>
+                  <option value="4">Maria Garcia (P004)</option>
+                  <option value="5">David Wilson (P005)</option>
                 </select>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Provider</label>
-                <select className="w-full p-2 border border-gray-300 rounded-md">
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Provider *</label>
+                <select 
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  value={formData.providerId}
+                  onChange={(e) => setFormData(prev => ({ ...prev, providerId: e.target.value }))}
+                >
                   <option value="">Select provider...</option>
                   <option value="1">Dr. Sarah Johnson</option>
                   <option value="2">Dr. Michael Chen</option>
+                  <option value="3">Dr. Emily Davis</option>
                 </select>
               </div>
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Title *</label>
+              <input 
+                type="text"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                placeholder="Enter appointment title..."
+                value={formData.title}
+                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              />
             </div>
             
             <div className="grid grid-cols-2 gap-4">
@@ -550,7 +668,8 @@ export default function AppointmentCalendar() {
                 <input 
                   type="date" 
                   className="w-full p-2 border border-gray-300 rounded-md"
-                  defaultValue={format(selectedDate, "yyyy-MM-dd")}
+                  value={formData.date}
+                  onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
                 />
               </div>
               <div>
@@ -558,7 +677,8 @@ export default function AppointmentCalendar() {
                 <input 
                   type="time" 
                   className="w-full p-2 border border-gray-300 rounded-md"
-                  defaultValue="09:00"
+                  value={formData.time}
+                  onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
                 />
               </div>
             </div>
@@ -566,16 +686,23 @@ export default function AppointmentCalendar() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 block">Type</label>
-                <select className="w-full p-2 border border-gray-300 rounded-md">
+                <select 
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  value={formData.type}
+                  onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
+                >
                   <option value="consultation">Consultation</option>
                   <option value="follow_up">Follow-up</option>
                   <option value="procedure">Procedure</option>
-                  <option value="emergency">Emergency</option>
                 </select>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 block">Duration (minutes)</label>
-                <select className="w-full p-2 border border-gray-300 rounded-md" defaultValue="30">
+                <select 
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  value={formData.duration}
+                  onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))}
+                >
                   <option value="15">15 minutes</option>
                   <option value="30">30 minutes</option>
                   <option value="45">45 minutes</option>
@@ -590,25 +717,41 @@ export default function AppointmentCalendar() {
                 className="w-full p-2 border border-gray-300 rounded-md"
                 rows={3}
                 placeholder="Enter appointment details..."
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               />
             </div>
             
             <div className="flex items-center gap-2">
-              <input type="checkbox" id="virtual" className="rounded" />
+              <input 
+                type="checkbox" 
+                id="virtual" 
+                className="rounded"
+                checked={formData.isVirtual}
+                onChange={(e) => setFormData(prev => ({ ...prev, isVirtual: e.target.checked }))}
+              />
               <label htmlFor="virtual" className="text-sm text-gray-700">Virtual appointment</label>
             </div>
             
+            {!formData.isVirtual && (
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Location</label>
+                <input 
+                  type="text"
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  placeholder="Enter appointment location..."
+                  value={formData.location}
+                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                />
+              </div>
+            )}
+            
             <div className="flex gap-2 pt-4">
               <Button 
-                onClick={() => {
-                  setShowNewAppointment(false);
-                  toast({
-                    title: "Appointment Scheduled",
-                    description: "New appointment has been successfully scheduled",
-                  });
-                }}
+                onClick={createAppointment}
+                disabled={isCreatingAppointment}
               >
-                Schedule Appointment
+                {isCreatingAppointment ? "Scheduling..." : "Schedule Appointment"}
               </Button>
               <Button variant="outline" onClick={() => setShowNewAppointment(false)}>
                 Cancel
