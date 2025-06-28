@@ -218,8 +218,26 @@ export default function PrescriptionsPage() {
     }
   }, [selectedPrescription]);
 
-  const { data: rawPrescriptions = [], isLoading } = useQuery({
-    queryKey: ["/api/prescriptions", statusFilter],
+  const { data: rawPrescriptions = [], isLoading, error } = useQuery({
+    queryKey: ["/api/prescriptions"],
+    queryFn: async () => {
+      console.log("Making manual fetch to /api/prescriptions");
+      const response = await fetch("/api/prescriptions", {
+        headers: {
+          'X-Tenant-Subdomain': 'demo',
+        },
+        credentials: "include",
+      });
+      console.log("Response status:", response.status);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Fetch error:", errorText);
+        throw new Error(`Failed to fetch prescriptions: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log("Fetch success:", data);
+      return data;
+    },
     enabled: true,
   });
 
@@ -245,6 +263,7 @@ export default function PrescriptionsPage() {
   console.log("Raw prescriptions:", rawPrescriptions);
   console.log("Processed prescriptions:", prescriptions);
   console.log("Is loading:", isLoading);
+  console.log("Query error:", error);
 
   const createPrescriptionMutation = useMutation({
     mutationFn: async (prescriptionData: any) => {
