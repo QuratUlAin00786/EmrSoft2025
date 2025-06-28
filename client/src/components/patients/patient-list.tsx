@@ -114,12 +114,9 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
 
 
   const handleViewPatient = (patient: any) => {
-    console.log('View patient clicked:', patient);
     if (onSelectPatient) {
-      console.log('Using onSelectPatient callback');
       onSelectPatient(patient);
     } else {
-      console.log('Navigating to:', `/patients/${patient.id}`);
       setLocation(`/patients/${patient.id}`);
     }
   };

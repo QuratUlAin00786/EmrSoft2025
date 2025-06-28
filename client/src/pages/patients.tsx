@@ -210,7 +210,7 @@ export default function Patients() {
           </Button>
         </div>
 
-        <PatientList onSelectPatient={setSelectedPatient} />
+        <PatientList />
         
         {selectedPatient && (
           <div className="grid gap-6 lg:grid-cols-2 mt-6">
