@@ -349,6 +349,164 @@ export default function FormsPage() {
         </Tabs>
       </div>
 
+      {/* Additional Content Section to Make Page Scrollable */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Form Templates
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">Pre-built templates for common healthcare forms</p>
+              <div className="space-y-2">
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="font-medium">Patient Registration</div>
+                  <div className="text-sm text-gray-600">Complete patient intake form</div>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="font-medium">Medical History</div>
+                  <div className="text-sm text-gray-600">Comprehensive health history</div>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="font-medium">Consent Forms</div>
+                  <div className="text-sm text-gray-600">Treatment consent documentation</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                Form Analytics
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">Track form performance and completion rates</p>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span>Completion Rate</span>
+                  <span className="font-semibold">87%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Average Time</span>
+                  <span className="font-semibold">4.2 min</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Drop-off Rate</span>
+                  <span className="font-semibold">13%</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                Form Settings
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">Configure form behavior and appearance</p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span>Auto-save</span>
+                  <span className="text-green-600">Enabled</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Progress bar</span>
+                  <span className="text-green-600">Enabled</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Mobile friendly</span>
+                  <span className="text-green-600">Enabled</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Activity</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <div className="text-sm">
+                    <div className="font-medium">Patient Intake Form updated</div>
+                    <div className="text-gray-500">2 hours ago</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <div className="text-sm">
+                    <div className="font-medium">New response received</div>
+                    <div className="text-gray-500">4 hours ago</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                  <div className="text-sm">
+                    <div className="font-medium">Form validation updated</div>
+                    <div className="text-gray-500">1 day ago</div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Integration Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span>Email notifications</span>
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Database sync</span>
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>API webhook</span>
+                  <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Help & Support</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <Button variant="outline" className="w-full justify-start">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Documentation
+                </Button>
+                <Button variant="outline" className="w-full justify-start">
+                  <Users className="h-4 w-4 mr-2" />
+                  Contact Support
+                </Button>
+                <Button variant="outline" className="w-full justify-start">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Schedule Training
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
       {/* Scroll to Top Button */}
       {showScrollTop && (
         <Button
