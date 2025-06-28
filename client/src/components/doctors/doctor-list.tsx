@@ -37,6 +37,8 @@ function getInitials(firstName: string, lastName: string): string {
 }
 
 export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: DoctorListProps) {
+  const [, setLocation] = useLocation();
+  
   const { data: medicalStaff = [], isLoading, error } = useQuery({
     queryKey: ["/api/medical-staff"],
     queryFn: async () => {
@@ -137,7 +139,7 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                       <MapPin className="h-3 w-3 text-gray-400" />
                       <Badge 
                         variant="outline" 
-                        className={departmentColors[doctor.department] || "bg-gray-100 text-gray-800"}
+                        className={departmentColors[doctor.department as keyof typeof departmentColors] || "bg-gray-100 text-gray-800"}
                       >
                         {doctor.department}
                       </Badge>
@@ -179,7 +181,11 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                   variant="ghost"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onSelectDoctor?.(doctor);
+                    if (onSelectDoctor) {
+                      onSelectDoctor(doctor);
+                    } else {
+                      setLocation(`/staff/${doctor.id}`);
+                    }
                   }}
                 >
                   View Profile

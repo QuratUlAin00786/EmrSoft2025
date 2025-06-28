@@ -65,6 +65,7 @@ function ProtectedApp() {
           <Route path="/voice-documentation" component={VoiceDocumentation} />
           <Route path="/financial-intelligence" component={FinancialIntelligence} />
           <Route path="/users" component={UserManagement} />
+          <Route path="/staff/:id" component={UserManagement} />
           <Route path="/subscription" component={Subscription} />
           <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
