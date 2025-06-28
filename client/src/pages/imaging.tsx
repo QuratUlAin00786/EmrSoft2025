@@ -167,6 +167,7 @@ export default function ImagingPage() {
   const [showNewOrder, setShowNewOrder] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
+  const [showViewDialog, setShowViewDialog] = useState(false);
   const [modalityFilter, setModalityFilter] = useState<string>("all");
   const [selectedStudy, setSelectedStudy] = useState<ImagingStudy | null>(null);
   const [shareFormData, setShareFormData] = useState({
@@ -179,10 +180,7 @@ export default function ImagingPage() {
 
   const handleViewStudy = (study: ImagingStudy) => {
     setSelectedStudy(study);
-    toast({
-      title: "View Study",
-      description: `Opening detailed view for ${study.patientName}`,
-    });
+    setShowViewDialog(true);
   };
 
   const handleDownloadStudy = (studyId: string) => {
@@ -762,6 +760,184 @@ export default function ImagingPage() {
                   >
                     <FileText className="h-4 w-4 mr-2" />
                     {selectedStudy.status === 'final' ? 'View Final Report' : 'Generate Report'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* View Study Dialog */}
+      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>View Imaging Study</DialogTitle>
+          </DialogHeader>
+          {selectedStudy && (
+            <div className="space-y-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-lg font-bold">{selectedStudy.patientName.charAt(0)}</span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-xl">{selectedStudy.patientName}</h3>
+                    <p className="text-sm text-gray-600">Patient ID: {selectedStudy.patientId}</p>
+                  </div>
+                  <div className="ml-auto">
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      selectedStudy.status === 'completed' ? 'bg-green-100 text-green-800' :
+                      selectedStudy.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
+                      selectedStudy.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {selectedStudy.status.charAt(0).toUpperCase() + selectedStudy.status.slice(1).replace('_', ' ')}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                  <div><strong>Study Type:</strong> {selectedStudy.studyType}</div>
+                  <div><strong>Modality:</strong> {selectedStudy.modality}</div>
+                  <div><strong>Body Part:</strong> {selectedStudy.bodyPart}</div>
+                  <div><strong>Priority:</strong> {selectedStudy.priority}</div>
+                  <div><strong>Ordered By:</strong> {selectedStudy.orderedBy}</div>
+                  <div><strong>Ordered:</strong> {format(new Date(selectedStudy.orderedAt), "MMM dd, yyyy")}</div>
+                  {selectedStudy.scheduledAt && (
+                    <div><strong>Scheduled:</strong> {format(new Date(selectedStudy.scheduledAt), "MMM dd, yyyy")}</div>
+                  )}
+                  {selectedStudy.performedAt && (
+                    <div><strong>Performed:</strong> {format(new Date(selectedStudy.performedAt), "MMM dd, yyyy")}</div>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium text-lg mb-2">Clinical Indication</h4>
+                  <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{selectedStudy.indication}</p>
+                </div>
+
+                {selectedStudy.findings && (
+                  <div>
+                    <h4 className="font-medium text-lg mb-2">Findings</h4>
+                    <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{selectedStudy.findings}</p>
+                  </div>
+                )}
+
+                {selectedStudy.impression && (
+                  <div>
+                    <h4 className="font-medium text-lg mb-2">Impression</h4>
+                    <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{selectedStudy.impression}</p>
+                  </div>
+                )}
+
+                {selectedStudy.radiologist && (
+                  <div>
+                    <h4 className="font-medium text-lg mb-2">Radiologist</h4>
+                    <p className="text-gray-700">{selectedStudy.radiologist}</p>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <h4 className="font-medium text-lg mb-3">Image Series</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {selectedStudy.images.map((image, index) => (
+                    <div key={index} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h5 className="font-medium">{image.seriesDescription}</h5>
+                        <span className="text-xs bg-gray-100 px-2 py-1 rounded">{image.type}</span>
+                      </div>
+                      <div className="text-sm text-gray-600 space-y-1">
+                        <div>Images: {image.imageCount}</div>
+                        <div>Size: {image.size}</div>
+                      </div>
+                      <div className="mt-3">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            toast({
+                              title: "Opening Image Viewer",
+                              description: `Loading ${image.seriesDescription} images`,
+                            });
+                          }}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          View Images
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {selectedStudy.report && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <h4 className="font-medium text-green-800 mb-3">Report Status</h4>
+                  <div className="text-sm text-green-700 space-y-2">
+                    <div className="flex justify-between">
+                      <span><strong>Status:</strong> {selectedStudy.report.status}</span>
+                      <span><strong>Dictated:</strong> {format(new Date(selectedStudy.report.dictatedAt), "PPpp")}</span>
+                    </div>
+                    {selectedStudy.report.signedAt && (
+                      <div><strong>Signed:</strong> {format(new Date(selectedStudy.report.signedAt), "PPpp")}</div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-between items-center pt-4 border-t">
+                <Button variant="outline" onClick={() => setShowViewDialog(false)}>
+                  Close
+                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      setShowViewDialog(false);
+                      setShowShareDialog(true);
+                    }}
+                  >
+                    <Share2 className="h-4 w-4 mr-2" />
+                    Share Study
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      setShowViewDialog(false);
+                      setShowReportDialog(true);
+                    }}
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Generate Report
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      // Download study logic
+                      const studyData = `IMAGING STUDY SUMMARY\n\nPatient: ${selectedStudy.patientName}\nStudy: ${selectedStudy.studyType}\nModality: ${selectedStudy.modality}\nDate: ${new Date(selectedStudy.orderedAt).toLocaleDateString()}\n\nIndication: ${selectedStudy.indication}\n\nFindings: ${selectedStudy.findings || 'Pending'}\n\nImpression: ${selectedStudy.impression || 'Pending'}\n\nRadiologist: ${selectedStudy.radiologist || 'TBD'}`;
+                      
+                      const blob = new Blob([studyData], { type: 'text/plain' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `imaging-study-${selectedStudy.patientName.replace(' ', '-').toLowerCase()}.txt`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                      
+                      toast({
+                        title: "Study Downloaded",
+                        description: `Study summary for ${selectedStudy.patientName} downloaded successfully`,
+                      });
+                    }}
+                    className="bg-medical-blue hover:bg-blue-700"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Study
                   </Button>
                 </div>
               </div>
