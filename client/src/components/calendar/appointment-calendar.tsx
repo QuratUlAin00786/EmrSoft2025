@@ -166,14 +166,9 @@ export default function AppointmentCalendar() {
   const calendarDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
   const getAppointmentsForDate = (date: Date) => {
-    const filtered = (appointments as any || []).filter((apt: any) => {
-      const appointmentDate = new Date(apt.scheduledAt);
-      const isSame = isSameDay(appointmentDate, date);
-      console.log(`Comparing appointment ${apt.title} (${apt.scheduledAt}) with ${date.toISOString()}: ${isSame}`);
-      return isSame;
-    });
-    console.log(`Found ${filtered.length} appointments for ${date.toDateString()}`);
-    return filtered;
+    return (appointments as any || []).filter((apt: any) => 
+      isSameDay(new Date(apt.scheduledAt), date)
+    );
   };
 
   const selectedDateAppointments = getAppointmentsForDate(selectedDate);
@@ -426,50 +421,48 @@ export default function AppointmentCalendar() {
                   key={appointment.id}
                   className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h4 className="font-semibold">{appointment.title}</h4>
-                        <Badge className={statusColors[appointment.status]}>
-                          {appointment.status}
-                        </Badge>
-                        <Badge className={typeColors[appointment.type]}>
-                          {appointment.type}
-                        </Badge>
-                      </div>
-                      
-                      <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          {format(new Date(appointment.scheduledAt), "h:mm a")} 
-                          ({appointment.duration} min)
-                        </div>
-                        {appointment.isVirtual ? (
-                          <div className="flex items-center gap-1">
-                            <Video className="h-4 w-4" />
-                            Virtual
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <MapPin className="h-4 w-4" />
-                            {appointment.location || "In-person"}
-                          </div>
-                        )}
-                      </div>
-                      
-                      {appointment.description && (
-                        <p className="text-sm text-gray-600 mb-2">
-                          {appointment.description}
-                        </p>
-                      )}
-                      
-                      <div className="flex items-center gap-1 text-sm text-gray-500">
-                        <User className="h-4 w-4" />
-                        Patient ID: {appointment.patientId}
-                      </div>
+                  <div className="flex flex-col space-y-3">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-semibold">{appointment.title}</h4>
+                      <Badge className={statusColors[appointment.status]}>
+                        {appointment.status}
+                      </Badge>
+                      <Badge className={typeColors[appointment.type]}>
+                        {appointment.type}
+                      </Badge>
                     </div>
                     
-                    <div className="flex gap-2">
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-4 w-4" />
+                        {format(new Date(appointment.scheduledAt), "h:mm a")} 
+                        ({appointment.duration} min)
+                      </div>
+                      {appointment.isVirtual ? (
+                        <div className="flex items-center gap-1">
+                          <Video className="h-4 w-4" />
+                          Virtual
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <MapPin className="h-4 w-4" />
+                          {appointment.location || "In-person"}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {appointment.description && (
+                      <p className="text-sm text-gray-600">
+                        {appointment.description}
+                      </p>
+                    )}
+                    
+                    <div className="flex items-center gap-1 text-sm text-gray-500">
+                      <User className="h-4 w-4" />
+                      Patient ID: {appointment.patientId}
+                    </div>
+                    
+                    <div className="flex gap-2 flex-wrap">
                       <Button 
                         variant="outline" 
                         size="sm"
