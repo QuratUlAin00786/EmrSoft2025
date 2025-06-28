@@ -38,6 +38,25 @@ function getInitials(firstName: string, lastName: string): string {
 export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: DoctorListProps) {
   const { data: medicalStaff = [], isLoading, error } = useQuery({
     queryKey: ["/api/medical-staff"],
+    queryFn: async () => {
+      console.log("Starting medical staff query fetch...");
+      const response = await fetch("/api/medical-staff", {
+        headers: {
+          'X-Tenant-Subdomain': 'demo'
+        },
+        credentials: 'include'
+      });
+      
+      console.log("Medical staff response status:", response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log("Medical staff response data:", data);
+      return data;
+    },
     enabled: true,
   });
 
