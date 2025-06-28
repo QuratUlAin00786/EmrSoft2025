@@ -93,6 +93,9 @@ export default function MessagingPage() {
   const [showCreateCampaign, setShowCreateCampaign] = useState(false);
   const [showNewMessage, setShowNewMessage] = useState(false);
   const [showVideoCall, setShowVideoCall] = useState(false);
+  const [activeVideoCall, setActiveVideoCall] = useState(false);
+  const [callParticipant, setCallParticipant] = useState("");
+  const [callDuration, setCallDuration] = useState(0);
   const [newCampaign, setNewCampaign] = useState({
     name: "",
     type: "email" as "email" | "sms" | "both",
@@ -237,33 +240,29 @@ export default function MessagingPage() {
     }
 
     const participantName = videoCall.participant;
-    const callType = videoCall.type;
-    const duration = videoCall.duration;
     
-    // Close dialog first
+    // Close dialog and start video call
     setShowVideoCall(false);
+    setCallParticipant(participantName);
+    setActiveVideoCall(true);
+    setCallDuration(0);
     
-    // Show initial connection toast
     toast({
       title: "Video Call Started",
       description: `Connecting to ${participantName}...`,
     });
 
-    // Simulate connection process
+    // Start call timer
+    const timer = setInterval(() => {
+      setCallDuration(prev => prev + 1);
+    }, 1000);
+
+    // Store timer in a way we can clear it later
     setTimeout(() => {
-      // Show call connected notification
       toast({
         title: "Call Connected",
-        description: `${callType === 'consultation' ? 'Patient consultation' : callType === 'team_meeting' ? 'Team meeting' : 'Emergency call'} with ${participantName} is now active (${duration} min)`,
+        description: `Video call with ${participantName} is now active`,
       });
-      
-      // Show a simulated video call interface notification
-      setTimeout(() => {
-        toast({
-          title: "Video Call Active",
-          description: "Call quality: HD • Recording: On • Duration: " + duration + " minutes",
-        });
-      }, 2000);
     }, 1500);
 
     // Reset form
@@ -274,6 +273,22 @@ export default function MessagingPage() {
       scheduled: false,
       scheduledTime: ""
     });
+  };
+
+  const handleEndVideoCall = () => {
+    setActiveVideoCall(false);
+    setCallParticipant("");
+    setCallDuration(0);
+    toast({
+      title: "Call Ended",
+      description: "Video call has been terminated.",
+    });
+  };
+
+  const formatCallDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   const filteredConversations = conversations.filter((conv: Conversation) => {
@@ -953,6 +968,86 @@ export default function MessagingPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Active Video Call Interface */}
+      {activeVideoCall && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg w-full max-w-4xl h-3/4 flex flex-col">
+            {/* Video Call Header */}
+            <div className="bg-gray-900 text-white p-4 rounded-t-lg flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <Video className="h-5 w-5" />
+                <div>
+                  <h3 className="font-semibold">Video Call with {callParticipant}</h3>
+                  <p className="text-sm text-gray-300">Duration: {formatCallDuration(callDuration)}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1 text-green-400 text-sm">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  Connected
+                </span>
+              </div>
+            </div>
+
+            {/* Video Call Main Area */}
+            <div className="flex-1 bg-gray-100 relative flex items-center justify-center">
+              {/* Simulated video feed */}
+              <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 relative">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center text-white">
+                    <div className="w-24 h-24 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-4 mx-auto">
+                      <span className="text-3xl font-bold">{callParticipant.charAt(0).toUpperCase()}</span>
+                    </div>
+                    <p className="text-xl font-semibold">{callParticipant}</p>
+                    <p className="text-sm opacity-75">Patient Consultation</p>
+                  </div>
+                </div>
+                
+                {/* Self video (small corner) */}
+                <div className="absolute bottom-4 right-4 w-48 h-36 bg-gray-800 rounded-lg border-2 border-white flex items-center justify-center">
+                  <div className="text-white text-center">
+                    <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-2 mx-auto">
+                      <span className="text-lg font-bold">Y</span>
+                    </div>
+                    <p className="text-sm">You</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Video Call Controls */}
+            <div className="bg-gray-800 p-4 rounded-b-lg flex justify-center items-center gap-4">
+              <Button variant="outline" size="sm" className="bg-gray-700 text-white border-gray-600 hover:bg-gray-600">
+                <span className="sr-only">Mute</span>
+                🎤
+              </Button>
+              <Button variant="outline" size="sm" className="bg-gray-700 text-white border-gray-600 hover:bg-gray-600">
+                <span className="sr-only">Camera</span>
+                📹
+              </Button>
+              <Button variant="outline" size="sm" className="bg-gray-700 text-white border-gray-600 hover:bg-gray-600">
+                <span className="sr-only">Screen Share</span>
+                🖥️
+              </Button>
+              <Button variant="outline" size="sm" className="bg-gray-700 text-white border-gray-600 hover:bg-gray-600">
+                <span className="sr-only">Chat</span>
+                💬
+              </Button>
+              <Button 
+                onClick={handleEndVideoCall}
+                className="bg-red-600 hover:bg-red-700 text-white px-6"
+              >
+                End Call
+              </Button>
+              <Button variant="outline" size="sm" className="bg-gray-700 text-white border-gray-600 hover:bg-gray-600">
+                <span className="sr-only">Settings</span>
+                ⚙️
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
