@@ -474,9 +474,9 @@ export default function PrescriptionsPage() {
                               <SelectValue placeholder="Select patient" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="p_001">Sarah Johnson</SelectItem>
-                              <SelectItem value="p_002">Robert Davis</SelectItem>
-                              <SelectItem value="p_003">Emily Watson</SelectItem>
+                              <SelectItem value="1">Sarah Johnson</SelectItem>
+                              <SelectItem value="2">Robert Davis</SelectItem>
+                              <SelectItem value="3">Emily Watson</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>

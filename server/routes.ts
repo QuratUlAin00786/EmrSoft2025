@@ -839,6 +839,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const prescriptionData = req.body;
       
+      // Validate required fields
+      if (!prescriptionData.patientId || isNaN(parseInt(prescriptionData.patientId))) {
+        return res.status(400).json({ error: "Valid patient ID is required" });
+      }
+      
       // Create prescription data for database
       const prescriptionToInsert = {
         organizationId: req.tenant!.id,
