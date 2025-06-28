@@ -116,6 +116,7 @@ Averox EMR is a comprehensive multi-tenant Electronic Medical Records (EMR) syst
 - **COMPLETED**: Fixed patient View button 404 errors by adding missing `/patients/:id` route for individual patient detail pages
 - **COMPLETED**: Fixed medical staff not displaying in appointments calendar by creating dedicated `/api/medical-staff` endpoint accessible to authenticated users and updating DoctorList component with proper fetch implementation
 - **COMPLETED**: Fixed View Profile button functionality for medical staff - created dedicated StaffProfile page with comprehensive staff information display, proper routing (/staff/:id), and navigation from appointments calendar
+- **COMPLETED**: Made "Send to Pharmacy" button fully functional - added pharmacy selection dialog with pre-filled UK pharmacy details, API integration to update prescription pharmacy data, proper error handling and success notifications, while preserving prescription data loading functionality
 
 **June 27, 2025:**
 - Fixed dashboard statistics display issue by implementing direct API calls instead of TanStack Query
