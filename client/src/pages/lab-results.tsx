@@ -148,8 +148,21 @@ export default function LabResultsPage() {
     notes: ""
   });
 
-  const { data: labResults = mockLabResults, isLoading } = useQuery({
+  const { data: labResults = [], isLoading } = useQuery({
     queryKey: ["/api/lab-results", statusFilter],
+    queryFn: async () => {
+      const response = await fetch("/api/lab-results", {
+        headers: {
+          'X-Tenant-Subdomain': 'demo',
+        },
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch lab results: ${response.status}`);
+      }
+      const data = await response.json();
+      return data;
+    },
     enabled: true,
   });
 
