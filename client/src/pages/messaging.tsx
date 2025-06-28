@@ -92,6 +92,7 @@ export default function MessagingPage() {
   const [messageFilter, setMessageFilter] = useState("all");
   const [showCreateCampaign, setShowCreateCampaign] = useState(false);
   const [showNewMessage, setShowNewMessage] = useState(false);
+  const [showVideoCall, setShowVideoCall] = useState(false);
   const [newCampaign, setNewCampaign] = useState({
     name: "",
     type: "email" as "email" | "sms" | "both",
@@ -105,6 +106,13 @@ export default function MessagingPage() {
     content: "",
     priority: "normal" as "low" | "normal" | "high" | "urgent",
     type: "internal" as "internal" | "patient" | "broadcast"
+  });
+  const [videoCall, setVideoCall] = useState({
+    participant: "",
+    type: "consultation" as "consultation" | "team_meeting" | "emergency",
+    duration: "30" as "15" | "30" | "60" | "90",
+    scheduled: false,
+    scheduledTime: ""
   });
   const { toast } = useToast();
 
@@ -218,6 +226,32 @@ export default function MessagingPage() {
     });
   };
 
+  const handleStartVideoCall = () => {
+    if (!videoCall.participant.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a participant for the video call.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Simulate video call initiation
+    setShowVideoCall(false);
+    setVideoCall({
+      participant: "",
+      type: "consultation",
+      duration: "30",
+      scheduled: false,
+      scheduledTime: ""
+    });
+    
+    toast({
+      title: "Video Call Started",
+      description: `Connecting to ${videoCall.participant}...`,
+    });
+  };
+
   const filteredConversations = conversations.filter((conv: Conversation) => {
     if (messageFilter === "unread" && conv.unreadCount === 0) return false;
     if (messageFilter === "patients" && !conv.isPatientConversation) return false;
@@ -263,10 +297,123 @@ export default function MessagingPage() {
           <p className="text-gray-600 mt-1">Secure communication with patients and staff</p>
         </div>
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm">
-            <Video className="h-4 w-4 mr-2" />
-            Video Call
-          </Button>
+          <Dialog open={showVideoCall} onOpenChange={setShowVideoCall}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Video className="h-4 w-4 mr-2" />
+                Video Call
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-xl">
+              <DialogHeader>
+                <DialogTitle>Start Video Call</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="callParticipant">Participant *</Label>
+                  <Input
+                    id="callParticipant"
+                    placeholder="Enter participant name or ID"
+                    value={videoCall.participant}
+                    onChange={(e) => setVideoCall(prev => ({ ...prev, participant: e.target.value }))}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="callType">Call Type</Label>
+                    <Select 
+                      value={videoCall.type} 
+                      onValueChange={(value: "consultation" | "team_meeting" | "emergency") => 
+                        setVideoCall(prev => ({ ...prev, type: value }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="consultation">Patient Consultation</SelectItem>
+                        <SelectItem value="team_meeting">Team Meeting</SelectItem>
+                        <SelectItem value="emergency">Emergency Call</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="callDuration">Expected Duration</Label>
+                    <Select 
+                      value={videoCall.duration} 
+                      onValueChange={(value: "15" | "30" | "60" | "90") => 
+                        setVideoCall(prev => ({ ...prev, duration: value }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="15">15 minutes</SelectItem>
+                        <SelectItem value="30">30 minutes</SelectItem>
+                        <SelectItem value="60">1 hour</SelectItem>
+                        <SelectItem value="90">1.5 hours</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="scheduleCall"
+                      checked={videoCall.scheduled}
+                      onChange={(e) => setVideoCall(prev => ({ ...prev, scheduled: e.target.checked }))}
+                      className="rounded"
+                    />
+                    <Label htmlFor="scheduleCall">Schedule for later</Label>
+                  </div>
+                  
+                  {videoCall.scheduled && (
+                    <div className="space-y-2">
+                      <Label htmlFor="scheduledTime">Scheduled Time</Label>
+                      <Input
+                        id="scheduledTime"
+                        type="datetime-local"
+                        value={videoCall.scheduledTime}
+                        onChange={(e) => setVideoCall(prev => ({ ...prev, scheduledTime: e.target.value }))}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Video className="h-4 w-4 text-blue-600" />
+                    <span className="font-medium text-blue-900">Video Call Features</span>
+                  </div>
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    <li>• HD video and audio quality</li>
+                    <li>• Screen sharing capability</li>
+                    <li>• Recording option for consultations</li>
+                    <li>• Secure end-to-end encryption</li>
+                  </ul>
+                </div>
+
+                <div className="flex justify-end gap-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowVideoCall(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleStartVideoCall}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    {videoCall.scheduled ? "Schedule Call" : "Start Call"}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
           <Dialog open={showNewMessage} onOpenChange={setShowNewMessage}>
             <DialogTrigger asChild>
               <Button>
