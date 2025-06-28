@@ -56,6 +56,11 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const handleViewAllPatients = () => {
+    console.log("View All button clicked - navigating to /patients");
+    setLocation("/patients");
+  };
   
   const { data: patients, isLoading, error } = useQuery<Patient[]>({
     queryKey: ["/api/patients", { limit: 10 }],
@@ -129,7 +134,7 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             Recent Patients
-            <Button variant="link" size="sm">View All</Button>
+            <Button variant="link" size="sm" onClick={handleViewAllPatients}>View All</Button>
           </CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center h-48">
@@ -145,7 +150,7 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             Recent Patients
-            <Button variant="link" size="sm">View All</Button>
+            <Button variant="link" size="sm" onClick={handleViewAllPatients}>View All</Button>
           </CardTitle>
         </CardHeader>
         <CardContent>
