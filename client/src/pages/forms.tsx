@@ -96,7 +96,7 @@ export default function FormsPage() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 300);
+      setShowScrollTop(window.scrollY > 100);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -353,8 +353,8 @@ export default function FormsPage() {
       {showScrollTop && (
         <Button
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 z-50 w-12 h-12 rounded-full bg-medical-blue hover:bg-blue-700 text-white shadow-lg transition-all duration-300 ease-in-out"
-          size="sm"
+          className="fixed bottom-8 right-8 z-50 w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg transition-all duration-300 ease-in-out flex items-center justify-center"
+          aria-label="Scroll to top"
         >
           <ChevronUp className="h-5 w-5" />
         </Button>
