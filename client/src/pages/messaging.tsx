@@ -96,6 +96,10 @@ export default function MessagingPage() {
   const [activeVideoCall, setActiveVideoCall] = useState(false);
   const [callParticipant, setCallParticipant] = useState("");
   const [callDuration, setCallDuration] = useState(0);
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVideoOn, setIsVideoOn] = useState(true);
   const [newCampaign, setNewCampaign] = useState({
     name: "",
     type: "email" as "email" | "sms" | "both",
@@ -229,7 +233,7 @@ export default function MessagingPage() {
     });
   };
 
-  const handleStartVideoCall = () => {
+  const handleStartVideoCall = async () => {
     if (!videoCall.participant.trim()) {
       toast({
         title: "Validation Error",
@@ -241,29 +245,44 @@ export default function MessagingPage() {
 
     const participantName = videoCall.participant;
     
-    // Close dialog and start video call
-    setShowVideoCall(false);
-    setCallParticipant(participantName);
-    setActiveVideoCall(true);
-    setCallDuration(0);
-    
-    toast({
-      title: "Video Call Started",
-      description: `Connecting to ${participantName}...`,
-    });
-
-    // Start call timer
-    const timer = setInterval(() => {
-      setCallDuration(prev => prev + 1);
-    }, 1000);
-
-    // Store timer in a way we can clear it later
-    setTimeout(() => {
-      toast({
-        title: "Call Connected",
-        description: `Video call with ${participantName} is now active`,
+    try {
+      // Request access to camera and microphone
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
       });
-    }, 1500);
+      
+      setLocalStream(stream);
+      setShowVideoCall(false);
+      setCallParticipant(participantName);
+      setActiveVideoCall(true);
+      setCallDuration(0);
+      
+      toast({
+        title: "Camera Access Granted",
+        description: `Starting video call with ${participantName}...`,
+      });
+
+      // Start call timer
+      const timer = setInterval(() => {
+        setCallDuration(prev => prev + 1);
+      }, 1000);
+
+      setTimeout(() => {
+        toast({
+          title: "Call Connected",
+          description: `Video call with ${participantName} is now active`,
+        });
+      }, 1500);
+
+    } catch (error) {
+      toast({
+        title: "Camera Access Required",
+        description: "Please allow camera and microphone access to start video call.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     // Reset form
     setVideoCall({
@@ -276,13 +295,42 @@ export default function MessagingPage() {
   };
 
   const handleEndVideoCall = () => {
+    // Stop all media tracks
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+      setLocalStream(null);
+    }
+    
     setActiveVideoCall(false);
     setCallParticipant("");
     setCallDuration(0);
+    setIsMuted(false);
+    setIsVideoOn(true);
+    
     toast({
       title: "Call Ended",
       description: "Video call has been terminated.",
     });
+  };
+
+  const toggleMute = () => {
+    if (localStream) {
+      const audioTracks = localStream.getAudioTracks();
+      audioTracks.forEach(track => {
+        track.enabled = !track.enabled;
+      });
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const toggleVideo = () => {
+    if (localStream) {
+      const videoTracks = localStream.getVideoTracks();
+      videoTracks.forEach(track => {
+        track.enabled = !track.enabled;
+      });
+      setIsVideoOn(!isVideoOn);
+    }
   };
 
   const formatCallDuration = (seconds: number) => {
@@ -1005,33 +1053,55 @@ export default function MessagingPage() {
                 </div>
                 
                 {/* Self video (small corner) */}
-                <div className="absolute bottom-4 right-4 w-48 h-36 bg-gray-800 rounded-lg border-2 border-white flex items-center justify-center">
-                  <div className="text-white text-center">
-                    <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-2 mx-auto">
-                      <span className="text-lg font-bold">Y</span>
+                <div className="absolute bottom-4 right-4 w-48 h-36 bg-gray-800 rounded-lg border-2 border-white overflow-hidden">
+                  {localStream && isVideoOn ? (
+                    <video
+                      ref={(video) => {
+                        if (video && localStream) {
+                          video.srcObject = localStream;
+                          video.play();
+                        }
+                      }}
+                      muted
+                      className="w-full h-full object-cover"
+                      style={{ transform: 'scaleX(-1)' }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-white text-center">
+                      <div>
+                        <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-2 mx-auto">
+                          <span className="text-lg font-bold">Y</span>
+                        </div>
+                        <p className="text-sm">You</p>
+                      </div>
                     </div>
-                    <p className="text-sm">You</p>
-                  </div>
+                  )}
                 </div>
               </div>
             </div>
 
             {/* Video Call Controls */}
             <div className="bg-gray-800 p-4 rounded-b-lg flex justify-center items-center gap-4">
-              <Button variant="outline" size="sm" className="bg-gray-700 text-white border-gray-600 hover:bg-gray-600">
-                <span className="sr-only">Mute</span>
-                🎤
+              <Button 
+                onClick={toggleMute}
+                variant="outline" 
+                size="sm" 
+                className={`text-white border-gray-600 hover:bg-gray-600 ${isMuted ? 'bg-red-600' : 'bg-gray-700'}`}
+              >
+                {isMuted ? '🔇' : '🎤'}
+              </Button>
+              <Button 
+                onClick={toggleVideo}
+                variant="outline" 
+                size="sm" 
+                className={`text-white border-gray-600 hover:bg-gray-600 ${!isVideoOn ? 'bg-red-600' : 'bg-gray-700'}`}
+              >
+                {isVideoOn ? '📹' : '📵'}
               </Button>
               <Button variant="outline" size="sm" className="bg-gray-700 text-white border-gray-600 hover:bg-gray-600">
-                <span className="sr-only">Camera</span>
-                📹
-              </Button>
-              <Button variant="outline" size="sm" className="bg-gray-700 text-white border-gray-600 hover:bg-gray-600">
-                <span className="sr-only">Screen Share</span>
                 🖥️
               </Button>
               <Button variant="outline" size="sm" className="bg-gray-700 text-white border-gray-600 hover:bg-gray-600">
-                <span className="sr-only">Chat</span>
                 💬
               </Button>
               <Button 
@@ -1041,7 +1111,6 @@ export default function MessagingPage() {
                 End Call
               </Button>
               <Button variant="outline" size="sm" className="bg-gray-700 text-white border-gray-600 hover:bg-gray-600">
-                <span className="sr-only">Settings</span>
                 ⚙️
               </Button>
             </div>
