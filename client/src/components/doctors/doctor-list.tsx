@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
 import { Stethoscope, User, Calendar, Clock, MapPin } from "lucide-react";
+import { useLocation } from "wouter";
 import type { User as Doctor } from "@/types";
 
 interface DoctorListProps {
@@ -39,7 +40,6 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
   const { data: medicalStaff = [], isLoading, error } = useQuery({
     queryKey: ["/api/medical-staff"],
     queryFn: async () => {
-      console.log("Starting medical staff query fetch...");
       const response = await fetch("/api/medical-staff", {
         headers: {
           'X-Tenant-Subdomain': 'demo'
@@ -47,20 +47,15 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
         credentials: 'include'
       });
       
-      console.log("Medical staff response status:", response.status);
-      
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
       const data = await response.json();
-      console.log("Medical staff response data:", data);
       return data;
     },
     enabled: true,
   });
-
-  console.log("Medical staff query state:", { medicalStaff, isLoading, error });
 
   if (isLoading) {
     return (
