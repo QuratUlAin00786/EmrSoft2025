@@ -236,19 +236,43 @@ export default function MessagingPage() {
       return;
     }
 
-    // Simulate video call initiation
+    const participantName = videoCall.participant;
+    const callType = videoCall.type;
+    const duration = videoCall.duration;
+    
+    // Close dialog first
     setShowVideoCall(false);
+    
+    // Show initial connection toast
+    toast({
+      title: "Video Call Started",
+      description: `Connecting to ${participantName}...`,
+    });
+
+    // Simulate connection process
+    setTimeout(() => {
+      // Show call connected notification
+      toast({
+        title: "Call Connected",
+        description: `${callType === 'consultation' ? 'Patient consultation' : callType === 'team_meeting' ? 'Team meeting' : 'Emergency call'} with ${participantName} is now active (${duration} min)`,
+      });
+      
+      // Show a simulated video call interface notification
+      setTimeout(() => {
+        toast({
+          title: "Video Call Active",
+          description: "Call quality: HD • Recording: On • Duration: " + duration + " minutes",
+        });
+      }, 2000);
+    }, 1500);
+
+    // Reset form
     setVideoCall({
       participant: "",
       type: "consultation",
       duration: "30",
       scheduled: false,
       scheduledTime: ""
-    });
-    
-    toast({
-      title: "Video Call Started",
-      description: `Connecting to ${videoCall.participant}...`,
     });
   };
 
