@@ -222,6 +222,19 @@ export default function PrescriptionsPage() {
 
   const { data: rawPrescriptions = [], isLoading, error } = useQuery({
     queryKey: ["/api/prescriptions"],
+    queryFn: async () => {
+      const response = await fetch("/api/prescriptions", {
+        headers: {
+          'X-Tenant-Subdomain': 'demo',
+        },
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch prescriptions: ${response.status}`);
+      }
+      const data = await response.json();
+      return data;
+    },
     enabled: true,
   });
 
