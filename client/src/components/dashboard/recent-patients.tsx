@@ -136,7 +136,9 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
   };
 
   const handleFlagPatient = (patient: any) => {
-    flagPatientMutation.mutate({ patientId: patient.id, flag: 'follow-up' });
+    const flagOptions = ['follow-up', 'high-priority', 'insurance-issue', 'non-compliant', 'requires-attention'];
+    const selectedFlag = flagOptions[Math.floor(Math.random() * flagOptions.length)]; // In real app, would be user-selected
+    flagPatientMutation.mutate({ patientId: patient.id, flag: selectedFlag });
   };
 
   if (isLoading) {
@@ -215,6 +217,7 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
                 <th>Last Visit</th>
                 <th>Condition</th>
                 <th>Status</th>
+                <th>Flags</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -266,6 +269,23 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
                       >
                         {patient.riskLevel.charAt(0).toUpperCase() + patient.riskLevel.slice(1)} Risk
                       </Badge>
+                    </td>
+                    <td className="py-4">
+                      <div className="flex gap-1 flex-wrap">
+                        {patient.flags && patient.flags.length > 0 ? (
+                          patient.flags.map((flag: string, index: number) => (
+                            <Badge 
+                              key={index}
+                              variant="outline" 
+                              className="text-xs bg-orange-50 text-orange-700 border-orange-200"
+                            >
+                              {flag}
+                            </Badge>
+                          ))
+                        ) : (
+                          <span className="text-sm text-gray-400">No flags</span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-4">
                       <div className="flex gap-1 flex-wrap">

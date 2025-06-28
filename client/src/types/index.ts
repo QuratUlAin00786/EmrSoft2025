@@ -67,6 +67,7 @@ export interface Patient {
     }>;
   };
   riskLevel: "low" | "medium" | "high";
+  flags?: string[];
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

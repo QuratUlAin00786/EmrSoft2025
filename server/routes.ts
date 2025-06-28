@@ -303,6 +303,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update patient data (including flags)
+  app.patch("/api/patients/:id", authMiddleware, requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      
+      const updateData = z.object({
+        flags: z.array(z.string()).optional(),
+        riskLevel: z.enum(["low", "medium", "high"]).optional(),
+        isActive: z.boolean().optional()
+      }).parse(req.body);
+
+      const patient = await storage.getPatient(patientId, req.tenant!.id);
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+
+      const updatedPatient = await storage.updatePatient(patientId, req.tenant!.id, updateData);
+
+      if (!updatedPatient) {
+        return res.status(404).json({ error: "Failed to update patient" });
+      }
+
+      res.json(updatedPatient);
+    } catch (error) {
+      console.error("Error updating patient:", error);
+      res.status(500).json({ error: "Failed to update patient" });
+    }
+  });
+
   // Medical records routes
   app.post("/api/patients/:id/records", requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
