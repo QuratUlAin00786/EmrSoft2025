@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { Eye, Calendar, Bell, FileText, AlertTriangle } from "lucide-react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { Patient } from "@/types";
@@ -180,12 +180,11 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           Recent Patients
-          <Button 
-            variant="link" 
-            size="sm" 
-            className="text-medical-blue hover:text-blue-700"
+          <Link 
+            href="/patients"
+            className="text-medical-blue hover:text-blue-700 text-sm font-medium"
             onClick={() => {
-              setLocation("/patients");
+              console.log("View All link clicked - navigating to /patients");
               toast({
                 title: "Patient Directory",
                 description: "Opening complete patient directory",
@@ -193,7 +192,7 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
             }}
           >
             View All
-          </Button>
+          </Link>
         </CardTitle>
       </CardHeader>
       <CardContent>
