@@ -153,7 +153,7 @@ export default function CalendarPage() {
         </div>
 
         {selectedDoctor && (
-          <Card className="mt-6">
+          <Card className="mt-6 bg-white border border-gray-200 shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
