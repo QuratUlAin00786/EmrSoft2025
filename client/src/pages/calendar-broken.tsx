@@ -16,6 +16,8 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function CalendarPage() {
   const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
+  const [showNewAppointment, setShowNewAppointment] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [bookingForm, setBookingForm] = useState({
     patientId: "",
     title: "",
@@ -35,6 +37,7 @@ export default function CalendarPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const patientId = urlParams.get('patientId');
     if (patientId) {
+      setShowNewAppointment(true);
       setBookingForm(prev => ({ ...prev, patientId }));
     }
   }, [location]);
@@ -149,131 +152,130 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        {/* Selected Doctor Indicator */}
+        
         <div className="mt-6">
           <div className="bg-yellow-100 border border-yellow-300 p-3 rounded">
             Selected Doctor: {selectedDoctor ? `${selectedDoctor.firstName} ${selectedDoctor.lastName}` : 'None'}
           </div>
         </div>
 
-        {/* Booking Form */}
         {selectedDoctor && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold text-gray-900">
-                    Book Appointment with {selectedDoctor.firstName} {selectedDoctor.lastName}
-                  </h2>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedDoctor(null)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+          <Card className="mt-6 bg-white border-2 border-blue-500 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Book Appointment with {selectedDoctor.firstName} {selectedDoctor.lastName}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedDoctor(null)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label htmlFor="patientId">Patient ID *</Label>
+                  <Input
+                    id="patientId"
+                    placeholder="Enter patient ID (e.g., 1, 2)"
+                    value={bookingForm.patientId}
+                    onChange={(e) => setBookingForm(prev => ({ ...prev, patientId: e.target.value }))}
+                  />
                 </div>
                 
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <Label htmlFor="patientId">Patient ID *</Label>
-                    <Input
-                      id="patientId"
-                      placeholder="Enter patient ID (e.g., 1, 2)"
-                      value={bookingForm.patientId}
-                      onChange={(e) => setBookingForm(prev => ({ ...prev, patientId: e.target.value }))}
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="scheduledAt">Date & Time *</Label>
-                    <Input
-                      id="scheduledAt"
-                      type="datetime-local"
-                      value={bookingForm.scheduledAt}
-                      onChange={(e) => setBookingForm(prev => ({ ...prev, scheduledAt: e.target.value }))}
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="type">Appointment Type</Label>
-                    <Select value={bookingForm.type} onValueChange={(value) => setBookingForm(prev => ({ ...prev, type: value }))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="consultation">Consultation</SelectItem>
-                        <SelectItem value="follow_up">Follow-up</SelectItem>
-                        <SelectItem value="check_up">Check-up</SelectItem>
-                        <SelectItem value="procedure">Procedure</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="duration">Duration (minutes)</Label>
-                    <Select value={bookingForm.duration} onValueChange={(value) => setBookingForm(prev => ({ ...prev, duration: value }))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="15">15 minutes</SelectItem>
-                        <SelectItem value="30">30 minutes</SelectItem>
-                        <SelectItem value="45">45 minutes</SelectItem>
-                        <SelectItem value="60">60 minutes</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="md:col-span-2">
-                    <Label htmlFor="title">Title (optional)</Label>
-                    <Input
-                      id="title"
-                      placeholder="Enter appointment title"
-                      value={bookingForm.title}
-                      onChange={(e) => setBookingForm(prev => ({ ...prev, title: e.target.value }))}
-                    />
-                  </div>
-                  
-                  <div className="md:col-span-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea
-                      id="description"
-                      placeholder="Enter appointment description or notes"
-                      value={bookingForm.description}
-                      onChange={(e) => setBookingForm(prev => ({ ...prev, description: e.target.value }))}
-                    />
-                  </div>
-                  
-                  <div className="md:col-span-2">
-                    <Label htmlFor="location">Location</Label>
-                    <Input
-                      id="location"
-                      placeholder="Room or department location"
-                      value={bookingForm.location}
-                      onChange={(e) => setBookingForm(prev => ({ ...prev, location: e.target.value }))}
-                    />
-                  </div>
+                <div>
+                  <Label htmlFor="scheduledAt">Date & Time *</Label>
+                  <Input
+                    id="scheduledAt"
+                    type="datetime-local"
+                    value={bookingForm.scheduledAt}
+                    onChange={(e) => setBookingForm(prev => ({ ...prev, scheduledAt: e.target.value }))}
+                  />
                 </div>
                 
-                <div className="flex justify-end gap-2 mt-6">
-                  <Button
-                    variant="outline"
-                    onClick={() => setSelectedDoctor(null)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleBookAppointment}
-                    disabled={createAppointmentMutation.isPending}
-                  >
-                    <Clock className="h-4 w-4 mr-2" />
-                    {createAppointmentMutation.isPending ? "Booking..." : "Book Appointment"}
-                  </Button>
+                <div>
+                  <Label htmlFor="type">Appointment Type</Label>
+                  <Select value={bookingForm.type} onValueChange={(value) => setBookingForm(prev => ({ ...prev, type: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="consultation">Consultation</SelectItem>
+                      <SelectItem value="follow_up">Follow-up</SelectItem>
+                      <SelectItem value="check_up">Check-up</SelectItem>
+                      <SelectItem value="procedure">Procedure</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label htmlFor="duration">Duration (minutes)</Label>
+                  <Select value={bookingForm.duration} onValueChange={(value) => setBookingForm(prev => ({ ...prev, duration: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="15">15 minutes</SelectItem>
+                      <SelectItem value="30">30 minutes</SelectItem>
+                      <SelectItem value="45">45 minutes</SelectItem>
+                      <SelectItem value="60">60 minutes</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="md:col-span-2">
+                  <Label htmlFor="title">Title (optional)</Label>
+                  <Input
+                    id="title"
+                    placeholder="Enter appointment title"
+                    value={bookingForm.title}
+                    onChange={(e) => setBookingForm(prev => ({ ...prev, title: e.target.value }))}
+                  />
+                </div>
+                
+                <div className="md:col-span-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    placeholder="Enter appointment description or notes"
+                    value={bookingForm.description}
+                    onChange={(e) => setBookingForm(prev => ({ ...prev, description: e.target.value }))}
+                  />
+                </div>
+                
+                <div className="md:col-span-2">
+                  <Label htmlFor="location">Location</Label>
+                  <Input
+                    id="location"
+                    placeholder="Room or department location"
+                    value={bookingForm.location}
+                    onChange={(e) => setBookingForm(prev => ({ ...prev, location: e.target.value }))}
+                  />
                 </div>
               </div>
-            </div>
-          </div>
+              
+              <div className="flex justify-end gap-2 mt-6">
+                <Button
+                  variant="outline"
+                  onClick={() => setSelectedDoctor(null)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleBookAppointment}
+                  disabled={createAppointmentMutation.isPending}
+                >
+                  <Clock className="h-4 w-4 mr-2" />
+                  {createAppointmentMutation.isPending ? "Booking..." : "Book Appointment"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </>
