@@ -94,15 +94,7 @@ export const patients = pgTable("patients", {
     }>;
   }>().default({}),
   riskLevel: varchar("risk_level", { length: 10 }).notNull().default("low"), // low, medium, high
-  flags: jsonb("flags").$type<{
-    type?: string; // follow-up, urgent, billing, insurance, etc.
-    reason?: string;
-    addedBy?: string;
-    addedAt?: string;
-    resolved?: boolean;
-    resolvedAt?: string;
-    resolvedBy?: string;
-  }[]>().default([]),
+  flags: jsonb("flags").$type<string[]>().default([]),
   communicationPreferences: jsonb("communication_preferences").$type<{
     preferredMethod?: "email" | "sms" | "phone" | "whatsapp";
     emailNotifications?: boolean;
