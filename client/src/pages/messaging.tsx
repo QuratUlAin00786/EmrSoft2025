@@ -10,6 +10,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { 
   Send, 
   Plus, 
@@ -88,6 +90,14 @@ export default function MessagingPage() {
   const [newMessageContent, setNewMessageContent] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [messageFilter, setMessageFilter] = useState("all");
+  const [showCreateCampaign, setShowCreateCampaign] = useState(false);
+  const [newCampaign, setNewCampaign] = useState({
+    name: "",
+    type: "email" as "email" | "sms" | "both",
+    subject: "",
+    content: "",
+    template: "default"
+  });
   const { toast } = useToast();
 
   const { data: conversations = [], isLoading: conversationsLoading } = useQuery({
@@ -134,12 +144,40 @@ export default function MessagingPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/messaging/campaigns'] });
+      setShowCreateCampaign(false);
+      setNewCampaign({
+        name: "",
+        type: "email",
+        subject: "",
+        content: "",
+        template: "default"
+      });
       toast({
         title: "Campaign Created",
-        description: "Your messaging campaign has been created.",
+        description: "Your messaging campaign has been created successfully.",
       });
     }
   });
+
+  const handleCreateCampaign = () => {
+    if (!newCampaign.name.trim() || !newCampaign.subject.trim() || !newCampaign.content.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    createCampaignMutation.mutate({
+      ...newCampaign,
+      status: "draft",
+      recipientCount: 0,
+      sentCount: 0,
+      openRate: 0,
+      clickRate: 0
+    });
+  };
 
   const filteredConversations = conversations.filter((conv: Conversation) => {
     if (messageFilter === "unread" && conv.unreadCount === 0) return false;
@@ -416,17 +454,107 @@ export default function MessagingPage() {
         <TabsContent value="campaigns" className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Messaging Campaigns</h2>
-            <Button onClick={() => createCampaignMutation.mutate({
-              name: "New Campaign",
-              type: "email",
-              status: "draft",
-              subject: "Important Update",
-              content: "Template content here...",
-              template: "default"
-            })}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Campaign
-            </Button>
+            <Dialog open={showCreateCampaign} onOpenChange={setShowCreateCampaign}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Campaign
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Create New Campaign</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="campaignName">Campaign Name *</Label>
+                      <Input
+                        id="campaignName"
+                        placeholder="Enter campaign name"
+                        value={newCampaign.name}
+                        onChange={(e) => setNewCampaign(prev => ({ ...prev, name: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="campaignType">Campaign Type</Label>
+                      <Select 
+                        value={newCampaign.type} 
+                        onValueChange={(value: "email" | "sms" | "both") => 
+                          setNewCampaign(prev => ({ ...prev, type: value }))
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="email">Email</SelectItem>
+                          <SelectItem value="sms">SMS</SelectItem>
+                          <SelectItem value="both">Email & SMS</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="campaignSubject">Subject Line *</Label>
+                    <Input
+                      id="campaignSubject"
+                      placeholder="Enter subject line"
+                      value={newCampaign.subject}
+                      onChange={(e) => setNewCampaign(prev => ({ ...prev, subject: e.target.value }))}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="campaignContent">Message Content *</Label>
+                    <Textarea
+                      id="campaignContent"
+                      placeholder="Enter your campaign message content..."
+                      rows={6}
+                      value={newCampaign.content}
+                      onChange={(e) => setNewCampaign(prev => ({ ...prev, content: e.target.value }))}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="campaignTemplate">Template</Label>
+                    <Select 
+                      value={newCampaign.template} 
+                      onValueChange={(value) => 
+                        setNewCampaign(prev => ({ ...prev, template: value }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="default">Default</SelectItem>
+                        <SelectItem value="appointment_reminder">Appointment Reminder</SelectItem>
+                        <SelectItem value="health_tip">Health Tip</SelectItem>
+                        <SelectItem value="vaccination_reminder">Vaccination Reminder</SelectItem>
+                        <SelectItem value="follow_up">Follow-up Care</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex justify-end gap-3">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowCreateCampaign(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleCreateCampaign}
+                      disabled={createCampaignMutation.isPending}
+                    >
+                      {createCampaignMutation.isPending ? "Creating..." : "Create Campaign"}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
