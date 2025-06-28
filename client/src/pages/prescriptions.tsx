@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Header } from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -175,6 +175,49 @@ export default function PrescriptionsPage() {
   const [showNewPrescription, setShowNewPrescription] = useState(false);
   const queryClient = useQueryClient();
 
+  // Form state for prescription editing
+  const [formData, setFormData] = useState({
+    patientId: "",
+    patientName: "",
+    diagnosis: "",
+    medicationName: "",
+    dosage: "",
+    frequency: "",
+    quantity: "",
+    refills: "",
+    instructions: ""
+  });
+
+  // Update form data when selectedPrescription changes
+  useEffect(() => {
+    if (selectedPrescription) {
+      const firstMedication = selectedPrescription.medications[0] || {};
+      setFormData({
+        patientId: selectedPrescription.patientId,
+        patientName: selectedPrescription.patientName,
+        diagnosis: selectedPrescription.diagnosis,
+        medicationName: firstMedication.name || "",
+        dosage: firstMedication.dosage || "",
+        frequency: firstMedication.frequency || "",
+        quantity: firstMedication.quantity?.toString() || "",
+        refills: firstMedication.refills?.toString() || "",
+        instructions: firstMedication.instructions || ""
+      });
+    } else {
+      setFormData({
+        patientId: "",
+        patientName: "",
+        diagnosis: "",
+        medicationName: "",
+        dosage: "",
+        frequency: "",
+        quantity: "",
+        refills: "",
+        instructions: ""
+      });
+    }
+  }, [selectedPrescription]);
+
   const { data: prescriptions = mockPrescriptions, isLoading } = useQuery({
     queryKey: ["/api/prescriptions", statusFilter],
     enabled: true,
@@ -182,17 +225,22 @@ export default function PrescriptionsPage() {
 
   const createPrescriptionMutation = useMutation({
     mutationFn: async (prescriptionData: any) => {
-      const response = await fetch("/api/prescriptions", {
-        method: "POST",
+      const isUpdate = selectedPrescription && selectedPrescription.id;
+      const url = isUpdate ? `/api/prescriptions/${selectedPrescription.id}` : "/api/prescriptions";
+      const method = isUpdate ? "PATCH" : "POST";
+      
+      const response = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(prescriptionData),
       });
-      if (!response.ok) throw new Error("Failed to create prescription");
+      if (!response.ok) throw new Error(`Failed to ${isUpdate ? 'update' : 'create'} prescription`);
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/prescriptions"] });
       setShowNewPrescription(false);
+      setSelectedPrescription(null);
     },
   });
 

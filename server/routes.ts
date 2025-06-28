@@ -862,6 +862,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/prescriptions/:id", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const prescriptionId = parseInt(req.params.id);
+      const prescriptionData = req.body;
+      
+      // Update prescription data
+      const prescriptionUpdates = {
+        status: prescriptionData.status,
+        diagnosis: prescriptionData.diagnosis,
+        medications: prescriptionData.medications || [],
+        pharmacy: prescriptionData.pharmacy || {},
+        notes: prescriptionData.notes,
+        validUntil: prescriptionData.validUntil ? new Date(prescriptionData.validUntil) : null,
+        interactions: prescriptionData.interactions || []
+      };
+
+      const updatedPrescription = await storage.updatePrescription(prescriptionId, req.tenant!.id, prescriptionUpdates);
+      
+      if (!updatedPrescription) {
+        return res.status(404).json({ error: "Prescription not found" });
+      }
+
+      res.json(updatedPrescription);
+    } catch (error) {
+      console.error("Error updating prescription:", error);
+      res.status(500).json({ error: "Failed to update prescription" });
+    }
+  });
+
   // Lab Results Routes
   app.get("/api/lab-results", authMiddleware, async (req: TenantRequest, res) => {
     try {
