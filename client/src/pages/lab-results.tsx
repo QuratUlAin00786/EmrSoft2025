@@ -737,7 +737,7 @@ export default function LabResultsPage() {
 
       {/* Review Lab Result Dialog */}
       <Dialog open={showReviewDialog} onOpenChange={setShowReviewDialog}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Review & Share Lab Results</DialogTitle>
           </DialogHeader>
