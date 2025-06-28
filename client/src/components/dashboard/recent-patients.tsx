@@ -168,7 +168,7 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             Recent Patients
-            <Button variant="link" size="sm">View All</Button>
+            <Button variant="link" size="sm" onClick={handleViewAllPatients}>View All</Button>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -185,15 +185,14 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           Recent Patients
-          <button 
-            className="text-medical-blue hover:text-blue-700 text-sm font-medium hover:underline"
-            onClick={() => {
-              console.log("View All button clicked - navigating to /patients");
-              window.location.href = "/patients";
-            }}
+          <Button 
+            variant="link" 
+            size="sm" 
+            onClick={handleViewAllPatients}
+            className="text-medical-blue hover:text-blue-700"
           >
             View All
-          </button>
+          </Button>
         </CardTitle>
       </CardHeader>
       <CardContent>
