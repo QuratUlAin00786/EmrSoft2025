@@ -129,6 +129,10 @@ export interface IStorage {
   createWebhook(webhookData: any, organizationId: number): Promise<any>;
   getApiKeys(organizationId: number): Promise<any[]>;
   createApiKey(apiKeyData: any, organizationId: number): Promise<any>;
+
+  // Lab Results
+  getLabResults(organizationId: number): Promise<any[]>;
+  createLabResult(labResult: any): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -988,6 +992,61 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(prescriptions.id, id), eq(prescriptions.organizationId, organizationId)))
       .returning();
     return updatedPrescription;
+  }
+
+  // Lab Results methods
+  private static labResultsStore: any[] = [];
+
+  async getLabResults(organizationId: number): Promise<any[]> {
+    // Return lab results from storage (for now using stored data)
+    // In a real implementation, this would query a lab_results table
+    const mockResults = [
+      {
+        id: "lab_001",
+        patientId: "p_001",
+        patientName: "Sarah Johnson",
+        testType: "Complete Blood Count (CBC)",
+        orderedBy: "Dr. Sarah Smith",
+        orderedAt: "2024-01-15T09:00:00Z",
+        collectedAt: "2024-01-15T10:30:00Z",
+        completedAt: "2024-01-15T14:45:00Z",
+        status: "completed",
+        results: [
+          {
+            name: "White Blood Cells",
+            value: "7.2",
+            unit: "×10³/µL",
+            referenceRange: "4.0-11.0",
+            status: "normal"
+          },
+          {
+            name: "Hemoglobin",
+            value: "13.5",
+            unit: "g/dL",
+            referenceRange: "12.0-15.5",
+            status: "normal"
+          }
+        ]
+      }
+    ];
+
+    // Include any newly created lab orders from this session
+    return [...mockResults, ...DatabaseStorage.labResultsStore.filter(result => result.organizationId === organizationId)];
+  }
+
+  async createLabResult(labResult: any): Promise<any> {
+    const newLabResult = {
+      id: `lab_${Date.now()}`,
+      ...labResult,
+      orderedAt: new Date().toISOString(),
+      status: "pending",
+      results: []
+    };
+
+    // Store in class static variable for this session (in real app, this would be database)
+    DatabaseStorage.labResultsStore.push(newLabResult);
+
+    return newLabResult;
   }
 }
 

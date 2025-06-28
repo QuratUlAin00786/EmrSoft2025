@@ -907,37 +907,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "User not authenticated" });
       }
 
-      // Mock lab results data
-      const labResults = [
-        {
-          id: "lab_001",
-          patientId: "p_001",
-          patientName: "Sarah Johnson",
-          testType: "Complete Blood Count (CBC)",
-          orderedBy: "Dr. Sarah Smith",
-          orderedAt: "2024-01-15T09:00:00Z",
-          collectedAt: "2024-01-15T10:30:00Z",
-          completedAt: "2024-01-15T14:45:00Z",
-          status: "completed",
-          results: [
-            {
-              name: "White Blood Cells",
-              value: "7.2",
-              unit: "×10³/µL",
-              referenceRange: "4.0-11.0",
-              status: "normal"
-            },
-            {
-              name: "Hemoglobin",
-              value: "13.5",
-              unit: "g/dL",
-              referenceRange: "12.0-15.5",
-              status: "normal"
-            }
-          ]
-        }
-      ];
-
+      const labResults = await storage.getLabResults(req.organizationId!);
       res.json(labResults);
     } catch (error) {
       console.error("Error fetching lab results:", error);
@@ -953,13 +923,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const labData = req.body;
       
-      const newLabResult = {
-        id: `lab_${Date.now()}`,
-        ...labData,
+      const newLabResult = await storage.createLabResult({
+        patientId: labData.patientId,
+        patientName: labData.patientName,
+        testType: labData.testType,
         orderedBy: req.user.email,
-        orderedAt: new Date().toISOString(),
-        status: "pending"
-      };
+        organizationId: req.organizationId!,
+        providerId: req.user.id,
+        status: "pending",
+        priority: labData.priority || "routine",
+        notes: labData.notes
+      });
 
       res.status(201).json(newLabResult);
     } catch (error) {
