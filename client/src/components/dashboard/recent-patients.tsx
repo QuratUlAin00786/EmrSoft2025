@@ -64,6 +64,17 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
   
   const { data: patients, isLoading, error } = useQuery<Patient[]>({
     queryKey: ["/api/patients", { limit: 10 }],
+    queryFn: async () => {
+      const response = await fetch("/api/patients?limit=10", {
+        headers: {
+          "X-Tenant-Subdomain": "demo"
+        }
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch patients: ${response.status}`);
+      }
+      return response.json();
+    }
   });
 
   const sendReminderMutation = useMutation({
