@@ -267,6 +267,40 @@ export const patientCommunications = pgTable("patient_communications", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Notifications
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  userId: integer("user_id").notNull().references(() => users.id), // Who should receive this notification
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  type: varchar("type", { length: 50 }).notNull(), // appointment_reminder, lab_result, prescription_alert, system_alert, payment_due, etc.
+  priority: varchar("priority", { length: 20 }).notNull().default("normal"), // low, normal, high, critical
+  status: varchar("status", { length: 20 }).notNull().default("unread"), // unread, read, dismissed, archived
+  relatedEntityType: varchar("related_entity_type", { length: 50 }), // patient, appointment, prescription, etc.
+  relatedEntityId: integer("related_entity_id"), // ID of the related entity
+  actionUrl: text("action_url"), // URL to navigate to when clicked
+  isActionable: boolean("is_actionable").notNull().default(false), // Whether this notification requires an action
+  scheduledFor: timestamp("scheduled_for"), // For delayed notifications
+  expiresAt: timestamp("expires_at"), // When notification should auto-expire
+  metadata: jsonb("metadata").$type<{
+    patientId?: number;
+    patientName?: string;
+    appointmentId?: number;
+    prescriptionId?: number;
+    urgency?: "low" | "medium" | "high" | "critical";
+    department?: string;
+    requiresResponse?: boolean;
+    autoMarkAsRead?: boolean;
+    icon?: string;
+    color?: string;
+  }>().default({}),
+  readAt: timestamp("read_at"),
+  dismissedAt: timestamp("dismissed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Relations
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   users: many(users),
@@ -292,6 +326,17 @@ export const patientsRelations = relations(patients, ({ one, many }) => ({
   appointments: many(appointments),
   aiInsights: many(aiInsights),
   communications: many(patientCommunications),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [notifications.organizationId],
+    references: [organizations.id],
+  }),
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
+  }),
 }));
 
 export const patientCommunicationsRelations = relations(patientCommunications, ({ one }) => ({
@@ -427,6 +472,12 @@ export const insertPatientCommunicationSchema = createInsertSchema(patientCommun
   updatedAt: true,
 });
 
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type Organization = typeof organizations.$inferSelect;
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
@@ -454,3 +505,6 @@ export type InsertConsultation = z.infer<typeof insertConsultationSchema>;
 
 export type PatientCommunication = typeof patientCommunications.$inferSelect;
 export type InsertPatientCommunication = z.infer<typeof insertPatientCommunicationSchema>;
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;

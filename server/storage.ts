@@ -442,6 +442,118 @@ export class DatabaseStorage implements IStorage {
     return lastReminder;
   }
 
+  // Notifications
+  async getNotifications(userId: number, organizationId: number, limit = 20): Promise<Notification[]> {
+    return await db
+      .select()
+      .from(notifications)
+      .where(and(
+        eq(notifications.userId, userId),
+        eq(notifications.organizationId, organizationId),
+        not(eq(notifications.status, 'archived'))
+      ))
+      .orderBy(desc(notifications.createdAt))
+      .limit(limit);
+  }
+
+  async getUnreadNotificationCount(userId: number, organizationId: number): Promise<number> {
+    const [result] = await db
+      .select({ count: count() })
+      .from(notifications)
+      .where(and(
+        eq(notifications.userId, userId),
+        eq(notifications.organizationId, organizationId),
+        eq(notifications.status, 'unread')
+      ));
+    return result?.count || 0;
+  }
+
+  async getNotification(id: number, userId: number, organizationId: number): Promise<Notification | undefined> {
+    const [notification] = await db
+      .select()
+      .from(notifications)
+      .where(and(
+        eq(notifications.id, id),
+        eq(notifications.userId, userId),
+        eq(notifications.organizationId, organizationId)
+      ));
+    return notification;
+  }
+
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const cleanNotification: any = { ...notification };
+    // Clean metadata to avoid type issues
+    if (cleanNotification.metadata) {
+      cleanNotification.metadata = JSON.parse(JSON.stringify(cleanNotification.metadata));
+    }
+    
+    const [created] = await db
+      .insert(notifications)
+      .values([cleanNotification])
+      .returning();
+    return created;
+  }
+
+  async markNotificationAsRead(id: number, userId: number, organizationId: number): Promise<Notification | undefined> {
+    const [updated] = await db
+      .update(notifications)
+      .set({ 
+        status: 'read', 
+        readAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(notifications.id, id),
+        eq(notifications.userId, userId),
+        eq(notifications.organizationId, organizationId)
+      ))
+      .returning();
+    return updated;
+  }
+
+  async markNotificationAsDismissed(id: number, userId: number, organizationId: number): Promise<Notification | undefined> {
+    const [updated] = await db
+      .update(notifications)
+      .set({ 
+        status: 'dismissed', 
+        dismissedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(notifications.id, id),
+        eq(notifications.userId, userId),
+        eq(notifications.organizationId, organizationId)
+      ))
+      .returning();
+    return updated;
+  }
+
+  async markAllNotificationsAsRead(userId: number, organizationId: number): Promise<void> {
+    await db
+      .update(notifications)
+      .set({ 
+        status: 'read',
+        readAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(notifications.userId, userId),
+        eq(notifications.organizationId, organizationId),
+        eq(notifications.status, 'unread')
+      ));
+  }
+
+  async deleteNotification(id: number, userId: number, organizationId: number): Promise<boolean> {
+    const result = await db
+      .delete(notifications)
+      .where(and(
+        eq(notifications.id, id),
+        eq(notifications.userId, userId),
+        eq(notifications.organizationId, organizationId)
+      ));
+    return result.rowCount > 0;
+  }
+
   // Consultation Methods Implementation
   async getConsultation(id: number, organizationId: number): Promise<Consultation | undefined> {
     const [consultation] = await db
