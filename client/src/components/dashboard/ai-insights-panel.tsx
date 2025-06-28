@@ -104,7 +104,7 @@ export function AiInsightsPanel() {
     );
   }
 
-  if (error) {
+  if (error && Object.keys(error).length > 0) {
     return (
       <Card className="dashboard-card">
         <CardHeader>

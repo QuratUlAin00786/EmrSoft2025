@@ -197,6 +197,7 @@ export default function PrescriptionsPage() {
   });
 
   const handleCreatePrescription = () => {
+    setSelectedPrescription(null); // Clear any selected prescription for new creation
     setShowNewPrescription(true);
   };
 
@@ -409,7 +410,9 @@ export default function PrescriptionsPage() {
                   </DialogTrigger>
                   <DialogContent className="max-w-2xl">
                     <DialogHeader>
-                      <DialogTitle>Create New Prescription</DialogTitle>
+                      <DialogTitle>
+                        {selectedPrescription ? "Edit Prescription" : "Create New Prescription"}
+                      </DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
@@ -480,15 +483,27 @@ export default function PrescriptionsPage() {
                         </Button>
                         <Button 
                           onClick={() => {
-                            createPrescriptionMutation.mutate({
-                              patientId: "p_001", // This should be from form
-                              diagnosis: "Sample Diagnosis",
-                              medications: []
-                            });
+                            if (selectedPrescription) {
+                              // Handle edit
+                              toast({
+                                title: "Prescription Updated",
+                                description: `Updated prescription for ${selectedPrescription.patientName}`,
+                              });
+                            } else {
+                              // Handle create
+                              createPrescriptionMutation.mutate({
+                                patientId: "p_001", // This should be from form
+                                diagnosis: "Sample Diagnosis",
+                                medications: []
+                              });
+                            }
                           }}
                           disabled={createPrescriptionMutation.isPending}
                         >
-                          {createPrescriptionMutation.isPending ? "Creating..." : "Create Prescription"}
+                          {createPrescriptionMutation.isPending ? 
+                            (selectedPrescription ? "Updating..." : "Creating...") : 
+                            (selectedPrescription ? "Update Prescription" : "Create Prescription")
+                          }
                         </Button>
                       </div>
                     </div>
