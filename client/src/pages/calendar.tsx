@@ -153,7 +153,11 @@ export default function CalendarPage() {
         </div>
 
         {selectedDoctor && (
-          <Card className="mt-6 bg-white border border-gray-200 shadow-sm">
+          <div className="mt-8 w-full bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+            <div className="text-blue-900 font-bold mb-4">
+              🎯 BOOKING FORM FOR {selectedDoctor.firstName} {selectedDoctor.lastName}
+            </div>
+            <Card className="bg-white border border-gray-200 shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -269,6 +273,7 @@ export default function CalendarPage() {
               </div>
             </CardContent>
           </Card>
+          </div>
         )}
       </div>
     </>
