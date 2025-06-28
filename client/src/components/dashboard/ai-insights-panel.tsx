@@ -1,3 +1,4 @@
+import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Lightbulb, CheckCircle, AlertTriangle, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,7 +43,19 @@ export function AiInsightsPanel() {
   
   const { data: insights, isLoading, error } = useQuery<AiInsight[]>({
     queryKey: ["/api/dashboard/ai-insights"],
+    retry: 2,
+    retryDelay: 1000,
   });
+
+  // Debug to see if query is actually executing
+  console.log("AI Insights state:", { insights, isLoading, error, hasData: !!insights });
+  
+  // Force a manual request to debug
+  React.useEffect(() => {
+    if (error) {
+      console.log("AI Insights error detected:", error);
+    }
+  }, [error]);
 
 
 
