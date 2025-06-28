@@ -1,5 +1,5 @@
 import { db } from "./db.js";
-import { organizations, users, patients, appointments, medicalRecords } from "@shared/schema.js";
+import { organizations, users, patients, appointments, medicalRecords, notifications } from "@shared/schema.js";
 import { authService } from "./services/auth.js";
 
 export async function seedDatabase() {
@@ -202,6 +202,117 @@ export async function seedDatabase() {
 
     await db.insert(medicalRecords).values(sampleRecords);
     console.log("Created sample medical records");
+
+    // Create sample notifications
+    const sampleNotifications = [
+      {
+        organizationId: org.id,
+        userId: createdUsers[1].id, // Dr. Smith
+        title: "Lab Results Available",
+        message: "Blood work results for Sarah Johnson are now available for review.",
+        type: "lab_result",
+        priority: "normal" as const,
+        status: "unread" as const,
+        isActionable: true,
+        actionUrl: "/patients/1/lab-results",
+        relatedEntityType: "patient",
+        relatedEntityId: createdPatients[0].id,
+        metadata: {
+          patientId: createdPatients[0].id,
+          patientName: "Sarah Johnson",
+          urgency: "medium" as const,
+          department: "Laboratory",
+          icon: "Activity",
+          color: "blue"
+        }
+      },
+      {
+        organizationId: org.id,
+        userId: createdUsers[1].id, // Dr. Smith
+        title: "Appointment Reminder",
+        message: "Upcoming appointment with Sarah Johnson tomorrow at 10:00 AM.",
+        type: "appointment_reminder",
+        priority: "high" as const,
+        status: "unread" as const,
+        isActionable: true,
+        actionUrl: "/calendar",
+        relatedEntityType: "appointment",
+        relatedEntityId: createdAppointments[0].id,
+        metadata: {
+          patientId: createdPatients[0].id,
+          patientName: "Sarah Johnson",
+          appointmentId: createdAppointments[0].id,
+          urgency: "high" as const,
+          department: "Cardiology",
+          icon: "Calendar",
+          color: "orange"
+        }
+      },
+      {
+        organizationId: org.id,
+        userId: createdUsers[0].id, // Admin
+        title: "Critical Drug Interaction Alert",
+        message: "Potential interaction detected between Warfarin and Aspirin for patient Robert Davis.",
+        type: "prescription_alert",
+        priority: "critical" as const,
+        status: "unread" as const,
+        isActionable: true,
+        actionUrl: "/patients/2/prescriptions",
+        relatedEntityType: "patient",
+        relatedEntityId: createdPatients[1].id,
+        metadata: {
+          patientId: createdPatients[1].id,
+          patientName: "Robert Davis",
+          urgency: "critical" as const,
+          department: "Pharmacy",
+          icon: "AlertTriangle",
+          color: "red",
+          requiresResponse: true
+        }
+      },
+      {
+        organizationId: org.id,
+        userId: createdUsers[2].id, // Nurse Williams
+        title: "Patient Message",
+        message: "Sarah Johnson has sent a message regarding her medication side effects.",
+        type: "message",
+        priority: "normal" as const,
+        status: "read" as const,
+        isActionable: true,
+        actionUrl: "/messaging/conversations/1",
+        relatedEntityType: "patient",
+        relatedEntityId: createdPatients[0].id,
+        readAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // Read 2 hours ago
+        metadata: {
+          patientId: createdPatients[0].id,
+          patientName: "Sarah Johnson",
+          urgency: "medium" as const,
+          department: "General",
+          icon: "MessageSquare",
+          color: "green"
+        }
+      },
+      {
+        organizationId: org.id,
+        userId: createdUsers[1].id, // Dr. Smith
+        title: "System Maintenance Alert",
+        message: "Scheduled system maintenance will occur tonight from 2:00 AM - 4:00 AM.",
+        type: "system_alert",
+        priority: "low" as const,
+        status: "unread" as const,
+        isActionable: false,
+        metadata: {
+          urgency: "low" as const,
+          department: "IT",
+          icon: "Settings",
+          color: "gray",
+          autoMarkAsRead: true
+        }
+      }
+    ];
+
+    await db.insert(notifications).values(sampleNotifications);
+    console.log(`Created ${sampleNotifications.length} sample notifications`);
 
     console.log("Database seeding completed successfully!");
     

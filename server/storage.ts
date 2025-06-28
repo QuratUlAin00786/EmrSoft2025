@@ -76,6 +76,16 @@ export interface IStorage {
   updatePatientCommunication(id: number, organizationId: number, updates: Partial<InsertPatientCommunication>): Promise<PatientCommunication | undefined>;
   getLastReminderSent(patientId: number, organizationId: number, type: string): Promise<PatientCommunication | undefined>;
 
+  // Notifications
+  getNotifications(userId: number, organizationId: number, limit?: number): Promise<Notification[]>;
+  getUnreadNotificationCount(userId: number, organizationId: number): Promise<number>;
+  getNotification(id: number, userId: number, organizationId: number): Promise<Notification | undefined>;
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  markNotificationAsRead(id: number, userId: number, organizationId: number): Promise<Notification | undefined>;
+  markNotificationAsDismissed(id: number, userId: number, organizationId: number): Promise<Notification | undefined>;
+  markAllNotificationsAsRead(userId: number, organizationId: number): Promise<void>;
+  deleteNotification(id: number, userId: number, organizationId: number): Promise<boolean>;
+
   // Dashboard Stats
   getDashboardStats(organizationId: number): Promise<{
     totalPatients: number;
