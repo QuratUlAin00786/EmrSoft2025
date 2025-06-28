@@ -96,9 +96,14 @@ export default function FormsPage() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 100);
+      const scrollY = window.scrollY;
+      console.log('Scroll Y:', scrollY); // Debug log
+      setShowScrollTop(scrollY > 100);
     };
 
+    // Check initial scroll position
+    handleScroll();
+    
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -349,16 +354,33 @@ export default function FormsPage() {
         </Tabs>
       </div>
 
-      {/* Scroll to Top Button */}
-      {showScrollTop && (
-        <Button
-          onClick={scrollToTop}
-          className="fixed bottom-8 right-8 z-50 w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg transition-all duration-300 ease-in-out flex items-center justify-center"
-          aria-label="Scroll to top"
-        >
-          <ChevronUp className="h-5 w-5" />
-        </Button>
-      )}
+      {/* Scroll to Top Button - Debug: Always visible for now */}
+      <Button
+        onClick={scrollToTop}
+        className="fixed bottom-8 right-8 z-50 w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg transition-all duration-300 ease-in-out flex items-center justify-center"
+        aria-label="Scroll to top"
+        style={{ display: showScrollTop ? 'flex' : 'none' }}
+      >
+        <ChevronUp className="h-5 w-5" />
+      </Button>
+      
+      {/* Debug info */}
+      <div className="fixed bottom-20 right-8 bg-black text-white p-2 text-xs rounded z-50">
+        Scroll: {typeof window !== 'undefined' ? window.scrollY : 0} | Show: {showScrollTop ? 'yes' : 'no'}
+      </div>
+      
+      {/* Temporary extra content to test scrolling */}
+      <div className="h-screen bg-gray-100 p-8">
+        <h3 className="text-lg font-semibold mb-4">Test Scroll Content</h3>
+        <p className="mb-4">Scroll down to test the scroll-to-top button functionality.</p>
+        <div className="space-y-4">
+          {Array.from({ length: 20 }, (_, i) => (
+            <div key={i} className="p-4 bg-white rounded border">
+              <p>Test content block {i + 1} - This is additional content to make the page scrollable for testing the scroll-to-top button.</p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
