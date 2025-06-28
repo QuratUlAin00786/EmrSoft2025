@@ -166,6 +166,7 @@ export default function ImagingPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showNewOrder, setShowNewOrder] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
   const [modalityFilter, setModalityFilter] = useState<string>("all");
   const [selectedStudy, setSelectedStudy] = useState<ImagingStudy | null>(null);
   const [shareFormData, setShareFormData] = useState({
@@ -220,10 +221,8 @@ export default function ImagingPage() {
   const handleGenerateReport = (studyId: string) => {
     const study = (studies as any || []).find((s: any) => s.id === studyId);
     if (study) {
-      toast({
-        title: "Generate Report",
-        description: `Report generated for ${study.patientName}`,
-      });
+      setSelectedStudy(study);
+      setShowReportDialog(true);
     }
   };
 
@@ -633,6 +632,138 @@ export default function ImagingPage() {
                   <Share className="h-4 w-4 mr-2" />
                   Share Study
                 </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Generate Report Dialog */}
+      <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Generate Radiology Report</DialogTitle>
+          </DialogHeader>
+          {selectedStudy && (
+            <div className="space-y-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">{selectedStudy.patientName.charAt(0)}</span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">{selectedStudy.patientName}</h3>
+                    <p className="text-sm text-gray-600">Patient ID: {selectedStudy.patientId}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div><strong>Study:</strong> {selectedStudy.studyType}</div>
+                  <div><strong>Modality:</strong> {selectedStudy.modality}</div>
+                  <div><strong>Body Part:</strong> {selectedStudy.bodyPart}</div>
+                  <div><strong>Indication:</strong> {selectedStudy.indication}</div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="findings" className="text-sm font-medium">
+                    Findings
+                  </Label>
+                  <Textarea
+                    id="findings"
+                    placeholder="Enter radiological findings..."
+                    value={selectedStudy.findings || ""}
+                    readOnly={selectedStudy.status === 'final'}
+                    rows={4}
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="impression" className="text-sm font-medium">
+                    Impression
+                  </Label>
+                  <Textarea
+                    id="impression"
+                    placeholder="Enter clinical impression..."
+                    value={selectedStudy.impression || ""}
+                    readOnly={selectedStudy.status === 'final'}
+                    rows={3}
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="radiologist" className="text-sm font-medium">
+                    Radiologist
+                  </Label>
+                  <Input
+                    id="radiologist"
+                    value={selectedStudy.radiologist || "Dr. Michael Chen"}
+                    readOnly
+                    className="mt-1"
+                  />
+                </div>
+
+                {selectedStudy.report && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 className="font-medium text-green-800 mb-2">Existing Report</h4>
+                    <div className="text-sm text-green-700 space-y-2">
+                      <div><strong>Status:</strong> {selectedStudy.report.status}</div>
+                      <div><strong>Dictated:</strong> {format(new Date(selectedStudy.report.dictatedAt), "PPpp")}</div>
+                      {selectedStudy.report.signedAt && (
+                        <div><strong>Signed:</strong> {format(new Date(selectedStudy.report.signedAt), "PPpp")}</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-between items-center pt-4 border-t">
+                <Button variant="outline" onClick={() => setShowReportDialog(false)}>
+                  Close
+                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      // Download existing report logic
+                      const reportContent = selectedStudy.report?.content || 
+                        `RADIOLOGY REPORT\n\nPatient: ${selectedStudy.patientName}\nStudy: ${selectedStudy.studyType}\nModality: ${selectedStudy.modality}\nDate: ${new Date(selectedStudy.orderedAt).toLocaleDateString()}\n\nFindings: ${selectedStudy.findings || 'To be documented'}\n\nImpression: ${selectedStudy.impression || 'To be documented'}\n\nRadiologist: ${selectedStudy.radiologist || 'Dr. Michael Chen'}`;
+                      
+                      const blob = new Blob([reportContent], { type: 'text/plain' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `radiology-report-${selectedStudy.patientName.replace(' ', '-').toLowerCase()}.txt`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                      
+                      toast({
+                        title: "Report Downloaded",
+                        description: `Radiology report for ${selectedStudy.patientName} downloaded successfully`,
+                      });
+                    }}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Report
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      toast({
+                        title: "Report Generated",
+                        description: `Radiology report for ${selectedStudy.patientName} has been generated and signed`,
+                      });
+                      setShowReportDialog(false);
+                    }}
+                    className="bg-medical-blue hover:bg-blue-700"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    {selectedStudy.status === 'final' ? 'View Final Report' : 'Generate Report'}
+                  </Button>
+                </div>
               </div>
             </div>
           )}
