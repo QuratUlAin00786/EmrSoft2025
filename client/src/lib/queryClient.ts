@@ -60,6 +60,11 @@ export const getQueryFn: <T>(options: {
     });
 
     console.log("Query response status:", res.status);
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Query failed:", res.status, errorText);
+    }
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
       return null;
