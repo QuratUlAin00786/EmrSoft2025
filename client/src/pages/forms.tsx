@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/layout/header";
 import { AdvancedFormBuilder, FormTemplate } from "@/components/forms/advanced-form-builder";
@@ -92,17 +92,6 @@ export default function FormsPage() {
   const [state, setState] = useState<FormsPageState>({
     activeTab: 'overview'
   });
-  const [showScrollTop, setShowScrollTop] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 200);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
@@ -508,15 +497,13 @@ export default function FormsPage() {
       </div>
 
       {/* Scroll to Top Button */}
-      {showScrollTop && (
-        <Button
-          onClick={scrollToTop}
-          className="fixed bottom-8 right-8 z-50 w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg transition-all duration-300 ease-in-out flex items-center justify-center"
-          aria-label="Scroll to top"
-        >
-          <ChevronUp className="h-5 w-5" />
-        </Button>
-      )}
+      <Button
+        onClick={scrollToTop}
+        className="fixed bottom-8 right-8 z-50 w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg flex items-center justify-center"
+        aria-label="Scroll to top"
+      >
+        <ChevronUp className="h-5 w-5" />
+      </Button>
     </div>
   );
 }
