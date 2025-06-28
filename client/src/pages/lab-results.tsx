@@ -229,7 +229,6 @@ export default function LabResultsPage() {
   };
 
   const handleViewResult = (result: LabResult) => {
-    console.log("View button clicked, opening dialog");
     setSelectedResult(result);
     setShowViewDialog(true);
   };
@@ -512,16 +511,7 @@ export default function LabResultsPage() {
                       </div>
                       
                       <div className="flex gap-2 ml-4">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log("Button clicked for:", result.patientName);
-                            handleViewResult(result);
-                          }}
-                        >
+                        <Button variant="outline" size="sm" onClick={() => handleViewResult(result)}>
                           <Eye className="h-4 w-4 mr-1" />
                           View
                         </Button>
