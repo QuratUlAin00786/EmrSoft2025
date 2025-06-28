@@ -36,10 +36,12 @@ function getInitials(firstName: string, lastName: string): string {
 }
 
 export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: DoctorListProps) {
-  const { data: medicalStaff = [], isLoading } = useQuery({
+  const { data: medicalStaff = [], isLoading, error } = useQuery({
     queryKey: ["/api/medical-staff"],
     enabled: true,
   });
+
+  console.log("Medical staff query state:", { medicalStaff, isLoading, error });
 
   if (isLoading) {
     return (
