@@ -96,6 +96,7 @@ export default function CalendarPage() {
 
     const appointmentData = {
       ...bookingForm,
+      patientId: parseInt(bookingForm.patientId),
       providerId: selectedDoctor.id,
       title: bookingForm.title || `${bookingForm.type} with ${selectedDoctor.firstName} ${selectedDoctor.lastName}`,
       location: bookingForm.location || `${selectedDoctor.department} Department`,
