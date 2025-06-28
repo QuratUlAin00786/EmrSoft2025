@@ -91,12 +91,20 @@ export default function MessagingPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [messageFilter, setMessageFilter] = useState("all");
   const [showCreateCampaign, setShowCreateCampaign] = useState(false);
+  const [showNewMessage, setShowNewMessage] = useState(false);
   const [newCampaign, setNewCampaign] = useState({
     name: "",
     type: "email" as "email" | "sms" | "both",
     subject: "",
     content: "",
     template: "default"
+  });
+  const [newMessage, setNewMessage] = useState({
+    recipient: "",
+    subject: "",
+    content: "",
+    priority: "normal" as "low" | "normal" | "high" | "urgent",
+    type: "internal" as "internal" | "patient" | "broadcast"
   });
   const { toast } = useToast();
 
@@ -126,6 +134,8 @@ export default function MessagingPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages'] });
       queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
       setNewMessageContent("");
+      setShowNewMessage(false);
+      resetNewMessage();
       toast({
         title: "Message Sent",
         description: "Your message has been sent successfully.",
@@ -179,6 +189,35 @@ export default function MessagingPage() {
     });
   };
 
+  const handleSendNewMessage = () => {
+    if (!newMessage.recipient.trim() || !newMessage.subject.trim() || !newMessage.content.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    sendMessageMutation.mutate({
+      recipientId: newMessage.recipient,
+      subject: newMessage.subject,
+      content: newMessage.content,
+      priority: newMessage.priority,
+      type: newMessage.type
+    });
+  };
+
+  const resetNewMessage = () => {
+    setNewMessage({
+      recipient: "",
+      subject: "",
+      content: "",
+      priority: "normal",
+      type: "internal"
+    });
+  };
+
   const filteredConversations = conversations.filter((conv: Conversation) => {
     if (messageFilter === "unread" && conv.unreadCount === 0) return false;
     if (messageFilter === "patients" && !conv.isPatientConversation) return false;
@@ -228,10 +267,107 @@ export default function MessagingPage() {
             <Video className="h-4 w-4 mr-2" />
             Video Call
           </Button>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            New Message
-          </Button>
+          <Dialog open={showNewMessage} onOpenChange={setShowNewMessage}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                New Message
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Compose New Message</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="messageRecipient">Recipient *</Label>
+                    <Input
+                      id="messageRecipient"
+                      placeholder="Enter recipient name or ID"
+                      value={newMessage.recipient}
+                      onChange={(e) => setNewMessage(prev => ({ ...prev, recipient: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="messageType">Message Type</Label>
+                    <Select 
+                      value={newMessage.type} 
+                      onValueChange={(value: "internal" | "patient" | "broadcast") => 
+                        setNewMessage(prev => ({ ...prev, type: value }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="internal">Internal</SelectItem>
+                        <SelectItem value="patient">Patient</SelectItem>
+                        <SelectItem value="broadcast">Broadcast</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="messageSubject">Subject *</Label>
+                    <Input
+                      id="messageSubject"
+                      placeholder="Enter message subject"
+                      value={newMessage.subject}
+                      onChange={(e) => setNewMessage(prev => ({ ...prev, subject: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="messagePriority">Priority</Label>
+                    <Select 
+                      value={newMessage.priority} 
+                      onValueChange={(value: "low" | "normal" | "high" | "urgent") => 
+                        setNewMessage(prev => ({ ...prev, priority: value }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="normal">Normal</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="urgent">Urgent</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="messageContent">Message Content *</Label>
+                  <Textarea
+                    id="messageContent"
+                    placeholder="Enter your message content..."
+                    rows={8}
+                    value={newMessage.content}
+                    onChange={(e) => setNewMessage(prev => ({ ...prev, content: e.target.value }))}
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowNewMessage(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleSendNewMessage}
+                    disabled={sendMessageMutation.isPending}
+                  >
+                    {sendMessageMutation.isPending ? "Sending..." : "Send Message"}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
