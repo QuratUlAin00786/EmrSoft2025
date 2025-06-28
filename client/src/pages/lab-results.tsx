@@ -141,6 +141,7 @@ export default function LabResultsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showOrderDialog, setShowOrderDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);
+  const [showReviewDialog, setShowReviewDialog] = useState(false);
   const [selectedResult, setSelectedResult] = useState<LabResult | null>(null);
   const [orderFormData, setOrderFormData] = useState({
     patientId: "",
@@ -248,11 +249,8 @@ export default function LabResultsPage() {
   };
 
   const handleShareResult = (result: LabResult) => {
-    toast({
-      title: "Share with Patient",
-      description: `Lab results shared with ${result.patientName} via patient portal`,
-    });
-    // In a real implementation, this would share via patient portal or email
+    setSelectedResult(result);
+    setShowReviewDialog(true);
   };
 
   const handleFlagCritical = (resultId: string) => {
@@ -731,6 +729,143 @@ export default function LabResultsPage() {
                 <Button onClick={() => handleDownloadResult(selectedResult.id)} className="bg-medical-blue hover:bg-blue-700">
                   Download Report
                 </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Review Lab Result Dialog */}
+      <Dialog open={showReviewDialog} onOpenChange={setShowReviewDialog}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Review & Share Lab Results</DialogTitle>
+          </DialogHeader>
+          {selectedResult && (
+            <div className="space-y-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">{selectedResult.patientName.charAt(0)}</span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">{selectedResult.patientName}</h3>
+                    <p className="text-sm text-gray-600">Patient ID: {selectedResult.patientId}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-semibold mb-3">Test Information</h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Test Type:</span>
+                      <span className="font-medium">{selectedResult.testType}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Ordered By:</span>
+                      <span className="font-medium">{selectedResult.orderedBy}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Status:</span>
+                      <Badge 
+                        variant={
+                          selectedResult.status === 'completed' ? 'default' : 
+                          selectedResult.status === 'pending' ? 'secondary' : 'outline'
+                        }
+                      >
+                        {selectedResult.status}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Completed:</span>
+                      <span className="font-medium">
+                        {selectedResult.completedAt ? format(new Date(selectedResult.completedAt), "PPP") : "Not completed"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-3">Clinical Review</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <input type="checkbox" id="reviewed" className="rounded" />
+                      <Label htmlFor="reviewed" className="text-sm">Results reviewed by physician</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input type="checkbox" id="interpreted" className="rounded" />
+                      <Label htmlFor="interpreted" className="text-sm">Clinical interpretation complete</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input type="checkbox" id="actions" className="rounded" />
+                      <Label htmlFor="actions" className="text-sm">Follow-up actions identified</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input type="checkbox" id="approved" className="rounded" />
+                      <Label htmlFor="approved" className="text-sm">Approved for patient sharing</Label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {selectedResult.results && selectedResult.results.length > 0 && (
+                <div>
+                  <h4 className="font-semibold mb-3">Test Results Summary</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    {selectedResult.results.slice(0, 4).map((result: any, index: number) => (
+                      <div key={index} className="bg-gray-50 rounded-lg p-3">
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium text-sm">{result.name}</span>
+                          <Badge 
+                            variant={result.status === 'normal' ? 'default' : 'secondary'}
+                            className="text-xs"
+                          >
+                            {result.status}
+                          </Badge>
+                        </div>
+                        <div className="text-lg font-semibold mt-1">{result.value} {result.unit}</div>
+                        <div className="text-xs text-gray-600">Ref: {result.referenceRange}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <Label htmlFor="physicianNotes" className="text-sm font-medium">Physician Notes</Label>
+                <Textarea
+                  id="physicianNotes"
+                  placeholder="Add clinical interpretation, recommendations, or follow-up instructions..."
+                  className="mt-2"
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex justify-between items-center pt-4 border-t">
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => setShowReviewDialog(false)}>
+                    Cancel
+                  </Button>
+                  <Button variant="outline" onClick={() => handleDownloadResult(selectedResult.id)}>
+                    Download Report
+                  </Button>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => {
+                      toast({
+                        title: "Results Shared",
+                        description: `Lab results shared with ${selectedResult.patientName} via patient portal`,
+                      });
+                      setShowReviewDialog(false);
+                    }}
+                    className="bg-medical-blue hover:bg-blue-700"
+                  >
+                    Share with Patient
+                  </Button>
+                </div>
               </div>
             </div>
           )}
