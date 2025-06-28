@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/layout/header";
 import { AdvancedFormBuilder, FormTemplate } from "@/components/forms/advanced-form-builder";
@@ -20,7 +20,8 @@ import {
   Users,
   Calendar,
   CheckCircle,
-  AlertTriangle
+  AlertTriangle,
+  ChevronUp
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -91,6 +92,23 @@ export default function FormsPage() {
   const [state, setState] = useState<FormsPageState>({
     activeTab: 'overview'
   });
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
 
   const handleCreateNew = () => {
     setState(prev => ({
@@ -330,6 +348,17 @@ export default function FormsPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <Button
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 z-50 w-12 h-12 rounded-full bg-medical-blue hover:bg-blue-700 text-white shadow-lg transition-all duration-300 ease-in-out"
+          size="sm"
+        >
+          <ChevronUp className="h-5 w-5" />
+        </Button>
+      )}
     </div>
   );
 }
