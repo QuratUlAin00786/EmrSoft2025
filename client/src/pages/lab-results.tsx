@@ -142,7 +142,14 @@ export default function LabResultsPage() {
   const [showOrderDialog, setShowOrderDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
   const [selectedResult, setSelectedResult] = useState<LabResult | null>(null);
+  const [shareFormData, setShareFormData] = useState({
+    method: "",
+    email: "",
+    whatsapp: "",
+    message: ""
+  });
   const [orderFormData, setOrderFormData] = useState({
     patientId: "",
     patientName: "",
@@ -855,17 +862,133 @@ export default function LabResultsPage() {
                 <div className="flex gap-2">
                   <Button 
                     onClick={() => {
-                      toast({
-                        title: "Results Shared",
-                        description: `Lab results shared with ${selectedResult.patientName} via patient portal`,
-                      });
                       setShowReviewDialog(false);
+                      setShowShareDialog(true);
+                      setShareFormData({
+                        method: "",
+                        email: "",
+                        whatsapp: "",
+                        message: `Lab results for ${selectedResult.testType} are now available for review.`
+                      });
                     }}
                     className="bg-medical-blue hover:bg-blue-700"
                   >
                     Share with Patient
                   </Button>
                 </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Share with Patient Dialog */}
+      <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Share Lab Results</DialogTitle>
+          </DialogHeader>
+          {selectedResult && (
+            <div className="space-y-4">
+              <div className="text-sm text-gray-600">
+                Share results for <strong>{selectedResult.patientName}</strong>
+              </div>
+
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Contact Method</Label>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="email"
+                      name="method"
+                      value="email"
+                      checked={shareFormData.method === "email"}
+                      onChange={(e) => setShareFormData(prev => ({ ...prev, method: e.target.value }))}
+                      className="w-4 h-4"
+                    />
+                    <Label htmlFor="email" className="text-sm">Email</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="whatsapp"
+                      name="method"
+                      value="whatsapp"
+                      checked={shareFormData.method === "whatsapp"}
+                      onChange={(e) => setShareFormData(prev => ({ ...prev, method: e.target.value }))}
+                      className="w-4 h-4"
+                    />
+                    <Label htmlFor="whatsapp" className="text-sm">WhatsApp</Label>
+                  </div>
+                </div>
+              </div>
+
+              {shareFormData.method === "email" && (
+                <div className="space-y-2">
+                  <Label htmlFor="emailAddress" className="text-sm font-medium">Email Address</Label>
+                  <Input
+                    id="emailAddress"
+                    type="email"
+                    placeholder="patient@example.com"
+                    value={shareFormData.email}
+                    onChange={(e) => setShareFormData(prev => ({ ...prev, email: e.target.value }))}
+                  />
+                </div>
+              )}
+
+              {shareFormData.method === "whatsapp" && (
+                <div className="space-y-2">
+                  <Label htmlFor="whatsappNumber" className="text-sm font-medium">WhatsApp Number</Label>
+                  <Input
+                    id="whatsappNumber"
+                    type="tel"
+                    placeholder="+44 7XXX XXXXXX"
+                    value={shareFormData.whatsapp}
+                    onChange={(e) => setShareFormData(prev => ({ ...prev, whatsapp: e.target.value }))}
+                  />
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="shareMessage" className="text-sm font-medium">Message</Label>
+                <Textarea
+                  id="shareMessage"
+                  placeholder="Add a personal message..."
+                  value={shareFormData.message}
+                  onChange={(e) => setShareFormData(prev => ({ ...prev, message: e.target.value }))}
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex justify-between items-center pt-4 border-t">
+                <Button variant="outline" onClick={() => setShowShareDialog(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={() => {
+                    const method = shareFormData.method === "email" ? "email" : "WhatsApp";
+                    const contact = shareFormData.method === "email" ? shareFormData.email : shareFormData.whatsapp;
+                    
+                    toast({
+                      title: "Results Shared",
+                      description: `Lab results sent to ${selectedResult.patientName} via ${method} (${contact})`,
+                    });
+                    setShowShareDialog(false);
+                    setShareFormData({
+                      method: "",
+                      email: "",
+                      whatsapp: "",
+                      message: ""
+                    });
+                  }}
+                  disabled={!shareFormData.method || 
+                    (shareFormData.method === "email" && !shareFormData.email) ||
+                    (shareFormData.method === "whatsapp" && !shareFormData.whatsapp)}
+                  className="bg-medical-blue hover:bg-blue-700"
+                >
+                  Send Results
+                </Button>
               </div>
             </div>
           )}
