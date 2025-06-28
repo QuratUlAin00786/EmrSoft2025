@@ -204,8 +204,10 @@ export default function PrescriptionsPage() {
   const [showViewDetails, setShowViewDetails] = useState(false);
 
   const handleViewPrescription = (prescription: Prescription) => {
+    console.log("View prescription clicked:", prescription);
     setSelectedPrescription(prescription);
     setShowViewDetails(true);
+    console.log("showViewDetails set to true");
   };
 
   const { toast } = useToast();
@@ -632,6 +634,7 @@ export default function PrescriptionsPage() {
       </div>
 
       {/* View Prescription Details Dialog */}
+      {console.log("Rendering dialog with showViewDetails:", showViewDetails, "selectedPrescription:", selectedPrescription)}
       <Dialog open={showViewDetails} onOpenChange={setShowViewDetails}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
