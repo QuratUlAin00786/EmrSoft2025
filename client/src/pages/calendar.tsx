@@ -143,7 +143,10 @@ export default function CalendarPage() {
               </h4>
             </div>
             <DoctorList 
-              onSelectDoctor={setSelectedDoctor}
+              onSelectDoctor={(doctor) => {
+                console.log("Setting selected doctor:", doctor);
+                setSelectedDoctor(doctor);
+              }}
               showAppointmentButton={true}
             />
           </div>
