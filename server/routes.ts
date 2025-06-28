@@ -1199,6 +1199,143 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Notification endpoints
+  app.get("/api/notifications", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const organizationId = req.tenant!.id;
+      const limit = parseInt(req.query.limit as string) || 20;
+
+      const notifications = await storage.getNotifications(userId, organizationId, limit);
+      res.json(notifications);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.status(500).json({ error: "Failed to fetch notifications" });
+    }
+  });
+
+  app.get("/api/notifications/unread-count", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const organizationId = req.tenant!.id;
+
+      const count = await storage.getUnreadNotificationCount(userId, organizationId);
+      res.json({ count });
+    } catch (error) {
+      console.error("Error fetching unread count:", error);
+      res.status(500).json({ error: "Failed to fetch unread count" });
+    }
+  });
+
+  app.post("/api/notifications", authMiddleware, requireRole(["admin", "doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const notificationData = z.object({
+        userId: z.number(),
+        title: z.string().min(1),
+        message: z.string().min(1),
+        type: z.string(),
+        priority: z.enum(["low", "normal", "high", "critical"]).default("normal"),
+        relatedEntityType: z.string().optional(),
+        relatedEntityId: z.number().optional(),
+        actionUrl: z.string().optional(),
+        isActionable: z.boolean().default(false),
+        scheduledFor: z.string().optional(),
+        expiresAt: z.string().optional(),
+        metadata: z.object({
+          patientId: z.number().optional(),
+          patientName: z.string().optional(),
+          appointmentId: z.number().optional(),
+          prescriptionId: z.number().optional(),
+          urgency: z.enum(["low", "medium", "high", "critical"]).optional(),
+          department: z.string().optional(),
+          requiresResponse: z.boolean().optional(),
+          autoMarkAsRead: z.boolean().optional(),
+          icon: z.string().optional(),
+          color: z.string().optional(),
+        }).optional()
+      }).parse(req.body);
+
+      const notification = await storage.createNotification({
+        ...notificationData,
+        organizationId: req.tenant!.id,
+        scheduledFor: notificationData.scheduledFor ? new Date(notificationData.scheduledFor) : undefined,
+        expiresAt: notificationData.expiresAt ? new Date(notificationData.expiresAt) : undefined,
+      });
+
+      res.status(201).json(notification);
+    } catch (error) {
+      console.error("Error creating notification:", error);
+      res.status(500).json({ error: "Failed to create notification" });
+    }
+  });
+
+  app.patch("/api/notifications/:id/read", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const notificationId = parseInt(req.params.id);
+      const userId = req.user!.id;
+      const organizationId = req.tenant!.id;
+
+      const notification = await storage.markNotificationAsRead(notificationId, userId, organizationId);
+      if (!notification) {
+        return res.status(404).json({ error: "Notification not found" });
+      }
+
+      res.json(notification);
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      res.status(500).json({ error: "Failed to mark notification as read" });
+    }
+  });
+
+  app.patch("/api/notifications/:id/dismiss", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const notificationId = parseInt(req.params.id);
+      const userId = req.user!.id;
+      const organizationId = req.tenant!.id;
+
+      const notification = await storage.markNotificationAsDismissed(notificationId, userId, organizationId);
+      if (!notification) {
+        return res.status(404).json({ error: "Notification not found" });
+      }
+
+      res.json(notification);
+    } catch (error) {
+      console.error("Error dismissing notification:", error);
+      res.status(500).json({ error: "Failed to dismiss notification" });
+    }
+  });
+
+  app.patch("/api/notifications/mark-all-read", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const organizationId = req.tenant!.id;
+
+      await storage.markAllNotificationsAsRead(userId, organizationId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+      res.status(500).json({ error: "Failed to mark all notifications as read" });
+    }
+  });
+
+  app.delete("/api/notifications/:id", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const notificationId = parseInt(req.params.id);
+      const userId = req.user!.id;
+      const organizationId = req.tenant!.id;
+
+      const success = await storage.deleteNotification(notificationId, userId, organizationId);
+      if (!success) {
+        return res.status(404).json({ error: "Notification not found" });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+      res.status(500).json({ error: "Failed to delete notification" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

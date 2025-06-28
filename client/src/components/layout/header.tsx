@@ -1,8 +1,7 @@
-import { Bell, Globe } from "lucide-react";
+import { Globe } from "lucide-react";
 import { useTenant } from "@/hooks/use-tenant";
 import { useAuth } from "@/hooks/use-auth";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { NotificationBell } from "@/components/layout/notification-bell";
 import haloLogoPath from "@assets/Screenshot 2025-06-25 at 12.40.02_1750837361778.png";
 
 interface HeaderProps {
@@ -42,15 +41,7 @@ export function Header({ title, subtitle }: HeaderProps) {
           </div>
           
           {/* Notifications */}
-          <Button variant="ghost" size="sm" className="relative">
-            <Bell className="h-5 w-5 text-neutral-600" />
-            <Badge 
-              variant="destructive" 
-              className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
-            >
-              3
-            </Badge>
-          </Button>
+          <NotificationBell />
         </div>
       </div>
     </header>

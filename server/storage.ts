@@ -1,5 +1,5 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations,
+  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Patient, type InsertPatient,
@@ -8,10 +8,11 @@ import {
   type AiInsight, type InsertAiInsight,
   type Subscription, type InsertSubscription,
   type PatientCommunication, type InsertPatientCommunication,
-  type Consultation, type InsertConsultation
+  type Consultation, type InsertConsultation,
+  type Notification, type InsertNotification
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, count } from "drizzle-orm";
+import { eq, and, desc, count, not } from "drizzle-orm";
 
 export interface IStorage {
   // Organizations
