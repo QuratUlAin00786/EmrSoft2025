@@ -168,8 +168,10 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                     variant="outline"
                     onClick={(e) => {
                       e.stopPropagation();
-                      // Handle appointment booking
                       console.log("Book appointment with", doctor.firstName, doctor.lastName);
+                      if (onSelectDoctor) {
+                        onSelectDoctor(doctor);
+                      }
                     }}
                   >
                     <Calendar className="h-3 w-3 mr-1" />
