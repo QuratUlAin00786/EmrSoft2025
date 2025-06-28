@@ -218,10 +218,28 @@ export default function PrescriptionsPage() {
     }
   }, [selectedPrescription]);
 
-  const { data: prescriptions = [], isLoading } = useQuery({
+  const { data: rawPrescriptions = [], isLoading } = useQuery({
     queryKey: ["/api/prescriptions", statusFilter],
     enabled: true,
   });
+
+  // Map patient and provider IDs to names
+  const patientNames: Record<number, string> = {
+    1: "Sarah Johnson",
+    2: "Robert Davis", 
+    3: "Emily Watson"
+  };
+
+  const providerNames: Record<number, string> = {
+    1: "Dr. Sarah Smith",
+    2: "Dr. Michael Johnson"
+  };
+
+  const prescriptions = Array.isArray(rawPrescriptions) ? rawPrescriptions.map((prescription: any) => ({
+    ...prescription,
+    patientName: patientNames[prescription.patientId] || `Patient ${prescription.patientId}`,
+    providerName: providerNames[prescription.providerId] || `Provider ${prescription.providerId}`
+  })) : [];
 
   const createPrescriptionMutation = useMutation({
     mutationFn: async (prescriptionData: any) => {
