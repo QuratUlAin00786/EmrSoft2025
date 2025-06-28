@@ -230,6 +230,49 @@ export const consultations = pgTable("consultations", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Prescriptions
+export const prescriptions = pgTable("prescriptions", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  patientId: integer("patient_id").notNull().references(() => patients.id),
+  providerId: integer("provider_id").notNull().references(() => users.id),
+  consultationId: integer("consultation_id").references(() => consultations.id),
+  prescriptionNumber: varchar("prescription_number", { length: 50 }).notNull(),
+  status: varchar("status", { length: 20 }).notNull().default("active"), // active, completed, cancelled, expired
+  diagnosis: text("diagnosis"),
+  medications: jsonb("medications").$type<Array<{
+    name: string;
+    dosage: string;
+    frequency: string;
+    duration: string;
+    quantity: number;
+    refills: number;
+    instructions: string;
+    genericAllowed: boolean;
+    ndc?: string; // National Drug Code
+    startDate?: string;
+    endDate?: string;
+  }>>().default([]),
+  pharmacy: jsonb("pharmacy").$type<{
+    name?: string;
+    address?: string;
+    phone?: string;
+    fax?: string;
+    npi?: string; // National Provider Identifier
+  }>().default({}),
+  prescribedAt: timestamp("prescribed_at").defaultNow().notNull(),
+  validUntil: timestamp("valid_until"),
+  notes: text("notes"),
+  isElectronic: boolean("is_electronic").notNull().default(true),
+  interactions: jsonb("interactions").$type<Array<{
+    severity: "minor" | "moderate" | "major";
+    description: string;
+    medications: string[];
+  }>>().default([]),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Patient Communications Tracking
 export const patientCommunications = pgTable("patient_communications", {
   id: serial("id").primaryKey(),
@@ -318,6 +361,7 @@ export const patientsRelations = relations(patients, ({ one, many }) => ({
   appointments: many(appointments),
   aiInsights: many(aiInsights),
   communications: many(patientCommunications),
+  prescriptions: many(prescriptions),
 }));
 
 export const notificationsRelations = relations(notifications, ({ one }) => ({
@@ -413,6 +457,25 @@ export const consultationsRelations = relations(consultations, ({ one }) => ({
   }),
 }));
 
+export const prescriptionsRelations = relations(prescriptions, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [prescriptions.organizationId],
+    references: [organizations.id],
+  }),
+  patient: one(patients, {
+    fields: [prescriptions.patientId],
+    references: [patients.id],
+  }),
+  provider: one(users, {
+    fields: [prescriptions.providerId],
+    references: [users.id],
+  }),
+  consultation: one(consultations, {
+    fields: [prescriptions.consultationId],
+    references: [consultations.id],
+  }),
+}));
+
 // Insert schemas
 export const insertOrganizationSchema = createInsertSchema(organizations).omit({
   id: true,
@@ -470,6 +533,12 @@ export const insertNotificationSchema = createInsertSchema(notifications).omit({
   updatedAt: true,
 });
 
+export const insertPrescriptionSchema = createInsertSchema(prescriptions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type Organization = typeof organizations.$inferSelect;
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
@@ -500,3 +569,6 @@ export type InsertPatientCommunication = z.infer<typeof insertPatientCommunicati
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+
+export type Prescription = typeof prescriptions.$inferSelect;
+export type InsertPrescription = z.infer<typeof insertPrescriptionSchema>;
