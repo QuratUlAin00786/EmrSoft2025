@@ -241,6 +241,11 @@ export default function PrescriptionsPage() {
     providerName: providerNames[prescription.providerId] || `Provider ${prescription.providerId}`
   })) : [];
 
+  // Debug logging
+  console.log("Raw prescriptions:", rawPrescriptions);
+  console.log("Processed prescriptions:", prescriptions);
+  console.log("Is loading:", isLoading);
+
   const createPrescriptionMutation = useMutation({
     mutationFn: async (prescriptionData: any) => {
       const isUpdate = selectedPrescription && selectedPrescription.id;
