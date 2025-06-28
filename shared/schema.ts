@@ -165,7 +165,7 @@ export const aiInsights = pgTable("ai_insights", {
   description: text("description").notNull(),
   severity: varchar("severity", { length: 10 }).notNull().default("medium"), // low, medium, high, critical
   actionRequired: boolean("action_required").notNull().default(false),
-  confidence: decimal("confidence", { precision: 3, scale: 2 }), // 0.00 to 1.00
+  confidence: varchar("confidence", { length: 10 }), // 0.00 to 1.00
   metadata: jsonb("metadata").$type<{
     relatedConditions?: string[];
     suggestedActions?: string[];

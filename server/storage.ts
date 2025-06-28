@@ -303,11 +303,17 @@ export class DatabaseStorage implements IStorage {
     return insight || undefined;
   }
 
-  async getAiInsightsByOrganization(organizationId: number, limit = 20): Promise<AiInsight[]> {
-    return await db.select().from(aiInsights)
+  async getAiInsightsByOrganization(organizationId: number, limit = 20): Promise<any[]> {
+    const insights = await db.select().from(aiInsights)
       .where(and(eq(aiInsights.organizationId, organizationId), eq(aiInsights.status, 'active')))
       .orderBy(desc(aiInsights.createdAt))
       .limit(limit);
+    
+    // Convert confidence string to number for frontend compatibility
+    return insights.map(insight => ({
+      ...insight,
+      confidence: insight.confidence ? parseFloat(insight.confidence) : 0
+    }));
   }
 
   async getAiInsightsByPatient(patientId: number, organizationId: number): Promise<AiInsight[]> {
