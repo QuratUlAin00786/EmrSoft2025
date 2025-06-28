@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   FileImage, 
   Plus, 
@@ -19,7 +22,9 @@ import {
   Monitor,
   Camera,
   Zap,
-  Share
+  Share,
+  Mail,
+  MessageCircle
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -160,9 +165,15 @@ export default function ImagingPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showNewOrder, setShowNewOrder] = useState(false);
-
+  const [showShareDialog, setShowShareDialog] = useState(false);
   const [modalityFilter, setModalityFilter] = useState<string>("all");
   const [selectedStudy, setSelectedStudy] = useState<ImagingStudy | null>(null);
+  const [shareFormData, setShareFormData] = useState({
+    method: "",
+    email: "",
+    whatsapp: "",
+    message: ""
+  });
   const { toast } = useToast();
 
   const handleViewStudy = (study: ImagingStudy) => {
@@ -196,9 +207,13 @@ export default function ImagingPage() {
   };
 
   const handleShareStudy = (study: ImagingStudy) => {
-    toast({
-      title: "Share Study",
-      description: `Study shared with ${study.patientName} via secure portal`,
+    setSelectedStudy(study);
+    setShowShareDialog(true);
+    setShareFormData({
+      method: "",
+      email: "",
+      whatsapp: "",
+      message: `Imaging study results for ${study.studyType} are now available for review.`
     });
   };
 
@@ -518,6 +533,111 @@ export default function ImagingPage() {
           )}
         </div>
       </div>
+
+      {/* Share Study Dialog */}
+      <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Share Imaging Study</DialogTitle>
+          </DialogHeader>
+          {selectedStudy && (
+            <div className="space-y-4">
+              <div className="text-sm text-gray-600">
+                Share study for <strong>{selectedStudy.patientName}</strong>
+              </div>
+
+              <div>
+                <Label htmlFor="method" className="text-sm font-medium">
+                  Contact Method
+                </Label>
+                <Select value={shareFormData.method} onValueChange={(value) => setShareFormData({...shareFormData, method: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select contact method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="email">Email</SelectItem>
+                    <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {shareFormData.method === "email" && (
+                <div>
+                  <Label htmlFor="email" className="text-sm font-medium">
+                    Email Address
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter email address"
+                    value={shareFormData.email}
+                    onChange={(e) => setShareFormData({...shareFormData, email: e.target.value})}
+                  />
+                </div>
+              )}
+
+              {shareFormData.method === "whatsapp" && (
+                <div>
+                  <Label htmlFor="whatsapp" className="text-sm font-medium">
+                    WhatsApp Number
+                  </Label>
+                  <Input
+                    id="whatsapp"
+                    type="tel"
+                    placeholder="Enter WhatsApp number"
+                    value={shareFormData.whatsapp}
+                    onChange={(e) => setShareFormData({...shareFormData, whatsapp: e.target.value})}
+                  />
+                </div>
+              )}
+
+              <div>
+                <Label htmlFor="message" className="text-sm font-medium">
+                  Message
+                </Label>
+                <Textarea
+                  id="message"
+                  placeholder="Add a custom message..."
+                  value={shareFormData.message}
+                  onChange={(e) => setShareFormData({...shareFormData, message: e.target.value})}
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex justify-between items-center pt-4 border-t">
+                <Button variant="outline" onClick={() => setShowShareDialog(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={() => {
+                    const method = shareFormData.method === "email" ? "email" : "WhatsApp";
+                    const contact = shareFormData.method === "email" ? shareFormData.email : shareFormData.whatsapp;
+                    
+                    toast({
+                      title: "Study Shared",
+                      description: `Imaging study sent to ${selectedStudy.patientName} via ${method} (${contact})`,
+                    });
+                    setShowShareDialog(false);
+                    setShareFormData({
+                      method: "",
+                      email: "",
+                      whatsapp: "",
+                      message: ""
+                    });
+                  }}
+                  disabled={!shareFormData.method || 
+                    (shareFormData.method === "email" && !shareFormData.email) ||
+                    (shareFormData.method === "whatsapp" && !shareFormData.whatsapp)}
+                  className="bg-medical-blue hover:bg-blue-700"
+                >
+                  <Share className="h-4 w-4 mr-2" />
+                  Share Study
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
