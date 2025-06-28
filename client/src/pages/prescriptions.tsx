@@ -201,8 +201,11 @@ export default function PrescriptionsPage() {
     setShowNewPrescription(true);
   };
 
+  const [showViewDetails, setShowViewDetails] = useState(false);
+
   const handleViewPrescription = (prescription: Prescription) => {
     setSelectedPrescription(prescription);
+    setShowViewDetails(true);
   };
 
   const { toast } = useToast();
@@ -627,6 +630,229 @@ export default function PrescriptionsPage() {
           </div>
         </div>
       </div>
+
+      {/* View Prescription Details Dialog */}
+      <Dialog open={showViewDetails} onOpenChange={setShowViewDetails}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Prescription Details</DialogTitle>
+          </DialogHeader>
+          {selectedPrescription && (
+            <div className="space-y-6">
+              {/* Patient & Provider Info */}
+              <div className="grid grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <User className="h-5 w-5" />
+                      Patient Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Name</p>
+                      <p className="font-medium">{selectedPrescription.patientName}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Patient ID</p>
+                      <p className="font-mono text-sm">{selectedPrescription.patientId}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <User className="h-5 w-5" />
+                      Provider Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Provider</p>
+                      <p className="font-medium">{selectedPrescription.providerName}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Provider ID</p>
+                      <p className="font-mono text-sm">{selectedPrescription.providerId}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Prescription Overview */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Prescription Overview
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Status</p>
+                      <Badge className={getStatusColor(selectedPrescription.status)}>
+                        {selectedPrescription.status}
+                      </Badge>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Prescribed Date</p>
+                      <p className="font-medium">
+                        {new Date(selectedPrescription.prescribedAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Prescription ID</p>
+                      <p className="font-mono text-sm">{selectedPrescription.id}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Diagnosis</p>
+                    <p className="font-medium">{selectedPrescription.diagnosis}</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Medications */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Pill className="h-5 w-5" />
+                    Medications ({selectedPrescription.medications.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {selectedPrescription.medications.map((medication, index) => (
+                      <div key={index} className="p-4 border rounded-lg">
+                        <div className="grid grid-cols-2 gap-4 mb-3">
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">Medication</p>
+                            <p className="font-semibold text-lg">{medication.name}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">Dosage</p>
+                            <p className="font-medium">{medication.dosage}</p>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-4 gap-4 mb-3">
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">Frequency</p>
+                            <p>{medication.frequency}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">Duration</p>
+                            <p>{medication.duration}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">Quantity</p>
+                            <p>{medication.quantity}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">Refills</p>
+                            <p>{medication.refills}</p>
+                          </div>
+                        </div>
+                        <div className="mb-3">
+                          <p className="text-sm font-medium text-gray-600">Instructions</p>
+                          <p className="text-sm bg-gray-50 p-2 rounded">{medication.instructions}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Generic Substitution</p>
+                          <Badge variant={medication.genericAllowed ? "default" : "secondary"}>
+                            {medication.genericAllowed ? "Allowed" : "Not Allowed"}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Drug Interactions */}
+              {selectedPrescription.interactions && selectedPrescription.interactions.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5 text-red-600" />
+                      Drug Interactions ({selectedPrescription.interactions.length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {selectedPrescription.interactions.map((interaction, index) => (
+                        <div key={index} className="flex gap-3 p-3 border rounded-lg">
+                          <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1">
+                            <Badge className={getSeverityColor(interaction.severity)}>
+                              {interaction.severity.charAt(0).toUpperCase() + interaction.severity.slice(1)}
+                            </Badge>
+                            <p className="text-sm mt-2">{interaction.description}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Pharmacy Information */}
+              {selectedPrescription.pharmacy && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      Pharmacy Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Pharmacy Name</p>
+                      <p className="font-medium">{selectedPrescription.pharmacy.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Address</p>
+                      <p>{selectedPrescription.pharmacy.address}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Phone</p>
+                      <p>{selectedPrescription.pharmacy.phone}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <Button variant="outline" onClick={() => setShowViewDetails(false)}>
+                  Close
+                </Button>
+                <Button variant="outline" onClick={() => handlePrintPrescription(selectedPrescription.id)}>
+                  <Printer className="h-4 w-4 mr-2" />
+                  Print
+                </Button>
+                <Button variant="outline" onClick={() => handleSendToPharmacy(selectedPrescription.id)}>
+                  <Send className="h-4 w-4 mr-2" />
+                  Send to Pharmacy
+                </Button>
+                {selectedPrescription.status === 'active' && (
+                  <Button 
+                    onClick={() => {
+                      setShowViewDetails(false);
+                      handleEditPrescription(selectedPrescription);
+                    }}
+                    className="bg-medical-blue hover:bg-blue-700"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Prescription
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
