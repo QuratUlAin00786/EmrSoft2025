@@ -180,11 +180,11 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           Recent Patients
-          <Link 
-            href="/patients"
-            className="text-medical-blue hover:text-blue-700 text-sm font-medium"
+          <button 
+            className="text-medical-blue hover:text-blue-700 text-sm font-medium hover:underline"
             onClick={() => {
-              console.log("View All link clicked - navigating to /patients");
+              console.log("View All button clicked - navigating to /patients");
+              setLocation("/patients");
               toast({
                 title: "Patient Directory",
                 description: "Opening complete patient directory",
@@ -192,7 +192,7 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
             }}
           >
             View All
-          </Link>
+          </button>
         </CardTitle>
       </CardHeader>
       <CardContent>
