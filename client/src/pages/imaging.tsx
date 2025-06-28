@@ -23,6 +23,7 @@ import {
   Camera,
   Zap,
   Share,
+  Share2,
   Mail,
   MessageCircle
 } from "lucide-react";
