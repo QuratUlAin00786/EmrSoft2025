@@ -229,10 +229,21 @@ export default function PrescriptionsPage() {
       const url = isUpdate ? `/api/prescriptions/${selectedPrescription.id}` : "/api/prescriptions";
       const method = isUpdate ? "PATCH" : "POST";
       
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
       const response = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify(prescriptionData),
+        credentials: "include",
       });
       if (!response.ok) throw new Error(`Failed to ${isUpdate ? 'update' : 'create'} prescription`);
       return response.json();

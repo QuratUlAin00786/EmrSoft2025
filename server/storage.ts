@@ -948,10 +948,32 @@ export class DatabaseStorage implements IStorage {
     return prescription;
   }
 
-  async getPrescriptionsByOrganization(organizationId: number, limit: number = 50): Promise<Prescription[]> {
+  async getPrescriptionsByOrganization(organizationId: number, limit: number = 50): Promise<any[]> {
     return await db
-      .select()
+      .select({
+        id: prescriptions.id,
+        organizationId: prescriptions.organizationId,
+        patientId: prescriptions.patientId,
+        providerId: prescriptions.providerId,
+        consultationId: prescriptions.consultationId,
+        prescriptionNumber: prescriptions.prescriptionNumber,
+        status: prescriptions.status,
+        diagnosis: prescriptions.diagnosis,
+        medications: prescriptions.medications,
+        pharmacy: prescriptions.pharmacy,
+        prescribedAt: prescriptions.prescribedAt,
+        validUntil: prescriptions.validUntil,
+        notes: prescriptions.notes,
+        isElectronic: prescriptions.isElectronic,
+        interactions: prescriptions.interactions,
+        createdAt: prescriptions.createdAt,
+        updatedAt: prescriptions.updatedAt,
+        patientName: sql<string>`CONCAT(${patients.firstName}, ' ', ${patients.lastName})`,
+        providerName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`
+      })
       .from(prescriptions)
+      .leftJoin(patients, eq(prescriptions.patientId, patients.id))
+      .leftJoin(users, eq(prescriptions.providerId, users.id))
       .where(eq(prescriptions.organizationId, organizationId))
       .orderBy(desc(prescriptions.createdAt))
       .limit(limit);
