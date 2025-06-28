@@ -44,6 +44,8 @@ export function AiInsightsPanel() {
     queryKey: ["/api/dashboard/ai-insights"],
   });
 
+
+
   const updateInsightMutation = useMutation({
     mutationFn: async ({ id, status }: { id: number; status: string }) => {
       return apiRequest('PATCH', `/api/ai/insights/${id}`, { status });

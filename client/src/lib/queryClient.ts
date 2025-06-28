@@ -42,9 +42,14 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    const token = localStorage.getItem('auth_token');
     const headers: Record<string, string> = {
       'X-Tenant-Subdomain': 'demo'
     };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
 
     console.log("Making request to:", queryKey[0]);
     console.log("Request headers:", headers);
