@@ -48,36 +48,36 @@ export default function AppointmentCalendar() {
     location: ""
   });
 
-  useEffect(() => {
-    const fetchAppointments = async () => {
-      try {
-        setIsLoading(true);
-        console.log("Fetching appointments from calendar...");
-        
-        const response = await fetch('/api/appointments', {
-          headers: {
-            'X-Tenant-Subdomain': 'demo'
-          },
-          credentials: 'include'
-        });
-        
-        console.log("Appointments response status:", response.status);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log("Fetched appointments data:", data);
-        setAppointments(data || []);
-      } catch (err) {
-        console.error("Error fetching appointments:", err);
-        setAppointments([]);
-      } finally {
-        setIsLoading(false);
+  const fetchAppointments = async () => {
+    try {
+      setIsLoading(true);
+      console.log("Fetching appointments from calendar...");
+      
+      const response = await fetch('/api/appointments', {
+        headers: {
+          'X-Tenant-Subdomain': 'demo'
+        },
+        credentials: 'include'
+      });
+      
+      console.log("Appointments response status:", response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
       }
-    };
+      
+      const data = await response.json();
+      console.log("Fetched appointments data:", data);
+      setAppointments(data || []);
+    } catch (err) {
+      console.error("Error fetching appointments:", err);
+      setAppointments([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchAppointments();
   }, []);
 
@@ -125,8 +125,8 @@ export default function AppointmentCalendar() {
 
       const newAppointment = await response.json();
       
-      // Add the new appointment to the list
-      setAppointments(prev => [...prev, newAppointment]);
+      // Refresh the appointments list from the server
+      await fetchAppointments();
       
       // Reset form and close dialog
       setFormData({
@@ -166,9 +166,14 @@ export default function AppointmentCalendar() {
   const calendarDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
   const getAppointmentsForDate = (date: Date) => {
-    return (appointments as any || []).filter((apt: any) => 
-      isSameDay(new Date(apt.scheduledAt), date)
-    );
+    const filtered = (appointments as any || []).filter((apt: any) => {
+      const appointmentDate = new Date(apt.scheduledAt);
+      const isSame = isSameDay(appointmentDate, date);
+      console.log(`Comparing appointment ${apt.title} (${apt.scheduledAt}) with ${date.toISOString()}: ${isSame}`);
+      return isSame;
+    });
+    console.log(`Found ${filtered.length} appointments for ${date.toDateString()}`);
+    return filtered;
   };
 
   const selectedDateAppointments = getAppointmentsForDate(selectedDate);
