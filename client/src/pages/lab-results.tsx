@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/layout/header";
@@ -8,6 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Search, 
   Plus, 
@@ -136,6 +139,14 @@ const mockLabResults: LabResult[] = [
 export default function LabResultsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [showOrderDialog, setShowOrderDialog] = useState(false);
+  const [orderFormData, setOrderFormData] = useState({
+    patientId: "",
+    patientName: "",
+    testType: "",
+    priority: "routine",
+    notes: ""
+  });
 
   const { data: labResults = mockLabResults, isLoading } = useQuery({
     queryKey: ["/api/lab-results", statusFilter],
@@ -143,13 +154,55 @@ export default function LabResultsPage() {
   });
 
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const createLabOrderMutation = useMutation({
+    mutationFn: async (labOrderData: any) => {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch("/api/lab-results", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(labOrderData),
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error('Failed to create lab order');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Lab test ordered successfully",
+      });
+      setShowOrderDialog(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
+      setOrderFormData({
+        patientId: "",
+        patientName: "",
+        testType: "",
+        priority: "routine",
+        notes: ""
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create lab order",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleOrderTest = () => {
-    toast({
-      title: "Order New Test",
-      description: "Opening test ordering interface",
-    });
-    // In a real implementation, this would open a modal or navigate to test ordering
+    setShowOrderDialog(true);
   };
 
   const handleViewResult = (result: LabResult) => {
@@ -464,6 +517,97 @@ export default function LabResultsPage() {
           </div>
         </div>
       </div>
+
+      {/* Order Lab Test Dialog */}
+      <Dialog open={showOrderDialog} onOpenChange={setShowOrderDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Order Lab Test</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="patientId">Patient ID</Label>
+              <Input
+                id="patientId"
+                placeholder="Enter patient ID"
+                value={orderFormData.patientId}
+                onChange={(e) => setOrderFormData(prev => ({ ...prev, patientId: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="patientName">Patient Name</Label>
+              <Input
+                id="patientName"
+                placeholder="Enter patient name"
+                value={orderFormData.patientName}
+                onChange={(e) => setOrderFormData(prev => ({ ...prev, patientName: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="testType">Test Type</Label>
+              <Select value={orderFormData.testType} onValueChange={(value) => setOrderFormData(prev => ({ ...prev, testType: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select test type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Complete Blood Count (CBC)">Complete Blood Count (CBC)</SelectItem>
+                  <SelectItem value="Basic Metabolic Panel">Basic Metabolic Panel</SelectItem>
+                  <SelectItem value="Comprehensive Metabolic Panel">Comprehensive Metabolic Panel</SelectItem>
+                  <SelectItem value="Lipid Panel">Lipid Panel</SelectItem>
+                  <SelectItem value="Liver Function Tests">Liver Function Tests</SelectItem>
+                  <SelectItem value="Thyroid Function Tests">Thyroid Function Tests</SelectItem>
+                  <SelectItem value="Hemoglobin A1C">Hemoglobin A1C</SelectItem>
+                  <SelectItem value="Urinalysis">Urinalysis</SelectItem>
+                  <SelectItem value="Vitamin D">Vitamin D</SelectItem>
+                  <SelectItem value="Iron Studies">Iron Studies</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="priority">Priority</Label>
+              <Select value={orderFormData.priority} onValueChange={(value) => setOrderFormData(prev => ({ ...prev, priority: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="routine">Routine</SelectItem>
+                  <SelectItem value="urgent">Urgent</SelectItem>
+                  <SelectItem value="stat">STAT</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="notes">Clinical Notes</Label>
+              <Textarea
+                id="notes"
+                placeholder="Enter clinical notes or special instructions"
+                value={orderFormData.notes}
+                onChange={(e) => setOrderFormData(prev => ({ ...prev, notes: e.target.value }))}
+              />
+            </div>
+            <div className="flex gap-2 pt-4">
+              <Button variant="outline" onClick={() => setShowOrderDialog(false)} className="flex-1">
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  createLabOrderMutation.mutate({
+                    patientId: orderFormData.patientId,
+                    patientName: orderFormData.patientName,
+                    testType: orderFormData.testType,
+                    priority: orderFormData.priority,
+                    notes: orderFormData.notes
+                  });
+                }}
+                disabled={createLabOrderMutation.isPending || !orderFormData.patientId || !orderFormData.testType}
+                className="flex-1 bg-medical-blue hover:bg-blue-700"
+              >
+                {createLabOrderMutation.isPending ? "Ordering..." : "Order Test"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
