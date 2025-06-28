@@ -469,7 +469,7 @@ export default function PrescriptionsPage() {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="patient">Patient</Label>
-                          <Select>
+                          <Select value={formData.patientId} onValueChange={(value) => setFormData(prev => ({ ...prev, patientId: value }))}>
                             <SelectTrigger>
                               <SelectValue placeholder="Select patient" />
                             </SelectTrigger>
@@ -482,7 +482,11 @@ export default function PrescriptionsPage() {
                         </div>
                         <div>
                           <Label htmlFor="diagnosis">Diagnosis</Label>
-                          <Input placeholder="Enter diagnosis" />
+                          <Input 
+                            placeholder="Enter diagnosis" 
+                            value={formData.diagnosis}
+                            onChange={(e) => setFormData(prev => ({ ...prev, diagnosis: e.target.value }))}
+                          />
                         </div>
                       </div>
                       
@@ -491,40 +495,62 @@ export default function PrescriptionsPage() {
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <Label htmlFor="medication">Medication Name</Label>
-                            <Input placeholder="Enter medication" />
+                            <Input 
+                              placeholder="Enter medication" 
+                              value={formData.medicationName}
+                              onChange={(e) => setFormData(prev => ({ ...prev, medicationName: e.target.value }))}
+                            />
                           </div>
                           <div>
                             <Label htmlFor="dosage">Dosage</Label>
-                            <Input placeholder="e.g., 10mg" />
+                            <Input 
+                              placeholder="e.g., 10mg" 
+                              value={formData.dosage}
+                              onChange={(e) => setFormData(prev => ({ ...prev, dosage: e.target.value }))}
+                            />
                           </div>
                         </div>
                         <div className="grid grid-cols-3 gap-4">
                           <div>
                             <Label htmlFor="frequency">Frequency</Label>
-                            <Select>
+                            <Select value={formData.frequency} onValueChange={(value) => setFormData(prev => ({ ...prev, frequency: value }))}>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select frequency" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="once">Once daily</SelectItem>
-                                <SelectItem value="twice">Twice daily</SelectItem>
-                                <SelectItem value="three">Three times daily</SelectItem>
-                                <SelectItem value="four">Four times daily</SelectItem>
+                                <SelectItem value="Once daily">Once daily</SelectItem>
+                                <SelectItem value="Twice daily">Twice daily</SelectItem>
+                                <SelectItem value="Three times daily">Three times daily</SelectItem>
+                                <SelectItem value="Four times daily">Four times daily</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                           <div>
                             <Label htmlFor="quantity">Quantity</Label>
-                            <Input type="number" placeholder="30" />
+                            <Input 
+                              type="number" 
+                              placeholder="30" 
+                              value={formData.quantity}
+                              onChange={(e) => setFormData(prev => ({ ...prev, quantity: e.target.value }))}
+                            />
                           </div>
                           <div>
                             <Label htmlFor="refills">Refills</Label>
-                            <Input type="number" placeholder="3" />
+                            <Input 
+                              type="number" 
+                              placeholder="3" 
+                              value={formData.refills}
+                              onChange={(e) => setFormData(prev => ({ ...prev, refills: e.target.value }))}
+                            />
                           </div>
                         </div>
                         <div>
                           <Label htmlFor="instructions">Instructions</Label>
-                          <Textarea placeholder="Special instructions for patient" />
+                          <Textarea 
+                            placeholder="Special instructions for patient" 
+                            value={formData.instructions}
+                            onChange={(e) => setFormData(prev => ({ ...prev, instructions: e.target.value }))}
+                          />
                         </div>
                       </div>
                       
@@ -534,20 +560,22 @@ export default function PrescriptionsPage() {
                         </Button>
                         <Button 
                           onClick={() => {
-                            if (selectedPrescription) {
-                              // Handle edit
-                              toast({
-                                title: "Prescription Updated",
-                                description: `Updated prescription for ${selectedPrescription.patientName}`,
-                              });
-                            } else {
-                              // Handle create
-                              createPrescriptionMutation.mutate({
-                                patientId: "p_001", // This should be from form
-                                diagnosis: "Sample Diagnosis",
-                                medications: []
-                              });
-                            }
+                            const prescriptionData = {
+                              patientId: formData.patientId,
+                              diagnosis: formData.diagnosis,
+                              medications: [{
+                                name: formData.medicationName,
+                                dosage: formData.dosage,
+                                frequency: formData.frequency,
+                                duration: "30 days", // Default for now
+                                quantity: parseInt(formData.quantity) || 0,
+                                refills: parseInt(formData.refills) || 0,
+                                instructions: formData.instructions,
+                                genericAllowed: true
+                              }]
+                            };
+
+                            createPrescriptionMutation.mutate(prescriptionData);
                           }}
                           disabled={createPrescriptionMutation.isPending}
                         >
