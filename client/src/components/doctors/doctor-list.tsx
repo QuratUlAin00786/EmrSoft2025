@@ -181,11 +181,7 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                   variant="ghost"
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (onSelectDoctor) {
-                      onSelectDoctor(doctor);
-                    } else {
-                      setLocation(`/staff/${doctor.id}`);
-                    }
+                    setLocation(`/staff/${doctor.id}`);
                   }}
                 >
                   View Profile

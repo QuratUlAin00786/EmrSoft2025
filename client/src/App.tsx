@@ -14,6 +14,7 @@ import Dashboard from "@/pages/dashboard";
 import Patients from "@/pages/patients";
 import AiInsights from "@/pages/ai-insights";
 import UserManagement from "@/pages/user-management";
+import StaffProfile from "@/pages/staff-profile";
 import Subscription from "@/pages/subscription";
 import Settings from "@/pages/settings";
 import CalendarPage from "@/pages/calendar";
@@ -65,7 +66,7 @@ function ProtectedApp() {
           <Route path="/voice-documentation" component={VoiceDocumentation} />
           <Route path="/financial-intelligence" component={FinancialIntelligence} />
           <Route path="/users" component={UserManagement} />
-          <Route path="/staff/:id" component={UserManagement} />
+          <Route path="/staff/:id" component={StaffProfile} />
           <Route path="/subscription" component={Subscription} />
           <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
