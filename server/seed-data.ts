@@ -1,5 +1,5 @@
 import { db } from "./db.js";
-import { organizations, users, patients, appointments, medicalRecords, notifications } from "@shared/schema.js";
+import { organizations, users, patients, appointments, medicalRecords, notifications, prescriptions } from "@shared/schema.js";
 import { authService } from "./services/auth.js";
 
 export async function seedDatabase() {
@@ -313,6 +313,65 @@ export async function seedDatabase() {
 
     await db.insert(notifications).values(sampleNotifications);
     console.log(`Created ${sampleNotifications.length} sample notifications`);
+
+    // Create sample prescriptions
+    const samplePrescriptions = [
+      {
+        organizationId: org.id,
+        patientId: createdPatients[0].id, // Sarah Johnson
+        providerId: createdUsers[1].id, // Dr. Smith
+        prescriptionNumber: `RX-${Date.now()}-001`,
+        status: "active" as const,
+        diagnosis: "Hypertension",
+        medications: [
+          {
+            name: "Lisinopril",
+            dosage: "10mg",
+            frequency: "Once daily",
+            duration: "30 days",
+            quantity: 30,
+            refills: 5,
+            instructions: "Take with or without food. Monitor blood pressure.",
+            genericAllowed: true
+          }
+        ],
+        pharmacy: {
+          name: "City Pharmacy",
+          address: "123 Main St, London",
+          phone: "+44 20 7946 0958"
+        },
+        notes: "Patient tolerates ACE inhibitors well"
+      },
+      {
+        organizationId: org.id,
+        patientId: createdPatients[1].id, // Robert Davis
+        providerId: createdUsers[1].id, // Dr. Smith
+        prescriptionNumber: `RX-${Date.now()}-002`,
+        status: "active" as const,
+        diagnosis: "Type 2 Diabetes",
+        medications: [
+          {
+            name: "Metformin",
+            dosage: "500mg",
+            frequency: "Twice daily with meals",
+            duration: "90 days",
+            quantity: 180,
+            refills: 3,
+            instructions: "Take with breakfast and dinner",
+            genericAllowed: true
+          }
+        ],
+        pharmacy: {
+          name: "Local Pharmacy",
+          address: "456 High St, London",
+          phone: "+44 20 7946 0959"
+        },
+        notes: "Monitor blood glucose levels"
+      }
+    ];
+
+    const createdPrescriptions = await db.insert(prescriptions).values(samplePrescriptions).returning();
+    console.log(`Created ${createdPrescriptions.length} sample prescriptions`);
 
     console.log("Database seeding completed successfully!");
     

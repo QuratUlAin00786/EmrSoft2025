@@ -218,7 +218,7 @@ export default function PrescriptionsPage() {
     }
   }, [selectedPrescription]);
 
-  const { data: prescriptions = mockPrescriptions, isLoading } = useQuery({
+  const { data: prescriptions = [], isLoading } = useQuery({
     queryKey: ["/api/prescriptions", statusFilter],
     enabled: true,
   });
