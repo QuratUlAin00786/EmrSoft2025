@@ -43,19 +43,34 @@ export function AiInsightsPanel() {
   
   const { data: insights, isLoading, error } = useQuery<AiInsight[]>({
     queryKey: ["/api/dashboard/ai-insights"],
+    queryFn: async () => {
+      const token = localStorage.getItem('token');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'X-Tenant-Subdomain': 'demo',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch("/api/dashboard/ai-insights", {
+        method: 'GET',
+        headers,
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+      
+      return response.json();
+    },
     retry: 2,
     retryDelay: 1000,
   });
 
-  // Debug to see if query is actually executing
-  console.log("AI Insights state:", { insights, isLoading, error, hasData: !!insights });
-  
-  // Force a manual request to debug
-  React.useEffect(() => {
-    if (error) {
-      console.log("AI Insights error detected:", error);
-    }
-  }, [error]);
+
 
 
 
