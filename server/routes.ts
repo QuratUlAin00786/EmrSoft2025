@@ -611,6 +611,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User management routes (admin only)
+  // Medical staff endpoint for appointment booking - accessible to all authenticated users
+  app.get("/api/medical-staff", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const users = await storage.getUsersByOrganization(req.tenant!.id);
+      
+      // Filter for medical staff only and remove password from response
+      const medicalStaff = users
+        .filter(user => ['doctor', 'nurse'].includes(user.role) && user.isActive)
+        .map(user => {
+          const { password, ...safeUser } = user;
+          return safeUser;
+        });
+
+      res.json(medicalStaff);
+    } catch (error) {
+      console.error("Medical staff fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch medical staff" });
+    }
+  });
+
   app.get("/api/users", requireRole(["admin"]), async (req: TenantRequest, res) => {
     try {
       const users = await storage.getUsersByOrganization(req.tenant!.id);

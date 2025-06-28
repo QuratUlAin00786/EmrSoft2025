@@ -36,15 +36,10 @@ function getInitials(firstName: string, lastName: string): string {
 }
 
 export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: DoctorListProps) {
-  const { data: staff = [], isLoading } = useQuery({
-    queryKey: ["/api/users"],
+  const { data: medicalStaff = [], isLoading } = useQuery({
+    queryKey: ["/api/medical-staff"],
     enabled: true,
   });
-
-  // Filter for doctors and medical staff
-  const medicalStaff = staff.filter((user: Doctor) => 
-    ['doctor', 'nurse'].includes(user.role) && user.isActive
-  );
 
   if (isLoading) {
     return (
