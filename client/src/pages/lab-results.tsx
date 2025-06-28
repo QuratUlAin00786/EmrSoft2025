@@ -229,8 +229,10 @@ export default function LabResultsPage() {
   };
 
   const handleViewResult = (result: LabResult) => {
+    console.log("handleViewResult called with:", result);
     setSelectedResult(result);
     setShowViewDialog(true);
+    console.log("showViewDialog set to true");
   };
 
   const handleDownloadResult = (resultId: string) => {
@@ -628,7 +630,7 @@ export default function LabResultsPage() {
 
       {/* View Lab Result Dialog */}
       <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Lab Result Details</DialogTitle>
           </DialogHeader>
