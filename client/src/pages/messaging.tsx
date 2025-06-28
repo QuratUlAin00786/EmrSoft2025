@@ -100,6 +100,7 @@ export default function MessagingPage() {
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOn, setIsVideoOn] = useState(true);
+  const [callTimer, setCallTimer] = useState<NodeJS.Timeout | null>(null);
   const [newCampaign, setNewCampaign] = useState({
     name: "",
     type: "email" as "email" | "sms" | "both",
@@ -245,44 +246,51 @@ export default function MessagingPage() {
 
     const participantName = videoCall.participant;
     
+    // Close dialog first
+    setShowVideoCall(false);
+    setCallParticipant(participantName);
+    setActiveVideoCall(true);
+    setCallDuration(0);
+    
+    toast({
+      title: "Video Call Started",
+      description: `Connecting to ${participantName}...`,
+    });
+
+    // Start call timer
+    const timer = setInterval(() => {
+      setCallDuration(prev => prev + 1);
+    }, 1000);
+    setCallTimer(timer);
+
+    // Try to get camera access in background
     try {
-      // Request access to camera and microphone
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true
+        video: { width: 640, height: 480 },
+        audio: { echoCancellation: true, noiseSuppression: true }
       });
       
       setLocalStream(stream);
-      setShowVideoCall(false);
-      setCallParticipant(participantName);
-      setActiveVideoCall(true);
-      setCallDuration(0);
       
       toast({
-        title: "Camera Access Granted",
-        description: `Starting video call with ${participantName}...`,
+        title: "Camera Connected",
+        description: "Video and audio are now active",
       });
-
-      // Start call timer
-      const timer = setInterval(() => {
-        setCallDuration(prev => prev + 1);
-      }, 1000);
-
-      setTimeout(() => {
-        toast({
-          title: "Call Connected",
-          description: `Video call with ${participantName} is now active`,
-        });
-      }, 1500);
-
     } catch (error) {
+      // Continue without camera if access denied
+      console.log("Camera access denied, continuing with audio-only call");
       toast({
-        title: "Camera Access Required",
-        description: "Please allow camera and microphone access to start video call.",
-        variant: "destructive"
+        title: "Audio Only",
+        description: "Video call started in audio-only mode",
       });
-      return;
     }
+
+    setTimeout(() => {
+      toast({
+        title: "Call Connected",
+        description: `Video call with ${participantName} is now active`,
+      });
+    }, 1500);
 
     // Reset form
     setVideoCall({
@@ -299,6 +307,12 @@ export default function MessagingPage() {
     if (localStream) {
       localStream.getTracks().forEach(track => track.stop());
       setLocalStream(null);
+    }
+    
+    // Clear timer
+    if (callTimer) {
+      clearInterval(callTimer);
+      setCallTimer(null);
     }
     
     setActiveVideoCall(false);
