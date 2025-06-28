@@ -173,6 +173,8 @@ export default function PrescriptionsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
   const [showNewPrescription, setShowNewPrescription] = useState(false);
+  const [showPharmacyDialog, setShowPharmacyDialog] = useState(false);
+  const [selectedPrescriptionId, setSelectedPrescriptionId] = useState<string>("");
   const queryClient = useQueryClient();
 
   // Form state for prescription editing
@@ -297,6 +299,44 @@ export default function PrescriptionsPage() {
     },
   });
 
+  const sendToPharmacyMutation = useMutation({
+    mutationFn: async ({ prescriptionId, pharmacyData }: { prescriptionId: string, pharmacyData: any }) => {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`/api/prescriptions/${prescriptionId}`, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({ pharmacy: pharmacyData }),
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error('Failed to send prescription to pharmacy');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Prescription sent to pharmacy successfully",
+      });
+      setShowPharmacyDialog(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/prescriptions"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send prescription to pharmacy",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCreatePrescription = () => {
     setSelectedPrescription(null); // Clear any selected prescription for new creation
     setShowNewPrescription(true);
@@ -345,16 +385,8 @@ export default function PrescriptionsPage() {
   };
 
   const handleSendToPharmacy = (prescriptionId: string) => {
-    const prescription = Array.isArray(prescriptions) ? prescriptions.find((p: any) => p.id === prescriptionId) : null;
-    if (prescription) {
-      toast({
-        title: "Sending to Pharmacy",
-        description: `Prescription sent to ${prescription.pharmacy?.name || 'selected pharmacy'} successfully`,
-      });
-      
-      // In a real implementation, this would call an API to send the prescription electronically
-      queryClient.invalidateQueries({ queryKey: ["/api/prescriptions"] });
-    }
+    setSelectedPrescriptionId(prescriptionId);
+    setShowPharmacyDialog(true);
   };
 
   const handleEditPrescription = (prescription: Prescription) => {
@@ -980,6 +1012,81 @@ export default function PrescriptionsPage() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Send to Pharmacy Dialog */}
+      <Dialog open={showPharmacyDialog} onOpenChange={setShowPharmacyDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send Prescription to Pharmacy</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="pharmacyName">Pharmacy Name</Label>
+              <Input
+                id="pharmacyName"
+                placeholder="Enter pharmacy name"
+                defaultValue="HealthPlus Pharmacy"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="pharmacyAddress">Address</Label>
+              <Input
+                id="pharmacyAddress"
+                placeholder="Pharmacy address"
+                defaultValue="123 High Street, London SW1A 1AA"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="pharmacyPhone">Phone</Label>
+              <Input
+                id="pharmacyPhone"
+                placeholder="Phone number"
+                defaultValue="020 7946 0958"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="pharmacyFax">Fax (Optional)</Label>
+              <Input
+                id="pharmacyFax"
+                placeholder="Fax number"
+                defaultValue="020 7946 0959"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="pharmacyNPI">NPI Number (Optional)</Label>
+              <Input
+                id="pharmacyNPI"
+                placeholder="NPI number"
+                defaultValue="1234567890"
+              />
+            </div>
+            <div className="flex gap-2 pt-4">
+              <Button variant="outline" onClick={() => setShowPharmacyDialog(false)} className="flex-1">
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  const pharmacyData = {
+                    name: (document.getElementById('pharmacyName') as HTMLInputElement)?.value || "HealthPlus Pharmacy",
+                    address: (document.getElementById('pharmacyAddress') as HTMLInputElement)?.value || "123 High Street, London SW1A 1AA",
+                    phone: (document.getElementById('pharmacyPhone') as HTMLInputElement)?.value || "020 7946 0958",
+                    fax: (document.getElementById('pharmacyFax') as HTMLInputElement)?.value || "020 7946 0959",
+                    npi: (document.getElementById('pharmacyNPI') as HTMLInputElement)?.value || "1234567890"
+                  };
+                  sendToPharmacyMutation.mutate({ 
+                    prescriptionId: selectedPrescriptionId, 
+                    pharmacyData 
+                  });
+                }}
+                disabled={sendToPharmacyMutation.isPending}
+                className="flex-1 bg-medical-blue hover:bg-blue-700"
+              >
+                {sendToPharmacyMutation.isPending ? "Sending..." : "Send to Pharmacy"}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </>
