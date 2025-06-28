@@ -823,37 +823,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "User not authenticated" });
       }
 
-      // Mock prescription data for now - replace with actual database queries
-      const prescriptions = [
-        {
-          id: "rx_001",
-          patientId: "p_001",
-          patientName: "Sarah Johnson",
-          providerId: req.user.id,
-          providerName: "Dr. Sarah Smith",
-          medications: [
-            {
-              name: "Lisinopril",
-              dosage: "10mg",
-              frequency: "Once daily",
-              duration: "30 days",
-              quantity: 30,
-              refills: 5,
-              instructions: "Take with or without food. Monitor blood pressure.",
-              genericAllowed: true
-            }
-          ],
-          diagnosis: "Hypertension",
-          status: "active",
-          prescribedAt: new Date().toISOString(),
-          pharmacy: {
-            name: "City Pharmacy",
-            address: "123 Main St, London",
-            phone: "+44 20 7946 0958"
-          }
-        }
-      ];
-
+      const prescriptions = await storage.getPrescriptionsByOrganization(req.tenant!.id);
       res.json(prescriptions);
     } catch (error) {
       console.error("Error fetching prescriptions:", error);
@@ -869,15 +839,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const prescriptionData = req.body;
       
-      // Create new prescription - replace with actual database insertion
-      const newPrescription = {
-        id: `rx_${Date.now()}`,
-        ...prescriptionData,
+      // Create prescription data for database
+      const prescriptionToInsert = {
+        organizationId: req.tenant!.id,
+        patientId: parseInt(prescriptionData.patientId),
         providerId: req.user.id,
-        prescribedAt: new Date().toISOString(),
-        status: "active"
+        prescriptionNumber: `RX-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+        status: prescriptionData.status || "active",
+        diagnosis: prescriptionData.diagnosis,
+        medications: prescriptionData.medications || [],
+        pharmacy: prescriptionData.pharmacy || {},
+        notes: prescriptionData.notes,
+        validUntil: prescriptionData.validUntil ? new Date(prescriptionData.validUntil) : null,
+        interactions: prescriptionData.interactions || []
       };
 
+      const newPrescription = await storage.createPrescription(prescriptionToInsert);
       res.status(201).json(newPrescription);
     } catch (error) {
       console.error("Error creating prescription:", error);

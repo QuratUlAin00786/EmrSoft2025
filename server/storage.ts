@@ -1,5 +1,5 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications,
+  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Patient, type InsertPatient,
@@ -9,7 +9,8 @@ import {
   type Subscription, type InsertSubscription,
   type PatientCommunication, type InsertPatientCommunication,
   type Consultation, type InsertConsultation,
-  type Notification, type InsertNotification
+  type Notification, type InsertNotification,
+  type Prescription, type InsertPrescription
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, not } from "drizzle-orm";
@@ -85,6 +86,14 @@ export interface IStorage {
   markNotificationAsDismissed(id: number, userId: number, organizationId: number): Promise<Notification | undefined>;
   markAllNotificationsAsRead(userId: number, organizationId: number): Promise<void>;
   deleteNotification(id: number, userId: number, organizationId: number): Promise<boolean>;
+
+  // Prescriptions
+  getPrescription(id: number, organizationId: number): Promise<Prescription | undefined>;
+  getPrescriptionsByOrganization(organizationId: number, limit?: number): Promise<Prescription[]>;
+  getPrescriptionsByPatient(patientId: number, organizationId: number): Promise<Prescription[]>;
+  getPrescriptionsByProvider(providerId: number, organizationId: number): Promise<Prescription[]>;
+  createPrescription(prescription: InsertPrescription): Promise<Prescription>;
+  updatePrescription(id: number, organizationId: number, updates: Partial<InsertPrescription>): Promise<Prescription | undefined>;
 
   // Dashboard Stats
   getDashboardStats(organizationId: number): Promise<{
@@ -928,6 +937,57 @@ export class DatabaseStorage implements IStorage {
       usageCount: 0,
       organizationId 
     };
+  }
+
+  // Prescriptions implementation
+  async getPrescription(id: number, organizationId: number): Promise<Prescription | undefined> {
+    const [prescription] = await db
+      .select()
+      .from(prescriptions)
+      .where(and(eq(prescriptions.id, id), eq(prescriptions.organizationId, organizationId)));
+    return prescription;
+  }
+
+  async getPrescriptionsByOrganization(organizationId: number, limit: number = 50): Promise<Prescription[]> {
+    return await db
+      .select()
+      .from(prescriptions)
+      .where(eq(prescriptions.organizationId, organizationId))
+      .orderBy(desc(prescriptions.createdAt))
+      .limit(limit);
+  }
+
+  async getPrescriptionsByPatient(patientId: number, organizationId: number): Promise<Prescription[]> {
+    return await db
+      .select()
+      .from(prescriptions)
+      .where(and(eq(prescriptions.patientId, patientId), eq(prescriptions.organizationId, organizationId)))
+      .orderBy(desc(prescriptions.createdAt));
+  }
+
+  async getPrescriptionsByProvider(providerId: number, organizationId: number): Promise<Prescription[]> {
+    return await db
+      .select()
+      .from(prescriptions)
+      .where(and(eq(prescriptions.providerId, providerId), eq(prescriptions.organizationId, organizationId)))
+      .orderBy(desc(prescriptions.createdAt));
+  }
+
+  async createPrescription(prescription: InsertPrescription): Promise<Prescription> {
+    const [newPrescription] = await db
+      .insert(prescriptions)
+      .values(prescription)
+      .returning();
+    return newPrescription;
+  }
+
+  async updatePrescription(id: number, organizationId: number, updates: Partial<InsertPrescription>): Promise<Prescription | undefined> {
+    const [updatedPrescription] = await db
+      .update(prescriptions)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(eq(prescriptions.id, id), eq(prescriptions.organizationId, organizationId)))
+      .returning();
+    return updatedPrescription;
   }
 }
 
