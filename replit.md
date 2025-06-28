@@ -101,6 +101,17 @@ Averox EMR is a comprehensive multi-tenant Electronic Medical Records (EMR) syst
 
 ## Changelog
 
+**June 28, 2025:**
+- Implemented comprehensive notification system with database backend and real-time updates
+- Added advanced clinical decision support service with AI-powered drug interaction analysis
+- Created patient monitoring service with vital signs analysis and medication adherence tracking
+- Built sophisticated appointment scheduler with conflict detection and automated optimization
+- Developed prescription management service with safety analysis and automated refill management
+- Added health dashboard service for population health analytics and clinical insights
+- Implemented audit compliance service with GDPR compliance checks and data retention policies
+- Enhanced backend with 6 major clinical services providing enterprise-grade medical functionality
+- All services integrated with OpenAI GPT-4o for intelligent clinical analysis and recommendations
+
 **June 27, 2025:**
 - Fixed dashboard statistics display issue by implementing direct API calls instead of TanStack Query
 - Resolved authentication flow to properly display dashboard data (Total Patients: 3, Today's Appointments: 2, AI Suggestions: 0, Revenue: £89,240)
