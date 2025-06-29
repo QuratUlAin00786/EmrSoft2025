@@ -6,6 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import { 
   Calendar,
   Clock,
   FileText,
@@ -256,10 +263,40 @@ export default function PatientPortal() {
             <p className="text-gray-600 mt-1">Manage your health information and appointments</p>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="outline" size="sm" onClick={() => window.location.href = "/notifications"}>
-              <Bell className="h-4 w-4 mr-2" />
-              Notifications
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Bell className="h-4 w-4 mr-2" />
+                  Notifications
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80">
+                <div className="p-2">
+                  <h4 className="font-semibold text-sm mb-2">Recent Notifications</h4>
+                  <div className="space-y-2">
+                    <div className="p-2 text-xs bg-blue-50 rounded">
+                      <div className="font-medium">Appointment Reminder</div>
+                      <div className="text-gray-600">Your appointment with Dr. Smith is tomorrow at 2:00 PM</div>
+                    </div>
+                    <div className="p-2 text-xs bg-green-50 rounded">
+                      <div className="font-medium">Lab Results Available</div>
+                      <div className="text-gray-600">Your recent blood work results are now available</div>
+                    </div>
+                    <div className="p-2 text-xs bg-yellow-50 rounded">
+                      <div className="font-medium">Prescription Refill</div>
+                      <div className="text-gray-600">Your prescription for Lisinopril needs to be refilled</div>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator className="my-2" />
+                  <DropdownMenuItem className="text-xs">
+                    View All Notifications
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="text-xs">
+                    Mark All as Read
+                  </DropdownMenuItem>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Avatar>
               <AvatarFallback>
                 {portal.patient.firstName[0]}{portal.patient.lastName[0]}
