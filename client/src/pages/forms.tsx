@@ -689,29 +689,26 @@ export default function FormsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Scroll to Top Button */}
-      <button
-        onClick={() => {
-          alert('Button clicked!');
-          console.log('BUTTON CLICKED!');
-          const main = document.querySelector('main');
-          if (main) {
-            main.scrollTo({ top: 0, behavior: 'smooth' });
-          } else {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-        }}
-        onMouseDown={() => console.log('Mouse down on button')}
-        onMouseUp={() => console.log('Mouse up on button')}
-        className="fixed bottom-8 right-8 w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-2xl flex items-center justify-center cursor-pointer border-4 border-white z-50"
-        style={{ 
-          zIndex: 999999,
-          pointerEvents: 'auto'
-        }}
-        type="button"
-      >
-        <ChevronUp className="h-8 w-8" />
-      </button>
+        {/* Scroll to Top Button - Inline */}
+        <div className="mt-8 flex justify-center">
+          <button
+            onClick={() => {
+              alert('Button clicked!');
+              console.log('BUTTON CLICKED!');
+              const main = document.querySelector('main');
+              if (main) {
+                main.scrollTo({ top: 0, behavior: 'smooth' });
+              } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 shadow-lg transition-colors"
+            type="button"
+          >
+            <ChevronUp className="h-5 w-5" />
+            Scroll to Top
+          </button>
+        </div>
     </div>
   );
 }
