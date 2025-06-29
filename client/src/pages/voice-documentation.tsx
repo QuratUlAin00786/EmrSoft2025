@@ -132,6 +132,8 @@ export default function VoiceDocumentation() {
   const [annotateDialogOpen, setAnnotateDialogOpen] = useState(false);
   const [addToReportDialogOpen, setAddToReportDialogOpen] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
+  const [analyzeDialogOpen, setAnalyzeDialogOpen] = useState(false);
+  const [analysisResults, setAnalysisResults] = useState<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const { toast } = useToast();
@@ -1251,7 +1253,54 @@ export default function VoiceDocumentation() {
               <p className="text-gray-600 mb-4">
                 AI-powered ICD-10 and CPT code suggestions based on clinical documentation.
               </p>
-              <Button>
+              <Button 
+                onClick={() => {
+                  // Simulate analysis process
+                  const analysisData = {
+                    suggestedCodes: [
+                      {
+                        type: "ICD-10",
+                        code: "R06.02",
+                        description: "Shortness of breath",
+                        confidence: 94,
+                        source: "Patient presents with dyspnea on exertion"
+                      },
+                      {
+                        type: "ICD-10", 
+                        code: "Z51.11",
+                        description: "Encounter for antineoplastic chemotherapy",
+                        confidence: 89,
+                        source: "Follow-up appointment for treatment"
+                      },
+                      {
+                        type: "CPT",
+                        code: "99213",
+                        description: "Office/outpatient visit, established patient",
+                        confidence: 96,
+                        source: "15-minute consultation visit"
+                      },
+                      {
+                        type: "CPT",
+                        code: "71045",
+                        description: "Chest X-ray, single view",
+                        confidence: 85,
+                        source: "Imaging ordered for respiratory evaluation"
+                      }
+                    ],
+                    totalDocuments: 3,
+                    analysisTime: "2.3 seconds",
+                    confidence: 91
+                  };
+                  
+                  setAnalysisResults(analysisData);
+                  setAnalyzeDialogOpen(true);
+                  
+                  toast({
+                    title: "Documentation Analysis Complete",
+                    description: `Found ${analysisData.suggestedCodes.length} relevant medical codes with ${analysisData.confidence}% confidence`,
+                  });
+                }}
+              >
                 <Search className="w-4 h-4 mr-2" />
                 Analyze Documentation
               </Button>
@@ -1617,6 +1666,111 @@ export default function VoiceDocumentation() {
                 }}>
                   <Plus className="w-4 h-4 mr-2" />
                   Add to Report
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Analyze Documentation Dialog */}
+      <Dialog open={analyzeDialogOpen} onOpenChange={setAnalyzeDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Medical Coding Analysis Results</DialogTitle>
+          </DialogHeader>
+          {analysisResults && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-3 gap-4 p-4 bg-blue-50 rounded-lg">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">{analysisResults.suggestedCodes.length}</div>
+                  <div className="text-sm text-gray-600">Suggested Codes</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">{analysisResults.confidence}%</div>
+                  <div className="text-sm text-gray-600">Confidence</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600">{analysisResults.analysisTime}</div>
+                  <div className="text-sm text-gray-600">Analysis Time</div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Suggested Medical Codes</h3>
+                <div className="space-y-3">
+                  {analysisResults.suggestedCodes.map((code: any, index: number) => (
+                    <Card key={index} className="p-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <Badge variant={code.type === 'ICD-10' ? 'default' : 'secondary'}>
+                              {code.type}
+                            </Badge>
+                            <span className="font-mono text-lg font-bold">{code.code}</span>
+                            <Badge variant="outline" className="text-green-600 border-green-600">
+                              {code.confidence}% confidence
+                            </Badge>
+                          </div>
+                          <h4 className="font-medium text-gray-900 mb-1">{code.description}</h4>
+                          <p className="text-sm text-gray-600">
+                            <strong>Source:</strong> {code.source}
+                          </p>
+                        </div>
+                        <div className="flex gap-2 ml-4">
+                          <Button size="sm" variant="outline">
+                            <Copy className="w-4 h-4 mr-1" />
+                            Copy Code
+                          </Button>
+                          <Button size="sm">
+                            <Plus className="w-4 h-4 mr-1" />
+                            Add to Billing
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <h3 className="text-lg font-semibold mb-3">Analysis Summary</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium text-gray-700">Documents Analyzed:</span>
+                    <span className="ml-2">{analysisResults.totalDocuments} clinical notes</span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-700">Code Types Found:</span>
+                    <span className="ml-2">ICD-10, CPT</span>
+                  </div>
+                </div>
+                <div className="mt-3 p-3 bg-yellow-50 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                    <div className="text-sm">
+                      <strong className="text-yellow-800">Important:</strong>
+                      <span className="text-yellow-700 ml-1">
+                        AI-generated codes require clinical validation. Please review all suggestions with appropriate medical documentation and coding guidelines.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setAnalyzeDialogOpen(false)}>
+                  Close
+                </Button>
+                <Button onClick={() => {
+                  toast({
+                    title: "Codes Exported",
+                    description: "Medical codes have been exported to billing system",
+                  });
+                  setAnalyzeDialogOpen(false);
+                }}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Export All Codes
                 </Button>
               </div>
             </div>
