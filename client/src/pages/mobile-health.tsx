@@ -88,6 +88,7 @@ export default function MobileHealth() {
   const [selectedDevice, setSelectedDevice] = useState<WearableDevice | null>(null);
   const [configureOpen, setConfigureOpen] = useState(false);
   const [deviceToConfig, setDeviceToConfig] = useState<WearableDevice | null>(null);
+  const [sendNotificationOpen, setSendNotificationOpen] = useState(false);
   const { toast } = useToast();
 
   // Fetch wearable devices
@@ -554,34 +555,10 @@ export default function MobileHealth() {
         <TabsContent value="notifications" className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Push Notifications</h3>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button>
-                  <Bell className="w-4 h-4 mr-2" />
-                  Send Notification
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Send Push Notification</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium">Patient</label>
-                    <Input placeholder="Select patient" className="mt-1" />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Type</label>
-                    <Input placeholder="Notification type" className="mt-1" />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Message</label>
-                    <Input placeholder="Notification message" className="mt-1" />
-                  </div>
-                  <Button className="w-full">Send Notification</Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <Button onClick={() => setSendNotificationOpen(true)}>
+              <Bell className="w-4 h-4 mr-2" />
+              Send Notification
+            </Button>
           </div>
 
           <div className="grid gap-4">
