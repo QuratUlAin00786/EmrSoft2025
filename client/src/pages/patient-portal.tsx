@@ -371,7 +371,7 @@ export default function PatientPortal() {
               <MessageSquare className="h-6 w-6" />
               <span>Message Provider</span>
             </Button>
-            <Button className="h-24 flex-col gap-2" variant="outline">
+            <Button className="h-24 flex-col gap-2" variant="outline" onClick={() => window.location.href = "/lab-results"}>
               <TestTube className="h-6 w-6" />
               <span>View Lab Results</span>
             </Button>
