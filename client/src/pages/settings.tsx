@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Header } from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,21 +39,36 @@ export default function Settings() {
   });
 
   const [settings, setSettings] = useState({
-    name: organization?.name || "",
-    brandName: organization?.brandName || "",
-    region: organization?.region || "UK",
-    theme: organization?.settings?.theme?.primaryColor || "default",
-    gdprEnabled: organization?.settings?.compliance?.gdprEnabled || true,
-    aiEnabled: organization?.settings?.features?.aiEnabled || true,
-    billingEnabled: organization?.settings?.features?.billingEnabled || true
+    name: "",
+    brandName: "",
+    region: "UK",
+    theme: "default",
+    gdprEnabled: true,
+    aiEnabled: true,
+    billingEnabled: true
   });
+
+  // Update settings when organization data is loaded
+  useEffect(() => {
+    if (organization) {
+      setSettings({
+        name: organization.name || "",
+        brandName: organization.brandName || "",
+        region: organization.region || "UK",
+        theme: organization.settings?.theme?.primaryColor || "default",
+        gdprEnabled: organization.settings?.compliance?.gdprEnabled || true,
+        aiEnabled: organization.settings?.features?.aiEnabled || true,
+        billingEnabled: organization.settings?.features?.billingEnabled || true
+      });
+    }
+  }, [organization]);
 
   const updateSettingsMutation = useMutation({
     mutationFn: async (updatedSettings: any) => {
       return apiRequest('PATCH', '/api/organization/settings', updatedSettings);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/organization/settings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tenant/info"] });
       setHasChanges(false);
     }
   });
