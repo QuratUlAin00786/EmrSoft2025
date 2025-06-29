@@ -149,7 +149,7 @@ export default function AnalyticsPage() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-6 max-w-7xl mx-auto h-screen overflow-y-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
