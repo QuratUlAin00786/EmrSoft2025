@@ -690,14 +690,24 @@ export default function FormsPage() {
       </Dialog>
 
       {/* Scroll to Top Button */}
-      <button
-        onClick={scrollToTop}
-        className="fixed bottom-8 right-8 z-[9999] w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg flex items-center justify-center cursor-pointer border-none outline-none focus:ring-2 focus:ring-blue-500"
-        aria-label="Scroll to top"
-        type="button"
+      <div 
+        className="fixed bottom-8 right-8 z-[9999]"
+        style={{ zIndex: 99999 }}
       >
-        <ChevronUp className="h-5 w-5" />
-      </button>
+        <button
+          onClick={scrollToTop}
+          className="w-14 h-14 rounded-full bg-red-600 hover:bg-red-700 text-white shadow-xl flex items-center justify-center cursor-pointer border-2 border-white transition-all duration-200 hover:scale-110"
+          aria-label="Scroll to top"
+          type="button"
+          style={{ 
+            position: 'relative',
+            zIndex: 99999,
+            pointerEvents: 'auto'
+          }}
+        >
+          <ChevronUp className="h-6 w-6" />
+        </button>
+      </div>
     </div>
   );
 }
