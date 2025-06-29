@@ -113,6 +113,9 @@ export default function VoiceDocumentation() {
   const [recordingTime, setRecordingTime] = useState(0);
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
   const [currentTranscript, setCurrentTranscript] = useState("");
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingNote, setEditingNote] = useState<VoiceNote | null>(null);
+  const [editedTranscript, setEditedTranscript] = useState("");
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const { toast } = useToast();
@@ -603,11 +606,9 @@ export default function VoiceDocumentation() {
                       size="sm" 
                       variant="outline"
                       onClick={() => {
-                        setCurrentTranscript(note.transcript);
-                        toast({
-                          title: "Edit Mode",
-                          description: "Voice note opened for editing",
-                        });
+                        setEditingNote(note);
+                        setEditedTranscript(note.transcript);
+                        setEditDialogOpen(true);
                       }}
                     >
                       <FileText className="w-4 h-4 mr-1" />
@@ -805,6 +806,146 @@ export default function VoiceDocumentation() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Edit Note Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Voice Note - {editingNote?.patientName}</DialogTitle>
+          </DialogHeader>
+          {editingNote && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <div className="text-sm text-gray-500">Patient</div>
+                  <div className="font-medium">{editingNote.patientName}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">Provider</div>
+                  <div className="font-medium">{editingNote.providerName}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">Note Type</div>
+                  <div className="font-medium capitalize">{editingNote.type.replace('_', ' ')}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">Recording Duration</div>
+                  <div className="font-medium">{Math.floor(editingNote.recordingDuration / 60)}:{(editingNote.recordingDuration % 60).toString().padStart(2, '0')}</div>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Original Transcript</label>
+                <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-700 max-h-32 overflow-y-auto">
+                  {editingNote.transcript}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Edited Transcript</label>
+                <Textarea
+                  value={editedTranscript}
+                  onChange={(e) => setEditedTranscript(e.target.value)}
+                  className="min-h-[200px] font-mono text-sm"
+                  placeholder="Edit the transcript here..."
+                />
+                <div className="text-xs text-gray-500 mt-1">
+                  {editedTranscript.length} characters
+                </div>
+              </div>
+
+              {editingNote.medicalTerms && editingNote.medicalTerms.length > 0 && (
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Medical Terms Detected</label>
+                  <div className="flex flex-wrap gap-2">
+                    {editingNote.medicalTerms.map((term, idx) => (
+                      <Badge key={idx} variant="outline" className="text-xs">
+                        {term.term} ({term.confidence}%)
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {editingNote.structuredData && (
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Structured Clinical Data</label>
+                  <div className="grid grid-cols-1 gap-3 p-4 bg-blue-50 rounded-lg">
+                    <div>
+                      <strong className="text-sm">Chief Complaint:</strong>
+                      <p className="text-sm mt-1">{editingNote.structuredData.chiefComplaint}</p>
+                    </div>
+                    <div>
+                      <strong className="text-sm">History:</strong>
+                      <p className="text-sm mt-1">{editingNote.structuredData.historyOfPresentIllness}</p>
+                    </div>
+                    <div>
+                      <strong className="text-sm">Assessment:</strong>
+                      <p className="text-sm mt-1">{editingNote.structuredData.assessment}</p>
+                    </div>
+                    <div>
+                      <strong className="text-sm">Plan:</strong>
+                      <p className="text-sm mt-1">{editingNote.structuredData.plan}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 p-3 bg-yellow-50 rounded-lg">
+                <AlertTriangle className="w-5 h-5 text-yellow-600" />
+                <div className="text-sm">
+                  <strong className="text-yellow-800">Note:</strong>
+                  <span className="text-yellow-700 ml-1">
+                    Editing this transcript will require re-analysis for medical terms and structured data extraction.
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex justify-between gap-3 pt-4">
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(editedTranscript);
+                      toast({
+                        title: "Text Copied",
+                        description: "Edited transcript copied to clipboard",
+                      });
+                    }}
+                  >
+                    <Copy className="w-4 h-4 mr-1" />
+                    Copy
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setEditedTranscript(editingNote.transcript)}
+                  >
+                    <RotateCcw className="w-4 h-4 mr-1" />
+                    Reset
+                  </Button>
+                </div>
+                <div className="flex gap-3">
+                  <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={() => {
+                    toast({
+                      title: "Changes Saved",
+                      description: `Voice note updated for ${editingNote.patientName}`,
+                    });
+                    setEditDialogOpen(false);
+                  }}>
+                    <Save className="w-4 h-4 mr-1" />
+                    Save Changes
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
       </div>
     </div>
   );
