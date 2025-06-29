@@ -617,12 +617,49 @@ export default function VoiceDocumentation() {
                     <Button 
                       size="sm" 
                       variant="outline"
-                      onClick={() => {
-                        navigator.clipboard.writeText(note.transcript);
-                        toast({
-                          title: "Text Copied",
-                          description: "Transcript copied to clipboard",
-                        });
+                      onClick={async () => {
+                        try {
+                          // Try modern clipboard API first
+                          if (navigator.clipboard && window.isSecureContext) {
+                            await navigator.clipboard.writeText(note.transcript);
+                            toast({
+                              title: "Text Copied",
+                              description: "Transcript copied to clipboard",
+                            });
+                          } else {
+                            // Fallback method for older browsers or insecure contexts
+                            const textArea = document.createElement('textarea');
+                            textArea.value = note.transcript;
+                            textArea.style.position = 'fixed';
+                            textArea.style.left = '-999999px';
+                            textArea.style.top = '-999999px';
+                            document.body.appendChild(textArea);
+                            textArea.focus();
+                            textArea.select();
+                            
+                            try {
+                              document.execCommand('copy');
+                              toast({
+                                title: "Text Copied",
+                                description: "Transcript copied to clipboard",
+                              });
+                            } catch (err) {
+                              toast({
+                                title: "Copy Failed",
+                                description: "Unable to copy text. Please select and copy manually.",
+                                variant: "destructive",
+                              });
+                            } finally {
+                              document.body.removeChild(textArea);
+                            }
+                          }
+                        } catch (err) {
+                          toast({
+                            title: "Copy Failed",
+                            description: "Unable to copy text. Please try again.",
+                            variant: "destructive",
+                          });
+                        }
                       }}
                     >
                       <Copy className="w-4 h-4 mr-1" />
