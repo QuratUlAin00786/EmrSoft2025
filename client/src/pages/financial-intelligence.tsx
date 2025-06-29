@@ -867,10 +867,12 @@ export default function FinancialIntelligence() {
                       variant="outline"
                       onClick={() => {
                         console.log('View Benefits clicked for:', insurance.patientName);
-                        toast({
-                          title: "Benefits Information",
-                          description: `Viewing benefits for ${insurance.patientName}\n• Deductible: $${insurance.benefits.deductible} (Met: $${insurance.benefits.deductibleMet})\n• Out-of-Pocket Max: $${insurance.benefits.outOfPocketMax} (Met: $${insurance.benefits.outOfPocketMet})\n• Coverage: ${insurance.coverageType}\n• Copay: $${insurance.benefits.copay}\n• Coinsurance: ${insurance.benefits.coinsurance}%`,
-                        });
+                        alert(`Benefits Information for ${insurance.patientName}:
+• Deductible: $${insurance.benefits.deductible} (Met: $${insurance.benefits.deductibleMet})
+• Out-of-Pocket Max: $${insurance.benefits.outOfPocketMax} (Met: $${insurance.benefits.outOfPocketMet})
+• Coverage: ${insurance.coverageType}
+• Copay: $${insurance.benefits.copay}
+• Coinsurance: ${insurance.benefits.coinsurance}%`);
                       }}
                     >
                       View Benefits
@@ -880,10 +882,7 @@ export default function FinancialIntelligence() {
                       variant="outline"
                       onClick={() => {
                         console.log('Prior Authorization clicked for:', insurance.patientName);
-                        toast({
-                          title: "Prior Authorization Required",
-                          description: `Prior authorization process initiated for ${insurance.patientName}. A request will be submitted to ${insurance.provider} within 24 hours.`,
-                        });
+                        alert(`Prior Authorization: Process initiated for ${insurance.patientName}. A request will be submitted to ${insurance.provider} within 24 hours.`);
                       }}
                     >
                       Prior Authorization
