@@ -628,7 +628,7 @@ export default function PatientPortal() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold">Messages</h2>
-            <Button>
+            <Button onClick={() => window.location.href = "/messaging"}>
               <Plus className="h-4 w-4 mr-2" />
               New Message
             </Button>
