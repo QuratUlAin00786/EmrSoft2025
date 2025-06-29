@@ -50,6 +50,9 @@ export default function AiInsights() {
   
   const { data: insights, isLoading, error } = useQuery<AiInsight[]>({
     queryKey: ["/api/dashboard/ai-insights"],
+    retry: false,
+    staleTime: 0,
+    refetchOnWindowFocus: false,
   });
 
   const updateInsightMutation = useMutation({
@@ -75,7 +78,9 @@ export default function AiInsights() {
     );
   }
 
-  if (error) {
+  // Temporarily bypass error handling to see data
+  if (error && !insights) {
+    console.error('AI Insights error:', error);
     return (
       <>
         <Header 
@@ -88,6 +93,12 @@ export default function AiInsights() {
               <p className="text-neutral-600">
                 Unable to load AI insights. Please try again later.
               </p>
+              <Button 
+                className="mt-4" 
+                onClick={() => queryClient.invalidateQueries({ queryKey: ["/api/dashboard/ai-insights"] })}
+              >
+                Retry
+              </Button>
             </CardContent>
           </Card>
         </div>
@@ -95,6 +106,11 @@ export default function AiInsights() {
     );
   }
 
+  // Debug logging
+  console.log('AI Insights data:', insights);
+  console.log('AI Insights loading:', isLoading);
+  console.log('AI Insights error:', error);
+  
   const activeInsights = insights?.filter(insight => insight.status === 'active') || [];
   const dismissedInsights = insights?.filter(insight => insight.status === 'dismissed') || [];
   const resolvedInsights = insights?.filter(insight => insight.status === 'resolved') || [];
