@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { 
   Mic,
   MicOff,
@@ -28,6 +28,8 @@ import {
   Camera,
   Image,
   Search,
+  Plus,
+  X,
   Filter,
   Copy,
   Save
@@ -836,9 +838,222 @@ export default function VoiceDocumentation() {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button size="sm">Use Template</Button>
-                    <Button size="sm" variant="outline">Edit Template</Button>
-                    <Button size="sm" variant="outline">Duplicate</Button>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button size="sm">Use Template</Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle>Use Template - {template.name}</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div className="p-4 bg-blue-50 rounded-lg">
+                            <h4 className="font-medium mb-2">Template Information</h4>
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                              <div>
+                                <span className="text-gray-500">Category:</span>
+                                <span className="ml-2 capitalize">{template.category.replace('_', ' ')}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-500">Usage Count:</span>
+                                <span className="ml-2">{template.usageCount} times</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <label className="text-sm font-medium mb-2 block">Patient Selection</label>
+                            <Select>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select patient for this note" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="patient_1">Sarah Johnson</SelectItem>
+                                <SelectItem value="patient_2">Michael Chen</SelectItem>
+                                <SelectItem value="patient_3">Emma Davis</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium mb-2 block">Template Fields</label>
+                            <div className="space-y-3">
+                              {template.fields.map((field, idx) => (
+                                <div key={idx}>
+                                  <label className="text-sm text-gray-700">
+                                    {field.name}
+                                    {field.required && <span className="text-red-500 ml-1">*</span>}
+                                  </label>
+                                  {field.type === 'textarea' ? (
+                                    <Textarea 
+                                      placeholder={`Enter ${field.name.toLowerCase()}`}
+                                      className="mt-1"
+                                    />
+                                  ) : field.type === 'select' && field.options ? (
+                                    <Select>
+                                      <SelectTrigger className="mt-1">
+                                        <SelectValue placeholder={`Select ${field.name.toLowerCase()}`} />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {field.options.map((option, optIdx) => (
+                                          <SelectItem key={optIdx} value={option.toLowerCase().replace(' ', '_')}>
+                                            {option}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  ) : (
+                                    <Input 
+                                      placeholder={`Enter ${field.name.toLowerCase()}`}
+                                      className="mt-1"
+                                    />
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium mb-2 block">Generated Note Preview</label>
+                            <div className="p-3 bg-gray-50 rounded-lg font-mono text-sm text-gray-700 max-h-40 overflow-y-auto">
+                              {template.template}
+                            </div>
+                          </div>
+
+                          <div className="flex justify-end gap-2 pt-4">
+                            <DialogClose asChild>
+                              <Button variant="outline">Cancel</Button>
+                            </DialogClose>
+                            <Button onClick={() => {
+                              toast({
+                                title: "Template Applied",
+                                description: `${template.name} has been used to create a new voice note`,
+                              });
+                            }}>
+                              Create Note from Template
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button size="sm" variant="outline">Edit Template</Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle>Edit Template - {template.name}</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-sm font-medium mb-2 block">Template Name</label>
+                              <Input defaultValue={template.name} />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium mb-2 block">Category</label>
+                              <Select defaultValue={template.category}>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="soap_note">SOAP Note</SelectItem>
+                                  <SelectItem value="procedure">Procedure</SelectItem>
+                                  <SelectItem value="consultation">Consultation</SelectItem>
+                                  <SelectItem value="discharge">Discharge</SelectItem>
+                                  <SelectItem value="admission">Admission</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium mb-2 block">Template Content</label>
+                            <Textarea 
+                              defaultValue={template.template}
+                              className="min-h-[200px] font-mono text-sm"
+                              placeholder="Enter template content with field placeholders like {chief_complaint}, {assessment}, etc."
+                            />
+                          </div>
+
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <label className="text-sm font-medium">Template Fields</label>
+                              <Button size="sm" variant="outline">
+                                <Plus className="w-4 h-4 mr-1" />
+                                Add Field
+                              </Button>
+                            </div>
+                            <div className="space-y-2 max-h-40 overflow-y-auto">
+                              {template.fields.map((field, idx) => (
+                                <div key={idx} className="flex items-center gap-2 p-2 border rounded">
+                                  <Input defaultValue={field.name} className="flex-1" placeholder="Field name" />
+                                  <Select defaultValue={field.type}>
+                                    <SelectTrigger className="w-32">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="text">Text</SelectItem>
+                                      <SelectItem value="textarea">Textarea</SelectItem>
+                                      <SelectItem value="select">Select</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <Button size="sm" variant="outline">
+                                    <X className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center space-x-2">
+                              <input 
+                                type="checkbox" 
+                                id="autoComplete" 
+                                defaultChecked={template.autoComplete}
+                                className="rounded"
+                              />
+                              <label htmlFor="autoComplete" className="text-sm">Enable auto-complete</label>
+                            </div>
+                          </div>
+
+                          <div className="flex justify-end gap-2 pt-4">
+                            <DialogClose asChild>
+                              <Button variant="outline">Cancel</Button>
+                            </DialogClose>
+                            <Button onClick={() => {
+                              toast({
+                                title: "Template Updated",
+                                description: `${template.name} has been successfully updated`,
+                              });
+                            }}>
+                              Save Changes
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        const duplicatedTemplate = {
+                          ...template,
+                          id: `template_${Date.now()}`,
+                          name: `${template.name} (Copy)`,
+                          usageCount: 0
+                        };
+                        toast({
+                          title: "Template Duplicated",
+                          description: `Created a copy: "${duplicatedTemplate.name}"`,
+                        });
+                      }}
+                    >
+                      Duplicate
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
