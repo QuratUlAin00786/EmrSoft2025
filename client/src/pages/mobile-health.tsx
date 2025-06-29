@@ -92,6 +92,9 @@ export default function MobileHealth() {
   const [sendNotificationOpen, setSendNotificationOpen] = useState(false);
   const [installPwaOpen, setInstallPwaOpen] = useState(false);
   const [configureOfflineOpen, setConfigureOfflineOpen] = useState(false);
+  const [appPreviewOpen, setAppPreviewOpen] = useState(false);
+  const [selectedApp, setSelectedApp] = useState<MobileApp | null>(null);
+  const [shareLinkOpen, setShareLinkOpen] = useState(false);
   const { toast } = useToast();
 
   // Fetch wearable devices
@@ -536,15 +539,37 @@ export default function MobileHealth() {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button size="sm">
+                    <Button 
+                      size="sm"
+                      onClick={() => {
+                        toast({
+                          title: "Download Started",
+                          description: `${app.name} is being downloaded for your device`,
+                        });
+                      }}
+                    >
                       <Download className="w-4 h-4 mr-1" />
                       Download
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedApp(app);
+                        setAppPreviewOpen(true);
+                      }}
+                    >
                       <Play className="w-4 h-4 mr-1" />
                       Preview
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedApp(app);
+                        setShareLinkOpen(true);
+                      }}
+                    >
                       <Share2 className="w-4 h-4 mr-1" />
                       Share Link
                     </Button>
@@ -1239,6 +1264,227 @@ export default function MobileHealth() {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* App Preview Dialog */}
+      <Dialog open={appPreviewOpen} onOpenChange={setAppPreviewOpen}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>App Preview - {selectedApp?.name}</DialogTitle>
+          </DialogHeader>
+          {selectedApp && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <Smartphone className="w-8 h-8 text-blue-500" />
+                <div>
+                  <h3 className="font-medium">{selectedApp.name}</h3>
+                  <p className="text-sm text-gray-600">{selectedApp.description}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge variant="outline">{selectedApp.platform.toUpperCase()}</Badge>
+                    <span className="text-sm text-gray-500">v{selectedApp.version}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-sm text-gray-500">Rating</div>
+                  <div className="flex items-center gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <span key={i} className={i < Math.floor(selectedApp.rating) ? 'text-yellow-400' : 'text-gray-300'}>
+                        ★
+                      </span>
+                    ))}
+                    <span className="text-sm text-gray-600 ml-1">{selectedApp.rating}</span>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">Downloads</div>
+                  <div className="font-medium">{selectedApp.downloads.toLocaleString()}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">Category</div>
+                  <div className="font-medium capitalize">{selectedApp.category.replace('_', ' ')}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">Platform</div>
+                  <div className="font-medium">{selectedApp.platform.toUpperCase()}</div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-medium mb-2">Key Features</h4>
+                <div className="grid grid-cols-1 gap-2">
+                  {selectedApp.features.map((feature, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      <span className="text-sm">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-3 bg-blue-50 rounded-lg">
+                <h4 className="font-medium text-blue-800">Preview Not Available</h4>
+                <p className="text-sm text-blue-600 mt-1">
+                  App preview requires device installation. Download the app to experience full functionality.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="font-medium">Installation Requirements</h4>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  {selectedApp.platform === 'pwa' ? (
+                    <>
+                      <li>• Modern web browser (Chrome, Edge, Safari, Firefox)</li>
+                      <li>• Internet connection for initial install</li>
+                      <li>• 50MB available storage space</li>
+                    </>
+                  ) : selectedApp.platform === 'ios' ? (
+                    <>
+                      <li>• iOS 14.0 or later</li>
+                      <li>• iPhone, iPad, or iPod touch</li>
+                      <li>• 100MB available storage space</li>
+                    </>
+                  ) : (
+                    <>
+                      <li>• Android 8.0 (API level 26) or higher</li>
+                      <li>• 150MB available storage space</li>
+                      <li>• Internet connection</li>
+                    </>
+                  )}
+                </ul>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <Button variant="outline" onClick={() => setAppPreviewOpen(false)}>
+                  Close
+                </Button>
+                <Button onClick={() => {
+                  toast({
+                    title: "Download Started",
+                    description: `${selectedApp.name} is being downloaded for your device`,
+                  });
+                  setAppPreviewOpen(false);
+                }}>
+                  Download App
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Share Link Dialog */}
+      <Dialog open={shareLinkOpen} onOpenChange={setShareLinkOpen}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Share App Link - {selectedApp?.name}</DialogTitle>
+          </DialogHeader>
+          {selectedApp && (
+            <div className="space-y-4">
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Share2 className="w-5 h-5 text-blue-500" />
+                  <span className="font-medium">Share {selectedApp.name}</span>
+                </div>
+                <p className="text-sm text-gray-600 mt-1">
+                  Share this app with colleagues, patients, or other healthcare providers
+                </p>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">App Link</label>
+                <div className="flex gap-2 mt-1">
+                  <Input 
+                    value={`https://apps.averox.com/${selectedApp.id}`}
+                    readOnly
+                    className="bg-gray-50"
+                  />
+                  <Button size="sm" variant="outline" onClick={() => {
+                    navigator.clipboard.writeText(`https://apps.averox.com/${selectedApp.id}`);
+                    toast({
+                      title: "Link Copied",
+                      description: "App link copied to clipboard",
+                    });
+                  }}>
+                    Copy
+                  </Button>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Share Method</label>
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <Button 
+                    variant="outline" 
+                    className="justify-start"
+                    onClick={() => {
+                      const subject = `Check out ${selectedApp.name}`;
+                      const body = `I recommend trying ${selectedApp.name}: ${selectedApp.description}\n\nDownload: https://apps.averox.com/${selectedApp.id}`;
+                      window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
+                    }}
+                  >
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Email
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="justify-start"
+                    onClick={() => {
+                      const text = `Check out ${selectedApp.name}: ${selectedApp.description} https://apps.averox.com/${selectedApp.id}`;
+                      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+                      window.open(whatsappUrl, '_blank');
+                    }}
+                  >
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    WhatsApp
+                  </Button>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">QR Code</label>
+                <div className="flex items-center justify-center p-6 bg-gray-50 rounded-lg mt-2">
+                  <div className="text-center">
+                    <QrCode className="w-16 h-16 mx-auto text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-600">QR Code for easy sharing</p>
+                    <p className="text-xs text-gray-500">Scan to download app</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Share Message Template</label>
+                <textarea 
+                  className="mt-1 w-full min-h-[80px] p-3 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  defaultValue={`I recommend trying ${selectedApp.name} - ${selectedApp.description}
+
+Key features include:
+${selectedApp.features.slice(0, 3).map(f => `• ${f}`).join('\n')}
+
+Download link: https://apps.averox.com/${selectedApp.id}`}
+                  rows={5}
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <Button variant="outline" onClick={() => setShareLinkOpen(false)}>
+                  Close
+                </Button>
+                <Button onClick={() => {
+                  toast({
+                    title: "Link Shared",
+                    description: "App sharing options are ready to use",
+                  });
+                  setShareLinkOpen(false);
+                }}>
+                  Done
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
