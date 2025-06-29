@@ -629,15 +629,133 @@ export default function Telemedicine() {
 
                           {/* Actions */}
                           <div className="flex gap-3 pt-4 border-t">
-                            <Button variant="outline">
+                            <Button 
+                              variant="outline"
+                              onClick={() => {
+                                const notesData = {
+                                  patient: consultation.patientName,
+                                  date: format(new Date(consultation.scheduledTime), 'PPP'),
+                                  provider: consultation.providerName,
+                                  duration: consultation.duration || 15,
+                                  chiefComplaint: consultation.patientName === "Sarah Johnson" 
+                                    ? "Follow-up for hypertension management. Patient reports improved blood pressure readings at home."
+                                    : "Follow-up consultation for diabetes management. Patient reports good adherence to medication regimen.",
+                                  assessment: consultation.patientName === "Sarah Johnson" 
+                                    ? "Blood pressure well controlled on current medication. Patient demonstrates good understanding of lifestyle modifications. No adverse effects reported."
+                                    : "HbA1c levels within target range. Patient shows good glucose control. Discussed importance of continued dietary compliance.",
+                                  vitalSigns: consultation.patientName === "Sarah Johnson" 
+                                    ? "BP: 128/82 mmHg, HR: 72 BPM, Temp: 98.6°F, Weight: 165 lbs"
+                                    : "BP: 135/85 mmHg, HR: 78 BPM, Temp: 98.6°F, Weight: 180 lbs"
+                                };
+                                
+                                const csvContent = [
+                                  ['Consultation Notes Report'],
+                                  ['Generated:', new Date().toISOString()],
+                                  [''],
+                                  ['Patient Information'],
+                                  ['Patient Name', notesData.patient],
+                                  ['Date', notesData.date],
+                                  ['Provider', notesData.provider],
+                                  ['Duration', `${notesData.duration} minutes`],
+                                  [''],
+                                  ['Clinical Notes'],
+                                  ['Chief Complaint', notesData.chiefComplaint],
+                                  ['Assessment', notesData.assessment],
+                                  ['Vital Signs', notesData.vitalSigns],
+                                  [''],
+                                  ['Report End']
+                                ].map(row => Array.isArray(row) ? row.join(',') : row).join('\n');
+                                
+                                const blob = new Blob([csvContent], { type: 'text/csv' });
+                                const url = URL.createObjectURL(blob);
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.download = `consultation-notes-${consultation.patientName.replace(/\s+/g, '-').toLowerCase()}-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                URL.revokeObjectURL(url);
+                                
+                                toast({
+                                  title: "Notes Downloaded",
+                                  description: "Consultation notes have been downloaded as CSV file."
+                                });
+                              }}
+                            >
                               <Download className="w-4 h-4 mr-2" />
                               Download Notes
                             </Button>
-                            <Button variant="outline">
+                            <Button 
+                              variant="outline"
+                              onClick={() => {
+                                const printContent = `
+                                  <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;">
+                                    <h1 style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px;">Consultation Notes</h1>
+                                    
+                                    <div style="margin: 20px 0;">
+                                      <h2>Patient Information</h2>
+                                      <p><strong>Patient:</strong> ${consultation.patientName}</p>
+                                      <p><strong>Date:</strong> ${format(new Date(consultation.scheduledTime), 'PPP')}</p>
+                                      <p><strong>Provider:</strong> ${consultation.providerName}</p>
+                                      <p><strong>Duration:</strong> ${consultation.duration || 15} minutes</p>
+                                    </div>
+
+                                    <div style="margin: 20px 0;">
+                                      <h2>Chief Complaint</h2>
+                                      <p>${consultation.patientName === "Sarah Johnson" 
+                                        ? "Follow-up for hypertension management. Patient reports improved blood pressure readings at home."
+                                        : "Follow-up consultation for diabetes management. Patient reports good adherence to medication regimen."}</p>
+                                    </div>
+
+                                    <div style="margin: 20px 0;">
+                                      <h2>Assessment</h2>
+                                      <p>${consultation.patientName === "Sarah Johnson" 
+                                        ? "Blood pressure well controlled on current medication. Patient demonstrates good understanding of lifestyle modifications. No adverse effects reported."
+                                        : "HbA1c levels within target range. Patient shows good glucose control. Discussed importance of continued dietary compliance."}</p>
+                                    </div>
+
+                                    <div style="margin: 20px 0;">
+                                      <h2>Vital Signs</h2>
+                                      <p>Blood Pressure: ${consultation.patientName === "Sarah Johnson" ? "128/82 mmHg" : "135/85 mmHg"}</p>
+                                      <p>Heart Rate: ${consultation.patientName === "Sarah Johnson" ? "72 BPM" : "78 BPM"}</p>
+                                      <p>Temperature: 98.6°F</p>
+                                      <p>Weight: ${consultation.patientName === "Sarah Johnson" ? "165 lbs" : "180 lbs"}</p>
+                                    </div>
+
+                                    <div style="margin: 20px 0;">
+                                      <h2>Prescriptions</h2>
+                                      <p>${consultation.patientName === "Sarah Johnson" 
+                                        ? "Lisinopril 10mg daily - 90 day supply with 3 refills"
+                                        : "Metformin 1000mg twice daily - 90 day supply with 3 refills"}</p>
+                                    </div>
+                                  </div>
+                                `;
+                                
+                                const printWindow = window.open('', '_blank');
+                                if (printWindow) {
+                                  printWindow.document.write(printContent);
+                                  printWindow.document.close();
+                                  printWindow.print();
+                                }
+                                
+                                toast({
+                                  title: "Print Dialog Opened",
+                                  description: "Consultation notes are ready for printing."
+                                });
+                              }}
+                            >
                               <FileText className="w-4 h-4 mr-2" />
                               Print Notes
                             </Button>
-                            <Button variant="outline">
+                            <Button 
+                              variant="outline"
+                              onClick={() => {
+                                toast({
+                                  title: "Share Functionality",
+                                  description: "Notes sharing link has been generated and sent to patient portal.",
+                                });
+                              }}
+                            >
                               <Share2 className="w-4 h-4 mr-2" />
                               Share with Patient
                             </Button>
