@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { NotificationBell } from "@/components/layout/notification-bell";
 import { 
   Calendar,
   Clock,
@@ -256,10 +257,7 @@ export default function PatientPortal() {
             <p className="text-gray-600 mt-1">Manage your health information and appointments</p>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="outline" size="sm">
-              <Bell className="h-4 w-4 mr-2" />
-              Notifications
-            </Button>
+            <NotificationBell />
             <Avatar>
               <AvatarFallback>
                 {portal.patient.firstName[0]}{portal.patient.lastName[0]}
