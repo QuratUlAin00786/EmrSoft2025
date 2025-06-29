@@ -78,8 +78,8 @@ export default function AiInsights() {
     );
   }
 
-  // Temporarily bypass error handling to see data
-  if (error && !insights) {
+  // Only show error if there's a meaningful error and no data
+  if (error && !isLoading && !insights) {
     console.error('AI Insights error:', error);
     return (
       <>
@@ -106,14 +106,13 @@ export default function AiInsights() {
     );
   }
 
-  // Debug logging
-  console.log('AI Insights data:', insights);
-  console.log('AI Insights loading:', isLoading);
-  console.log('AI Insights error:', error);
+  // Data loaded successfully
   
-  const activeInsights = insights?.filter(insight => insight.status === 'active') || [];
-  const dismissedInsights = insights?.filter(insight => insight.status === 'dismissed') || [];
-  const resolvedInsights = insights?.filter(insight => insight.status === 'resolved') || [];
+  // Ensure insights is an array
+  const safeInsights = Array.isArray(insights) ? insights : [];
+  const activeInsights = safeInsights.filter(insight => insight.status === 'active');
+  const dismissedInsights = safeInsights.filter(insight => insight.status === 'dismissed');
+  const resolvedInsights = safeInsights.filter(insight => insight.status === 'resolved');
 
   return (
     <>
