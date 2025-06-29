@@ -65,7 +65,87 @@ export default function ClinicalDecisionSupport() {
   const [activeTab, setActiveTab] = useState("insights");
   const [filterPriority, setFilterPriority] = useState<string>("all");
   const [filterType, setFilterType] = useState<string>("all");
+  const [selectedGuideline, setSelectedGuideline] = useState<any>(null);
+  const [guidelineViewOpen, setGuidelineViewOpen] = useState(false);
   const { toast } = useToast();
+
+  // Guidelines data
+  const guidelines = {
+    'nice-hypertension': {
+      id: 'nice-hypertension',
+      title: 'NICE Guidelines: Hypertension Management',
+      description: 'Comprehensive guidance on diagnosis and management of hypertension in adults',
+      organization: 'NICE (National Institute for Health and Care Excellence)',
+      updated: 'March 2024',
+      evidenceLevel: 'A',
+      category: 'Cardiology',
+      sections: [
+        {
+          title: 'Diagnosis and Assessment',
+          content: [
+            'Measure blood pressure in both arms when first assessing a person with suspected hypertension',
+            'If difference >15 mmHg, use arm with higher reading for subsequent measurements',
+            'Use automated devices for routine blood pressure measurement',
+            'Consider ambulatory blood pressure monitoring (ABPM) or home blood pressure monitoring (HBPM) to confirm diagnosis'
+          ]
+        },
+        {
+          title: 'Classification',
+          content: [
+            'Stage 1 hypertension: Clinic BP 140/90 mmHg or higher and ABPM/HBPM average 135/85 mmHg or higher',
+            'Stage 2 hypertension: Clinic BP 160/100 mmHg or higher and ABPM/HBPM average 150/95 mmHg or higher',
+            'Stage 3 hypertension: Clinic systolic BP 180 mmHg or higher or clinic diastolic BP 110 mmHg or higher'
+          ]
+        },
+        {
+          title: 'Treatment Recommendations',
+          content: [
+            'Offer lifestyle advice to all people with hypertension',
+            'Start antihypertensive drug treatment for adults aged under 80 with stage 1 hypertension and cardiovascular risk ≥10%',
+            'Offer antihypertensive drug treatment to adults of any age with stage 2 hypertension',
+            'Consider ACE inhibitor or ARB as first-line treatment for people aged under 55'
+          ]
+        }
+      ]
+    },
+    'ada-diabetes': {
+      id: 'ada-diabetes',
+      title: 'ADA Standards: Diabetes Care',
+      description: 'Evidence-based recommendations for diabetes diagnosis, treatment, and monitoring',
+      organization: 'American Diabetes Association',
+      updated: 'January 2024',
+      evidenceLevel: 'A',
+      category: 'Endocrinology',
+      sections: [
+        {
+          title: 'Diagnostic Criteria',
+          content: [
+            'HbA1c ≥6.5% (48 mmol/mol) on two separate occasions',
+            'Fasting plasma glucose ≥126 mg/dL (7.0 mmol/L) after 8-hour fast',
+            'Random plasma glucose ≥200 mg/dL (11.1 mmol/L) with symptoms',
+            '2-hour plasma glucose ≥200 mg/dL during oral glucose tolerance test'
+          ]
+        },
+        {
+          title: 'Treatment Goals',
+          content: [
+            'HbA1c target <7% for most adults',
+            'More stringent target <6.5% may be appropriate for selected individuals',
+            'Less stringent target <8% may be appropriate for those with limited life expectancy',
+            'Blood pressure target <140/90 mmHg for most adults'
+          ]
+        }
+      ]
+    }
+  };
+
+  const viewGuideline = (guidelineId: string) => {
+    const guideline = (guidelines as any)[guidelineId];
+    if (guideline) {
+      setSelectedGuideline(guideline);
+      setGuidelineViewOpen(true);
+    }
+  };
 
   // Fetch clinical insights
   const { data: insights, isLoading: insightsLoading } = useQuery({
@@ -644,12 +724,7 @@ export default function ClinicalDecisionSupport() {
                                   <Button 
                                     size="sm" 
                                     variant="outline"
-                                    onClick={() => {
-                                      toast({
-                                        title: "Guideline Opened",
-                                        description: "NICE Guidelines: Hypertension Management - Opening detailed guideline view...",
-                                      });
-                                    }}
+                                    onClick={() => viewGuideline('nice-hypertension')}
                                   >
                                     View
                                   </Button>
@@ -674,12 +749,7 @@ export default function ClinicalDecisionSupport() {
                                   <Button 
                                     size="sm" 
                                     variant="outline"
-                                    onClick={() => {
-                                      toast({
-                                        title: "Guideline Opened",
-                                        description: "ADA Standards: Diabetes Care - Opening detailed guideline view...",
-                                      });
-                                    }}
+                                    onClick={() => viewGuideline('ada-diabetes')}
                                   >
                                     View
                                   </Button>
@@ -816,6 +886,80 @@ export default function ClinicalDecisionSupport() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Guideline Viewer Dialog */}
+      <Dialog open={guidelineViewOpen} onOpenChange={setGuidelineViewOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedGuideline?.title}</DialogTitle>
+          </DialogHeader>
+          {selectedGuideline && (
+            <div className="space-y-6">
+              {/* Guideline Header */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium">Organization:</span>
+                    <p className="text-gray-600">{selectedGuideline.organization}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Last Updated:</span>
+                    <p className="text-gray-600">{selectedGuideline.updated}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Evidence Level:</span>
+                    <Badge variant="secondary">{selectedGuideline.evidenceLevel}</Badge>
+                  </div>
+                  <div>
+                    <span className="font-medium">Category:</span>
+                    <Badge variant="outline">{selectedGuideline.category}</Badge>
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <p className="text-gray-700">{selectedGuideline.description}</p>
+                </div>
+              </div>
+
+              {/* Guideline Sections */}
+              <div className="space-y-4">
+                {selectedGuideline.sections?.map((section: any, index: number) => (
+                  <Card key={index}>
+                    <CardHeader>
+                      <CardTitle className="text-lg">{section.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {section.content.map((item: string, itemIndex: number) => (
+                          <li key={itemIndex} className="flex items-start gap-2">
+                            <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                            <span className="text-gray-700">{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-4 border-t">
+                <Button variant="outline">
+                  <Download className="w-4 h-4 mr-2" />
+                  Download PDF
+                </Button>
+                <Button variant="outline">
+                  <FileText className="w-4 h-4 mr-2" />
+                  Print Guideline
+                </Button>
+                <Button variant="outline">
+                  <Target className="w-4 h-4 mr-2" />
+                  Add to Favorites
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
