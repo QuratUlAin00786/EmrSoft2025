@@ -567,7 +567,16 @@ export default function PatientPortal() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold">Lab Results</h2>
-            <Button variant="outline">
+            <Button variant="outline" onClick={() => {
+              const labResultsList = portal.labResults.map(result => `${result.testName} - ${format(new Date(result.date), 'MMMM d, yyyy')}\nStatus: ${result.status}\nResults: ${result.results ? Object.entries(result.results).map(([key, value]) => `${key}: ${value}`).join(', ') : 'N/A'}\n`).join('\n');
+              const content = `LAB RESULTS - ${portal.patient.firstName} ${portal.patient.lastName}\n\nPatient: ${portal.patient.firstName} ${portal.patient.lastName}\nNHS Number: ${portal.patient.nhsNumber}\nGenerated: ${new Date().toLocaleDateString()}\n\nLab Results:\n${labResultsList}`;
+              const link = document.createElement('a');
+              link.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(content);
+              link.download = `lab-results-${portal.patient.firstName}-${portal.patient.lastName}.txt`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }}>
               <Download className="h-4 w-4 mr-2" />
               Download All
             </Button>
