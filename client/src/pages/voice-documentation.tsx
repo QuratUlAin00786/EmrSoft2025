@@ -32,7 +32,9 @@ import {
   X,
   Filter,
   Copy,
-  Save
+  Save,
+  Maximize,
+  Edit
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -119,6 +121,10 @@ export default function VoiceDocumentation() {
   const [editingNote, setEditingNote] = useState<VoiceNote | null>(null);
   const [editedTranscript, setEditedTranscript] = useState("");
   const [localTemplates, setLocalTemplates] = useState<SmartTemplate[]>([]);
+  const [viewFullDialogOpen, setViewFullDialogOpen] = useState(false);
+  const [annotateDialogOpen, setAnnotateDialogOpen] = useState(false);
+  const [addToReportDialogOpen, setAddToReportDialogOpen] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const { toast } = useToast();
@@ -1167,18 +1173,57 @@ export default function VoiceDocumentation() {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button size="sm">
-                      <Image className="w-4 h-4 mr-1" />
+                    <Button 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedPhoto(photo);
+                        setViewFullDialogOpen(true);
+                      }}
+                    >
+                      <Maximize className="w-4 h-4 mr-1" />
                       View Full
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        // Create a download link for the photo
+                        const link = document.createElement('a');
+                        link.href = photo.url;
+                        link.download = `${photo.filename}_${photo.patientName.replace(' ', '_')}.jpg`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        
+                        toast({
+                          title: "Download Started",
+                          description: `Downloading ${photo.filename} for ${photo.patientName}`,
+                        });
+                      }}
+                    >
                       <Download className="w-4 h-4 mr-1" />
                       Download
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedPhoto(photo);
+                        setAnnotateDialogOpen(true);
+                      }}
+                    >
+                      <Edit className="w-4 h-4 mr-1" />
                       Annotate
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedPhoto(photo);
+                        setAddToReportDialogOpen(true);
+                      }}
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
                       Add to Report
                     </Button>
                   </div>
