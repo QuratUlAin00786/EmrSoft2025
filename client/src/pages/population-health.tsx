@@ -479,7 +479,74 @@ export default function PopulationHealth() {
               </div>
             </DialogContent>
           </Dialog>
-          <Button variant="outline">
+          <Button 
+            variant="outline"
+            onClick={() => {
+              // Generate comprehensive population health report
+              const reportData = [
+                ['Population Health Report'],
+                ['Generated on:', format(new Date(), 'PPP')],
+                ['Organization:', 'MediCore Healthcare'],
+                [''],
+                ['SUMMARY METRICS'],
+                ['Total Patients', '1,276'],
+                ['High Risk Patients', '319'],
+                ['Prevention Rate', '78%'],
+                ['Active Cohorts', '12'],
+                [''],
+                ['COHORT BREAKDOWN'],
+                ['Cohort Name', 'Patient Count', 'Risk Level', 'Primary Condition'],
+                ['Diabetes Management', '247', 'High', 'Type 2 Diabetes'],
+                ['Cardiovascular Risk', '189', 'High', 'Hypertension'],
+                ['Preventive Care', '456', 'Moderate', 'General'],
+                ['COPD Management', '124', 'High', 'COPD'],
+                ['Heart Disease Monitor', '89', 'Critical', 'Heart Disease'],
+                [''],
+                ['INTERVENTION COMPLETION RATES'],
+                ['Intervention', 'Completion Rate', 'Status'],
+                ['Quarterly HbA1c Testing', '78%', 'Active'],
+                ['Annual Eye Exam', '65%', 'Active'],
+                ['Diabetes Education Program', '82%', 'Active'],
+                ['Statin Therapy', '85%', 'Active'],
+                ['Blood Pressure Monitoring', '73%', 'Active'],
+                [''],
+                ['PREVENTIVE CARE METRICS'],
+                ['Metric', 'Current', 'Target', 'Trend'],
+                ['Flu Vaccination Rate', '73%', '80%', 'Up'],
+                ['Mammography Screening', '82%', '85%', 'Up'],
+                ['Colonoscopy Screening', '76%', '80%', 'Stable'],
+                ['Blood Pressure Control', '68%', '75%', 'Up'],
+                [''],
+                ['RISK DISTRIBUTION'],
+                ['Risk Level', 'Percentage', 'Patient Count'],
+                ['Critical', '8%', '102'],
+                ['High', '25%', '319'],
+                ['Moderate', '45%', '574'],
+                ['Low', '22%', '281'],
+                [''],
+                ['Report End']
+              ];
+
+              const csvContent = reportData.map(row => 
+                Array.isArray(row) ? row.join(',') : row
+              ).join('\n');
+              
+              const blob = new Blob([csvContent], { type: 'text/csv' });
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = `population-health-report-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              URL.revokeObjectURL(url);
+              
+              toast({
+                title: "Report Exported",
+                description: "Population health report has been downloaded as CSV file."
+              });
+            }}
+          >
             <Download className="w-4 h-4 mr-2" />
             Export Report
           </Button>
