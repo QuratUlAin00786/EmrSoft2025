@@ -101,6 +101,10 @@ export default function PopulationHealth() {
   const [minAge, setMinAge] = useState("");
   const [maxAge, setMaxAge] = useState("");
   const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
+  const [viewDetailsOpen, setViewDetailsOpen] = useState(false);
+  const [editCohortOpen, setEditCohortOpen] = useState(false);
+  const [setAlertsOpen, setSetAlertsOpen] = useState(false);
+  const [selectedCohortData, setSelectedCohortData] = useState<any>(null);
   const { toast } = useToast();
 
   // Fetch population health data
@@ -767,9 +771,33 @@ export default function PopulationHealth() {
                   </div>
 
                   <div className="flex gap-2 pt-2">
-                    <Button size="sm">View Details</Button>
-                    <Button size="sm" variant="outline">Edit Cohort</Button>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedCohortData(cohort);
+                        setViewDetailsOpen(true);
+                      }}
+                    >
+                      View Details
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedCohortData(cohort);
+                        setEditCohortOpen(true);
+                      }}
+                    >
+                      Edit Cohort
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedCohortData(cohort);
+                        setSetAlertsOpen(true);
+                      }}
+                    >
                       <Bell className="w-4 h-4 mr-1" />
                       Set Alerts
                     </Button>
@@ -875,6 +903,292 @@ export default function PopulationHealth() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* View Details Dialog */}
+      <Dialog open={viewDetailsOpen} onOpenChange={setViewDetailsOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Cohort Details - {selectedCohortData?.name}</DialogTitle>
+          </DialogHeader>
+          {selectedCohortData && (
+            <div className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Basic Information</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-gray-600">Name</label>
+                      <p className="text-sm">{selectedCohortData.name}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-600">Description</label>
+                      <p className="text-sm">{selectedCohortData.description}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-600">Risk Level</label>
+                      <Badge className={getRiskColor(selectedCohortData.riskLevel)}>
+                        {selectedCohortData.riskLevel} risk
+                      </Badge>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-600">Patient Count</label>
+                      <p className="text-lg font-semibold text-blue-600">{selectedCohortData.patientCount}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Criteria</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {selectedCohortData.criteria?.ageRange && (
+                      <div>
+                        <label className="text-sm font-medium text-gray-600">Age Range</label>
+                        <p className="text-sm">
+                          {selectedCohortData.criteria.ageRange.min} - {selectedCohortData.criteria.ageRange.max} years
+                        </p>
+                      </div>
+                    )}
+                    {selectedCohortData.criteria?.conditions && (
+                      <div>
+                        <label className="text-sm font-medium text-gray-600">Medical Conditions</label>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {selectedCohortData.criteria.conditions.map((condition: string, index: number) => (
+                            <Badge key={index} variant="outline">{condition}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Active Interventions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {selectedCohortData.interventions?.map((intervention: any, index: number) => (
+                      <div key={index} className="flex justify-between items-center p-3 border rounded-lg">
+                        <div>
+                          <p className="font-medium">{intervention.name}</p>
+                          <p className="text-sm text-gray-600">{intervention.description}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium">{intervention.completionRate}% complete</p>
+                          <Badge className={
+                            intervention.status === 'active' ? 'bg-green-100 text-green-800' :
+                            intervention.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-gray-100 text-gray-800'
+                          }>
+                            {intervention.status}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Cohort Dialog */}
+      <Dialog open={editCohortOpen} onOpenChange={setEditCohortOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Cohort - {selectedCohortData?.name}</DialogTitle>
+          </DialogHeader>
+          {selectedCohortData && (
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Cohort Name</label>
+                <Input 
+                  defaultValue={selectedCohortData.name}
+                  placeholder="Enter cohort name"
+                />
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium">Description</label>
+                <Input 
+                  defaultValue={selectedCohortData.description}
+                  placeholder="Enter description"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Minimum Age</label>
+                  <Input 
+                    type="number"
+                    defaultValue={selectedCohortData.criteria?.ageRange?.min || ""}
+                    placeholder="e.g., 35"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Maximum Age</label>
+                  <Input 
+                    type="number"
+                    defaultValue={selectedCohortData.criteria?.ageRange?.max || ""}
+                    placeholder="e.g., 75"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Risk Level</label>
+                <Select defaultValue={selectedCohortData.riskLevel}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low Risk</SelectItem>
+                    <SelectItem value="moderate">Moderate Risk</SelectItem>
+                    <SelectItem value="high">High Risk</SelectItem>
+                    <SelectItem value="critical">Critical Risk</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Medical Conditions</label>
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  {["Type 2 Diabetes", "Hypertension", "Cardiovascular Disease", "Chronic Kidney Disease", "COPD", "Obesity"].map((condition) => (
+                    <label key={condition} className="flex items-center space-x-2">
+                      <input 
+                        type="checkbox" 
+                        defaultChecked={selectedCohortData.criteria?.conditions?.includes(condition)}
+                        className="rounded"
+                      />
+                      <span className="text-sm">{condition}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <Button variant="outline" onClick={() => setEditCohortOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={() => {
+                  toast({
+                    title: "Cohort Updated",
+                    description: "Cohort criteria have been successfully updated.",
+                  });
+                  setEditCohortOpen(false);
+                }}>
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Set Alerts Dialog */}
+      <Dialog open={setAlertsOpen} onOpenChange={setSetAlertsOpen}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Set Alerts - {selectedCohortData?.name}</DialogTitle>
+          </DialogHeader>
+          {selectedCohortData && (
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Alert Type</label>
+                <Select defaultValue="risk_threshold">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="risk_threshold">Risk Threshold</SelectItem>
+                    <SelectItem value="intervention_completion">Intervention Completion</SelectItem>
+                    <SelectItem value="patient_count">Patient Count Change</SelectItem>
+                    <SelectItem value="outcome_metrics">Outcome Metrics</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Threshold Value</label>
+                <Input 
+                  type="number"
+                  placeholder="e.g., 80 for 80%"
+                  defaultValue="80"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Alert Frequency</label>
+                <Select defaultValue="daily">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="immediate">Immediate</SelectItem>
+                    <SelectItem value="daily">Daily</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Notification Method</label>
+                <div className="space-y-2 mt-2">
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" defaultChecked className="rounded" />
+                    <span className="text-sm">Email notifications</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" defaultChecked className="rounded" />
+                    <span className="text-sm">In-app notifications</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" className="rounded" />
+                    <span className="text-sm">SMS alerts</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Recipients</label>
+                <Select defaultValue="care_team">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="care_team">Care Team</SelectItem>
+                    <SelectItem value="department_heads">Department Heads</SelectItem>
+                    <SelectItem value="administrators">Administrators</SelectItem>
+                    <SelectItem value="custom">Custom Recipients</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <Button variant="outline" onClick={() => setSetAlertsOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={() => {
+                  toast({
+                    title: "Alert Created",
+                    description: "Population health alert has been configured successfully.",
+                  });
+                  setSetAlertsOpen(false);
+                }}>
+                  Create Alert
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
