@@ -35,7 +35,7 @@ export default function Settings() {
   const [hasChanges, setHasChanges] = useState(false);
 
   const { data: organization, isLoading, error } = useQuery<Organization>({
-    queryKey: ["/api/organization/settings"],
+    queryKey: ["/api/tenant/info"],
   });
 
   const [settings, setSettings] = useState({
