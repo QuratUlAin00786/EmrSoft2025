@@ -102,19 +102,46 @@ export default function FormsPage() {
     activeTab: 'overview'
   });
   const scrollToTop = () => {
-    // Find the main content container that has the scroll
+    console.log('Scroll to top clicked');
+    
+    // Try multiple potential scroll containers
+    const containers = [
+      { element: document.querySelector('main'), name: 'main' },
+      { element: document.querySelector('.flex-1'), name: '.flex-1' },
+      { element: document.documentElement, name: 'documentElement' },
+      { element: document.body, name: 'body' }
+    ];
+    
+    // Log current scroll positions
+    containers.forEach(({ element, name }) => {
+      if (element) {
+        console.log(`${name} scrollTop:`, element.scrollTop);
+      }
+    });
+    
+    // Find and scroll the container with content
+    for (const { element, name } of containers) {
+      if (element && element.scrollTop > 0) {
+        console.log(`Scrolling ${name} to top`);
+        element.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+        return;
+      }
+    }
+    
+    // Force scroll on main element regardless of current position
     const mainElement = document.querySelector('main');
     if (mainElement) {
+      console.log('Force scrolling main element');
       mainElement.scrollTo({
         top: 0,
         behavior: 'smooth'
       });
     } else {
-      // Fallback to window scroll
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
+      console.log('Fallback to window scroll');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
