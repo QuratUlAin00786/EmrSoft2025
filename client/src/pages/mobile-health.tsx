@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
   Smartphone,
@@ -90,18 +89,6 @@ export default function MobileHealth() {
   const [configureOpen, setConfigureOpen] = useState(false);
   const [deviceToConfig, setDeviceToConfig] = useState<WearableDevice | null>(null);
   const { toast } = useToast();
-
-  // Test: Return simple JSX first to isolate the issue
-  if (true) {
-    return (
-      <div className="flex-1 p-6 overflow-auto">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-2xl font-bold mb-6">Mobile Health</h1>
-          <p>Testing basic component rendering...</p>
-        </div>
-      </div>
-    );
-  }
 
   // Fetch wearable devices
   const { data: devices, isLoading: devicesLoading } = useQuery({
@@ -545,70 +532,15 @@ export default function MobileHealth() {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button 
-                      size="sm"
-                      onClick={() => {
-                        // Simulate download
-                        const link = document.createElement('a');
-                        link.href = '#';
-                        link.download = `${app.name.replace(/\s+/g, '_')}_v${app.version}.${app.platform === 'pwa' ? 'zip' : 'ipa'}`;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        
-                        toast({
-                          title: "Download Started",
-                          description: `${app.name} v${app.version} is downloading...`,
-                        });
-                      }}
-                    >
+                    <Button size="sm">
                       <Download className="w-4 h-4 mr-1" />
                       Download
                     </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => {
-                        toast({
-                          title: "App Preview",
-                          description: `Opening ${app.name} preview in new window...`,
-                        });
-                        // Simulate opening preview
-                        window.open(`/app-preview/${app.id}`, '_blank', 'width=400,height=700');
-                      }}
-                    >
+                    <Button size="sm" variant="outline">
                       <Play className="w-4 h-4 mr-1" />
                       Preview
                     </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => {
-                        const shareUrl = `${window.location.origin}/apps/${app.id}`;
-                        try {
-                          if (navigator.clipboard && window.isSecureContext) {
-                            navigator.clipboard.writeText(shareUrl);
-                          } else {
-                            // Fallback for older browsers
-                            const textArea = document.createElement('textarea');
-                            textArea.value = shareUrl;
-                            document.body.appendChild(textArea);
-                            textArea.select();
-                            document.execCommand('copy');
-                            document.body.removeChild(textArea);
-                          }
-                          toast({
-                            title: "Share Link Copied",
-                            description: `${app.name} share link copied to clipboard`,
-                          });
-                        } catch (error) {
-                          toast({
-                            title: "Share Link Ready",
-                            description: `${app.name} share link: ${shareUrl}`,
-                          });
-                        }
-                      }}
-                    >
+                    <Button size="sm" variant="outline">
                       <Share2 className="w-4 h-4 mr-1" />
                       Share Link
                     </Button>
@@ -803,14 +735,7 @@ export default function MobileHealth() {
                   <RotateCcw className="w-4 h-4 mr-2" />
                   Sync Device
                 </Button>
-                <Button 
-                  variant="outline"
-                  onClick={() => {
-                    setDeviceToConfig(selectedDevice);
-                    setConfigureOpen(true);
-                    setSelectedDevice(null);
-                  }}
-                >
+                <Button variant="outline">
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
                 </Button>
