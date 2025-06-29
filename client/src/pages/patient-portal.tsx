@@ -367,7 +367,7 @@ export default function PatientPortal() {
               <Calendar className="h-6 w-6" />
               <span>Book Appointment</span>
             </Button>
-            <Button className="h-24 flex-col gap-2" variant="outline">
+            <Button className="h-24 flex-col gap-2" variant="outline" onClick={() => window.location.href = "/messaging"}>
               <MessageSquare className="h-6 w-6" />
               <span>Message Provider</span>
             </Button>
