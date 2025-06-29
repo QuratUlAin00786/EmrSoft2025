@@ -189,6 +189,16 @@ export default function IntegrationsPage() {
     }
   };
 
+  const handleConnectIntegration = (category: string) => {
+    // Simulate connecting to integration
+    connectIntegrationMutation.mutate({
+      category,
+      name: `${category.charAt(0).toUpperCase() + category.slice(1)} Integration`,
+      provider: `${category}-provider`,
+      status: 'connected'
+    });
+  };
+
   if (integrationsLoading || webhooksLoading || apiKeysLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -213,6 +223,84 @@ export default function IntegrationsPage() {
                 Add Integration
               </Button>
             </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Add New Integration</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6">
+                {/* Integration Categories */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <Card className="cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => handleConnectIntegration('messaging')}>
+                    <CardContent className="p-4 text-center">
+                      <Mail className="h-8 w-8 mx-auto mb-2 text-blue-500" />
+                      <h3 className="font-medium">Messaging</h3>
+                      <p className="text-sm text-gray-600 mt-1">SMS, Email, WhatsApp</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => handleConnectIntegration('clinical')}>
+                    <CardContent className="p-4 text-center">
+                      <Activity className="h-8 w-8 mx-auto mb-2 text-green-500" />
+                      <h3 className="font-medium">Clinical</h3>
+                      <p className="text-sm text-gray-600 mt-1">HL7, FHIR, Labs</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => handleConnectIntegration('billing')}>
+                    <CardContent className="p-4 text-center">
+                      <FileText className="h-8 w-8 mx-auto mb-2 text-purple-500" />
+                      <h3 className="font-medium">Billing</h3>
+                      <p className="text-sm text-gray-600 mt-1">Payment, Insurance</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => handleConnectIntegration('analytics')}>
+                    <CardContent className="p-4 text-center">
+                      <Database className="h-8 w-8 mx-auto mb-2 text-orange-500" />
+                      <h3 className="font-medium">Analytics</h3>
+                      <p className="text-sm text-gray-600 mt-1">Reports, BI Tools</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => handleConnectIntegration('compliance')}>
+                    <CardContent className="p-4 text-center">
+                      <Shield className="h-8 w-8 mx-auto mb-2 text-red-500" />
+                      <h3 className="font-medium">Compliance</h3>
+                      <p className="text-sm text-gray-600 mt-1">HIPAA, Audit Tools</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => handleConnectIntegration('workflow')}>
+                    <CardContent className="p-4 text-center">
+                      <Zap className="h-8 w-8 mx-auto mb-2 text-yellow-500" />
+                      <h3 className="font-medium">Workflow</h3>
+                      <p className="text-sm text-gray-600 mt-1">Automation, APIs</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Popular Integrations */}
+                <div>
+                  <h3 className="font-medium mb-3">Popular Integrations</h3>
+                  <div className="space-y-2">
+                    {[
+                      { name: "Twilio SMS", category: "messaging", description: "Send SMS notifications and reminders" },
+                      { name: "HL7 FHIR", category: "clinical", description: "Exchange clinical data with other systems" },
+                      { name: "Stripe Payment", category: "billing", description: "Process patient payments securely" },
+                      { name: "Google Analytics", category: "analytics", description: "Track website and app usage" }
+                    ].map((integration) => (
+                      <div key={integration.name} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer" onClick={() => handleConnectIntegration(integration.category)}>
+                        <div>
+                          <h4 className="font-medium">{integration.name}</h4>
+                          <p className="text-sm text-gray-600">{integration.description}</p>
+                        </div>
+                        <Button variant="outline" size="sm">Connect</Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </DialogContent>
           </Dialog>
           <Button>
             <Globe className="h-4 w-4 mr-2" />
