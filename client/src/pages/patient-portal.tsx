@@ -262,7 +262,7 @@ export default function PatientPortal() {
   );
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-6 max-w-7xl mx-auto overflow-y-auto max-h-screen">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
