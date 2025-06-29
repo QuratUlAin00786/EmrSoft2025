@@ -346,8 +346,9 @@ export default function VoiceDocumentation() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="h-full overflow-y-auto">
+      <div className="p-6 space-y-6">
+        <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Voice Documentation</h1>
           <p className="text-gray-600 mt-1">AI-powered voice transcription and clinical photography</p>
@@ -766,6 +767,7 @@ export default function VoiceDocumentation() {
           </Card>
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 }
