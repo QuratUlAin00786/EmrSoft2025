@@ -218,6 +218,12 @@ export default function Subscription() {
                       }`}
                       variant={plan.popular ? "default" : "outline"}
                       disabled={subscription?.plan === plan.id}
+                      onClick={() => {
+                        if (subscription?.plan !== plan.id) {
+                          console.log('Upgrading to plan:', plan.name);
+                          alert(`Upgrading to ${plan.name} plan!\n\nPlan: ${plan.name}\nPrice: £${plan.price}/month\nUsers: Up to ${plan.userLimit} users\n\nYour subscription will be updated and you'll be redirected to payment processing.`);
+                        }
+                      }}
                     >
                       {subscription?.plan === plan.id 
                         ? "Current Plan" 
