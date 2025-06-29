@@ -68,9 +68,13 @@ export default function UserManagement() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { data: users = [], isLoading, refetch } = useQuery<User[]>({
+  const { data: users = [], isLoading, refetch, error } = useQuery<User[]>({
     queryKey: ["/api/users"],
+    retry: 3,
   });
+
+  // Debug logging
+  console.log("Users query - loading:", isLoading, "error:", error, "users count:", users?.length);
 
   const form = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
