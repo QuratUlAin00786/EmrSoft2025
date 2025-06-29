@@ -533,15 +533,67 @@ export default function MobileHealth() {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button size="sm">
+                    <Button 
+                      size="sm"
+                      onClick={() => {
+                        // Simulate download
+                        const link = document.createElement('a');
+                        link.href = '#';
+                        link.download = `${app.name.replace(/\s+/g, '_')}_v${app.version}.${app.platform === 'pwa' ? 'zip' : 'ipa'}`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        
+                        toast({
+                          title: "Download Started",
+                          description: `${app.name} v${app.version} is downloading...`,
+                        });
+                      }}
+                    >
                       <Download className="w-4 h-4 mr-1" />
                       Download
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        toast({
+                          title: "App Preview",
+                          description: `Opening ${app.name} preview in new window...`,
+                        });
+                        // Simulate opening preview
+                        window.open(`/app-preview/${app.id}`, '_blank', 'width=400,height=700');
+                      }}
+                    >
                       <Play className="w-4 h-4 mr-1" />
                       Preview
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        const shareUrl = `${window.location.origin}/apps/${app.id}`;
+                        navigator.clipboard.writeText(shareUrl).then(() => {
+                          toast({
+                            title: "Share Link Copied",
+                            description: `${app.name} share link copied to clipboard`,
+                          });
+                        }).catch(() => {
+                          // Fallback for older browsers
+                          const textArea = document.createElement('textarea');
+                          textArea.value = shareUrl;
+                          document.body.appendChild(textArea);
+                          textArea.select();
+                          document.execCommand('copy');
+                          document.body.removeChild(textArea);
+                          
+                          toast({
+                            title: "Share Link Copied",
+                            description: `${app.name} share link copied to clipboard`,
+                          });
+                        });
+                      }}
+                    >
                       <Share2 className="w-4 h-4 mr-1" />
                       Share Link
                     </Button>
