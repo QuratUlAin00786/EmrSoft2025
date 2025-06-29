@@ -90,6 +90,8 @@ export default function MobileHealth() {
   const [configureOpen, setConfigureOpen] = useState(false);
   const [deviceToConfig, setDeviceToConfig] = useState<WearableDevice | null>(null);
   const [sendNotificationOpen, setSendNotificationOpen] = useState(false);
+  const [installPwaOpen, setInstallPwaOpen] = useState(false);
+  const [configureOfflineOpen, setConfigureOfflineOpen] = useState(false);
   const { toast } = useToast();
 
   // Fetch wearable devices
@@ -659,11 +661,11 @@ export default function MobileHealth() {
               </div>
 
               <div className="flex gap-2">
-                <Button>
+                <Button onClick={() => setInstallPwaOpen(true)}>
                   <Download className="w-4 h-4 mr-2" />
                   Install PWA
                 </Button>
-                <Button variant="outline">
+                <Button variant="outline" onClick={() => setConfigureOfflineOpen(true)}>
                   <Settings className="w-4 h-4 mr-2" />
                   Configure Offline
                 </Button>
@@ -1003,6 +1005,237 @@ export default function MobileHealth() {
                 setSendNotificationOpen(false);
               }}>
                 Send Notification
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Install PWA Dialog */}
+      <Dialog open={installPwaOpen} onOpenChange={setInstallPwaOpen}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Install Progressive Web App</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center justify-center p-6 bg-blue-50 rounded-lg">
+              <Download className="w-12 h-12 text-blue-500" />
+            </div>
+            
+            <div className="text-center space-y-2">
+              <h3 className="font-medium">Install Averox EMR</h3>
+              <p className="text-sm text-gray-600">
+                Install our app for faster access and offline functionality
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="font-medium">Benefits of Installing:</h4>
+              <ul className="text-sm space-y-2">
+                <li className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span>Faster loading times</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span>Offline access to patient records</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span>Push notifications</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span>Native app experience</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span>Secure local data storage</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="p-3 bg-gray-50 rounded-lg text-sm">
+              <p className="font-medium">Installation Instructions:</p>
+              <ol className="mt-2 space-y-1 text-gray-600">
+                <li>1. Click "Install App" below</li>
+                <li>2. Confirm installation in browser prompt</li>
+                <li>3. App will be added to your device</li>
+                <li>4. Access from home screen or app drawer</li>
+              </ol>
+            </div>
+
+            <div className="space-y-3">
+              <div className="text-sm text-gray-600">
+                <p>Compatible with:</p>
+                <div className="flex gap-2 mt-1">
+                  <Badge variant="outline">Chrome</Badge>
+                  <Badge variant="outline">Edge</Badge>
+                  <Badge variant="outline">Safari</Badge>
+                  <Badge variant="outline">Firefox</Badge>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <Button variant="outline" onClick={() => setInstallPwaOpen(false)}>
+                Not Now
+              </Button>
+              <Button onClick={() => {
+                toast({
+                  title: "PWA Installation Started",
+                  description: "Follow your browser prompts to complete installation",
+                });
+                setInstallPwaOpen(false);
+              }}>
+                Install App
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Configure Offline Dialog */}
+      <Dialog open={configureOfflineOpen} onOpenChange={setConfigureOfflineOpen}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Configure Offline Settings</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-3 bg-blue-50 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Cloud className="w-5 h-5 text-blue-500" />
+                <span className="font-medium">Offline Mode Configuration</span>
+              </div>
+              <p className="text-sm text-gray-600 mt-1">
+                Customize what data is available when you're offline
+              </p>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Data Sync Frequency</label>
+              <Select defaultValue="auto">
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="real_time">Real-time (Wi-Fi only)</SelectItem>
+                  <SelectItem value="auto">Automatic</SelectItem>
+                  <SelectItem value="every_hour">Every hour</SelectItem>
+                  <SelectItem value="every_4hours">Every 4 hours</SelectItem>
+                  <SelectItem value="daily">Daily</SelectItem>
+                  <SelectItem value="manual">Manual only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Storage Allocation</label>
+              <div className="mt-2 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Current Usage</span>
+                  <span>45 MB / 500 MB</span>
+                </div>
+                <Progress value={9} />
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs text-gray-600">Max Storage (MB)</label>
+                    <Input type="number" defaultValue="500" placeholder="MB" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600">Patient Records Limit</label>
+                    <Input type="number" defaultValue="200" placeholder="Records" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Offline Data Types</label>
+              <div className="space-y-2 mt-2">
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" defaultChecked className="rounded" />
+                  <span className="text-sm">Patient demographics</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" defaultChecked className="rounded" />
+                  <span className="text-sm">Medical history</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" defaultChecked className="rounded" />
+                  <span className="text-sm">Current medications</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" defaultChecked className="rounded" />
+                  <span className="text-sm">Appointment schedule</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" className="rounded" />
+                  <span className="text-sm">Lab results (recent)</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" className="rounded" />
+                  <span className="text-sm">Imaging studies</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" defaultChecked className="rounded" />
+                  <span className="text-sm">Clinical notes templates</span>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Sync Conditions</label>
+              <div className="space-y-2 mt-2">
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" defaultChecked className="rounded" />
+                  <span className="text-sm">Wi-Fi only</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" className="rounded" />
+                  <span className="text-sm">Allow mobile data</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" defaultChecked className="rounded" />
+                  <span className="text-sm">When charging</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" defaultChecked className="rounded" />
+                  <span className="text-sm">During work hours only</span>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Auto-cleanup</label>
+              <div className="space-y-2 mt-2">
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" defaultChecked className="rounded" />
+                  <span className="text-sm">Remove old patient records (30+ days)</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" defaultChecked className="rounded" />
+                  <span className="text-sm">Clear cache when storage is low</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" className="rounded" />
+                  <span className="text-sm">Delete completed tasks</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <Button variant="outline" onClick={() => setConfigureOfflineOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                toast({
+                  title: "Offline Settings Updated",
+                  description: "Your offline configuration has been saved successfully",
+                });
+                setConfigureOfflineOpen(false);
+              }}>
+                Save Configuration
               </Button>
             </div>
           </div>
