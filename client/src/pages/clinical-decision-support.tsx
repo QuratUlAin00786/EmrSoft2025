@@ -641,7 +641,18 @@ export default function ClinicalDecisionSupport() {
                                       <Badge variant="secondary" className="text-xs">Cardiology</Badge>
                                     </div>
                                   </div>
-                                  <Button size="sm" variant="outline">View</Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    onClick={() => {
+                                      toast({
+                                        title: "Guideline Opened",
+                                        description: "NICE Guidelines: Hypertension Management - Opening detailed guideline view...",
+                                      });
+                                    }}
+                                  >
+                                    View
+                                  </Button>
                                 </div>
                               </CardContent>
                             </Card>
@@ -660,7 +671,18 @@ export default function ClinicalDecisionSupport() {
                                       <Badge variant="secondary" className="text-xs">Endocrinology</Badge>
                                     </div>
                                   </div>
-                                  <Button size="sm" variant="outline">View</Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    onClick={() => {
+                                      toast({
+                                        title: "Guideline Opened",
+                                        description: "ADA Standards: Diabetes Care - Opening detailed guideline view...",
+                                      });
+                                    }}
+                                  >
+                                    View
+                                  </Button>
                                 </div>
                               </CardContent>
                             </Card>
@@ -679,7 +701,18 @@ export default function ClinicalDecisionSupport() {
                                       <Badge variant="secondary" className="text-xs">Respiratory</Badge>
                                     </div>
                                   </div>
-                                  <Button size="sm" variant="outline">View</Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    onClick={() => {
+                                      toast({
+                                        title: "Guideline Opened",
+                                        description: "GOLD Guidelines: COPD Management - Opening detailed guideline view...",
+                                      });
+                                    }}
+                                  >
+                                    View
+                                  </Button>
                                 </div>
                               </CardContent>
                             </Card>
@@ -704,7 +737,18 @@ export default function ClinicalDecisionSupport() {
                                       <Badge variant="secondary" className="text-xs">Infectious Disease</Badge>
                                     </div>
                                   </div>
-                                  <Button size="sm" variant="outline">View</Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    onClick={() => {
+                                      toast({
+                                        title: "Guideline Opened",
+                                        description: "WHO Guidelines: Antimicrobial Resistance - Opening detailed guideline view...",
+                                      });
+                                    }}
+                                  >
+                                    View
+                                  </Button>
                                 </div>
                               </CardContent>
                             </Card>
@@ -723,7 +767,18 @@ export default function ClinicalDecisionSupport() {
                                       <Badge variant="secondary" className="text-xs">Cardiology</Badge>
                                     </div>
                                   </div>
-                                  <Button size="sm" variant="outline">View</Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    onClick={() => {
+                                      toast({
+                                        title: "Guideline Opened",
+                                        description: "ESC Guidelines: Heart Failure - Opening detailed guideline view...",
+                                      });
+                                    }}
+                                  >
+                                    View
+                                  </Button>
                                 </div>
                               </CardContent>
                             </Card>
