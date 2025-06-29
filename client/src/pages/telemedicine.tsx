@@ -134,10 +134,42 @@ export default function Telemedicine() {
       return response.json();
     },
     onSuccess: () => {
+      // Stop video stream first
+      if (videoRef.current && videoRef.current.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        stream.getTracks().forEach(track => track.stop());
+        videoRef.current.srcObject = null;
+      }
+      
       setCurrentCall(null);
       setCallNotes("");
+      setIsVideoEnabled(true);
+      setIsAudioEnabled(true);
+      setIsRecording(false);
       queryClient.invalidateQueries({ queryKey: ["/api/telemedicine/consultations"] });
       toast({ title: "Consultation ended and notes saved" });
+    },
+    onError: (error) => {
+      // Even if the API call fails, still end the call locally
+      console.error("Error ending consultation:", error);
+      
+      // Stop video stream
+      if (videoRef.current && videoRef.current.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        stream.getTracks().forEach(track => track.stop());
+        videoRef.current.srcObject = null;
+      }
+      
+      setCurrentCall(null);
+      setCallNotes("");
+      setIsVideoEnabled(true);
+      setIsAudioEnabled(true);
+      setIsRecording(false);
+      toast({ 
+        title: "Call ended", 
+        description: "Notes may not have been saved. Please check consultation history.",
+        variant: "destructive" 
+      });
     }
   });
 
