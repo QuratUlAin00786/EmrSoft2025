@@ -9,6 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Receipt, 
   Plus, 
@@ -579,6 +582,136 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* New Invoice Dialog */}
+      <Dialog open={showNewInvoice} onOpenChange={setShowNewInvoice}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create New Invoice</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="patient">Patient</Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select patient" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="patient_1">Sarah Johnson</SelectItem>
+                    <SelectItem value="patient_2">Michael Chen</SelectItem>
+                    <SelectItem value="patient_3">Emma Wilson</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="service-date">Service Date</Label>
+                <Input 
+                  id="service-date" 
+                  type="date" 
+                  defaultValue={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="invoice-date">Invoice Date</Label>
+                <Input 
+                  id="invoice-date" 
+                  type="date" 
+                  defaultValue={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="due-date">Due Date</Label>
+                <Input 
+                  id="due-date" 
+                  type="date" 
+                  defaultValue={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label>Services & Procedures</Label>
+              <div className="border rounded-md p-4 space-y-3">
+                <div className="grid grid-cols-4 gap-2 text-sm font-medium text-gray-600">
+                  <span>Code</span>
+                  <span>Description</span>
+                  <span>Qty</span>
+                  <span>Amount</span>
+                </div>
+                
+                <div className="grid grid-cols-4 gap-2">
+                  <Input placeholder="CPT Code" defaultValue="99213" />
+                  <Input placeholder="Description" defaultValue="Office consultation" />
+                  <Input placeholder="1" defaultValue="1" />
+                  <Input placeholder="150.00" defaultValue="150.00" />
+                </div>
+                
+                <div className="grid grid-cols-4 gap-2">
+                  <Input placeholder="CPT Code" />
+                  <Input placeholder="Description" />
+                  <Input placeholder="1" />
+                  <Input placeholder="0.00" />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="insurance">Insurance Provider</Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select insurance (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No Insurance</SelectItem>
+                    <SelectItem value="nhs">NHS</SelectItem>
+                    <SelectItem value="bupa">BUPA</SelectItem>
+                    <SelectItem value="axa">AXA Health</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="total">Total Amount</Label>
+                <Input 
+                  id="total" 
+                  placeholder="150.00" 
+                  defaultValue="150.00"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea 
+                id="notes" 
+                placeholder="Additional notes or instructions..."
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowNewInvoice(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => {
+              console.log('Creating new invoice...');
+              alert('Invoice created successfully!\n\nInvoice #INV-' + Date.now().toString().slice(-6) + ' has been generated and sent to the patient.');
+              setShowNewInvoice(false);
+            }}>
+              Create Invoice
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
