@@ -458,7 +458,7 @@ export default function PatientPortal() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold">My Appointments</h2>
-            <Button>
+            <Button onClick={() => window.location.href = "/appointments"}>
               <Plus className="h-4 w-4 mr-2" />
               Book New Appointment
             </Button>
