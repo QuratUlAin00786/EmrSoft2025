@@ -90,7 +90,7 @@ export default function UserManagement() {
         ...userData,
         username: userData.email, // Use email as username
       };
-      return apiRequest("/api/users", "POST", payload);
+      return apiRequest("POST", "/api/users", payload);
     },
     onSuccess: () => {
       toast({
@@ -112,7 +112,7 @@ export default function UserManagement() {
 
   const updateUserMutation = useMutation({
     mutationFn: ({ id, userData }: { id: number; userData: Partial<UserFormData> }) => {
-      return apiRequest(`/api/users/${id}`, "PATCH", userData);
+      return apiRequest("PATCH", `/api/users/${id}`, userData);
     },
     onSuccess: () => {
       toast({
@@ -134,7 +134,7 @@ export default function UserManagement() {
 
   const deleteUserMutation = useMutation({
     mutationFn: (userId: number) => {
-      return apiRequest(`/api/users/${userId}`, "DELETE");
+      return apiRequest("DELETE", `/api/users/${userId}`);
     },
     onSuccess: () => {
       toast({
