@@ -589,10 +589,173 @@ export default function ClinicalDecisionSupport() {
                 <p className="text-gray-600 mb-4">
                   Access the latest clinical guidelines and evidence-based recommendations.
                 </p>
-                <Button>
-                  <FileText className="w-4 h-4 mr-2" />
-                  Browse Guidelines
-                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <FileText className="w-4 h-4 mr-2" />
+                      Browse Guidelines
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Clinical Guidelines Browser</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-6">
+                      {/* Search and Filter */}
+                      <div className="flex gap-4">
+                        <div className="flex-1">
+                          <Input placeholder="Search guidelines..." className="w-full" />
+                        </div>
+                        <Select defaultValue="all">
+                          <SelectTrigger className="w-48">
+                            <SelectValue placeholder="Category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Categories</SelectItem>
+                            <SelectItem value="cardiology">Cardiology</SelectItem>
+                            <SelectItem value="diabetes">Diabetes</SelectItem>
+                            <SelectItem value="respiratory">Respiratory</SelectItem>
+                            <SelectItem value="infectious">Infectious Disease</SelectItem>
+                            <SelectItem value="emergency">Emergency Medicine</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Guidelines List */}
+                      <div className="grid gap-4">
+                        {/* Featured Guidelines */}
+                        <div>
+                          <h3 className="text-lg font-semibold mb-3">Featured Guidelines</h3>
+                          <div className="grid gap-3">
+                            <Card className="border-l-4 border-l-blue-500">
+                              <CardContent className="p-4">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <h4 className="font-semibold text-sm">NICE Guidelines: Hypertension Management</h4>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                      Comprehensive guidance on diagnosis and management of hypertension in adults
+                                    </p>
+                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                      <span>Updated: March 2024</span>
+                                      <span>Evidence Level: A</span>
+                                      <Badge variant="secondary" className="text-xs">Cardiology</Badge>
+                                    </div>
+                                  </div>
+                                  <Button size="sm" variant="outline">View</Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+
+                            <Card className="border-l-4 border-l-green-500">
+                              <CardContent className="p-4">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <h4 className="font-semibold text-sm">ADA Standards: Diabetes Care</h4>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                      Evidence-based recommendations for diabetes diagnosis, treatment, and monitoring
+                                    </p>
+                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                      <span>Updated: January 2024</span>
+                                      <span>Evidence Level: A</span>
+                                      <Badge variant="secondary" className="text-xs">Endocrinology</Badge>
+                                    </div>
+                                  </div>
+                                  <Button size="sm" variant="outline">View</Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+
+                            <Card className="border-l-4 border-l-purple-500">
+                              <CardContent className="p-4">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <h4 className="font-semibold text-sm">GOLD Guidelines: COPD Management</h4>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                      Global strategy for diagnosis, management and prevention of COPD
+                                    </p>
+                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                      <span>Updated: February 2024</span>
+                                      <span>Evidence Level: A</span>
+                                      <Badge variant="secondary" className="text-xs">Respiratory</Badge>
+                                    </div>
+                                  </div>
+                                  <Button size="sm" variant="outline">View</Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </div>
+                        </div>
+
+                        {/* Recent Updates */}
+                        <div>
+                          <h3 className="text-lg font-semibold mb-3">Recent Updates</h3>
+                          <div className="grid gap-3">
+                            <Card>
+                              <CardContent className="p-4">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <h4 className="font-semibold text-sm">WHO Guidelines: Antimicrobial Resistance</h4>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                      Updated recommendations for preventing and containing antimicrobial resistance
+                                    </p>
+                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                      <span>Updated: April 2024</span>
+                                      <span>Evidence Level: B</span>
+                                      <Badge variant="secondary" className="text-xs">Infectious Disease</Badge>
+                                    </div>
+                                  </div>
+                                  <Button size="sm" variant="outline">View</Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+
+                            <Card>
+                              <CardContent className="p-4">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <h4 className="font-semibold text-sm">ESC Guidelines: Heart Failure</h4>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                      European Society of Cardiology guidelines for acute and chronic heart failure
+                                    </p>
+                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                      <span>Updated: March 2024</span>
+                                      <span>Evidence Level: A</span>
+                                      <Badge variant="secondary" className="text-xs">Cardiology</Badge>
+                                    </div>
+                                  </div>
+                                  <Button size="sm" variant="outline">View</Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </div>
+                        </div>
+
+                        {/* Quick Access */}
+                        <div>
+                          <h3 className="text-lg font-semibold mb-3">Quick Access</h3>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <Button variant="outline" className="h-20 flex flex-col items-center justify-center">
+                              <Activity className="w-6 h-6 mb-1" />
+                              <span className="text-xs">Emergency</span>
+                            </Button>
+                            <Button variant="outline" className="h-20 flex flex-col items-center justify-center">
+                              <Pill className="w-6 h-6 mb-1" />
+                              <span className="text-xs">Medications</span>
+                            </Button>
+                            <Button variant="outline" className="h-20 flex flex-col items-center justify-center">
+                              <Shield className="w-6 h-6 mb-1" />
+                              <span className="text-xs">Prevention</span>
+                            </Button>
+                            <Button variant="outline" className="h-20 flex flex-col items-center justify-center">
+                              <FileText className="w-6 h-6 mb-1" />
+                              <span className="text-xs">Procedures</span>
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </CardContent>
             </Card>
           </div>
