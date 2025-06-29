@@ -542,9 +542,24 @@ export default function MobileHealth() {
                     <Button 
                       size="sm"
                       onClick={() => {
+                        // Create a mock download file
+                        const appFileName = `${app.name.replace(/\s+/g, '_')}_v${app.version}.${app.platform === 'pwa' ? 'zip' : app.platform === 'ios' ? 'ipa' : 'apk'}`;
+                        const downloadContent = `${app.name} v${app.version}\n\nDescription: ${app.description}\n\nFeatures:\n${app.features.map(f => `- ${f}`).join('\n')}\n\nPlatform: ${app.platform.toUpperCase()}\nRating: ${app.rating}/5\nDownloads: ${app.downloads.toLocaleString()}\n\nThis is a simulated download file for demonstration purposes.`;
+                        
+                        // Create and trigger download
+                        const blob = new Blob([downloadContent], { type: 'text/plain' });
+                        const url = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = appFileName;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        window.URL.revokeObjectURL(url);
+                        
                         toast({
                           title: "Download Started",
-                          description: `${app.name} is being downloaded for your device`,
+                          description: `${app.name} is being downloaded to your device`,
                         });
                       }}
                     >
