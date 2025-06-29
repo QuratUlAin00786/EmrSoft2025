@@ -618,45 +618,95 @@ export default function VoiceDocumentation() {
                       size="sm" 
                       variant="outline"
                       onClick={async () => {
+                        const textToCopy = note.transcript;
+                        let copySuccess = false;
+
                         try {
-                          // Try modern clipboard API first
+                          // Method 1: Modern clipboard API
                           if (navigator.clipboard && window.isSecureContext) {
-                            await navigator.clipboard.writeText(note.transcript);
+                            await navigator.clipboard.writeText(textToCopy);
+                            copySuccess = true;
+                          } else {
+                            // Method 2: Fallback using textarea
+                            const textArea = document.createElement('textarea');
+                            textArea.value = textToCopy;
+                            textArea.style.position = 'absolute';
+                            textArea.style.left = '-9999px';
+                            textArea.style.top = '0';
+                            textArea.setAttribute('readonly', '');
+                            document.body.appendChild(textArea);
+                            
+                            // Select and copy
+                            textArea.select();
+                            textArea.setSelectionRange(0, textToCopy.length);
+                            
+                            copySuccess = document.execCommand('copy');
+                            document.body.removeChild(textArea);
+                          }
+
+                          if (copySuccess) {
                             toast({
                               title: "Text Copied",
-                              description: "Transcript copied to clipboard",
+                              description: `${textToCopy.length} characters copied to clipboard`,
                             });
                           } else {
-                            // Fallback method for older browsers or insecure contexts
-                            const textArea = document.createElement('textarea');
-                            textArea.value = note.transcript;
-                            textArea.style.position = 'fixed';
-                            textArea.style.left = '-999999px';
-                            textArea.style.top = '-999999px';
-                            document.body.appendChild(textArea);
-                            textArea.focus();
-                            textArea.select();
-                            
-                            try {
-                              document.execCommand('copy');
-                              toast({
-                                title: "Text Copied",
-                                description: "Transcript copied to clipboard",
-                              });
-                            } catch (err) {
-                              toast({
-                                title: "Copy Failed",
-                                description: "Unable to copy text. Please select and copy manually.",
-                                variant: "destructive",
-                              });
-                            } finally {
-                              document.body.removeChild(textArea);
-                            }
+                            throw new Error('Copy operation failed');
                           }
                         } catch (err) {
+                          // Method 3: Manual selection fallback
+                          const modal = document.createElement('div');
+                          modal.style.cssText = `
+                            position: fixed;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            background: white;
+                            border: 2px solid #ccc;
+                            padding: 20px;
+                            border-radius: 8px;
+                            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                            z-index: 9999;
+                            max-width: 80%;
+                            max-height: 80%;
+                          `;
+                          
+                          const textarea = document.createElement('textarea');
+                          textarea.value = textToCopy;
+                          textarea.style.cssText = `
+                            width: 100%;
+                            height: 200px;
+                            font-family: monospace;
+                            font-size: 12px;
+                            border: 1px solid #ddd;
+                            padding: 8px;
+                          `;
+                          textarea.select();
+                          
+                          const closeBtn = document.createElement('button');
+                          closeBtn.textContent = 'Close';
+                          closeBtn.style.cssText = `
+                            margin-top: 10px;
+                            padding: 8px 16px;
+                            background: #007bff;
+                            color: white;
+                            border: none;
+                            border-radius: 4px;
+                            cursor: pointer;
+                          `;
+                          closeBtn.onclick = () => document.body.removeChild(modal);
+                          
+                          const title = document.createElement('div');
+                          title.textContent = 'Select all text and copy (Ctrl+C):';
+                          title.style.marginBottom = '10px';
+                          
+                          modal.appendChild(title);
+                          modal.appendChild(textarea);
+                          modal.appendChild(closeBtn);
+                          document.body.appendChild(modal);
+                          
                           toast({
-                            title: "Copy Failed",
-                            description: "Unable to copy text. Please try again.",
+                            title: "Manual Copy Required",
+                            description: "Please select all text and copy manually",
                             variant: "destructive",
                           });
                         }
