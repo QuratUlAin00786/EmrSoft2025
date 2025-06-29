@@ -91,6 +91,18 @@ export default function MobileHealth() {
   const [deviceToConfig, setDeviceToConfig] = useState<WearableDevice | null>(null);
   const { toast } = useToast();
 
+  // Test: Return simple JSX first to isolate the issue
+  if (true) {
+    return (
+      <div className="flex-1 p-6 overflow-auto">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-2xl font-bold mb-6">Mobile Health</h1>
+          <p>Testing basic component rendering...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Fetch wearable devices
   const { data: devices, isLoading: devicesLoading } = useQuery({
     queryKey: ["/api/mobile-health/devices"],
