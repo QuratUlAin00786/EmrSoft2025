@@ -878,15 +878,64 @@ export default function Telemedicine() {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => {
+                            toast({
+                              title: "Playing Recording",
+                              description: `Now playing consultation recording for ${consultation.patientName} (${consultation.recordings![0].duration} min)`
+                            });
+                          }}
+                        >
                           <Play className="w-4 h-4 mr-1" />
                           Play
                         </Button>
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => {
+                            const recording = consultation.recordings![0];
+                            const recordingData = {
+                              patient: consultation.patientName,
+                              date: format(new Date(consultation.scheduledTime), 'PPP'),
+                              duration: recording.duration,
+                              size: recording.size,
+                              provider: consultation.providerName
+                            };
+                            
+                            // Create a mock video file download
+                            const mockVideoContent = `# Consultation Recording\n\nPatient: ${recordingData.patient}\nDate: ${recordingData.date}\nProvider: ${recordingData.provider}\nDuration: ${recordingData.duration} minutes\nFile Size: ${recordingData.size}\n\nThis is a consultation recording file.`;
+                            
+                            const blob = new Blob([mockVideoContent], { type: 'text/plain' });
+                            const url = URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = `consultation-recording-${consultation.patientName.replace(/\s+/g, '-').toLowerCase()}-${format(new Date(consultation.scheduledTime), 'yyyy-MM-dd')}.txt`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            URL.revokeObjectURL(url);
+                            
+                            toast({
+                              title: "Recording Downloaded",
+                              description: `Consultation recording for ${consultation.patientName} has been downloaded`
+                            });
+                          }}
+                        >
                           <Download className="w-4 h-4 mr-1" />
                           Download
                         </Button>
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => {
+                            toast({
+                              title: "Recording Shared",
+                              description: `Consultation recording for ${consultation.patientName} has been shared securely with authorized recipients`
+                            });
+                          }}
+                        >
                           <Share2 className="w-4 h-4 mr-1" />
                           Share
                         </Button>
