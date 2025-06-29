@@ -89,6 +89,38 @@ export default function AnalyticsPage() {
     }).format(amount);
   };
 
+  const handleExport = () => {
+    const exportData = {
+      overview: analytics.overview,
+      trends: analytics.trends,
+      generatedAt: new Date().toISOString(),
+      dateRange: `${filters.dateRange} days`,
+      filters: filters
+    };
+
+    const csvContent = [
+      ['Metric', 'Value'],
+      ['Total Patients', analytics.overview.totalPatients],
+      ['New Patients', analytics.overview.newPatients],
+      ['Total Appointments', analytics.overview.totalAppointments],
+      ['Completed Appointments', analytics.overview.completedAppointments],
+      ['Revenue', formatCurrency(analytics.overview.revenue)],
+      ['Average Wait Time', `${analytics.overview.averageWaitTime}min`],
+      ['Patient Satisfaction', `${analytics.overview.patientSatisfaction}%`],
+      ['No Show Rate', `${analytics.overview.noShowRate}%`]
+    ].map(row => row.join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `analytics-report-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -210,7 +242,7 @@ export default function AnalyticsPage() {
               </div>
             </DialogContent>
           </Dialog>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleExport}>
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
