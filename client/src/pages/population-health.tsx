@@ -105,6 +105,9 @@ export default function PopulationHealth() {
   const [editCohortOpen, setEditCohortOpen] = useState(false);
   const [setAlertsOpen, setSetAlertsOpen] = useState(false);
   const [selectedCohortData, setSelectedCohortData] = useState<any>(null);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
+  const [selectedPatientCare, setSelectedPatientCare] = useState<any>(null);
   const { toast } = useToast();
 
   // Fetch population health data
@@ -829,8 +832,25 @@ export default function PopulationHealth() {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button size="sm">Schedule</Button>
-                      <Button size="sm" variant="outline">Contact</Button>
+                      <Button 
+                        size="sm"
+                        onClick={() => {
+                          setSelectedPatientCare(care);
+                          setScheduleOpen(true);
+                        }}
+                      >
+                        Schedule
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedPatientCare(care);
+                          setContactOpen(true);
+                        }}
+                      >
+                        Contact
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -1183,6 +1203,217 @@ export default function PopulationHealth() {
                   setSetAlertsOpen(false);
                 }}>
                   Create Alert
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Schedule Dialog */}
+      <Dialog open={scheduleOpen} onOpenChange={setScheduleOpen}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Schedule Appointment - {selectedPatientCare?.patientName}</DialogTitle>
+          </DialogHeader>
+          {selectedPatientCare && (
+            <div className="space-y-4">
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="font-medium">{selectedPatientCare.description}</p>
+                <p className="text-sm text-gray-600">
+                  Due: {format(new Date(selectedPatientCare.dueDate), 'MMM dd, yyyy')}
+                </p>
+                <div className="flex gap-2 mt-2">
+                  <Badge className={getStatusColor(selectedPatientCare.status)}>
+                    {selectedPatientCare.status}
+                  </Badge>
+                  <Badge className={getPriorityColor(selectedPatientCare.priority)}>
+                    {selectedPatientCare.priority}
+                  </Badge>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Appointment Type</label>
+                <Select defaultValue={selectedPatientCare.careType}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="screening">Screening</SelectItem>
+                    <SelectItem value="vaccination">Vaccination</SelectItem>
+                    <SelectItem value="chronic_disease_management">Chronic Disease Management</SelectItem>
+                    <SelectItem value="wellness_check">Wellness Check</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Preferred Date</label>
+                <Input 
+                  type="date"
+                  defaultValue={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Preferred Time</label>
+                <Select defaultValue="morning">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="morning">Morning (8:00 AM - 12:00 PM)</SelectItem>
+                    <SelectItem value="afternoon">Afternoon (12:00 PM - 5:00 PM)</SelectItem>
+                    <SelectItem value="evening">Evening (5:00 PM - 8:00 PM)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Provider</label>
+                <Select defaultValue="dr_smith">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="dr_smith">Dr. Sarah Smith</SelectItem>
+                    <SelectItem value="dr_jones">Dr. Michael Jones</SelectItem>
+                    <SelectItem value="nurse_williams">Nurse Williams</SelectItem>
+                    <SelectItem value="any_available">Any Available Provider</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Additional Notes</label>
+                <Input placeholder="Any special requirements or notes..." />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <Button variant="outline" onClick={() => setScheduleOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={() => {
+                  toast({
+                    title: "Appointment Scheduled",
+                    description: `Appointment scheduled for ${selectedPatientCare?.patientName}. Confirmation will be sent via email.`,
+                  });
+                  setScheduleOpen(false);
+                }}>
+                  Schedule Appointment
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Contact Dialog */}
+      <Dialog open={contactOpen} onOpenChange={setContactOpen}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Contact Patient - {selectedPatientCare?.patientName}</DialogTitle>
+          </DialogHeader>
+          {selectedPatientCare && (
+            <div className="space-y-4">
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="font-medium">{selectedPatientCare.description}</p>
+                <p className="text-sm text-gray-600">
+                  Due: {format(new Date(selectedPatientCare.dueDate), 'MMM dd, yyyy')}
+                </p>
+                <div className="flex gap-2 mt-2">
+                  <Badge className={getStatusColor(selectedPatientCare.status)}>
+                    {selectedPatientCare.status}
+                  </Badge>
+                  <Badge className={getPriorityColor(selectedPatientCare.priority)}>
+                    {selectedPatientCare.priority}
+                  </Badge>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Contact Method</label>
+                <Select defaultValue="phone">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="phone">Phone Call</SelectItem>
+                    <SelectItem value="sms">SMS Message</SelectItem>
+                    <SelectItem value="email">Email</SelectItem>
+                    <SelectItem value="letter">Postal Letter</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Contact Reason</label>
+                <Select defaultValue="reminder">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="reminder">Appointment Reminder</SelectItem>
+                    <SelectItem value="rescheduling">Rescheduling Required</SelectItem>
+                    <SelectItem value="preparation">Pre-appointment Instructions</SelectItem>
+                    <SelectItem value="follow_up">Follow-up Required</SelectItem>
+                    <SelectItem value="education">Health Education</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Priority Level</label>
+                <Select defaultValue={selectedPatientCare.priority}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low Priority</SelectItem>
+                    <SelectItem value="medium">Medium Priority</SelectItem>
+                    <SelectItem value="high">High Priority</SelectItem>
+                    <SelectItem value="urgent">Urgent</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Message Template</label>
+                <Select defaultValue="standard_reminder">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="standard_reminder">Standard Reminder</SelectItem>
+                    <SelectItem value="overdue_notice">Overdue Notice</SelectItem>
+                    <SelectItem value="rescheduling">Rescheduling Request</SelectItem>
+                    <SelectItem value="custom">Custom Message</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Custom Message</label>
+                <textarea 
+                  className="w-full h-20 p-2 border rounded-md text-sm"
+                  placeholder="Enter custom message or additional notes..."
+                  defaultValue={`Dear ${selectedPatientCare?.patientName}, this is a reminder about your upcoming ${selectedPatientCare?.description}. Please contact us to schedule your appointment.`}
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <Button variant="outline" onClick={() => setContactOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={() => {
+                  toast({
+                    title: "Contact Initiated",
+                    description: `Contact attempt logged for ${selectedPatientCare?.patientName}. Follow-up scheduled as needed.`,
+                  });
+                  setContactOpen(false);
+                }}>
+                  Send Communication
                 </Button>
               </div>
             </div>
