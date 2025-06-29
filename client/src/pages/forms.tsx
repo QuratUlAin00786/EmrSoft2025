@@ -171,7 +171,7 @@ export default function FormsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-y-auto">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-y-auto relative">
       <Header title="Advanced Form Builder" subtitle="Create comprehensive forms with drag-and-drop interface" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -690,39 +690,28 @@ export default function FormsPage() {
       </Dialog>
 
       {/* Scroll to Top Button */}
-      <div 
-        className="fixed bottom-8 right-8"
+      <button
+        onClick={() => {
+          alert('Button clicked!');
+          console.log('BUTTON CLICKED!');
+          const main = document.querySelector('main');
+          if (main) {
+            main.scrollTo({ top: 0, behavior: 'smooth' });
+          } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        }}
+        onMouseDown={() => console.log('Mouse down on button')}
+        onMouseUp={() => console.log('Mouse up on button')}
+        className="fixed bottom-8 right-8 w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-2xl flex items-center justify-center cursor-pointer border-4 border-white z-50"
         style={{ 
           zIndex: 999999,
-          position: 'fixed',
-          bottom: '2rem',
-          right: '2rem'
+          pointerEvents: 'auto'
         }}
+        type="button"
       >
-        <button
-          onClick={() => {
-            console.log('BUTTON CLICKED!');
-            const main = document.querySelector('main');
-            if (main) {
-              main.scrollTo({ top: 0, behavior: 'smooth' });
-            } else {
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-          }}
-          onMouseDown={() => console.log('Mouse down on button')}
-          onMouseUp={() => console.log('Mouse up on button')}
-          className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-2xl flex items-center justify-center cursor-pointer border-4 border-white"
-          style={{ 
-            position: 'relative',
-            zIndex: 999999,
-            pointerEvents: 'auto',
-            touchAction: 'manipulation'
-          }}
-          type="button"
-        >
-          <ChevronUp className="h-8 w-8" />
-        </button>
-      </div>
+        <ChevronUp className="h-8 w-8" />
+      </button>
     </div>
   );
 }
