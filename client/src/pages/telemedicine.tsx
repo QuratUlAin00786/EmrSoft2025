@@ -85,6 +85,8 @@ export default function Telemedicine() {
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
   const [callNotes, setCallNotes] = useState("");
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const { toast } = useToast();
 
@@ -428,7 +430,7 @@ export default function Telemedicine() {
           <p className="text-gray-600 mt-1">Virtual consultations and remote patient care</p>
         </div>
         <div className="flex gap-3">
-          <Dialog>
+          <Dialog open={scheduleOpen} onOpenChange={setScheduleOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Calendar className="w-4 h-4 mr-2" />
@@ -513,6 +515,7 @@ export default function Telemedicine() {
                         title: "Consultation Scheduled",
                         description: "New consultation has been scheduled successfully. Patient will receive confirmation."
                       });
+                      setScheduleOpen(false);
                     }}
                     className="flex-1"
                   >
@@ -526,7 +529,7 @@ export default function Telemedicine() {
             </DialogContent>
           </Dialog>
 
-          <Dialog>
+          <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">
                 <Settings className="w-4 h-4 mr-2" />
@@ -625,6 +628,7 @@ export default function Telemedicine() {
                         title: "Settings Saved",
                         description: "Telemedicine settings have been updated successfully."
                       });
+                      setSettingsOpen(false);
                     }}
                     className="flex-1"
                   >
