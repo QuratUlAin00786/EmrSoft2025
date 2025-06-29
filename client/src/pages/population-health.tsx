@@ -96,6 +96,11 @@ export default function PopulationHealth() {
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedCohort, setSelectedCohort] = useState<string>("all");
   const [filterRisk, setFilterRisk] = useState<string>("all");
+  const [createCohortOpen, setCreateCohortOpen] = useState(false);
+  const [cohortName, setCohortName] = useState("");
+  const [minAge, setMinAge] = useState("");
+  const [maxAge, setMaxAge] = useState("");
+  const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
   const { toast } = useToast();
 
   // Fetch population health data
@@ -357,43 +362,120 @@ export default function PopulationHealth() {
           <p className="text-gray-600 mt-1">Manage patient cohorts and community health initiatives</p>
         </div>
         <div className="flex gap-3">
-          <Dialog>
+          <Dialog open={createCohortOpen} onOpenChange={setCreateCohortOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Users className="w-4 h-4 mr-2" />
                 Create Cohort
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Create Patient Cohort</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium">Cohort Name</label>
-                  <Input placeholder="Enter cohort name" className="mt-1" />
+                  <Input 
+                    placeholder="Enter cohort name" 
+                    className="mt-1"
+                    value={cohortName}
+                    onChange={(e) => setCohortName(e.target.value)}
+                  />
                 </div>
                 <div>
                   <label className="text-sm font-medium">Age Range</label>
                   <div className="flex gap-2 mt-1">
-                    <Input placeholder="Min age" type="number" />
-                    <Input placeholder="Max age" type="number" />
+                    <Input 
+                      placeholder="Min age" 
+                      type="number"
+                      value={minAge}
+                      onChange={(e) => setMinAge(e.target.value)}
+                    />
+                    <Input 
+                      placeholder="Max age" 
+                      type="number"
+                      value={maxAge}
+                      onChange={(e) => setMaxAge(e.target.value)}
+                    />
                   </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium">Conditions</label>
-                  <Select>
+                  <Select onValueChange={(value) => setSelectedConditions([value])}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select conditions" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="diabetes">Diabetes</SelectItem>
+                      <SelectItem value="diabetes">Type 2 Diabetes</SelectItem>
                       <SelectItem value="hypertension">Hypertension</SelectItem>
                       <SelectItem value="copd">COPD</SelectItem>
+                      <SelectItem value="heart-disease">Heart Disease</SelectItem>
+                      <SelectItem value="obesity">Obesity</SelectItem>
+                      <SelectItem value="chronic-kidney">Chronic Kidney Disease</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <Button className="w-full">Create Cohort</Button>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Description</label>
+                  <Input 
+                    placeholder="Brief description of the cohort"
+                    className="mt-1"
+                  />
+                </div>
+                <div className="flex gap-3 pt-4 border-t">
+                  <Button 
+                    className="flex-1"
+                    onClick={() => {
+                      if (!cohortName.trim()) {
+                        toast({
+                          title: "Validation Error",
+                          description: "Please enter a cohort name.",
+                          variant: "destructive"
+                        });
+                        return;
+                      }
+                      
+                      const newCohort = {
+                        name: cohortName,
+                        criteria: {
+                          conditions: selectedConditions,
+                          ageRange: minAge && maxAge ? { 
+                            min: parseInt(minAge), 
+                            max: parseInt(maxAge) 
+                          } : undefined
+                        }
+                      };
+
+                      // For now, show success toast and close dialog
+                      toast({
+                        title: "Cohort Created Successfully",
+                        description: `"${cohortName}" has been created with ${selectedConditions.length ? selectedConditions.join(', ') : 'general'} criteria.`
+                      });
+                      
+                      // Reset form
+                      setCohortName("");
+                      setMinAge("");
+                      setMaxAge("");
+                      setSelectedConditions([]);
+                      setCreateCohortOpen(false);
+                    }}
+                  >
+                    Create Cohort
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      setCohortName("");
+                      setMinAge("");
+                      setMaxAge("");
+                      setSelectedConditions([]);
+                      setCreateCohortOpen(false);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
               </div>
             </DialogContent>
           </Dialog>
