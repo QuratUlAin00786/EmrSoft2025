@@ -375,7 +375,14 @@ export default function PatientPortal() {
               <TestTube className="h-6 w-6" />
               <span>View Lab Results</span>
             </Button>
-            <Button className="h-24 flex-col gap-2" variant="outline">
+            <Button className="h-24 flex-col gap-2" variant="outline" onClick={() => {
+              const link = document.createElement('a');
+              link.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(`MEDICAL RECORDS - ${portal.patient.firstName} ${portal.patient.lastName}\n\nPatient Information:\nName: ${portal.patient.firstName} ${portal.patient.lastName}\nNHS Number: ${portal.patient.nhsNumber}\nDate of Birth: ${portal.patient.dateOfBirth}\nEmail: ${portal.patient.email}\nPhone: ${portal.patient.phone}\n\nAddress:\n${portal.patient.address.street}\n${portal.patient.address.city}\n${portal.patient.address.postcode}\n\nEmergency Contact:\nName: ${portal.patient.emergencyContact.name}\nRelationship: ${portal.patient.emergencyContact.relationship}\nPhone: ${portal.patient.emergencyContact.phone}\n\nGenerated on: ${new Date().toLocaleDateString()}`);
+              link.download = `medical-records-${portal.patient.firstName}-${portal.patient.lastName}.txt`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }}>
               <Download className="h-6 w-6" />
               <span>Download Records</span>
             </Button>
