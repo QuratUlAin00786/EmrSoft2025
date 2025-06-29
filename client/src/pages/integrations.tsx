@@ -289,12 +289,21 @@ export default function IntegrationsPage() {
                       { name: "Stripe Payment", category: "billing", description: "Process patient payments securely" },
                       { name: "Google Analytics", category: "analytics", description: "Track website and app usage" }
                     ].map((integration) => (
-                      <div key={integration.name} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer" onClick={() => handleConnectIntegration(integration.category)}>
+                      <div key={integration.name} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
                         <div>
                           <h4 className="font-medium">{integration.name}</h4>
                           <p className="text-sm text-gray-600">{integration.description}</p>
                         </div>
-                        <Button variant="outline" size="sm">Connect</Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleConnectIntegration(integration.category);
+                          }}
+                        >
+                          Connect
+                        </Button>
                       </div>
                     ))}
                   </div>
