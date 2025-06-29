@@ -862,10 +862,28 @@ export default function FinancialIntelligence() {
                       <Shield className="w-4 h-4 mr-1" />
                       Verify Eligibility
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        toast({
+                          title: "Benefits Information",
+                          description: `Viewing benefits for ${insurance.patientName}\n• Deductible: ${insurance.deductible}\n• Out-of-Pocket Max: ${insurance.outOfPocketMax}\n• Coverage: ${insurance.coverageType}\n• Copay: ${insurance.copay}`,
+                        });
+                      }}
+                    >
                       View Benefits
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        toast({
+                          title: "Prior Authorization Required",
+                          description: `Prior authorization process initiated for ${insurance.patientName}. A request will be submitted to ${insurance.policyNumber === 'AET123456789' ? 'Aetna' : 'Blue Cross Blue Shield'} within 24 hours.`,
+                        });
+                      }}
+                    >
                       Prior Authorization
                     </Button>
                   </div>
