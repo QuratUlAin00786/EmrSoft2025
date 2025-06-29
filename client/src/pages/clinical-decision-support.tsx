@@ -277,7 +277,84 @@ export default function ClinicalDecisionSupport() {
               </div>
             </DialogContent>
           </Dialog>
-          <Button variant="outline">
+          <Button 
+            variant="outline"
+            onClick={() => {
+              // Generate and download clinical decision support report
+              const reportData = {
+                title: "Clinical Decision Support Report",
+                generatedAt: new Date().toISOString(),
+                activeInsights: mockInsights.filter(insight => insight.status === 'active').length,
+                totalInsights: mockInsights.length,
+                riskAssessments: mockRiskScores.length,
+                criticalAlerts: mockInsights.filter(insight => insight.priority === 'critical').length,
+                insights: mockInsights.map(insight => ({
+                  patient: insight.patientName,
+                  type: insight.type,
+                  priority: insight.priority,
+                  title: insight.title,
+                  description: insight.description,
+                  confidence: insight.confidence,
+                  status: insight.status,
+                  recommendations: insight.recommendations
+                })),
+                riskScores: mockRiskScores.map(risk => ({
+                  category: risk.category,
+                  score: risk.score,
+                  risk: risk.risk,
+                  factors: risk.factors,
+                  recommendations: risk.recommendations
+                }))
+              };
+
+              const csvContent = [
+                // Header
+                ['Clinical Decision Support Report - Generated on ' + format(new Date(), 'PPpp')],
+                [''],
+                ['SUMMARY'],
+                ['Total Active Insights', reportData.activeInsights],
+                ['Total Insights', reportData.totalInsights],
+                ['Critical Alerts', reportData.criticalAlerts],
+                ['Risk Assessments', reportData.riskAssessments],
+                [''],
+                ['CLINICAL INSIGHTS'],
+                ['Patient', 'Type', 'Priority', 'Title', 'Confidence', 'Status', 'Description'],
+                ...reportData.insights.map(insight => [
+                  insight.patient,
+                  insight.type,
+                  insight.priority,
+                  insight.title,
+                  insight.confidence + '%',
+                  insight.status,
+                  insight.description
+                ]),
+                [''],
+                ['RISK ASSESSMENTS'],
+                ['Category', 'Score', 'Risk Level', 'Key Factors'],
+                ...reportData.riskScores.map(risk => [
+                  risk.category,
+                  risk.score,
+                  risk.risk,
+                  risk.factors.join('; ')
+                ])
+              ].map(row => Array.isArray(row) ? row.join(',') : row).join('\n');
+
+              const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+              const link = document.createElement('a');
+              const url = URL.createObjectURL(blob);
+              link.setAttribute('href', url);
+              link.setAttribute('download', `clinical-decision-support-report-${format(new Date(), 'yyyy-MM-dd')}.csv`);
+              link.style.visibility = 'hidden';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+
+              toast({
+                title: "Report Downloaded",
+                description: "Clinical decision support report has been downloaded successfully.",
+              });
+            }}
+          >
             <Download className="w-4 h-4 mr-2" />
             Export Report
           </Button>
