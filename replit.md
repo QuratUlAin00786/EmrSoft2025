@@ -121,6 +121,9 @@ Averox EMR is a comprehensive multi-tenant Electronic Medical Records (EMR) syst
 - **COMPLETED**: Fixed Generate Report button on imaging page - created detailed radiology report generation dialog with patient information display, editable findings and impression fields, existing report status indicators, and download functionality for completed reports
 - **COMPLETED**: Fixed Create Campaign button functionality in Messaging Center - implemented comprehensive campaign creation dialog with name, type, subject, content, and template selection fields, proper validation, API integration, and success notifications
 - **COMPLETED**: Fixed New Message button functionality in Messaging Center - created professional message composition dialog with recipient, type, subject, priority, and content fields, comprehensive form validation, and proper state management
+- **COMPLETED**: Enhanced video call functionality in Messaging Center - improved interface with realistic effects, animated gradients, connection quality indicators, audio visualizers, enhanced self-video display, microphone indicators, and professional control buttons for complete telemedicine experience
+- **COMPLETED**: Fixed Add Integration button on Integrations page - added comprehensive dialog with integration categories (Messaging, Clinical, Billing, Analytics, Compliance, Workflow) and popular integrations section with working Connect buttons
+- **COMPLETED**: Fixed Browse Marketplace button on Integrations page - implemented full marketplace dialog with featured integrations, category browser, trending integrations, ratings, install counts, and functional install buttons
 
 **June 27, 2025:**
 - Fixed dashboard statistics display issue by implementing direct API calls instead of TanStack Query
