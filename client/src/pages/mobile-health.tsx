@@ -86,6 +86,8 @@ interface PushNotification {
 export default function MobileHealth() {
   const [activeTab, setActiveTab] = useState("devices");
   const [selectedDevice, setSelectedDevice] = useState<WearableDevice | null>(null);
+  const [configureOpen, setConfigureOpen] = useState(false);
+  const [deviceToConfig, setDeviceToConfig] = useState<WearableDevice | null>(null);
   const { toast } = useToast();
 
   // Fetch wearable devices
@@ -446,7 +448,14 @@ export default function MobileHealth() {
                         <RotateCcw className="w-4 h-4 mr-1" />
                         Sync Now
                       </Button>
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => {
+                          setDeviceToConfig(device);
+                          setConfigureOpen(true);
+                        }}
+                      >
                         <Settings className="w-4 h-4 mr-1" />
                         Configure
                       </Button>
@@ -735,6 +744,170 @@ export default function MobileHealth() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Configure Device Dialog */}
+      <Dialog open={configureOpen} onOpenChange={setConfigureOpen}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Configure Device - {deviceToConfig?.brand} {deviceToConfig?.model}</DialogTitle>
+          </DialogHeader>
+          {deviceToConfig && (
+            <div className="space-y-4">
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="font-medium">{deviceToConfig.patientName}</p>
+                <p className="text-sm text-gray-600">
+                  Device Type: {deviceToConfig.deviceType.replace('_', ' ')}
+                </p>
+                <div className="flex gap-2 mt-2">
+                  <Badge className={getStatusColor(deviceToConfig.status)}>
+                    {deviceToConfig.status}
+                  </Badge>
+                  <div className="flex items-center gap-1">
+                    <Battery className={`w-4 h-4 ${getBatteryColor(deviceToConfig.batteryLevel)}`} />
+                    <span className={`text-sm ${getBatteryColor(deviceToConfig.batteryLevel)}`}>
+                      {deviceToConfig.batteryLevel}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Sync Frequency</label>
+                <Select defaultValue="every_hour">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="real_time">Real-time</SelectItem>
+                    <SelectItem value="every_15min">Every 15 minutes</SelectItem>
+                    <SelectItem value="every_hour">Every hour</SelectItem>
+                    <SelectItem value="every_4hours">Every 4 hours</SelectItem>
+                    <SelectItem value="daily">Daily</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Data Collection</label>
+                <div className="space-y-2 mt-2">
+                  {deviceToConfig.dataTypes.map((dataType, index) => (
+                    <label key={index} className="flex items-center space-x-2">
+                      <input type="checkbox" defaultChecked className="rounded" />
+                      <span className="text-sm">{dataType}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Alert Thresholds</label>
+                <div className="space-y-3 mt-2">
+                  {deviceToConfig.deviceType === 'smartwatch' || deviceToConfig.deviceType === 'fitness_tracker' ? (
+                    <>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-xs text-gray-600">Heart Rate Max</label>
+                          <Input type="number" defaultValue="120" placeholder="BPM" />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">Heart Rate Min</label>
+                          <Input type="number" defaultValue="60" placeholder="BPM" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-600">Daily Steps Goal</label>
+                        <Input type="number" defaultValue="8000" placeholder="Steps" />
+                      </div>
+                    </>
+                  ) : deviceToConfig.deviceType === 'blood_pressure' ? (
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-xs text-gray-600">Systolic Max</label>
+                        <Input type="number" defaultValue="140" placeholder="mmHg" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-600">Diastolic Max</label>
+                        <Input type="number" defaultValue="90" placeholder="mmHg" />
+                      </div>
+                    </div>
+                  ) : deviceToConfig.deviceType === 'glucose_monitor' ? (
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-xs text-gray-600">Glucose High</label>
+                        <Input type="number" defaultValue="180" placeholder="mg/dL" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-600">Glucose Low</label>
+                        <Input type="number" defaultValue="70" placeholder="mg/dL" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="text-xs text-gray-600">Custom Alert Value</label>
+                      <Input type="number" placeholder="Enter threshold value" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Notification Settings</label>
+                <div className="space-y-2 mt-2">
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" defaultChecked className="rounded" />
+                    <span className="text-sm">Critical alerts</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" defaultChecked className="rounded" />
+                    <span className="text-sm">Daily summaries</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" className="rounded" />
+                    <span className="text-sm">Weekly reports</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" className="rounded" />
+                    <span className="text-sm">Low battery warnings</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Auto-sync When</label>
+                <div className="space-y-2 mt-2">
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" defaultChecked className="rounded" />
+                    <span className="text-sm">Device is charged</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" defaultChecked className="rounded" />
+                    <span className="text-sm">Connected to Wi-Fi</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" className="rounded" />
+                    <span className="text-sm">Patient is at clinic</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <Button variant="outline" onClick={() => setConfigureOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={() => {
+                  toast({
+                    title: "Device Configured",
+                    description: `Settings updated for ${deviceToConfig?.brand} ${deviceToConfig?.model}`,
+                  });
+                  setConfigureOpen(false);
+                }}>
+                  Save Configuration
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
