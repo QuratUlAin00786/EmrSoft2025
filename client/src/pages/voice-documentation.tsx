@@ -1047,25 +1047,49 @@ export default function VoiceDocumentation() {
                       size="sm" 
                       variant="outline"
                       onClick={() => {
-                        const duplicatedTemplate: SmartTemplate = {
-                          ...template,
-                          id: `template_${Date.now()}`,
-                          name: `${template.name} (Copy)`,
-                          usageCount: 0
-                        };
-                        
-                        // Add the duplicated template to the local state
-                        setLocalTemplates(prev => [...prev, duplicatedTemplate]);
-                        
-                        // Store in localStorage for persistence
-                        const existingTemplates = JSON.parse(localStorage.getItem('duplicatedTemplates') || '[]');
-                        existingTemplates.push(duplicatedTemplate);
-                        localStorage.setItem('duplicatedTemplates', JSON.stringify(existingTemplates));
-                        
-                        toast({
-                          title: "Template Duplicated",
-                          description: `Created a copy: "${duplicatedTemplate.name}" - Template added to your templates list`,
-                        });
+                        try {
+                          const timestamp = Date.now();
+                          const duplicatedTemplate: SmartTemplate = {
+                            ...template,
+                            id: `template_copy_${timestamp}`,
+                            name: `${template.name} (Copy)`,
+                            usageCount: 0
+                          };
+                          
+                          console.log('Creating duplicated template:', duplicatedTemplate);
+                          
+                          // Add the duplicated template to the local state immediately
+                          setLocalTemplates(prev => {
+                            const newTemplates = [...prev, duplicatedTemplate];
+                            console.log('Updated templates list:', newTemplates.length);
+                            return newTemplates;
+                          });
+                          
+                          // Store in localStorage for persistence
+                          try {
+                            const existingTemplates = JSON.parse(localStorage.getItem('duplicatedTemplates') || '[]');
+                            existingTemplates.push(duplicatedTemplate);
+                            localStorage.setItem('duplicatedTemplates', JSON.stringify(existingTemplates));
+                            console.log('Saved to localStorage:', existingTemplates.length);
+                          } catch (storageError) {
+                            console.error('localStorage error:', storageError);
+                          }
+                          
+                          // Force re-render by updating a different state
+                          setActiveTab(prev => prev === "templates" ? "templates" : "templates");
+                          
+                          toast({
+                            title: "Template Successfully Duplicated",
+                            description: `"${duplicatedTemplate.name}" has been created and added to your templates list. Scroll down to see it.`,
+                          });
+                        } catch (error) {
+                          console.error('Duplication error:', error);
+                          toast({
+                            title: "Duplication Failed",
+                            description: "There was an error duplicating the template. Please try again.",
+                            variant: "destructive",
+                          });
+                        }
                       }}
                     >
                       Duplicate
