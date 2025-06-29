@@ -102,47 +102,19 @@ export default function FormsPage() {
     activeTab: 'overview'
   });
   const scrollToTop = () => {
-    console.log('Scroll to top clicked');
+    console.log('Scroll to top button clicked!');
     
-    // Try multiple potential scroll containers
-    const containers = [
-      { element: document.querySelector('main'), name: 'main' },
-      { element: document.querySelector('.flex-1'), name: '.flex-1' },
-      { element: document.documentElement, name: 'documentElement' },
-      { element: document.body, name: 'body' }
-    ];
-    
-    // Log current scroll positions
-    containers.forEach(({ element, name }) => {
-      if (element) {
-        console.log(`${name} scrollTop:`, element.scrollTop);
-      }
-    });
-    
-    // Find and scroll the container with content
-    for (const { element, name } of containers) {
-      if (element && element.scrollTop > 0) {
-        console.log(`Scrolling ${name} to top`);
-        element.scrollTo({
-          top: 0,
-          behavior: 'smooth'
-        });
-        return;
-      }
+    // Direct approach - scroll the main element
+    const main = document.querySelector('main');
+    if (main) {
+      console.log('Scrolling main element to top');
+      main.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
     }
     
-    // Force scroll on main element regardless of current position
-    const mainElement = document.querySelector('main');
-    if (mainElement) {
-      console.log('Force scrolling main element');
-      mainElement.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
-    } else {
-      console.log('Fallback to window scroll');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    // Fallback to window scroll
+    console.log('Using window scroll fallback');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleCreateNew = () => {
@@ -718,13 +690,14 @@ export default function FormsPage() {
       </Dialog>
 
       {/* Scroll to Top Button */}
-      <Button
+      <button
         onClick={scrollToTop}
-        className="fixed bottom-8 right-8 z-50 w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg flex items-center justify-center"
+        className="fixed bottom-8 right-8 z-[9999] w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg flex items-center justify-center cursor-pointer border-none outline-none focus:ring-2 focus:ring-blue-500"
         aria-label="Scroll to top"
+        type="button"
       >
         <ChevronUp className="h-5 w-5" />
-      </Button>
+      </button>
     </div>
   );
 }
