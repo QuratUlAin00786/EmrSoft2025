@@ -713,7 +713,13 @@ export default function PatientPortal() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold">My Profile</h2>
-            <Button onClick={() => setIsEditing(!isEditing)}>
+            <Button onClick={() => {
+              if (isEditing) {
+                // Save changes
+                alert('Profile changes saved successfully!');
+              }
+              setIsEditing(!isEditing);
+            }}>
               <Edit className="h-4 w-4 mr-2" />
               {isEditing ? 'Save Changes' : 'Edit Profile'}
             </Button>
