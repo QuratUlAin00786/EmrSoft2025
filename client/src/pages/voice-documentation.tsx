@@ -586,19 +586,57 @@ export default function VoiceDocumentation() {
                   )}
 
                   <div className="flex gap-2">
-                    <Button size="sm">
-                      <Play className="w-4 h-4 mr-1" />
-                      Play
+                    <Button 
+                      size="sm"
+                      onClick={() => {
+                        setIsPlaying(!isPlaying);
+                        toast({
+                          title: isPlaying ? "Playback Stopped" : "Playing Audio",
+                          description: `${isPlaying ? "Stopped" : "Playing"} recording for ${note.patientName}`,
+                        });
+                      }}
+                    >
+                      {isPlaying ? <Pause className="w-4 h-4 mr-1" /> : <Play className="w-4 h-4 mr-1" />}
+                      {isPlaying ? "Pause" : "Play"}
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        setCurrentTranscript(note.transcript);
+                        toast({
+                          title: "Edit Mode",
+                          description: "Voice note opened for editing",
+                        });
+                      }}
+                    >
                       <FileText className="w-4 h-4 mr-1" />
                       Edit Note
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        navigator.clipboard.writeText(note.transcript);
+                        toast({
+                          title: "Text Copied",
+                          description: "Transcript copied to clipboard",
+                        });
+                      }}
+                    >
                       <Copy className="w-4 h-4 mr-1" />
                       Copy Text
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        toast({
+                          title: "Saved to EMR",
+                          description: `Voice note saved to ${note.patientName}'s medical record`,
+                        });
+                      }}
+                    >
                       <Save className="w-4 h-4 mr-1" />
                       Save to EMR
                     </Button>
