@@ -89,6 +89,13 @@ interface ClinicalPhoto {
   type: 'wound' | 'rash' | 'xray' | 'procedure' | 'general';
   filename: string;
   description: string;
+  url: string;
+  dateTaken: string;
+  metadata: {
+    camera: string;
+    resolution: string;
+    lighting: string;
+  };
   annotations: Array<{
     x: number;
     y: number;
@@ -279,6 +286,8 @@ export default function VoiceDocumentation() {
       type: "wound",
       filename: "wound_assessment_001.jpg",
       description: "Post-surgical wound healing assessment",
+      url: "/api/photos/wound_assessment_001.jpg",
+      dateTaken: "Jun 26, 18:45",
       annotations: [
         { x: 120, y: 80, width: 60, height: 40, label: "Healing edge" },
         { x: 200, y: 120, width: 30, height: 25, label: "Slight erythema" }
@@ -1385,6 +1394,230 @@ export default function VoiceDocumentation() {
                     Save Changes
                   </Button>
                 </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* View Full Photo Dialog */}
+      <Dialog open={viewFullDialogOpen} onOpenChange={setViewFullDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedPhoto?.filename} - {selectedPhoto?.patientName}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedPhoto && (
+            <div className="space-y-4">
+              <div className="flex justify-center">
+                <img 
+                  src={selectedPhoto.url} 
+                  alt={selectedPhoto.description}
+                  className="max-w-full max-h-[70vh] object-contain rounded-lg"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <div className="text-sm text-gray-500">Patient</div>
+                  <div className="font-medium">{selectedPhoto.patientName}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">Type</div>
+                  <div className="font-medium capitalize">{selectedPhoto.type.replace('_', ' ')}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">Date Taken</div>
+                  <div className="font-medium">{selectedPhoto.dateTaken}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">AI Analysis</div>
+                  <div className="font-medium">{selectedPhoto.aiAnalysis.findings.join(', ')}</div>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setViewFullDialogOpen(false)}>
+                  Close
+                </Button>
+                <Button onClick={() => {
+                  const link = document.createElement('a');
+                  link.href = selectedPhoto.url;
+                  link.download = `${selectedPhoto.filename}_full_res.jpg`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  toast({
+                    title: "Download Started",
+                    description: "Full resolution image download started",
+                  });
+                }}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Full Resolution
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Annotate Photo Dialog */}
+      <Dialog open={annotateDialogOpen} onOpenChange={setAnnotateDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Annotate Photo - {selectedPhoto?.filename}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedPhoto && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <img 
+                    src={selectedPhoto.url} 
+                    alt={selectedPhoto.description}
+                    className="w-full h-64 object-cover rounded-lg"
+                  />
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium block mb-2">
+                      Clinical Notes
+                    </label>
+                    <Textarea 
+                      placeholder="Add clinical observations, measurements, or notes about this image..."
+                      className="min-h-[100px]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium block mb-2">
+                      Annotation Tags
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {["Normal", "Abnormal", "Requires Follow-up", "Urgent", "Baseline"].map(tag => (
+                        <Button key={tag} size="sm" variant="outline">
+                          {tag}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-2">
+                  Detailed Description
+                </label>
+                <Textarea 
+                  placeholder="Provide detailed description of findings, measurements, or clinical significance..."
+                  className="min-h-[120px]"
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setAnnotateDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={() => {
+                  toast({
+                    title: "Annotations Saved",
+                    description: `Clinical annotations added to ${selectedPhoto.filename}`,
+                  });
+                  setAnnotateDialogOpen(false);
+                }}>
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Annotations
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Add to Report Dialog */}
+      <Dialog open={addToReportDialogOpen} onOpenChange={setAddToReportDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Add Photo to Report - {selectedPhoto?.filename}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedPhoto && (
+            <div className="space-y-4">
+              <div className="flex gap-4">
+                <img 
+                  src={selectedPhoto.url} 
+                  alt={selectedPhoto.description}
+                  className="w-24 h-24 object-cover rounded-lg"
+                />
+                <div className="flex-1 space-y-2">
+                  <div>
+                    <div className="text-sm text-gray-500">Patient</div>
+                    <div className="font-medium">{selectedPhoto.patientName}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-500">Photo Type</div>
+                    <div className="font-medium capitalize">{selectedPhoto.type.replace('_', ' ')}</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium block mb-2">
+                  Select Report Type
+                </label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose report type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="consultation">Consultation Report</SelectItem>
+                    <SelectItem value="progress">Progress Note</SelectItem>
+                    <SelectItem value="discharge">Discharge Summary</SelectItem>
+                    <SelectItem value="surgical">Surgical Report</SelectItem>
+                    <SelectItem value="diagnostic">Diagnostic Report</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium block mb-2">
+                  Caption for Report
+                </label>
+                <Textarea 
+                  placeholder="Enter caption that will appear with the image in the report..."
+                  defaultValue={selectedPhoto.description}
+                  className="min-h-[80px]"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium block mb-2">
+                  Image Position in Report
+                </label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select position" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="inline">Inline with text</SelectItem>
+                    <SelectItem value="appendix">Appendix</SelectItem>
+                    <SelectItem value="cover">Cover page</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setAddToReportDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={() => {
+                  toast({
+                    title: "Photo Added to Report",
+                    description: `${selectedPhoto.filename} has been added to the selected report`,
+                  });
+                  setAddToReportDialogOpen(false);
+                }}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add to Report
+                </Button>
               </div>
             </div>
           )}
