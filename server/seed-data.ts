@@ -1,6 +1,7 @@
 import { db } from "./db.js";
-import { organizations, users, patients, appointments, medicalRecords, notifications, prescriptions } from "@shared/schema.js";
+import { organizations, users, patients, appointments, medicalRecords, notifications, prescriptions, subscriptions } from "@shared/schema.js";
 import { authService } from "./services/auth.js";
+import { eq } from "drizzle-orm";
 
 export async function seedDatabase() {
   try {
@@ -372,6 +373,28 @@ export async function seedDatabase() {
 
     const createdPrescriptions = await db.insert(prescriptions).values(samplePrescriptions).returning();
     console.log(`Created ${createdPrescriptions.length} sample prescriptions`);
+
+    // Create sample subscription if it doesn't exist
+    const existingSubscription = await db.select().from(subscriptions).where(eq(subscriptions.organizationId, org.id));
+    
+    if (existingSubscription.length === 0) {
+      const sampleSubscription = {
+        organizationId: org.id,
+        plan: "professional",
+        status: "active",
+        currentUsers: 3,
+        userLimit: 25,
+        monthlyPrice: 79,
+        nextBillingAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+        trialEndsAt: null,
+        features: ["basic", "ai-insights", "advanced-reporting", "priority-support"]
+      };
+
+      const createdSubscription = await db.insert(subscriptions).values([sampleSubscription]).returning();
+      console.log(`Created subscription for organization: ${createdSubscription[0].plan}`);
+    } else {
+      console.log("Subscription already exists for this organization");
+    }
 
     console.log("Database seeding completed successfully!");
     
