@@ -118,6 +118,7 @@ export default function VoiceDocumentation() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<VoiceNote | null>(null);
   const [editedTranscript, setEditedTranscript] = useState("");
+  const [localTemplates, setLocalTemplates] = useState<SmartTemplate[]>([]);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const { toast } = useToast();
@@ -289,6 +290,12 @@ export default function VoiceDocumentation() {
       }
     }
   ];
+
+  // Initialize local templates from mock data and localStorage
+  useEffect(() => {
+    const duplicatedTemplates = JSON.parse(localStorage.getItem('duplicatedTemplates') || '[]');
+    setLocalTemplates([...mockTemplates, ...duplicatedTemplates]);
+  }, []);
 
   // Recording timer effect
   useEffect(() => {
@@ -796,7 +803,7 @@ export default function VoiceDocumentation() {
 
         <TabsContent value="templates" className="space-y-4">
           <div className="grid gap-4">
-            {mockTemplates.map((template) => (
+            {localTemplates.map((template) => (
               <Card key={template.id}>
                 <CardHeader>
                   <div className="flex justify-between items-start">
@@ -1040,15 +1047,24 @@ export default function VoiceDocumentation() {
                       size="sm" 
                       variant="outline"
                       onClick={() => {
-                        const duplicatedTemplate = {
+                        const duplicatedTemplate: SmartTemplate = {
                           ...template,
                           id: `template_${Date.now()}`,
                           name: `${template.name} (Copy)`,
                           usageCount: 0
                         };
+                        
+                        // Add the duplicated template to the local state
+                        setLocalTemplates(prev => [...prev, duplicatedTemplate]);
+                        
+                        // Store in localStorage for persistence
+                        const existingTemplates = JSON.parse(localStorage.getItem('duplicatedTemplates') || '[]');
+                        existingTemplates.push(duplicatedTemplate);
+                        localStorage.setItem('duplicatedTemplates', JSON.stringify(existingTemplates));
+                        
                         toast({
                           title: "Template Duplicated",
-                          description: `Created a copy: "${duplicatedTemplate.name}"`,
+                          description: `Created a copy: "${duplicatedTemplate.name}" - Template added to your templates list`,
                         });
                       }}
                     >
