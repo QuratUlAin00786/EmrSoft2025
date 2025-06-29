@@ -87,6 +87,8 @@ export default function IntegrationsPage() {
   const [isWebhookDialogOpen, setIsWebhookDialogOpen] = useState(false);
   const [isApiKeyDialogOpen, setIsApiKeyDialogOpen] = useState(false);
   const [isMarketplaceDialogOpen, setIsMarketplaceDialogOpen] = useState(false);
+  const [selectedMarketplaceIntegration, setSelectedMarketplaceIntegration] = useState<any>(null);
+  const [isIntegrationDetailOpen, setIsIntegrationDetailOpen] = useState(false);
   const { toast } = useToast();
 
   const { data: integrations = [], isLoading: integrationsLoading } = useQuery({
@@ -198,6 +200,56 @@ export default function IntegrationsPage() {
       provider: `${category}-provider`,
       status: 'connected'
     });
+  };
+
+  const handleViewIntegrationDetails = (integration: any) => {
+    setSelectedMarketplaceIntegration(integration);
+    setIsIntegrationDetailOpen(true);
+  };
+
+  const getIntegrationDetails = (name: string) => {
+    const details = {
+      "Microsoft Teams Health": {
+        description: "Secure healthcare communications platform built on Microsoft Teams infrastructure",
+        features: ["HIPAA Compliant Messaging", "Video Consultations", "File Sharing", "Integration with Office 365", "Multi-factor Authentication"],
+        pricing: "£12/user/month",
+        setup: "Quick setup with SSO integration",
+        compliance: ["HIPAA", "GDPR", "SOC 2"],
+        support: "24/7 Enterprise Support"
+      },
+      "Salesforce Health Cloud": {
+        description: "Comprehensive patient relationship management platform for healthcare providers",
+        features: ["360° Patient View", "Care Coordination", "Patient Engagement", "Health Analytics", "Mobile Access"],
+        pricing: "£150/user/month",
+        setup: "Professional implementation required",
+        compliance: ["HIPAA", "GDPR", "ISO 27001"],
+        support: "Dedicated Success Manager"
+      },
+      "AWS HealthLake": {
+        description: "HIPAA-eligible service that helps healthcare organizations store, transform, and analyze health data",
+        features: ["FHIR R4 Support", "Natural Language Processing", "Medical Ontologies", "Data Lake Storage", "Analytics"],
+        pricing: "Pay-as-you-go from £0.65/GB",
+        setup: "Technical setup required",
+        compliance: ["HIPAA", "GDPR", "HITRUST"],
+        support: "AWS Technical Support"
+      },
+      "Google Cloud Healthcare": {
+        description: "Cloud-based healthcare APIs and data management solutions",
+        features: ["FHIR API", "DICOM Store", "HL7v2 Store", "Healthcare Natural Language AI", "De-identification"],
+        pricing: "£0.40/1K API calls",
+        setup: "Developer setup required",
+        compliance: ["HIPAA", "GDPR", "ISO 27001"],
+        support: "Google Cloud Support"
+      }
+    };
+    return details[name as keyof typeof details] || {
+      description: "Professional healthcare integration solution",
+      features: ["Healthcare Integration", "Secure Data Transfer", "Compliance Ready"],
+      pricing: "Contact for pricing",
+      setup: "Standard setup process",
+      compliance: ["HIPAA", "GDPR"],
+      support: "Standard Support"
+    };
   };
 
   if (integrationsLoading || webhooksLoading || apiKeysLoading) {
@@ -401,7 +453,13 @@ export default function IntegrationsPage() {
                         </div>
                         <div className="flex items-center space-x-3">
                           <Badge className="bg-green-100 text-green-800">{integration.trend}</Badge>
-                          <Button variant="outline" size="sm">View Details</Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleViewIntegrationDetails(integration)}
+                          >
+                            View Details
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -412,6 +470,89 @@ export default function IntegrationsPage() {
           </Dialog>
         </div>
       </div>
+
+      {/* Integration Details Dialog */}
+      <Dialog open={isIntegrationDetailOpen} onOpenChange={setIsIntegrationDetailOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{selectedMarketplaceIntegration?.name} Integration</DialogTitle>
+          </DialogHeader>
+          {selectedMarketplaceIntegration && (
+            <div className="space-y-6">
+              {(() => {
+                const details = getIntegrationDetails(selectedMarketplaceIntegration.name);
+                return (
+                  <>
+                    {/* Overview */}
+                    <div>
+                      <h4 className="font-semibold mb-3">Overview</h4>
+                      <p className="text-gray-700">{details.description}</p>
+                    </div>
+
+                    {/* Features */}
+                    <div>
+                      <h4 className="font-semibold mb-3">Key Features</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {details.features.map((feature, index) => (
+                          <div key={index} className="flex items-center space-x-2">
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                            <span className="text-sm">{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Pricing & Setup */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="font-semibold mb-2">Pricing</h4>
+                        <p className="text-lg font-bold text-green-600">{details.pricing}</p>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold mb-2">Setup Time</h4>
+                        <p className="text-gray-700">{details.setup}</p>
+                      </div>
+                    </div>
+
+                    {/* Compliance */}
+                    <div>
+                      <h4 className="font-semibold mb-3">Compliance & Security</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {details.compliance.map((cert, index) => (
+                          <Badge key={index} className="bg-blue-100 text-blue-800">
+                            {cert}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Support */}
+                    <div>
+                      <h4 className="font-semibold mb-2">Support</h4>
+                      <p className="text-gray-700">{details.support}</p>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex justify-end space-x-3 pt-4 border-t">
+                      <Button variant="outline" onClick={() => setIsIntegrationDetailOpen(false)}>
+                        Close
+                      </Button>
+                      <Button 
+                        onClick={() => {
+                          handleConnectIntegration(selectedMarketplaceIntegration.name.toLowerCase());
+                          setIsIntegrationDetailOpen(false);
+                        }}
+                      >
+                        Install Integration
+                      </Button>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
