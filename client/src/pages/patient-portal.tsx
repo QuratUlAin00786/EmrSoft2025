@@ -363,7 +363,7 @@ export default function PatientPortal() {
 
           {/* Quick Actions */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Button className="h-24 flex-col gap-2" variant="outline">
+            <Button className="h-24 flex-col gap-2" variant="outline" onClick={() => window.location.href = "/appointments"}>
               <Calendar className="h-6 w-6" />
               <span>Book Appointment</span>
             </Button>
