@@ -102,10 +102,20 @@ export default function FormsPage() {
     activeTab: 'overview'
   });
   const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
+    // Find the main content container that has the scroll
+    const mainElement = document.querySelector('main');
+    if (mainElement) {
+      mainElement.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    } else {
+      // Fallback to window scroll
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
   };
 
   const handleCreateNew = () => {
