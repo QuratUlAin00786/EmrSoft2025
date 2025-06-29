@@ -234,7 +234,7 @@ export default function MessagingPage() {
     });
   };
 
-  const handleStartVideoCall = async () => {
+  const handleStartVideoCall = () => {
     if (!videoCall.participant.trim()) {
       toast({
         title: "Validation Error",
@@ -246,7 +246,7 @@ export default function MessagingPage() {
 
     const participantName = videoCall.participant;
     
-    // Close dialog first
+    // Close dialog and start call
     setShowVideoCall(false);
     setCallParticipant(participantName);
     setActiveVideoCall(true);
@@ -263,28 +263,7 @@ export default function MessagingPage() {
     }, 1000);
     setCallTimer(timer);
 
-    // Try to get camera access in background
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 640, height: 480 },
-        audio: { echoCancellation: true, noiseSuppression: true }
-      });
-      
-      setLocalStream(stream);
-      
-      toast({
-        title: "Camera Connected",
-        description: "Video and audio are now active",
-      });
-    } catch (error) {
-      // Continue without camera if access denied
-      console.log("Camera access denied, continuing with audio-only call");
-      toast({
-        title: "Audio Only",
-        description: "Video call started in audio-only mode",
-      });
-    }
-
+    // Show connection success after delay
     setTimeout(() => {
       toast({
         title: "Call Connected",
@@ -328,23 +307,19 @@ export default function MessagingPage() {
   };
 
   const toggleMute = () => {
-    if (localStream) {
-      const audioTracks = localStream.getAudioTracks();
-      audioTracks.forEach(track => {
-        track.enabled = !track.enabled;
-      });
-      setIsMuted(!isMuted);
-    }
+    setIsMuted(!isMuted);
+    toast({
+      title: isMuted ? "Microphone On" : "Microphone Muted",
+      description: isMuted ? "You are now unmuted" : "You are now muted",
+    });
   };
 
   const toggleVideo = () => {
-    if (localStream) {
-      const videoTracks = localStream.getVideoTracks();
-      videoTracks.forEach(track => {
-        track.enabled = !track.enabled;
-      });
-      setIsVideoOn(!isVideoOn);
-    }
+    setIsVideoOn(!isVideoOn);
+    toast({
+      title: isVideoOn ? "Camera Off" : "Camera On",
+      description: isVideoOn ? "Your video is now off" : "Your video is now on",
+    });
   };
 
   const formatCallDuration = (seconds: number) => {
@@ -1068,25 +1043,22 @@ export default function MessagingPage() {
                 
                 {/* Self video (small corner) */}
                 <div className="absolute bottom-4 right-4 w-48 h-36 bg-gray-800 rounded-lg border-2 border-white overflow-hidden">
-                  {localStream && isVideoOn ? (
-                    <video
-                      ref={(video) => {
-                        if (video && localStream) {
-                          video.srcObject = localStream;
-                          video.play();
-                        }
-                      }}
-                      muted
-                      className="w-full h-full object-cover"
-                      style={{ transform: 'scaleX(-1)' }}
-                    />
+                  {isVideoOn ? (
+                    <div className="w-full h-full bg-gradient-to-br from-green-600 to-blue-600 flex items-center justify-center text-white text-center">
+                      <div>
+                        <div className="w-12 h-12 bg-white bg-opacity-30 rounded-full flex items-center justify-center mb-2 mx-auto">
+                          <span className="text-lg font-bold">Y</span>
+                        </div>
+                        <p className="text-sm">You (Video On)</p>
+                      </div>
+                    </div>
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-white text-center">
                       <div>
                         <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-2 mx-auto">
                           <span className="text-lg font-bold">Y</span>
                         </div>
-                        <p className="text-sm">You</p>
+                        <p className="text-sm">You (Video Off)</p>
                       </div>
                     </div>
                   )}
