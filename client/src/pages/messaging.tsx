@@ -1029,37 +1029,89 @@ export default function MessagingPage() {
 
             {/* Video Call Main Area */}
             <div className="flex-1 bg-gray-100 relative flex items-center justify-center">
-              {/* Simulated video feed */}
-              <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 relative">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center text-white">
-                    <div className="w-24 h-24 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-4 mx-auto">
-                      <span className="text-3xl font-bold">{callParticipant.charAt(0).toUpperCase()}</span>
+              {/* Enhanced video feed with realistic effects */}
+              <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 relative overflow-hidden">
+                {/* Video simulation with movement */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-blue-600 via-purple-500 to-indigo-600 animate-pulse"></div>
+                
+                {/* Connection quality overlay */}
+                <div className="absolute top-4 left-4 bg-black bg-opacity-60 rounded-lg px-3 py-2 z-10">
+                  <div className="flex items-center space-x-2">
+                    <div className="flex space-x-1">
+                      <div className="w-1 h-3 bg-green-400 rounded animate-pulse"></div>
+                      <div className="w-1 h-4 bg-green-400 rounded animate-pulse delay-75"></div>
+                      <div className="w-1 h-5 bg-green-400 rounded animate-pulse delay-150"></div>
+                      <div className="w-1 h-4 bg-green-400 rounded animate-pulse delay-200"></div>
                     </div>
-                    <p className="text-xl font-semibold">{callParticipant}</p>
-                    <p className="text-sm opacity-75">Patient Consultation</p>
+                    <span className="text-white text-xs font-medium">HD • Secure</span>
                   </div>
                 </div>
+
+                {/* Participant info */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center text-white">
+                    <div className="w-32 h-32 bg-white bg-opacity-25 rounded-full flex items-center justify-center mb-6 mx-auto shadow-2xl animate-bounce">
+                      <span className="text-4xl font-bold">{callParticipant.charAt(0).toUpperCase()}</span>
+                    </div>
+                    <h3 className="text-3xl font-bold mb-2 drop-shadow-lg">{callParticipant}</h3>
+                    <div className="flex items-center justify-center space-x-2 mb-2">
+                      <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                      <p className="text-lg font-medium">Connected • Speaking</p>
+                    </div>
+                    <p className="text-sm opacity-90 bg-black bg-opacity-30 px-3 py-1 rounded-full">Patient Consultation Session</p>
+                  </div>
+                </div>
+
+                {/* Audio visualization bars */}
+                <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex space-x-1">
+                  {[...Array(8)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="w-1 bg-green-400 rounded-full animate-pulse"
+                      style={{
+                        height: `${Math.random() * 20 + 10}px`,
+                        animationDelay: `${i * 0.1}s`,
+                        animationDuration: '0.8s'
+                      }}
+                    ></div>
+                  ))}
+                </div>
                 
-                {/* Self video (small corner) */}
-                <div className="absolute bottom-4 right-4 w-48 h-36 bg-gray-800 rounded-lg border-2 border-white overflow-hidden">
+                {/* Enhanced self video (small corner) */}
+                <div className="absolute bottom-4 right-4 w-52 h-40 rounded-lg border-2 border-white overflow-hidden shadow-2xl z-20">
                   {isVideoOn ? (
-                    <div className="w-full h-full bg-gradient-to-br from-green-600 to-blue-600 flex items-center justify-center text-white text-center">
-                      <div>
-                        <div className="w-12 h-12 bg-white bg-opacity-30 rounded-full flex items-center justify-center mb-2 mx-auto">
-                          <span className="text-lg font-bold">Y</span>
+                    <div className="w-full h-full bg-gradient-to-br from-green-500 to-emerald-600 relative">
+                      {/* Simulated camera feed */}
+                      <div className="absolute inset-0 bg-gradient-to-tl from-green-600 to-blue-500 animate-pulse opacity-75"></div>
+                      <div className="absolute inset-0 flex items-center justify-center text-white">
+                        <div className="text-center">
+                          <div className="w-16 h-16 bg-white bg-opacity-40 rounded-full flex items-center justify-center mb-2 mx-auto animate-pulse">
+                            <span className="text-xl font-bold">YOU</span>
+                          </div>
+                          <p className="text-xs font-medium bg-black bg-opacity-30 px-2 py-1 rounded">Camera Active</p>
                         </div>
-                        <p className="text-sm">You (Video On)</p>
                       </div>
+                      {/* Microphone indicator */}
+                      {!isMuted && (
+                        <div className="absolute top-2 left-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center animate-pulse">
+                          <span className="text-xs">🎤</span>
+                        </div>
+                      )}
                     </div>
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white text-center">
+                    <div className="w-full h-full bg-gray-700 flex items-center justify-center text-white text-center relative">
                       <div>
-                        <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-2 mx-auto">
-                          <span className="text-lg font-bold">Y</span>
+                        <div className="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center mb-2 mx-auto">
+                          <span className="text-xl">📹</span>
                         </div>
-                        <p className="text-sm">You (Video Off)</p>
+                        <p className="text-xs">Camera Off</p>
                       </div>
+                      {/* Microphone indicator when video is off */}
+                      {!isMuted && (
+                        <div className="absolute top-2 left-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center animate-pulse">
+                          <span className="text-xs">🎤</span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
