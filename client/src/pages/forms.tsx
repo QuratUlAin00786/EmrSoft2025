@@ -6,6 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { 
   Plus, 
   FileText, 
@@ -21,7 +28,8 @@ import {
   Calendar,
   CheckCircle,
   AlertTriangle,
-  ChevronUp
+  ChevronUp,
+  X
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -29,6 +37,7 @@ interface FormsPageState {
   activeTab: 'overview' | 'builder' | 'templates' | 'responses';
   selectedForm?: FormTemplate;
   editingForm?: FormTemplate;
+  previewForm?: FormTemplate;
 }
 
 const mockForms: FormTemplate[] = [
@@ -142,8 +151,10 @@ export default function FormsPage() {
   };
 
   const handlePreviewForm = (form: FormTemplate) => {
-    // Preview form logic would go here
-    console.log("Previewing form:", form.title);
+    setState(prev => ({
+      ...prev,
+      previewForm: form
+    }));
   };
 
   const getStatusColor = (form: FormTemplate) => {
@@ -495,6 +506,179 @@ export default function FormsPage() {
           </Card>
         </div>
       </div>
+
+      {/* Form Preview Dialog */}
+      <Dialog open={!!state.previewForm} onOpenChange={(open) => !open && setState(prev => ({ ...prev, previewForm: undefined }))}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Form Preview: {state.previewForm?.title}</span>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setState(prev => ({ ...prev, previewForm: undefined }))}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          
+          {state.previewForm && (
+            <div className="space-y-6">
+              {/* Form Header */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold text-gray-900">{state.previewForm.title}</h3>
+                <p className="text-gray-600 mt-1">{state.previewForm.description}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <Badge className={getStatusColor(state.previewForm)}>
+                    {state.previewForm.status}
+                  </Badge>
+                  <span className="text-sm text-gray-500">
+                    {state.previewForm.responses} responses
+                  </span>
+                </div>
+              </div>
+
+              {/* Sample Form Fields */}
+              <div className="space-y-4">
+                <h4 className="font-medium text-gray-900">Form Fields Preview</h4>
+                
+                {state.previewForm.title === "Patient Intake Form" ? (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="fullName">Full Name *</Label>
+                      <Input id="fullName" placeholder="Enter your full name" disabled />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="email">Email Address *</Label>
+                      <Input id="email" type="email" placeholder="Enter your email" disabled />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="phone">Phone Number</Label>
+                      <Input id="phone" placeholder="Enter your phone number" disabled />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="dob">Date of Birth *</Label>
+                      <Input id="dob" type="date" disabled />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="gender">Gender</Label>
+                      <Select disabled>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select gender" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="address">Address</Label>
+                      <Textarea id="address" placeholder="Enter your address" disabled />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="emergency">Emergency Contact</Label>
+                      <Input id="emergency" placeholder="Emergency contact name and phone" disabled />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="medical">Medical History</Label>
+                      <Textarea id="medical" placeholder="Please describe any relevant medical history" disabled />
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Checkbox id="consent" disabled />
+                      <Label htmlFor="consent">I consent to treatment and data processing</Label>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="q1">How often do you feel down, depressed, or hopeless?</Label>
+                      <RadioGroup disabled>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="0" id="q1-0" />
+                          <Label htmlFor="q1-0">Not at all</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="1" id="q1-1" />
+                          <Label htmlFor="q1-1">Several days</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="2" id="q1-2" />
+                          <Label htmlFor="q1-2">More than half the days</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="3" id="q1-3" />
+                          <Label htmlFor="q1-3">Nearly every day</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="q2">How often do you have trouble falling or staying asleep?</Label>
+                      <RadioGroup disabled>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="0" id="q2-0" />
+                          <Label htmlFor="q2-0">Not at all</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="1" id="q2-1" />
+                          <Label htmlFor="q2-1">Several days</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="2" id="q2-2" />
+                          <Label htmlFor="q2-2">More than half the days</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="3" id="q2-3" />
+                          <Label htmlFor="q2-3">Nearly every day</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="additional">Additional Comments</Label>
+                      <Textarea id="additional" placeholder="Any additional information you'd like to share" disabled />
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Form Settings Preview */}
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-medium text-blue-900 mb-2">Form Configuration</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-blue-700">Multi-page:</span> 
+                    <span className="text-blue-900 ml-2">{state.previewForm.settings.multiPage ? 'Yes' : 'No'}</span>
+                  </div>
+                  <div>
+                    <span className="text-blue-700">Progress bar:</span> 
+                    <span className="text-blue-900 ml-2">{state.previewForm.settings.showProgress ? 'Yes' : 'No'}</span>
+                  </div>
+                  <div>
+                    <span className="text-blue-700">Auto-save:</span> 
+                    <span className="text-blue-900 ml-2">{state.previewForm.settings.autoSave ? 'Yes' : 'No'}</span>
+                  </div>
+                  <div>
+                    <span className="text-blue-700">Authentication:</span> 
+                    <span className="text-blue-900 ml-2">{state.previewForm.settings.requireAuthentication ? 'Required' : 'Optional'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Scroll to Top Button */}
       <Button
