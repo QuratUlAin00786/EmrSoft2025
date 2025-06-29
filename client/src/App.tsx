@@ -40,7 +40,7 @@ function ProtectedApp() {
   return (
     <div className="flex h-screen bg-neutral-50">
       <Sidebar />
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main className="flex-1 flex flex-col overflow-y-auto">
         <Switch>
           <Route path="/" component={Dashboard} />
           <Route path="/patients" component={Patients} />
