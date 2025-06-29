@@ -114,6 +114,12 @@ export default function FinancialIntelligence() {
   const [dateRange, setDateRange] = useState("last_3_months");
   const [selectedClaim, setSelectedClaim] = useState<Claim | null>(null);
   const [showScrollButton, setShowScrollButton] = useState(true);
+  const [submitClaimOpen, setSubmitClaimOpen] = useState(false);
+  const [claimFormData, setClaimFormData] = useState({
+    patient: '',
+    serviceDate: '',
+    totalAmount: ''
+  });
   const { toast } = useToast();
 
   // Scroll functionality
@@ -595,9 +601,9 @@ export default function FinancialIntelligence() {
         <TabsContent value="claims" className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Claims Management</h3>
-            <Dialog>
+            <Dialog open={submitClaimOpen} onOpenChange={setSubmitClaimOpen}>
               <DialogTrigger asChild>
-                <Button>
+                <Button onClick={() => setSubmitClaimOpen(true)}>
                   <FileText className="w-4 h-4 mr-2" />
                   Submit New Claim
                 </Button>
@@ -609,7 +615,9 @@ export default function FinancialIntelligence() {
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium">Patient</label>
-                    <Select>
+                    <Select value={claimFormData.patient} onValueChange={(value) => 
+                      setClaimFormData(prev => ({ ...prev, patient: value }))
+                    }>
                       <SelectTrigger>
                         <SelectValue placeholder="Select patient" />
                       </SelectTrigger>
@@ -621,13 +629,56 @@ export default function FinancialIntelligence() {
                   </div>
                   <div>
                     <label className="text-sm font-medium">Service Date</label>
-                    <Input type="date" />
+                    <Input 
+                      type="date" 
+                      value={claimFormData.serviceDate}
+                      onChange={(e) => setClaimFormData(prev => ({ ...prev, serviceDate: e.target.value }))}
+                    />
                   </div>
                   <div>
                     <label className="text-sm font-medium">Total Amount</label>
-                    <Input placeholder="0.00" />
+                    <Input 
+                      placeholder="0.00" 
+                      value={claimFormData.totalAmount}
+                      onChange={(e) => setClaimFormData(prev => ({ ...prev, totalAmount: e.target.value }))}
+                    />
                   </div>
-                  <Button className="w-full">Submit Claim</Button>
+                  <Button 
+                    className="w-full" 
+                    onClick={() => {
+                      if (!claimFormData.patient || !claimFormData.serviceDate || !claimFormData.totalAmount) {
+                        toast({
+                          title: "Missing Information",
+                          description: "Please fill in all required fields",
+                          variant: "destructive"
+                        });
+                        return;
+                      }
+
+                      // Submit the claim using the mutation
+                      submitClaimMutation.mutate({
+                        patientName: claimFormData.patient === 'patient_1' ? 'Sarah Johnson' : 'Michael Chen',
+                        serviceType: 'General Consultation',
+                        amount: parseFloat(claimFormData.totalAmount),
+                        status: 'pending',
+                        submittedAt: new Date().toISOString(),
+                        providerName: 'Dr. Smith',
+                        serviceDate: claimFormData.serviceDate
+                      });
+
+                      // Reset form and close dialog
+                      setClaimFormData({ patient: '', serviceDate: '', totalAmount: '' });
+                      setSubmitClaimOpen(false);
+                      
+                      toast({
+                        title: "Claim Submitted",
+                        description: `Insurance claim for ${claimFormData.patient === 'patient_1' ? 'Sarah Johnson' : 'Michael Chen'} has been submitted successfully`
+                      });
+                    }}
+                    disabled={submitClaimMutation.isPending}
+                  >
+                    {submitClaimMutation.isPending ? 'Submitting...' : 'Submit Claim'}
+                  </Button>
                 </div>
               </DialogContent>
             </Dialog>
