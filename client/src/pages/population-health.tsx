@@ -108,6 +108,7 @@ export default function PopulationHealth() {
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
   const [selectedPatientCare, setSelectedPatientCare] = useState<any>(null);
+  const [createInterventionOpen, setCreateInterventionOpen] = useState(false);
   const { toast } = useToast();
 
   // Fetch population health data
@@ -915,7 +916,7 @@ export default function PopulationHealth() {
               <p className="text-gray-600 mb-4">
                 Design and implement targeted interventions for specific patient populations.
               </p>
-              <Button>
+              <Button onClick={() => setCreateInterventionOpen(true)}>
                 <Target className="w-4 h-4 mr-2" />
                 Create Intervention
               </Button>
@@ -1418,6 +1419,177 @@ export default function PopulationHealth() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Intervention Dialog */}
+      <Dialog open={createInterventionOpen} onOpenChange={setCreateInterventionOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create Population Health Intervention</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Intervention Name</label>
+              <Input placeholder="e.g., Diabetes Prevention Program" />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Description</label>
+              <textarea 
+                className="w-full h-20 p-2 border rounded-md text-sm"
+                placeholder="Describe the intervention objectives and approach..."
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Target Population</label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select target group" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="diabetes_management">Diabetes Management</SelectItem>
+                    <SelectItem value="cardiovascular_risk">Cardiovascular Risk</SelectItem>
+                    <SelectItem value="preventive_screening">Preventive Screening</SelectItem>
+                    <SelectItem value="chronic_disease">Chronic Disease Management</SelectItem>
+                    <SelectItem value="wellness_program">Wellness Program</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Intervention Type</label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="educational">Educational Program</SelectItem>
+                    <SelectItem value="screening">Screening Initiative</SelectItem>
+                    <SelectItem value="lifestyle">Lifestyle Modification</SelectItem>
+                    <SelectItem value="medication">Medication Management</SelectItem>
+                    <SelectItem value="behavioral">Behavioral Health</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Start Date</label>
+                <Input 
+                  type="date"
+                  defaultValue={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Duration (weeks)</label>
+                <Input 
+                  type="number"
+                  placeholder="e.g., 12"
+                  defaultValue="12"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Target Cohort</label>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select cohort" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="diabetes_management">Diabetes Management (247 patients)</SelectItem>
+                  <SelectItem value="cardiovascular_risk">Cardiovascular Risk (189 patients)</SelectItem>
+                  <SelectItem value="all_patients">All Patients</SelectItem>
+                  <SelectItem value="custom_cohort">Create Custom Cohort</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Success Metrics</label>
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                {[
+                  "HbA1c reduction", 
+                  "Blood pressure control", 
+                  "Weight management", 
+                  "Medication adherence", 
+                  "Screening completion", 
+                  "Patient satisfaction"
+                ].map((metric) => (
+                  <label key={metric} className="flex items-center space-x-2">
+                    <input type="checkbox" className="rounded" />
+                    <span className="text-sm">{metric}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Target Completion Rate (%)</label>
+              <Input 
+                type="number"
+                placeholder="e.g., 85"
+                defaultValue="80"
+                min="0"
+                max="100"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Assigned Care Team</label>
+              <div className="space-y-2 mt-2">
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" defaultChecked className="rounded" />
+                  <span className="text-sm">Primary Care Physicians</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" defaultChecked className="rounded" />
+                  <span className="text-sm">Nursing Staff</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" className="rounded" />
+                  <span className="text-sm">Health Educators</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" className="rounded" />
+                  <span className="text-sm">Nutritionists</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" className="rounded" />
+                  <span className="text-sm">Social Workers</span>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Budget Allocation (£)</label>
+              <Input 
+                type="number"
+                placeholder="e.g., 15000"
+                defaultValue="10000"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <Button variant="outline" onClick={() => setCreateInterventionOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                toast({
+                  title: "Intervention Created",
+                  description: "Population health intervention has been successfully created and scheduled.",
+                });
+                setCreateInterventionOpen(false);
+              }}>
+                Create Intervention
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
