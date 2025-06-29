@@ -512,7 +512,16 @@ export default function PatientPortal() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold">My Medications</h2>
-            <Button variant="outline">
+            <Button variant="outline" onClick={() => {
+              const medicationsList = portal.medications.map(med => `${med.name} - ${med.dosage} - ${med.frequency} (Prescribed by ${med.prescribedBy}, Refills: ${med.refillsRemaining})`).join('\n');
+              const content = `MEDICATIONS LIST - ${portal.patient.firstName} ${portal.patient.lastName}\n\nPatient: ${portal.patient.firstName} ${portal.patient.lastName}\nNHS Number: ${portal.patient.nhsNumber}\nGenerated: ${new Date().toLocaleDateString()}\n\nCurrent Medications:\n${medicationsList}`;
+              const link = document.createElement('a');
+              link.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(content);
+              link.download = `medications-list-${portal.patient.firstName}-${portal.patient.lastName}.txt`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }}>
               <Download className="h-4 w-4 mr-2" />
               Download List
             </Button>
