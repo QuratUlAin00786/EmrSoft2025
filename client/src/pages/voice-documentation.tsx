@@ -1781,7 +1781,7 @@ export default function VoiceDocumentation() {
 
       {/* Voice Settings Dialog */}
       <Dialog open={voiceSettingsOpen} onOpenChange={setVoiceSettingsOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Voice Settings</DialogTitle>
           </DialogHeader>
