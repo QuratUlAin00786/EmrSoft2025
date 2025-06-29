@@ -549,7 +549,9 @@ export default function PatientPortal() {
                       <Badge variant={medication.status === 'active' ? 'default' : 'secondary'}>
                         {medication.status}
                       </Badge>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => {
+                        alert(`Refill request submitted for ${medication.name}. Your pharmacy will be contacted within 24 hours.`);
+                      }}>
                         Request Refill
                       </Button>
                     </div>
