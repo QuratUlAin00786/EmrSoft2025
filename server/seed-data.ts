@@ -7,8 +7,11 @@ export async function seedDatabase() {
   try {
     console.log("Seeding database with sample data...");
 
-    // Create sample organization
-    const [org] = await db.insert(organizations).values([{
+    // Get or create sample organization
+    let [org] = await db.select().from(organizations).where(eq(organizations.subdomain, "demo"));
+    
+    if (!org) {
+      [org] = await db.insert(organizations).values([{
       name: "Averox Healthcare",
       subdomain: "demo",
       region: "UK",
@@ -20,8 +23,10 @@ export async function seedDatabase() {
       },
       subscriptionStatus: "active"
     }]).returning();
-
-    console.log(`Created organization: ${org.name} (ID: ${org.id})`);
+      console.log(`Created organization: ${org.name} (ID: ${org.id})`);
+    } else {
+      console.log(`Using existing organization: ${org.name} (ID: ${org.id})`);
+    }
 
     // Create sample users
     const hashedPassword = await authService.hashPassword("password123");
@@ -384,10 +389,15 @@ export async function seedDatabase() {
         status: "active",
         currentUsers: 3,
         userLimit: 25,
-        monthlyPrice: 79,
+        monthlyPrice: "79.00",
         nextBillingAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
         trialEndsAt: null,
-        features: ["basic", "ai-insights", "advanced-reporting", "priority-support"]
+        features: {
+          aiInsights: true,
+          advancedReporting: true,
+          apiAccess: true,
+          whiteLabel: false
+        }
       };
 
       const createdSubscription = await db.insert(subscriptions).values([sampleSubscription]).returning();
