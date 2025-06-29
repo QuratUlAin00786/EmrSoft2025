@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,7 +43,8 @@ import {
   Bell,
   Shield,
   Calculator,
-  Banknote
+  Banknote,
+  ChevronDown
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -112,7 +113,35 @@ export default function FinancialIntelligence() {
   const [activeTab, setActiveTab] = useState("overview");
   const [dateRange, setDateRange] = useState("last_3_months");
   const [selectedClaim, setSelectedClaim] = useState<Claim | null>(null);
+  const [showScrollButton, setShowScrollButton] = useState(true);
   const { toast } = useToast();
+
+  // Scroll functionality
+  const handleScrollDown = () => {
+    window.scrollBy({
+      top: window.innerHeight * 0.8,
+      behavior: 'smooth'
+    });
+  };
+
+  // Monitor scroll position to show/hide scroll button
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrolled = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      
+      // Hide button when near bottom of page
+      if (scrolled + windowHeight >= documentHeight - 100) {
+        setShowScrollButton(false);
+      } else {
+        setShowScrollButton(true);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Fetch revenue data
   const { data: revenueData, isLoading: revenueLoading } = useQuery({
@@ -343,6 +372,18 @@ export default function FinancialIntelligence() {
 
   return (
     <div className="p-6 space-y-6">
+      {/* Scroll Down Button */}
+      {showScrollButton && (
+        <Button
+          onClick={handleScrollDown}
+          className="fixed bottom-6 right-6 z-50 rounded-full w-12 h-12 p-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-blue-600 hover:bg-blue-700"
+          size="sm"
+          title="Scroll down to see more content"
+        >
+          <ChevronDown className="w-5 h-5" />
+        </Button>
+      )}
+
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Financial Intelligence</h1>
