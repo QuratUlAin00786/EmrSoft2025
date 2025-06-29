@@ -86,6 +86,7 @@ export default function IntegrationsPage() {
   const [isConnectionDialogOpen, setIsConnectionDialogOpen] = useState(false);
   const [isWebhookDialogOpen, setIsWebhookDialogOpen] = useState(false);
   const [isApiKeyDialogOpen, setIsApiKeyDialogOpen] = useState(false);
+  const [isMarketplaceDialogOpen, setIsMarketplaceDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const { data: integrations = [], isLoading: integrationsLoading } = useQuery({
@@ -311,10 +312,104 @@ export default function IntegrationsPage() {
               </div>
             </DialogContent>
           </Dialog>
-          <Button>
-            <Globe className="h-4 w-4 mr-2" />
-            Browse Marketplace
-          </Button>
+          <Dialog open={isMarketplaceDialogOpen} onOpenChange={setIsMarketplaceDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Globe className="h-4 w-4 mr-2" />
+                Browse Marketplace
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Integration Marketplace</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6">
+                {/* Featured Integrations */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Featured Integrations</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[
+                      { name: "Epic MyChart", category: "Clinical", description: "Connect with Epic EHR systems", rating: 4.8, installs: "50K+", icon: "🏥" },
+                      { name: "Stripe Payments", category: "Billing", description: "Accept online payments securely", rating: 4.9, installs: "100K+", icon: "💳" },
+                      { name: "Twilio SMS", category: "Messaging", description: "Send SMS notifications to patients", rating: 4.7, installs: "75K+", icon: "📱" },
+                      { name: "DocuSign", category: "Workflow", description: "Digital document signing", rating: 4.6, installs: "25K+", icon: "📝" },
+                      { name: "LabCorp", category: "Laboratory", description: "Lab results integration", rating: 4.5, installs: "30K+", icon: "🧪" },
+                      { name: "Zoom Health", category: "Telemedicine", description: "Video consultations platform", rating: 4.8, installs: "40K+", icon: "📹" }
+                    ].map((integration) => (
+                      <Card key={integration.name} className="hover:shadow-lg transition-shadow cursor-pointer">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="text-2xl">{integration.icon}</div>
+                            <Badge variant="outline">{integration.category}</Badge>
+                          </div>
+                          <h4 className="font-semibold mb-2">{integration.name}</h4>
+                          <p className="text-sm text-gray-600 mb-3">{integration.description}</p>
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center space-x-2">
+                              <span>⭐ {integration.rating}</span>
+                              <span className="text-gray-500">({integration.installs})</span>
+                            </div>
+                            <Button size="sm" onClick={() => handleConnectIntegration(integration.category.toLowerCase())}>
+                              Install
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Categories */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Browse by Category</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                      { name: "Clinical Systems", count: 45, icon: "🏥" },
+                      { name: "Billing & Payments", count: 32, icon: "💰" },
+                      { name: "Patient Communication", count: 28, icon: "💬" },
+                      { name: "Lab & Imaging", count: 22, icon: "🔬" },
+                      { name: "Analytics & Reports", count: 19, icon: "📊" },
+                      { name: "Workflow Automation", count: 35, icon: "⚡" },
+                      { name: "Compliance & Security", count: 15, icon: "🔒" },
+                      { name: "Telemedicine", count: 12, icon: "📱" }
+                    ].map((category) => (
+                      <Card key={category.name} className="hover:bg-gray-50 cursor-pointer transition-colors">
+                        <CardContent className="p-3 text-center">
+                          <div className="text-2xl mb-2">{category.icon}</div>
+                          <h5 className="font-medium text-sm mb-1">{category.name}</h5>
+                          <p className="text-xs text-gray-600">{category.count} integrations</p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Popular This Month */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Popular This Month</h3>
+                  <div className="space-y-3">
+                    {[
+                      { name: "Microsoft Teams Health", description: "Secure healthcare communications", trend: "+15%" },
+                      { name: "Salesforce Health Cloud", description: "Patient relationship management", trend: "+12%" },
+                      { name: "AWS HealthLake", description: "Healthcare data lake solution", trend: "+8%" },
+                      { name: "Google Cloud Healthcare", description: "Cloud-based healthcare APIs", trend: "+6%" }
+                    ].map((integration) => (
+                      <div key={integration.name} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                        <div>
+                          <h5 className="font-medium">{integration.name}</h5>
+                          <p className="text-sm text-gray-600">{integration.description}</p>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <Badge className="bg-green-100 text-green-800">{integration.trend}</Badge>
+                          <Button variant="outline" size="sm">View Details</Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
