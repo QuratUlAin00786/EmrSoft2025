@@ -573,25 +573,28 @@ export default function MobileHealth() {
                       variant="outline"
                       onClick={() => {
                         const shareUrl = `${window.location.origin}/apps/${app.id}`;
-                        navigator.clipboard.writeText(shareUrl).then(() => {
+                        try {
+                          if (navigator.clipboard && window.isSecureContext) {
+                            navigator.clipboard.writeText(shareUrl);
+                          } else {
+                            // Fallback for older browsers
+                            const textArea = document.createElement('textarea');
+                            textArea.value = shareUrl;
+                            document.body.appendChild(textArea);
+                            textArea.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(textArea);
+                          }
                           toast({
                             title: "Share Link Copied",
                             description: `${app.name} share link copied to clipboard`,
                           });
-                        }).catch(() => {
-                          // Fallback for older browsers
-                          const textArea = document.createElement('textarea');
-                          textArea.value = shareUrl;
-                          document.body.appendChild(textArea);
-                          textArea.select();
-                          document.execCommand('copy');
-                          document.body.removeChild(textArea);
-                          
+                        } catch (error) {
                           toast({
-                            title: "Share Link Copied",
-                            description: `${app.name} share link copied to clipboard`,
+                            title: "Share Link Ready",
+                            description: `${app.name} share link: ${shareUrl}`,
                           });
-                        });
+                        }
                       }}
                     >
                       <Share2 className="w-4 h-4 mr-1" />
