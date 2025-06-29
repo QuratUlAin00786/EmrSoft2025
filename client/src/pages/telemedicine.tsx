@@ -9,6 +9,9 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { 
   Video,
   VideoOff,
@@ -87,6 +90,7 @@ export default function Telemedicine() {
   const [callNotes, setCallNotes] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [monitoringOpen, setMonitoringOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const { toast } = useToast();
 
@@ -1163,10 +1167,238 @@ export default function Telemedicine() {
                 <p className="text-gray-600 mb-4">
                   Monitor patients remotely with connected devices and real-time health data.
                 </p>
-                <Button>
-                  <Monitor className="w-4 h-4 mr-2" />
-                  Set Up Monitoring
-                </Button>
+                <Dialog open={monitoringOpen} onOpenChange={setMonitoringOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Monitor className="w-4 h-4 mr-2" />
+                      Set Up Monitoring
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Set Up Remote Patient Monitoring</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-6">
+                      {/* Patient Selection */}
+                      <div className="space-y-2">
+                        <Label htmlFor="patient-select">Select Patient</Label>
+                        <Select>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose a patient to monitor..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="sarah-johnson">Sarah Johnson - Hypertension</SelectItem>
+                            <SelectItem value="michael-chen">Michael Chen - Diabetes</SelectItem>
+                            <SelectItem value="emma-davis">Emma Davis - Cardiac Monitoring</SelectItem>
+                            <SelectItem value="james-wilson">James Wilson - Post-Surgery Recovery</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Monitoring Type */}
+                      <div className="space-y-2">
+                        <Label>Monitoring Type</Label>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input type="checkbox" id="vital-signs" className="rounded" />
+                            <div>
+                              <Label htmlFor="vital-signs" className="font-medium cursor-pointer">Vital Signs</Label>
+                              <p className="text-sm text-gray-600">Blood pressure, heart rate, temperature</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input type="checkbox" id="glucose" className="rounded" />
+                            <div>
+                              <Label htmlFor="glucose" className="font-medium cursor-pointer">Blood Glucose</Label>
+                              <p className="text-sm text-gray-600">Continuous glucose monitoring</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input type="checkbox" id="weight" className="rounded" />
+                            <div>
+                              <Label htmlFor="weight" className="font-medium cursor-pointer">Weight Tracking</Label>
+                              <p className="text-sm text-gray-600">Daily weight measurements</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input type="checkbox" id="activity" className="rounded" />
+                            <div>
+                              <Label htmlFor="activity" className="font-medium cursor-pointer">Activity Level</Label>
+                              <p className="text-sm text-gray-600">Steps, exercise, sleep patterns</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Device Setup */}
+                      <div className="space-y-4">
+                        <Label>Connected Devices</Label>
+                        <div className="grid gap-3">
+                          <div className="flex items-center justify-between p-3 border rounded-lg">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              <div>
+                                <p className="font-medium">Blood Pressure Monitor</p>
+                                <p className="text-sm text-gray-600">Omron HeartGuide - Connected</p>
+                              </div>
+                            </div>
+                            <Button variant="outline" size="sm">Configure</Button>
+                          </div>
+                          <div className="flex items-center justify-between p-3 border rounded-lg">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                              <div>
+                                <p className="font-medium">Glucose Meter</p>
+                                <p className="text-sm text-gray-600">Dexcom G7 - Pairing Required</p>
+                              </div>
+                            </div>
+                            <Button variant="outline" size="sm">Pair Device</Button>
+                          </div>
+                          <div className="flex items-center justify-between p-3 border rounded-lg">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              <div>
+                                <p className="font-medium">Smart Scale</p>
+                                <p className="text-sm text-gray-600">Withings Body+ - Connected</p>
+                              </div>
+                            </div>
+                            <Button variant="outline" size="sm">Configure</Button>
+                          </div>
+                          <div className="flex items-center justify-between p-3 border rounded-lg">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              <div>
+                                <p className="font-medium">Fitness Tracker</p>
+                                <p className="text-sm text-gray-600">Apple Watch Series 9 - Connected</p>
+                              </div>
+                            </div>
+                            <Button variant="outline" size="sm">Configure</Button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Alert Thresholds */}
+                      <div className="space-y-4">
+                        <Label>Alert Thresholds</Label>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="bp-systolic">Blood Pressure (Systolic)</Label>
+                            <div className="flex space-x-2">
+                              <Input placeholder="Min (90)" />
+                              <Input placeholder="Max (140)" />
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="heart-rate">Heart Rate (BPM)</Label>
+                            <div className="flex space-x-2">
+                              <Input placeholder="Min (60)" />
+                              <Input placeholder="Max (100)" />
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="glucose-level">Blood Glucose (mg/dL)</Label>
+                            <div className="flex space-x-2">
+                              <Input placeholder="Min (70)" />
+                              <Input placeholder="Max (180)" />
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="weight-change">Weight Change (%)</Label>
+                            <div className="flex space-x-2">
+                              <Input placeholder="Alert at +/- 5%" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Notification Settings */}
+                      <div className="space-y-4">
+                        <Label>Notification Settings</Label>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium">Immediate Alerts</p>
+                              <p className="text-sm text-gray-600">Critical threshold breaches</p>
+                            </div>
+                            <Switch defaultChecked />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium">Daily Summary</p>
+                              <p className="text-sm text-gray-600">Patient monitoring report</p>
+                            </div>
+                            <Switch defaultChecked />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium">Missed Readings</p>
+                              <p className="text-sm text-gray-600">When patient misses measurements</p>
+                            </div>
+                            <Switch defaultChecked />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Monitoring Schedule */}
+                      <div className="space-y-4">
+                        <Label>Monitoring Schedule</Label>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Measurement Frequency</Label>
+                            <Select>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select frequency..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="twice-daily">Twice Daily</SelectItem>
+                                <SelectItem value="daily">Daily</SelectItem>
+                                <SelectItem value="every-other-day">Every Other Day</SelectItem>
+                                <SelectItem value="weekly">Weekly</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Monitoring Duration</Label>
+                            <Select>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select duration..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="1-week">1 Week</SelectItem>
+                                <SelectItem value="2-weeks">2 Weeks</SelectItem>
+                                <SelectItem value="1-month">1 Month</SelectItem>
+                                <SelectItem value="3-months">3 Months</SelectItem>
+                                <SelectItem value="ongoing">Ongoing</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex gap-3 pt-4 border-t">
+                        <Button 
+                          onClick={() => {
+                            toast({
+                              title: "Monitoring Setup Complete",
+                              description: "Remote patient monitoring has been configured successfully. Patient will receive setup instructions via email."
+                            });
+                            setMonitoringOpen(false);
+                          }}
+                          className="flex-1"
+                        >
+                          Start Monitoring
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setMonitoringOpen(false)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </CardContent>
             </Card>
           </div>
