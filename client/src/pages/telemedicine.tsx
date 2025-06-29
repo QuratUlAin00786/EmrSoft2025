@@ -515,10 +515,136 @@ export default function Telemedicine() {
                         View Recording
                       </Button>
                     )}
-                    <Button variant="outline">
-                      <FileText className="w-4 h-4 mr-2" />
-                      View Notes
-                    </Button>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline">
+                          <FileText className="w-4 h-4 mr-2" />
+                          View Notes
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle>Consultation Notes - {consultation.patientName}</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-6">
+                          {/* Patient Info */}
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <span className="font-medium">Patient:</span>
+                                <p className="text-gray-600">{consultation.patientName}</p>
+                              </div>
+                              <div>
+                                <span className="font-medium">Date:</span>
+                                <p className="text-gray-600">{format(new Date(consultation.scheduledTime), 'PPP')}</p>
+                              </div>
+                              <div>
+                                <span className="font-medium">Provider:</span>
+                                <p className="text-gray-600">{consultation.providerName}</p>
+                              </div>
+                              <div>
+                                <span className="font-medium">Duration:</span>
+                                <p className="text-gray-600">{consultation.duration || 15} minutes</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Consultation Notes */}
+                          <div className="space-y-4">
+                            <div>
+                              <h3 className="text-lg font-semibold mb-3">Clinical Notes</h3>
+                              
+                              <div className="space-y-4">
+                                <div>
+                                  <h4 className="font-medium text-gray-700 mb-2">Chief Complaint</h4>
+                                  <p className="text-gray-600 bg-white p-3 rounded border">
+                                    {consultation.patientName === "Sarah Johnson" 
+                                      ? "Follow-up for hypertension management. Patient reports improved blood pressure readings at home."
+                                      : "Follow-up consultation for diabetes management. Patient reports good adherence to medication regimen."
+                                    }
+                                  </p>
+                                </div>
+
+                                <div>
+                                  <h4 className="font-medium text-gray-700 mb-2">Assessment</h4>
+                                  <p className="text-gray-600 bg-white p-3 rounded border">
+                                    {consultation.patientName === "Sarah Johnson" 
+                                      ? "Blood pressure well controlled on current medication. Patient demonstrates good understanding of lifestyle modifications. No adverse effects reported."
+                                      : "HbA1c levels within target range. Patient shows good glucose control. Discussed importance of continued dietary compliance."
+                                    }
+                                  </p>
+                                </div>
+
+                                <div>
+                                  <h4 className="font-medium text-gray-700 mb-2">Plan</h4>
+                                  <div className="bg-white p-3 rounded border">
+                                    <ul className="space-y-2 text-gray-600">
+                                      {consultation.patientName === "Sarah Johnson" ? (
+                                        <>
+                                          <li>• Continue current antihypertensive medication (Lisinopril 10mg daily)</li>
+                                          <li>• Maintain low-sodium diet and regular exercise</li>
+                                          <li>• Home blood pressure monitoring 2x weekly</li>
+                                          <li>• Follow-up in 3 months or sooner if BP &gt;140/90</li>
+                                          <li>• Lab work: Basic metabolic panel in 6 months</li>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <li>• Continue Metformin 1000mg twice daily</li>
+                                          <li>• Maintain carbohydrate counting and portion control</li>
+                                          <li>• Home glucose monitoring as directed</li>
+                                          <li>• Follow-up in 3 months with HbA1c</li>
+                                          <li>• Annual eye exam scheduled</li>
+                                        </>
+                                      )}
+                                    </ul>
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <h4 className="font-medium text-gray-700 mb-2">Vital Signs</h4>
+                                  <div className="bg-white p-3 rounded border">
+                                    <div className="grid grid-cols-2 gap-4 text-sm">
+                                      <div>Blood Pressure: {consultation.patientName === "Sarah Johnson" ? "128/82 mmHg" : "135/85 mmHg"}</div>
+                                      <div>Heart Rate: {consultation.patientName === "Sarah Johnson" ? "72 BPM" : "78 BPM"}</div>
+                                      <div>Temperature: 98.6°F</div>
+                                      <div>Weight: {consultation.patientName === "Sarah Johnson" ? "165 lbs" : "180 lbs"}</div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <h4 className="font-medium text-gray-700 mb-2">Prescriptions</h4>
+                                  <div className="bg-white p-3 rounded border">
+                                    <p className="text-gray-600">
+                                      {consultation.patientName === "Sarah Johnson" 
+                                        ? "Lisinopril 10mg daily - 90 day supply with 3 refills"
+                                        : "Metformin 1000mg twice daily - 90 day supply with 3 refills"
+                                      }
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex gap-3 pt-4 border-t">
+                            <Button variant="outline">
+                              <Download className="w-4 h-4 mr-2" />
+                              Download Notes
+                            </Button>
+                            <Button variant="outline">
+                              <FileText className="w-4 h-4 mr-2" />
+                              Print Notes
+                            </Button>
+                            <Button variant="outline">
+                              <Share2 className="w-4 h-4 mr-2" />
+                              Share with Patient
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </CardContent>
               </Card>
