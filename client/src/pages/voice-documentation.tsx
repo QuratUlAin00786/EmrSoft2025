@@ -134,6 +134,7 @@ export default function VoiceDocumentation() {
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
   const [analyzeDialogOpen, setAnalyzeDialogOpen] = useState(false);
   const [analysisResults, setAnalysisResults] = useState<any>(null);
+  const [voiceSettingsOpen, setVoiceSettingsOpen] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const { toast } = useToast();
@@ -438,7 +439,7 @@ export default function VoiceDocumentation() {
               </div>
             </DialogContent>
           </Dialog>
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => setVoiceSettingsOpen(true)}>
             <Settings className="w-4 h-4 mr-2" />
             Voice Settings
           </Button>
@@ -1775,6 +1776,174 @@ export default function VoiceDocumentation() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Voice Settings Dialog */}
+      <Dialog open={voiceSettingsOpen} onOpenChange={setVoiceSettingsOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Voice Settings</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 gap-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Recording Settings</h3>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-sm font-medium">Audio Quality</label>
+                      <p className="text-xs text-gray-500">Higher quality uses more storage</p>
+                    </div>
+                    <Select defaultValue="high">
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low (8kHz)</SelectItem>
+                        <SelectItem value="medium">Medium (16kHz)</SelectItem>
+                        <SelectItem value="high">High (44kHz)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-sm font-medium">Auto-save recordings</label>
+                      <p className="text-xs text-gray-500">Automatically save completed recordings</p>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <CheckCircle className="w-4 h-4 mr-1" />
+                      Enabled
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-sm font-medium">Background noise reduction</label>
+                      <p className="text-xs text-gray-500">Filter out ambient noise during recording</p>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <CheckCircle className="w-4 h-4 mr-1" />
+                      Enabled
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Transcription Settings</h3>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-sm font-medium">Language</label>
+                      <p className="text-xs text-gray-500">Primary language for transcription</p>
+                    </div>
+                    <Select defaultValue="en-US">
+                      <SelectTrigger className="w-40">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="en-US">English (US)</SelectItem>
+                        <SelectItem value="en-UK">English (UK)</SelectItem>
+                        <SelectItem value="es-ES">Spanish</SelectItem>
+                        <SelectItem value="fr-FR">French</SelectItem>
+                        <SelectItem value="de-DE">German</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-sm font-medium">Medical terminology enhancement</label>
+                      <p className="text-xs text-gray-500">Improved recognition of medical terms</p>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <CheckCircle className="w-4 h-4 mr-1" />
+                      Enabled
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-sm font-medium">Real-time transcription</label>
+                      <p className="text-xs text-gray-500">Show transcription while recording</p>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <CheckCircle className="w-4 h-4 mr-1" />
+                      Enabled
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-sm font-medium">Confidence threshold</label>
+                      <p className="text-xs text-gray-500">Minimum confidence for auto-approval</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">85%</span>
+                      <div className="w-20 h-2 bg-gray-200 rounded-full">
+                        <div className="w-4/5 h-full bg-blue-500 rounded-full"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Security & Privacy</h3>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-sm font-medium">Encrypt recordings</label>
+                      <p className="text-xs text-gray-500">End-to-end encryption for all audio files</p>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <CheckCircle className="w-4 h-4 mr-1" />
+                      Enabled
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-sm font-medium">Auto-delete recordings</label>
+                      <p className="text-xs text-gray-500">Delete audio after successful transcription</p>
+                    </div>
+                    <Select defaultValue="30days">
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="never">Never</SelectItem>
+                        <SelectItem value="7days">7 days</SelectItem>
+                        <SelectItem value="30days">30 days</SelectItem>
+                        <SelectItem value="90days">90 days</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button variant="outline" onClick={() => setVoiceSettingsOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                toast({
+                  title: "Settings Saved",
+                  description: "Voice settings have been updated successfully",
+                });
+                setVoiceSettingsOpen(false);
+              }}>
+                <Save className="w-4 h-4 mr-2" />
+                Save Settings
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
       </div>
