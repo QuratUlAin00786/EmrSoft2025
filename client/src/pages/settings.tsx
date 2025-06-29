@@ -38,6 +38,8 @@ export default function Settings() {
     queryKey: ["/api/tenant/info"],
   });
 
+
+
   const [settings, setSettings] = useState({
     name: "",
     brandName: "",
@@ -120,9 +122,17 @@ export default function Settings() {
         <div className="flex-1 p-6">
           <Card>
             <CardContent className="text-center py-8">
-              <p className="text-neutral-600">
-                Unable to load settings. Please try again later.
+              <p className="text-neutral-600 mb-4">
+                Settings require administrator access.
               </p>
+              <p className="text-sm text-neutral-500 mb-4">
+                Please log in with admin credentials to access organization settings.
+              </p>
+              <div className="bg-blue-50 p-4 rounded-lg text-left">
+                <p className="font-medium text-blue-900 mb-2">Admin Login:</p>
+                <p className="text-sm text-blue-800">Email: admin@demo.medicoreemr.com</p>
+                <p className="text-sm text-blue-800">Password: password123</p>
+              </div>
             </CardContent>
           </Card>
         </div>
