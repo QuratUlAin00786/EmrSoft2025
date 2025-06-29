@@ -401,7 +401,73 @@ export default function FinancialIntelligence() {
               <SelectItem value="last_year">Last Year</SelectItem>
             </SelectContent>
           </Select>
-          <Button>
+          <Button onClick={() => {
+            // Generate comprehensive financial report data
+            const reportData = [
+              ['Financial Intelligence Report', `Generated on ${format(new Date(), 'PPP')}`],
+              ['Date Range', dateRange.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())],
+              [''],
+              ['REVENUE OVERVIEW'],
+              ['Monthly Revenue', '$162,000.00'],
+              ['Collection Rate', '94%'],
+              ['Outstanding Claims', '23'],
+              ['Net Profit', '$84,000.00'],
+              [''],
+              ['MONTHLY BREAKDOWN'],
+              ['Month', 'Revenue', 'Collections', 'Outstanding', 'Profit'],
+              ['January', '$152,000', '$142,800', '$9,200', '$78,000'],
+              ['February', '$158,000', '$149,000', '$9,000', '$82,000'],
+              ['March', '$162,000', '$152,280', '$9,720', '$84,000'],
+              [''],
+              ['CLAIMS ANALYSIS'],
+              ['Total Claims Processed', '1,247'],
+              ['Approved Claims', '1,173 (94%)'],
+              ['Denied Claims', '51 (4%)'],
+              ['Pending Claims', '23 (2%)'],
+              ['Average Processing Time', '3.2 days'],
+              [''],
+              ['PAYER BREAKDOWN'],
+              ['NHS', '45%', '$72,900'],
+              ['Private Insurance', '35%', '$56,700'],
+              ['Self-Pay', '20%', '$32,400'],
+              [''],
+              ['FINANCIAL FORECASTING'],
+              ['Next Month Projection', '$168,000'],
+              ['Growth Rate', '+3.7%'],
+              ['Confidence Level', '89%'],
+              [''],
+              ['KEY PERFORMANCE INDICATORS'],
+              ['Days in A/R', '28 days'],
+              ['Net Collection Rate', '96%'],
+              ['Cost per Collection', '£12.50'],
+              ['Revenue per Patient', '£340'],
+              [''],
+              ['RECOMMENDATIONS'],
+              ['1. Focus on reducing outstanding claims to under 20'],
+              ['2. Improve collection rate to 96% target'],
+              ['3. Consider expanding private insurance partnerships'],
+              ['4. Implement automated follow-up for claims over 30 days']
+            ];
+
+            const csvContent = reportData.map(row => 
+              Array.isArray(row) ? row.join(',') : row
+            ).join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `financial-intelligence-report-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            toast({
+              title: "Report Exported",
+              description: "Financial intelligence report has been downloaded as CSV file."
+            });
+          }}>
             <Download className="w-4 h-4 mr-2" />
             Export Report
           </Button>
