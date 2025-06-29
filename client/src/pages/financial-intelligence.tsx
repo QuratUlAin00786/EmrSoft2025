@@ -866,9 +866,10 @@ export default function FinancialIntelligence() {
                       size="sm" 
                       variant="outline"
                       onClick={() => {
+                        console.log('View Benefits clicked for:', insurance.patientName);
                         toast({
                           title: "Benefits Information",
-                          description: `Viewing benefits for ${insurance.patientName}\n• Deductible: ${insurance.deductible}\n• Out-of-Pocket Max: ${insurance.outOfPocketMax}\n• Coverage: ${insurance.coverageType}\n• Copay: ${insurance.copay}`,
+                          description: `Viewing benefits for ${insurance.patientName}\n• Deductible: $${insurance.benefits.deductible} (Met: $${insurance.benefits.deductibleMet})\n• Out-of-Pocket Max: $${insurance.benefits.outOfPocketMax} (Met: $${insurance.benefits.outOfPocketMet})\n• Coverage: ${insurance.coverageType}\n• Copay: $${insurance.benefits.copay}\n• Coinsurance: ${insurance.benefits.coinsurance}%`,
                         });
                       }}
                     >
@@ -878,9 +879,10 @@ export default function FinancialIntelligence() {
                       size="sm" 
                       variant="outline"
                       onClick={() => {
+                        console.log('Prior Authorization clicked for:', insurance.patientName);
                         toast({
                           title: "Prior Authorization Required",
-                          description: `Prior authorization process initiated for ${insurance.patientName}. A request will be submitted to ${insurance.policyNumber === 'AET123456789' ? 'Aetna' : 'Blue Cross Blue Shield'} within 24 hours.`,
+                          description: `Prior authorization process initiated for ${insurance.patientName}. A request will be submitted to ${insurance.provider} within 24 hours.`,
                         });
                       }}
                     >
