@@ -12,6 +12,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { 
   Calendar,
   Clock,
@@ -223,6 +230,7 @@ const mockPortalData: PatientPortalData = {
 export default function PatientPortal() {
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
+  const [showAllNotifications, setShowAllNotifications] = useState(false);
 
   const { data: portalData = mockPortalData, isLoading } = useQuery({
     queryKey: ['/api/patient-portal'],
@@ -288,7 +296,7 @@ export default function PatientPortal() {
                     </div>
                   </div>
                   <DropdownMenuSeparator className="my-2" />
-                  <DropdownMenuItem className="text-xs">
+                  <DropdownMenuItem className="text-xs" onClick={() => setShowAllNotifications(true)}>
                     View All Notifications
                   </DropdownMenuItem>
                   <DropdownMenuItem className="text-xs">
@@ -812,6 +820,100 @@ export default function PatientPortal() {
           </div>
         </div>
       )}
+
+      {/* All Notifications Dialog */}
+      <Dialog open={showAllNotifications} onOpenChange={setShowAllNotifications}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>All Notifications</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Recent Notifications */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 border rounded-lg bg-blue-50">
+                <div className="flex items-start gap-3">
+                  <Calendar className="h-5 w-5 text-blue-600 mt-0.5" />
+                  <div>
+                    <div className="font-medium text-sm">Appointment Reminder</div>
+                    <div className="text-gray-600 text-xs">Your appointment with Dr. Smith is tomorrow at 2:00 PM</div>
+                    <div className="text-gray-500 text-xs mt-1">2 hours ago</div>
+                  </div>
+                </div>
+                <Badge variant="secondary">Unread</Badge>
+              </div>
+
+              <div className="flex items-center justify-between p-3 border rounded-lg bg-green-50">
+                <div className="flex items-start gap-3">
+                  <TestTube className="h-5 w-5 text-green-600 mt-0.5" />
+                  <div>
+                    <div className="font-medium text-sm">Lab Results Available</div>
+                    <div className="text-gray-600 text-xs">Your recent blood work results are now available</div>
+                    <div className="text-gray-500 text-xs mt-1">5 hours ago</div>
+                  </div>
+                </div>
+                <Badge variant="secondary">Unread</Badge>
+              </div>
+
+              <div className="flex items-center justify-between p-3 border rounded-lg bg-yellow-50">
+                <div className="flex items-start gap-3">
+                  <Pill className="h-5 w-5 text-yellow-600 mt-0.5" />
+                  <div>
+                    <div className="font-medium text-sm">Prescription Refill</div>
+                    <div className="text-gray-600 text-xs">Your prescription for Lisinopril needs to be refilled</div>
+                    <div className="text-gray-500 text-xs mt-1">1 day ago</div>
+                  </div>
+                </div>
+                <Badge variant="outline">Read</Badge>
+              </div>
+
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="flex items-start gap-3">
+                  <MessageSquare className="h-5 w-5 text-blue-600 mt-0.5" />
+                  <div>
+                    <div className="font-medium text-sm">New Message from Dr. Johnson</div>
+                    <div className="text-gray-600 text-xs">Please review your medication instructions</div>
+                    <div className="text-gray-500 text-xs mt-1">2 days ago</div>
+                  </div>
+                </div>
+                <Badge variant="outline">Read</Badge>
+              </div>
+
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="flex items-start gap-3">
+                  <Calendar className="h-5 w-5 text-purple-600 mt-0.5" />
+                  <div>
+                    <div className="font-medium text-sm">Appointment Scheduled</div>
+                    <div className="text-gray-600 text-xs">Your follow-up appointment has been confirmed for July 15th</div>
+                    <div className="text-gray-500 text-xs mt-1">3 days ago</div>
+                  </div>
+                </div>
+                <Badge variant="outline">Read</Badge>
+              </div>
+
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="flex items-start gap-3">
+                  <Clock className="h-5 w-5 text-orange-600 mt-0.5" />
+                  <div>
+                    <div className="font-medium text-sm">System Maintenance</div>
+                    <div className="text-gray-600 text-xs">Patient portal will be temporarily unavailable on Sunday 2-4 AM</div>
+                    <div className="text-gray-500 text-xs mt-1">1 week ago</div>
+                  </div>
+                </div>
+                <Badge variant="outline">Read</Badge>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-4 border-t">
+              <Button variant="outline" size="sm" className="flex-1">
+                Mark All as Read
+              </Button>
+              <Button variant="outline" size="sm" className="flex-1">
+                Clear All
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
