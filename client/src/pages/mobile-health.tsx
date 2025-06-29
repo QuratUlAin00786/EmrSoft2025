@@ -736,7 +736,14 @@ export default function MobileHealth() {
                   <RotateCcw className="w-4 h-4 mr-2" />
                   Sync Device
                 </Button>
-                <Button variant="outline">
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    setDeviceToConfig(selectedDevice);
+                    setConfigureOpen(true);
+                    setSelectedDevice(null);
+                  }}
+                >
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
                 </Button>
