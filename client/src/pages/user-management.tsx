@@ -98,6 +98,7 @@ export default function UserManagement() {
         description: "The new user has been added to the system.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      refetch();
       setIsCreateModalOpen(false);
       form.reset();
     },
