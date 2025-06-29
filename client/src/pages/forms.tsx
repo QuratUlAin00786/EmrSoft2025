@@ -691,21 +691,36 @@ export default function FormsPage() {
 
       {/* Scroll to Top Button */}
       <div 
-        className="fixed bottom-8 right-8 z-[9999]"
-        style={{ zIndex: 99999 }}
+        className="fixed bottom-8 right-8"
+        style={{ 
+          zIndex: 999999,
+          position: 'fixed',
+          bottom: '2rem',
+          right: '2rem'
+        }}
       >
         <button
-          onClick={scrollToTop}
-          className="w-14 h-14 rounded-full bg-red-600 hover:bg-red-700 text-white shadow-xl flex items-center justify-center cursor-pointer border-2 border-white transition-all duration-200 hover:scale-110"
-          aria-label="Scroll to top"
-          type="button"
+          onClick={() => {
+            console.log('BUTTON CLICKED!');
+            const main = document.querySelector('main');
+            if (main) {
+              main.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          }}
+          onMouseDown={() => console.log('Mouse down on button')}
+          onMouseUp={() => console.log('Mouse up on button')}
+          className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-2xl flex items-center justify-center cursor-pointer border-4 border-white"
           style={{ 
             position: 'relative',
-            zIndex: 99999,
-            pointerEvents: 'auto'
+            zIndex: 999999,
+            pointerEvents: 'auto',
+            touchAction: 'manipulation'
           }}
+          type="button"
         >
-          <ChevronUp className="h-6 w-6" />
+          <ChevronUp className="h-8 w-8" />
         </button>
       </div>
     </div>
