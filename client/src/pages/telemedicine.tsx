@@ -428,14 +428,215 @@ export default function Telemedicine() {
           <p className="text-gray-600 mt-1">Virtual consultations and remote patient care</p>
         </div>
         <div className="flex gap-3">
-          <Button>
-            <Calendar className="w-4 h-4 mr-2" />
-            Schedule Consultation
-          </Button>
-          <Button variant="outline">
-            <Settings className="w-4 h-4 mr-2" />
-            Settings
-          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>
+                <Calendar className="w-4 h-4 mr-2" />
+                Schedule Consultation
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Schedule New Consultation</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6">
+                {/* Patient Selection */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Patient</label>
+                  <select className="w-full p-2 border rounded-md">
+                    <option value="">Select a patient...</option>
+                    <option value="patient_1">Sarah Johnson</option>
+                    <option value="patient_2">Michael Chen</option>
+                    <option value="patient_3">Emma Davis</option>
+                    <option value="patient_4">James Wilson</option>
+                  </select>
+                </div>
+
+                {/* Provider Selection */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Provider</label>
+                  <select className="w-full p-2 border rounded-md">
+                    <option value="">Select a provider...</option>
+                    <option value="provider_1">Dr. Emily Watson</option>
+                    <option value="provider_2">Dr. David Smith</option>
+                    <option value="provider_3">Dr. Lisa Anderson</option>
+                  </select>
+                </div>
+
+                {/* Date and Time */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Date</label>
+                    <Input type="date" min={new Date().toISOString().split('T')[0]} />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Time</label>
+                    <Input type="time" />
+                  </div>
+                </div>
+
+                {/* Consultation Type */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Consultation Type</label>
+                  <select className="w-full p-2 border rounded-md">
+                    <option value="video">Video Consultation</option>
+                    <option value="audio">Audio Only</option>
+                    <option value="screen_share">Screen Share</option>
+                  </select>
+                </div>
+
+                {/* Duration */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Duration</label>
+                  <select className="w-full p-2 border rounded-md">
+                    <option value="15">15 minutes</option>
+                    <option value="30">30 minutes</option>
+                    <option value="45">45 minutes</option>
+                    <option value="60">1 hour</option>
+                  </select>
+                </div>
+
+                {/* Notes */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Notes (Optional)</label>
+                  <textarea 
+                    className="w-full p-2 border rounded-md h-20 resize-none"
+                    placeholder="Add any special instructions or notes for this consultation..."
+                  />
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3 pt-4 border-t">
+                  <Button 
+                    onClick={() => {
+                      toast({
+                        title: "Consultation Scheduled",
+                        description: "New consultation has been scheduled successfully. Patient will receive confirmation."
+                      });
+                    }}
+                    className="flex-1"
+                  >
+                    Schedule Consultation
+                  </Button>
+                  <Button variant="outline" className="flex-1">
+                    Save as Draft
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Telemedicine Settings</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6">
+                {/* Video Settings */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Video & Audio Settings</h3>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium">Default Video Quality</label>
+                      <select className="w-32 p-2 border rounded-md text-sm">
+                        <option value="720p">720p HD</option>
+                        <option value="1080p">1080p Full HD</option>
+                        <option value="480p">480p Standard</option>
+                      </select>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium">Auto-start Video</label>
+                      <input type="checkbox" className="w-4 h-4" defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium">Auto-start Audio</label>
+                      <input type="checkbox" className="w-4 h-4" defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium">Echo Cancellation</label>
+                      <input type="checkbox" className="w-4 h-4" defaultChecked />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recording Settings */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Recording Settings</h3>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium">Auto-record Consultations</label>
+                      <input type="checkbox" className="w-4 h-4" />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium">Recording Quality</label>
+                      <select className="w-32 p-2 border rounded-md text-sm">
+                        <option value="high">High Quality</option>
+                        <option value="medium">Medium Quality</option>
+                        <option value="low">Low Quality</option>
+                      </select>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium">Patient Consent Required</label>
+                      <input type="checkbox" className="w-4 h-4" defaultChecked />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notification Settings */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Notifications</h3>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium">Appointment Reminders</label>
+                      <input type="checkbox" className="w-4 h-4" defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium">Patient Waiting Alerts</label>
+                      <input type="checkbox" className="w-4 h-4" defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium">Connection Issues Alerts</label>
+                      <input type="checkbox" className="w-4 h-4" defaultChecked />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3 pt-4 border-t">
+                  <Button 
+                    onClick={() => {
+                      toast({
+                        title: "Settings Saved",
+                        description: "Telemedicine settings have been updated successfully."
+                      });
+                    }}
+                    className="flex-1"
+                  >
+                    Save Settings
+                  </Button>
+                  <Button variant="outline" className="flex-1">
+                    Reset to Default
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
