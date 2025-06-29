@@ -101,6 +101,13 @@ Averox EMR is a comprehensive multi-tenant Electronic Medical Records (EMR) syst
 
 ## Changelog
 
+**June 29, 2025:**
+- **COMPLETED**: Fixed telemedicine Schedule Consultation dialog scrolling issue - added max-height constraint and vertical scrolling for proper dialog accessibility
+- **COMPLETED**: Fixed telemedicine Settings dialog save functionality - implemented controlled state management and proper dialog closing after save operations
+- **COMPLETED**: Fixed telemedicine "Set Up Monitoring" button - created comprehensive remote patient monitoring setup dialog with device configuration, alert thresholds, and notification settings
+- **COMPLETED**: Fixed Population Health "Create Cohort" button - implemented full cohort creation dialog with patient selection, age criteria, medical conditions, form validation, and success notifications
+- **COMPLETED**: Fixed Population Health "Export Report" button - added comprehensive CSV report generation with population metrics, cohort breakdown, intervention rates, and preventive care data
+
 **June 28, 2025:**
 - Implemented comprehensive notification system with database backend and real-time updates
 - Added advanced clinical decision support service with AI-powered drug interaction analysis
