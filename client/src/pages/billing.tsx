@@ -217,10 +217,6 @@ export default function BillingPage() {
 
   const handleViewInvoice = (invoice: Invoice) => {
     setSelectedInvoice(invoice);
-    toast({
-      title: "View Invoice",
-      description: `Opening invoice details for ${invoice.patientName}`,
-    });
   };
 
   const handleDownloadInvoice = (invoiceId: string) => {
@@ -708,6 +704,136 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
               setShowNewInvoice(false);
             }}>
               Create Invoice
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Invoice Dialog */}
+      <Dialog open={!!selectedInvoice} onOpenChange={() => setSelectedInvoice(null)}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Invoice Details - {selectedInvoice?.id}</DialogTitle>
+          </DialogHeader>
+          
+          {selectedInvoice && (
+            <div className="space-y-6">
+              {/* Invoice Header */}
+              <div className="grid grid-cols-2 gap-6 p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <h3 className="font-semibold text-lg mb-3">Patient Information</h3>
+                  <div className="space-y-1 text-sm">
+                    <div><strong>Name:</strong> {selectedInvoice.patientName}</div>
+                    <div><strong>Patient ID:</strong> {selectedInvoice.patientId}</div>
+                    <div><strong>Service Date:</strong> {format(new Date(selectedInvoice.dateOfService), 'MMM d, yyyy')}</div>
+                    <div><strong>Invoice Date:</strong> {format(new Date(selectedInvoice.invoiceDate), 'MMM d, yyyy')}</div>
+                    <div><strong>Due Date:</strong> {format(new Date(selectedInvoice.dueDate), 'MMM d, yyyy')}</div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="font-semibold text-lg mb-3">Billing Summary</h3>
+                  <div className="space-y-1 text-sm">
+                    <div><strong>Invoice ID:</strong> {selectedInvoice.id}</div>
+                    <div><strong>Status:</strong> 
+                      <Badge className={`ml-2 ${selectedInvoice.status === 'paid' ? 'bg-green-100 text-green-800' : 
+                        selectedInvoice.status === 'overdue' ? 'bg-red-100 text-red-800' : 
+                        selectedInvoice.status === 'sent' ? 'bg-blue-100 text-blue-800' : 
+                        'bg-gray-100 text-gray-800'}`}>
+                        {selectedInvoice.status}
+                      </Badge>
+                    </div>
+                    <div><strong>Total Amount:</strong> £{selectedInvoice.totalAmount.toFixed(2)}</div>
+                    <div><strong>Paid Amount:</strong> £{selectedInvoice.paidAmount.toFixed(2)}</div>
+                    <div><strong>Outstanding:</strong> £{(selectedInvoice.totalAmount - selectedInvoice.paidAmount).toFixed(2)}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Services & Procedures */}
+              <div>
+                <h3 className="font-semibold text-lg mb-3">Services & Procedures</h3>
+                <div className="border rounded-lg overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr className="border-b">
+                        <th className="text-left p-3">Code</th>
+                        <th className="text-left p-3">Description</th>
+                        <th className="text-right p-3">Qty</th>
+                        <th className="text-right p-3">Unit Price</th>
+                        <th className="text-right p-3">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedInvoice.items.map((item, index) => (
+                        <tr key={index} className="border-b last:border-b-0">
+                          <td className="p-3 font-mono">{item.code}</td>
+                          <td className="p-3">{item.description}</td>
+                          <td className="p-3 text-right">{item.quantity}</td>
+                          <td className="p-3 text-right">£{item.unitPrice.toFixed(2)}</td>
+                          <td className="p-3 text-right font-semibold">£{item.total.toFixed(2)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Insurance Information */}
+              {selectedInvoice.insurance && (
+                <div>
+                  <h3 className="font-semibold text-lg mb-3">Insurance Information</h3>
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <div><strong>Provider:</strong> {selectedInvoice.insurance.provider}</div>
+                        <div><strong>Claim Number:</strong> {selectedInvoice.insurance.claimNumber}</div>
+                      </div>
+                      <div>
+                        <div><strong>Status:</strong> 
+                          <Badge className={`ml-2 ${selectedInvoice.insurance.status === 'approved' ? 'bg-green-100 text-green-800' : 
+                            selectedInvoice.insurance.status === 'denied' ? 'bg-red-100 text-red-800' : 
+                            'bg-yellow-100 text-yellow-800'}`}>
+                            {selectedInvoice.insurance.status}
+                          </Badge>
+                        </div>
+                        <div><strong>Insurance Paid:</strong> £{selectedInvoice.insurance.paidAmount.toFixed(2)}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Payment History */}
+              <div>
+                <h3 className="font-semibold text-lg mb-3">Payment History</h3>
+                <div className="text-sm text-gray-600">
+                  {selectedInvoice.paidAmount > 0 ? (
+                    <div className="p-3 bg-green-50 rounded-lg">
+                      Payment of £{selectedInvoice.paidAmount.toFixed(2)} received on {format(new Date(selectedInvoice.invoiceDate), 'MMM d, yyyy')}
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      No payments received yet
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={() => setSelectedInvoice(null)}>
+              Close
+            </Button>
+            <Button onClick={() => {
+              if (selectedInvoice) {
+                console.log('Downloading invoice:', selectedInvoice.id);
+                alert(`Invoice ${selectedInvoice.id} downloaded successfully`);
+              }
+            }}>
+              <Download className="h-4 w-4 mr-2" />
+              Download PDF
             </Button>
           </DialogFooter>
         </DialogContent>
