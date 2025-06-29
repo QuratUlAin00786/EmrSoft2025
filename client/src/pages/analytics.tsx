@@ -1,8 +1,12 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { 
   BarChart, 
   Bar, 
@@ -66,6 +70,14 @@ interface AnalyticsData {
 const COLORS = ['#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 export default function AnalyticsPage() {
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filters, setFilters] = useState({
+    dateRange: '30',
+    department: 'all',
+    provider: 'all',
+    patientType: 'all'
+  });
+
   const { data: analyticsData, isLoading } = useQuery({
     queryKey: ['/api/analytics'],
   });
@@ -113,10 +125,91 @@ export default function AnalyticsPage() {
           <p className="text-gray-600 mt-1">Comprehensive insights into practice performance</p>
         </div>
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm">
-            <Filter className="h-4 w-4 mr-2" />
-            Filter
-          </Button>
+          <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Filter className="h-4 w-4 mr-2" />
+                Filter
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Filter Analytics</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="dateRange">Date Range</Label>
+                  <Select value={filters.dateRange} onValueChange={(value) => setFilters({...filters, dateRange: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="7">Last 7 days</SelectItem>
+                      <SelectItem value="30">Last 30 days</SelectItem>
+                      <SelectItem value="90">Last 3 months</SelectItem>
+                      <SelectItem value="180">Last 6 months</SelectItem>
+                      <SelectItem value="365">Last year</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="department">Department</Label>
+                  <Select value={filters.department} onValueChange={(value) => setFilters({...filters, department: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Departments</SelectItem>
+                      <SelectItem value="cardiology">Cardiology</SelectItem>
+                      <SelectItem value="general">General Practice</SelectItem>
+                      <SelectItem value="orthopedics">Orthopedics</SelectItem>
+                      <SelectItem value="pediatrics">Pediatrics</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="provider">Provider</Label>
+                  <Select value={filters.provider} onValueChange={(value) => setFilters({...filters, provider: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Providers</SelectItem>
+                      <SelectItem value="dr-smith">Dr. Smith</SelectItem>
+                      <SelectItem value="dr-jones">Dr. Jones</SelectItem>
+                      <SelectItem value="dr-williams">Dr. Williams</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="patientType">Patient Type</Label>
+                  <Select value={filters.patientType} onValueChange={(value) => setFilters({...filters, patientType: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Patients</SelectItem>
+                      <SelectItem value="new">New Patients</SelectItem>
+                      <SelectItem value="returning">Returning Patients</SelectItem>
+                      <SelectItem value="emergency">Emergency</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex justify-end gap-2 mt-6">
+                  <Button variant="outline" onClick={() => setIsFilterOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={() => setIsFilterOpen(false)}>
+                    Apply Filters
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Export
