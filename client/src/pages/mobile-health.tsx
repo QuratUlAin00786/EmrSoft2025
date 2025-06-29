@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Smartphone,
   Watch,
@@ -883,6 +884,128 @@ export default function MobileHealth() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Send Notification Dialog */}
+      <Dialog open={sendNotificationOpen} onOpenChange={setSendNotificationOpen}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Send Push Notification</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Patient</label>
+              <Select defaultValue="">
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select patient" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="patient_1">Sarah Johnson</SelectItem>
+                  <SelectItem value="patient_2">Michael Chen</SelectItem>
+                  <SelectItem value="patient_3">Emily Davis</SelectItem>
+                  <SelectItem value="patient_4">James Wilson</SelectItem>
+                  <SelectItem value="patient_5">Lisa Anderson</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Notification Type</label>
+              <Select defaultValue="">
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="appointment_reminder">Appointment Reminder</SelectItem>
+                  <SelectItem value="medication_reminder">Medication Reminder</SelectItem>
+                  <SelectItem value="health_alert">Health Alert</SelectItem>
+                  <SelectItem value="lab_results">Lab Results Available</SelectItem>
+                  <SelectItem value="general">General Information</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Priority</label>
+              <Select defaultValue="normal">
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="normal">Normal</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="urgent">Urgent</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Title</label>
+              <Input 
+                placeholder="Notification title" 
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Message</label>
+              <textarea 
+                placeholder="Enter your notification message..."
+                className="mt-1 w-full min-h-[80px] p-3 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Schedule</label>
+              <Select defaultValue="now">
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="now">Send Now</SelectItem>
+                  <SelectItem value="1_hour">In 1 Hour</SelectItem>
+                  <SelectItem value="1_day">Tomorrow</SelectItem>
+                  <SelectItem value="custom">Custom Time</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Delivery Options</label>
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" defaultChecked className="rounded" />
+                  <span className="text-sm">Push notification</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" className="rounded" />
+                  <span className="text-sm">SMS backup</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" className="rounded" />
+                  <span className="text-sm">Email backup</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <Button variant="outline" onClick={() => setSendNotificationOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                toast({
+                  title: "Notification Sent",
+                  description: "Push notification has been scheduled and sent successfully",
+                });
+                setSendNotificationOpen(false);
+              }}>
+                Send Notification
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
