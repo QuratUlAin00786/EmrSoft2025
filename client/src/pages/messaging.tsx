@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -124,26 +124,83 @@ export default function MessagingPage() {
   });
   const { toast } = useToast();
 
+  // Authentication token and headers
+  const [authToken, setAuthToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    setAuthToken(token);
+  }, []);
+
   const { data: conversations = [], isLoading: conversationsLoading } = useQuery({
     queryKey: ['/api/messaging/conversations'],
+    queryFn: async () => {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/messaging/conversations', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
+      return response.json();
+    }
   });
 
   const { data: messages = [], isLoading: messagesLoading } = useQuery({
     queryKey: ['/api/messaging/messages', selectedConversation],
     enabled: !!selectedConversation,
+    queryFn: async () => {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/messaging/messages/${selectedConversation}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
+      return response.json();
+    }
   });
 
   const { data: campaigns = [], isLoading: campaignsLoading } = useQuery({
     queryKey: ['/api/messaging/campaigns'],
+    queryFn: async () => {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/messaging/campaigns', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
+      return response.json();
+    }
   });
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
+      const token = localStorage.getItem('token');
       const response = await fetch('/api/messaging/send', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
         body: JSON.stringify(messageData),
       });
+      if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
       return response.json();
     },
     onSuccess: () => {
@@ -161,11 +218,18 @@ export default function MessagingPage() {
 
   const createCampaignMutation = useMutation({
     mutationFn: async (campaignData: any) => {
+      const token = localStorage.getItem('token');
       const response = await fetch('/api/messaging/campaigns', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
         body: JSON.stringify(campaignData),
       });
+      if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
       return response.json();
     },
     onSuccess: () => {
