@@ -69,6 +69,7 @@ export function StatsOverview() {
         }
         
         const data = await response.json();
+        console.log("Dashboard stats received:", data);
         setStats(data);
         setError(null);
       } catch (err) {
