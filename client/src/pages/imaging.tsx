@@ -946,6 +946,132 @@ export default function ImagingPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Order Study Dialog */}
+      <Dialog open={showNewOrder} onOpenChange={setShowNewOrder}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Order Imaging Study</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="patient" className="text-sm font-medium">
+                  Patient
+                </Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select patient" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="p_001">Sarah Johnson (P001)</SelectItem>
+                    <SelectItem value="p_002">Michael Chen (P002)</SelectItem>
+                    <SelectItem value="p_003">Emily Davis (P003)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="modality" className="text-sm font-medium">
+                  Modality
+                </Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select imaging type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="X-Ray">X-Ray</SelectItem>
+                    <SelectItem value="CT">CT Scan</SelectItem>
+                    <SelectItem value="MRI">MRI</SelectItem>
+                    <SelectItem value="Ultrasound">Ultrasound</SelectItem>
+                    <SelectItem value="Nuclear Medicine">Nuclear Medicine</SelectItem>
+                    <SelectItem value="Mammography">Mammography</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="bodyPart" className="text-sm font-medium">
+                  Body Part
+                </Label>
+                <Input
+                  id="bodyPart"
+                  placeholder="e.g., Chest, Abdomen, Head"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="priority" className="text-sm font-medium">
+                  Priority
+                </Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="routine">Routine</SelectItem>
+                    <SelectItem value="urgent">Urgent</SelectItem>
+                    <SelectItem value="stat">STAT</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="studyType" className="text-sm font-medium">
+                Study Description
+              </Label>
+              <Input
+                id="studyType"
+                placeholder="e.g., Chest X-Ray PA and Lateral"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="indication" className="text-sm font-medium">
+                Clinical Indication
+              </Label>
+              <Textarea
+                id="indication"
+                placeholder="Reason for imaging study..."
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="notes" className="text-sm font-medium">
+                Special Instructions (Optional)
+              </Label>
+              <Textarea
+                id="notes"
+                placeholder="Any special instructions for the imaging technologist..."
+                rows={2}
+              />
+            </div>
+
+            <div className="flex justify-between items-center pt-4 border-t">
+              <Button variant="outline" onClick={() => setShowNewOrder(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  toast({
+                    title: "Study Ordered",
+                    description: "Imaging study has been successfully ordered and will be scheduled",
+                  });
+                  setShowNewOrder(false);
+                }}
+                className="bg-medical-blue hover:bg-blue-700"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Order Study
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
