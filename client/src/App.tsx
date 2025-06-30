@@ -45,6 +45,7 @@ function ProtectedApp() {
       <main className="flex-1 flex flex-col overflow-y-auto">
         <Switch>
           <Route path="/" component={Dashboard} />
+          <Route path="/dashboard" component={Dashboard} />
           <Route path="/patients" component={Patients} />
           <Route path="/patients/:id" component={Patients} />
           <Route path="/patients/:id/records" component={Patients} />
