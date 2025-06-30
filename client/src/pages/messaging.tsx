@@ -430,7 +430,7 @@ export default function MessagingPage() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const filteredConversations = conversations.filter((conv: Conversation) => {
+  const filteredConversations = (conversations || []).filter((conv: Conversation) => {
     if (messageFilter === "unread" && conv.unreadCount === 0) return false;
     if (messageFilter === "patients" && !conv.isPatientConversation) return false;
     if (messageFilter === "staff" && conv.isPatientConversation) return false;
@@ -466,10 +466,7 @@ export default function MessagingPage() {
     );
   }
 
-  console.log("Conversations data:", conversations);
-  console.log("Campaigns data:", campaigns);
-  console.log("Templates data:", templates);
-  console.log("Analytics data:", analytics);
+
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -741,7 +738,7 @@ export default function MessagingPage() {
 
               <ScrollArea className="h-[580px]">
                 <div className="p-2">
-                  {filteredConversations.length === 0 ? (
+                  {!filteredConversations || filteredConversations.length === 0 ? (
                     <div className="text-center py-8 text-gray-500">
                       <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
                       <p>No conversations found</p>
@@ -1024,7 +1021,7 @@ export default function MessagingPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {campaigns.length === 0 ? (
+            {!campaigns || campaigns.length === 0 ? (
               <Card className="col-span-2">
                 <CardContent className="p-8 text-center">
                   <Mail className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -1102,7 +1099,7 @@ export default function MessagingPage() {
                 </div>
               </CardContent>
             </Card>
-          ) : templates.length === 0 ? (
+          ) : !templates || templates.length === 0 ? (
             <Card>
               <CardContent className="p-6">
                 <div className="text-center py-8 text-gray-500">
