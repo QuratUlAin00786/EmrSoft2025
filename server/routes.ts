@@ -51,6 +51,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Token validation endpoint (separate auth check)
+  app.get("/api/auth/validate", async (req: TenantRequest, res) => {
+    try {
+      const token = authService.extractTokenFromHeader(req.get("Authorization"));
+      
+      if (!token) {
+        return res.status(401).json({ error: "No token provided" });
+      }
+
+      const payload = authService.verifyToken(token);
+      if (!payload) {
+        return res.status(401).json({ error: "Invalid token" });
+      }
+
+      // Get user details
+      const user = await storage.getUser(payload.userId, payload.organizationId);
+      if (!user || !user.isActive) {
+        return res.status(401).json({ error: "User not found or inactive" });
+      }
+
+      res.json({
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          department: user.department
+        }
+      });
+    } catch (error) {
+      console.error("Token validation error:", error);
+      res.status(401).json({ error: "Token validation failed" });
+    }
+  });
+
   // Tenant info endpoint (unprotected for initial load)
   app.get("/api/tenant/info", tenantMiddleware, async (req: TenantRequest, res) => {
     try {
