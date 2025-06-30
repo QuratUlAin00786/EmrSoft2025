@@ -134,10 +134,11 @@ export default function MessagingPage() {
     setAuthToken(token);
   }, []);
 
-  const { data: conversations = [], isLoading: conversationsLoading } = useQuery({
+  const { data: conversations = [], isLoading: conversationsLoading, error: conversationsError } = useQuery({
     queryKey: ['/api/messaging/conversations'],
     queryFn: async () => {
       const token = localStorage.getItem('token');
+      console.log('Fetching conversations with token:', token ? 'present' : 'missing');
       const response = await fetch('/api/messaging/conversations', {
         method: 'GET',
         headers: {
@@ -147,8 +148,11 @@ export default function MessagingPage() {
         },
         credentials: 'include'
       });
+      console.log('Conversations response status:', response.status);
       if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
-      return response.json();
+      const data = await response.json();
+      console.log('Conversations data received:', data);
+      return data;
     }
   });
 
@@ -171,10 +175,11 @@ export default function MessagingPage() {
     }
   });
 
-  const { data: campaigns = [], isLoading: campaignsLoading } = useQuery({
+  const { data: campaigns = [], isLoading: campaignsLoading, error: campaignsError } = useQuery({
     queryKey: ['/api/messaging/campaigns'],
     queryFn: async () => {
       const token = localStorage.getItem('token');
+      console.log('Fetching campaigns with token:', token ? 'present' : 'missing');
       const response = await fetch('/api/messaging/campaigns', {
         method: 'GET',
         headers: {
@@ -184,15 +189,19 @@ export default function MessagingPage() {
         },
         credentials: 'include'
       });
+      console.log('Campaigns response status:', response.status);
       if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
-      return response.json();
+      const data = await response.json();
+      console.log('Campaigns data received:', data);
+      return data;
     }
   });
 
-  const { data: templates = [], isLoading: templatesLoading } = useQuery({
+  const { data: templates = [], isLoading: templatesLoading, error: templatesError } = useQuery({
     queryKey: ['/api/messaging/templates'],
     queryFn: async () => {
       const token = localStorage.getItem('token');
+      console.log('Fetching templates with token:', token ? 'present' : 'missing');
       const response = await fetch('/api/messaging/templates', {
         method: 'GET',
         headers: {
@@ -202,8 +211,11 @@ export default function MessagingPage() {
         },
         credentials: 'include'
       });
+      console.log('Templates response status:', response.status);
       if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
-      return response.json();
+      const data = await response.json();
+      console.log('Templates data received:', data);
+      return data;
     }
   });
 
