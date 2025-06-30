@@ -458,13 +458,18 @@ export default function MessagingPage() {
     }
   };
 
-  if (conversationsLoading || campaignsLoading) {
+  if (conversationsLoading || campaignsLoading || templatesLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     );
   }
+
+  console.log("Conversations data:", conversations);
+  console.log("Campaigns data:", campaigns);
+  console.log("Templates data:", templates);
+  console.log("Analytics data:", analytics);
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
