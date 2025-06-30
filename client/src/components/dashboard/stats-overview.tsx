@@ -73,6 +73,7 @@ export function StatsOverview() {
         setError(null);
       } catch (err) {
         console.error("Error fetching dashboard stats:", err);
+        console.error("Error details:", err.message);
         setError(err);
       } finally {
         setIsLoading(false);
@@ -107,7 +108,7 @@ export function StatsOverview() {
               <div>
                 <p className="text-neutral-600 text-sm">{card.title}</p>
                 <p className="text-3xl font-bold text-gray-900 mt-2">--</p>
-                <p className="text-neutral-500 text-sm mt-1">Data unavailable</p>
+                <p className="text-neutral-500 text-sm mt-1">Fetch data for {card.title}</p>
               </div>
               <div className={`w-12 h-12 ${card.bgColor} rounded-lg flex items-center justify-center`}>
                 <card.icon className={`${card.color} text-xl h-6 w-6`} />
