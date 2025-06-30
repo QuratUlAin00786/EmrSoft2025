@@ -1056,6 +1056,78 @@ export class DatabaseStorage implements IStorage {
 
     return newLabResult;
   }
+
+  async getMessageTemplates(organizationId: number): Promise<any[]> {
+    // Return sample message templates for the demo
+    return [
+      {
+        id: "template_1",
+        name: "Appointment Reminder",
+        description: "Standard reminder for upcoming appointments",
+        category: "general",
+        subject: "Appointment Reminder - {{date}}",
+        content: "Dear {{patientName}},\n\nThis is a friendly reminder that you have an appointment scheduled on {{date}} at {{time}} with {{doctorName}}.\n\nPlease arrive 15 minutes early for check-in.\n\nIf you need to reschedule, please call us at {{clinicPhone}}.\n\nBest regards,\n{{clinicName}}",
+        usageCount: 45,
+        createdAt: "2024-01-15T10:00:00Z",
+        updatedAt: "2024-06-20T14:30:00Z"
+      },
+      {
+        id: "template_2", 
+        name: "Lab Results Available",
+        description: "Notification when lab results are ready",
+        category: "medical",
+        subject: "Your Lab Results Are Ready",
+        content: "Dear {{patientName}},\n\nYour recent lab results from {{testDate}} are now available for review.\n\nPlease log into your patient portal or call our office at {{clinicPhone}} to discuss the results with your provider.\n\nIf you have any questions, please don't hesitate to contact us.\n\nThank you,\n{{clinicName}} Team",
+        usageCount: 32,
+        createdAt: "2024-02-10T09:15:00Z",
+        updatedAt: "2024-06-18T11:45:00Z"
+      },
+      {
+        id: "template_3",
+        name: "Prescription Ready",
+        description: "Notification for prescription pickup",
+        category: "general",
+        subject: "Prescription Ready for Pickup",
+        content: "Hello {{patientName}},\n\nYour prescription for {{medicationName}} is ready for pickup at {{pharmacyName}}.\n\nPickup hours: {{pharmacyHours}}\nPharmacy phone: {{pharmacyPhone}}\n\nPlease bring a valid ID when collecting your medication.\n\nBest regards,\n{{clinicName}}",
+        usageCount: 28,
+        createdAt: "2024-03-05T16:20:00Z",
+        updatedAt: "2024-06-15T09:30:00Z"
+      },
+      {
+        id: "template_4",
+        name: "Annual Checkup Due",
+        description: "Reminder for annual health checkups",
+        category: "preventive",
+        subject: "Time for Your Annual Health Checkup",
+        content: "Dear {{patientName}},\n\nIt's time for your annual health checkup! Regular checkups are important for maintaining good health and catching any potential issues early.\n\nPlease call us at {{clinicPhone}} to schedule your appointment.\n\nDuring your visit, we'll:\n- Review your medical history\n- Perform routine screenings\n- Update any necessary vaccinations\n- Discuss your health goals\n\nWe look forward to seeing you soon!\n\n{{clinicName}} Team",
+        usageCount: 15,
+        createdAt: "2024-04-12T13:10:00Z",
+        updatedAt: "2024-06-10T15:20:00Z"
+      },
+      {
+        id: "template_5",
+        name: "Emergency Alert",
+        description: "Urgent notifications for patients",
+        category: "urgent",
+        subject: "URGENT: Important Health Alert",
+        content: "URGENT NOTICE\n\nDear {{patientName}},\n\nWe need to contact you immediately regarding your recent {{testType}} results. Please call our office at {{clinicPhone}} as soon as possible.\n\nIf this is after hours, please visit the nearest emergency room or call 999.\n\nThis is time-sensitive. Please do not delay.\n\n{{doctorName}}\n{{clinicName}}",
+        usageCount: 3,
+        createdAt: "2024-05-08T08:45:00Z",
+        updatedAt: "2024-06-05T10:15:00Z"
+      },
+      {
+        id: "template_6",
+        name: "Welcome New Patient",
+        description: "Welcome message for new patients",
+        category: "onboarding",
+        subject: "Welcome to {{clinicName}}!",
+        content: "Dear {{patientName}},\n\nWelcome to {{clinicName}}! We're delighted to have you as a new patient.\n\nTo help us provide you with the best care:\n\n1. Complete your medical history forms\n2. Bring your insurance card and ID to your first visit\n3. Arrive 30 minutes early for new patient paperwork\n4. Bring a list of current medications\n\nYour first appointment is scheduled for {{appointmentDate}} at {{appointmentTime}} with {{doctorName}}.\n\nIf you have any questions, please call us at {{clinicPhone}}.\n\nWe look forward to caring for you!\n\n{{clinicName}} Team",
+        usageCount: 22,
+        createdAt: "2024-01-20T11:30:00Z",
+        updatedAt: "2024-06-12T14:45:00Z"
+      }
+    ];
+  }
 }
 
 export const storage = new DatabaseStorage();
