@@ -106,7 +106,6 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
 
   const { data: patients, isLoading, error } = useQuery({
     queryKey: ["/api/patients"],
-    queryFn: () => fetch("/api/patients").then(res => res.json()),
     refetchOnMount: true,
     staleTime: 0
   });
