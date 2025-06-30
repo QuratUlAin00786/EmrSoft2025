@@ -106,8 +106,43 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
 
   const { data: patients, isLoading, error } = useQuery({
     queryKey: ["/api/patients"],
+    queryFn: async () => {
+      try {
+        const token = localStorage.getItem('auth_token');
+        const headers: Record<string, string> = {
+          'X-Tenant-Subdomain': 'demo'
+        };
+        
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        console.log("Fetching patients with headers:", headers);
+        
+        const response = await fetch("/api/patients", {
+          headers,
+          credentials: 'include'
+        });
+
+        console.log("Patients response status:", response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Patients fetch failed:", response.status, errorText);
+          throw new Error(`Failed to fetch patients: ${response.status} ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log("Patients data received:", data);
+        return data;
+      } catch (err) {
+        console.error("Error in patients queryFn:", err);
+        throw err;
+      }
+    },
     refetchOnMount: true,
-    staleTime: 0
+    staleTime: 0,
+    retry: 1
   });
 
   console.log("PatientList - isLoading:", isLoading, "error:", error, "patients:", patients);

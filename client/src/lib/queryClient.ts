@@ -70,13 +70,14 @@ export const getQueryFn: <T>(options: {
     if (!res.ok) {
       const errorText = await res.text();
       console.error("Query failed:", res.status, errorText);
-    }
-
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+      
+      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+        return null;
+      }
+      
+      await throwIfResNotOk(res);
       return null;
     }
-
-    await throwIfResNotOk(res);
     const data = await res.json();
     console.log("Query response data:", data);
     return data;
