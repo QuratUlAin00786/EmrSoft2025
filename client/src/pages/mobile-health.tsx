@@ -102,19 +102,49 @@ export default function MobileHealth() {
   // Fetch wearable devices
   const { data: devices, isLoading: devicesLoading } = useQuery({
     queryKey: ["/api/mobile-health/devices"],
-    enabled: true
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/mobile-health/devices', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch devices');
+      return response.json() as WearableDevice[];
+    }
   });
 
   // Fetch mobile apps
   const { data: apps, isLoading: appsLoading } = useQuery({
     queryKey: ["/api/mobile-health/apps"],
-    enabled: true
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/mobile-health/apps', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch apps');
+      return response.json() as MobileApp[];
+    }
   });
 
   // Fetch push notifications
   const { data: notifications, isLoading: notificationsLoading } = useQuery({
     queryKey: ["/api/mobile-health/notifications"],
-    enabled: true
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/mobile-health/notifications', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch notifications');
+      return response.json() as PushNotification[];
+    }
   });
 
   // Sync device mutation
@@ -382,7 +412,9 @@ export default function MobileHealth() {
 
         <TabsContent value="devices" className="space-y-4">
           <div className="grid gap-4">
-            {mockDevices.map((device) => {
+            {devicesLoading ? (
+              <div className="text-center py-8">Loading devices...</div>
+            ) : (devices || []).map((device) => {
               const DeviceIcon = getDeviceIcon(device.deviceType);
               return (
                 <Card key={device.id} className={device.status === 'error' ? 'border-red-200' : ''}>
@@ -500,7 +532,9 @@ export default function MobileHealth() {
 
         <TabsContent value="apps" className="space-y-4">
           <div className="grid gap-4">
-            {mockApps.map((app) => (
+            {appsLoading ? (
+              <div className="text-center py-8">Loading apps...</div>
+            ) : (apps || []).map((app) => (
               <Card key={app.id}>
                 <CardHeader>
                   <div className="flex justify-between items-start">
@@ -622,7 +656,9 @@ export default function MobileHealth() {
           </div>
 
           <div className="grid gap-4">
-            {mockNotifications.map((notification) => (
+            {notificationsLoading ? (
+              <div className="text-center py-8">Loading notifications...</div>
+            ) : (notifications || []).map((notification) => (
               <Card key={notification.id}>
                 <CardContent className="p-4">
                   <div className="flex justify-between items-start">
