@@ -113,6 +113,7 @@ Averox EMR is a comprehensive multi-tenant Electronic Medical Records (EMR) syst
 - **COMPLETED**: Fixed patients page blank screen issue in live environment - implemented custom queryFn with explicit JWT authentication headers, proper error handling, and TypeScript type safety to ensure patient data loads correctly in production
 - **COMPLETED**: Fixed appointment scheduling dropdown and appointment visibility in live environment - replaced hardcoded patient/provider dropdowns with dynamic data loading using proper JWT authentication, ensuring recently created contacts like "Imran Mubashir" appear in appointment booking and scheduled appointments display correctly in calendar
 - **COMPLETED**: Fixed prescription page patient dropdown and prescription list issues in live environment - replaced hardcoded patient dropdown (Sarah Johnson, Robert Davis, Emily Watson) with dynamic patient data loading using JWT authentication, ensuring recently created patients appear in prescription creation and existing prescriptions display correctly with proper patient name mapping
+- **COMPLETED**: Fixed lab results page empty list issue in live environment - added JWT Bearer token authentication headers to lab results data fetching, ensuring ordered lab tests display correctly in the results list with proper statistics and filtering functionality
 
 **June 29, 2025:**
 - **COMPLETED**: Fixed telemedicine Schedule Consultation dialog scrolling issue - added max-height constraint and vertical scrolling for proper dialog accessibility

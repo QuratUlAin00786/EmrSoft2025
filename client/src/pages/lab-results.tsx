@@ -162,8 +162,6 @@ export default function LabResultsPage() {
     queryKey: ["/api/lab-results", statusFilter],
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
-      console.log("Lab Results - Token available:", !!token);
-      
       const headers: Record<string, string> = {
         'X-Tenant-Subdomain': 'demo'
       };
@@ -172,21 +170,14 @@ export default function LabResultsPage() {
         headers['Authorization'] = `Bearer ${token}`;
       }
       
-      console.log("Lab Results - Making API call with headers:", headers);
-      
       const response = await fetch("/api/lab-results", {
         headers,
         credentials: "include",
       });
-      
-      console.log("Lab Results - API response status:", response.status);
-      
       if (!response.ok) {
-        console.error("Lab Results - API failed:", response.status, response.statusText);
         throw new Error(`Failed to fetch lab results: ${response.status}`);
       }
       const data = await response.json();
-      console.log("Lab Results - Fetched data:", data);
       return data;
     },
     enabled: true,
