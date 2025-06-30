@@ -424,7 +424,7 @@ export default function AppointmentCalendar() {
                   className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex flex-col space-y-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <h4 className="font-semibold">{appointment.title}</h4>
                       <Badge className={statusColors[appointment.status]}>
                         {appointment.status}
@@ -432,6 +432,11 @@ export default function AppointmentCalendar() {
                       <Badge className={typeColors[appointment.type]}>
                         {appointment.type}
                       </Badge>
+                      {appointment.location && appointment.location.includes('Department') && (
+                        <Badge className="bg-blue-100 text-blue-800">
+                          {appointment.location.split(', ')[1] || appointment.location.split('Department')[0] + 'Department'}
+                        </Badge>
+                      )}
                     </div>
                     
                     <div className="flex items-center gap-4 text-sm text-gray-600">
@@ -532,6 +537,14 @@ export default function AppointmentCalendar() {
                   <p className="text-sm"><strong>Date:</strong> {format(new Date(selectedAppointment.scheduledAt), "PPP")}</p>
                   <p className="text-sm"><strong>Time:</strong> {format(new Date(selectedAppointment.scheduledAt), "h:mm a")}</p>
                   <p className="text-sm"><strong>Duration:</strong> {selectedAppointment.duration} minutes</p>
+                  <p className="text-sm"><strong>Location:</strong> {selectedAppointment.location}</p>
+                  {selectedAppointment.location && selectedAppointment.location.includes('Department') && (
+                    <p className="text-sm"><strong>Department:</strong> 
+                      <Badge className="ml-2 bg-blue-100 text-blue-800">
+                        {selectedAppointment.location.split(', ')[1] || selectedAppointment.location.split('Department')[0] + 'Department'}
+                      </Badge>
+                    </p>
+                  )}
                 </div>
               </div>
               
