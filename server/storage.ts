@@ -1128,6 +1128,44 @@ export class DatabaseStorage implements IStorage {
       }
     ];
   }
+
+  async getMessagingAnalytics(organizationId: number): Promise<any> {
+    // Return sample messaging analytics for the demo
+    return {
+      totalMessages: 2847,
+      responseRate: "94.2%",
+      avgResponseTime: "4.2h",
+      campaignReach: "18.5K",
+      messageBreakdown: {
+        internal: 1254,
+        patient: 892,
+        broadcast: 701
+      },
+      recentActivity: [
+        {
+          type: "campaign",
+          title: "Flu Vaccination Reminder sent",
+          description: "Reached 1,240 patients",
+          timestamp: "2 hours ago",
+          status: "completed"
+        },
+        {
+          type: "template",
+          title: "Lab Results Available used 12 times",
+          description: "High engagement rate",
+          timestamp: "4 hours ago",
+          status: "active"
+        },
+        {
+          type: "bulk",
+          title: "Bulk message sent to Cardiology department",
+          description: "45 recipients",
+          timestamp: "6 hours ago",
+          status: "delivered"
+        }
+      ]
+    };
+  }
 }
 
 export const storage = new DatabaseStorage();

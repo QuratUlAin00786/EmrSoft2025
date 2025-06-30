@@ -1243,6 +1243,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/messaging/analytics", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const analytics = await storage.getMessagingAnalytics(req.tenant!.id);
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching analytics:", error);
+      res.status(500).json({ error: "Failed to fetch analytics" });
+    }
+  });
+
   // Integration endpoints
   app.get("/api/integrations", authMiddleware, async (req: TenantRequest, res) => {
     try {
