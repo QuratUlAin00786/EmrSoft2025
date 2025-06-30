@@ -555,6 +555,41 @@ export default function AppointmentCalendar() {
                   <Stethoscope className="h-4 w-4 mr-2" />
                   Start Consultation
                 </Button>
+                <Button 
+                  variant="destructive"
+                  onClick={async () => {
+                    try {
+                      const response = await fetch(`/api/appointments/${selectedAppointment.id}`, {
+                        method: 'DELETE',
+                        headers: {
+                          'X-Tenant-Subdomain': 'demo'
+                        },
+                        credentials: 'include'
+                      });
+
+                      if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                      }
+
+                      await fetchAppointments(); // Refresh the appointments list
+                      setShowAppointmentDetails(false);
+                      
+                      toast({
+                        title: "Appointment Deleted",
+                        description: "The appointment has been successfully deleted",
+                      });
+                    } catch (error) {
+                      console.error("Error deleting appointment:", error);
+                      toast({
+                        title: "Error",
+                        description: "Failed to delete appointment. Please try again.",
+                        variant: "destructive"
+                      });
+                    }
+                  }}
+                >
+                  Delete
+                </Button>
                 <Button variant="outline" onClick={() => setShowAppointmentDetails(false)}>
                   Close
                 </Button>

@@ -102,6 +102,7 @@ Averox EMR is a comprehensive multi-tenant Electronic Medical Records (EMR) syst
 ## Changelog
 
 **June 30, 2025:**
+- **COMPLETED**: Fixed appointment deletion functionality - added DELETE API endpoint (/api/appointments/:id) with proper authorization, implemented deleteAppointment method in storage layer with organization-level security, and added red "Delete" button in appointment details dialog with error handling and success notifications
 - **COMPLETED**: Fixed Dashboard appointment booking dialog scrolling issue - added max-height constraint (90vh) and vertical scrolling to the New Appointment Dialog in appointment-calendar component, enabling users to scroll through all form fields when content exceeds viewport height
 
 **June 29, 2025:**
