@@ -45,7 +45,8 @@ export default function AppointmentCalendar() {
     type: "consultation",
     duration: "30",
     isVirtual: false,
-    location: ""
+    location: "",
+    department: ""
   });
 
   const fetchAppointments = async () => {
@@ -82,10 +83,10 @@ export default function AppointmentCalendar() {
   }, []);
 
   const createAppointment = async () => {
-    if (!formData.patientId || !formData.providerId || !formData.title) {
+    if (!formData.patientId || !formData.providerId || !formData.title || !formData.department) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all required fields",
+        description: "Please fill in all required fields including department",
         variant: "destructive"
       });
       return;
@@ -105,7 +106,7 @@ export default function AppointmentCalendar() {
         scheduledAt: scheduledAt.toISOString(),
         duration: parseInt(formData.duration),
         type: formData.type,
-        location: formData.isVirtual ? "Virtual" : formData.location,
+        location: formData.isVirtual ? "Virtual" : `${formData.location || 'Room 101'}, ${formData.department} Department`,
         isVirtual: formData.isVirtual
       };
 
@@ -139,7 +140,8 @@ export default function AppointmentCalendar() {
         type: "consultation",
         duration: "30",
         isVirtual: false,
-        location: ""
+        location: "",
+        department: ""
       });
       
       setShowNewAppointment(false);
@@ -682,6 +684,27 @@ export default function AppointmentCalendar() {
                   <option value="3">Dr. Emily Davis</option>
                 </select>
               </div>
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Department *</label>
+              <select 
+                className="w-full p-2 border border-gray-300 rounded-md"
+                value={formData.department}
+                onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
+              >
+                <option value="">Select department...</option>
+                <option value="Cardiology">Cardiology</option>
+                <option value="Neurology">Neurology</option>
+                <option value="Orthopedics">Orthopedics</option>
+                <option value="Pediatrics">Pediatrics</option>
+                <option value="Dermatology">Dermatology</option>
+                <option value="Radiology">Radiology</option>
+                <option value="Emergency Medicine">Emergency Medicine</option>
+                <option value="Family Medicine">Family Medicine</option>
+                <option value="Internal Medicine">Internal Medicine</option>
+                <option value="Surgery">Surgery</option>
+              </select>
             </div>
             
             <div>
