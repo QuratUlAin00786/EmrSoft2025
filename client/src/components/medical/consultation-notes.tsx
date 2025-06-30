@@ -64,9 +64,12 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
         setIsLoading(true);
         console.log(`Fetching medical records for patient ${patientId}...`);
         
+        const token = localStorage.getItem('token');
         const response = await fetch(`/api/patients/${patientId}/records`, {
           headers: {
-            'X-Tenant-Subdomain': 'demo'
+            'Authorization': `Bearer ${token}`,
+            'X-Tenant-Subdomain': 'demo',
+            'Content-Type': 'application/json'
           },
           credentials: 'include'
         });
@@ -140,9 +143,11 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
     try {
       setIsSavingRecord(true);
       
+      const token = localStorage.getItem('token');
       const response = await fetch(`/api/patients/${patientId}/records/${recordId}`, {
         method: 'PATCH',
         headers: {
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
           'X-Tenant-Subdomain': 'demo'
         },
@@ -160,9 +165,12 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
       });
 
       // Refresh the records list
+      const refreshToken = localStorage.getItem('token');
       const fetchResponse = await fetch(`/api/patients/${patientId}/records`, {
         headers: {
-          'X-Tenant-Subdomain': 'demo'
+          'Authorization': `Bearer ${refreshToken}`,
+          'X-Tenant-Subdomain': 'demo',
+          'Content-Type': 'application/json'
         },
         credentials: 'include'
       });
@@ -191,9 +199,11 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
     try {
       setIsSavingRecord(true);
       
+      const token = localStorage.getItem('token');
       const response = await fetch(`/api/patients/${patientId}/records`, {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
           'X-Tenant-Subdomain': 'demo'
         },
