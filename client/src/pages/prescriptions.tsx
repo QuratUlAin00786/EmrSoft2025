@@ -175,6 +175,7 @@ export default function PrescriptionsPage() {
   const [showNewPrescription, setShowNewPrescription] = useState(false);
   const [showPharmacyDialog, setShowPharmacyDialog] = useState(false);
   const [selectedPrescriptionId, setSelectedPrescriptionId] = useState<string>("");
+  const [patients, setPatients] = useState<any[]>([]);
   const queryClient = useQueryClient();
 
   // Form state for prescription editing
@@ -220,13 +221,52 @@ export default function PrescriptionsPage() {
     }
   }, [selectedPrescription]);
 
+  const fetchPatients = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch('/api/patients', {
+        headers,
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setPatients(data || []);
+    } catch (err) {
+      console.error("Error fetching patients:", err);
+      setPatients([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchPatients();
+  }, []);
+
   const { data: rawPrescriptions = [], isLoading, error } = useQuery({
     queryKey: ["/api/prescriptions"],
     queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
       const response = await fetch("/api/prescriptions", {
-        headers: {
-          'X-Tenant-Subdomain': 'demo',
-        },
+        headers,
         credentials: "include",
       });
       if (!response.ok) {
@@ -238,12 +278,11 @@ export default function PrescriptionsPage() {
     enabled: true,
   });
 
-  // Map patient and provider IDs to names
-  const patientNames: Record<number, string> = {
-    1: "Sarah Johnson",
-    2: "Robert Davis", 
-    3: "Emily Watson"
-  };
+  // Create patient and provider name mappings from fetched data
+  const patientNames: Record<number, string> = {};
+  patients.forEach(patient => {
+    patientNames[patient.id] = `${patient.firstName} ${patient.lastName}`;
+  });
 
   const providerNames: Record<number, string> = {
     1: "Dr. Sarah Smith",
@@ -550,9 +589,11 @@ export default function PrescriptionsPage() {
                               <SelectValue placeholder="Select patient" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="1">Sarah Johnson</SelectItem>
-                              <SelectItem value="2">Robert Davis</SelectItem>
-                              <SelectItem value="3">Emily Watson</SelectItem>
+                              {patients.map((patient: any) => (
+                                <SelectItem key={patient.id} value={patient.id.toString()}>
+                                  {patient.firstName} {patient.lastName} ({patient.patientId})
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                         </div>
