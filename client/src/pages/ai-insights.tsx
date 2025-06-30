@@ -50,6 +50,19 @@ export default function AiInsights() {
   
   const { data: insights, isLoading, error } = useQuery<AiInsight[]>({
     queryKey: ["/api/dashboard/ai-insights"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/dashboard/ai-insights', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch AI insights');
+      }
+      return response.json();
+    },
     retry: false,
     staleTime: 0,
     refetchOnWindowFocus: false,
