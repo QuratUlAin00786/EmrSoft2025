@@ -110,7 +110,7 @@ function App() {
           <AuthProvider>
             <LocaleProvider>
               <div className="min-h-screen">
-                <ProtectedApp />
+                <AppRouter />
               </div>
               <Toaster />
             </LocaleProvider>
