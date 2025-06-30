@@ -97,6 +97,8 @@ export default function MobileHealth() {
   const [shareLinkOpen, setShareLinkOpen] = useState(false);
   const [deviceSettingsOpen, setDeviceSettingsOpen] = useState(false);
   const [settingsDevice, setSettingsDevice] = useState<WearableDevice | null>(null);
+  const [pairingCode, setPairingCode] = useState<string | null>(null);
+  const [generatingCode, setGeneratingCode] = useState(false);
   const { toast } = useToast();
 
   // Fetch wearable devices
@@ -195,6 +197,32 @@ export default function MobileHealth() {
       toast({ title: "Notification sent successfully" });
     }
   });
+
+  // Generate pairing code function
+  const generatePairingCode = async () => {
+    setGeneratingCode(true);
+    try {
+      // Simulate API call with delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Generate a realistic 6-digit pairing code
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      setPairingCode(code);
+      
+      toast({
+        title: "Pairing Code Generated",
+        description: `Your pairing code is: ${code}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Generation Failed",
+        description: "Unable to generate pairing code. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setGeneratingCode(false);
+    }
+  };
 
   // Mock data
   const mockDevices: WearableDevice[] = [
@@ -391,7 +419,36 @@ export default function MobileHealth() {
                     Scan this QR code with your device's companion app to connect
                   </p>
                 </div>
-                <Button className="w-full">Generate Pairing Code</Button>
+                
+                {pairingCode && (
+                  <div className="text-center p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="text-sm text-green-600 mb-1">Pairing Code Generated</div>
+                    <div className="text-2xl font-mono font-bold text-green-800 tracking-widest">
+                      {pairingCode}
+                    </div>
+                    <div className="text-xs text-green-600 mt-2">
+                      Code expires in 10 minutes
+                    </div>
+                  </div>
+                )}
+                
+                <Button 
+                  className="w-full" 
+                  onClick={generatePairingCode}
+                  disabled={generatingCode}
+                >
+                  {generatingCode ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Generating Code...
+                    </>
+                  ) : (
+                    <>
+                      <QrCode className="w-4 h-4 mr-2" />
+                      {pairingCode ? 'Generate New Code' : 'Generate Pairing Code'}
+                    </>
+                  )}
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
