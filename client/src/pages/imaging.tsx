@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/layout/header";
 import { useToast } from "@/hooks/use-toast";
@@ -177,28 +177,47 @@ export default function ImagingPage() {
     whatsapp: "",
     message: ""
   });
+  const [patients, setPatients] = useState<any[]>([]);
+  const [patientsLoading, setPatientsLoading] = useState(false);
   const { toast } = useToast();
 
-  // Fetch patients for the order dialog
-  const { data: patients = [], isLoading: patientsLoading } = useQuery({
-    queryKey: ["/api/patients"],
-    queryFn: async () => {
+  // Fetch patients using the exact working pattern from prescriptions
+  const fetchPatients = async () => {
+    try {
+      setPatientsLoading(true);
       const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
       const response = await fetch('/api/patients', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+        headers,
+        credentials: 'include'
       });
       
       if (!response.ok) {
-        throw new Error(`${response.status}: ${response.statusText}`);
+        throw new Error(`HTTP ${response.status}`);
       }
       
-      return response.json();
-    },
-    enabled: showNewOrder, // Only fetch when dialog is open
-  });
+      const data = await response.json();
+      setPatients(data || []);
+    } catch (err) {
+      console.error("Error fetching patients:", err);
+      setPatients([]);
+    } finally {
+      setPatientsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showNewOrder) {
+      fetchPatients();
+    }
+  }, [showNewOrder]);
 
   const handleViewStudy = (study: ImagingStudy) => {
     setSelectedStudy(study);
