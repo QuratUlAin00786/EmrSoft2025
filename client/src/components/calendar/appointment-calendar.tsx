@@ -110,12 +110,19 @@ export default function AppointmentCalendar() {
         isVirtual: formData.isVirtual
       };
 
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch('/api/appointments', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Tenant-Subdomain': 'demo'
-        },
+        headers,
         credentials: 'include',
         body: JSON.stringify(appointmentData)
       });
@@ -582,11 +589,18 @@ export default function AppointmentCalendar() {
                   variant="destructive"
                   onClick={async () => {
                     try {
+                      const token = localStorage.getItem('auth_token');
+                      const headers: Record<string, string> = {
+                        'X-Tenant-Subdomain': 'demo'
+                      };
+                      
+                      if (token) {
+                        headers['Authorization'] = `Bearer ${token}`;
+                      }
+
                       const response = await fetch(`/api/appointments/${selectedAppointment.id}`, {
                         method: 'DELETE',
-                        headers: {
-                          'X-Tenant-Subdomain': 'demo'
-                        },
+                        headers,
                         credentials: 'include'
                       });
 
