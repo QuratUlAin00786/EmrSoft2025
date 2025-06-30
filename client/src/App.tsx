@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { LocaleProvider } from "@/hooks/use-locale";
 import { Sidebar } from "@/components/layout/sidebar";
 import { LoadingPage } from "@/components/common/loading-spinner";
+import { useAuth } from "@/hooks/use-auth";
 import haloLogoPath from "@assets/Screenshot 2025-06-25 at 12.40.02_1750837361778.png";
 
 // Pages
@@ -35,6 +36,7 @@ import MobileHealth from "@/pages/mobile-health";
 import VoiceDocumentation from "@/pages/voice-documentation";
 import FinancialIntelligence from "@/pages/financial-intelligence";
 import NotFound from "@/pages/not-found";
+import Login from "@/pages/login";
 
 function ProtectedApp() {
   return (
@@ -76,37 +78,18 @@ function ProtectedApp() {
   );
 }
 
-function LoginScreen() {
-  return (
-    <div className="min-h-screen bg-white flex items-center justify-center">
-      <div className="max-w-md w-full space-y-8 p-6">
-        <div className="text-center">
-          <div className="flex flex-col items-center text-center mb-6">
-            <img 
-              src={haloLogoPath} 
-              alt="EMR Logo" 
-              className="h-20 w-auto mb-3"
-            />
-            <div>
-              <p className="text-sm text-gray-500 mt-1">EMR, UK Healthcare</p>
-            </div>
-          </div>
-          <h2 className="mt-6 text-3xl font-bold text-gray-900">
-            Welcome to Your EMR System
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Multi-tenant healthcare management system
-          </p>
-        </div>
-        
-        <div className="mt-8 space-y-6">
-          <p className="text-center text-sm text-gray-600">
-            Development mode - Authentication bypassed
-          </p>
-        </div>
-      </div>
-    </div>
-  );
+function AppRouter() {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return <LoadingPage />;
+  }
+
+  if (!isAuthenticated) {
+    return <Login />;
+  }
+
+  return <ProtectedApp />;
 }
 
 // Create query client instance
