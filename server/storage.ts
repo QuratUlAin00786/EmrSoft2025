@@ -49,6 +49,7 @@ export interface IStorage {
   getAppointmentsByProvider(providerId: number, organizationId: number, date?: Date): Promise<Appointment[]>;
   createAppointment(appointment: InsertAppointment): Promise<Appointment>;
   updateAppointment(id: number, organizationId: number, updates: Partial<InsertAppointment>): Promise<Appointment | undefined>;
+  deleteAppointment(id: number, organizationId: number): Promise<boolean>;
 
   // AI Insights
   getAiInsight(id: number, organizationId: number): Promise<AiInsight | undefined>;
@@ -307,6 +308,13 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(appointments.id, id), eq(appointments.organizationId, organizationId)))
       .returning();
     return updated || undefined;
+  }
+
+  async deleteAppointment(id: number, organizationId: number): Promise<boolean> {
+    const [deleted] = await db.delete(appointments)
+      .where(and(eq(appointments.id, id), eq(appointments.organizationId, organizationId)))
+      .returning();
+    return !!deleted;
   }
 
   // AI Insights

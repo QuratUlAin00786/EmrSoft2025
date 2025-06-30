@@ -610,6 +610,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/appointments/:id", requireRole(["doctor", "nurse", "receptionist", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      const appointmentId = parseInt(req.params.id);
+      
+      if (isNaN(appointmentId)) {
+        return res.status(400).json({ error: "Invalid appointment ID" });
+      }
+
+      const deleted = await storage.deleteAppointment(appointmentId, req.tenant!.id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Appointment not found" });
+      }
+
+      res.json({ success: true, message: "Appointment deleted successfully" });
+    } catch (error) {
+      console.error("Appointment deletion error:", error);
+      res.status(500).json({ error: "Failed to delete appointment" });
+    }
+  });
+
   // User management routes (admin only)
   // Medical staff endpoint for appointment booking - accessible to all users
   app.get("/api/medical-staff", tenantMiddleware, async (req: TenantRequest, res) => {
