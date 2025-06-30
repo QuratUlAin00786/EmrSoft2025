@@ -102,6 +102,8 @@ Averox EMR is a comprehensive multi-tenant Electronic Medical Records (EMR) syst
 ## Changelog
 
 **June 30, 2025:**
+- **COMPLETED**: Fixed messaging system authentication for live environment - added JWT Bearer token headers to all messaging API calls including conversations, messages, campaigns, and message sending functionality, enabling users to create new messages and campaigns in production
+- **COMPLETED**: Fixed medical record creation authentication for live environment - added JWT Bearer token headers to all medical record API calls including creation, updates, and fetching in ConsultationNotes component, enabling users to add and edit patient medical records in production
 - **COMPLETED**: Fixed appointment department selection issue - added department dropdown field to appointment booking form with 10 medical departments (Cardiology, Neurology, Orthopedics, etc.), updated form validation to require department selection, automatic location generation with department name, and enhanced visibility with department badges in appointment cards and details dialog to prevent all appointments defaulting to Cardiology
 - **COMPLETED**: Fixed appointment deletion functionality - added DELETE API endpoint (/api/appointments/:id) with proper authorization, implemented deleteAppointment method in storage layer with organization-level security, and added red "Delete" button in appointment details dialog with error handling and success notifications
 - **COMPLETED**: Fixed Dashboard appointment booking dialog scrolling issue - added max-height constraint (90vh) and vertical scrolling to the New Appointment Dialog in appointment-calendar component, enabling users to scroll through all form fields when content exceeds viewport height

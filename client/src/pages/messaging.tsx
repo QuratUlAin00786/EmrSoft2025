@@ -27,7 +27,9 @@ import {
   CheckCheck,
   Star,
   Archive,
-  Trash2
+  Trash2,
+  Edit,
+  Copy
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -174,6 +176,24 @@ export default function MessagingPage() {
     queryFn: async () => {
       const token = localStorage.getItem('token');
       const response = await fetch('/api/messaging/campaigns', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
+      return response.json();
+    }
+  });
+
+  const { data: templates = [], isLoading: templatesLoading } = useQuery({
+    queryKey: ['/api/messaging/templates'],
+    queryFn: async () => {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/messaging/templates', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -1042,17 +1062,83 @@ export default function MessagingPage() {
         </TabsContent>
 
         <TabsContent value="templates" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Message Templates</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-gray-500">
-                <Mail className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Message templates will be available here.</p>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">Message Templates</h2>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Template
+            </Button>
+          </div>
+
+          {templatesLoading ? (
+            <Card>
+              <CardContent className="p-6">
+                <div className="text-center py-8 text-gray-500">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p>Loading templates...</p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : templates.length === 0 ? (
+            <Card>
+              <CardContent className="p-6">
+                <div className="text-center py-8 text-gray-500">
+                  <Mail className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <h3 className="text-lg font-medium mb-2">No Templates Yet</h3>
+                  <p className="mb-4">Create your first message template to get started.</p>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Template
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {templates.map((template: any) => (
+                <Card key={template.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <CardTitle className="text-lg">{template.name}</CardTitle>
+                        <p className="text-sm text-gray-600 mt-1">{template.description}</p>
+                      </div>
+                      <Badge variant={template.category === 'urgent' ? 'destructive' : 'secondary'}>
+                        {template.category}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="mb-4">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Subject:</p>
+                      <p className="text-sm bg-gray-50 p-2 rounded">{template.subject}</p>
+                    </div>
+                    <div className="mb-4">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Preview:</p>
+                      <p className="text-sm text-gray-600 line-clamp-3">
+                        {template.content.substring(0, 100)}...
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-gray-500">
+                      <span>Used {template.usageCount || 0} times</span>
+                      <span>Updated {new Date(template.updatedAt).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center gap-2 pt-3 border-t mt-3">
+                      <Button variant="outline" size="sm" className="flex-1">
+                        Use Template
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">

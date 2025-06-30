@@ -1233,6 +1233,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/messaging/templates", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const templates = await storage.getMessageTemplates(req.tenant!.id);
+      res.json(templates);
+    } catch (error) {
+      console.error("Error fetching templates:", error);
+      res.status(500).json({ error: "Failed to fetch templates" });
+    }
+  });
+
   // Integration endpoints
   app.get("/api/integrations", authMiddleware, async (req: TenantRequest, res) => {
     try {
