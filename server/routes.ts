@@ -1451,6 +1451,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Population Health Interventions
+  app.get("/api/population-health/interventions", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const organizationId = req.tenant!.id;
+
+      // Return sample interventions data
+      const sampleInterventions = [
+        {
+          id: 1,
+          name: "Diabetes Prevention Program",
+          description: "Comprehensive lifestyle intervention program designed to prevent type 2 diabetes in high-risk patients through diet modification, exercise, and behavioral changes.",
+          type: "educational",
+          status: "active",
+          targetPopulation: "Pre-diabetic adults aged 35-65",
+          duration: 16,
+          budget: 25000,
+          startDate: "2024-06-01",
+          organizationId,
+          metrics: {
+            enrolled: 47,
+            completed: 23,
+            successRate: 78
+          }
+        },
+        {
+          id: 2,
+          name: "Hypertension Monitoring Initiative",
+          description: "Remote blood pressure monitoring program with automated alerts and medication adherence tracking for patients with hypertension.",
+          type: "screening",
+          status: "active",
+          targetPopulation: "Hypertensive patients",
+          duration: 24,
+          budget: 18000,
+          startDate: "2024-05-15",
+          organizationId,
+          metrics: {
+            enrolled: 156,
+            completed: 89,
+            successRate: 85
+          }
+        },
+        {
+          id: 3,
+          name: "Mental Health Screening Program",
+          description: "Annual mental health screening and early intervention program for all adult patients, with focus on depression and anxiety detection.",
+          type: "screening",
+          status: "pending",
+          targetPopulation: "All adult patients",
+          duration: 52,
+          budget: 32000,
+          startDate: "2024-07-01",
+          organizationId,
+          metrics: {
+            enrolled: 0,
+            completed: 0,
+            successRate: 0
+          }
+        },
+        {
+          id: 4,
+          name: "Smoking Cessation Support Group",
+          description: "Weekly group therapy sessions combined with nicotine replacement therapy and counseling for patients wanting to quit smoking.",
+          type: "behavioral",
+          status: "active",
+          targetPopulation: "Current smokers",
+          duration: 12,
+          budget: 8500,
+          startDate: "2024-04-20",
+          organizationId,
+          metrics: {
+            enrolled: 28,
+            completed: 19,
+            successRate: 67
+          }
+        },
+        {
+          id: 5,
+          name: "Childhood Obesity Prevention",
+          description: "Family-based intervention program focusing on nutrition education, physical activity, and behavioral modification for overweight children.",
+          type: "lifestyle",
+          status: "completed",
+          targetPopulation: "Children aged 6-14 with BMI >85th percentile",
+          duration: 20,
+          budget: 15000,
+          startDate: "2024-01-15",
+          organizationId,
+          metrics: {
+            enrolled: 35,
+            completed: 32,
+            successRate: 91
+          }
+        }
+      ];
+
+      res.json(sampleInterventions);
+    } catch (error) {
+      console.error("Error fetching interventions:", error);
+      res.status(500).json({ error: "Failed to fetch interventions" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -38,6 +38,7 @@ import {
   Activity,
   Thermometer,
   Eye,
+  Edit,
   Stethoscope,
   Filter,
   Download,
@@ -127,6 +128,27 @@ export default function PopulationHealth() {
   const { data: preventiveCare, isLoading: preventiveLoading } = useQuery({
     queryKey: ["/api/population-health/preventive-care"],
     enabled: true
+  });
+
+  // Fetch interventions
+  const { data: interventions, isLoading: interventionsLoading } = useQuery<any[]>({
+    queryKey: ["/api/population-health/interventions"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/population-health/interventions', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch interventions');
+      }
+      return response.json();
+    },
+    retry: false,
+    staleTime: 0,
+    refetchOnWindowFocus: false,
   });
 
   // Create cohort mutation
@@ -910,16 +932,109 @@ export default function PopulationHealth() {
         <TabsContent value="interventions" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Population Health Interventions</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                Population Health Interventions
+                <Button onClick={() => setCreateInterventionOpen(true)}>
+                  <Target className="w-4 h-4 mr-2" />
+                  Create Intervention
+                </Button>
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 mb-6">
                 Design and implement targeted interventions for specific patient populations.
               </p>
-              <Button onClick={() => setCreateInterventionOpen(true)}>
-                <Target className="w-4 h-4 mr-2" />
-                Create Intervention
-              </Button>
+              
+              {interventionsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+              ) : interventions && interventions.length > 0 ? (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Active Interventions ({interventions.length})</h3>
+                  <div className="grid gap-4">
+                    {interventions.map((intervention: any) => (
+                      <div key={intervention.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <h4 className="font-semibold text-gray-900">{intervention.name}</h4>
+                              <Badge className={
+                                intervention.status === 'active' ? 'bg-green-100 text-green-800' :
+                                intervention.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                intervention.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                                'bg-gray-100 text-gray-800'
+                              }>
+                                {intervention.status}
+                              </Badge>
+                              <Badge variant="outline" className="text-xs">
+                                {intervention.type}
+                              </Badge>
+                            </div>
+                            <p className="text-gray-600 mb-3">{intervention.description}</p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                              <div>
+                                <span className="font-medium text-gray-700">Duration:</span>
+                                <p className="text-gray-600">{intervention.duration} weeks</p>
+                              </div>
+                              <div>
+                                <span className="font-medium text-gray-700">Budget:</span>
+                                <p className="text-gray-600">£{intervention.budget?.toLocaleString() || '0'}</p>
+                              </div>
+                              <div>
+                                <span className="font-medium text-gray-700">Target Population:</span>
+                                <p className="text-gray-600">{intervention.targetPopulation || 'All patients'}</p>
+                              </div>
+                              <div>
+                                <span className="font-medium text-gray-700">Start Date:</span>
+                                <p className="text-gray-600">{intervention.startDate ? format(new Date(intervention.startDate), 'MMM dd, yyyy') : 'Not set'}</p>
+                              </div>
+                            </div>
+                            {intervention.metrics && (
+                              <div className="mt-3 pt-3 border-t">
+                                <div className="flex items-center gap-4 text-sm">
+                                  <div className="flex items-center gap-2">
+                                    <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                                    <span className="text-gray-600">Enrolled: {intervention.metrics.enrolled || 0}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                                    <span className="text-gray-600">Completed: {intervention.metrics.completed || 0}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <div className="h-2 w-2 rounded-full bg-yellow-500"></div>
+                                    <span className="text-gray-600">Success Rate: {intervention.metrics.successRate || 0}%</span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm">
+                              <Eye className="w-4 h-4 mr-1" />
+                              View
+                            </Button>
+                            <Button variant="outline" size="sm">
+                              <Edit className="w-4 h-4 mr-1" />
+                              Edit
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Target className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No interventions created yet</h3>
+                  <p className="text-gray-500 mb-4">Create your first population health intervention to get started.</p>
+                  <Button onClick={() => setCreateInterventionOpen(true)} variant="outline">
+                    <Target className="w-4 h-4 mr-2" />
+                    Create First Intervention
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
