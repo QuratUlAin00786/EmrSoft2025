@@ -107,6 +107,9 @@ Averox EMR is a comprehensive multi-tenant Electronic Medical Records (EMR) syst
 - **COMPLETED**: Fixed Dashboard appointment booking dialog scrolling issue - added max-height constraint (90vh) and vertical scrolling to the New Appointment Dialog in appointment-calendar component, enabling users to scroll through all form fields when content exceeds viewport height
 - **COMPLETED**: Fixed authentication system for deployed environment - enabled proper authentication flow, created professional login page with Averox branding and demo credentials for all user roles, configured proper routing between login and main application
 - **COMPLETED**: Fixed user settings button in sidebar - replaced direct logout button with proper dropdown menu containing Profile Settings, Account Settings, and Sign out options with proper visual hierarchy and user information display
+- **COMPLETED**: Fixed page refresh authentication persistence - added missing /api/auth/validate endpoint to maintain user sessions across page refreshes without requiring re-login
+- **COMPLETED**: Fixed department display issue - corrected garbled department text by improving location string parsing logic to properly extract department names from appointment locations
+- **COMPLETED**: Fixed appointment scheduling in live environment - added JWT token authentication headers to appointment creation and deletion API calls to work properly in production deployment
 
 **June 29, 2025:**
 - **COMPLETED**: Fixed telemedicine Schedule Consultation dialog scrolling issue - added max-height constraint and vertical scrolling for proper dialog accessibility
