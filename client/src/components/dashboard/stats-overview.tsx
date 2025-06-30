@@ -54,9 +54,12 @@ export function StatsOverview() {
       try {
         setIsLoading(true);
         
+        const token = localStorage.getItem('auth_token');
         const response = await fetch('/api/dashboard/stats', {
           headers: {
-            'X-Tenant-Subdomain': 'demo'
+            'Authorization': `Bearer ${token}`,
+            'X-Tenant-Subdomain': 'demo',
+            'Content-Type': 'application/json'
           },
           credentials: 'include'
         });
