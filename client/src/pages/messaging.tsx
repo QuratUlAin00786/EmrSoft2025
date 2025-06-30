@@ -137,7 +137,7 @@ export default function MessagingPage() {
   const { data: conversations = [], isLoading: conversationsLoading, error: conversationsError } = useQuery({
     queryKey: ['/api/messaging/conversations'],
     queryFn: async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       console.log('Fetching conversations with token:', token ? 'present' : 'missing');
       const response = await fetch('/api/messaging/conversations', {
         method: 'GET',
@@ -178,7 +178,7 @@ export default function MessagingPage() {
   const { data: campaigns = [], isLoading: campaignsLoading, error: campaignsError } = useQuery({
     queryKey: ['/api/messaging/campaigns'],
     queryFn: async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       console.log('Fetching campaigns with token:', token ? 'present' : 'missing');
       const response = await fetch('/api/messaging/campaigns', {
         method: 'GET',
@@ -200,7 +200,7 @@ export default function MessagingPage() {
   const { data: templates = [], isLoading: templatesLoading, error: templatesError } = useQuery({
     queryKey: ['/api/messaging/templates'],
     queryFn: async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       console.log('Fetching templates with token:', token ? 'present' : 'missing');
       const response = await fetch('/api/messaging/templates', {
         method: 'GET',
@@ -222,7 +222,7 @@ export default function MessagingPage() {
   const { data: analytics = {}, isLoading: analyticsLoading } = useQuery({
     queryKey: ['/api/messaging/analytics'],
     queryFn: async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch('/api/messaging/analytics', {
         method: 'GET',
         headers: {
@@ -239,7 +239,7 @@ export default function MessagingPage() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch('/api/messaging/send', {
         method: 'POST',
         headers: {
@@ -268,7 +268,7 @@ export default function MessagingPage() {
 
   const createCampaignMutation = useMutation({
     mutationFn: async (campaignData: any) => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch('/api/messaging/campaigns', {
         method: 'POST',
         headers: {
