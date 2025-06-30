@@ -80,6 +80,19 @@ export default function AnalyticsPage() {
 
   const { data: analyticsData, isLoading } = useQuery({
     queryKey: ['/api/analytics'],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/analytics', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch analytics data');
+      }
+      return response.json();
+    }
   });
 
   const formatCurrency = (amount: number) => {
