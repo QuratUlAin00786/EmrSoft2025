@@ -110,6 +110,8 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
     staleTime: 0
   });
 
+  console.log("PatientList - isLoading:", isLoading, "error:", error, "patients:", patients);
+
 
 
   const handleViewPatient = (patient: any) => {
@@ -126,7 +128,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
     setSearchQuery(query);
     setSearchFilters(filters);
     
-    if (!patients) return;
+    if (!patients || !Array.isArray(patients)) return;
     
     let filtered = [...patients];
     
@@ -193,17 +195,19 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
   }
 
   if (error) {
+    console.error("Patient list error:", error);
     return (
       <div className="text-center py-8">
         <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
         <p className="text-red-600">Failed to load patients</p>
+        <p className="text-sm text-gray-500 mt-2">{error.message}</p>
       </div>
     );
   }
 
   const displayPatients = searchQuery || Object.keys(searchFilters).length > 1 
     ? filteredPatients 
-    : patients || [];
+    : (Array.isArray(patients) ? patients : []);
 
   return (
     <div className="space-y-4">

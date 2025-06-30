@@ -54,10 +54,10 @@ export const getQueryFn: <T>(options: {
     console.log("Making request to:", queryKey[0], "with auth token:", !!token);
     console.log("Request headers:", headers);
     
-    // Debug for AI insights specifically
-    if (queryKey[0] === "/api/dashboard/ai-insights") {
-      console.log("AI Insights request - token exists:", !!token);
-      console.log("AI Insights request - headers:", headers);
+    // Debug for patients specifically
+    if (queryKey[0] === "/api/patients") {
+      console.log("Patients request - token exists:", !!token);
+      console.log("Patients request - headers:", headers);
     }
     
     const res = await fetch(queryKey[0] as string, {
