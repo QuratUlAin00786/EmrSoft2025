@@ -102,6 +102,7 @@ Averox EMR is a comprehensive multi-tenant Electronic Medical Records (EMR) syst
 ## Changelog
 
 **June 30, 2025:**
+- **COMPLETED**: Fixed Automation page data loading in live environment - added JWT Bearer token headers to automation rules and statistics API calls, enabling proper display of automation data (12 total rules, 9 active rules) instead of showing zeros
 - **COMPLETED**: Fixed messaging system authentication for live environment - added JWT Bearer token headers to all messaging API calls including conversations, messages, campaigns, and message sending functionality, enabling users to create new messages and campaigns in production
 - **COMPLETED**: Fixed medical record creation authentication for live environment - added JWT Bearer token headers to all medical record API calls including creation, updates, and fetching in ConsultationNotes component, enabling users to add and edit patient medical records in production
 - **COMPLETED**: Fixed message templates functionality in live environment - added templates API endpoint with proper JWT authentication and comprehensive message templates (appointment reminders, lab results, prescriptions, emergency alerts, patient onboarding) with usage statistics
