@@ -1,5 +1,5 @@
 import { db } from "./db.js";
-import { organizations, users, patients, appointments, medicalRecords, notifications, prescriptions, subscriptions } from "@shared/schema.js";
+import { organizations, users, patients, appointments, medicalRecords, notifications, prescriptions, subscriptions, aiInsights } from "@shared/schema.js";
 import { authService } from "./services/auth.js";
 import { eq } from "drizzle-orm";
 
@@ -378,6 +378,93 @@ export async function seedDatabase() {
 
     const createdPrescriptions = await db.insert(prescriptions).values(samplePrescriptions).returning();
     console.log(`Created ${createdPrescriptions.length} sample prescriptions`);
+
+    // Create sample AI insights
+    const sampleAiInsights = [
+      {
+        organizationId: org.id,
+        patientId: createdPatients[0].id, // Sarah Johnson
+        type: "risk_alert",
+        title: "Cardiovascular Risk Assessment",
+        description: "Based on recent blood pressure readings and family history, patient shows elevated cardiovascular risk factors. Consider lifestyle modifications and medication review.",
+        severity: "medium" as const,
+        actionRequired: true,
+        confidence: "0.85",
+        metadata: {
+          relatedConditions: ["Hypertension", "Family History CVD"],
+          suggestedActions: ["Diet consultation", "Exercise program", "Medication review"],
+          references: ["AHA Guidelines 2023", "ESC Guidelines"]
+        },
+        status: "active" as const
+      },
+      {
+        organizationId: org.id,
+        patientId: createdPatients[1].id, // Robert Davis
+        type: "drug_interaction",
+        title: "Potential Drug Interaction Alert",
+        description: "Interaction detected between Metformin and newly prescribed medication. Monitor glucose levels closely and consider dosage adjustment.",
+        severity: "high" as const,
+        actionRequired: true,
+        confidence: "0.92",
+        metadata: {
+          relatedConditions: ["Type 2 Diabetes", "Drug Interaction"],
+          suggestedActions: ["Monitor blood glucose", "Review medication timing", "Patient education"],
+          references: ["Drug Interaction Database", "FDA Guidelines"]
+        },
+        status: "active" as const
+      },
+      {
+        organizationId: org.id,
+        patientId: createdPatients[0].id, // Sarah Johnson
+        type: "treatment_suggestion",
+        title: "Hypertension Management Optimization",
+        description: "Current treatment plan shows good response. Consider adding lifestyle interventions to potentially reduce medication dependency.",
+        severity: "low" as const,
+        actionRequired: false,
+        confidence: "0.78",
+        metadata: {
+          relatedConditions: ["Hypertension", "ACE Inhibitor Therapy"],
+          suggestedActions: ["DASH diet counseling", "Regular exercise program", "Weight management"],
+          references: ["JNC 8 Guidelines", "AHA Lifestyle Guidelines"]
+        },
+        status: "active" as const
+      },
+      {
+        organizationId: org.id,
+        patientId: createdPatients[1].id, // Robert Davis
+        type: "preventive_care",
+        title: "Diabetic Screening Recommendations",
+        description: "Patient due for annual diabetic complications screening. Schedule eye exam, foot examination, and kidney function tests.",
+        severity: "medium" as const,
+        actionRequired: true,
+        confidence: "0.95",
+        metadata: {
+          relatedConditions: ["Type 2 Diabetes", "Preventive Care"],
+          suggestedActions: ["Ophthalmology referral", "Podiatry consultation", "Lab work: HbA1c, microalbumin"],
+          references: ["ADA Standards of Care", "Diabetic Complications Guidelines"]
+        },
+        status: "active" as const
+      },
+      {
+        organizationId: org.id,
+        patientId: createdPatients[0].id, // Sarah Johnson
+        type: "risk_alert",
+        title: "Medication Adherence Concern",
+        description: "AI analysis of prescription refill patterns suggests potential adherence issues. Patient may benefit from medication management support.",
+        severity: "medium" as const,
+        actionRequired: true,
+        confidence: "0.73",
+        metadata: {
+          relatedConditions: ["Medication Adherence", "Hypertension"],
+          suggestedActions: ["Adherence counseling", "Pill organizer", "Follow-up call"],
+          references: ["Medication Adherence Guidelines", "Patient Education Resources"]
+        },
+        status: "active" as const
+      }
+    ];
+
+    const createdAiInsights = await db.insert(aiInsights).values(sampleAiInsights).returning();
+    console.log(`Created ${createdAiInsights.length} sample AI insights`);
 
     // Create sample subscription if it doesn't exist
     const existingSubscription = await db.select().from(subscriptions).where(eq(subscriptions.organizationId, org.id));
