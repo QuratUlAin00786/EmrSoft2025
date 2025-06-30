@@ -1552,6 +1552,205 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Mobile Health endpoints
+  app.get("/api/mobile-health/devices", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const sampleDevices = [
+        {
+          id: "device_1",
+          patientId: "patient_1",
+          patientName: "Sarah Johnson",
+          deviceType: "smartwatch",
+          brand: "Apple",
+          model: "Watch Series 9",
+          status: "connected",
+          batteryLevel: 78,
+          lastSync: "2024-06-30T15:30:00Z",
+          dataTypes: ["Heart Rate", "Steps", "Sleep", "ECG"],
+          readings: [
+            {
+              timestamp: "2024-06-30T15:30:00Z",
+              type: "heart_rate",
+              value: 72,
+              unit: "bpm",
+              status: "normal"
+            },
+            {
+              timestamp: "2024-06-30T15:30:00Z",
+              type: "steps",
+              value: 8456,
+              unit: "steps",
+              status: "normal"
+            }
+          ]
+        },
+        {
+          id: "device_2",
+          patientId: "patient_2",
+          patientName: "Michael Chen",
+          deviceType: "glucose_monitor",
+          brand: "Dexcom",
+          model: "G7",
+          status: "connected",
+          batteryLevel: 92,
+          lastSync: "2024-06-30T15:45:00Z",
+          dataTypes: ["Blood Glucose", "Trends"],
+          readings: [
+            {
+              timestamp: "2024-06-30T15:45:00Z",
+              type: "glucose",
+              value: 142,
+              unit: "mg/dL",
+              status: "abnormal"
+            }
+          ]
+        },
+        {
+          id: "device_3",
+          patientId: "patient_3",
+          patientName: "Emma Davis",
+          deviceType: "blood_pressure",
+          brand: "Omron",
+          model: "HeartGuide",
+          status: "disconnected",
+          batteryLevel: 15,
+          lastSync: "2024-06-29T08:20:00Z",
+          dataTypes: ["Blood Pressure", "Heart Rate"],
+          readings: []
+        }
+      ];
+
+      res.json(sampleDevices);
+    } catch (error) {
+      console.error("Error fetching mobile health devices:", error);
+      res.status(500).json({ error: "Failed to fetch devices" });
+    }
+  });
+
+  app.post("/api/mobile-health/devices/:id/sync", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const deviceId = req.params.id;
+      
+      // Simulate device sync process
+      const syncResult = {
+        deviceId,
+        status: "success",
+        syncedAt: new Date().toISOString(),
+        newReadings: Math.floor(Math.random() * 10) + 1,
+        batteryLevel: Math.floor(Math.random() * 30) + 70,
+        message: "Device synchronized successfully"
+      };
+
+      // Simulate a delay for sync process
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      res.json(syncResult);
+    } catch (error) {
+      console.error("Error syncing device:", error);
+      res.status(500).json({ error: "Failed to sync device" });
+    }
+  });
+
+  app.get("/api/mobile-health/apps", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const sampleApps = [
+        {
+          id: "app_1",
+          name: "Averox Patient Portal",
+          description: "Complete patient portal with appointment booking, messaging, and health records",
+          category: "patient_portal",
+          platform: "pwa",
+          version: "2.1.0",
+          downloads: 15420,
+          rating: 4.8,
+          features: [
+            "Appointment Booking",
+            "Secure Messaging",
+            "Lab Results",
+            "Prescription Management",
+            "Health Records",
+            "Telehealth Integration"
+          ],
+          screenshots: []
+        },
+        {
+          id: "app_2",
+          name: "Averox Medication Tracker",
+          description: "Smart medication reminders with dose tracking and refill alerts",
+          category: "medication_tracker",
+          platform: "ios",
+          version: "1.5.2",
+          downloads: 8930,
+          rating: 4.6,
+          features: [
+            "Medication Reminders",
+            "Dose Tracking",
+            "Refill Alerts",
+            "Drug Interaction Warnings",
+            "Pill Recognition"
+          ],
+          screenshots: []
+        }
+      ];
+
+      res.json(sampleApps);
+    } catch (error) {
+      console.error("Error fetching mobile health apps:", error);
+      res.status(500).json({ error: "Failed to fetch apps" });
+    }
+  });
+
+  app.get("/api/mobile-health/notifications", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const sampleNotifications = [
+        {
+          id: "notif_1",
+          patientId: "patient_1",
+          patientName: "Sarah Johnson",
+          type: "appointment_reminder",
+          title: "Appointment Reminder",
+          message: "You have an appointment tomorrow at 10:00 AM with Dr. Emily Watson",
+          priority: "normal",
+          scheduledTime: "2024-07-01T09:00:00Z",
+          status: "scheduled"
+        },
+        {
+          id: "notif_2",
+          patientId: "patient_2",
+          patientName: "Michael Chen",
+          type: "health_alert",
+          title: "Blood Glucose Alert",
+          message: "Your blood glucose reading of 180 mg/dL is elevated. Please check your levels.",
+          priority: "high",
+          scheduledTime: "2024-06-30T16:00:00Z",
+          status: "delivered",
+          deliveryTime: "2024-06-30T16:00:12Z"
+        }
+      ];
+
+      res.json(sampleNotifications);
+    } catch (error) {
+      console.error("Error fetching mobile health notifications:", error);
+      res.status(500).json({ error: "Failed to fetch notifications" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

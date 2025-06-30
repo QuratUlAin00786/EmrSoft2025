@@ -95,6 +95,8 @@ export default function MobileHealth() {
   const [appPreviewOpen, setAppPreviewOpen] = useState(false);
   const [selectedApp, setSelectedApp] = useState<MobileApp | null>(null);
   const [shareLinkOpen, setShareLinkOpen] = useState(false);
+  const [deviceSettingsOpen, setDeviceSettingsOpen] = useState(false);
+  const [settingsDevice, setSettingsDevice] = useState<WearableDevice | null>(null);
   const { toast } = useToast();
 
   // Fetch wearable devices
@@ -118,16 +120,31 @@ export default function MobileHealth() {
   // Sync device mutation
   const syncDeviceMutation = useMutation({
     mutationFn: async (deviceId: string) => {
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`/api/mobile-health/devices/${deviceId}/sync`, {
         method: "POST",
-        credentials: "include"
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo',
+          'Content-Type': 'application/json'
+        }
       });
       if (!response.ok) throw new Error("Failed to sync device");
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/mobile-health/devices"] });
-      toast({ title: "Device synced successfully" });
+      toast({ 
+        title: "Device Synced Successfully", 
+        description: "Device data has been synchronized and updated."
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Sync Failed",
+        description: "Unable to sync device. Please try again.",
+        variant: "destructive"
+      });
     }
   });
 
@@ -751,11 +768,25 @@ export default function MobileHealth() {
               </div>
 
               <div className="flex gap-2">
-                <Button onClick={() => syncDeviceMutation.mutate(selectedDevice.id)}>
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Sync Device
+                <Button 
+                  onClick={() => syncDeviceMutation.mutate(selectedDevice.id)}
+                  disabled={syncDeviceMutation.isPending || selectedDevice.status === 'syncing'}
+                >
+                  {syncDeviceMutation.isPending ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  ) : (
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                  )}
+                  {syncDeviceMutation.isPending ? 'Syncing...' : 'Sync Device'}
                 </Button>
-                <Button variant="outline">
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    setSettingsDevice(selectedDevice);
+                    setDeviceSettingsOpen(true);
+                    setSelectedDevice(null);
+                  }}
+                >
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
                 </Button>
@@ -1496,6 +1527,166 @@ Download link: https://apps.averox.com/${selectedApp.id}`}
                   setShareLinkOpen(false);
                 }}>
                   Done
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Device Settings Dialog */}
+      <Dialog open={deviceSettingsOpen} onOpenChange={setDeviceSettingsOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Device Settings - {settingsDevice?.brand} {settingsDevice?.model}
+            </DialogTitle>
+          </DialogHeader>
+          {settingsDevice && (
+            <div className="space-y-6">
+              {/* Sync Settings */}
+              <div>
+                <h4 className="font-medium mb-3">Sync Settings</h4>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">Sync Frequency</label>
+                    <Select defaultValue="every_hour">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="real_time">Real-time</SelectItem>
+                        <SelectItem value="every_15min">Every 15 minutes</SelectItem>
+                        <SelectItem value="every_hour">Every hour</SelectItem>
+                        <SelectItem value="every_4hours">Every 4 hours</SelectItem>
+                        <SelectItem value="daily">Daily</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium">Auto-sync Conditions</label>
+                    <div className="space-y-2 mt-2">
+                      <label className="flex items-center space-x-2">
+                        <input type="checkbox" defaultChecked className="rounded" />
+                        <span className="text-sm">Wi-Fi only</span>
+                      </label>
+                      <label className="flex items-center space-x-2">
+                        <input type="checkbox" className="rounded" />
+                        <span className="text-sm">Allow mobile data</span>
+                      </label>
+                      <label className="flex items-center space-x-2">
+                        <input type="checkbox" defaultChecked className="rounded" />
+                        <span className="text-sm">When charging</span>
+                      </label>
+                      <label className="flex items-center space-x-2">
+                        <input type="checkbox" defaultChecked className="rounded" />
+                        <span className="text-sm">During work hours only</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Data Collection */}
+              <div>
+                <h4 className="font-medium mb-3">Data Collection</h4>
+                <div className="space-y-2">
+                  {settingsDevice.dataTypes.map((dataType, index) => (
+                    <label key={index} className="flex items-center space-x-2">
+                      <input type="checkbox" defaultChecked className="rounded" />
+                      <span className="text-sm">{dataType}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Alert Thresholds */}
+              <div>
+                <h4 className="font-medium mb-3">Alert Thresholds</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  {settingsDevice.deviceType === 'smartwatch' && (
+                    <>
+                      <div>
+                        <label className="text-sm font-medium">Heart Rate (High)</label>
+                        <input 
+                          type="number" 
+                          defaultValue="120" 
+                          className="w-full mt-1 p-2 border rounded"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Heart Rate (Low)</label>
+                        <input 
+                          type="number" 
+                          defaultValue="50" 
+                          className="w-full mt-1 p-2 border rounded"
+                        />
+                      </div>
+                    </>
+                  )}
+                  {settingsDevice.deviceType === 'glucose_monitor' && (
+                    <>
+                      <div>
+                        <label className="text-sm font-medium">Glucose High (mg/dL)</label>
+                        <input 
+                          type="number" 
+                          defaultValue="180" 
+                          className="w-full mt-1 p-2 border rounded"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Glucose Low (mg/dL)</label>
+                        <input 
+                          type="number" 
+                          defaultValue="70" 
+                          className="w-full mt-1 p-2 border rounded"
+                        />
+                      </div>
+                    </>
+                  )}
+                  <div>
+                    <label className="text-sm font-medium">Battery Low Alert (%)</label>
+                    <input 
+                      type="number" 
+                      defaultValue="20" 
+                      className="w-full mt-1 p-2 border rounded"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Privacy Settings */}
+              <div>
+                <h4 className="font-medium mb-3">Privacy & Security</h4>
+                <div className="space-y-2">
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" defaultChecked className="rounded" />
+                    <span className="text-sm">Share data with healthcare provider</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" className="rounded" />
+                    <span className="text-sm">Allow anonymous research participation</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" defaultChecked className="rounded" />
+                    <span className="text-sm">Encrypt sensitive data</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <Button variant="outline" onClick={() => setDeviceSettingsOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={() => {
+                  toast({
+                    title: "Settings Saved",
+                    description: "Device settings have been updated successfully",
+                  });
+                  setDeviceSettingsOpen(false);
+                }}>
+                  Save Settings
                 </Button>
               </div>
             </div>
