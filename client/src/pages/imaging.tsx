@@ -179,6 +179,27 @@ export default function ImagingPage() {
   });
   const { toast } = useToast();
 
+  // Fetch patients for the order dialog
+  const { data: patients = [], isLoading: patientsLoading } = useQuery({
+    queryKey: ["/api/patients"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/patients', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`${response.status}: ${response.statusText}`);
+      }
+      
+      return response.json();
+    },
+    enabled: showNewOrder, // Only fetch when dialog is open
+  });
+
   const handleViewStudy = (study: ImagingStudy) => {
     setSelectedStudy(study);
     setShowViewDialog(true);
@@ -961,12 +982,20 @@ export default function ImagingPage() {
                 </Label>
                 <Select>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select patient" />
+                    <SelectValue placeholder={patientsLoading ? "Loading patients..." : "Select patient"} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="p_001">Sarah Johnson (P001)</SelectItem>
-                    <SelectItem value="p_002">Michael Chen (P002)</SelectItem>
-                    <SelectItem value="p_003">Emily Davis (P003)</SelectItem>
+                    {patientsLoading ? (
+                      <SelectItem value="loading" disabled>Loading patients...</SelectItem>
+                    ) : patients.length > 0 ? (
+                      patients.map((patient: any) => (
+                        <SelectItem key={patient.id} value={patient.id.toString()}>
+                          {patient.firstName} {patient.lastName} ({patient.patientId})
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="no-patients" disabled>No patients found</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
