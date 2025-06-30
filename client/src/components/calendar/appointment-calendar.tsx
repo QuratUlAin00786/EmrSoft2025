@@ -610,14 +610,14 @@ export default function AppointmentCalendar() {
 
       {/* New Appointment Dialog */}
       <Dialog open={showNewAppointment} onOpenChange={setShowNewAppointment}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-blue-600" />
               Schedule New Appointment
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-y-auto max-h-[calc(90vh-120px)]">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 block">Patient *</label>

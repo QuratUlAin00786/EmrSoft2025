@@ -101,6 +101,9 @@ Averox EMR is a comprehensive multi-tenant Electronic Medical Records (EMR) syst
 
 ## Changelog
 
+**June 30, 2025:**
+- **COMPLETED**: Fixed Dashboard appointment booking dialog scrolling issue - added max-height constraint (90vh) and vertical scrolling to the New Appointment Dialog in appointment-calendar component, enabling users to scroll through all form fields when content exceeds viewport height
+
 **June 29, 2025:**
 - **COMPLETED**: Fixed telemedicine Schedule Consultation dialog scrolling issue - added max-height constraint and vertical scrolling for proper dialog accessibility
 - **COMPLETED**: Fixed telemedicine Settings dialog save functionality - implemented controlled state management and proper dialog closing after save operations
