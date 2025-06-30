@@ -572,3 +572,7 @@ export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 export type Prescription = typeof prescriptions.$inferSelect;
 export type InsertPrescription = z.infer<typeof insertPrescriptionSchema>;
+
+// Replit Auth user types
+export type User = typeof users.$inferSelect;
+export type UpsertUser = typeof users.$inferInsert;

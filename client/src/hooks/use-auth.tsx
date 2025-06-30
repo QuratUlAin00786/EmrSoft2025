@@ -17,25 +17,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // In development mode, create a mock user automatically
-    setUser({
-      id: 1,
-      email: "demo@demo.com",
-      firstName: "Demo",
-      lastName: "User",
-      role: "admin",
-      department: "Administration"
-    });
-    setLoading(false);
-    return;
-
-    // Skip the rest in development mode
-    // const token = localStorage.getItem('auth_token');
-    // if (token) {
-    //   validateToken(token);
-    // } else {
-    //   setLoading(false);
-    // }
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      validateToken(token);
+    } else {
+      setLoading(false);
+    }
   }, []);
 
   const validateToken = async (token: string) => {
