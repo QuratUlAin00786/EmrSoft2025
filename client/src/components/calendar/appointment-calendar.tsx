@@ -434,7 +434,11 @@ export default function AppointmentCalendar() {
                       </Badge>
                       {appointment.location && appointment.location.includes('Department') && (
                         <Badge className="bg-blue-100 text-blue-800">
-                          {appointment.location.split(', ')[1] || appointment.location.split('Department')[0] + 'Department'}
+                          {(() => {
+                            const parts = appointment.location.split(', ');
+                            return parts.find(part => part.includes('Department')) || 
+                                   parts[parts.length - 1];
+                          })()}
                         </Badge>
                       )}
                     </div>
@@ -541,7 +545,11 @@ export default function AppointmentCalendar() {
                   {selectedAppointment.location && selectedAppointment.location.includes('Department') && (
                     <p className="text-sm"><strong>Department:</strong> 
                       <Badge className="ml-2 bg-blue-100 text-blue-800">
-                        {selectedAppointment.location.split(', ')[1] || selectedAppointment.location.split('Department')[0] + 'Department'}
+                        {(() => {
+                          const parts = selectedAppointment.location.split(', ');
+                          return parts.find(part => part.includes('Department')) || 
+                                 parts[parts.length - 1];
+                        })()}
                       </Badge>
                     </p>
                   )}
