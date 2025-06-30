@@ -96,10 +96,36 @@ export default function AutomationPage() {
 
   const { data: automationRules = [], isLoading: rulesLoading } = useQuery({
     queryKey: ['/api/automation/rules'],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/automation/rules', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch automation rules');
+      }
+      return response.json();
+    }
   });
 
   const { data: automationStats, isLoading: statsLoading } = useQuery({
     queryKey: ['/api/automation/stats'],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/automation/stats', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch automation stats');
+      }
+      return response.json();
+    }
   });
 
   // Type-safe data access
@@ -117,8 +143,13 @@ export default function AutomationPage() {
 
   const toggleRuleMutation = useMutation({
     mutationFn: async (ruleId: string) => {
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`/api/automation/rules/${ruleId}/toggle`, {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
       });
       return response.json();
     },
