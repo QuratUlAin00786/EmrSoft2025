@@ -42,10 +42,17 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
   const { data: medicalStaff = [], isLoading, error } = useQuery({
     queryKey: ["/api/medical-staff"],
     queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
       const response = await fetch("/api/medical-staff", {
-        headers: {
-          'X-Tenant-Subdomain': 'demo'
-        },
+        headers,
         credentials: 'include'
       });
       

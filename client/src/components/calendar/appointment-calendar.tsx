@@ -31,6 +31,8 @@ export default function AppointmentCalendar() {
   const { toast } = useToast();
 
   const [appointments, setAppointments] = useState<any[]>([]);
+  const [patients, setPatients] = useState<any[]>([]);
+  const [providers, setProviders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreatingAppointment, setIsCreatingAppointment] = useState(false);
   
@@ -54,10 +56,17 @@ export default function AppointmentCalendar() {
       setIsLoading(true);
       console.log("Fetching appointments from calendar...");
       
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
       const response = await fetch('/api/appointments', {
-        headers: {
-          'X-Tenant-Subdomain': 'demo'
-        },
+        headers,
         credentials: 'include'
       });
       
@@ -78,8 +87,66 @@ export default function AppointmentCalendar() {
     }
   };
 
+  const fetchPatients = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch('/api/patients', {
+        headers,
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setPatients(data || []);
+    } catch (err) {
+      console.error("Error fetching patients:", err);
+      setPatients([]);
+    }
+  };
+
+  const fetchProviders = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch('/api/medical-staff', {
+        headers,
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setProviders(data || []);
+    } catch (err) {
+      console.error("Error fetching providers:", err);
+      setProviders([]);
+    }
+  };
+
   useEffect(() => {
     fetchAppointments();
+    fetchPatients();
+    fetchProviders();
   }, []);
 
   const createAppointment = async () => {
@@ -699,11 +766,11 @@ export default function AppointmentCalendar() {
                   onChange={(e) => setFormData(prev => ({ ...prev, patientId: e.target.value }))}
                 >
                   <option value="">Select patient...</option>
-                  <option value="1">Sarah Smith (P001)</option>
-                  <option value="2">Emily Johnson (P002)</option>
-                  <option value="3">Michael Brown (P003)</option>
-                  <option value="4">Maria Garcia (P004)</option>
-                  <option value="5">David Wilson (P005)</option>
+                  {patients.map((patient: any) => (
+                    <option key={patient.id} value={patient.id}>
+                      {patient.firstName} {patient.lastName} ({patient.patientId})
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -714,9 +781,11 @@ export default function AppointmentCalendar() {
                   onChange={(e) => setFormData(prev => ({ ...prev, providerId: e.target.value }))}
                 >
                   <option value="">Select provider...</option>
-                  <option value="1">Dr. Sarah Johnson</option>
-                  <option value="2">Dr. Michael Chen</option>
-                  <option value="3">Dr. Emily Davis</option>
+                  {providers.map((provider: any) => (
+                    <option key={provider.id} value={provider.id}>
+                      Dr. {provider.firstName} {provider.lastName}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
