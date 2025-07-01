@@ -1801,7 +1801,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { patientId, type } = req.body;
       
       // Get patient info to associate with the note
-      const patient = await storage.getPatient(parseInt(patientId), req.organizationId!);
+      const patientIdNum = parseInt(patientId);
+      if (isNaN(patientIdNum)) {
+        return res.status(400).json({ error: "Invalid patient ID" });
+      }
+      
+      const patient = await storage.getPatient(patientIdNum, req.organizationId!);
       if (!patient) {
         return res.status(404).json({ error: "Patient not found" });
       }
