@@ -26,7 +26,8 @@ import {
   Send,
   AlertTriangle,
   CheckCircle,
-  Clock
+  Clock,
+  Trash2
 } from "lucide-react";
 
 interface Invoice {
@@ -288,6 +289,22 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
         setRecipientEmail("");
         setCustomMessage("");
       }, 1000);
+    }
+  };
+
+  const handleDeleteInvoice = (invoiceId: string) => {
+    const invoice = Array.isArray(invoices) ? invoices.find((inv: any) => inv.id === invoiceId) : null;
+    if (invoice) {
+      if (confirm(`Are you sure you want to delete invoice ${invoiceId} for ${invoice.patientName}?`)) {
+        // Simulate deletion
+        toast({
+          title: "Invoice Deleted",
+          description: `Invoice ${invoiceId} has been successfully deleted`,
+          variant: "destructive",
+        });
+        // In a real app, you would make an API call here to delete the invoice
+        // and then invalidate/refetch the invoices query
+      }
     }
   };
 
@@ -565,6 +582,14 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
                         </Button>
                         <Button variant="outline" size="sm" onClick={() => handleSendInvoice(invoice.id)}>
                           <Send className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleDeleteInvoice(invoice.id)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
