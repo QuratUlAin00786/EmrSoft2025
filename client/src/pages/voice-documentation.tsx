@@ -624,10 +624,21 @@ export default function VoiceDocumentation() {
       return;
     }
 
+    // Get the final transcript (without interim markers)
+    const finalTranscript = currentTranscript.replace(/\[Speaking\.\.\.\]/g, '').trim();
+    
+    if (!finalTranscript) {
+      toast({ title: "No transcript to save", variant: "destructive" });
+      return;
+    }
+
     createVoiceNoteMutation.mutate({
-      audioBlob: new Blob(), // Placeholder since we're focusing on the list update
+      audioBlob: new Blob(), // Audio blob from recording
       patientId: selectedPatient,
-      type: selectedNoteType
+      type: selectedNoteType,
+      transcript: finalTranscript,
+      duration: recordingTime,
+      confidence: finalTranscript ? 95 : 0
     });
   };
 
