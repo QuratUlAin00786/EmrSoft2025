@@ -28,10 +28,15 @@ export async function seedDatabase() {
       console.log(`Using existing organization: ${org.name} (ID: ${org.id})`);
     }
 
-    // Create sample users
-    const hashedPassword = await authService.hashPassword("password123");
+    // Create sample users only if they don't exist
+    const existingUsers = await db.select().from(users).where(eq(users.organizationId, org.id));
     
-    const sampleUsers = [
+    let createdUsers = existingUsers;
+    
+    if (existingUsers.length === 0) {
+      const hashedPassword = await authService.hashPassword("password123");
+      
+      const sampleUsers = [
       {
         organizationId: org.id,
         email: "admin@demo.medicoreemr.com",
@@ -67,16 +72,24 @@ export async function seedDatabase() {
       }
     ];
 
-    const createdUsers = await db.insert(users).values(sampleUsers).returning();
-    console.log(`Created ${createdUsers.length} users`);
+      createdUsers = await db.insert(users).values(sampleUsers).returning();
+      console.log(`Created ${createdUsers.length} users`);
+    } else {
+      console.log(`Using existing ${existingUsers.length} users`);
+    }
 
-    // Create sample patients
-    const samplePatients = [
-      {
-        organizationId: org.id,
-        patientId: "P001",
-        firstName: "Alice",
-        lastName: "Williams",
+    // Create sample patients only if they don't exist
+    const existingPatients = await db.select().from(patients).where(eq(patients.organizationId, org.id));
+    
+    let createdPatients = existingPatients;
+    
+    if (existingPatients.length === 0) {
+      const samplePatients = [
+        {
+          organizationId: org.id,
+          patientId: "P001",
+          firstName: "Alice",
+          lastName: "Williams",
         dateOfBirth: new Date("1985-03-15"),
         email: "alice.williams@email.com",
         phone: "+44 7700 900123",
@@ -132,8 +145,11 @@ export async function seedDatabase() {
       }
     ];
 
-    const createdPatients = await db.insert(patients).values(samplePatients).returning();
-    console.log(`Created ${createdPatients.length} patients`);
+      createdPatients = await db.insert(patients).values(samplePatients).returning();
+      console.log(`Created ${createdPatients.length} patients`);
+    } else {
+      console.log(`Using existing ${existingPatients.length} patients`);
+    }
 
     // Create sample appointments
     const tomorrow = new Date();
