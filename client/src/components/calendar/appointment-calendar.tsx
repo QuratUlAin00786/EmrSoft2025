@@ -109,10 +109,16 @@ export default function AppointmentCalendar() {
       }
       
       const data = await response.json();
-      // Remove duplicates based on patient ID
+      console.log("Raw patients data:", data);
+      console.log("Number of patients:", data?.length);
+      
+      // Remove duplicates based on patient name (what user sees)
       const uniquePatients = data ? data.filter((patient: any, index: number, self: any[]) => 
-        index === self.findIndex((p: any) => p.id === patient.id)
+        index === self.findIndex((p: any) => `${p.firstName} ${p.lastName}` === `${patient.firstName} ${patient.lastName}`)
       ) : [];
+      
+      console.log("Unique patients after dedup:", uniquePatients);
+      console.log("Number of unique patients:", uniquePatients.length);
       setPatients(uniquePatients);
     } catch (err) {
       console.error("Error fetching patients:", err);
@@ -141,10 +147,16 @@ export default function AppointmentCalendar() {
       }
       
       const data = await response.json();
-      // Remove duplicates based on provider ID
+      console.log("Raw providers data:", data);
+      console.log("Number of providers:", data?.length);
+      
+      // Remove duplicates based on provider name (what user sees)
       const uniqueProviders = data ? data.filter((provider: any, index: number, self: any[]) => 
-        index === self.findIndex((p: any) => p.id === provider.id)
+        index === self.findIndex((p: any) => `${p.firstName} ${p.lastName}` === `${provider.firstName} ${provider.lastName}`)
       ) : [];
+      
+      console.log("Unique providers after dedup:", uniqueProviders);
+      console.log("Number of unique providers:", uniqueProviders.length);
       setProviders(uniqueProviders);
     } catch (err) {
       console.error("Error fetching providers:", err);
