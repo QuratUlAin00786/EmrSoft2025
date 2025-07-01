@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -81,8 +81,21 @@ function ProtectedApp() {
 
 function AppRouter() {
   const { isAuthenticated, loading } = useAuth();
+  const [location, setLocation] = useLocation();
 
   if (loading) {
+    return <LoadingPage />;
+  }
+
+  // Redirect authenticated users away from login page
+  if (isAuthenticated && location === '/login') {
+    setLocation('/dashboard');
+    return <LoadingPage />;
+  }
+
+  // Redirect unauthenticated users to login page
+  if (!isAuthenticated && location !== '/login') {
+    setLocation('/login');
     return <LoadingPage />;
   }
 
