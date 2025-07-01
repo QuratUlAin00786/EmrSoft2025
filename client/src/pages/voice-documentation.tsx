@@ -142,6 +142,7 @@ export default function VoiceDocumentation() {
   const [voiceSettingsOpen, setVoiceSettingsOpen] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const speechRecognitionRef = useRef<any>(null);
   const { toast } = useToast();
 
   // Fetch voice notes with forced refresh
@@ -216,7 +217,7 @@ export default function VoiceDocumentation() {
 
   // Create voice note mutation
   const createVoiceNoteMutation = useMutation({
-    mutationFn: async (data: { audioBlob: Blob; patientId: string; type: string; tempAudioUrl?: string; tempNoteId?: string }) => {
+    mutationFn: async (data: { audioBlob: Blob; patientId: string; type: string; transcript?: string; duration?: number; confidence?: number; tempAudioUrl?: string; tempNoteId?: string }) => {
       const token = localStorage.getItem('auth_token');
       const response = await fetch("/api/voice-documentation/notes", {
         method: "POST",
@@ -227,7 +228,10 @@ export default function VoiceDocumentation() {
         },
         body: JSON.stringify({
           patientId: data.patientId,
-          type: data.type
+          type: data.type,
+          transcript: data.transcript,
+          duration: data.duration,
+          confidence: data.confidence
         })
       });
       if (!response.ok) throw new Error("Failed to create voice note");
@@ -477,9 +481,47 @@ export default function VoiceDocumentation() {
 
   const startRecording = async () => {
     try {
+      // Clear previous transcript
+      setCurrentTranscript("");
+      
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorderRef.current = new MediaRecorder(stream);
       audioChunksRef.current = [];
+
+      // Initialize speech recognition for real-time transcription
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        speechRecognitionRef.current = new SpeechRecognition();
+        speechRecognitionRef.current.continuous = true;
+        speechRecognitionRef.current.interimResults = true;
+        speechRecognitionRef.current.lang = 'en-US';
+
+        speechRecognitionRef.current.onresult = (event: any) => {
+          let finalTranscript = '';
+          let interimTranscript = '';
+
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              finalTranscript += transcript;
+            } else {
+              interimTranscript += transcript;
+            }
+          }
+
+          setCurrentTranscript(prev => {
+            const existingFinal = prev.split('[Speaking...]')[0];
+            const newText = existingFinal + finalTranscript;
+            return interimTranscript ? newText + '[Speaking...] ' + interimTranscript : newText;
+          });
+        };
+
+        speechRecognitionRef.current.onerror = (event: any) => {
+          console.warn('Speech recognition error:', event.error);
+        };
+
+        speechRecognitionRef.current.start();
+      }
 
       mediaRecorderRef.current.ondataavailable = (event) => {
         audioChunksRef.current.push(event.data);
@@ -493,16 +535,17 @@ export default function VoiceDocumentation() {
         if (selectedPatient && selectedNoteType) {
           // Create optimistic note for immediate UI update
           const tempNoteId = `temp_${Date.now()}`;
+          const finalTranscript = currentTranscript.replace(/\[Speaking\.\.\.\]/g, '').trim();
           const optimisticNote = {
             id: tempNoteId,
             patientId: selectedPatient,
-            patientName: patients.data?.find(p => p.id.toString() === selectedPatient)?.firstName + " " + patients.data?.find(p => p.id.toString() === selectedPatient)?.lastName || "Unknown Patient",
+            patientName: patients.data?.find((p: any) => p.id.toString() === selectedPatient)?.firstName + " " + patients.data?.find((p: any) => p.id.toString() === selectedPatient)?.lastName || "Unknown Patient",
             type: selectedNoteType,
-            transcript: currentTranscript || "Processing audio...",
+            transcript: finalTranscript || "No speech detected during recording",
             duration: recordingTime,
             createdAt: new Date().toISOString(),
-            confidence: 0.95,
-            status: "processing"
+            confidence: finalTranscript ? 0.95 : 0,
+            status: finalTranscript ? "completed" : "processing"
           };
           
           // Store audio URL for immediate playback
@@ -521,6 +564,9 @@ export default function VoiceDocumentation() {
             audioBlob,
             patientId: selectedPatient,
             type: selectedNoteType,
+            transcript: finalTranscript,
+            duration: recordingTime,
+            confidence: finalTranscript ? 95 : 0,
             tempAudioUrl: audioUrl,
             tempNoteId: tempNoteId
           });
@@ -543,6 +589,14 @@ export default function VoiceDocumentation() {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       
+      // Stop speech recognition
+      if (speechRecognitionRef.current) {
+        speechRecognitionRef.current.stop();
+      }
+      
+      // Clean up interim transcript markers
+      setCurrentTranscript(prev => prev.replace(/\[Speaking\.\.\.\]/g, '').trim());
+      
       // Validate required fields
       if (!selectedPatient) {
         toast({ title: "Please select a patient first", variant: "destructive" });
@@ -554,7 +608,7 @@ export default function VoiceDocumentation() {
         return;
       }
       
-      toast({ title: "Recording stopped. Saving..." });
+      toast({ title: "Recording stopped. Saving transcript..." });
       
       // Automatically save the voice note
       saveVoiceNote();
