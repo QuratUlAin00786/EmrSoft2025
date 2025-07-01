@@ -144,23 +144,26 @@ export default function VoiceDocumentation() {
   const audioChunksRef = useRef<Blob[]>([]);
   const { toast } = useToast();
 
-  // Fetch voice notes
+  // Fetch voice notes with forced refresh
   const { data: voiceNotes, isLoading: notesLoading } = useQuery({
     queryKey: ["/api/voice-documentation/notes"],
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
-      const response = await fetch('/api/voice-documentation/notes', {
+      const response = await fetch(`/api/voice-documentation/notes?_t=${Date.now()}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': 'demo',
+          'Cache-Control': 'no-cache'
         }
       });
       if (!response.ok) throw new Error('Failed to fetch voice notes');
       return response.json();
     },
     staleTime: 0,
+    cacheTime: 0,
     refetchOnMount: true,
-    refetchOnWindowFocus: true
+    refetchOnWindowFocus: true,
+    refetchInterval: 1000 // Refresh every second to ensure UI sync
   });
 
   // Fetch smart templates
