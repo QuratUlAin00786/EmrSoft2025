@@ -1838,6 +1838,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/voice-documentation/notes/:id", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const noteId = req.params.id;
+      const noteIndex = voiceNotes.findIndex(note => note.id === noteId);
+      
+      if (noteIndex === -1) {
+        return res.status(404).json({ error: "Voice note not found" });
+      }
+
+      // Remove the note from the array
+      const deletedNote = voiceNotes.splice(noteIndex, 1)[0];
+      
+      res.status(200).json({ 
+        message: "Voice note deleted successfully", 
+        deletedNoteId: deletedNote.id 
+      });
+    } catch (error) {
+      console.error("Error deleting voice note:", error);
+      res.status(500).json({ error: "Failed to delete voice note" });
+    }
+  });
+
   app.get("/api/voice-documentation/templates", authMiddleware, async (req: TenantRequest, res) => {
     try {
       const templates = [

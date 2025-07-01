@@ -240,6 +240,31 @@ export default function VoiceDocumentation() {
     }
   });
 
+  // Delete voice note mutation
+  const deleteVoiceNoteMutation = useMutation({
+    mutationFn: async (noteId: string) => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/voice-documentation/notes/${noteId}`, {
+        method: "DELETE",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
+      if (!response.ok) throw new Error("Failed to delete voice note");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      toast({ title: "Voice note deleted successfully!" });
+    },
+    onError: (error) => {
+      console.error("Voice note deletion error:", error);
+      toast({ title: "Failed to delete voice note", variant: "destructive" });
+    }
+  });
+
   // Upload photo mutation
   const uploadPhotoMutation = useMutation({
     mutationFn: async (data: { photo: File; patientId: string; type: string; description: string }) => {
@@ -989,6 +1014,19 @@ export default function VoiceDocumentation() {
                     >
                       <Save className="w-4 h-4 mr-1" />
                       Save to EMR
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="destructive"
+                      onClick={() => {
+                        if (window.confirm(`Are you sure you want to delete this voice note for ${note.patientName}?`)) {
+                          deleteVoiceNoteMutation.mutate(note.id);
+                        }
+                      }}
+                      disabled={deleteVoiceNoteMutation.isPending}
+                    >
+                      <X className="w-4 h-4 mr-1" />
+                      {deleteVoiceNoteMutation.isPending ? 'Deleting...' : 'Delete'}
                     </Button>
                   </div>
                 </CardContent>
