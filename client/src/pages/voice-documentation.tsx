@@ -157,6 +157,22 @@ export default function VoiceDocumentation() {
     enabled: true
   });
 
+  // Fetch patients for dropdowns
+  const { data: patients, isLoading: patientsLoading } = useQuery({
+    queryKey: ["/api/patients"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/patients', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch patients');
+      return response.json();
+    }
+  });
+
   // Create voice note mutation
   const createVoiceNoteMutation = useMutation({
     mutationFn: async (data: { audioBlob: Blob; patientId: string; type: string }) => {
