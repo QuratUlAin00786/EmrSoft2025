@@ -35,6 +35,7 @@ import {
   Clock,
   AlertTriangle,
   CheckCircle,
+  XCircle,
   Target,
   FileText,
   Download,
@@ -115,6 +116,9 @@ export default function FinancialIntelligence() {
   const [selectedClaim, setSelectedClaim] = useState<Claim | null>(null);
   const [showScrollButton, setShowScrollButton] = useState(true);
   const [submitClaimOpen, setSubmitClaimOpen] = useState(false);
+  const [claimDetailsOpen, setClaimDetailsOpen] = useState(false);
+  const [trackStatusOpen, setTrackStatusOpen] = useState(false);
+  const [trackingClaim, setTrackingClaim] = useState<Claim | null>(null);
   const [claimFormData, setClaimFormData] = useState({
     patient: '',
     serviceDate: '',
@@ -764,15 +768,26 @@ export default function FinancialIntelligence() {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={() => setSelectedClaim(claim)}>
+                    <Button size="sm" onClick={() => {
+                      setSelectedClaim(claim);
+                      setClaimDetailsOpen(true);
+                    }}>
                       View Details
                     </Button>
                     {claim.status === 'denied' && (
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" onClick={() => {
+                        toast({
+                          title: "Claim Resubmission",
+                          description: `Resubmitting claim ${claim.claimNumber} for ${claim.patientName}`
+                        });
+                      }}>
                         Resubmit
                       </Button>
                     )}
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="outline" onClick={() => {
+                      setTrackingClaim(claim);
+                      setTrackStatusOpen(true);
+                    }}>
                       Track Status
                     </Button>
                   </div>
@@ -993,6 +1008,146 @@ export default function FinancialIntelligence() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Claim Details Dialog */}
+      <Dialog open={claimDetailsOpen} onOpenChange={setClaimDetailsOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Claim Details - {selectedClaim?.claimNumber}</DialogTitle>
+          </DialogHeader>
+          {selectedClaim && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Patient</label>
+                  <p className="font-medium">{selectedClaim.patientName}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Status</label>
+                  <Badge className={getStatusColor(selectedClaim.status)}>{selectedClaim.status}</Badge>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Insurance Provider</label>
+                  <p className="font-medium">{selectedClaim.insuranceProvider}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Total Amount</label>
+                  <p className="font-medium text-blue-600">{formatCurrency(selectedClaim.amount)}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Service Date</label>
+                  <p className="font-medium">{format(new Date(selectedClaim.serviceDate), 'PPP')}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Submitted Date</label>
+                  <p className="font-medium">{format(new Date(selectedClaim.submissionDate), 'PPP')}</p>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-medium mb-3">Procedures</h4>
+                <div className="space-y-2">
+                  {selectedClaim.procedures.map((procedure, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <div className="font-medium">{procedure.code}</div>
+                        <div className="text-sm text-gray-600">{procedure.description}</div>
+                      </div>
+                      <div className="font-medium">{formatCurrency(procedure.amount)}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {selectedClaim.paymentAmount && (
+                <div className="p-4 bg-green-50 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-green-800">Payment Received</span>
+                    <span className="font-bold text-green-600">{formatCurrency(selectedClaim.paymentAmount)}</span>
+                  </div>
+                  <div className="text-sm text-green-600 mt-1">
+                    Paid on {format(new Date(selectedClaim.paymentDate!), 'PPP')}
+                  </div>
+                </div>
+              )}
+
+              {selectedClaim.status === 'denied' && (
+                <div className="p-4 bg-red-50 rounded-lg">
+                  <div className="font-medium text-red-800 mb-2">Denial Reason</div>
+                  <p className="text-sm text-red-600">
+                    This claim was denied due to insufficient documentation. Please resubmit with required medical records.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Track Status Dialog */}
+      <Dialog open={trackStatusOpen} onOpenChange={setTrackStatusOpen}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Track Claim Status - {trackingClaim?.claimNumber}</DialogTitle>
+          </DialogHeader>
+          {trackingClaim && (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="font-medium">Current Status:</span>
+                <Badge className={getStatusColor(trackingClaim.status)}>{trackingClaim.status}</Badge>
+              </div>
+              
+              <div className="space-y-3">
+                <h4 className="font-medium">Status History</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                    <CheckCircle className="w-5 h-5 text-blue-500" />
+                    <div>
+                      <div className="font-medium text-blue-800">Claim Submitted</div>
+                      <div className="text-sm text-blue-600">{format(new Date(trackingClaim.submissionDate), 'PPP')}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
+                    <Clock className="w-5 h-5 text-yellow-500" />
+                    <div>
+                      <div className="font-medium text-yellow-800">Under Review</div>
+                      <div className="text-sm text-yellow-600">Currently being processed by {trackingClaim.insuranceProvider}</div>
+                    </div>
+                  </div>
+                  
+                  {trackingClaim.status === 'approved' && (
+                    <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      <div>
+                        <div className="font-medium text-green-800">Claim Approved</div>
+                        <div className="text-sm text-green-600">Payment of {formatCurrency(trackingClaim.paymentAmount!)} processed</div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {trackingClaim.status === 'denied' && (
+                    <div className="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
+                      <XCircle className="w-5 h-5 text-red-500" />
+                      <div>
+                        <div className="font-medium text-red-800">Claim Denied</div>
+                        <div className="text-sm text-red-600">Requires additional documentation</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="text-sm text-gray-600">
+                  <strong>Estimated Processing Time:</strong> 5-7 business days<br/>
+                  <strong>Next Update:</strong> {format(new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), 'PPP')}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
