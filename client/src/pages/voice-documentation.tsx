@@ -238,6 +238,9 @@ export default function VoiceDocumentation() {
       return response.json();
     },
     onSuccess: (newNote, variables) => {
+      console.log("Server returned note:", newNote);
+      console.log("Note transcript:", newNote.transcript);
+      
       // Map the temporary audio URL to the actual note ID
       if (variables.tempAudioUrl && variables.tempNoteId) {
         setAudioStorage(prev => {
@@ -251,7 +254,11 @@ export default function VoiceDocumentation() {
         queryClient.setQueryData(["/api/voice-documentation/notes"], (oldData: any) => {
           if (!oldData) return [newNote];
           return oldData.map((note: any) => 
-            note.id === variables.tempNoteId ? newNote : note
+            note.id === variables.tempNoteId ? {
+              ...newNote,
+              // Ensure transcript is preserved from server response
+              transcript: newNote.transcript || note.transcript || "No transcript available"
+            } : note
           );
         });
       }
@@ -540,12 +547,16 @@ export default function VoiceDocumentation() {
             id: tempNoteId,
             patientId: selectedPatient,
             patientName: patients.data?.find((p: any) => p.id.toString() === selectedPatient)?.firstName + " " + patients.data?.find((p: any) => p.id.toString() === selectedPatient)?.lastName || "Unknown Patient",
+            providerId: "1",
+            providerName: "Dr. Provider", 
             type: selectedNoteType,
             transcript: finalTranscript || "No speech detected during recording",
-            duration: recordingTime,
+            recordingDuration: recordingTime,
             createdAt: new Date().toISOString(),
             confidence: finalTranscript ? 0.95 : 0,
-            status: finalTranscript ? "completed" : "processing"
+            status: finalTranscript ? "completed" : "processing",
+            medicalTerms: [],
+            structuredData: {}
           };
           
           // Store audio URL for immediate playback
@@ -560,6 +571,7 @@ export default function VoiceDocumentation() {
           toast({ title: "Voice note recorded!", description: "Saving in background..." });
           
           // Save to backend in background
+          console.log("Sending transcript to backend:", finalTranscript);
           createVoiceNoteMutation.mutate({
             audioBlob,
             patientId: selectedPatient,
