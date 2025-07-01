@@ -291,14 +291,21 @@ export default function VoiceDocumentation() {
       if (!response.ok) throw new Error("Failed to delete voice note");
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
-      queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
-      toast({ title: "Voice note deleted successfully!" });
+    onSuccess: (data, noteId) => {
+      // Backend deletion successful - optimistic update already happened
+      console.log("Voice note deleted from backend:", noteId);
     },
-    onError: (error) => {
+    onError: (error, noteId) => {
       console.error("Voice note deletion error:", error);
-      toast({ title: "Failed to delete voice note", variant: "destructive" });
+      
+      // Restore the note on failure (revert optimistic deletion)
+      queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      
+      toast({ 
+        title: "Failed to delete voice note", 
+        description: "The note has been restored. Please try again.",
+        variant: "destructive" 
+      });
     }
   });
 
@@ -1111,13 +1118,30 @@ export default function VoiceDocumentation() {
                       variant="destructive"
                       onClick={() => {
                         if (window.confirm(`Are you sure you want to delete this voice note for ${note.patientName}?`)) {
+                          // Optimistic deletion - remove from UI immediately
+                          queryClient.setQueryData(["/api/voice-documentation/notes"], (oldData: any) => {
+                            if (!oldData) return [];
+                            return oldData.filter((n: any) => n.id !== note.id);
+                          });
+                          
+                          // Clean up audio storage immediately
+                          setAudioStorage(prev => {
+                            const newMap = new Map(prev);
+                            newMap.delete(note.id);
+                            return newMap;
+                          });
+                          
+                          // Show immediate feedback
+                          toast({ title: "Voice note deleted!" });
+                          
+                          // Perform backend deletion
                           deleteVoiceNoteMutation.mutate(note.id);
                         }
                       }}
                       disabled={deleteVoiceNoteMutation.isPending}
                     >
                       <X className="w-4 h-4 mr-1" />
-                      {deleteVoiceNoteMutation.isPending ? 'Deleting...' : 'Delete'}
+                      Delete
                     </Button>
                   </div>
                 </CardContent>
