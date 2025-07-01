@@ -154,7 +154,10 @@ export default function VoiceDocumentation() {
       });
       if (!response.ok) throw new Error('Failed to fetch voice notes');
       return response.json();
-    }
+    },
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   });
 
   // Fetch smart templates
@@ -226,7 +229,12 @@ export default function VoiceDocumentation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
       toast({ title: "Voice note created and processing..." });
+    },
+    onError: (error) => {
+      console.error("Voice note creation error:", error);
+      toast({ title: "Failed to create voice note", variant: "destructive" });
     }
   });
 
