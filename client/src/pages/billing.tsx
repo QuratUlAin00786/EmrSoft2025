@@ -296,6 +296,22 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
     enabled: true,
   });
 
+  // Fetch patients for new invoice dropdown
+  const { data: patients, isLoading: patientsLoading } = useQuery({
+    queryKey: ["/api/patients"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/patients', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch patients');
+      return response.json();
+    }
+  });
+
   const filteredInvoices = Array.isArray(invoices) ? invoices.filter((invoice: any) => {
     const matchesSearch = !searchQuery || 
       invoice.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -614,12 +630,28 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
                 <Label htmlFor="patient">Patient</Label>
                 <Select>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select patient" />
+                    <SelectValue placeholder={patientsLoading ? "Loading patients..." : "Select patient"} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="patient_1">Sarah Johnson</SelectItem>
-                    <SelectItem value="patient_2">Michael Chen</SelectItem>
-                    <SelectItem value="patient_3">Emma Wilson</SelectItem>
+                    {patientsLoading ? (
+                      <SelectItem value="loading" disabled>Loading...</SelectItem>
+                    ) : patients && patients.length > 0 ? (
+                      (() => {
+                        // Deduplicate patients by unique name combination
+                        const uniquePatients = patients.filter((patient: any, index: number, array: any[]) => 
+                          array.findIndex((p: any) => 
+                            `${p.firstName} ${p.lastName}` === `${patient.firstName} ${patient.lastName}`
+                          ) === index
+                        );
+                        return uniquePatients.map((patient: any) => (
+                          <SelectItem key={patient.id} value={patient.id.toString()}>
+                            {patient.firstName} {patient.lastName}
+                          </SelectItem>
+                        ));
+                      })()
+                    ) : (
+                      <SelectItem value="no-patients" disabled>No patients found</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
