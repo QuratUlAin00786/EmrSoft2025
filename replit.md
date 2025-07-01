@@ -102,6 +102,8 @@ Averox EMR is a comprehensive multi-tenant Electronic Medical Records (EMR) syst
 ## Changelog
 
 **July 1, 2025:**
+- **COMPLETED**: Fixed invoice Delete button functionality in Billing & Payments - added functional red Delete button with Trash2 icon, proper React Query cache management for instant UI updates, confirmation dialog before deletion, success notifications, and immediate invoice removal without page reload, ensuring complete delete functionality in LIVE deployment
+- **COMPLETED**: Fixed patient dropdown in Create New Invoice dialog - replaced hardcoded 3 patients with dynamic API data loading, added proper JWT authentication headers, applied name-based deduplication to prevent duplicate entries, added loading states and error handling, ensuring all available patients appear in dropdown in LIVE deployment
 - **COMPLETED**: Fixed dialog clickability issue in Financial Intelligence Track Claim Status popup - added proper z-index (z-50) and pointer-events-auto classes to DialogContent, plus functional Close button, ensuring all dialog elements are interactive and clickable in LIVE deployment
 - **COMPLETED**: Cleaned up Integrations page marketplace - removed DocuSign, Epic MyChart, and LabCorp from Featured Integrations section, completely removed "Browse by Category" section, leaving only Stripe Payments, Twilio SMS, and Zoom Health in Featured section for LIVE deployment
 - **COMPLETED**: Fixed duplicate dropdown entries in appointment booking system - implemented name-based deduplication logic that filters dropdown options by unique patient and provider names instead of IDs, reducing patient dropdown from 50 to 4 unique entries and provider dropdown from 149 to 3 unique entries, ensuring clean dropdown lists in LIVE deployment
