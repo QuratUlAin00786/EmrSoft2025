@@ -299,9 +299,11 @@ export function PaymentMethodDialog({ open, onOpenChange, plan }: PaymentMethodD
   }, [open, paymentMethod, plan]);
 
   const handleSuccess = () => {
+    toast({
+      title: "Upgrade Successful!",
+      description: `Successfully upgraded to ${plan.name} plan. Your new features are now active.`,
+    });
     onOpenChange(false);
-    // Refresh the page to show updated subscription
-    window.location.reload();
   };
 
   const handleError = (error: any) => {
@@ -361,13 +363,7 @@ export function PaymentMethodDialog({ open, onOpenChange, plan }: PaymentMethodD
                   </div>
                   <Button 
                     variant="outline"
-                    onClick={() => {
-                      toast({
-                        title: "Demo Mode",
-                        description: `Successfully upgraded to ${plan.name} plan (demo mode)`,
-                      });
-                      handleSuccess();
-                    }}
+                    onClick={handleSuccess}
                     className="w-full"
                   >
                     Continue with Demo Payment
@@ -403,13 +399,7 @@ export function PaymentMethodDialog({ open, onOpenChange, plan }: PaymentMethodD
                 </div>
                 <Button 
                   variant="outline"
-                  onClick={() => {
-                    toast({
-                      title: "Demo Mode",
-                      description: `Successfully upgraded to ${plan.name} plan (demo mode)`,
-                    });
-                    handleSuccess();
-                  }}
+                  onClick={handleSuccess}
                   className="w-full"
                 >
                   Continue with Demo Payment
