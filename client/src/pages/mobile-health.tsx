@@ -1629,7 +1629,7 @@ Download link: https://apps.averox.com/${selectedApp.id}`}
 
       {/* Device Settings Dialog */}
       <Dialog open={deviceSettingsOpen} onOpenChange={setDeviceSettingsOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               Device Settings - {settingsDevice?.brand} {settingsDevice?.model}
