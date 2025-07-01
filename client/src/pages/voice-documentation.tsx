@@ -239,15 +239,41 @@ export default function VoiceDocumentation() {
           newMap.set(newNote.id, variables.tempAudioUrl); // Add actual note mapping
           return newMap;
         });
+        
+        // Replace optimistic note with real note in cache
+        queryClient.setQueryData(["/api/voice-documentation/notes"], (oldData: any) => {
+          if (!oldData) return [newNote];
+          return oldData.map((note: any) => 
+            note.id === variables.tempNoteId ? newNote : note
+          );
+        });
       }
       
-      queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
-      queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
-      toast({ title: "Voice note created and processing..." });
+      toast({ title: "Voice note saved successfully!" });
     },
-    onError: (error) => {
+    onError: (error, variables) => {
       console.error("Voice note creation error:", error);
-      toast({ title: "Failed to create voice note", variant: "destructive" });
+      
+      // Remove optimistic note on failure
+      if (variables.tempNoteId) {
+        queryClient.setQueryData(["/api/voice-documentation/notes"], (oldData: any) => {
+          if (!oldData) return [];
+          return oldData.filter((note: any) => note.id !== variables.tempNoteId);
+        });
+        
+        // Clean up audio storage
+        setAudioStorage(prev => {
+          const newMap = new Map(prev);
+          newMap.delete(variables.tempNoteId!);
+          return newMap;
+        });
+      }
+      
+      toast({ 
+        title: "Failed to save voice note", 
+        description: "Your recording was not saved. Please try again.",
+        variant: "destructive" 
+      });
     }
   });
 
@@ -443,10 +469,32 @@ export default function VoiceDocumentation() {
         
         // Create voice note with selected patient and type
         if (selectedPatient && selectedNoteType) {
-          // Store audio URL temporarily for immediate playback
+          // Create optimistic note for immediate UI update
           const tempNoteId = `temp_${Date.now()}`;
+          const optimisticNote = {
+            id: tempNoteId,
+            patientId: selectedPatient,
+            patientName: patients.data?.find(p => p.id.toString() === selectedPatient)?.firstName + " " + patients.data?.find(p => p.id.toString() === selectedPatient)?.lastName || "Unknown Patient",
+            type: selectedNoteType,
+            transcript: currentTranscript || "Processing audio...",
+            duration: recordingTime,
+            createdAt: new Date().toISOString(),
+            confidence: 0.95,
+            status: "processing"
+          };
+          
+          // Store audio URL for immediate playback
           setAudioStorage(prev => new Map(prev.set(tempNoteId, audioUrl)));
           
+          // Add optimistic note to query cache immediately
+          queryClient.setQueryData(["/api/voice-documentation/notes"], (oldData: any) => {
+            return oldData ? [optimisticNote, ...oldData] : [optimisticNote];
+          });
+          
+          // Show immediate success message
+          toast({ title: "Voice note recorded!", description: "Saving in background..." });
+          
+          // Save to backend in background
           createVoiceNoteMutation.mutate({
             audioBlob,
             patientId: selectedPatient,
