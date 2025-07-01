@@ -1800,7 +1800,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Handle voice note creation with patient data
       const { patientId, type, transcript, duration, confidence } = req.body;
-      console.log("Creating voice note with data:", { patientId, type, transcript, duration, confidence });
       
       // Get patient info to associate with the note
       const patientIdNum = parseInt(patientId);
