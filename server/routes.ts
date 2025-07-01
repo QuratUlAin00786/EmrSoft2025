@@ -6,6 +6,32 @@ import { authService } from "./services/auth";
 import { aiService } from "./services/ai";
 import { tenantMiddleware, authMiddleware, requireRole, gdprComplianceMiddleware, type TenantRequest } from "./middleware/tenant";
 
+// In-memory storage for voice notes
+const voiceNotes: any[] = [
+  {
+    id: "note_1",
+    patientId: "158",
+    patientName: "Imran Mubashir",
+    providerId: "1",
+    providerName: "Dr. Provider",
+    type: "consultation",
+    status: "completed",
+    recordingDuration: 120,
+    transcript: "Patient presents with chest pain. Vital signs stable. Recommended further cardiac evaluation.",
+    confidence: 0.94,
+    medicalTerms: [
+      { term: "chest pain", confidence: 0.95, category: "symptom" },
+      { term: "cardiac evaluation", confidence: 0.93, category: "procedure" }
+    ],
+    structuredData: {
+      chiefComplaint: "Chest pain",
+      assessment: "Possible cardiac involvement",
+      plan: "EKG, troponin levels, cardiology consult"
+    },
+    createdAt: "2024-06-26T15:00:00Z"
+  }
+];
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Apply tenant and GDPR middleware to all API routes
   app.use("/api", tenantMiddleware as any);
@@ -1758,33 +1784,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "User not authenticated" });
       }
 
-      // Return voice notes from database or sample data
-      const sampleNotes = [
-        {
-          id: "note_1",
-          patientId: "158",
-          patientName: "Imran Mubashir",
-          providerId: req.user.id.toString(),
-          providerName: "Dr. Provider",
-          type: "consultation",
-          status: "completed",
-          recordingDuration: 120,
-          transcript: "Patient presents with chest pain. Vital signs stable. Recommended further cardiac evaluation.",
-          confidence: 0.94,
-          medicalTerms: [
-            { term: "chest pain", confidence: 0.95, category: "symptom" },
-            { term: "cardiac evaluation", confidence: 0.93, category: "procedure" }
-          ],
-          structuredData: {
-            chiefComplaint: "Chest pain",
-            assessment: "Possible cardiac involvement",
-            plan: "Further evaluation needed"
-          },
-          createdAt: new Date().toISOString()
-        }
-      ];
-
-      res.json(sampleNotes);
+      // Return voice notes from in-memory storage
+      res.json(voiceNotes);
     } catch (error) {
       console.error("Error fetching voice notes:", error);
       res.status(500).json({ error: "Failed to fetch voice notes" });
@@ -1826,6 +1827,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         structuredData: {},
         createdAt: new Date().toISOString()
       };
+
+      // Add the new note to the voiceNotes array
+      voiceNotes.push(newNote);
 
       res.status(201).json(newNote);
     } catch (error) {
