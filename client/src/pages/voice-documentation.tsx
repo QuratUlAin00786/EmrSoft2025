@@ -255,6 +255,7 @@ export default function VoiceDocumentation() {
     },
     onError: (error, variables) => {
       console.error("Voice note creation error:", error);
+      console.error("Variables that failed:", variables);
       
       // Remove optimistic note on failure
       if (variables.tempNoteId) {
