@@ -1084,7 +1084,7 @@ export default function MobileHealth() {
                 </SelectTrigger>
                 <SelectContent>
                   {patientsLoading ? (
-                    <SelectItem value="" disabled>Loading...</SelectItem>
+                    <SelectItem value="loading" disabled>Loading...</SelectItem>
                   ) : patients && patients.length > 0 ? (
                     patients.map((patient: any) => (
                       <SelectItem key={patient.id} value={patient.id.toString()}>
@@ -1092,7 +1092,7 @@ export default function MobileHealth() {
                       </SelectItem>
                     ))
                   ) : (
-                    <SelectItem value="" disabled>No patients found</SelectItem>
+                    <SelectItem value="no-patients" disabled>No patients found</SelectItem>
                   )}
                 </SelectContent>
               </Select>
