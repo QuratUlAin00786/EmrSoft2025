@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { Crown, Users, Calendar, Zap, Check, X } from "lucide-react";
+import { PaymentMethodDialog } from "@/components/payment-method-dialog";
 import type { Subscription } from "@/types";
 
 const plans = [
@@ -65,6 +67,9 @@ const plans = [
 ];
 
 export default function Subscription() {
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  
   const { data: subscription, isLoading, error } = useQuery<Subscription>({
     queryKey: ["/api/subscription"],
   });
@@ -220,8 +225,8 @@ export default function Subscription() {
                       disabled={subscription?.plan === plan.id}
                       onClick={() => {
                         if (subscription?.plan !== plan.id) {
-                          console.log('Upgrading to plan:', plan.name);
-                          alert(`Upgrading to ${plan.name} plan!\n\nPlan: ${plan.name}\nPrice: £${plan.price}/month\nUsers: Up to ${plan.userLimit} users\n\nYour subscription will be updated and you'll be redirected to payment processing.`);
+                          setSelectedPlan(plan);
+                          setShowPaymentDialog(true);
                         }
                       }}
                     >
@@ -255,6 +260,15 @@ export default function Subscription() {
           </Card>
         </div>
       </div>
+      
+      {/* Payment Method Dialog */}
+      {selectedPlan && (
+        <PaymentMethodDialog
+          open={showPaymentDialog}
+          onOpenChange={setShowPaymentDialog}
+          plan={selectedPlan}
+        />
+      )}
     </>
   );
 }
