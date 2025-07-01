@@ -394,7 +394,16 @@ export default function VoiceDocumentation() {
 
       mediaRecorderRef.current.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
-        // Here you would typically send the audio to the transcription service
+        
+        // Create voice note with selected patient and type
+        if (selectedPatient && selectedNoteType) {
+          createVoiceNoteMutation.mutate({
+            audioBlob,
+            patientId: selectedPatient,
+            type: selectedNoteType
+          });
+        }
+        
         stream.getTracks().forEach(track => track.stop());
       };
 
@@ -411,6 +420,18 @@ export default function VoiceDocumentation() {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      
+      // Validate required fields
+      if (!selectedPatient) {
+        toast({ title: "Please select a patient first", variant: "destructive" });
+        return;
+      }
+      
+      if (!selectedNoteType) {
+        toast({ title: "Please select a note type first", variant: "destructive" });
+        return;
+      }
+      
       toast({ title: "Recording stopped. Processing..." });
     }
   };
@@ -564,7 +585,7 @@ export default function VoiceDocumentation() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="text-sm font-medium">Patient</label>
-                  <Select>
+                  <Select value={selectedPatient} onValueChange={setSelectedPatient}>
                     <SelectTrigger>
                       <SelectValue placeholder={patientsLoading ? "Loading patients..." : "Select patient"} />
                     </SelectTrigger>
@@ -585,7 +606,7 @@ export default function VoiceDocumentation() {
                 </div>
                 <div>
                   <label className="text-sm font-medium">Note Type</label>
-                  <Select>
+                  <Select value={selectedNoteType} onValueChange={setSelectedNoteType}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
