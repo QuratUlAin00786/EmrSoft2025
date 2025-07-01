@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/layout/header";
@@ -215,6 +215,7 @@ export default function BillingPage() {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [activeTab, setActiveTab] = useState("invoices");
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const handleViewInvoice = (invoice: Invoice) => {
     setSelectedInvoice(invoice);
@@ -296,14 +297,28 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
     const invoice = Array.isArray(invoices) ? invoices.find((inv: any) => inv.id === invoiceId) : null;
     if (invoice) {
       if (confirm(`Are you sure you want to delete invoice ${invoiceId} for ${invoice.patientName}?`)) {
-        // Simulate deletion
+        // Update mockInvoices to persist the deletion
+        const mockInvoicesIndex = mockInvoices.findIndex((inv: any) => inv.id === invoiceId);
+        if (mockInvoicesIndex !== -1) {
+          mockInvoices.splice(mockInvoicesIndex, 1);
+        }
+        
+        // Update the query cache to immediately reflect the deletion
+        queryClient.setQueryData(["/api/billing/invoices", statusFilter], (oldData: any) => {
+          if (Array.isArray(oldData)) {
+            return oldData.filter((inv: any) => inv.id !== invoiceId);
+          }
+          return oldData;
+        });
+        
+        // Also invalidate the cache to ensure consistency
+        queryClient.invalidateQueries({ queryKey: ["/api/billing/invoices"] });
+        
         toast({
           title: "Invoice Deleted",
           description: `Invoice ${invoiceId} has been successfully deleted`,
           variant: "destructive",
         });
-        // In a real app, you would make an API call here to delete the invoice
-        // and then invalidate/refetch the invoices query
       }
     }
   };
