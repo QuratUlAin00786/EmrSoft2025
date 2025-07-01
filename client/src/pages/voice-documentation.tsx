@@ -625,7 +625,7 @@ export default function VoiceDocumentation() {
       });
     } else {
       // Fallback: Use text-to-speech for notes without recorded audio
-      if ('speechSynthesis' in window && note.transcript) {
+      if ('speechSynthesis' in window && note.transcript && note.transcript !== "Processing audio..." && note.transcript.trim() !== "") {
         // Stop any current speech
         window.speechSynthesis.cancel();
         
@@ -655,31 +655,51 @@ export default function VoiceDocumentation() {
         window.speechSynthesis.speak(utterance);
       } else {
         // Final fallback: Create a brief audio tone
-        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.frequency.value = 800;
-        oscillator.type = 'sine';
-        
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
-        
-        setIsPlaying(true);
-        setCurrentlyPlayingId(note.id);
-        toast({ title: "Playing Demo Audio", description: "Audio recording not available - playing demo tone" });
-        
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 1);
-        
-        setTimeout(() => {
+        try {
+          const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+          
+          // Resume context if suspended (required for some browsers)
+          if (audioContext.state === 'suspended') {
+            audioContext.resume();
+          }
+          
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          
+          oscillator.frequency.value = 800;
+          oscillator.type = 'sine';
+          
+          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 2);
+          
+          setIsPlaying(true);
+          setCurrentlyPlayingId(note.id);
+          toast({ title: "Playing Demo Audio", description: "Audio recording not available - playing demo tone" });
+          
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + 2);
+          
+          oscillator.onended = () => {
+            setIsPlaying(false);
+            setCurrentlyPlayingId(null);
+            toast({ title: "Demo Playback Complete" });
+          };
+          
+          // Backup timeout in case onended doesn't fire
+          setTimeout(() => {
+            setIsPlaying(false);
+            setCurrentlyPlayingId(null);
+          }, 2500);
+          
+        } catch (error) {
+          console.error('Audio playback error:', error);
           setIsPlaying(false);
           setCurrentlyPlayingId(null);
-          toast({ title: "Demo Playback Complete" });
-        }, 1000);
+          toast({ title: "Audio Playback Failed", description: "Unable to play audio", variant: "destructive" });
+        }
       }
     }
   };

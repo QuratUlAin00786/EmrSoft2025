@@ -1799,7 +1799,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Handle voice note creation with patient data
-      const { patientId, type } = req.body;
+      const { patientId, type, transcript, duration, confidence } = req.body;
+      console.log("Creating voice note with data:", { patientId, type, transcript, duration, confidence });
       
       // Get patient info to associate with the note
       const patientIdNum = parseInt(patientId);
@@ -1819,10 +1820,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         providerId: req.user.id.toString(),
         providerName: "Dr. Provider",
         type: type || "consultation",
-        status: "processing",
-        recordingDuration: 0,
-        transcript: "Processing audio...",
-        confidence: 0.0,
+        status: transcript && transcript !== "Processing audio..." ? "completed" : "processing",
+        recordingDuration: duration || 0,
+        transcript: transcript || "Processing audio...",
+        confidence: confidence || 0.0,
         medicalTerms: [],
         structuredData: {},
         createdAt: new Date().toISOString()
