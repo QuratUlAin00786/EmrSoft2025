@@ -218,6 +218,9 @@ export default function VoiceDocumentation() {
   const createVoiceNoteMutation = useMutation({
     mutationFn: async (data: { audioBlob: Blob; patientId: string; type: string; transcript?: string; duration?: number; confidence?: number; tempAudioUrl?: string; tempNoteId?: string }) => {
       const token = localStorage.getItem('auth_token');
+      console.log("Making API call with token:", token ? "Token exists" : "No token");
+      console.log("Sending data:", { patientId: data.patientId, type: data.type, transcript: data.transcript, duration: data.duration, confidence: data.confidence });
+      
       const response = await fetch("/api/voice-documentation/notes", {
         method: "POST",
         headers: {
@@ -233,8 +236,16 @@ export default function VoiceDocumentation() {
           confidence: data.confidence
         })
       });
-      if (!response.ok) throw new Error("Failed to create voice note");
-      return response.json();
+      
+      console.log("Response status:", response.status);
+      const responseText = await response.text();
+      console.log("Response body:", responseText);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to create voice note: ${response.status} - ${responseText}`);
+      }
+      
+      return JSON.parse(responseText);
     },
     onSuccess: (newNote, variables) => {
       // Map the temporary audio URL to the actual note ID
@@ -257,7 +268,7 @@ export default function VoiceDocumentation() {
       console.error("Voice note creation error:", error);
       console.error("Variables that failed:", variables);
       
-      // Remove optimistic note on failure
+      // Remove optimistic note on failure and show error
       if (variables.tempNoteId) {
         queryClient.setQueryData(["/api/voice-documentation/notes"], (oldData: any) => {
           if (!oldData) return [];
