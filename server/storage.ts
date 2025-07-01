@@ -174,7 +174,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUsersByOrganization(organizationId: number): Promise<User[]> {
-    return await db.select().from(users).where(eq(users.organizationId, organizationId));
+    const results = await db.select().from(users).where(eq(users.organizationId, organizationId));
+    
+    // Ensure no duplicates based on user ID
+    const uniqueResults = results.filter((user, index, self) => 
+      index === self.findIndex(u => u.id === user.id)
+    );
+    
+    return uniqueResults;
   }
 
   async createUser(user: InsertUser): Promise<User> {
@@ -204,10 +211,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPatientsByOrganization(organizationId: number, limit = 50): Promise<Patient[]> {
-    return await db.select().from(patients)
+    const results = await db.select().from(patients)
       .where(and(eq(patients.organizationId, organizationId), eq(patients.isActive, true)))
       .orderBy(desc(patients.updatedAt))
       .limit(limit);
+    
+    // Ensure no duplicates based on patient ID
+    const uniqueResults = results.filter((patient, index, self) => 
+      index === self.findIndex(p => p.id === patient.id)
+    );
+    
+    return uniqueResults;
   }
 
   async createPatient(patient: InsertPatient): Promise<Patient> {
