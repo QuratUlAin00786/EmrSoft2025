@@ -238,9 +238,6 @@ export default function VoiceDocumentation() {
       return response.json();
     },
     onSuccess: (newNote, variables) => {
-      console.log("Server returned note:", newNote);
-      console.log("Note transcript:", newNote.transcript);
-      
       // Map the temporary audio URL to the actual note ID
       if (variables.tempAudioUrl && variables.tempNoteId) {
         setAudioStorage(prev => {
@@ -571,7 +568,7 @@ export default function VoiceDocumentation() {
           toast({ title: "Voice note recorded!", description: "Saving in background..." });
           
           // Save to backend in background
-          console.log("Sending transcript to backend:", finalTranscript);
+
           createVoiceNoteMutation.mutate({
             audioBlob,
             patientId: selectedPatient,
