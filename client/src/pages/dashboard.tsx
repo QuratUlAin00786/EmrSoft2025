@@ -7,7 +7,7 @@ import { SchedulePanel } from "@/components/dashboard/schedule-panel";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { SubscriptionStatus } from "@/components/dashboard/subscription-status";
 import { PatientAlerts } from "@/components/alerts/patient-alerts";
-import { ConsultationDialog } from "@/components/consultation/consultation-dialog";
+import { FullConsultationInterface } from "@/components/consultation/full-consultation-interface";
 import AppointmentCalendar from "@/components/calendar/appointment-calendar";
 import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
@@ -111,7 +111,7 @@ export default function Dashboard() {
         onOpenChange={setShowPatientModal}
       />
       
-      <ConsultationDialog 
+      <FullConsultationInterface 
         open={showConsultation}
         onOpenChange={setShowConsultation}
         patient={selectedPatient}

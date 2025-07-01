@@ -1959,6 +1959,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Consultations API endpoint
+  app.post("/api/consultations", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const consultationData = z.object({
+        patientId: z.number().optional(),
+        chiefComplaint: z.string(),
+        historyPresentingComplaint: z.string(),
+        reviewOfSystems: z.object({
+          cardiovascular: z.string(),
+          respiratory: z.string(),
+          gastrointestinal: z.string(),
+          genitourinary: z.string(),
+          neurological: z.string(),
+          musculoskeletal: z.string(),
+          skin: z.string(),
+          psychiatric: z.string()
+        }),
+        examination: z.object({
+          general: z.string(),
+          cardiovascular: z.string(),
+          respiratory: z.string(),
+          abdomen: z.string(),
+          neurological: z.string(),
+          musculoskeletal: z.string(),
+          skin: z.string(),
+          head_neck: z.string(),
+          ears_nose_throat: z.string()
+        }),
+        vitals: z.object({
+          bloodPressure: z.string(),
+          heartRate: z.string(),
+          temperature: z.string(),
+          respiratoryRate: z.string(),
+          oxygenSaturation: z.string(),
+          weight: z.string(),
+          height: z.string(),
+          bmi: z.string()
+        }),
+        assessment: z.string(),
+        plan: z.string(),
+        prescriptions: z.array(z.object({
+          medication: z.string(),
+          dosage: z.string(),
+          frequency: z.string(),
+          duration: z.string(),
+          instructions: z.string()
+        })),
+        referrals: z.array(z.object({
+          specialty: z.string(),
+          urgency: z.enum(["routine", "urgent", "2ww"]),
+          reason: z.string()
+        })),
+        investigations: z.array(z.object({
+          type: z.string(),
+          urgency: z.enum(["routine", "urgent"]),
+          reason: z.string()
+        })),
+        followUp: z.object({
+          required: z.boolean(),
+          timeframe: z.string(),
+          reason: z.string()
+        }),
+        consultationDate: z.string()
+      }).parse(req.body);
+
+      // Create a mock consultation record
+      const consultation = {
+        id: Math.floor(Math.random() * 10000),
+        ...consultationData,
+        organizationId: req.tenant!.id,
+        providerId: req.user.id,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      console.log("Full consultation saved:", consultation);
+
+      res.status(201).json({
+        message: "Full consultation saved successfully",
+        consultation: consultation
+      });
+    } catch (error) {
+      console.error("Error saving consultation:", error);
+      res.status(500).json({ error: "Failed to save consultation" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Calendar, Clock, MapPin, User, Video, Stethoscope, FileText } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { FullConsultationInterface } from "@/components/consultation/full-consultation-interface";
 import type { Appointment } from "@/types";
 
 const statusColors = {
@@ -703,49 +704,19 @@ export default function AppointmentCalendar() {
         </DialogContent>
       </Dialog>
 
-      {/* Consultation Dialog */}
-      <Dialog open={showConsultation} onOpenChange={setShowConsultation}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Stethoscope className="h-5 w-5 text-blue-600" />
-              Patient Consultation - {selectedAppointment ? `Patient ${selectedAppointment.patientId}` : "New Consultation"}
-            </DialogTitle>
-          </DialogHeader>
-          {selectedAppointment && (
-            <div className="space-y-4">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="font-medium text-blue-900 mb-2">Appointment Information</h4>
-                <div className="grid grid-cols-3 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium text-blue-800">Patient ID:</span> {selectedAppointment.patientId}
-                  </div>
-                  <div>
-                    <span className="font-medium text-blue-800">Type:</span> {selectedAppointment.type}
-                  </div>
-                  <div>
-                    <span className="font-medium text-blue-800">Time:</span> {format(new Date(selectedAppointment.scheduledAt), "h:mm a")}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="text-center py-8">
-                <Stethoscope className="h-16 w-16 text-medical-blue mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Consultation Interface</h3>
-                <p className="text-gray-600 mb-4">Full consultation interface would be implemented here</p>
-                <div className="flex gap-2 justify-center">
-                  <Button onClick={() => setShowConsultation(false)}>
-                    End Consultation
-                  </Button>
-                  <Button variant="outline" onClick={() => setShowConsultation(false)}>
-                    Save & Close
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Full Consultation Interface */}
+      <FullConsultationInterface 
+        open={showConsultation} 
+        onOpenChange={setShowConsultation}
+        patient={selectedAppointment ? { 
+          id: selectedAppointment.patientId,
+          firstName: `Patient`,
+          lastName: selectedAppointment.patientId.toString(),
+          dateOfBirth: "1990-01-01",
+          phone: "Not provided",
+          email: "Not provided"
+        } : null}
+      />
 
       {/* New Appointment Dialog */}
       <Dialog open={showNewAppointment} onOpenChange={setShowNewAppointment}>
