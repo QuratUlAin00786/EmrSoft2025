@@ -416,11 +416,20 @@ export default function VoiceDocumentation() {
                   <label className="text-sm font-medium">Patient</label>
                   <Select>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select patient" />
+                      <SelectValue placeholder={patientsLoading ? "Loading patients..." : "Select patient"} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="patient_1">Sarah Johnson</SelectItem>
-                      <SelectItem value="patient_2">Michael Chen</SelectItem>
+                      {patientsLoading ? (
+                        <SelectItem value="" disabled>Loading...</SelectItem>
+                      ) : patients && patients.length > 0 ? (
+                        patients.map((patient: any) => (
+                          <SelectItem key={patient.id} value={patient.id.toString()}>
+                            {patient.firstName} {patient.lastName}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="" disabled>No patients found</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -517,11 +526,20 @@ export default function VoiceDocumentation() {
                   <label className="text-sm font-medium">Patient</label>
                   <Select>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select patient" />
+                      <SelectValue placeholder={patientsLoading ? "Loading patients..." : "Select patient"} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="patient_1">Sarah Johnson</SelectItem>
-                      <SelectItem value="patient_2">Michael Chen</SelectItem>
+                      {patientsLoading ? (
+                        <SelectItem value="" disabled>Loading...</SelectItem>
+                      ) : patients && patients.length > 0 ? (
+                        patients.map((patient: any) => (
+                          <SelectItem key={patient.id} value={patient.id.toString()}>
+                            {patient.firstName} {patient.lastName}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="" disabled>No patients found</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -906,12 +924,20 @@ export default function VoiceDocumentation() {
                             <label className="text-sm font-medium mb-2 block">Patient Selection</label>
                             <Select>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select patient for this note" />
+                                <SelectValue placeholder={patientsLoading ? "Loading patients..." : "Select patient for this note"} />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="patient_1">Sarah Johnson</SelectItem>
-                                <SelectItem value="patient_2">Michael Chen</SelectItem>
-                                <SelectItem value="patient_3">Emma Davis</SelectItem>
+                                {patientsLoading ? (
+                                  <SelectItem value="" disabled>Loading...</SelectItem>
+                                ) : patients && patients.length > 0 ? (
+                                  patients.map((patient: any) => (
+                                    <SelectItem key={patient.id} value={patient.id.toString()}>
+                                      {patient.firstName} {patient.lastName}
+                                    </SelectItem>
+                                  ))
+                                ) : (
+                                  <SelectItem value="" disabled>No patients found</SelectItem>
+                                )}
                               </SelectContent>
                             </Select>
                           </div>
