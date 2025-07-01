@@ -573,6 +573,9 @@ export default function VoiceDocumentation() {
         }
         
         stream.getTracks().forEach(track => track.stop());
+        
+        // Clear state for next recording
+        setCurrentTranscript("");
       };
 
       mediaRecorderRef.current.start();
