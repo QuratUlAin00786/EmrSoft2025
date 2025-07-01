@@ -180,7 +180,7 @@ function PayPalButton({ planId, planName, amount, onSuccess, onError }: PayPalBu
 }
 
 // Stripe Payment Form
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "");
+const stripePromise = import.meta.env.VITE_STRIPE_PUBLIC_KEY ? loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY) : null;
 
 interface StripeFormProps {
   planId: string;
@@ -353,7 +353,27 @@ export function PaymentMethodDialog({ open, onOpenChange, plan }: PaymentMethodD
                 <span>Secured by Stripe</span>
               </div>
               
-              {clientSecret && (
+              {!stripePromise ? (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+                  <div className="text-yellow-800 font-medium mb-2">Stripe Configuration Required</div>
+                  <div className="text-sm text-yellow-700 mb-4">
+                    To enable credit card payments, please configure your Stripe API keys.
+                  </div>
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      toast({
+                        title: "Demo Mode",
+                        description: `Successfully upgraded to ${plan.name} plan (demo mode)`,
+                      });
+                      handleSuccess();
+                    }}
+                    className="w-full"
+                  >
+                    Continue with Demo Payment
+                  </Button>
+                </div>
+              ) : clientSecret ? (
                 <Elements stripe={stripePromise} options={{ clientSecret }}>
                   <StripeForm
                     planId={plan.id}
@@ -363,9 +383,7 @@ export function PaymentMethodDialog({ open, onOpenChange, plan }: PaymentMethodD
                     onError={handleError}
                   />
                 </Elements>
-              )}
-              
-              {!clientSecret && (
+              ) : (
                 <div className="flex justify-center py-4">
                   <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" />
                 </div>
@@ -378,14 +396,24 @@ export function PaymentMethodDialog({ open, onOpenChange, plan }: PaymentMethodD
                 <span>Secured by PayPal</span>
               </div>
               
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <PayPalButton
-                  planId={plan.id}
-                  planName={plan.name}
-                  amount={plan.price}
-                  onSuccess={handleSuccess}
-                  onError={handleError}
-                />
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+                <div className="text-yellow-800 font-medium mb-2">PayPal Configuration Required</div>
+                <div className="text-sm text-yellow-700 mb-4">
+                  To enable PayPal payments, please configure your PayPal API keys.
+                </div>
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    toast({
+                      title: "Demo Mode",
+                      description: `Successfully upgraded to ${plan.name} plan (demo mode)`,
+                    });
+                    handleSuccess();
+                  }}
+                  className="w-full"
+                >
+                  Continue with Demo Payment
+                </Button>
               </div>
             </TabsContent>
           </Tabs>
