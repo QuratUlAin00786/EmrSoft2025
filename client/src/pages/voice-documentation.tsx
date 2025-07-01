@@ -292,18 +292,30 @@ export default function VoiceDocumentation() {
       return response.json();
     },
     onSuccess: (data, noteId) => {
-      // Backend deletion successful - optimistic update already happened
+      // Force complete refetch to ensure UI is synchronized
+      queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      
+      // Clean up audio storage
+      setAudioStorage(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(noteId);
+        return newMap;
+      });
+      
+      toast({ title: "Voice note deleted successfully!" });
       console.log("Voice note deleted from backend:", noteId);
     },
     onError: (error, noteId) => {
       console.error("Voice note deletion error:", error);
       
-      // Restore the note on failure (revert optimistic deletion)
+      // Restore the note on failure
       queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
       
       toast({ 
         title: "Failed to delete voice note", 
-        description: "The note has been restored. Please try again.",
+        description: "Please try again.",
         variant: "destructive" 
       });
     }
@@ -1118,23 +1130,6 @@ export default function VoiceDocumentation() {
                       variant="destructive"
                       onClick={() => {
                         if (window.confirm(`Are you sure you want to delete this voice note for ${note.patientName}?`)) {
-                          // Optimistic deletion - remove from UI immediately
-                          queryClient.setQueryData(["/api/voice-documentation/notes"], (oldData: any) => {
-                            if (!oldData) return [];
-                            return oldData.filter((n: any) => n.id !== note.id);
-                          });
-                          
-                          // Clean up audio storage immediately
-                          setAudioStorage(prev => {
-                            const newMap = new Map(prev);
-                            newMap.delete(note.id);
-                            return newMap;
-                          });
-                          
-                          // Show immediate feedback
-                          toast({ title: "Voice note deleted!" });
-                          
-                          // Perform backend deletion
                           deleteVoiceNoteMutation.mutate(note.id);
                         }
                       }}
