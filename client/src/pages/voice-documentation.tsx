@@ -121,6 +121,8 @@ export default function VoiceDocumentation() {
   const [activeTab, setActiveTab] = useState("voice");
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [recordingTime, setRecordingTime] = useState(0);
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
   const [selectedPatient, setSelectedPatient] = useState<string>("");
@@ -459,6 +461,60 @@ export default function VoiceDocumentation() {
     });
   };
 
+  const playAudio = (note: any) => {
+    if (currentlyPlayingId === note.id && isPlaying) {
+      // Stop current playback
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      setIsPlaying(false);
+      setCurrentlyPlayingId(null);
+      toast({ title: "Playback Stopped" });
+      return;
+    }
+
+    // Start new playback using text-to-speech
+    if ('speechSynthesis' in window) {
+      // Stop any current speech
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(note.transcript);
+      utterance.rate = 0.9;
+      utterance.pitch = 1;
+      utterance.volume = 0.8;
+      
+      utterance.onstart = () => {
+        setIsPlaying(true);
+        setCurrentlyPlayingId(note.id);
+        toast({ title: "Playing Audio", description: `Playing voice note for ${note.patientName}` });
+      };
+      
+      utterance.onend = () => {
+        setIsPlaying(false);
+        setCurrentlyPlayingId(null);
+        toast({ title: "Playback Complete" });
+      };
+      
+      utterance.onerror = () => {
+        setIsPlaying(false);
+        setCurrentlyPlayingId(null);
+        toast({ title: "Playback Error", variant: "destructive" });
+      };
+      
+      window.speechSynthesis.speak(utterance);
+    } else {
+      toast({ 
+        title: "Audio Not Supported", 
+        description: "Your browser doesn't support audio playback",
+        variant: "destructive" 
+      });
+    }
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -736,16 +792,20 @@ export default function VoiceDocumentation() {
                   <div className="flex gap-2">
                     <Button 
                       size="sm"
-                      onClick={() => {
-                        setIsPlaying(!isPlaying);
-                        toast({
-                          title: isPlaying ? "Playback Stopped" : "Playing Audio",
-                          description: `${isPlaying ? "Stopped" : "Playing"} recording for ${note.patientName}`,
-                        });
-                      }}
+                      onClick={() => playAudio(note)}
+                      disabled={currentlyPlayingId === note.id && isPlaying}
                     >
-                      {isPlaying ? <Pause className="w-4 h-4 mr-1" /> : <Play className="w-4 h-4 mr-1" />}
-                      {isPlaying ? "Pause" : "Play"}
+                      {currentlyPlayingId === note.id && isPlaying ? (
+                        <>
+                          <Pause className="w-4 h-4 mr-1" />
+                          Playing...
+                        </>
+                      ) : (
+                        <>
+                          <Play className="w-4 h-4 mr-1" />
+                          Play
+                        </>
+                      )}
                     </Button>
                     <Button 
                       size="sm" 
