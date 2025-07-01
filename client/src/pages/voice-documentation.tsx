@@ -123,6 +123,8 @@ export default function VoiceDocumentation() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
+  const [selectedPatient, setSelectedPatient] = useState<string>("");
+  const [selectedNoteType, setSelectedNoteType] = useState<string>("");
   const [currentTranscript, setCurrentTranscript] = useState("");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<VoiceNote | null>(null);
@@ -142,19 +144,49 @@ export default function VoiceDocumentation() {
   // Fetch voice notes
   const { data: voiceNotes, isLoading: notesLoading } = useQuery({
     queryKey: ["/api/voice-documentation/notes"],
-    enabled: true
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/voice-documentation/notes', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch voice notes');
+      return response.json();
+    }
   });
 
   // Fetch smart templates
   const { data: templates, isLoading: templatesLoading } = useQuery({
     queryKey: ["/api/voice-documentation/templates"],
-    enabled: true
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/voice-documentation/templates', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch templates');
+      return response.json();
+    }
   });
 
   // Fetch clinical photos
   const { data: photos, isLoading: photosLoading } = useQuery({
     queryKey: ["/api/voice-documentation/photos"],
-    enabled: true
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/voice-documentation/photos', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch photos');
+      return response.json();
+    }
   });
 
   // Fetch patients for dropdowns
@@ -181,10 +213,14 @@ export default function VoiceDocumentation() {
       formData.append('patientId', data.patientId);
       formData.append('type', data.type);
 
+      const token = localStorage.getItem('auth_token');
       const response = await fetch("/api/voice-documentation/notes", {
         method: "POST",
-        body: formData,
-        credentials: "include"
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        },
+        body: formData
       });
       if (!response.ok) throw new Error("Failed to create voice note");
       return response.json();
@@ -204,10 +240,14 @@ export default function VoiceDocumentation() {
       formData.append('type', data.type);
       formData.append('description', data.description);
 
+      const token = localStorage.getItem('auth_token');
       const response = await fetch("/api/voice-documentation/photos", {
         method: "POST",
-        body: formData,
-        credentials: "include"
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        },
+        body: formData
       });
       if (!response.ok) throw new Error("Failed to upload photo");
       return response.json();

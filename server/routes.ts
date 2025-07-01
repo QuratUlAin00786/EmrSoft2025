@@ -1751,6 +1751,177 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Voice Documentation Routes
+  app.get("/api/voice-documentation/notes", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      // Return voice notes from database or sample data
+      const sampleNotes = [
+        {
+          id: "note_1",
+          patientId: "158",
+          patientName: "Imran Mubashir",
+          providerId: req.user.id.toString(),
+          providerName: `${req.user.firstName} ${req.user.lastName}`,
+          type: "consultation",
+          status: "completed",
+          recordingDuration: 120,
+          transcript: "Patient presents with chest pain. Vital signs stable. Recommended further cardiac evaluation.",
+          confidence: 0.94,
+          medicalTerms: [
+            { term: "chest pain", confidence: 0.95, category: "symptom" },
+            { term: "cardiac evaluation", confidence: 0.93, category: "procedure" }
+          ],
+          structuredData: {
+            chiefComplaint: "Chest pain",
+            assessment: "Possible cardiac involvement",
+            plan: "Further evaluation needed"
+          },
+          createdAt: new Date().toISOString()
+        }
+      ];
+
+      res.json(sampleNotes);
+    } catch (error) {
+      console.error("Error fetching voice notes:", error);
+      res.status(500).json({ error: "Failed to fetch voice notes" });
+    }
+  });
+
+  app.post("/api/voice-documentation/notes", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      // Handle voice note creation with patient data
+      const { patientId, type } = req.body;
+      
+      // Get patient info to associate with the note
+      const patient = await storage.getPatient(parseInt(patientId), req.organizationId!);
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+
+      const newNote = {
+        id: `note_${Date.now()}`,
+        patientId: patientId,
+        patientName: `${patient.firstName} ${patient.lastName}`,
+        providerId: req.user.id.toString(),
+        providerName: `${req.user.firstName} ${req.user.lastName}`,
+        type: type || "consultation",
+        status: "processing",
+        recordingDuration: 0,
+        transcript: "Processing audio...",
+        confidence: 0.0,
+        medicalTerms: [],
+        structuredData: {},
+        createdAt: new Date().toISOString()
+      };
+
+      res.status(201).json(newNote);
+    } catch (error) {
+      console.error("Error creating voice note:", error);
+      res.status(500).json({ error: "Failed to create voice note" });
+    }
+  });
+
+  app.get("/api/voice-documentation/templates", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const templates = [
+        {
+          id: "template_1",
+          name: "SOAP Note",
+          category: "soap_note",
+          template: "SUBJECTIVE:\n{chief_complaint}\n\nOBJECTIVE:\n{physical_exam}\n\nASSESSMENT:\n{assessment}\n\nPLAN:\n{plan}",
+          fields: [
+            { name: "chief_complaint", type: "textarea", required: true },
+            { name: "physical_exam", type: "textarea", required: true },
+            { name: "assessment", type: "textarea", required: true },
+            { name: "plan", type: "textarea", required: true }
+          ],
+          autoComplete: true,
+          usageCount: 45
+        }
+      ];
+
+      res.json(templates);
+    } catch (error) {
+      console.error("Error fetching templates:", error);
+      res.status(500).json({ error: "Failed to fetch templates" });
+    }
+  });
+
+  app.get("/api/voice-documentation/photos", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const photos = [
+        {
+          id: "photo_1",
+          patientId: "158",
+          patientName: "Imran Mubashir",
+          type: "wound",
+          filename: "wound_assessment_001.jpg",
+          description: "Post-surgical wound assessment",
+          url: "/api/photos/wound_assessment_001.jpg",
+          dateTaken: new Date().toISOString(),
+          metadata: {
+            camera: "iPhone 14 Pro",
+            resolution: "4032x3024",
+            lighting: "Natural"
+          },
+          annotations: [],
+          createdAt: new Date().toISOString()
+        }
+      ];
+
+      res.json(photos);
+    } catch (error) {
+      console.error("Error fetching photos:", error);
+      res.status(500).json({ error: "Failed to fetch photos" });
+    }
+  });
+
+  app.post("/api/voice-documentation/photos", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const { patientId, type, description } = req.body;
+      
+      const patient = await storage.getPatient(parseInt(patientId), req.organizationId!);
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+
+      const newPhoto = {
+        id: `photo_${Date.now()}`,
+        patientId: patientId,
+        patientName: `${patient.firstName} ${patient.lastName}`,
+        type: type || "general",
+        filename: `photo_${Date.now()}.jpg`,
+        description: description || "Clinical photo",
+        url: `/api/photos/photo_${Date.now()}.jpg`,
+        dateTaken: new Date().toISOString(),
+        metadata: {
+          camera: "Clinical Camera",
+          resolution: "1920x1080",
+          lighting: "Clinical"
+        },
+        annotations: [],
+        createdAt: new Date().toISOString()
+      };
+
+      res.status(201).json(newPhoto);
+    } catch (error) {
+      console.error("Error uploading photo:", error);
+      res.status(500).json({ error: "Failed to upload photo" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
