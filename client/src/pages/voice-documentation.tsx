@@ -208,19 +208,18 @@ export default function VoiceDocumentation() {
   // Create voice note mutation
   const createVoiceNoteMutation = useMutation({
     mutationFn: async (data: { audioBlob: Blob; patientId: string; type: string }) => {
-      const formData = new FormData();
-      formData.append('audio', data.audioBlob);
-      formData.append('patientId', data.patientId);
-      formData.append('type', data.type);
-
       const token = localStorage.getItem('auth_token');
       const response = await fetch("/api/voice-documentation/notes", {
         method: "POST",
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': 'demo',
+          'Content-Type': 'application/json'
         },
-        body: formData
+        body: JSON.stringify({
+          patientId: data.patientId,
+          type: data.type
+        })
       });
       if (!response.ok) throw new Error("Failed to create voice note");
       return response.json();
