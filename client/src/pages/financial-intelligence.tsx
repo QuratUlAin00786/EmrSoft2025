@@ -1086,7 +1086,7 @@ export default function FinancialIntelligence() {
 
       {/* Track Status Dialog */}
       <Dialog open={trackStatusOpen} onOpenChange={setTrackStatusOpen}>
-        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto z-50 pointer-events-auto">
           <DialogHeader>
             <DialogTitle>Track Claim Status - {trackingClaim?.claimNumber}</DialogTitle>
           </DialogHeader>
@@ -1143,6 +1143,12 @@ export default function FinancialIntelligence() {
                   <strong>Estimated Processing Time:</strong> 5-7 business days<br/>
                   <strong>Next Update:</strong> {format(new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), 'PPP')}
                 </div>
+              </div>
+              
+              <div className="flex justify-end">
+                <Button onClick={() => setTrackStatusOpen(false)}>
+                  Close
+                </Button>
               </div>
             </div>
           )}

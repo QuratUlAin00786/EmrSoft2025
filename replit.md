@@ -102,6 +102,8 @@ Averox EMR is a comprehensive multi-tenant Electronic Medical Records (EMR) syst
 ## Changelog
 
 **July 1, 2025:**
+- **COMPLETED**: Fixed dialog clickability issue in Financial Intelligence Track Claim Status popup - added proper z-index (z-50) and pointer-events-auto classes to DialogContent, plus functional Close button, ensuring all dialog elements are interactive and clickable in LIVE deployment
+- **COMPLETED**: Cleaned up Integrations page marketplace - removed DocuSign, Epic MyChart, and LabCorp from Featured Integrations section, completely removed "Browse by Category" section, leaving only Stripe Payments, Twilio SMS, and Zoom Health in Featured section for LIVE deployment
 - **COMPLETED**: Fixed duplicate dropdown entries in appointment booking system - implemented name-based deduplication logic that filters dropdown options by unique patient and provider names instead of IDs, reducing patient dropdown from 50 to 4 unique entries and provider dropdown from 149 to 3 unique entries, ensuring clean dropdown lists in LIVE deployment
 - **COMPLETED**: Implemented real audio transcription system - added Web Speech API integration for live speech-to-text conversion during recording, real-time transcript display, automatic transcript saving with voice notes, and proper cleanup between recordings, enabling authentic voice documentation with actual spoken word capture in LIVE environment
 - **COMPLETED**: Fixed audio playback for voice notes - implemented comprehensive playback system supporting original recorded audio for live recordings, text-to-speech for API-created notes, and demo tone fallback, ensuring all voice notes are playable in LIVE environment
