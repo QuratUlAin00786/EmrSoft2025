@@ -381,11 +381,8 @@ export default function IntegrationsPage() {
                   <h3 className="text-lg font-semibold mb-4">Featured Integrations</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {[
-                      { name: "Epic MyChart", category: "Clinical", description: "Connect with Epic EHR systems", rating: 4.8, installs: "50K+", icon: "🏥" },
                       { name: "Stripe Payments", category: "Billing", description: "Accept online payments securely", rating: 4.9, installs: "100K+", icon: "💳" },
                       { name: "Twilio SMS", category: "Messaging", description: "Send SMS notifications to patients", rating: 4.7, installs: "75K+", icon: "📱" },
-                      { name: "DocuSign", category: "Workflow", description: "Digital document signing", rating: 4.6, installs: "25K+", icon: "📝" },
-                      { name: "LabCorp", category: "Laboratory", description: "Lab results integration", rating: 4.5, installs: "30K+", icon: "🧪" },
                       { name: "Zoom Health", category: "Telemedicine", description: "Video consultations platform", rating: 4.8, installs: "40K+", icon: "📹" }
                     ].map((integration) => (
                       <Card key={integration.name} className="hover:shadow-lg transition-shadow cursor-pointer">
@@ -411,30 +408,7 @@ export default function IntegrationsPage() {
                   </div>
                 </div>
 
-                {/* Categories */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Browse by Category</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {[
-                      { name: "Clinical Systems", count: 45, icon: "🏥" },
-                      { name: "Billing & Payments", count: 32, icon: "💰" },
-                      { name: "Patient Communication", count: 28, icon: "💬" },
-                      { name: "Lab & Imaging", count: 22, icon: "🔬" },
-                      { name: "Analytics & Reports", count: 19, icon: "📊" },
-                      { name: "Workflow Automation", count: 35, icon: "⚡" },
-                      { name: "Compliance & Security", count: 15, icon: "🔒" },
-                      { name: "Telemedicine", count: 12, icon: "📱" }
-                    ].map((category) => (
-                      <Card key={category.name} className="hover:bg-gray-50 cursor-pointer transition-colors">
-                        <CardContent className="p-3 text-center">
-                          <div className="text-2xl mb-2">{category.icon}</div>
-                          <h5 className="font-medium text-sm mb-1">{category.name}</h5>
-                          <p className="text-xs text-gray-600">{category.count} integrations</p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
+
 
                 {/* Popular This Month */}
                 <div>
