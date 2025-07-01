@@ -620,6 +620,11 @@ export default function VoiceDocumentation() {
   };
 
   const saveVoiceNote = () => {
+    console.log("saveVoiceNote called");
+    console.log("selectedPatient:", selectedPatient);
+    console.log("selectedNoteType:", selectedNoteType);
+    console.log("currentTranscript:", currentTranscript);
+    
     if (!selectedPatient || !selectedNoteType) {
       toast({ title: "Please select patient and note type", variant: "destructive" });
       return;
@@ -628,18 +633,28 @@ export default function VoiceDocumentation() {
     // Get the final transcript (without interim markers)
     const finalTranscript = currentTranscript.replace(/\[Speaking\.\.\.\]/g, '').trim();
     
+    console.log("finalTranscript:", finalTranscript);
+    
     if (!finalTranscript) {
       toast({ title: "No transcript to save", variant: "destructive" });
       return;
     }
 
-    createVoiceNoteMutation.mutate({
-      audioBlob: new Blob(), // Audio blob from recording
+    console.log("Calling mutation with:", {
       patientId: selectedPatient,
       type: selectedNoteType,
       transcript: finalTranscript,
       duration: recordingTime,
-      confidence: finalTranscript ? 95 : 0
+      confidence: 95
+    });
+
+    createVoiceNoteMutation.mutate({
+      audioBlob: new Blob(),
+      patientId: selectedPatient,
+      type: selectedNoteType,
+      transcript: finalTranscript,
+      duration: recordingTime,
+      confidence: 95
     });
   };
 
