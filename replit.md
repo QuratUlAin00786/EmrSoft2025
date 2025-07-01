@@ -101,6 +101,10 @@ Averox EMR is a comprehensive multi-tenant Electronic Medical Records (EMR) syst
 
 ## Changelog
 
+**July 1, 2025:**
+- **COMPLETED**: Fixed patient persistence issue across server restarts - modified seed-data.ts to preserve existing patients instead of recreating them, ensuring manually added patients like "Imran Mubashir" survive server restarts and appear in all dropdown menus throughout the application
+- **COMPLETED**: Fixed SelectItem validation errors in Voice Documentation and Mobile Health pages - replaced empty string values with proper non-empty values ("loading", "no-patients") to eliminate red error overlay and enable proper dropdown functionality
+
 **June 30, 2025:**
 - **COMPLETED**: Fixed AI Insights page data loading in live environment - added JWT Bearer token headers to AI insights API calls and created sample AI insights data (5 insights: cardiovascular risk assessment, drug interaction alerts, treatment suggestions, preventive care recommendations), enabling proper display of AI insights instead of error message
 - **COMPLETED**: Fixed Analytics Dashboard page data loading in live environment - added JWT Bearer token headers to analytics API calls, enabling proper display of analytics data (1,247 total patients, real revenue figures, actual metrics) instead of showing zeros
