@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { 
   FileText, 
   Stethoscope, 
@@ -20,9 +21,23 @@ import {
   Clock,
   User,
   Heart,
-  Activity
+  Activity,
+  Plus,
+  Minus,
+  CheckCircle,
+  X,
+  Thermometer,
+  Scale,
+  Ruler,
+  Eye,
+  Ear,
+  Brain,
+  HeartPulse
 } from "lucide-react";
 import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
+import { useMutation } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 
 interface ConsultationDialogProps {
   open: boolean;
@@ -31,11 +46,34 @@ interface ConsultationDialogProps {
 }
 
 export function ConsultationDialog({ open, onOpenChange, patient }: ConsultationDialogProps) {
-  const [activeTab, setActiveTab] = useState("history");
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("vitals");
+  const [consultationStartTime] = useState(new Date());
+  
+  const [vitals, setVitals] = useState({
+    bloodPressure: "",
+    heartRate: "",
+    temperature: "",
+    respiratoryRate: "",
+    oxygenSaturation: "",
+    weight: "",
+    height: "",
+    bmi: ""
+  });
+
   const [consultationData, setConsultationData] = useState({
     chiefComplaint: "",
     historyPresentingComplaint: "",
-    reviewOfSystems: "",
+    reviewOfSystems: {
+      cardiovascular: "",
+      respiratory: "",
+      gastrointestinal: "",
+      genitourinary: "",
+      neurological: "",
+      musculoskeletal: "",
+      skin: "",
+      psychiatric: ""
+    },
     examination: {
       general: "",
       cardiovascular: "",
@@ -43,7 +81,9 @@ export function ConsultationDialog({ open, onOpenChange, patient }: Consultation
       abdomen: "",
       neurological: "",
       musculoskeletal: "",
-      skin: ""
+      skin: "",
+      head_neck: "",
+      ears_nose_throat: ""
     },
     assessment: "",
     plan: "",
@@ -69,17 +109,6 @@ export function ConsultationDialog({ open, onOpenChange, patient }: Consultation
       urgency: "routine" | "urgent";
       reason: string;
     }>
-  });
-
-  const [vitals, setVitals] = useState({
-    bloodPressure: "",
-    heartRate: "",
-    temperature: "",
-    respiratoryRate: "",
-    oxygenSaturation: "",
-    weight: "",
-    height: "",
-    bmi: ""
   });
 
   const calculateAge = (dateOfBirth: string) => {
