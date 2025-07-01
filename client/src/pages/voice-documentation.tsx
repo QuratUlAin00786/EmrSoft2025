@@ -160,7 +160,7 @@ export default function VoiceDocumentation() {
       return response.json();
     },
     staleTime: 0,
-    cacheTime: 0,
+    gcTime: 0,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
     refetchInterval: 1000 // Refresh every second to ensure UI sync
@@ -624,32 +624,63 @@ export default function VoiceDocumentation() {
         toast({ title: "Failed to play audio", variant: "destructive" });
       });
     } else {
-      // Fallback: Create a simulated audio beep for demonstration
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      oscillator.frequency.value = 800;
-      oscillator.type = 'sine';
-      
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
-      
-      setIsPlaying(true);
-      setCurrentlyPlayingId(note.id);
-      toast({ title: "Playing Demo Audio", description: "Audio recording not available - playing demo tone" });
-      
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 1);
-      
-      setTimeout(() => {
-        setIsPlaying(false);
-        setCurrentlyPlayingId(null);
-        toast({ title: "Demo Playback Complete" });
-      }, 1000);
+      // Fallback: Use text-to-speech for notes without recorded audio
+      if ('speechSynthesis' in window && note.transcript) {
+        // Stop any current speech
+        window.speechSynthesis.cancel();
+        
+        const utterance = new SpeechSynthesisUtterance(note.transcript);
+        utterance.rate = 0.9;
+        utterance.pitch = 1;
+        utterance.volume = 0.8;
+        
+        utterance.onstart = () => {
+          setIsPlaying(true);
+          setCurrentlyPlayingId(note.id);
+          toast({ title: "Playing Text-to-Speech", description: `Reading transcript for ${note.patientName}` });
+        };
+        
+        utterance.onend = () => {
+          setIsPlaying(false);
+          setCurrentlyPlayingId(null);
+          toast({ title: "Playback Complete" });
+        };
+        
+        utterance.onerror = () => {
+          setIsPlaying(false);
+          setCurrentlyPlayingId(null);
+          toast({ title: "Playback Error", variant: "destructive" });
+        };
+        
+        window.speechSynthesis.speak(utterance);
+      } else {
+        // Final fallback: Create a brief audio tone
+        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+        
+        setIsPlaying(true);
+        setCurrentlyPlayingId(note.id);
+        toast({ title: "Playing Demo Audio", description: "Audio recording not available - playing demo tone" });
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 1);
+        
+        setTimeout(() => {
+          setIsPlaying(false);
+          setCurrentlyPlayingId(null);
+          toast({ title: "Demo Playback Complete" });
+        }, 1000);
+      }
     }
   };
 
