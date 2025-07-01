@@ -160,11 +160,10 @@ export default function VoiceDocumentation() {
       if (!response.ok) throw new Error('Failed to fetch voice notes');
       return response.json();
     },
-    staleTime: 0,
-    gcTime: 0,
+    staleTime: 5000, // Cache for 5 seconds to avoid disrupting optimistic updates
     refetchOnMount: true,
-    refetchOnWindowFocus: true,
-    refetchInterval: 1000 // Refresh every second to ensure UI sync
+    refetchOnWindowFocus: false, // Don't refetch on window focus to preserve optimistic state
+    refetchInterval: false // Disable automatic refresh to prevent optimistic update conflicts
   });
 
   // Fetch smart templates
@@ -247,17 +246,9 @@ export default function VoiceDocumentation() {
           return newMap;
         });
         
-        // Replace optimistic note with real note in cache
-        queryClient.setQueryData(["/api/voice-documentation/notes"], (oldData: any) => {
-          if (!oldData) return [newNote];
-          return oldData.map((note: any) => 
-            note.id === variables.tempNoteId ? {
-              ...newNote,
-              // Ensure transcript is preserved from server response
-              transcript: newNote.transcript || note.transcript || "No transcript available"
-            } : note
-          );
-        });
+        // Force complete cache refresh to ensure server data is used
+        queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
+        queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
       }
       
       toast({ title: "Voice note saved successfully!" });
