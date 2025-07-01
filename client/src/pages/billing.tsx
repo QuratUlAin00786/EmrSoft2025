@@ -259,13 +259,35 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
     }
   };
 
+  const [sendInvoiceDialog, setSendInvoiceDialog] = useState(false);
+  const [invoiceToSend, setInvoiceToSend] = useState<Invoice | null>(null);
+  const [sendMethod, setSendMethod] = useState("email");
+  const [recipientEmail, setRecipientEmail] = useState("");
+  const [customMessage, setCustomMessage] = useState("");
+
   const handleSendInvoice = (invoiceId: string) => {
     const invoice = Array.isArray(invoices) ? invoices.find((inv: any) => inv.id === invoiceId) : null;
     if (invoice) {
-      toast({
-        title: "Send Invoice",
-        description: `Invoice sent to ${invoice.patientName} via email`,
-      });
+      setInvoiceToSend(invoice);
+      setRecipientEmail(`${invoice.patientName.toLowerCase().replace(' ', '.')}@email.com`);
+      setCustomMessage(`Dear ${invoice.patientName},\n\nPlease find attached your invoice for services rendered on ${format(new Date(invoice.dateOfService), 'MMM d, yyyy')}.\n\nTotal Amount: £${invoice.totalAmount.toFixed(2)}\nDue Date: ${format(new Date(invoice.dueDate), 'MMM d, yyyy')}\n\nThank you for choosing our healthcare services.`);
+      setSendInvoiceDialog(true);
+    }
+  };
+
+  const confirmSendInvoice = () => {
+    if (invoiceToSend) {
+      // Simulate sending the invoice
+      setTimeout(() => {
+        toast({
+          title: "Invoice Sent Successfully",
+          description: `Invoice ${invoiceToSend.id} sent to ${recipientEmail}`,
+        });
+        setSendInvoiceDialog(false);
+        setInvoiceToSend(null);
+        setRecipientEmail("");
+        setCustomMessage("");
+      }, 1000);
     }
   };
 
@@ -834,6 +856,77 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
             }}>
               <Download className="h-4 w-4 mr-2" />
               Download PDF
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Send Invoice Dialog */}
+      <Dialog open={sendInvoiceDialog} onOpenChange={setSendInvoiceDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send Invoice</DialogTitle>
+          </DialogHeader>
+          
+          {invoiceToSend && (
+            <div className="space-y-4">
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <div className="text-sm">
+                  <div><strong>Invoice:</strong> {invoiceToSend.id}</div>
+                  <div><strong>Patient:</strong> {invoiceToSend.patientName}</div>
+                  <div><strong>Amount:</strong> £{invoiceToSend.totalAmount.toFixed(2)}</div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="sendMethod">Send Method</Label>
+                  <Select value={sendMethod} onValueChange={setSendMethod}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="email">Email</SelectItem>
+                      <SelectItem value="sms">SMS</SelectItem>
+                      <SelectItem value="print">Print & Mail</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {sendMethod === "email" && (
+                  <div>
+                    <Label htmlFor="recipientEmail">Recipient Email</Label>
+                    <Input
+                      id="recipientEmail"
+                      type="email"
+                      value={recipientEmail}
+                      onChange={(e) => setRecipientEmail(e.target.value)}
+                      placeholder="patient@email.com"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <Label htmlFor="customMessage">Message (Optional)</Label>
+                  <Textarea
+                    id="customMessage"
+                    value={customMessage}
+                    onChange={(e) => setCustomMessage(e.target.value)}
+                    placeholder="Add a personal message..."
+                    rows={4}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSendInvoiceDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmSendInvoice} disabled={!recipientEmail && sendMethod === "email"}>
+              <Send className="h-4 w-4 mr-2" />
+              Send Invoice
             </Button>
           </DialogFooter>
         </DialogContent>
