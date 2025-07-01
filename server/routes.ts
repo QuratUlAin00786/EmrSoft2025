@@ -2050,6 +2050,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Stripe Payment Intent for Subscription
+  app.post("/api/create-subscription-payment-intent", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      // Mock response since we don't have Stripe secrets yet
+      const { planId, amount } = req.body;
+      
+      res.json({
+        clientSecret: `pi_mock_client_secret_${planId}_${amount}`,
+        message: "Payment intent created (demo mode - requires Stripe API keys for live processing)"
+      });
+    } catch (error: any) {
+      console.error("Error creating payment intent:", error);
+      res.status(500).json({ error: "Failed to create payment intent" });
+    }
+  });
+
+  // PayPal Setup
+  app.get("/api/paypal/setup", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      // Mock response since we don't have PayPal secrets yet
+      res.json({
+        clientToken: "mock_paypal_client_token",
+        message: "PayPal setup (demo mode - requires PayPal API keys for live processing)"
+      });
+    } catch (error: any) {
+      console.error("Error setting up PayPal:", error);
+      res.status(500).json({ error: "Failed to setup PayPal" });
+    }
+  });
+
+  // PayPal Create Order
+  app.post("/api/paypal/order", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const { amount, currency, intent, planId, planName } = req.body;
+      
+      // Mock response since we don't have PayPal secrets yet
+      res.json({
+        id: `mock_paypal_order_${planId}_${Date.now()}`,
+        status: "CREATED",
+        message: "PayPal order created (demo mode - requires PayPal API keys for live processing)"
+      });
+    } catch (error: any) {
+      console.error("Error creating PayPal order:", error);
+      res.status(500).json({ error: "Failed to create PayPal order" });
+    }
+  });
+
+  // PayPal Capture Order
+  app.post("/api/paypal/order/:orderID/capture", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const { orderID } = req.params;
+      
+      // Mock response since we don't have PayPal secrets yet
+      res.json({
+        id: orderID,
+        status: "COMPLETED",
+        captureId: `capture_${Date.now()}`,
+        message: "PayPal order captured (demo mode - requires PayPal API keys for live processing)"
+      });
+    } catch (error: any) {
+      console.error("Error capturing PayPal order:", error);
+      res.status(500).json({ error: "Failed to capture PayPal order" });
+    }
+  });
+
+  // Subscription Upgrade
+  app.post("/api/subscription/upgrade", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const { planId, paymentMethod, paymentData } = req.body;
+      const userId = req.user?.id;
+      const organizationId = req.organizationId;
+
+      console.log(`Upgrading subscription for user ${userId} to plan ${planId} using ${paymentMethod}`);
+
+      // Update subscription in storage
+      await storage.updateSubscription(organizationId, {
+        plan: planId,
+        status: "active",
+        paymentMethod,
+        updatedAt: new Date()
+      });
+
+      res.json({
+        success: true,
+        message: `Subscription upgraded to ${planId} plan`,
+        paymentMethod,
+        planId
+      });
+    } catch (error: any) {
+      console.error("Error upgrading subscription:", error);
+      res.status(500).json({ error: "Failed to upgrade subscription" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
