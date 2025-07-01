@@ -846,11 +846,19 @@ export default function VoiceDocumentation() {
                       {patientsLoading ? (
                         <SelectItem value="loading" disabled>Loading...</SelectItem>
                       ) : patients && patients.length > 0 ? (
-                        patients.map((patient: any) => (
-                          <SelectItem key={patient.id} value={patient.id.toString()}>
-                            {patient.firstName} {patient.lastName}
-                          </SelectItem>
-                        ))
+                        (() => {
+                          // Deduplicate patients by unique name combination
+                          const uniquePatients = patients.filter((patient: any, index: number, array: any[]) => 
+                            array.findIndex((p: any) => 
+                              `${p.firstName} ${p.lastName}` === `${patient.firstName} ${patient.lastName}`
+                            ) === index
+                          );
+                          return uniquePatients.map((patient: any) => (
+                            <SelectItem key={patient.id} value={patient.id.toString()}>
+                              {patient.firstName} {patient.lastName}
+                            </SelectItem>
+                          ));
+                        })()
                       ) : (
                         <SelectItem value="no-patients" disabled>No patients found</SelectItem>
                       )}
@@ -956,11 +964,19 @@ export default function VoiceDocumentation() {
                       {patientsLoading ? (
                         <SelectItem value="loading" disabled>Loading...</SelectItem>
                       ) : patients && patients.length > 0 ? (
-                        patients.map((patient: any) => (
-                          <SelectItem key={patient.id} value={patient.id.toString()}>
-                            {patient.firstName} {patient.lastName}
-                          </SelectItem>
-                        ))
+                        (() => {
+                          // Deduplicate patients by unique name combination
+                          const uniquePatients = patients.filter((patient: any, index: number, array: any[]) => 
+                            array.findIndex((p: any) => 
+                              `${p.firstName} ${p.lastName}` === `${patient.firstName} ${patient.lastName}`
+                            ) === index
+                          );
+                          return uniquePatients.map((patient: any) => (
+                            <SelectItem key={patient.id} value={patient.id.toString()}>
+                              {patient.firstName} {patient.lastName}
+                            </SelectItem>
+                          ));
+                        })()
                       ) : (
                         <SelectItem value="no-patients" disabled>No patients found</SelectItem>
                       )}
