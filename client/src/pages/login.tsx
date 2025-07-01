@@ -44,12 +44,10 @@ export default function Login() {
           <div className="flex justify-center mb-4">
             <img 
               src={haloLogoPath} 
-              alt="Averox" 
+              alt="Halo Health" 
               className="h-16 w-16 rounded-lg shadow-lg"
             />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Averox EMR</h1>
-          <p className="text-gray-600 mt-2">Comprehensive Healthcare Management</p>
         </div>
 
         {/* Login Form */}
