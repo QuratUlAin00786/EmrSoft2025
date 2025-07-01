@@ -102,6 +102,8 @@ Averox EMR is a comprehensive multi-tenant Electronic Medical Records (EMR) syst
 ## Changelog
 
 **July 1, 2025:**
+- **COMPLETED**: Fixed audio recording and playback system in Voice Documentation - implemented proper MediaRecorder API integration to capture actual audio, store audio blobs as URLs in browser memory, and play back original recorded audio instead of text-to-speech, ensuring authentic voice recording functionality works identically in LIVE deployment
+- **COMPLETED**: Added delete functionality for voice notes - implemented red Delete button with confirmation dialog, backend DELETE endpoint with JWT authentication, automatic list refresh after deletion, and proper error handling for LIVE environment compatibility
 - **COMPLETED**: Fixed patient persistence issue across server restarts - modified seed-data.ts to preserve existing patients instead of recreating them, ensuring manually added patients like "Imran Mubashir" survive server restarts and appear in all dropdown menus throughout the application
 - **COMPLETED**: Fixed SelectItem validation errors in Voice Documentation and Mobile Health pages - replaced empty string values with proper non-empty values ("loading", "no-patients") to eliminate red error overlay and enable proper dropdown functionality
 

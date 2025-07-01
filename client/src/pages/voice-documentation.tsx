@@ -123,6 +123,7 @@ export default function VoiceDocumentation() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [audioStorage, setAudioStorage] = useState<Map<string, string>>(new Map());
   const [recordingTime, setRecordingTime] = useState(0);
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
   const [selectedPatient, setSelectedPatient] = useState<string>("");
@@ -212,7 +213,7 @@ export default function VoiceDocumentation() {
 
   // Create voice note mutation
   const createVoiceNoteMutation = useMutation({
-    mutationFn: async (data: { audioBlob: Blob; patientId: string; type: string }) => {
+    mutationFn: async (data: { audioBlob: Blob; patientId: string; type: string; tempAudioUrl?: string; tempNoteId?: string }) => {
       const token = localStorage.getItem('auth_token');
       const response = await fetch("/api/voice-documentation/notes", {
         method: "POST",
@@ -229,7 +230,17 @@ export default function VoiceDocumentation() {
       if (!response.ok) throw new Error("Failed to create voice note");
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (newNote, variables) => {
+      // Map the temporary audio URL to the actual note ID
+      if (variables.tempAudioUrl && variables.tempNoteId) {
+        setAudioStorage(prev => {
+          const newMap = new Map(prev);
+          newMap.delete(variables.tempNoteId); // Remove temp mapping
+          newMap.set(newNote.id, variables.tempAudioUrl); // Add actual note mapping
+          return newMap;
+        });
+      }
+      
       queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
       queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
       toast({ title: "Voice note created and processing..." });
@@ -428,13 +439,20 @@ export default function VoiceDocumentation() {
 
       mediaRecorderRef.current.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+        const audioUrl = URL.createObjectURL(audioBlob);
         
         // Create voice note with selected patient and type
         if (selectedPatient && selectedNoteType) {
+          // Store audio URL temporarily for immediate playback
+          const tempNoteId = `temp_${Date.now()}`;
+          setAudioStorage(prev => new Map(prev.set(tempNoteId, audioUrl)));
+          
           createVoiceNoteMutation.mutate({
             audioBlob,
             patientId: selectedPatient,
-            type: selectedNoteType
+            type: selectedNoteType,
+            tempAudioUrl: audioUrl,
+            tempNoteId: tempNoteId
           });
         }
         
@@ -493,50 +511,75 @@ export default function VoiceDocumentation() {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
       }
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
       setIsPlaying(false);
       setCurrentlyPlayingId(null);
       toast({ title: "Playback Stopped" });
       return;
     }
 
-    // Start new playback using text-to-speech
-    if ('speechSynthesis' in window) {
-      // Stop any current speech
-      window.speechSynthesis.cancel();
+    // Get stored audio URL for this note
+    const audioUrl = audioStorage.get(note.id);
+    
+    if (audioUrl) {
+      // Play actual recorded audio
+      if (!audioRef.current) {
+        audioRef.current = new Audio();
+      }
       
-      const utterance = new SpeechSynthesisUtterance(note.transcript);
-      utterance.rate = 0.9;
-      utterance.pitch = 1;
-      utterance.volume = 0.8;
+      audioRef.current.src = audioUrl;
+      audioRef.current.currentTime = 0;
       
-      utterance.onstart = () => {
+      audioRef.current.onloadstart = () => {
         setIsPlaying(true);
         setCurrentlyPlayingId(note.id);
-        toast({ title: "Playing Audio", description: `Playing voice note for ${note.patientName}` });
+        toast({ title: "Playing Recorded Audio", description: `Playing original recording for ${note.patientName}` });
       };
       
-      utterance.onend = () => {
+      audioRef.current.onended = () => {
         setIsPlaying(false);
         setCurrentlyPlayingId(null);
         toast({ title: "Playback Complete" });
       };
       
-      utterance.onerror = () => {
+      audioRef.current.onerror = () => {
         setIsPlaying(false);
         setCurrentlyPlayingId(null);
-        toast({ title: "Playback Error", variant: "destructive" });
+        toast({ title: "Audio Playback Error", variant: "destructive" });
       };
       
-      window.speechSynthesis.speak(utterance);
-    } else {
-      toast({ 
-        title: "Audio Not Supported", 
-        description: "Your browser doesn't support audio playback",
-        variant: "destructive" 
+      audioRef.current.play().catch(error => {
+        console.error('Audio playback failed:', error);
+        setIsPlaying(false);
+        setCurrentlyPlayingId(null);
+        toast({ title: "Failed to play audio", variant: "destructive" });
       });
+    } else {
+      // Fallback: Create a simulated audio beep for demonstration
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = 800;
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+      
+      setIsPlaying(true);
+      setCurrentlyPlayingId(note.id);
+      toast({ title: "Playing Demo Audio", description: "Audio recording not available - playing demo tone" });
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 1);
+      
+      setTimeout(() => {
+        setIsPlaying(false);
+        setCurrentlyPlayingId(null);
+        toast({ title: "Demo Playback Complete" });
+      }, 1000);
     }
   };
 
