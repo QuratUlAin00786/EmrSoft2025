@@ -109,7 +109,11 @@ export default function AppointmentCalendar() {
       }
       
       const data = await response.json();
-      setPatients(data || []);
+      // Remove duplicates based on patient ID
+      const uniquePatients = data ? data.filter((patient: any, index: number, self: any[]) => 
+        index === self.findIndex((p: any) => p.id === patient.id)
+      ) : [];
+      setPatients(uniquePatients);
     } catch (err) {
       console.error("Error fetching patients:", err);
       setPatients([]);
@@ -137,7 +141,11 @@ export default function AppointmentCalendar() {
       }
       
       const data = await response.json();
-      setProviders(data || []);
+      // Remove duplicates based on provider ID
+      const uniqueProviders = data ? data.filter((provider: any, index: number, self: any[]) => 
+        index === self.findIndex((p: any) => p.id === provider.id)
+      ) : [];
+      setProviders(uniqueProviders);
     } catch (err) {
       console.error("Error fetching providers:", err);
       setProviders([]);

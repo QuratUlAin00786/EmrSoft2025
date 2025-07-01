@@ -242,7 +242,11 @@ export default function PrescriptionsPage() {
       }
       
       const data = await response.json();
-      setPatients(data || []);
+      // Remove duplicates based on patient ID
+      const uniquePatients = data ? data.filter((patient: any, index: number, self: any[]) => 
+        index === self.findIndex((p: any) => p.id === patient.id)
+      ) : [];
+      setPatients(uniquePatients);
     } catch (err) {
       console.error("Error fetching patients:", err);
       setPatients([]);
