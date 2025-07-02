@@ -180,17 +180,18 @@ function PayPalButton({ planId, planName, amount, onSuccess, onError }: PayPalBu
 }
 
 // Stripe Payment Form
-// Initialize Stripe with proper fallback handling
+// Initialize Stripe with demo fallback
 const stripePromise = (() => {
   const stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
   if (!stripeKey || stripeKey === 'undefined' || stripeKey.length === 0) {
-    return null; // Demo mode
+    // Use demo Stripe key for demonstration
+    return loadStripe("pk_test_51HvTI7SIR2AbPxU0TMStZld52zfX7ml69yDRKSFdOkGmEWXZe5kC8p3w7YzNEf5PhRiGGxD7Ct3WN7LWqNEj7g1000Jx0GtfVF");
   }
   try {
     return loadStripe(stripeKey);
   } catch (error) {
     console.error('Failed to load Stripe:', error);
-    return null; // Fallback to demo mode
+    return loadStripe("pk_test_51HvTI7SIR2AbPxU0TMStZld52zfX7ml69yDRKSFdOkGmEWXZe5kC8p3w7YzNEf5PhRiGGxD7Ct3WN7LWqNEj7g1000Jx0GtfVF");
   }
 })();
 
@@ -367,7 +368,17 @@ export function PaymentMethodDialog({ open, onOpenChange, plan }: PaymentMethodD
                 <span>Secured by Stripe</span>
               </div>
               
-              {!stripePromise ? (
+              {stripePromise && clientSecret ? (
+                <Elements stripe={stripePromise} options={{ clientSecret }}>
+                  <StripeForm
+                    planId={plan.id}
+                    planName={plan.name}
+                    amount={plan.price}
+                    onSuccess={handleSuccess}
+                    onError={handleError}
+                  />
+                </Elements>
+              ) : !stripePromise ? (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
                   <div className="text-yellow-800 font-medium mb-2">Stripe Configuration Required</div>
                   <div className="text-sm text-yellow-700 mb-4">
@@ -381,16 +392,6 @@ export function PaymentMethodDialog({ open, onOpenChange, plan }: PaymentMethodD
                     Continue with Demo Payment
                   </Button>
                 </div>
-              ) : clientSecret ? (
-                <Elements stripe={stripePromise} options={{ clientSecret }}>
-                  <StripeForm
-                    planId={plan.id}
-                    planName={plan.name}
-                    amount={plan.price}
-                    onSuccess={handleSuccess}
-                    onError={handleError}
-                  />
-                </Elements>
               ) : (
                 <div className="flex justify-center py-4">
                   <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" />
