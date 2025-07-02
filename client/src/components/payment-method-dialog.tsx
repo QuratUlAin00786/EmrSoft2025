@@ -237,7 +237,6 @@ function DemoPaymentForm({ planId, planName, amount, onSuccess, onError }: Strip
       alternate = !alternate;
     }
     
-    console.log("Luhn check for", cardNumber, "sum:", sum, "valid:", (sum % 10) === 0);
     return (sum % 10) === 0;
   };
 
@@ -266,15 +265,6 @@ function DemoPaymentForm({ planId, planName, amount, onSuccess, onError }: Strip
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Debug logging
-    console.log("Card validation:", {
-      cardNumber: cardNumber,
-      cardNumberLength: cardNumber.replace(/\s/g, '').length,
-      expiryDate: expiryDate,
-      cvv: cvv,
-      cardName: cardName
-    });
-    
     // Validate all fields before starting processing
     const validationErrors = [];
     
@@ -282,13 +272,6 @@ function DemoPaymentForm({ planId, planName, amount, onSuccess, onError }: Strip
     const isExpiryValid = validateExpiryDate(expiryDate);
     const isCvvValid = validateCVV(cvv);
     const isNameValid = cardName.trim().length > 0;
-    
-    console.log("Validation results:", {
-      isCardValid,
-      isExpiryValid, 
-      isCvvValid,
-      isNameValid
-    });
     
     if (!isCardValid) {
       validationErrors.push(`Invalid card number. Please enter a valid 16-digit card number. Current length: ${cardNumber.replace(/\s/g, '').length}`);
@@ -308,7 +291,6 @@ function DemoPaymentForm({ planId, planName, amount, onSuccess, onError }: Strip
     
     // If there are validation errors, show them and don't proceed
     if (validationErrors.length > 0) {
-      console.log("Validation failed:", validationErrors);
       toast({
         title: "Payment Failed",
         description: validationErrors[0], // Show first error
