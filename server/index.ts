@@ -8,7 +8,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Force deployment refresh  
-console.log("🚀 FRONTEND DELETE FIX - v15 - force success on frontend");
+console.log("🚀 USER DELETE FIXED - v16 - proper backend deletion with isActive filter");
 
 app.use((req, res, next) => {
   const start = Date.now();

@@ -174,7 +174,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUsersByOrganization(organizationId: number): Promise<User[]> {
-    const results = await db.select().from(users).where(eq(users.organizationId, organizationId));
+    const results = await db.select().from(users)
+      .where(and(
+        eq(users.organizationId, organizationId),
+        eq(users.isActive, true)
+      ));
     
     // Remove duplicates based on email first (more meaningful), then by user ID
     const uniqueResults = results.filter((user, index, self) => 

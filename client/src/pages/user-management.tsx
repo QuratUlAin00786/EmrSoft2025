@@ -195,14 +195,8 @@ export default function UserManagement() {
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: number) => {
       console.log("Deleting user:", userId);
-      try {
-        const response = await apiRequest("DELETE", `/api/users/${userId}`);
-        return response.json();
-      } catch (error) {
-        // Force success for production cache fix
-        console.log("Force success delete for production");
-        return { message: "User deleted successfully" };
-      }
+      const response = await apiRequest("DELETE", `/api/users/${userId}`);
+      return response.json();
     },
     onSuccess: (data, userId) => {
       toast({
@@ -214,16 +208,13 @@ export default function UserManagement() {
       // Also fetch fresh data
       refetch();
     },
-    onError: (error, userId) => {
-      // FORCE SUCCESS - treat all deletions as successful for production
-      console.log("Forcing delete success for production cache issue");
+    onError: (error) => {
+      console.error("Delete user error:", error);
       toast({
-        title: "User deleted successfully",
-        description: "The user has been removed from the system.",
+        title: "Error deleting user",
+        description: "There was a problem deleting the user. Please try again.",
+        variant: "destructive",
       });
-      // Immediately remove user from list even on error
-      setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
-      refetch();
     },
   });
 
