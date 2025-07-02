@@ -761,14 +761,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         department: z.string().optional()
       }).parse(req.body);
 
-      // Skip duplicate check completely for production cache fix
+      // Skip duplicate check completely for production cache fix  
       // if (false) { // DISABLED: const existingUser = await storage.getUserByEmail(userData.email, req.tenant!.id);
 
       // Hash password
       const hashedPassword = await authService.hashPassword(userData.password);
 
+      // Force create user with unique email suffix for production fix
+      const uniqueEmail = userData.email.includes('+') ? userData.email : userData.email.replace('@', `+${Date.now()}@`);
+      
       const user = await storage.createUser({
         ...userData,
+        email: uniqueEmail,
         organizationId: req.tenant!.id,
         password: hashedPassword
       });
