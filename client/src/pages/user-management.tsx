@@ -71,6 +71,8 @@ export default function UserManagement() {
   const { data: users = [], isLoading, refetch, error } = useQuery<User[]>({
     queryKey: ["/api/users"],
     retry: 3,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   // Debug logging
