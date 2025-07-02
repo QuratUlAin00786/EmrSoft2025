@@ -7,6 +7,9 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Force deployment refresh
+console.log("🚀 DEPLOYMENT REFRESH - Admin fixes deployed v7");
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
