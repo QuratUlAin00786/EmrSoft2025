@@ -391,6 +391,116 @@ function DemoPaymentForm({ planId, planName, amount, onSuccess, onError }: Strip
   );
 }
 
+// Demo PayPal Form Component  
+function DemoPayPalForm({ planId, planName, amount, onSuccess, onError }: StripeFormProps) {
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const { toast } = useToast();
+
+  const validateEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate fields before processing
+    const validationErrors = [];
+    
+    if (!validateEmail(email)) {
+      validationErrors.push("Please enter a valid email address.");
+    }
+    
+    if (password.length < 6) {
+      validationErrors.push("Password must be at least 6 characters long.");
+    }
+    
+    // Show validation errors and don't proceed
+    if (validationErrors.length > 0) {
+      toast({
+        title: "PayPal Login Failed",
+        description: validationErrors[0],
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsProcessing(true);
+
+    try {
+      // Simulate PayPal authentication and payment processing
+      await new Promise(resolve => setTimeout(resolve, 2500));
+      
+      // Update subscription
+      await apiRequest("POST", "/api/subscription/upgrade", {
+        planId,
+        paymentMethod: "paypal"
+      });
+      
+      onSuccess();
+      toast({
+        title: "PayPal Payment Successful",
+        description: `Your subscription has been upgraded to ${planName} via PayPal!`,
+      });
+    } catch (error: any) {
+      onError(error);
+      toast({
+        title: "PayPal Payment Failed",
+        description: error.message || "An error occurred during PayPal payment processing.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-4">
+        <div className="text-center">
+          <div className="text-blue-800 font-medium mb-2">PayPal Demo Login</div>
+          <div className="text-sm text-blue-700 mb-4">
+            Enter any email and password (6+ characters) to simulate PayPal payment
+          </div>
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">PayPal Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="your.email@example.com"
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">PayPal Password</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter your PayPal password"
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+      </div>
+      
+      <Button 
+        type="submit" 
+        className="w-full bg-blue-600 hover:bg-blue-700"
+        disabled={isProcessing}
+      >
+        {isProcessing ? "Processing PayPal Payment..." : `Pay £${amount}/month with PayPal`}
+      </Button>
+    </form>
+  );
+}
+
 interface PaymentMethodDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -505,19 +615,13 @@ export function PaymentMethodDialog({ open, onOpenChange, plan }: PaymentMethodD
                 <span>Secured by PayPal</span>
               </div>
               
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-                <div className="text-yellow-800 font-medium mb-2">PayPal Configuration Required</div>
-                <div className="text-sm text-yellow-700 mb-4">
-                  To enable PayPal payments, please configure your PayPal API keys.
-                </div>
-                <Button 
-                  variant="outline"
-                  onClick={handleSuccess}
-                  className="w-full"
-                >
-                  Continue with Demo Payment
-                </Button>
-              </div>
+              <DemoPayPalForm
+                planId={plan.id}
+                planName={plan.name}
+                amount={plan.price}
+                onSuccess={handleSuccess}
+                onError={handleError}
+              />
             </TabsContent>
           </Tabs>
 
