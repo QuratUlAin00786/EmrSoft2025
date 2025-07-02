@@ -34,16 +34,17 @@ const voiceNotes: any[] = [
 ];
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Debug endpoint BEFORE middleware - to diagnose tenant issues v5
-  app.get("/api/debug/tenant-v5", (req, res) => {
+  // Debug endpoint BEFORE middleware - to diagnose tenant issues v6 FORCE CACHE CLEAR
+  app.get("/api/status", (req, res) => {
     const host = req.get("host");
     const extractedSubdomain = host ? host.split('.')[0] : "none";
     res.json({ 
+      status: "LIVE-UPDATED", 
       host, 
       extractedSubdomain,
       env: process.env.NODE_ENV,
       timestamp: new Date().toISOString(),
-      version: "v5-debug-before-middleware"
+      version: "v6-force-deployment-refresh-status"
     });
   });
 
