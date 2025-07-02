@@ -96,13 +96,17 @@ export default function UserManagement() {
   });
 
   const createUserMutation = useMutation({
-    mutationFn: (userData: UserFormData) => {
+    mutationFn: async (userData: UserFormData) => {
       const payload = {
         ...userData,
         username: userData.email, // Use email as username
       };
       console.log("Creating user with payload:", payload);
-      return apiRequest("POST", "/api/users", payload);
+      
+      const response = await apiRequest("POST", "/api/users", payload);
+      const result = await response.json();
+      console.log("User creation response:", result);
+      return result;
     },
     onSuccess: () => {
       toast({
