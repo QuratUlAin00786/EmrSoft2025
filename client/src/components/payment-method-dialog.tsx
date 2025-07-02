@@ -199,11 +199,53 @@ function DemoPaymentForm({ planId, planName, amount, onSuccess, onError }: Strip
   const [cardName, setCardName] = useState("");
   const { toast } = useToast();
 
+  const validateCardNumber = (number: string) => {
+    // Remove spaces and check if it's 16 digits
+    const cleaned = number.replace(/\s/g, '');
+    return /^\d{16}$/.test(cleaned);
+  };
+
+  const validateExpiryDate = (expiry: string) => {
+    // Check MM/YY format and if date is in the future
+    const match = expiry.match(/^(\d{2})\/(\d{2})$/);
+    if (!match) return false;
+    
+    const month = parseInt(match[1]);
+    const year = parseInt('20' + match[2]);
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    
+    return month >= 1 && month <= 12 && 
+           (year > currentYear || (year === currentYear && month >= currentMonth));
+  };
+
+  const validateCVV = (cvv: string) => {
+    return /^\d{3,4}$/.test(cvv);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
 
     try {
+      // Validate card details
+      if (!validateCardNumber(cardNumber)) {
+        throw new Error("Invalid card number. Please enter a valid 16-digit card number.");
+      }
+      
+      if (!validateExpiryDate(expiryDate)) {
+        throw new Error("Invalid expiry date. Please enter a valid date in MM/YY format.");
+      }
+      
+      if (!validateCVV(cvv)) {
+        throw new Error("Invalid CVV. Please enter a valid 3 or 4-digit security code.");
+      }
+      
+      if (!cardName.trim()) {
+        throw new Error("Please enter the cardholder name.");
+      }
+      
       // Simulate payment processing delay
       await new Promise(resolve => setTimeout(resolve, 2000));
       
