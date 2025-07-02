@@ -123,14 +123,14 @@ export default function UserManagement() {
       console.log("User creation response:", result);
       return result;
     },
-    onSuccess: () => {
+    onSuccess: (newUser) => {
       toast({
         title: "User created successfully",
         description: "The new user has been added to the system.",
       });
-      // Force refresh user list
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
-      queryClient.refetchQueries({ queryKey: ["/api/users"] });
+      // Immediately add user to list for instant display
+      setUsers(prevUsers => [...prevUsers, newUser]);
+      // Also fetch fresh data
       refetch();
       setIsCreateModalOpen(false);
       form.reset();

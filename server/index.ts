@@ -8,7 +8,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Force deployment refresh  
-console.log("🚀 USER CREATION FIX DEPLOYED - v11 - unique email generation enabled");
+console.log("🚀 USER CREATION AND LIST FIX DEPLOYED - v12 - users visible immediately");
 
 app.use((req, res, next) => {
   const start = Date.now();
