@@ -46,7 +46,7 @@ const userSchema = z.object({
   lastName: z.string().min(1, "Last name is required"),
   role: z.enum(["admin", "doctor", "nurse", "receptionist"]),
   department: z.string().optional(),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(1, "Password is required"),
 });
 
 type UserFormData = z.infer<typeof userSchema>;
@@ -169,14 +169,8 @@ export default function UserManagement() {
 
   const onSubmit = (data: UserFormData) => {
     if (editingUser) {
-      // For updates, only send password if it's not empty
-      const updateData = { ...data };
-      if (!updateData.password) {
-        delete updateData.password;
-      }
-      updateUserMutation.mutate({ id: editingUser.id, userData: updateData });
+      updateUserMutation.mutate({ id: editingUser.id, userData: data });
     } else {
-      // For new users, ensure all required fields including password are present
       createUserMutation.mutate(data);
     }
   };
