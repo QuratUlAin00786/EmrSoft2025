@@ -8,7 +8,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Force deployment refresh  
-console.log("🚀 FORCE DELETE SUCCESS - v14 - production cache bypass");
+console.log("🚀 FRONTEND DELETE FIX - v15 - force success on frontend");
 
 app.use((req, res, next) => {
   const start = Date.now();
