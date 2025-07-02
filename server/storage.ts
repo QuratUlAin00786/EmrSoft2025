@@ -174,14 +174,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUsersByOrganization(organizationId: number): Promise<User[]> {
-    console.log(`Storage: Getting users for organization ${organizationId}`);
+    console.log(`Storage: Getting ALL users for organization ${organizationId}`);
     const results = await db.select().from(users)
-      .where(and(
-        eq(users.organizationId, organizationId),
-        eq(users.isActive, true)
-      ));
+      .where(eq(users.organizationId, organizationId));
     
-    console.log(`Storage: Found ${results.length} active users`);
+    console.log(`Storage: Found ${results.length} total users`);
     results.forEach(user => {
       console.log(`Storage: User ${user.id} - ${user.email} - isActive: ${user.isActive}`);
     });
@@ -209,7 +206,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteUser(id: number, organizationId: number): Promise<boolean> {
-    console.log(`Storage: Attempting to delete user ${id} in organization ${organizationId}`);
+    console.log(`Storage: Attempting to DELETE user ${id} in organization ${organizationId}`);
     
     // First check if user exists
     const existingUser = await this.getUser(id, organizationId);
@@ -218,14 +215,18 @@ export class DatabaseStorage implements IStorage {
       return false;
     }
     
-    console.log(`Storage: Found user ${existingUser.email}, setting isActive to false`);
-    const result = await db.update(users)
-      .set({ isActive: false })
+    console.log(`Storage: Found user ${existingUser.email}, PERMANENTLY DELETING from database`);
+    const result = await db.delete(users)
       .where(and(eq(users.id, id), eq(users.organizationId, organizationId)))
       .returning();
     
     const success = result.length > 0;
-    console.log(`Storage: Delete operation result - affected rows: ${result.length}, success: ${success}`);
+    console.log(`Storage: PERMANENT DELETE result - deleted rows: ${result.length}, success: ${success}`);
+    
+    // Verify deletion worked
+    const checkUser = await this.getUser(id, organizationId);
+    console.log(`Storage: Verification - user ${id} still exists: ${!!checkUser}`);
+    
     return success;
   }
 

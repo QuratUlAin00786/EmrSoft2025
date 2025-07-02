@@ -8,7 +8,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Force deployment refresh  
-console.log("🚀 DEBUG DELETE - v17 - enhanced logging to debug persistence issue");
+console.log("🚀 PERMANENT DELETE - v18 - using db.delete() instead of isActive flag");
 
 app.use((req, res, next) => {
   const start = Date.now();
