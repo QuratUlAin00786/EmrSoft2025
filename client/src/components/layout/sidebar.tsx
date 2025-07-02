@@ -67,7 +67,7 @@ const navigation = [
 
 const adminNavigation = [
   { name: "User Management", href: "/users", icon: UserCog },
-  { name: "Subscription", href: "/subscription", icon: Crown },
+  { name: "Subscription", href: "/subscription", icon: Crown },  
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
@@ -117,7 +117,7 @@ export function Sidebar() {
           })}
         </div>
 
-        {/* Admin Section */}
+        {/* Admin Section - Force deployment update */}
         {isAdmin && (
           <>
             <div className="pt-4 mt-4">
@@ -125,7 +125,7 @@ export function Sidebar() {
             </div>
             <div className="pt-4">
               <p className="text-xs text-neutral-500 uppercase tracking-wide mb-2 px-3">
-                Administration
+                ADMINISTRATION
               </p>
               <div className="sidebar-nav">
                 {adminNavigation.map((item) => {
