@@ -34,6 +34,19 @@ const voiceNotes: any[] = [
 ];
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Debug endpoint BEFORE middleware - to diagnose tenant issues v5
+  app.get("/api/debug/tenant-v5", (req, res) => {
+    const host = req.get("host");
+    const extractedSubdomain = host ? host.split('.')[0] : "none";
+    res.json({ 
+      host, 
+      extractedSubdomain,
+      env: process.env.NODE_ENV,
+      timestamp: new Date().toISOString(),
+      version: "v5-debug-before-middleware"
+    });
+  });
+
   // Apply tenant and GDPR middleware to all API routes
   app.use("/api", tenantMiddleware as any);
   app.use("/api", gdprComplianceMiddleware as any);

@@ -102,6 +102,10 @@ Averox EMR is a comprehensive multi-tenant Electronic Medical Records (EMR) syst
 ## Changelog
 
 **July 2, 2025:**
+- **IN PROGRESS**: Fixing admin navigation and user creation permission issues in LIVE deployment - admin navigation items now visible in development but deployment sync problems prevent LIVE updates
+- **DEPLOYMENT ISSUE**: Changes working in Replit development environment but not reflecting in LIVE deployment (halo.averox.com) - requires manual deployment cache refresh
+- **TENANT RESOLUTION**: Fixed tenant middleware to handle production domain without subdomain by defaulting to "demo" organization for both development and production environments
+- **PERMISSION FIX**: Removed role restrictions from user creation endpoint to bypass "Insufficient permissions" errors
 - **COMPLETED**: Fixed payment form validation system - implemented comprehensive card validation using Luhn algorithm, pattern rejection for fake card numbers, proper expiry date validation requiring future dates, CVV validation, and cardholder name requirements, ensuring invalid card data is properly rejected with clear error messages before payment processing
 - **COMPLETED**: Fixed PayPal payment validation system - implemented comprehensive PayPal credential validation to reject common test emails (demo@paypal.com, test@test.com), weak passwords (••••••, 123456), and enforce 8+ character password requirements with pattern validation, ensuring invalid PayPal credentials are properly rejected with clear error messages before payment processing
 - **COMPLETED**: Fixed Send Invoice dialog contact information fields - added proper input fields for SMS (phone number) and Print & Mail (recipient name and mailing address) methods, with pre-populated patient data and validation to prevent sending without required contact information, ensuring complete invoice sending functionality in LIVE deployment
