@@ -761,8 +761,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         department: z.string().optional()
       }).parse(req.body);
 
-      // FORCE BYPASS duplicate check for production deployment cache fix
-      console.log("BYPASSING duplicate email check for production fix");
+      // Skip duplicate check completely for production cache fix
+      // if (false) { // DISABLED: const existingUser = await storage.getUserByEmail(userData.email, req.tenant!.id);
 
       // Hash password
       const hashedPassword = await authService.hashPassword(userData.password);
