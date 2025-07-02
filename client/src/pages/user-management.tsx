@@ -131,7 +131,18 @@ export default function UserManagement() {
       } else if (error?.response?.data?.details) {
         errorMessage = error.response.data.details.join(", ");
       } else if (error?.message) {
-        errorMessage = error.message;
+        // Parse error message format like "400: {"error":"User with this email already exists"}"
+        if (error.message.includes(": {")) {
+          try {
+            const jsonPart = error.message.split(": ")[1];
+            const errorObj = JSON.parse(jsonPart);
+            errorMessage = errorObj.error || error.message;
+          } catch (parseError) {
+            errorMessage = error.message;
+          }
+        } else {
+          errorMessage = error.message;
+        }
       }
       
       toast({
