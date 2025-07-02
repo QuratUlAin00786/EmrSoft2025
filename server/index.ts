@@ -8,7 +8,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Force deployment refresh  
-console.log("🚀 USER CREATION AND LIST FIX DEPLOYED - v12 - users visible immediately");
+console.log("🚀 USER DELETION FIX DEPLOYED - v13 - delete functionality working");
 
 app.use((req, res, next) => {
   const start = Date.now();

@@ -193,17 +193,23 @@ export default function UserManagement() {
   });
 
   const deleteUserMutation = useMutation({
-    mutationFn: (userId: number) => {
-      return apiRequest("DELETE", `/api/users/${userId}`);
+    mutationFn: async (userId: number) => {
+      console.log("Deleting user:", userId);
+      const response = await apiRequest("DELETE", `/api/users/${userId}`);
+      return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data, userId) => {
       toast({
         title: "User deleted successfully",
         description: "The user has been removed from the system.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      // Immediately remove user from list for instant display
+      setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
+      // Also fetch fresh data
+      refetch();
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Delete user error:", error);
       toast({
         title: "Error deleting user",
         description: "There was a problem deleting the user. Please try again.",
