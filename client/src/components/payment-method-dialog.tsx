@@ -227,27 +227,49 @@ function DemoPaymentForm({ planId, planName, amount, onSuccess, onError }: Strip
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Debug logging
+    console.log("Card validation:", {
+      cardNumber: cardNumber,
+      cardNumberLength: cardNumber.replace(/\s/g, '').length,
+      expiryDate: expiryDate,
+      cvv: cvv,
+      cardName: cardName
+    });
+    
     // Validate all fields before starting processing
     const validationErrors = [];
     
-    if (!validateCardNumber(cardNumber)) {
-      validationErrors.push("Invalid card number. Please enter a valid 16-digit card number.");
+    const isCardValid = validateCardNumber(cardNumber);
+    const isExpiryValid = validateExpiryDate(expiryDate);
+    const isCvvValid = validateCVV(cvv);
+    const isNameValid = cardName.trim().length > 0;
+    
+    console.log("Validation results:", {
+      isCardValid,
+      isExpiryValid, 
+      isCvvValid,
+      isNameValid
+    });
+    
+    if (!isCardValid) {
+      validationErrors.push(`Invalid card number. Please enter a valid 16-digit card number. Current length: ${cardNumber.replace(/\s/g, '').length}`);
     }
     
-    if (!validateExpiryDate(expiryDate)) {
+    if (!isExpiryValid) {
       validationErrors.push("Invalid expiry date. Please enter a valid future date in MM/YY format.");
     }
     
-    if (!validateCVV(cvv)) {
+    if (!isCvvValid) {
       validationErrors.push("Invalid CVV. Please enter a valid 3 or 4-digit security code.");
     }
     
-    if (!cardName.trim()) {
+    if (!isNameValid) {
       validationErrors.push("Please enter the cardholder name.");
     }
     
     // If there are validation errors, show them and don't proceed
     if (validationErrors.length > 0) {
+      console.log("Validation failed:", validationErrors);
       toast({
         title: "Payment Failed",
         description: validationErrors[0], // Show first error
