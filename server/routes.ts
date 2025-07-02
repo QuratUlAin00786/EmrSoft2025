@@ -732,8 +732,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/users", requireRole(["admin"]), async (req: TenantRequest, res) => {
+  app.post("/api/users", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
     try {
+      console.log("User creation request received");
+      console.log("Request user:", req.user);
+      console.log("Request body:", req.body);
       const userData = z.object({
         email: z.string().email(),
         username: z.string().min(3),

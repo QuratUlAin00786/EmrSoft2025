@@ -101,6 +101,7 @@ export default function UserManagement() {
         ...userData,
         username: userData.email, // Use email as username
       };
+      console.log("Creating user with payload:", payload);
       return apiRequest("POST", "/api/users", payload);
     },
     onSuccess: () => {
@@ -114,8 +115,20 @@ export default function UserManagement() {
       form.reset();
     },
     onError: (error: any) => {
-      console.error("User creation error:", error);
-      const errorMessage = error?.message || "There was a problem creating the user. Please try again.";
+      console.error("User creation error (full):", error);
+      console.error("Error message:", error?.message);
+      console.error("Error response:", error?.response);
+      console.error("Error data:", error?.response?.data);
+      
+      let errorMessage = "There was a problem creating the user. Please try again.";
+      
+      if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.response?.data?.details) {
+        errorMessage = error.response.data.details.join(", ");
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
       
       toast({
         title: "Error creating user",
