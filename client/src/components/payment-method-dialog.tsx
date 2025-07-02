@@ -202,7 +202,34 @@ function DemoPaymentForm({ planId, planName, amount, onSuccess, onError }: Strip
   const validateCardNumber = (number: string) => {
     // Remove spaces and check if it's 16 digits
     const cleaned = number.replace(/\s/g, '');
-    return /^\d{16}$/.test(cleaned);
+    if (!/^\d{16}$/.test(cleaned)) {
+      return false;
+    }
+    
+    // Apply Luhn algorithm to validate card number
+    return luhnCheck(cleaned);
+  };
+
+  const luhnCheck = (cardNumber: string) => {
+    let sum = 0;
+    let alternate = false;
+    
+    // Loop through digits from right to left
+    for (let i = cardNumber.length - 1; i >= 0; i--) {
+      let n = parseInt(cardNumber.charAt(i), 10);
+      
+      if (alternate) {
+        n *= 2;
+        if (n > 9) {
+          n = (n % 10) + 1;
+        }
+      }
+      
+      sum += n;
+      alternate = !alternate;
+    }
+    
+    return (sum % 10) === 0;
   };
 
   const validateExpiryDate = (expiry: string) => {
@@ -216,8 +243,11 @@ function DemoPaymentForm({ planId, planName, amount, onSuccess, onError }: Strip
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth() + 1;
     
-    return month >= 1 && month <= 12 && 
-           (year > currentYear || (year === currentYear && month >= currentMonth));
+    // Check if month is valid (1-12)
+    if (month < 1 || month > 12) return false;
+    
+    // Check if date is in the future (not current month/year or past)
+    return year > currentYear || (year === currentYear && month > currentMonth);
   };
 
   const validateCVV = (cvv: string) => {
