@@ -265,6 +265,9 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
   const [invoiceToSend, setInvoiceToSend] = useState<Invoice | null>(null);
   const [sendMethod, setSendMethod] = useState("email");
   const [recipientEmail, setRecipientEmail] = useState("");
+  const [recipientPhone, setRecipientPhone] = useState("");
+  const [recipientName, setRecipientName] = useState("");
+  const [recipientAddress, setRecipientAddress] = useState("");
   const [customMessage, setCustomMessage] = useState("");
 
   const handleSendInvoice = (invoiceId: string) => {
@@ -272,6 +275,9 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
     if (invoice) {
       setInvoiceToSend(invoice);
       setRecipientEmail(`${invoice.patientName.toLowerCase().replace(' ', '.')}@email.com`);
+      setRecipientPhone(`+44 7${Math.floor(Math.random() * 100000000).toString().padStart(8, '0')}`);
+      setRecipientName(invoice.patientName);
+      setRecipientAddress(`${Math.floor(Math.random() * 999) + 1} High Street\nLondon\nSW1A 1AA`);
       setCustomMessage(`Dear ${invoice.patientName},\n\nPlease find attached your invoice for services rendered on ${format(new Date(invoice.dateOfService), 'MMM d, yyyy')}.\n\nTotal Amount: £${invoice.totalAmount.toFixed(2)}\nDue Date: ${format(new Date(invoice.dueDate), 'MMM d, yyyy')}\n\nThank you for choosing our healthcare services.`);
       setSendInvoiceDialog(true);
     }
@@ -978,6 +984,43 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
                   </div>
                 )}
 
+                {sendMethod === "sms" && (
+                  <div>
+                    <Label htmlFor="recipientPhone">Recipient Phone</Label>
+                    <Input
+                      id="recipientPhone"
+                      type="tel"
+                      value={recipientPhone}
+                      onChange={(e) => setRecipientPhone(e.target.value)}
+                      placeholder="+44 7XXX XXXXXX"
+                    />
+                  </div>
+                )}
+
+                {sendMethod === "print" && (
+                  <div className="space-y-3">
+                    <div>
+                      <Label htmlFor="recipientName">Recipient Name</Label>
+                      <Input
+                        id="recipientName"
+                        value={recipientName}
+                        onChange={(e) => setRecipientName(e.target.value)}
+                        placeholder="Full name"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="recipientAddress">Mailing Address</Label>
+                      <Textarea
+                        id="recipientAddress"
+                        value={recipientAddress}
+                        onChange={(e) => setRecipientAddress(e.target.value)}
+                        placeholder="Street address, City, Postal code"
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <Label htmlFor="customMessage">Message (Optional)</Label>
                   <Textarea
@@ -996,7 +1039,14 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
             <Button variant="outline" onClick={() => setSendInvoiceDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={confirmSendInvoice} disabled={!recipientEmail && sendMethod === "email"}>
+            <Button 
+              onClick={confirmSendInvoice} 
+              disabled={
+                (sendMethod === "email" && !recipientEmail) ||
+                (sendMethod === "sms" && !recipientPhone) ||
+                (sendMethod === "print" && (!recipientName || !recipientAddress))
+              }
+            >
               <Send className="h-4 w-4 mr-2" />
               Send Invoice
             </Button>
