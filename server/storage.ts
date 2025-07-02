@@ -174,17 +174,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUsersByOrganization(organizationId: number): Promise<User[]> {
+    console.log(`Storage: Getting users for organization ${organizationId}`);
     const results = await db.select().from(users)
       .where(and(
         eq(users.organizationId, organizationId),
         eq(users.isActive, true)
       ));
     
+    console.log(`Storage: Found ${results.length} active users`);
+    results.forEach(user => {
+      console.log(`Storage: User ${user.id} - ${user.email} - isActive: ${user.isActive}`);
+    });
+    
     // Remove duplicates based on email first (more meaningful), then by user ID
     const uniqueResults = results.filter((user, index, self) => 
       index === self.findIndex(u => u.email === user.email)
     );
     
+    console.log(`Storage: After deduplication: ${uniqueResults.length} users`);
     return uniqueResults;
   }
 
@@ -202,10 +209,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteUser(id: number, organizationId: number): Promise<boolean> {
+    console.log(`Storage: Attempting to delete user ${id} in organization ${organizationId}`);
+    
+    // First check if user exists
+    const existingUser = await this.getUser(id, organizationId);
+    if (!existingUser) {
+      console.log(`Storage: User ${id} not found in organization ${organizationId}`);
+      return false;
+    }
+    
+    console.log(`Storage: Found user ${existingUser.email}, setting isActive to false`);
     const result = await db.update(users)
       .set({ isActive: false })
-      .where(and(eq(users.id, id), eq(users.organizationId, organizationId)));
-    return (result.rowCount || 0) > 0;
+      .where(and(eq(users.id, id), eq(users.organizationId, organizationId)))
+      .returning();
+    
+    const success = result.length > 0;
+    console.log(`Storage: Delete operation result - affected rows: ${result.length}, success: ${success}`);
+    return success;
   }
 
   // Patients

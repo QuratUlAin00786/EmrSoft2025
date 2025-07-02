@@ -8,7 +8,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Force deployment refresh  
-console.log("🚀 USER DELETE FIXED - v16 - proper backend deletion with isActive filter");
+console.log("🚀 DEBUG DELETE - v17 - enhanced logging to debug persistence issue");
 
 app.use((req, res, next) => {
   const start = Date.now();
