@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -77,11 +77,27 @@ export default function UserManagement() {
   console.log("Users query - loading:", isLoading, "error:", error, "users count:", users?.length);
   console.log("Auth token exists:", !!localStorage.getItem('auth_token'));
 
-  // Temporary authentication fix - set admin token if missing
-  if (!localStorage.getItem('auth_token')) {
-    localStorage.setItem('auth_token', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsIm9yZ2FuaXphdGlvbklkIjoxLCJlbWFpbCI6ImFkbWluQGRlbW8ubWVkaWNvcmVlbXIuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUxMjAzMTE1LCJleHAiOjE3NTEyODk1MTUsImF1ZCI6Im1lZGljb3JlLXVzZXJzIiwiaXNzIjoibWVkaWNvcmUtZW1yIn0.V9uJK8n-rSMDtn_nxFNFhzieXNeyJwAPv902BR-2cDQ');
-    refetch(); // Refetch data with new token
-  }
+  // Ensure fresh auth token is available  
+  useEffect(() => {
+    const currentToken = localStorage.getItem('auth_token');
+    if (!currentToken) {
+      // Generate fresh token by validating current session
+      fetch('/api/auth/validate', {
+        credentials: 'include',
+        headers: {
+          'X-Tenant-Subdomain': 'demo'
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.token) {
+          localStorage.setItem('auth_token', data.token);
+          refetch(); // Refetch users with new token
+        }
+      })
+      .catch(console.error);
+    }
+  }, [refetch]);
 
   const form = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
@@ -113,7 +129,9 @@ export default function UserManagement() {
         title: "User created successfully",
         description: "The new user has been added to the system.",
       });
+      // Force refresh user list
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      queryClient.refetchQueries({ queryKey: ["/api/users"] });
       refetch();
       setIsCreateModalOpen(false);
       form.reset();
