@@ -180,7 +180,19 @@ function PayPalButton({ planId, planName, amount, onSuccess, onError }: PayPalBu
 }
 
 // Stripe Payment Form
-const stripePromise = import.meta.env.VITE_STRIPE_PUBLIC_KEY ? loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY) : null;
+// Initialize Stripe with proper fallback handling
+const stripePromise = (() => {
+  const stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+  if (!stripeKey || stripeKey === 'undefined' || stripeKey.length === 0) {
+    return null; // Demo mode
+  }
+  try {
+    return loadStripe(stripeKey);
+  } catch (error) {
+    console.error('Failed to load Stripe:', error);
+    return null; // Fallback to demo mode
+  }
+})();
 
 interface StripeFormProps {
   planId: string;

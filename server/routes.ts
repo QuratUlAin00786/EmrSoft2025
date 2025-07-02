@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { z } from "zod";
+import Stripe from "stripe";
 import { storage } from "./storage";
 import { authService } from "./services/auth";
 import { aiService } from "./services/ai";
@@ -2053,12 +2054,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Stripe Payment Intent for Subscription
   app.post("/api/create-subscription-payment-intent", authMiddleware, async (req: TenantRequest, res) => {
     try {
-      // Mock response since we don't have Stripe secrets yet
       const { planId, amount } = req.body;
       
+      // Check if Stripe is configured
+      if (!process.env.STRIPE_SECRET_KEY) {
+        res.json({
+          clientSecret: `pi_mock_client_secret_${planId}_${amount}`,
+          message: "Payment intent created (demo mode - requires Stripe API keys for live processing)"
+        });
+        return;
+      }
+
+      // Real Stripe integration
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+        apiVersion: '2023-10-16',
+      });
+      
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount, // Amount in cents
+        currency: 'gbp',
+        metadata: {
+          planId,
+          organizationId: (req.organizationId || 1).toString(),
+          userId: (req.user?.id || 1).toString()
+        }
+      });
+
       res.json({
-        clientSecret: `pi_mock_client_secret_${planId}_${amount}`,
-        message: "Payment intent created (demo mode - requires Stripe API keys for live processing)"
+        clientSecret: paymentIntent.client_secret,
+        paymentIntentId: paymentIntent.id
       });
     } catch (error: any) {
       console.error("Error creating payment intent:", error);
