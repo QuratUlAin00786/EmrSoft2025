@@ -2066,17 +2066,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Real Stripe integration
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-        apiVersion: '2023-10-16',
-      });
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
       
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount, // Amount in cents
         currency: 'gbp',
         metadata: {
-          planId,
-          organizationId: (req.organizationId || 1).toString(),
-          userId: (req.user?.id || 1).toString()
+          planId: planId || '',
+          organizationId: String(req.organizationId || 1),
+          userId: String(req.user?.id || 1)
         }
       });
 
