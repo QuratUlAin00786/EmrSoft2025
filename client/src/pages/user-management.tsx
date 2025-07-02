@@ -68,38 +68,35 @@ export default function UserManagement() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { data: users = [], isLoading, refetch, error } = useQuery<User[]>({
-    queryKey: ["/api/users"],
-    retry: 3,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
-  });
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<any>(null);
+
+  const fetchUsers = async () => {
+    try {
+      setIsLoading(true);
+      const response = await apiRequest("GET", "/api/users");
+      const userData = await response.json();
+      setUsers(userData);
+      setError(null);
+    } catch (err) {
+      setError(err);
+      setUsers([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const refetch = fetchUsers;
 
   // Debug logging
   console.log("Users query - loading:", isLoading, "error:", error, "users count:", users?.length);
   console.log("Auth token exists:", !!localStorage.getItem('auth_token'));
 
-  // Ensure fresh auth token is available  
+  // Fetch users on mount
   useEffect(() => {
-    const currentToken = localStorage.getItem('auth_token');
-    if (!currentToken) {
-      // Generate fresh token by validating current session
-      fetch('/api/auth/validate', {
-        credentials: 'include',
-        headers: {
-          'X-Tenant-Subdomain': 'demo'
-        }
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.token) {
-          localStorage.setItem('auth_token', data.token);
-          refetch(); // Refetch users with new token
-        }
-      })
-      .catch(console.error);
-    }
-  }, [refetch]);
+    fetchUsers();
+  }, []);
 
   const form = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
