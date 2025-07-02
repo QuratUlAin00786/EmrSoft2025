@@ -29,14 +29,19 @@ export async function tenantMiddleware(req: TenantRequest, res: Response, next: 
       subdomain = "demo";
     }
     
+    // Default to demo for production when no subdomain is found (for main domain)
+    if (!subdomain && process.env.NODE_ENV === "production") {
+      subdomain = "demo";
+    }
+    
     if (!subdomain) {
       return res.status(400).json({ error: "Tenant subdomain required" });
     }
 
     let organization = await storage.getOrganizationBySubdomain(subdomain);
     
-    // For development, try to get any organization if demo not found
-    if (!organization && process.env.NODE_ENV === "development") {
+    // For development and production, try to get any organization if demo not found
+    if (!organization && (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "production")) {
       try {
         const { organizations } = await import("@shared/schema");
         const { db } = await import("../db");
