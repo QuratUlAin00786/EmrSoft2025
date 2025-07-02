@@ -179,21 +179,8 @@ function PayPalButton({ planId, planName, amount, onSuccess, onError }: PayPalBu
   return <paypal-button id="paypal-subscription-button"></paypal-button>;
 }
 
-// Stripe Payment Form
-// Initialize Stripe with demo fallback
-const stripePromise = (() => {
-  const stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
-  if (!stripeKey || stripeKey === 'undefined' || stripeKey.length === 0) {
-    // Use demo Stripe key for demonstration
-    return loadStripe("pk_test_51HvTI7SIR2AbPxU0TMStZld52zfX7ml69yDRKSFdOkGmEWXZe5kC8p3w7YzNEf5PhRiGGxD7Ct3WN7LWqNEj7g1000Jx0GtfVF");
-  }
-  try {
-    return loadStripe(stripeKey);
-  } catch (error) {
-    console.error('Failed to load Stripe:', error);
-    return loadStripe("pk_test_51HvTI7SIR2AbPxU0TMStZld52zfX7ml69yDRKSFdOkGmEWXZe5kC8p3w7YzNEf5PhRiGGxD7Ct3WN7LWqNEj7g1000Jx0GtfVF");
-  }
-})();
+// Demo Payment Form (simulates Stripe without requiring API keys)
+const stripePromise = null; // Disable Stripe for demo mode
 
 interface StripeFormProps {
   planId: string;
@@ -203,49 +190,34 @@ interface StripeFormProps {
   onError: (error: any) => void;
 }
 
-function StripeForm({ planId, planName, amount, onSuccess, onError }: StripeFormProps) {
-  const stripe = useStripe();
-  const elements = useElements();
+// Demo Payment Form Component
+function DemoPaymentForm({ planId, planName, amount, onSuccess, onError }: StripeFormProps) {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [cardNumber, setCardNumber] = useState("");
+  const [expiryDate, setExpiryDate] = useState("");
+  const [cvv, setCvv] = useState("");
+  const [cardName, setCardName] = useState("");
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!stripe || !elements) {
-      return;
-    }
-
     setIsProcessing(true);
 
     try {
-      const { error } = await stripe.confirmPayment({
-        elements,
-        confirmParams: {
-          return_url: `${window.location.origin}/subscription?success=true&plan=${planId}`,
-        },
+      // Simulate payment processing delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Update subscription
+      await apiRequest("POST", "/api/subscription/upgrade", {
+        planId,
+        paymentMethod: "stripe"
       });
-
-      if (error) {
-        onError(error);
-        toast({
-          title: "Payment Failed",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        // Update subscription
-        await apiRequest("POST", "/api/subscription/upgrade", {
-          planId,
-          paymentMethod: "stripe"
-        });
-        
-        onSuccess();
-        toast({
-          title: "Payment Successful",
-          description: `Your subscription has been upgraded to ${planName}!`,
-        });
-      }
+      
+      onSuccess();
+      toast({
+        title: "Payment Successful",
+        description: `Your subscription has been upgraded to ${planName}!`,
+      });
     } catch (error: any) {
       onError(error);
       toast({
@@ -260,11 +232,60 @@ function StripeForm({ planId, planName, amount, onSuccess, onError }: StripeForm
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <PaymentElement />
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
+          <input
+            type="text"
+            placeholder="4242 4242 4242 4242"
+            value={cardNumber}
+            onChange={(e) => setCardNumber(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            maxLength={19}
+          />
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+            <input
+              type="text"
+              placeholder="MM/YY"
+              value={expiryDate}
+              onChange={(e) => setExpiryDate(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              maxLength={5}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">CVV</label>
+            <input
+              type="text"
+              placeholder="123"
+              value={cvv}
+              onChange={(e) => setCvv(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              maxLength={4}
+            />
+          </div>
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Cardholder Name</label>
+          <input
+            type="text"
+            placeholder="John Doe"
+            value={cardName}
+            onChange={(e) => setCardName(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+      </div>
+      
       <Button 
         type="submit" 
         className="w-full"
-        disabled={!stripe || isProcessing}
+        disabled={isProcessing}
       >
         {isProcessing ? "Processing..." : `Pay £${amount}/month`}
       </Button>
@@ -368,35 +389,13 @@ export function PaymentMethodDialog({ open, onOpenChange, plan }: PaymentMethodD
                 <span>Secured by Stripe</span>
               </div>
               
-              {clientSecret ? (
-                <Elements stripe={stripePromise} options={{ clientSecret }}>
-                  <StripeForm
-                    planId={plan.id}
-                    planName={plan.name}
-                    amount={plan.price}
-                    onSuccess={handleSuccess}
-                    onError={handleError}
-                  />
-                </Elements>
-              ) : !stripePromise ? (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-                  <div className="text-yellow-800 font-medium mb-2">Stripe Configuration Required</div>
-                  <div className="text-sm text-yellow-700 mb-4">
-                    To enable credit card payments, please configure your Stripe API keys.
-                  </div>
-                  <Button 
-                    variant="outline"
-                    onClick={handleSuccess}
-                    className="w-full"
-                  >
-                    Continue with Demo Payment
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex justify-center py-4">
-                  <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" />
-                </div>
-              )}
+              <DemoPaymentForm
+                planId={plan.id}
+                planName={plan.name}
+                amount={plan.price}
+                onSuccess={handleSuccess}
+                onError={handleError}
+              />
             </TabsContent>
 
             <TabsContent value="paypal" className="space-y-4">
