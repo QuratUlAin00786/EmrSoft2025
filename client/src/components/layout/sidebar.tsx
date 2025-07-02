@@ -81,11 +81,6 @@ export function Sidebar() {
   };
 
   const isAdmin = user?.role === "admin";
-  
-  // Debug logging for deployment issue
-  console.log("Current user:", user);
-  console.log("User role:", user?.role);
-  console.log("Is admin:", isAdmin);
 
   return (
     <aside className="w-64 bg-white shadow-lg flex flex-col h-screen">
