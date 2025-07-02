@@ -426,6 +426,44 @@ function DemoPayPalForm({ planId, planName, amount, onSuccess, onError }: Stripe
       return;
     }
     
+    // Validate PayPal credentials - reject invalid test credentials
+    const invalidCredentials = [
+      "test@test.com",
+      "admin@admin.com", 
+      "fake@fake.com",
+      "demo@demo.com",
+      "user@user.com",
+      "paypal@paypal.com"
+    ];
+    
+    const commonPasswords = [
+      "123456",
+      "password",
+      "123123",
+      "admin",
+      "test123",
+      "paypal"
+    ];
+    
+    if (invalidCredentials.includes(email.toLowerCase()) || commonPasswords.includes(password.toLowerCase())) {
+      toast({
+        title: "PayPal Login Failed",
+        description: "Invalid PayPal credentials. Please check your email and password.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Additional validation for realistic PayPal credentials
+    if (!email.includes('@') || email.split('@')[1].length < 3) {
+      toast({
+        title: "PayPal Login Failed", 
+        description: "Please enter a valid PayPal email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsProcessing(true);
 
     try {
@@ -461,7 +499,7 @@ function DemoPayPalForm({ planId, planName, amount, onSuccess, onError }: Stripe
         <div className="text-center">
           <div className="text-blue-800 font-medium mb-2">PayPal Demo Login</div>
           <div className="text-sm text-blue-700 mb-4">
-            Enter any email and password (6+ characters) to simulate PayPal payment
+            Use valid credentials like "john.doe@gmail.com" and "securepass123" to process payment
           </div>
         </div>
         
