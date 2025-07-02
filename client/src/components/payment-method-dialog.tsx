@@ -432,6 +432,7 @@ function DemoPayPalForm({ planId, planName, amount, onSuccess, onError }: Stripe
       "admin@admin.com", 
       "fake@fake.com",
       "demo@demo.com",
+      "demo@paypal.com",
       "user@user.com",
       "paypal@paypal.com"
     ];
@@ -442,10 +443,20 @@ function DemoPayPalForm({ planId, planName, amount, onSuccess, onError }: Stripe
       "123123",
       "admin",
       "test123",
-      "paypal"
+      "paypal",
+      "••••••",
+      "......",
+      "••••",
+      "demo",
+      "test"
     ];
     
-    if (invalidCredentials.includes(email.toLowerCase()) || commonPasswords.includes(password.toLowerCase())) {
+    // Check for common placeholder passwords or repeated characters
+    const isPlaceholderPassword = password.length <= 6 && /^(.)\1*$/.test(password);
+    
+    if (invalidCredentials.includes(email.toLowerCase()) || 
+        commonPasswords.includes(password.toLowerCase()) ||
+        isPlaceholderPassword) {
       toast({
         title: "PayPal Login Failed",
         description: "Invalid PayPal credentials. Please check your email and password.",
@@ -459,6 +470,16 @@ function DemoPayPalForm({ planId, planName, amount, onSuccess, onError }: Stripe
       toast({
         title: "PayPal Login Failed", 
         description: "Please enter a valid PayPal email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Reject passwords that are too simple or contain only repeated characters
+    if (password.length < 8 || /^(.)\1+$/.test(password)) {
+      toast({
+        title: "PayPal Login Failed",
+        description: "Password must be at least 8 characters with varied characters.",
         variant: "destructive",
       });
       return;
@@ -499,7 +520,7 @@ function DemoPayPalForm({ planId, planName, amount, onSuccess, onError }: Stripe
         <div className="text-center">
           <div className="text-blue-800 font-medium mb-2">PayPal Demo Login</div>
           <div className="text-sm text-blue-700 mb-4">
-            Use valid credentials like "john.doe@gmail.com" and "securepass123" to process payment
+            Use realistic credentials like "john.doe@gmail.com" and "mySecurePassword2024" (8+ characters) to process payment
           </div>
         </div>
         
