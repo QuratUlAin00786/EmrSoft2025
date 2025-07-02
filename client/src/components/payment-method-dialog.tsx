@@ -348,13 +348,16 @@ export function PaymentMethodDialog({ open, onOpenChange, plan }: PaymentMethodD
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md" aria-describedby="payment-dialog-description">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <CreditCard className="h-5 w-5" />
             <span>Upgrade to {plan.name}</span>
           </DialogTitle>
         </DialogHeader>
+        <div id="payment-dialog-description" className="sr-only">
+          Choose your payment method to upgrade your subscription plan
+        </div>
 
         <div className="space-y-6">
           {/* Plan Summary */}
