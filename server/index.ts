@@ -8,7 +8,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Force deployment refresh  
-console.log("🚀 USER DELETION FIX DEPLOYED - v13 - delete functionality working");
+console.log("🚀 FORCE DELETE SUCCESS - v14 - production cache bypass");
 
 app.use((req, res, next) => {
   const start = Date.now();
