@@ -368,7 +368,7 @@ export function PaymentMethodDialog({ open, onOpenChange, plan }: PaymentMethodD
                 <span>Secured by Stripe</span>
               </div>
               
-              {stripePromise && clientSecret ? (
+              {clientSecret ? (
                 <Elements stripe={stripePromise} options={{ clientSecret }}>
                   <StripeForm
                     planId={plan.id}

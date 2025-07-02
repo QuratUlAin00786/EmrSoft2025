@@ -2078,12 +2078,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const organizationId = req.organizationId || 1;
       
       // Update organization subscription in database
-      await storage.updateOrganizationSubscription(organizationId, {
-        planId,
-        paymentMethod,
-        status: 'active',
-        billingCycle: 'monthly',
-        nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
+      await storage.updateSubscription(organizationId, {
+        plan: planId,
+        status: 'active'
       });
 
       res.json({ 
