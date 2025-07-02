@@ -46,7 +46,7 @@ const userSchema = z.object({
   lastName: z.string().min(1, "Last name is required"),
   role: z.enum(["admin", "doctor", "nurse", "receptionist"]),
   department: z.string().optional(),
-  password: z.string().min(6, "Password must be at least 6 characters").optional(),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 type UserFormData = z.infer<typeof userSchema>;
@@ -113,10 +113,13 @@ export default function UserManagement() {
       setIsCreateModalOpen(false);
       form.reset();
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("User creation error:", error);
+      const errorMessage = error?.message || "There was a problem creating the user. Please try again.";
+      
       toast({
         title: "Error creating user",
-        description: "There was a problem creating the user. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -166,8 +169,14 @@ export default function UserManagement() {
 
   const onSubmit = (data: UserFormData) => {
     if (editingUser) {
-      updateUserMutation.mutate({ id: editingUser.id, userData: data });
+      // For updates, only send password if it's not empty
+      const updateData = { ...data };
+      if (!updateData.password) {
+        delete updateData.password;
+      }
+      updateUserMutation.mutate({ id: editingUser.id, userData: updateData });
     } else {
+      // For new users, ensure all required fields including password are present
       createUserMutation.mutate(data);
     }
   };
