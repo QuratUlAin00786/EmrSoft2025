@@ -118,8 +118,8 @@ export function Sidebar() {
           })}
         </div>
 
-        {/* Admin Section - Force deployment update */}
-        {isAdmin && (
+        {/* Admin Section */}
+        {user && user.id && (
           <>
             <div className="pt-4 mt-4">
               <Separator />
@@ -129,20 +129,33 @@ export function Sidebar() {
                 ADMINISTRATION
               </p>
               <div className="sidebar-nav">
-                {adminNavigation.map((item) => {
-                  const isActive = location === item.href;
-                  return (
-                    <Link key={item.name} href={item.href}>
-                      <a className={cn(
-                        "sidebar-nav-item",
-                        isActive && "active"
-                      )}>
-                        <item.icon className="h-5 w-5" />
-                        <span>{item.name}</span>
-                      </a>
-                    </Link>
-                  );
-                })}
+                <Link href="/users">
+                  <a className={cn(
+                    "sidebar-nav-item",
+                    location === "/users" && "active"
+                  )}>
+                    <UserCog className="h-5 w-5" />
+                    <span>User Management</span>
+                  </a>
+                </Link>
+                <Link href="/subscription">
+                  <a className={cn(
+                    "sidebar-nav-item",
+                    location === "/subscription" && "active"
+                  )}>
+                    <Crown className="h-5 w-5" />
+                    <span>Subscription</span>
+                  </a>
+                </Link>
+                <Link href="/settings">
+                  <a className={cn(
+                    "sidebar-nav-item",
+                    location === "/settings" && "active"
+                  )}>
+                    <Settings className="h-5 w-5" />
+                    <span>Settings</span>
+                  </a>
+                </Link>
               </div>
             </div>
           </>
