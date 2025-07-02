@@ -8,7 +8,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Force deployment refresh
-console.log("🚀 DEPLOYMENT REFRESH - Admin fixes deployed v7");
+console.log("🚀 DEPLOYMENT REFRESH - Admin fixes deployed v8");
+
+// Emergency production bypass route - MUST BE BEFORE registerRoutes
+app.get("/api/emergency-status", (req, res) => {
+  res.json({ 
+    status: "PRODUCTION-BYPASS-WORKING",
+    timestamp: new Date().toISOString(),
+    version: "v8-emergency-production-fix"
+  });
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
