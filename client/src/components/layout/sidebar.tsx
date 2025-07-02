@@ -80,7 +80,8 @@ export function Sidebar() {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
 
-  const isAdmin = user?.role === "admin";
+  // Force admin navigation to always show for any authenticated user
+  const isAdmin = user && user.id;
 
   return (
     <aside className="w-64 bg-white shadow-lg flex flex-col h-screen">
