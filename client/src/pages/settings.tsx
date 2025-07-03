@@ -351,17 +351,13 @@ export default function Settings() {
             </CardContent>
           </Card>
 
-          {/* Save Button - Always visible */}
-          <div className="sticky bottom-6 flex justify-end z-10">
+          {/* Save Button - Always visible and functional */}
+          <div className="fixed bottom-6 right-6 z-50">
             <Button 
               onClick={handleSave}
-              disabled={updateSettingsMutation.isPending || (!hasChanges && !showSaved)}
-              className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg px-6 py-2"
-              variant={showSaved ? "default" : hasChanges ? "default" : "secondary"}
-              style={{
-                backgroundColor: showSaved ? "#16a34a" : hasChanges ? "#2563eb" : "#9ca3af",
-                color: "white"
-              }}
+              disabled={updateSettingsMutation.isPending}
+              size="lg"
+              className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg border-0"
             >
               {updateSettingsMutation.isPending ? (
                 <>
@@ -371,7 +367,7 @@ export default function Settings() {
               ) : showSaved ? (
                 <>
                   <Check className="h-4 w-4 mr-2" />
-                  Saved Successfully
+                  Saved!
                 </>
               ) : (
                 <>
