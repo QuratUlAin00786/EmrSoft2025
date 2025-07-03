@@ -62,6 +62,10 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  
+  // Debug logging for user role
+  console.log("PatientList - user:", user);
+  console.log("PatientList - user role:", user?.role);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({ searchType: 'all' });
   const [filteredPatients, setFilteredPatients] = useState<any[]>([]);
