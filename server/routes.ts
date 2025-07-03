@@ -142,6 +142,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Organization settings endpoint (requires authentication)
+  app.patch("/api/organization/settings", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const updateData = z.object({
+        name: z.string().optional(),
+        brandName: z.string().optional(),
+        region: z.string().optional(),
+        settings: z.object({
+          theme: z.object({
+            primaryColor: z.string().optional()
+          }).optional(),
+          compliance: z.object({
+            gdprEnabled: z.boolean().optional()
+          }).optional(),
+          features: z.object({
+            aiEnabled: z.boolean().optional(),
+            billingEnabled: z.boolean().optional()
+          }).optional()
+        }).optional()
+      }).parse(req.body);
+
+      const updatedOrganization = await storage.updateOrganization(req.tenant!.id, updateData);
+      
+      if (!updatedOrganization) {
+        return res.status(404).json({ error: "Organization not found" });
+      }
+
+      res.json(updatedOrganization);
+    } catch (error) {
+      console.error("Organization settings update error:", error);
+      res.status(500).json({ error: "Failed to update organization settings" });
+    }
+  });
+
   // Protected routes (auth required)
   app.use("/api", authMiddleware);
 

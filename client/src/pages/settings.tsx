@@ -36,6 +36,20 @@ export default function Settings() {
 
   const { data: organization, isLoading, error } = useQuery<Organization>({
     queryKey: ["/api/tenant/info"],
+    queryFn: async () => {
+      const response = await fetch('/api/tenant/info', {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      return response.json();
+    },
+    retry: false,
   });
 
 
