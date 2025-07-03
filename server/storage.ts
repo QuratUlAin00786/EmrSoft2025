@@ -215,17 +215,21 @@ export class DatabaseStorage implements IStorage {
       return false;
     }
     
-    console.log(`Storage: Found user ${existingUser.email}, PERMANENTLY DELETING from database`);
+    console.log(`Storage: Found user ${existingUser.email}, deleting related data first`);
+    
+    // Delete related notifications first to avoid foreign key constraint
+    await db.delete(notifications)
+      .where(eq(notifications.userId, id));
+    console.log(`Storage: Deleted notifications for user ${id}`);
+    
+    // Now delete the user
+    console.log(`Storage: Now deleting user ${id} from database`);
     const result = await db.delete(users)
       .where(and(eq(users.id, id), eq(users.organizationId, organizationId)))
       .returning();
     
     const success = result.length > 0;
-    console.log(`Storage: PERMANENT DELETE result - deleted rows: ${result.length}, success: ${success}`);
-    
-    // Verify deletion worked
-    const checkUser = await this.getUser(id, organizationId);
-    console.log(`Storage: Verification - user ${id} still exists: ${!!checkUser}`);
+    console.log(`Storage: DELETE result - deleted rows: ${result.length}, success: ${success}`);
     
     return success;
   }

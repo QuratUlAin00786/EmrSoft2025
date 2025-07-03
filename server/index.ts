@@ -8,7 +8,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Force deployment refresh  
-console.log("🚀 PERMANENT DELETE - v18 - using db.delete() instead of isActive flag");
+console.log("🚀 CASCADE DELETE - v19 - deleting notifications first to fix foreign key constraint");
 
 app.use((req, res, next) => {
   const start = Date.now();
