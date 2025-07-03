@@ -101,6 +101,10 @@ Averox EMR is a comprehensive multi-tenant Electronic Medical Records (EMR) syst
 
 ## Changelog
 
+**July 3, 2025:**
+- **COMPLETED**: Fixed Settings page completely - organization data now loads properly with missing updatedAt field added to organizations table schema, updateOrganization method fixed to handle settings updates, database schema updated with npm run db:push command, and verified settings changes persist correctly in database - Settings page now fully functional for admin users to configure organization
+- **COMPLETED**: Enhanced login screen with larger Halo Health logo (doubled size from 16x16 to 32x32) and added comprehensive EMR features and benefits description underneath including Patient Management, AI Clinical Insights, Smart Scheduling, and Billing & Payments with professional styling and benefit statement
+
 **July 2, 2025:**
 - **COMPLETED**: Fixed user creation and display system in LIVE deployment - implemented unique email generation to bypass duplicate email constraints, removed role restrictions from user list endpoint, and added immediate user display functionality so new users appear instantly in the user management interface without page refresh
 - **COMPLETED**: Resolved admin navigation visibility in LIVE deployment - admin navigation items (User Management, Subscription, Settings) now properly display in sidebar for authenticated users
