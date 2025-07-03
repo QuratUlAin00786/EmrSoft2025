@@ -11,7 +11,8 @@ import { Separator } from "@/components/ui/separator";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { apiRequest } from "@/lib/queryClient";
 import { useTenant } from "@/hooks/use-tenant";
-import { Settings as SettingsIcon, Globe, Shield, Palette, Save } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Settings as SettingsIcon, Globe, Shield, Palette, Save, Check } from "lucide-react";
 import type { Organization } from "@/types";
 
 const regions = [
@@ -32,7 +33,9 @@ const themes = [
 export default function Settings() {
   const { tenant } = useTenant();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [hasChanges, setHasChanges] = useState(false);
+  const [showSaved, setShowSaved] = useState(false);
 
   const { data: organization, isLoading, error } = useQuery<Organization>({
     queryKey: ["/api/tenant/info"],
@@ -86,6 +89,20 @@ export default function Settings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tenant/info"] });
       setHasChanges(false);
+      setShowSaved(true);
+      toast({
+        title: "Settings saved",
+        description: "Organization settings have been updated successfully.",
+      });
+      // Hide the saved indicator after 3 seconds
+      setTimeout(() => setShowSaved(false), 3000);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error saving settings",
+        description: error.message || "Failed to save settings. Please try again.",
+        variant: "destructive",
+      });
     }
   });
 
@@ -334,19 +351,37 @@ export default function Settings() {
             </CardContent>
           </Card>
 
-          {/* Save Button */}
-          {hasChanges && (
-            <div className="sticky bottom-6 flex justify-end">
-              <Button 
-                onClick={handleSave}
-                disabled={updateSettingsMutation.isPending}
-                className="bg-medical-blue hover:bg-blue-700 shadow-lg"
-              >
-                <Save className="h-4 w-4 mr-2" />
-                {updateSettingsMutation.isPending ? "Saving..." : "Save Changes"}
-              </Button>
-            </div>
-          )}
+          {/* Save Button - Always visible */}
+          <div className="sticky bottom-6 flex justify-end">
+            <Button 
+              onClick={handleSave}
+              disabled={updateSettingsMutation.isPending || (!hasChanges && !showSaved)}
+              className={`shadow-lg transition-all ${
+                showSaved 
+                  ? "bg-green-600 hover:bg-green-700 text-white" 
+                  : hasChanges 
+                    ? "bg-medical-blue hover:bg-blue-700" 
+                    : "bg-gray-400 cursor-not-allowed"
+              }`}
+            >
+              {updateSettingsMutation.isPending ? (
+                <>
+                  <LoadingSpinner className="h-4 w-4 mr-2" />
+                  Saving...
+                </>
+              ) : showSaved ? (
+                <>
+                  <Check className="h-4 w-4 mr-2" />
+                  Saved Successfully
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Changes
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
     </>
