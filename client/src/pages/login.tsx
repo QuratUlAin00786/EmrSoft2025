@@ -29,12 +29,7 @@ export default function Login() {
     }
   };
 
-  const demoCredentials = [
-    { role: "Admin", email: "admin@demo.medicoreemr.com", password: "password123" },
-    { role: "Doctor", email: "doctor@demo.medicoreemr.com", password: "password123" },
-    { role: "Nurse", email: "nurse@demo.medicoreemr.com", password: "password123" },
-    { role: "Receptionist", email: "receptionist@demo.medicoreemr.com", password: "password123" }
-  ];
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -110,37 +105,7 @@ export default function Login() {
           </CardContent>
         </Card>
 
-        {/* Demo Credentials */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Demo Credentials</CardTitle>
-            <CardDescription className="text-xs">
-              Use these credentials to test the system
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {demoCredentials.map((cred, index) => (
-                <div key={index} className="text-xs p-2 bg-gray-50 rounded border">
-                  <div className="font-medium text-gray-700">{cred.role}</div>
-                  <div className="text-gray-600">{cred.email}</div>
-                  <div className="text-gray-500">Password: {cred.password}</div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="mt-1 h-6 text-xs"
-                    onClick={() => {
-                      setEmail(cred.email);
-                      setPassword(cred.password);
-                    }}
-                  >
-                    Use Credentials
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+
 
         {/* Footer */}
         <div className="text-center text-xs text-gray-500">
