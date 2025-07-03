@@ -352,17 +352,16 @@ export default function Settings() {
           </Card>
 
           {/* Save Button - Always visible */}
-          <div className="sticky bottom-6 flex justify-end">
+          <div className="sticky bottom-6 flex justify-end z-10">
             <Button 
               onClick={handleSave}
               disabled={updateSettingsMutation.isPending || (!hasChanges && !showSaved)}
-              className={`shadow-lg transition-all ${
-                showSaved 
-                  ? "bg-green-600 hover:bg-green-700 text-white" 
-                  : hasChanges 
-                    ? "bg-medical-blue hover:bg-blue-700" 
-                    : "bg-gray-400 cursor-not-allowed"
-              }`}
+              className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg px-6 py-2"
+              variant={showSaved ? "default" : hasChanges ? "default" : "secondary"}
+              style={{
+                backgroundColor: showSaved ? "#16a34a" : hasChanges ? "#2563eb" : "#9ca3af",
+                color: "white"
+              }}
             >
               {updateSettingsMutation.isPending ? (
                 <>
