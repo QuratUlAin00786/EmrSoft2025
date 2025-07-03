@@ -12,6 +12,7 @@ import { PatientSearch, SearchFilters } from "./patient-search";
 import { PatientCommunicationDialog } from "./patient-communication-dialog";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 function getPatientInitials(firstName: string, lastName: string): string {
   return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
@@ -59,6 +60,7 @@ interface PatientListProps {
 export function PatientList({ onSelectPatient }: PatientListProps = {}) {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({ searchType: 'all' });
@@ -454,16 +456,18 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                       <Flag className="h-3 w-3 mr-1" />
                       Flag
                     </Button>
-                    <Button 
-                      size="sm" 
-                      variant="ghost"
-                      onClick={() => handleDeletePatient(patient)}
-                      disabled={deletePatientMutation.isPending}
-                      className="flex-1 text-xs h-7 text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-3 w-3 mr-1" />
-                      Delete
-                    </Button>
+                    {user?.role === 'admin' && (
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        onClick={() => handleDeletePatient(patient)}
+                        disabled={deletePatientMutation.isPending}
+                        className="flex-1 text-xs h-7 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-3 w-3 mr-1" />
+                        Delete
+                      </Button>
+                    )}
                   </div>
                 </div>
 
