@@ -215,12 +215,19 @@ export class DatabaseStorage implements IStorage {
       return false;
     }
     
-    console.log(`Storage: Found user ${existingUser.email}, deleting related data first`);
+    console.log(`Storage: Found user ${existingUser.email}, deleting ALL related data first`);
     
-    // Delete related notifications first to avoid foreign key constraint
-    await db.delete(notifications)
-      .where(eq(notifications.userId, id));
+    // Delete all related data that references this user to avoid foreign key constraints
+    await db.delete(notifications).where(eq(notifications.userId, id));
     console.log(`Storage: Deleted notifications for user ${id}`);
+    
+    // Delete prescriptions where user is the provider
+    await db.delete(prescriptions).where(eq(prescriptions.providerId, id));
+    console.log(`Storage: Deleted prescriptions for provider ${id}`);
+    
+    // Delete appointments where user is the provider
+    await db.delete(appointments).where(eq(appointments.providerId, id));
+    console.log(`Storage: Deleted appointments for provider ${id}`);
     
     // Now delete the user
     console.log(`Storage: Now deleting user ${id} from database`);

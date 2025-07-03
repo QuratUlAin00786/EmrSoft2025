@@ -8,7 +8,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Force deployment refresh  
-console.log("🚀 CASCADE DELETE - v19 - deleting notifications first to fix foreign key constraint");
+console.log("🚀 FULL CASCADE DELETE - v20 - deleting ALL related data (notifications, prescriptions, appointments)");
 
 app.use((req, res, next) => {
   const start = Date.now();
