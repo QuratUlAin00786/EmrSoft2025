@@ -70,6 +70,8 @@ export default function Settings() {
   // Update settings when organization data is loaded
   useEffect(() => {
     if (organization) {
+      console.log('Organization data loaded:', organization);
+      console.log('Organization settings:', organization.settings);
       setSettings({
         name: organization.name || "",
         brandName: organization.brandName || "",
@@ -79,15 +81,23 @@ export default function Settings() {
         aiEnabled: organization.settings?.features?.aiEnabled || true,
         billingEnabled: organization.settings?.features?.billingEnabled || true
       });
+      setHasChanges(false); // Reset changes flag when fresh data loads
     }
   }, [organization]);
 
   const updateSettingsMutation = useMutation({
     mutationFn: async (updatedSettings: any) => {
-      return apiRequest('PATCH', '/api/organization/settings', updatedSettings);
+      console.log('Sending settings update:', updatedSettings);
+      const response = await apiRequest('PATCH', '/api/organization/settings', updatedSettings);
+      console.log('Settings update response:', response);
+      return response;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tenant/info"] });
+    onSuccess: async (data) => {
+      console.log('Settings saved successfully, invalidating cache...');
+      // Force cache invalidation and refetch
+      await queryClient.invalidateQueries({ queryKey: ["/api/tenant/info"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/tenant/info"] });
+      
       setHasChanges(false);
       setShowSaved(true);
       toast({
@@ -98,6 +108,7 @@ export default function Settings() {
       setTimeout(() => setShowSaved(false), 3000);
     },
     onError: (error: any) => {
+      console.error('Settings save error:', error);
       toast({
         title: "Error saving settings",
         description: error.message || "Failed to save settings. Please try again.",
