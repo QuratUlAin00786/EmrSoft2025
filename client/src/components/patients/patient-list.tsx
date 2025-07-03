@@ -428,7 +428,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                   </div>
                   
                   {/* Secondary actions */}
-                  <div className="flex gap-1">
+                  <div className="grid grid-cols-4 gap-1">
                     <Button 
                       size="sm" 
                       variant="ghost"
