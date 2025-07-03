@@ -238,6 +238,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete patient
+  app.delete("/api/patients/:id", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      
+      // Verify patient exists and belongs to organization
+      const patient = await storage.getPatient(patientId, req.tenant!.id);
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+
+      // Delete patient (this will cascade delete related records)
+      const deleted = await storage.deletePatient(patientId, req.tenant!.id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Failed to delete patient" });
+      }
+
+      res.json({ success: true, message: "Patient deleted successfully" });
+    } catch (error) {
+      console.error("Patient deletion error:", error);
+      res.status(500).json({ error: "Failed to delete patient" });
+    }
+  });
+
   // Get patient medical records only
   app.get("/api/patients/:id/records", async (req: TenantRequest, res) => {
     try {

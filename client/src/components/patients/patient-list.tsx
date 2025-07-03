@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
-import { Calendar, Eye, User, Phone, MapPin, AlertTriangle, Clock, Bell, FileText, Flag } from "lucide-react";
+import { Calendar, Eye, User, Phone, MapPin, AlertTriangle, Clock, Bell, FileText, Flag, Trash2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLocation } from "wouter";
 import { formatDistanceToNow } from "date-fns";
@@ -91,6 +91,33 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
       patient,
       mode: "flag"
     });
+  };
+
+  // Delete patient mutation
+  const deletePatientMutation = useMutation({
+    mutationFn: async (patientId: number) => {
+      return apiRequest('DELETE', `/api/patients/${patientId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
+      toast({
+        title: "Patient deleted",
+        description: "Patient has been successfully removed from the system.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error deleting patient",
+        description: error.message || "Failed to delete patient. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeletePatient = (patient: any) => {
+    if (window.confirm(`Are you sure you want to delete ${patient.firstName} ${patient.lastName}? This action cannot be undone.`)) {
+      deletePatientMutation.mutate(patient.id);
+    }
   };
 
   const handleViewRecords = (patient: any) => {
@@ -426,6 +453,16 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                     >
                       <Flag className="h-3 w-3 mr-1" />
                       Flag
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      onClick={() => handleDeletePatient(patient)}
+                      disabled={deletePatientMutation.isPending}
+                      className="flex-1 text-xs h-7 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-3 w-3 mr-1" />
+                      Delete
                     </Button>
                   </div>
                 </div>

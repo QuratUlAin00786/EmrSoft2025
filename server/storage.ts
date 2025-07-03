@@ -35,6 +35,7 @@ export interface IStorage {
   getPatientsByOrganization(organizationId: number, limit?: number): Promise<Patient[]>;
   createPatient(patient: InsertPatient): Promise<Patient>;
   updatePatient(id: number, organizationId: number, updates: Partial<InsertPatient>): Promise<Patient | undefined>;
+  deletePatient(id: number, organizationId: number): Promise<boolean>;
   searchPatients(organizationId: number, query: string): Promise<Patient[]>;
 
   // Medical Records
@@ -288,6 +289,40 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(patients.id, id), eq(patients.organizationId, organizationId)))
       .returning();
     return updated || undefined;
+  }
+
+  async deletePatient(id: number, organizationId: number): Promise<boolean> {
+    try {
+      // First delete related records (cascade delete)
+      // Delete medical records
+      await db.delete(medicalRecords)
+        .where(and(eq(medicalRecords.patientId, id), eq(medicalRecords.organizationId, organizationId)));
+      
+      // Delete appointments
+      await db.delete(appointments)
+        .where(and(eq(appointments.patientId, id), eq(appointments.organizationId, organizationId)));
+      
+      // Delete AI insights
+      await db.delete(aiInsights)
+        .where(and(eq(aiInsights.patientId, id), eq(aiInsights.organizationId, organizationId)));
+      
+      // Delete patient communications
+      await db.delete(patientCommunications)
+        .where(and(eq(patientCommunications.patientId, id), eq(patientCommunications.organizationId, organizationId)));
+      
+      // Delete prescriptions
+      await db.delete(prescriptions)
+        .where(and(eq(prescriptions.patientId, id), eq(prescriptions.organizationId, organizationId)));
+      
+      // Finally delete the patient
+      const result = await db.delete(patients)
+        .where(and(eq(patients.id, id), eq(patients.organizationId, organizationId)));
+      
+      return (result.rowCount || 0) > 0;
+    } catch (error) {
+      console.error("Error deleting patient:", error);
+      return false;
+    }
   }
 
   async searchPatients(organizationId: number, query: string): Promise<Patient[]> {
