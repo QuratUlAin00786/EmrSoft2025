@@ -157,7 +157,15 @@ export class DatabaseStorage implements IStorage {
 
   async updateOrganization(id: number, updates: Partial<InsertOrganization>): Promise<Organization | undefined> {
     const cleanUpdates: any = { ...updates };
-    delete cleanUpdates.settings; // Remove complex nested type to avoid compilation errors
+    
+    // Add timestamp
+    cleanUpdates.updatedAt = new Date();
+    
+    // Handle settings field - just pass it through as-is to avoid type issues
+    if (updates.settings) {
+      cleanUpdates.settings = updates.settings;
+    }
+    
     const [updated] = await db.update(organizations).set(cleanUpdates).where(eq(organizations.id, id)).returning();
     return updated || undefined;
   }
