@@ -67,12 +67,34 @@ export default function Settings() {
     billingEnabled: true
   });
 
+  // Apply theme colors to CSS variables
+  const applyTheme = (themeValue: string) => {
+    const root = document.documentElement;
+    
+    switch (themeValue) {
+      case 'green':
+        root.style.setProperty('--primary', 'hsl(142, 70%, 45%)'); // Medical Green
+        root.style.setProperty('--medical-blue', 'hsl(142, 70%, 45%)');
+        break;
+      case 'purple':
+        root.style.setProperty('--primary', 'hsl(261, 73%, 52%)'); // Professional Purple
+        root.style.setProperty('--medical-blue', 'hsl(261, 73%, 52%)');
+        break;
+      case 'dark':
+        root.style.setProperty('--primary', 'hsl(0, 0%, 20%)'); // Dark Mode
+        root.style.setProperty('--medical-blue', 'hsl(0, 0%, 20%)');
+        break;
+      default: // Medical Blue
+        root.style.setProperty('--primary', 'hsl(210, 100%, 46%)');
+        root.style.setProperty('--medical-blue', 'hsl(210, 100%, 46%)');
+        break;
+    }
+  };
+
   // Update settings when organization data is loaded
   useEffect(() => {
     if (organization) {
-      console.log('Organization data loaded:', organization);
-      console.log('Organization settings:', organization.settings);
-      setSettings({
+      const newSettings = {
         name: organization.name || "",
         brandName: organization.brandName || "",
         region: organization.region || "UK",
@@ -80,20 +102,19 @@ export default function Settings() {
         gdprEnabled: organization.settings?.compliance?.gdprEnabled || true,
         aiEnabled: organization.settings?.features?.aiEnabled || true,
         billingEnabled: organization.settings?.features?.billingEnabled || true
-      });
+      };
+      setSettings(newSettings);
+      // Apply the theme immediately when data loads
+      applyTheme(newSettings.theme);
       setHasChanges(false); // Reset changes flag when fresh data loads
     }
   }, [organization]);
 
   const updateSettingsMutation = useMutation({
     mutationFn: async (updatedSettings: any) => {
-      console.log('Sending settings update:', updatedSettings);
-      const response = await apiRequest('PATCH', '/api/organization/settings', updatedSettings);
-      console.log('Settings update response:', response);
-      return response;
+      return apiRequest('PATCH', '/api/organization/settings', updatedSettings);
     },
     onSuccess: async (data) => {
-      console.log('Settings saved successfully, invalidating cache...');
       // Force cache invalidation and refetch
       await queryClient.invalidateQueries({ queryKey: ["/api/tenant/info"] });
       await queryClient.refetchQueries({ queryKey: ["/api/tenant/info"] });
@@ -108,7 +129,6 @@ export default function Settings() {
       setTimeout(() => setShowSaved(false), 3000);
     },
     onError: (error: any) => {
-      console.error('Settings save error:', error);
       toast({
         title: "Error saving settings",
         description: error.message || "Failed to save settings. Please try again.",
@@ -120,6 +140,11 @@ export default function Settings() {
   const handleInputChange = (field: string, value: any) => {
     setSettings(prev => ({ ...prev, [field]: value }));
     setHasChanges(true);
+    
+    // Apply theme immediately when user selects it
+    if (field === 'theme') {
+      applyTheme(value);
+    }
   };
 
   const handleSave = () => {
