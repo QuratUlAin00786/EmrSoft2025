@@ -74,6 +74,7 @@ export default function StaffProfile() {
 
   if (error) {
     console.error('Staff Profile Error:', error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
     return (
       <>
         <Header title="Staff Profile" subtitle="Error loading staff member" />
@@ -115,6 +116,8 @@ export default function StaffProfile() {
     );
   }
 
+  console.log('StaffProfile: Rendering staff profile for:', staffMember);
+  
   return (
     <>
       <Header 
