@@ -57,7 +57,11 @@ export default function StaffProfile() {
       }
       
       const data = await response.json();
-      return data.find((staff: StaffMember) => staff.id.toString() === staffId);
+      console.log('Medical Staff Data:', data);
+      console.log('Looking for Staff ID:', staffId);
+      const foundStaff = data.find((staff: StaffMember) => staff.id.toString() === staffId);
+      console.log('Found Staff Member:', foundStaff);
+      return foundStaff;
     },
     enabled: !!staffId,
   });
