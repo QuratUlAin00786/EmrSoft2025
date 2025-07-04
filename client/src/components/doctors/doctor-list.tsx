@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
 import { Stethoscope, User, Calendar, Clock, MapPin } from "lucide-react";
 import { useLocation } from "wouter";
+import { apiRequest } from "@/lib/queryClient";
 import type { User as Doctor } from "@/types";
 
 interface DoctorListProps {
@@ -42,24 +43,7 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
   const { data: medicalStaff = [], isLoading, error } = useQuery({
     queryKey: ["/api/medical-staff"],
     queryFn: async () => {
-      const token = localStorage.getItem('auth_token');
-      const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': 'demo'
-      };
-      
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      
-      const response = await fetch("/api/medical-staff", {
-        headers,
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
+      const response = await apiRequest("GET", "/api/medical-staff");
       const data = await response.json();
       return data;
     },
