@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { useLocation } from "wouter";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function CalendarPage() {
   const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
@@ -41,20 +42,7 @@ export default function CalendarPage() {
 
   const createAppointmentMutation = useMutation({
     mutationFn: async (appointmentData: any) => {
-      const response = await fetch("/api/appointments", {
-        method: "POST",
-        body: JSON.stringify(appointmentData),
-        headers: {
-          "Content-Type": "application/json",
-          'X-Tenant-Subdomain': 'demo'
-        },
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
+      const response = await apiRequest("POST", "/api/appointments", appointmentData);
       return response.json();
     },
     onSuccess: () => {
