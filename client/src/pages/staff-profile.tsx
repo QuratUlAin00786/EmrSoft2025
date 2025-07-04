@@ -39,12 +39,19 @@ export default function StaffProfile() {
   const { data: staffMember, isLoading, error } = useQuery({
     queryKey: ["/api/medical-staff", staffId],
     queryFn: async () => {
+      console.log('StaffProfile: Fetching staff data for ID:', staffId);
       const response = await apiRequest("GET", "/api/medical-staff");
       const data = await response.json();
+      console.log('StaffProfile: All staff data:', data);
+      console.log('StaffProfile: Looking for ID:', staffId, 'Type:', typeof staffId);
+      
       // Try both string and number comparison to handle ID format differences
-      const foundStaff = data.find((staff: StaffMember) => 
-        staff.id.toString() === staffId || staff.id === parseInt(staffId || '0', 10)
-      );
+      const foundStaff = data.find((staff: StaffMember) => {
+        console.log('StaffProfile: Comparing staff.id:', staff.id, 'Type:', typeof staff.id, 'with staffId:', staffId);
+        return staff.id.toString() === staffId || staff.id === parseInt(staffId || '0', 10);
+      });
+      
+      console.log('StaffProfile: Found staff member:', foundStaff);
       return foundStaff;
     },
     enabled: !!staffId,
