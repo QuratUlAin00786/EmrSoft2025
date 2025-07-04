@@ -38,9 +38,12 @@ export default function StaffProfile() {
   const { data: staffMember, isLoading, error } = useQuery({
     queryKey: ["/api/medical-staff", staffId],
     queryFn: async () => {
+      const token = localStorage.getItem('authToken');
       const response = await fetch("/api/medical-staff", {
         headers: {
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': 'demo',
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         },
         credentials: 'include'
       });
