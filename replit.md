@@ -102,7 +102,8 @@ Averox EMR is a comprehensive multi-tenant Electronic Medical Records (EMR) syst
 ## Changelog
 
 **July 4, 2025:**
-- **COMPLETED**: Fixed View Profile button authentication error on Appointments page - replaced manual fetch with apiRequest method in staff-profile.tsx for consistent authentication handling, ensuring staff member details display correctly in LIVE deployment instead of previous "Failed to create appointment" error
+- **COMPLETED**: Fixed View Profile button authentication error on Appointments page - replaced manual fetch with apiRequest method in staff-profile.tsx for consistent authentication handling, ensuring staff member details display correctly in LIVE deployment
+- **COMPLETED**: Fixed BOOK buttons functionality on Appointments page - replaced manual fetch with apiRequest method in both doctor-list.tsx and calendar.tsx components, enabling proper appointment booking dialog display and successful appointment creation in LIVE deployment
 
 **July 3, 2025:**
 - **COMPLETED**: Fixed Delete button functionality completely - implemented grid layout (grid-cols-4) to display all 4 buttons properly, DELETE API endpoint working with cascade deletion, confirmation dialogs functional, success notifications working, and automatic patient list refresh after deletion - Delete button now fully operational in LIVE deployment allowing users to remove patients efficiently
