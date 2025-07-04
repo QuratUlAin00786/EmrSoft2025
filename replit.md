@@ -102,7 +102,7 @@ Averox EMR is a comprehensive multi-tenant Electronic Medical Records (EMR) syst
 ## Changelog
 
 **July 4, 2025:**
-- **COMPLETED**: Fixed View Profile button authentication error on Appointments page - added proper JWT Bearer token headers to staff profile API request in staff-profile.tsx, ensuring staff member details display correctly instead of "Staff member not found" error in both development and production environments
+- **COMPLETED**: Fixed View Profile button authentication error on Appointments page - replaced manual fetch with apiRequest method in staff-profile.tsx for consistent authentication handling, ensuring staff member details display correctly in LIVE deployment instead of previous "Failed to create appointment" error
 
 **July 3, 2025:**
 - **COMPLETED**: Fixed Delete button functionality completely - implemented grid layout (grid-cols-4) to display all 4 buttons properly, DELETE API endpoint working with cascade deletion, confirmation dialogs functional, success notifications working, and automatic patient list refresh after deletion - Delete button now fully operational in LIVE deployment allowing users to remove patients efficiently
