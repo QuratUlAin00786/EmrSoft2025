@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
 import { Stethoscope, Mail, Phone, MapPin, Calendar, Clock, User, Building } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 import type { User as StaffMember } from "@/types";
 
 function getInitials(firstName: string, lastName: string): string {
@@ -38,24 +39,7 @@ export default function StaffProfile() {
   const { data: staffMember, isLoading, error } = useQuery({
     queryKey: ["/api/medical-staff", staffId],
     queryFn: async () => {
-      const token = localStorage.getItem('auth_token');
-      const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': 'demo'
-      };
-      
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      
-      const response = await fetch("/api/medical-staff", {
-        headers,
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
+      const response = await apiRequest("GET", "/api/medical-staff");
       const data = await response.json();
       // Try both string and number comparison to handle ID format differences
       const foundStaff = data.find((staff: StaffMember) => 
@@ -81,7 +65,29 @@ export default function StaffProfile() {
     );
   }
 
-  if (error || !staffMember) {
+  if (error) {
+    console.error('Staff Profile Error:', error);
+    return (
+      <>
+        <Header title="Staff Profile" subtitle="Error loading staff member" />
+        <div className="flex-1 overflow-auto p-6">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <User className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">Error loading staff member</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  {error?.message || "An error occurred while loading the staff member."}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </>
+    );
+  }
+
+  if (!staffMember) {
     return (
       <>
         <Header title="Staff Profile" subtitle="Staff member not found" />
