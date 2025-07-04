@@ -57,10 +57,10 @@ export default function StaffProfile() {
       }
       
       const data = await response.json();
-      console.log('Medical Staff Data:', data);
-      console.log('Looking for Staff ID:', staffId);
-      const foundStaff = data.find((staff: StaffMember) => staff.id.toString() === staffId);
-      console.log('Found Staff Member:', foundStaff);
+      // Try both string and number comparison to handle ID format differences
+      const foundStaff = data.find((staff: StaffMember) => 
+        staff.id.toString() === staffId || staff.id === parseInt(staffId || '0', 10)
+      );
       return foundStaff;
     },
     enabled: !!staffId,
