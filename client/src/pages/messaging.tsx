@@ -817,17 +817,18 @@ export default function MessagingPage() {
                   {/* Show existing conversations first */}
                   {filteredConversations && filteredConversations.length > 0 && (
                     <div className="mb-4">
-                      <h3 className="text-sm font-medium text-gray-900 mb-2 px-1">Recent Conversations</h3>
+                      <h3 className="text-sm font-medium text-gray-900 mb-2 px-1">📩 Click conversation below to send messages:</h3>
                       {filteredConversations.map((conversation: Conversation) => (
                         <div
                           key={conversation.id}
-                          className={`p-3 rounded-lg cursor-pointer mb-2 transition-colors border ${
+                          className={`p-3 rounded-lg cursor-pointer mb-2 transition-colors border-2 ${
                             selectedConversation === conversation.id
-                              ? 'bg-blue-50 border-blue-200 ring-2 ring-blue-300'
-                              : 'hover:bg-gray-50 border-gray-200'
+                              ? 'bg-blue-50 border-blue-500 ring-4 ring-blue-200 shadow-lg'
+                              : 'hover:bg-green-50 border-green-300 hover:border-green-500 bg-green-25'
                           }`}
                           onClick={() => {
-                            console.log('Selecting conversation:', conversation.id);
+                            console.log('🔥 CONVERSATION SELECTED:', conversation.id);
+                            console.log('🔥 Setting selectedConversation to:', conversation.id);
                             setSelectedConversation(conversation.id);
                           }}
                         >
@@ -866,17 +867,19 @@ export default function MessagingPage() {
                     </div>
                   )}
 
-                  <div
-                    className="p-3 rounded-lg cursor-pointer mb-2 transition-colors border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50"
-                    onClick={() => setShowNewMessage(true)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                        <Plus className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm text-blue-600">Start New Conversation</p>
-                        <p className="text-xs text-gray-500">Send a message to someone new</p>
+                  <div className="mt-6 pt-4 border-t border-gray-200">
+                    <p className="text-xs text-gray-400 mb-2 px-1">Or create new conversation:</p>
+                    <div
+                      className="p-2 rounded-lg cursor-pointer transition-colors border border-dashed border-gray-200 hover:border-gray-300 hover:bg-gray-25"
+                      onClick={() => setShowNewMessage(true)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center">
+                          <Plus className="h-3 w-3 text-gray-500" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-600">New Message</p>
+                        </div>
                       </div>
                     </div>
                   </div>
