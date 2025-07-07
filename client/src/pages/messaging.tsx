@@ -385,9 +385,11 @@ export default function MessagingPage() {
         priority: 'normal',
         type: 'internal'
       };
-      console.log('Message data being sent:', messageData);
+      console.log('🔥 CONVERSATION MESSAGE DATA:', messageData);
+      console.log('🔥 Selected conversation ID:', selectedConversation);
       
-      await apiRequest('POST', '/api/messaging/send', messageData);
+      const response = await apiRequest('POST', '/api/messaging/send', messageData);
+      console.log('🔥 CONVERSATION MESSAGE RESPONSE:', response);
       
       // Refresh the data
       queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
@@ -405,7 +407,8 @@ export default function MessagingPage() {
         description: "Failed to send message. Please try again.",
         variant: "destructive"
       });
-      console.error('Send message error:', error);
+      console.error('🔥 CONVERSATION MESSAGE ERROR:', error);
+      console.error('🔥 ERROR DETAILS:', JSON.stringify(error, null, 2));
     }
   };
 
