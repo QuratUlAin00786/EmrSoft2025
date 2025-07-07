@@ -134,6 +134,11 @@ export default function MessagingPage() {
     setAuthToken(token);
   }, []);
 
+  // Clear message content when conversation changes
+  useEffect(() => {
+    setNewMessageContent("");
+  }, [selectedConversation]);
+
   const { data: conversations = [], isLoading: conversationsLoading, error: conversationsError } = useQuery({
     queryKey: ['/api/messaging/conversations'],
     queryFn: async () => {
@@ -341,7 +346,7 @@ export default function MessagingPage() {
     });
   };
 
-  const handleSendConversationMessage = () => {
+  const handleSendConversationMessage = async () => {
     if (!newMessageContent.trim()) {
       toast({
         title: "Validation Error",
@@ -352,31 +357,34 @@ export default function MessagingPage() {
     }
 
     const messageContent = newMessageContent.trim();
+    setNewMessageContent(""); // Clear immediately
     
-    sendMessageMutation.mutate({
-      conversationId: selectedConversation,
-      content: messageContent,
-      priority: 'normal',
-      type: 'internal'
-    }, {
-      onSuccess: () => {
-        setNewMessageContent(""); // Clear after successful send
-        queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
-        queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
-        toast({
-          title: "Message Sent",
-          description: "Your message has been sent successfully.",
-        });
-      },
-      onError: (error) => {
-        toast({
-          title: "Error",
-          description: "Failed to send message. Please try again.",
-          variant: "destructive"
-        });
-        console.error('Send message error:', error);
-      }
-    });
+    try {
+      await sendMessageMutation.mutateAsync({
+        conversationId: selectedConversation,
+        content: messageContent,
+        priority: 'normal',
+        type: 'internal'
+      });
+      
+      // Refresh the data
+      queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
+      queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
+      
+      toast({
+        title: "Message Sent",
+        description: "Your message has been sent successfully.",
+      });
+    } catch (error) {
+      // Restore the message content if send failed
+      setNewMessageContent(messageContent);
+      toast({
+        title: "Error", 
+        description: "Failed to send message. Please try again.",
+        variant: "destructive"
+      });
+      console.error('Send message error:', error);
+    }
   };
 
   const resetNewMessage = () => {
@@ -930,6 +938,7 @@ export default function MessagingPage() {
                   <div className="p-4 border-t">
                     <div className="flex gap-3">
                       <Textarea
+                        key={`message-input-${selectedConversation}`}
                         placeholder="Type your message..."
                         value={newMessageContent}
                         onChange={(e) => setNewMessageContent(e.target.value)}
