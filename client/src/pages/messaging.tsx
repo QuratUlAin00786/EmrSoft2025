@@ -387,10 +387,19 @@ export default function MessagingPage() {
       };
       console.log('🔥 CONVERSATION MESSAGE DATA:', messageData);
       console.log('🔥 Selected conversation ID:', selectedConversation);
+      console.log('🔥 Making API request to /api/messaging/send');
       
-      const response = await apiRequest('POST', '/api/messaging/send', messageData);
-      const responseData = await response.json();
-      console.log('🔥 CONVERSATION MESSAGE RESPONSE:', responseData);
+      try {
+        const response = await apiRequest('POST', '/api/messaging/send', messageData);
+        console.log('🔥 API RESPONSE STATUS:', response.status);
+        console.log('🔥 API RESPONSE OK:', response.ok);
+        
+        const responseData = await response.json();
+        console.log('🔥 CONVERSATION MESSAGE RESPONSE:', responseData);
+      } catch (apiError) {
+        console.error('🔥 API REQUEST FAILED:', apiError);
+        throw apiError;
+      }
       
       // Refresh the data
       queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
