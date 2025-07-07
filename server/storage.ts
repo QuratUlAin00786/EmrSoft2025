@@ -884,10 +884,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMessages(conversationId: string, organizationId: number): Promise<any[]> {
+    // Initialize store if it doesn't exist
+    if (!DatabaseStorage.messagesStore) {
+      DatabaseStorage.messagesStore = [];
+    }
+
     // Get stored messages for this conversation
-    const storedMessages = DatabaseStorage.messagesStore?.filter(msg => 
+    const storedMessages = DatabaseStorage.messagesStore.filter(msg => 
       msg.conversationId === conversationId && msg.organizationId === organizationId
-    ) || [];
+    );
+
+    // Log for debugging
+    console.log(`Getting messages for conversation ${conversationId}:`);
+    console.log(`Total stored messages: ${DatabaseStorage.messagesStore.length}`);
+    console.log(`Filtered messages for this conversation: ${storedMessages.length}`);
 
     // Mock messages data (initial conversation messages)
     const mockMessages = [
@@ -913,6 +923,7 @@ export class DatabaseStorage implements IStorage {
       new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     );
 
+    console.log(`Returning ${allMessages.length} total messages`);
     return allMessages;
   }
 
@@ -1303,12 +1314,17 @@ export class DatabaseStorage implements IStorage {
       organizationId: organizationId
     };
 
-    // For demo purposes, we'll store this in a static array
-    // In a real implementation, this would be saved to a database table
+    // Initialize the store if it doesn't exist
     if (!DatabaseStorage.messagesStore) {
       DatabaseStorage.messagesStore = [];
     }
+    
+    // Store the message
     DatabaseStorage.messagesStore.push(message);
+    
+    // Log for debugging
+    console.log(`Message stored: ${message.id} for conversation ${message.conversationId}`);
+    console.log(`Total messages in store: ${DatabaseStorage.messagesStore.length}`);
 
     return message;
   }
