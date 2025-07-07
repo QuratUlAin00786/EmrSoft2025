@@ -179,6 +179,11 @@ export default function ImagingPage() {
   });
   const [patients, setPatients] = useState<any[]>([]);
   const [patientsLoading, setPatientsLoading] = useState(false);
+  const [reportFormData, setReportFormData] = useState({
+    findings: "",
+    impression: "",
+    radiologist: ""
+  });
   const { toast } = useToast();
 
   // Fetch patients using the exact working pattern from prescriptions
@@ -265,6 +270,11 @@ export default function ImagingPage() {
     const study = (studies as any || []).find((s: any) => s.id === studyId);
     if (study) {
       setSelectedStudy(study);
+      setReportFormData({
+        findings: study.findings || "",
+        impression: study.impression || "",
+        radiologist: study.radiologist || "Dr. Michael Chen"
+      });
       setShowReportDialog(true);
     }
   };
@@ -715,8 +725,8 @@ export default function ImagingPage() {
                   <Textarea
                     id="findings"
                     placeholder="Enter radiological findings..."
-                    value={selectedStudy.findings || ""}
-                    readOnly={selectedStudy.status === 'final'}
+                    value={reportFormData.findings}
+                    onChange={(e) => setReportFormData(prev => ({ ...prev, findings: e.target.value }))}
                     rows={4}
                     className="mt-1"
                   />
@@ -729,8 +739,8 @@ export default function ImagingPage() {
                   <Textarea
                     id="impression"
                     placeholder="Enter clinical impression..."
-                    value={selectedStudy.impression || ""}
-                    readOnly={selectedStudy.status === 'final'}
+                    value={reportFormData.impression}
+                    onChange={(e) => setReportFormData(prev => ({ ...prev, impression: e.target.value }))}
                     rows={3}
                     className="mt-1"
                   />
@@ -742,8 +752,8 @@ export default function ImagingPage() {
                   </Label>
                   <Input
                     id="radiologist"
-                    value={selectedStudy.radiologist || "Dr. Michael Chen"}
-                    readOnly
+                    value={reportFormData.radiologist}
+                    onChange={(e) => setReportFormData(prev => ({ ...prev, radiologist: e.target.value }))}
                     className="mt-1"
                   />
                 </div>
