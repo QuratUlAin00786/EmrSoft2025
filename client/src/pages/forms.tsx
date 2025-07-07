@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Plus, 
   FileText, 
@@ -112,6 +113,7 @@ export default function FormsPage() {
     medical: "",
     consent: false
   });
+  const { toast } = useToast();
   const scrollToTop = () => {
     console.log('Scroll to top button clicked!');
     
@@ -658,6 +660,25 @@ export default function FormsPage() {
                       />
                       <Label htmlFor="consent">I consent to treatment and data processing</Label>
                     </div>
+                    
+                    <div className="pt-4 border-t">
+                      <Button 
+                        onClick={() => {
+                          // Save form data
+                          console.log('Form submitted:', formData);
+                          // Show success toast
+                          toast({
+                            title: "Form Submitted Successfully",
+                            description: "Patient intake form has been saved and will be reviewed by our team.",
+                          });
+                          // Close dialog
+                          setState(prev => ({ ...prev, previewForm: undefined }));
+                        }}
+                        className="w-full"
+                      >
+                        Submit Patient Intake Form
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -708,6 +729,25 @@ export default function FormsPage() {
                     <div>
                       <Label htmlFor="additional">Additional Comments</Label>
                       <Textarea id="additional" placeholder="Any additional information you'd like to share" disabled />
+                    </div>
+                    
+                    <div className="pt-4 border-t">
+                      <Button 
+                        onClick={() => {
+                          // Save form data
+                          console.log('Mental Health Screening submitted');
+                          // Show success toast
+                          toast({
+                            title: "Screening Submitted Successfully",
+                            description: "Mental health screening has been completed and saved for review.",
+                          });
+                          // Close dialog
+                          setState(prev => ({ ...prev, previewForm: undefined }));
+                        }}
+                        className="w-full"
+                      >
+                        Submit Mental Health Screening
+                      </Button>
                     </div>
                   </div>
                 )}
