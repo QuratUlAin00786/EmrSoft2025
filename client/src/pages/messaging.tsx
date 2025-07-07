@@ -814,6 +814,58 @@ export default function MessagingPage() {
               <ScrollArea className="h-[580px]">
                 <div className="p-2">
                   {/* New Conversation Option */}
+                  {/* Show existing conversations first */}
+                  {filteredConversations && filteredConversations.length > 0 && (
+                    <div className="mb-4">
+                      <h3 className="text-sm font-medium text-gray-900 mb-2 px-1">Recent Conversations</h3>
+                      {filteredConversations.map((conversation: Conversation) => (
+                        <div
+                          key={conversation.id}
+                          className={`p-3 rounded-lg cursor-pointer mb-2 transition-colors border ${
+                            selectedConversation === conversation.id
+                              ? 'bg-blue-50 border-blue-200 ring-2 ring-blue-300'
+                              : 'hover:bg-gray-50 border-gray-200'
+                          }`}
+                          onClick={() => {
+                            console.log('Selecting conversation:', conversation.id);
+                            setSelectedConversation(conversation.id);
+                          }}
+                        >
+                          <div className="flex items-start gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarFallback>
+                                {conversation.participants[0]?.name?.charAt(0) || 'U'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-1">
+                                <p className="font-medium text-sm truncate">
+                                  {conversation.participants[0]?.name}
+                                </p>
+                                <div className="flex items-center gap-1">
+                                  <Badge variant="secondary" className="text-xs">
+                                    {conversation.participants[0]?.role}
+                                  </Badge>
+                                  {conversation.unreadCount > 0 && (
+                                    <Badge variant="destructive" className="text-xs">
+                                      {conversation.unreadCount}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                              <p className="text-xs text-gray-600 truncate">
+                                {conversation.lastMessage?.content || "No messages yet"}
+                              </p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                {conversation.lastMessage?.timestamp ? new Date(conversation.lastMessage.timestamp).toLocaleDateString() : ''}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   <div
                     className="p-3 rounded-lg cursor-pointer mb-2 transition-colors border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50"
                     onClick={() => setShowNewMessage(true)}
@@ -829,54 +881,11 @@ export default function MessagingPage() {
                     </div>
                   </div>
 
-                  {!filteredConversations || filteredConversations.length === 0 ? (
+                  {(!filteredConversations || filteredConversations.length === 0) && (
                     <div className="text-center py-8 text-gray-500">
                       <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
                       <p>No existing conversations found</p>
                     </div>
-                  ) : (
-                    filteredConversations.map((conversation: Conversation) => (
-                      <div
-                        key={conversation.id}
-                        className={`p-3 rounded-lg cursor-pointer mb-2 transition-colors ${
-                          selectedConversation === conversation.id
-                            ? 'bg-blue-50 border-blue-200'
-                            : 'hover:bg-gray-50'
-                        }`}
-                        onClick={() => setSelectedConversation(conversation.id)}
-                      >
-                        <div className="flex items-start gap-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarFallback>
-                              {conversation.participants[0]?.name?.charAt(0) || 'U'}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-1">
-                              <p className="font-medium text-sm truncate">
-                                {conversation.participants[0]?.name}
-                              </p>
-                              <div className="flex items-center gap-1">
-                                {conversation.isPatientConversation && (
-                                  <Badge variant="outline" className="text-xs">Patient</Badge>
-                                )}
-                                {conversation.unreadCount > 0 && (
-                                  <Badge className="text-xs bg-red-500">
-                                    {conversation.unreadCount}
-                                  </Badge>
-                                )}
-                              </div>
-                            </div>
-                            <p className="text-xs text-gray-600 truncate">
-                              {conversation.lastMessage.subject}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {format(new Date(conversation.lastMessage.timestamp), 'MMM d, HH:mm')}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))
                   )}
                 </div>
               </ScrollArea>
