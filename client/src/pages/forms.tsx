@@ -101,6 +101,17 @@ export default function FormsPage() {
   const [state, setState] = useState<FormsPageState>({
     activeTab: 'overview'
   });
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    dob: "",
+    gender: "",
+    address: "",
+    emergency: "",
+    medical: "",
+    consent: false
+  });
   const scrollToTop = () => {
     console.log('Scroll to top button clicked!');
     
@@ -556,27 +567,48 @@ export default function FormsPage() {
                   <div className="space-y-4">
                     <div>
                       <Label htmlFor="fullName">Full Name *</Label>
-                      <Input id="fullName" placeholder="Enter your full name" disabled />
+                      <Input 
+                        id="fullName" 
+                        placeholder="Enter your full name" 
+                        value={formData.fullName}
+                        onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                      />
                     </div>
                     
                     <div>
                       <Label htmlFor="email">Email Address *</Label>
-                      <Input id="email" type="email" placeholder="Enter your email" disabled />
+                      <Input 
+                        id="email" 
+                        type="email" 
+                        placeholder="Enter your email" 
+                        value={formData.email}
+                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                      />
                     </div>
                     
                     <div>
                       <Label htmlFor="phone">Phone Number</Label>
-                      <Input id="phone" placeholder="Enter your phone number" disabled />
+                      <Input 
+                        id="phone" 
+                        placeholder="Enter your phone number" 
+                        value={formData.phone}
+                        onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                      />
                     </div>
                     
                     <div>
                       <Label htmlFor="dob">Date of Birth *</Label>
-                      <Input id="dob" type="date" disabled />
+                      <Input 
+                        id="dob" 
+                        type="date" 
+                        value={formData.dob}
+                        onChange={(e) => setFormData(prev => ({ ...prev, dob: e.target.value }))}
+                      />
                     </div>
                     
                     <div>
                       <Label htmlFor="gender">Gender</Label>
-                      <Select disabled>
+                      <Select value={formData.gender} onValueChange={(value) => setFormData(prev => ({ ...prev, gender: value }))}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select gender" />
                         </SelectTrigger>
@@ -590,21 +622,40 @@ export default function FormsPage() {
                     
                     <div>
                       <Label htmlFor="address">Address</Label>
-                      <Textarea id="address" placeholder="Enter your address" disabled />
+                      <Textarea 
+                        id="address" 
+                        placeholder="Enter your address" 
+                        value={formData.address}
+                        onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                      />
                     </div>
                     
                     <div>
                       <Label htmlFor="emergency">Emergency Contact</Label>
-                      <Input id="emergency" placeholder="Emergency contact name and phone" disabled />
+                      <Input 
+                        id="emergency" 
+                        placeholder="Emergency contact name and phone" 
+                        value={formData.emergency}
+                        onChange={(e) => setFormData(prev => ({ ...prev, emergency: e.target.value }))}
+                      />
                     </div>
                     
                     <div>
                       <Label htmlFor="medical">Medical History</Label>
-                      <Textarea id="medical" placeholder="Please describe any relevant medical history" disabled />
+                      <Textarea 
+                        id="medical" 
+                        placeholder="Please describe any relevant medical history" 
+                        value={formData.medical}
+                        onChange={(e) => setFormData(prev => ({ ...prev, medical: e.target.value }))}
+                      />
                     </div>
                     
                     <div className="flex items-center space-x-2">
-                      <Checkbox id="consent" disabled />
+                      <Checkbox 
+                        id="consent" 
+                        checked={formData.consent}
+                        onCheckedChange={(checked) => setFormData(prev => ({ ...prev, consent: checked as boolean }))}
+                      />
                       <Label htmlFor="consent">I consent to treatment and data processing</Label>
                     </div>
                   </div>
