@@ -999,6 +999,14 @@ export default function MessagingPage() {
                         placeholder="Type your reply here..."
                         value={newMessageContent}
                         onChange={(e) => setNewMessageContent(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            if (newMessageContent.trim()) {
+                              handleSendConversationMessage();
+                            }
+                          }
+                        }}
                         className="flex-1 min-h-[80px] bg-white"
                       />
                       <div className="flex flex-col gap-2">

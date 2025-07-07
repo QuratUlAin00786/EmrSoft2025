@@ -1344,7 +1344,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Received message data:", JSON.stringify(req.body, null, 2));
       console.log("Conversation ID from request:", req.body.conversationId);
-      const message = await storage.sendMessage(req.body, req.tenant!.id);
+      console.log("Organization ID:", req.organizationId);
+      const message = await storage.sendMessage(req.body, req.organizationId!);
       res.json(message);
     } catch (error) {
       console.error("Error sending message:", error);
