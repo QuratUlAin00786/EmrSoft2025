@@ -985,14 +985,17 @@ export default function MessagingPage() {
                   </ScrollArea>
 
                   {/* Message Composer */}
-                  <div className="p-4 border-t">
+                  <div className="p-4 border-t bg-blue-50">
+                    <div className="text-sm font-medium text-blue-700 mb-2">
+                      💬 Reply to this conversation
+                    </div>
                     <div className="flex gap-3">
                       <Textarea
                         key={`message-input-${selectedConversation}`}
-                        placeholder="Type your message..."
+                        placeholder="Type your reply here..."
                         value={newMessageContent}
                         onChange={(e) => setNewMessageContent(e.target.value)}
-                        className="flex-1 min-h-[80px]"
+                        className="flex-1 min-h-[80px] bg-white"
                       />
                       <div className="flex flex-col gap-2">
                         <Button variant="outline" size="sm">
@@ -1001,7 +1004,8 @@ export default function MessagingPage() {
                         <Button 
                           size="sm"
                           onClick={handleSendConversationMessage}
-                          disabled={!newMessageContent.trim() || sendMessageMutation.isPending}
+                          disabled={!newMessageContent.trim()}
+                          className="bg-blue-600 hover:bg-blue-700"
                         >
                           <Send className="h-4 w-4" />
                         </Button>
