@@ -379,7 +379,7 @@ export default function MessagingPage() {
       };
       console.log('Message data being sent:', messageData);
       
-      await sendMessageMutation.mutateAsync(messageData);
+      await apiRequest('POST', '/api/messaging/send', messageData);
       
       // Refresh the data
       queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
