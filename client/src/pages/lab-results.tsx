@@ -528,12 +528,10 @@ export default function LabResultsPage() {
                           <Download className="h-4 w-4 mr-1" />
                           Download
                         </Button>
-                        {result.status === 'completed' && (
-                          <Button variant="outline" size="sm" onClick={() => handleShareResult(result)}>
-                            <User className="h-4 w-4 mr-1" />
-                            Review
-                          </Button>
-                        )}
+                        <Button variant="outline" size="sm" onClick={() => handleShareResult(result)}>
+                          <User className="h-4 w-4 mr-1" />
+                          Review
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
