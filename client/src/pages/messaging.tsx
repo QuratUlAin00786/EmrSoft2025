@@ -356,16 +356,30 @@ export default function MessagingPage() {
       return;
     }
 
+    if (!selectedConversation) {
+      toast({
+        title: "Error",
+        description: "Please select a conversation first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const messageContent = newMessageContent.trim();
+    console.log('Sending message to conversation:', selectedConversation);
+    console.log('Message content:', messageContent);
     setNewMessageContent(""); // Clear immediately
     
     try {
-      await sendMessageMutation.mutateAsync({
+      const messageData = {
         conversationId: selectedConversation,
         content: messageContent,
         priority: 'normal',
         type: 'internal'
-      });
+      };
+      console.log('Message data being sent:', messageData);
+      
+      await sendMessageMutation.mutateAsync(messageData);
       
       // Refresh the data
       queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
