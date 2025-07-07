@@ -385,21 +385,35 @@ export default function MessagingPage() {
         priority: 'normal',
         type: 'internal'
       };
+      // Check auth token before making request
+      const token = localStorage.getItem('auth_token');
+      console.log('🔥 Auth token exists:', !!token);
       console.log('🔥 CONVERSATION MESSAGE DATA:', messageData);
       console.log('🔥 Selected conversation ID:', selectedConversation);
-      console.log('🔥 Making API request to /api/messaging/send');
       
-      try {
-        const response = await apiRequest('POST', '/api/messaging/send', messageData);
-        console.log('🔥 API RESPONSE STATUS:', response.status);
-        console.log('🔥 API RESPONSE OK:', response.ok);
-        
-        const responseData = await response.json();
-        console.log('🔥 CONVERSATION MESSAGE RESPONSE:', responseData);
-      } catch (apiError) {
-        console.error('🔥 API REQUEST FAILED:', apiError);
-        throw apiError;
+      // Direct fetch implementation to bypass potential apiRequest issues
+      const response = await fetch('/api/messaging/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        },
+        credentials: 'include',
+        body: JSON.stringify(messageData)
+      });
+      
+      console.log('🔥 DIRECT FETCH RESPONSE STATUS:', response.status);
+      console.log('🔥 DIRECT FETCH RESPONSE OK:', response.ok);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🔥 FETCH ERROR TEXT:', errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
+      
+      const responseData = await response.json();
+      console.log('🔥 CONVERSATION MESSAGE RESPONSE:', responseData);
       
       // Refresh the data
       queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
