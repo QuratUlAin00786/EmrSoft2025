@@ -253,12 +253,20 @@ export default function MessagingPage() {
       if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages'] });
+    onSuccess: (data, variables) => {
+      // Invalidate specific conversation messages if it's a conversation message
+      if (variables.conversationId) {
+        queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', variables.conversationId] });
+        setNewMessageContent("");
+      } else {
+        // It's a new message, so close the dialog and reset the form
+        setShowNewMessage(false);
+        resetNewMessage();
+      }
+      
+      // Always invalidate conversations list to update last message
       queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
-      setNewMessageContent("");
-      setShowNewMessage(false);
-      resetNewMessage();
+      
       toast({
         title: "Message Sent",
         description: "Your message has been sent successfully.",
