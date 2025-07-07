@@ -1073,6 +1073,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/prescriptions/:id", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const prescriptionId = parseInt(req.params.id);
+      
+      const deletedPrescription = await storage.deletePrescription(prescriptionId, req.tenant!.id);
+      
+      if (!deletedPrescription) {
+        return res.status(404).json({ error: "Prescription not found" });
+      }
+
+      res.json({ message: "Prescription deleted successfully", id: prescriptionId });
+    } catch (error) {
+      console.error("Error deleting prescription:", error);
+      res.status(500).json({ error: "Failed to delete prescription" });
+    }
+  });
+
   // Lab Results Routes
   app.get("/api/lab-results", authMiddleware, async (req: TenantRequest, res) => {
     try {

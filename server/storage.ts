@@ -96,6 +96,7 @@ export interface IStorage {
   getPrescriptionsByProvider(providerId: number, organizationId: number): Promise<Prescription[]>;
   createPrescription(prescription: InsertPrescription): Promise<Prescription>;
   updatePrescription(id: number, organizationId: number, updates: Partial<InsertPrescription>): Promise<Prescription | undefined>;
+  deletePrescription(id: number, organizationId: number): Promise<Prescription | undefined>;
 
   // Dashboard Stats
   getDashboardStats(organizationId: number): Promise<{
@@ -1094,6 +1095,14 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(prescriptions.id, id), eq(prescriptions.organizationId, organizationId)))
       .returning();
     return updatedPrescription;
+  }
+
+  async deletePrescription(id: number, organizationId: number): Promise<Prescription | undefined> {
+    const [deletedPrescription] = await db
+      .delete(prescriptions)
+      .where(and(eq(prescriptions.id, id), eq(prescriptions.organizationId, organizationId)))
+      .returning();
+    return deletedPrescription;
   }
 
   // Lab Results methods

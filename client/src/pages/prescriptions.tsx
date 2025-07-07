@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { Header } from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -371,6 +372,27 @@ export default function PrescriptionsPage() {
     },
   });
 
+  const deletePrescriptionMutation = useMutation({
+    mutationFn: async (prescriptionId: string) => {
+      const response = await apiRequest("DELETE", `/api/prescriptions/${prescriptionId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Prescription deleted successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/prescriptions"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete prescription",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCreatePrescription = () => {
     setSelectedPrescription(null); // Clear any selected prescription for new creation
     setShowNewPrescription(true);
@@ -445,6 +467,13 @@ export default function PrescriptionsPage() {
         // In a real implementation, this would call an API to cancel the prescription
         queryClient.invalidateQueries({ queryKey: ["/api/prescriptions"] });
       }
+    }
+  };
+
+  const handleDeletePrescription = (prescriptionId: string) => {
+    const prescription = Array.isArray(prescriptions) ? prescriptions.find((p: any) => p.id === prescriptionId) : null;
+    if (prescription && window.confirm(`Are you sure you want to delete the prescription for ${prescription.patientName}? This action cannot be undone.`)) {
+      deletePrescriptionMutation.mutate(prescriptionId);
     }
   };
 
@@ -818,6 +847,15 @@ export default function PrescriptionsPage() {
                             Edit
                           </Button>
                         )}
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleDeletePrescription(prescription.id)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Delete
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -1045,6 +1083,17 @@ export default function PrescriptionsPage() {
                     Edit Prescription
                   </Button>
                 )}
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowViewDetails(false);
+                    handleDeletePrescription(selectedPrescription.id);
+                  }}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
               </div>
             </div>
           )}
