@@ -389,7 +389,8 @@ export default function MessagingPage() {
       console.log('🔥 Selected conversation ID:', selectedConversation);
       
       const response = await apiRequest('POST', '/api/messaging/send', messageData);
-      console.log('🔥 CONVERSATION MESSAGE RESPONSE:', response);
+      const responseData = await response.json();
+      console.log('🔥 CONVERSATION MESSAGE RESPONSE:', responseData);
       
       // Refresh the data
       queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
