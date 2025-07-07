@@ -884,8 +884,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMessages(conversationId: string, organizationId: number): Promise<any[]> {
-    // Mock messages data
-    return [
+    // Get stored messages for this conversation
+    const storedMessages = DatabaseStorage.messagesStore?.filter(msg => 
+      msg.conversationId === conversationId && msg.organizationId === organizationId
+    ) || [];
+
+    // Mock messages data (initial conversation messages)
+    const mockMessages = [
       {
         id: "msg_1",
         senderId: "user_2",
@@ -902,6 +907,13 @@ export class DatabaseStorage implements IStorage {
         isStarred: false
       }
     ];
+
+    // Combine mock messages with stored messages and sort by timestamp
+    const allMessages = [...mockMessages, ...storedMessages].sort((a, b) => 
+      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    );
+
+    return allMessages;
   }
 
   async sendMessage(messageData: any, organizationId: number): Promise<any> {
@@ -1268,6 +1280,72 @@ export class DatabaseStorage implements IStorage {
         }
       ]
     };
+  }
+
+  // Missing messaging implementations
+  async sendMessage(messageData: any, organizationId: number): Promise<any> {
+    // Create a new message with timestamp and unique ID
+    const message = {
+      id: Date.now().toString(),
+      senderId: messageData.senderId || "current_user",
+      senderName: messageData.senderName || "Current User",
+      senderRole: messageData.senderRole || "admin",
+      recipientId: messageData.recipientId || "unknown",
+      recipientName: messageData.recipientName || "Unknown",
+      conversationId: messageData.conversationId,
+      subject: messageData.subject || "New Message",
+      content: messageData.content,
+      timestamp: new Date().toISOString(),
+      isRead: false,
+      priority: messageData.priority || "normal",
+      type: messageData.type || "internal",
+      isStarred: false,
+      organizationId: organizationId
+    };
+
+    // For demo purposes, we'll store this in a static array
+    // In a real implementation, this would be saved to a database table
+    if (!DatabaseStorage.messagesStore) {
+      DatabaseStorage.messagesStore = [];
+    }
+    DatabaseStorage.messagesStore.push(message);
+
+    return message;
+  }
+
+  private static messagesStore: any[] = [];
+
+  async getMessageCampaigns(organizationId: number): Promise<any[]> {
+    // Return sample campaigns data
+    return [
+      {
+        id: "camp_1",
+        name: "Flu Vaccination Reminder",
+        type: "email",
+        status: "sent",
+        subject: "Annual Flu Vaccination Available",
+        content: "Book your flu vaccination appointment today.",
+        recipientCount: 150,
+        sentCount: 150,
+        openRate: 65,
+        clickRate: 12,
+        createdAt: "2024-06-20T10:00:00Z",
+        template: "vaccination_reminder"
+      }
+    ];
+  }
+
+  async createMessageCampaign(campaignData: any, organizationId: number): Promise<any> {
+    // Create a new campaign
+    const campaign = {
+      id: `camp_${Date.now()}`,
+      ...campaignData,
+      organizationId,
+      createdAt: new Date().toISOString(),
+      status: "draft"
+    };
+
+    return campaign;
   }
 }
 
