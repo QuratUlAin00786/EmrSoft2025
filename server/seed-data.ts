@@ -34,12 +34,12 @@ export async function seedDatabase() {
     let createdUsers = existingUsers;
     
     if (existingUsers.length === 0) {
-      const hashedPassword = await authService.hashPassword("password123");
+      const hashedPassword = await authService.hashPassword("admin123");
       
       const sampleUsers = [
       {
         organizationId: org.id,
-        email: "admin@demo.medicoreemr.com",
+        email: "admin",
         username: "admin",
         password: hashedPassword,
         firstName: "John",
@@ -50,8 +50,8 @@ export async function seedDatabase() {
       },
       {
         organizationId: org.id,
-        email: "dr.smith@demo.medicoreemr.com",
-        username: "drsmith",
+        email: "doctor",
+        username: "doctor",
         password: hashedPassword,
         firstName: "Sarah",
         lastName: "Smith",
@@ -61,8 +61,8 @@ export async function seedDatabase() {
       },
       {
         organizationId: org.id,
-        email: "nurse.johnson@demo.medicoreemr.com",
-        username: "nursejohnson",
+        email: "nurse",
+        username: "nurse",
         password: hashedPassword,
         firstName: "Emily",
         lastName: "Johnson",
