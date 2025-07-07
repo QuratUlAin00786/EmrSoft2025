@@ -40,7 +40,7 @@ export default function Login() {
             <img 
               src={curaLogoPath} 
               alt="Cura by halo group" 
-              className="h-40 w-auto"
+              className="h-32 w-auto"
             />
           </div>
           <div className="mb-6">

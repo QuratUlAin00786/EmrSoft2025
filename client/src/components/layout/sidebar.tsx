@@ -91,7 +91,7 @@ export function Sidebar() {
           <img 
             src={curaIconPath} 
             alt="Cura" 
-            className="h-16 w-auto mb-2"
+            className="h-20 w-auto mb-2"
           />
           <div>
             <h2 className="text-lg font-bold text-[hsl(235,45%,25%)]">Cura</h2>
