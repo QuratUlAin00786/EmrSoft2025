@@ -425,8 +425,13 @@ export function AdvancedFormBuilder({ form, onSave, onCancel }: AdvancedFormBuil
                   <Label>Description</Label>
                   <Textarea
                     value={selectedField.description || ''}
-                    onChange={(e) => updateField(selectedField.id, { description: e.target.value })}
+                    onChange={(e) => {
+                      console.log('Description changed:', e.target.value);
+                      updateField(selectedField.id, { description: e.target.value });
+                    }}
                     placeholder="Help text for this field"
+                    className="w-full min-h-[80px] resize-y"
+                    autoFocus={false}
                   />
                 </div>
                 
