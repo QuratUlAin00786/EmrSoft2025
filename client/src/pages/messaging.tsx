@@ -89,14 +89,6 @@ interface Campaign {
 
 export default function MessagingPage() {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
-  
-  // Auto-select first conversation when conversations load
-  useEffect(() => {
-    if (conversations && conversations.length > 0 && !selectedConversation) {
-      console.log('🔥 AUTO-SELECTING FIRST CONVERSATION:', conversations[0].id);
-      setSelectedConversation(conversations[0].id);
-    }
-  }, [conversations, selectedConversation]);
   const [newMessageContent, setNewMessageContent] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [messageFilter, setMessageFilter] = useState("all");
@@ -168,6 +160,14 @@ export default function MessagingPage() {
       return data;
     }
   });
+
+  // Auto-select first conversation when conversations load
+  useEffect(() => {
+    if (conversations && conversations.length > 0 && !selectedConversation) {
+      console.log('🔥 AUTO-SELECTING FIRST CONVERSATION:', conversations[0].id);
+      setSelectedConversation(conversations[0].id);
+    }
+  }, [conversations, selectedConversation]);
 
   const { data: messages = [], isLoading: messagesLoading } = useQuery({
     queryKey: ['/api/messaging/messages', selectedConversation],
