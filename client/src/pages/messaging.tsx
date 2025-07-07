@@ -130,7 +130,7 @@ export default function MessagingPage() {
   const [authToken, setAuthToken] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('auth_token');
     setAuthToken(token);
   }, []);
 
@@ -160,7 +160,7 @@ export default function MessagingPage() {
     queryKey: ['/api/messaging/messages', selectedConversation],
     enabled: !!selectedConversation,
     queryFn: async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`/api/messaging/messages/${selectedConversation}`, {
         method: 'GET',
         headers: {
@@ -335,6 +335,24 @@ export default function MessagingPage() {
       content: newMessage.content,
       priority: newMessage.priority,
       type: newMessage.type
+    });
+  };
+
+  const handleSendConversationMessage = () => {
+    if (!newMessageContent.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter a message.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    sendMessageMutation.mutate({
+      conversationId: selectedConversation,
+      content: newMessageContent,
+      priority: 'normal',
+      type: 'internal'
     });
   };
 
@@ -900,11 +918,7 @@ export default function MessagingPage() {
                         </Button>
                         <Button 
                           size="sm"
-                          onClick={() => sendMessageMutation.mutate({
-                            conversationId: selectedConversation,
-                            content: newMessageContent,
-                            priority: 'normal'
-                          })}
+                          onClick={handleSendConversationMessage}
                           disabled={!newMessageContent.trim() || sendMessageMutation.isPending}
                         >
                           <Send className="h-4 w-4" />
