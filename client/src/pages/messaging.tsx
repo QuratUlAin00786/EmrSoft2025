@@ -257,7 +257,6 @@ export default function MessagingPage() {
       // Invalidate specific conversation messages if it's a conversation message
       if (variables.conversationId) {
         queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', variables.conversationId] });
-        setNewMessageContent("");
       } else {
         // It's a new message, so close the dialog and reset the form
         setShowNewMessage(false);
@@ -356,9 +355,12 @@ export default function MessagingPage() {
       return;
     }
 
+    const messageContent = newMessageContent.trim();
+    setNewMessageContent(""); // Clear immediately
+    
     sendMessageMutation.mutate({
       conversationId: selectedConversation,
-      content: newMessageContent,
+      content: messageContent,
       priority: 'normal',
       type: 'internal'
     });
