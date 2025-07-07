@@ -799,10 +799,26 @@ export default function MessagingPage() {
 
               <ScrollArea className="h-[580px]">
                 <div className="p-2">
+                  {/* New Conversation Option */}
+                  <div
+                    className="p-3 rounded-lg cursor-pointer mb-2 transition-colors border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50"
+                    onClick={() => setShowNewMessage(true)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                        <Plus className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm text-blue-600">Start New Conversation</p>
+                        <p className="text-xs text-gray-500">Send a message to someone new</p>
+                      </div>
+                    </div>
+                  </div>
+
                   {!filteredConversations || filteredConversations.length === 0 ? (
                     <div className="text-center py-8 text-gray-500">
                       <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>No conversations found</p>
+                      <p>No existing conversations found</p>
                     </div>
                   ) : (
                     filteredConversations.map((conversation: Conversation) => (
