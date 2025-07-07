@@ -415,8 +415,8 @@ export default function MessagingPage() {
       const responseData = await response.json();
       console.log('🔥 CONVERSATION MESSAGE RESPONSE:', responseData);
       
-      // Refresh the data immediately to show the new message
-      await queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
+      // Force refresh the messages to show the new message immediately
+      await queryClient.refetchQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
       await queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
       
       toast({
