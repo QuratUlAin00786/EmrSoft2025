@@ -56,11 +56,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", async (req: TenantRequest, res) => {
     try {
       const { email, password } = z.object({
-        email: z.string().email(),
+        email: z.string(),
         password: z.string().min(6)
       }).parse(req.body);
 
-      const user = await storage.getUserByEmail(email, req.tenant!.id);
+      // Try to find user by username (email field contains username now)
+      const user = await storage.getUserByUsername(email, req.tenant!.id);
       if (!user || !user.isActive) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
