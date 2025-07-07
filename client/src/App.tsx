@@ -8,7 +8,7 @@ import { LocaleProvider } from "@/hooks/use-locale";
 import { Sidebar } from "@/components/layout/sidebar";
 import { LoadingPage } from "@/components/common/loading-spinner";
 import { useAuth } from "@/hooks/use-auth";
-import haloLogoPath from "@assets/Screenshot 2025-06-25 at 12.40.02_1750837361778.png";
+import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
 
 // Pages
 import Dashboard from "@/pages/dashboard";

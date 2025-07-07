@@ -27,7 +27,7 @@ import {
   Calculator
 } from "lucide-react";
 import { useTenant } from "@/hooks/use-tenant";
-import averoxLogoPath from "@assets/Screenshot 2025-06-25 at 12.40.02_1750837361778.png";
+import curaIconPath from "@assets/Cura Icon Main_1751893631980.png";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -89,12 +89,13 @@ export function Sidebar() {
       <div className="p-6 border-b border-neutral-100">
         <div className="flex flex-col items-center text-center">
           <img 
-            src={averoxLogoPath} 
-            alt="Averox EMR Logo" 
+            src={curaIconPath} 
+            alt="Cura" 
             className="h-16 w-auto mb-2"
           />
           <div>
-            <p className="text-xs text-gray-500 mt-1">Averox Ltd Healthcare Solutions</p>
+            <h2 className="text-lg font-bold text-[hsl(235,45%,25%)]">Cura</h2>
+            <p className="text-xs text-[hsl(225,16%,65%)] mt-1">by halo group</p>
           </div>
         </div>
       </div>

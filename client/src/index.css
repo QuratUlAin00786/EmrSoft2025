@@ -4,33 +4,34 @@
 
 :root {
   --background: hsl(0, 0%, 100%);
-  --foreground: hsl(20, 14.3%, 4.1%);
-  --muted: hsl(60, 4.8%, 95.9%);
-  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --foreground: hsl(235, 45%, 25%);
+  --muted: hsl(227, 50%, 92%);
+  --muted-foreground: hsl(227, 12%, 65%);
   --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --popover-foreground: hsl(235, 45%, 25%);
   --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(20, 14.3%, 4.1%);
-  --border: hsl(20, 5.9%, 90%);
-  --input: hsl(20, 5.9%, 90%);
-  --primary: hsl(210, 100%, 46%);
-  --primary-foreground: hsl(210, 100%, 99%);
-  --secondary: hsl(60, 4.8%, 95.9%);
-  --secondary-foreground: hsl(24, 9.8%, 10%);
-  --accent: hsl(60, 4.8%, 95.9%);
-  --accent-foreground: hsl(24, 9.8%, 10%);
+  --card-foreground: hsl(235, 45%, 25%);
+  --border: hsl(227, 50%, 92%);
+  --input: hsl(227, 50%, 92%);
+  --primary: hsl(229, 100%, 64%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(227, 50%, 92%);
+  --secondary-foreground: hsl(235, 45%, 25%);
+  --accent: hsl(229, 100%, 64%);
+  --accent-foreground: hsl(0, 0%, 100%);
   --destructive: hsl(0, 84.2%, 60.2%);
   --destructive-foreground: hsl(60, 9.1%, 97.8%);
-  --ring: hsl(20, 14.3%, 4.1%);
+  --ring: hsl(229, 100%, 64%);
   --radius: 0.5rem;
   
-  /* Medical-specific colors */
-  --medical-blue: hsl(210, 100%, 46%);
-  --medical-green: hsl(142, 70%, 45%);
-  --medical-orange: hsl(15, 100%, 60%);
-  --neutral-50: hsl(210, 20%, 98%);
-  --neutral-100: hsl(220, 14%, 91%);
-  --neutral-600: hsl(215, 16%, 47%);
+  /* Cura brand colors */
+  --cura-bluewave: hsl(229, 100%, 64%);
+  --cura-electric-lilac: hsl(246, 95%, 72%);
+  --cura-electric-violet: hsl(267, 100%, 72%);
+  --cura-midnight: hsl(234, 57%, 25%);
+  --cura-steel: hsl(225, 16%, 65%);
+  --cura-mist: hsl(235, 50%, 92%);
+  --cura-mint-drift: hsl(177, 85%, 68%);
 }
 
 .dark {

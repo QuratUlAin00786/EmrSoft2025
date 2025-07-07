@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/use-auth";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
-import haloLogoPath from "@assets/Screenshot 2025-06-25 at 12.40.02_1750837361778.png";
+import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -32,36 +32,36 @@ export default function Login() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 flex items-center justify-center p-4">
       <div className="w-full max-w-lg space-y-4">
         {/* Logo and Branding */}
         <div className="text-center">
           <div className="flex justify-center mb-6">
             <img 
-              src={haloLogoPath} 
-              alt="Halo Health" 
-              className="h-32 w-32 rounded-xl shadow-xl"
+              src={curaLogoPath} 
+              alt="Cura by halo group" 
+              className="h-40 w-auto"
             />
           </div>
           <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-800 mb-3">Halo Health EMR</h1>
-            <div className="space-y-2 text-sm text-gray-600 max-w-sm mx-auto">
-              <p className="font-medium">Comprehensive Electronic Medical Records Platform</p>
+            <h1 className="text-3xl font-bold text-[hsl(235,45%,25%)] mb-3">Welcome to Cura</h1>
+            <div className="space-y-2 text-sm text-[hsl(225,16%,65%)] max-w-sm mx-auto">
+              <p className="font-medium text-base">AI-Powered Healthcare Platform</p>
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="flex items-center justify-center bg-blue-50 rounded-lg py-2 px-3">
+                <div className="flex items-center justify-center bg-[hsl(235,50%,92%)] rounded-lg py-2 px-3">
                   <span>🏥 Patient Management</span>
                 </div>
-                <div className="flex items-center justify-center bg-green-50 rounded-lg py-2 px-3">
+                <div className="flex items-center justify-center bg-[hsl(235,50%,92%)] rounded-lg py-2 px-3">
                   <span>🤖 AI Clinical Insights</span>
                 </div>
-                <div className="flex items-center justify-center bg-purple-50 rounded-lg py-2 px-3">
+                <div className="flex items-center justify-center bg-[hsl(235,50%,92%)] rounded-lg py-2 px-3">
                   <span>📅 Smart Scheduling</span>
                 </div>
-                <div className="flex items-center justify-center bg-orange-50 rounded-lg py-2 px-3">
+                <div className="flex items-center justify-center bg-[hsl(235,50%,92%)] rounded-lg py-2 px-3">
                   <span>💳 Billing & Payments</span>
                 </div>
               </div>
-              <p className="text-xs text-gray-500 mt-3">
+              <p className="text-xs text-[hsl(225,16%,65%)] mt-3">
                 Streamline workflows • Enhance patient care • Ensure compliance
               </p>
             </div>
@@ -131,9 +131,9 @@ export default function Login() {
 
 
         {/* Footer */}
-        <div className="text-center text-xs text-gray-500">
-          <p>Averox Ltd Healthcare Solutions</p>
-          <p>Secure • Compliant • Comprehensive</p>
+        <div className="text-center text-xs text-[hsl(225,16%,65%)]">
+          <p>Cura by halo group</p>
+          <p>Secure • Compliant • AI-Powered</p>
         </div>
       </div>
     </div>

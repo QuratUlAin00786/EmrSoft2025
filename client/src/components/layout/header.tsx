@@ -2,7 +2,7 @@ import { Globe } from "lucide-react";
 import { useTenant } from "@/hooks/use-tenant";
 import { useAuth } from "@/hooks/use-auth";
 import { NotificationBell } from "@/components/layout/notification-bell";
-import haloLogoPath from "@assets/Screenshot 2025-06-25 at 12.40.02_1750837361778.png";
+import curaIconPath from "@assets/Cura Icon Main_1751893631980.png";
 
 interface HeaderProps {
   title: string;

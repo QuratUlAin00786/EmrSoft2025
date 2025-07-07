@@ -1,8 +1,8 @@
-# Averox EMR System
+# Cura EMR System
 
 ## Overview
 
-Averox EMR is a comprehensive multi-tenant Electronic Medical Records (EMR) system designed for healthcare organizations. It provides patient management, appointment scheduling, AI-powered clinical insights, telemedicine capabilities, and comprehensive workflow automation. The system is built with modern web technologies and follows healthcare compliance standards including GDPR.
+Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system designed for healthcare organizations by halo group. It provides patient management, appointment scheduling, AI-powered clinical insights, telemedicine capabilities, and comprehensive workflow automation. The system is built with modern web technologies and follows healthcare compliance standards including GDPR.
 
 ## System Architecture
 
@@ -100,6 +100,9 @@ Averox EMR is a comprehensive multi-tenant Electronic Medical Records (EMR) syst
 - **Compliance**: Regional data residency and GDPR compliance controls
 
 ## Changelog
+
+**July 7, 2025:**
+- **COMPLETED**: Complete Cura rebranding implementation - replaced all Halo Health/Averox references with Cura branding, updated color scheme to Cura brand colors (BlueWave primary, Electric Lilac accents, Midnight text), integrated new Cura logo and icon assets, updated login page with "Welcome to Cura" and "AI-Powered Healthcare Platform" messaging, sidebar now displays Cura icon with "by halo group" tagline, maintaining all existing functionality while refreshing visual identity
 
 **July 4, 2025:**
 - **COMPLETED**: Fixed View Profile button authentication error on Appointments page - replaced manual fetch with apiRequest method in staff-profile.tsx for consistent authentication handling, ensuring staff member details display correctly in LIVE deployment
