@@ -254,22 +254,18 @@ export default function MessagingPage() {
       return response.json();
     },
     onSuccess: (data, variables) => {
-      // Invalidate specific conversation messages if it's a conversation message
-      if (variables.conversationId) {
-        queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', variables.conversationId] });
-      } else {
+      // Only handle new message dialog closing here
+      if (!variables.conversationId) {
         // It's a new message, so close the dialog and reset the form
         setShowNewMessage(false);
         resetNewMessage();
+        queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
+        toast({
+          title: "Message Sent",
+          description: "Your message has been sent successfully.",
+        });
       }
-      
-      // Always invalidate conversations list to update last message
-      queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
-      
-      toast({
-        title: "Message Sent",
-        description: "Your message has been sent successfully.",
-      });
+      // Conversation message success is handled in handleSendConversationMessage
     }
   });
 
@@ -356,13 +352,30 @@ export default function MessagingPage() {
     }
 
     const messageContent = newMessageContent.trim();
-    setNewMessageContent(""); // Clear immediately
     
     sendMessageMutation.mutate({
       conversationId: selectedConversation,
       content: messageContent,
       priority: 'normal',
       type: 'internal'
+    }, {
+      onSuccess: () => {
+        setNewMessageContent(""); // Clear after successful send
+        queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
+        queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
+        toast({
+          title: "Message Sent",
+          description: "Your message has been sent successfully.",
+        });
+      },
+      onError: (error) => {
+        toast({
+          title: "Error",
+          description: "Failed to send message. Please try again.",
+          variant: "destructive"
+        });
+        console.error('Send message error:', error);
+      }
     });
   };
 
