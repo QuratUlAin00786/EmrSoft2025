@@ -32,6 +32,11 @@
   --cura-steel: hsl(225, 16%, 65%);
   --cura-mist: hsl(235, 50%, 92%);
   --cura-mint-drift: hsl(177, 85%, 68%);
+  
+  /* Medical colors for light mode */
+  --medical-blue: hsl(229, 100%, 64%);
+  --medical-green: hsl(142, 70%, 45%);
+  --medical-orange: hsl(15, 100%, 55%);
 }
 
 .dark {
@@ -133,12 +138,13 @@
   }
   
   .sidebar-nav-item.active {
-    @apply text-white;
-    background-color: var(--medical-blue);
+    @apply text-white font-semibold;
+    background-color: var(--cura-bluewave);
+    border-left: 3px solid var(--cura-electric-lilac);
   }
   
   .sidebar-nav-item:not(.active) {
-    @apply text-neutral-600 hover:bg-neutral-50;
+    @apply text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900;
   }
   
   .dashboard-card {
