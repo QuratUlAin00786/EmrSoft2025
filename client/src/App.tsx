@@ -35,6 +35,10 @@ import PopulationHealth from "@/pages/population-health";
 import MobileHealth from "@/pages/mobile-health";
 import VoiceDocumentation from "@/pages/voice-documentation";
 import FinancialIntelligence from "@/pages/financial-intelligence";
+import EmergencyProtocols from "@/pages/emergency-protocols";
+import MedicationGuide from "@/pages/medication-guide";
+import PreventionGuidelines from "@/pages/prevention-guidelines";
+import ClinicalProcedures from "@/pages/clinical-procedures";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 
@@ -68,6 +72,10 @@ function ProtectedApp() {
           <Route path="/mobile-health" component={MobileHealth} />
           <Route path="/voice-documentation" component={VoiceDocumentation} />
           <Route path="/financial-intelligence" component={FinancialIntelligence} />
+          <Route path="/emergency-protocols" component={EmergencyProtocols} />
+          <Route path="/medication-guide" component={MedicationGuide} />
+          <Route path="/prevention-guidelines" component={PreventionGuidelines} />
+          <Route path="/clinical-procedures" component={ClinicalProcedures} />
           <Route path="/users" component={UserManagement} />
           <Route path="/staff/:id" component={StaffProfile} />
           <Route path="/subscription" component={Subscription} />

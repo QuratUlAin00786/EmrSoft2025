@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -68,6 +69,7 @@ export default function ClinicalDecisionSupport() {
   const [selectedGuideline, setSelectedGuideline] = useState<any>(null);
   const [guidelineViewOpen, setGuidelineViewOpen] = useState(false);
   const { toast } = useToast();
+  const [location, setLocation] = useLocation();
 
   // Guidelines data
   const guidelines = {
@@ -869,7 +871,7 @@ export default function ClinicalDecisionSupport() {
                               variant="outline" 
                               className="h-20 flex flex-col items-center justify-center"
                               onClick={() => {
-                                alert("Emergency Protocols: Quick access to emergency protocols and critical care guidelines activated.");
+                                setLocation("/emergency-protocols");
                               }}
                             >
                               <Activity className="w-6 h-6 mb-1" />
@@ -879,7 +881,7 @@ export default function ClinicalDecisionSupport() {
                               variant="outline" 
                               className="h-20 flex flex-col items-center justify-center"
                               onClick={() => {
-                                alert("Medication Guide: Accessing drug interaction checker and medication reference database.");
+                                setLocation("/medication-guide");
                               }}
                             >
                               <Pill className="w-6 h-6 mb-1" />
@@ -889,7 +891,7 @@ export default function ClinicalDecisionSupport() {
                               variant="outline" 
                               className="h-20 flex flex-col items-center justify-center"
                               onClick={() => {
-                                alert("Prevention Guidelines: Opening preventive care recommendations and screening protocols.");
+                                setLocation("/prevention-guidelines");
                               }}
                             >
                               <Shield className="w-6 h-6 mb-1" />
@@ -899,7 +901,7 @@ export default function ClinicalDecisionSupport() {
                               variant="outline" 
                               className="h-20 flex flex-col items-center justify-center"
                               onClick={() => {
-                                alert("Clinical Procedures: Accessing step-by-step clinical procedure guides and protocols.");
+                                setLocation("/clinical-procedures");
                               }}
                             >
                               <FileText className="w-6 h-6 mb-1" />
