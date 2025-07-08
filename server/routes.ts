@@ -970,6 +970,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Clinical insights routes
+  app.get("/api/clinical/insights", requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      // Return mock clinical insights data for the Clinical Decision Support page
+      const mockInsights = [
+        {
+          id: "insight_1",
+          patientId: "patient_1",
+          patientName: "Sarah Johnson",
+          type: "drug_interaction",
+          priority: "high",
+          title: "Potential Drug Interaction Alert",
+          description: "Warfarin and Amoxicillin combination may increase bleeding risk",
+          recommendations: [
+            "Monitor INR more frequently (every 2-3 days)",
+            "Consider alternative antibiotic if possible",
+            "Educate patient on bleeding signs",
+            "Document interaction in patient record"
+          ],
+          confidence: 92,
+          evidenceLevel: "A",
+          createdAt: "2024-06-26T14:30:00Z",
+          status: "active",
+          provider: "Dr. Emily Watson",
+          relatedConditions: ["Atrial Fibrillation", "Upper Respiratory Infection"]
+        }
+      ];
+      res.json(mockInsights);
+    } catch (error) {
+      console.error("Clinical insights error:", error);
+      res.status(500).json({ error: "Failed to fetch clinical insights" });
+    }
+  });
+
+  app.patch("/api/clinical/insights/:id", requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      const insightId = req.params.id;
+      
+      const updateData = z.object({
+        status: z.enum(["active", "reviewed", "dismissed", "implemented"]).optional(),
+        notes: z.string().optional()
+      }).parse(req.body);
+
+      console.log(`Updating clinical insight ${insightId} with status: ${updateData.status}`);
+      
+      // For now, return success response
+      // In a real implementation, this would update the database
+      res.json({ 
+        id: insightId, 
+        status: updateData.status,
+        message: "Clinical insight updated successfully" 
+      });
+    } catch (error) {
+      console.error("Clinical insight update error:", error);
+      res.status(500).json({ error: "Failed to update clinical insight" });
+    }
+  });
+
   // Organization settings routes
   app.get("/api/organization/settings", requireRole(["admin"]), async (req: TenantRequest, res) => {
     try {
