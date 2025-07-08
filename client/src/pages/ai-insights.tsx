@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Header } from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,6 +48,7 @@ const severityColors = {
 
 export default function AiInsights() {
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   
   const { data: insights, isLoading, error } = useQuery<AiInsight[]>({
     queryKey: ["/api/dashboard/ai-insights"],
@@ -242,7 +244,11 @@ export default function AiInsights() {
                                 Dismiss
                               </Button>
                               {insight.patientId && (
-                                <Button variant="link" size="sm">
+                                <Button 
+                                  variant="link" 
+                                  size="sm"
+                                  onClick={() => setLocation(`/patients/${insight.patientId}`)}
+                                >
                                   View Patient
                                 </Button>
                               )}
