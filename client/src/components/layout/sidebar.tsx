@@ -169,7 +169,7 @@ export function Sidebar() {
           <DropdownMenuTrigger asChild>
             <div className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors">
               <Avatar>
-                <AvatarContent className="bg-medical-green text-white font-semibold">
+                <AvatarContent className="text-white font-semibold" style={{ backgroundColor: 'var(--primary)' }}>
                   {user ? getInitials(user.firstName, user.lastName) : "U"}
                 </AvatarContent>
                 <AvatarFallback>

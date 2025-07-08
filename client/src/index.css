@@ -139,8 +139,8 @@
   
   .sidebar-nav-item.active {
     @apply text-white font-semibold;
-    background-color: var(--cura-bluewave);
-    border-left: 3px solid var(--cura-electric-lilac);
+    background-color: var(--primary);
+    border-left: 3px solid var(--primary);
   }
   
   .sidebar-nav-item:not(.active) {
