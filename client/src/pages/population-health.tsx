@@ -110,6 +110,9 @@ export default function PopulationHealth() {
   const [contactOpen, setContactOpen] = useState(false);
   const [selectedPatientCare, setSelectedPatientCare] = useState<any>(null);
   const [createInterventionOpen, setCreateInterventionOpen] = useState(false);
+  const [viewInterventionOpen, setViewInterventionOpen] = useState(false);
+  const [editInterventionOpen, setEditInterventionOpen] = useState(false);
+  const [selectedIntervention, setSelectedIntervention] = useState<any>(null);
   const { toast } = useToast();
 
   // Fetch population health data
@@ -1010,11 +1013,25 @@ export default function PopulationHealth() {
                             )}
                           </div>
                           <div className="flex gap-2">
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                setSelectedIntervention(intervention);
+                                setViewInterventionOpen(true);
+                              }}
+                            >
                               <Eye className="w-4 h-4 mr-1" />
                               View
                             </Button>
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                setSelectedIntervention(intervention);
+                                setEditInterventionOpen(true);
+                              }}
+                            >
                               <Edit className="w-4 h-4 mr-1" />
                               Edit
                             </Button>
@@ -1705,6 +1722,179 @@ export default function PopulationHealth() {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Intervention Dialog */}
+      <Dialog open={viewInterventionOpen} onOpenChange={setViewInterventionOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>View Intervention - {selectedIntervention?.name}</DialogTitle>
+          </DialogHeader>
+          {selectedIntervention && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Status</label>
+                  <Badge className={selectedIntervention.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                    {selectedIntervention.status}
+                  </Badge>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Type</label>
+                  <Badge variant="outline">{selectedIntervention.type}</Badge>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-500">Description</label>
+                <p className="text-gray-900 mt-1">{selectedIntervention.description}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Duration</label>
+                  <p className="text-gray-900">{selectedIntervention.duration}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Budget</label>
+                  <p className="text-gray-900">£{selectedIntervention.budget?.toLocaleString()}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Target Population</label>
+                  <p className="text-gray-900">{selectedIntervention.targetPopulation}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Start Date</label>
+                  <p className="text-gray-900">{selectedIntervention.startDate}</p>
+                </div>
+              </div>
+
+              {selectedIntervention.metrics && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500 mb-3 block">Performance Metrics</label>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="text-center p-3 bg-blue-50 rounded-lg">
+                      <div className="text-lg font-semibold text-blue-600">{selectedIntervention.metrics.enrolled}</div>
+                      <div className="text-sm text-gray-600">Enrolled</div>
+                    </div>
+                    <div className="text-center p-3 bg-green-50 rounded-lg">
+                      <div className="text-lg font-semibold text-green-600">{selectedIntervention.metrics.completed}</div>
+                      <div className="text-sm text-gray-600">Completed</div>
+                    </div>
+                    <div className="text-center p-3 bg-yellow-50 rounded-lg">
+                      <div className="text-lg font-semibold text-yellow-600">{selectedIntervention.metrics.successRate}%</div>
+                      <div className="text-sm text-gray-600">Success Rate</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-3 pt-4">
+                <Button variant="outline" onClick={() => setViewInterventionOpen(false)}>
+                  Close
+                </Button>
+                <Button onClick={() => {
+                  setViewInterventionOpen(false);
+                  setEditInterventionOpen(true);
+                }}>
+                  Edit Intervention
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Intervention Dialog */}
+      <Dialog open={editInterventionOpen} onOpenChange={setEditInterventionOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Intervention - {selectedIntervention?.name}</DialogTitle>
+          </DialogHeader>
+          {selectedIntervention && (
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Intervention Name</label>
+                <Input defaultValue={selectedIntervention.name} />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Description</label>
+                <Input defaultValue={selectedIntervention.description} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Status</label>
+                  <Select defaultValue={selectedIntervention.status}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="paused">Paused</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Type</label>
+                  <Select defaultValue={selectedIntervention.type}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="educational">Educational</SelectItem>
+                      <SelectItem value="screening">Screening</SelectItem>
+                      <SelectItem value="lifestyle">Lifestyle</SelectItem>
+                      <SelectItem value="clinical">Clinical</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Duration</label>
+                  <Input defaultValue={selectedIntervention.duration} />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Budget (£)</label>
+                  <Input type="number" defaultValue={selectedIntervention.budget} />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Target Population</label>
+                <Input defaultValue={selectedIntervention.targetPopulation} />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Start Date</label>
+                <Input type="date" defaultValue={selectedIntervention.startDate} />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <Button variant="outline" onClick={() => setEditInterventionOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={() => {
+                  toast({
+                    title: "Intervention Updated",
+                    description: "The intervention has been successfully updated.",
+                  });
+                  setEditInterventionOpen(false);
+                }}>
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
