@@ -76,9 +76,15 @@ function ProtectedApp() {
 
   // Apply theme when organization data loads or changes
   useEffect(() => {
+    console.log('Theme effect triggered:', { 
+      organization: organization,
+      primaryColor: organization?.settings?.theme?.primaryColor 
+    });
     if (organization?.settings?.theme?.primaryColor) {
+      console.log('Applying theme:', organization.settings.theme.primaryColor);
       applyTheme(organization.settings.theme.primaryColor);
     } else {
+      console.log('No theme found, applying default blue');
       // Apply default theme if no theme is set
       applyTheme('blue');
     }
@@ -88,6 +94,7 @@ function ProtectedApp() {
   useEffect(() => {
     if (organization) {
       const themeColor = organization.settings?.theme?.primaryColor || 'blue';
+      console.log('Initial theme application:', themeColor);
       applyTheme(themeColor);
     }
   }, [organization]);
