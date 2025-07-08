@@ -18,6 +18,7 @@ import {
   GripVertical,
   Type,
   Hash,
+  User,
   Calendar,
   CheckSquare,
   Circle,
@@ -102,8 +103,8 @@ interface AdvancedFormBuilderProps {
 export function AdvancedFormBuilder({ form, onSave, onCancel }: AdvancedFormBuilderProps) {
   const [formData, setFormData] = useState<FormTemplate>(form || {
     id: '',
-    title: 'New Form',
-    description: '',
+    title: 'Patient Information Form',
+    description: 'Please fill out your information to help us provide better care',
     category: 'intake',
     fields: [],
     settings: {
@@ -132,16 +133,45 @@ export function AdvancedFormBuilder({ form, onSave, onCancel }: AdvancedFormBuil
   const [previewMode, setPreviewMode] = useState(false);
 
   const addField = (type: FormField['type']) => {
+    const fieldLabels: Record<string, string> = {
+      text: 'Full Name',
+      email: 'Email Address',
+      phone: 'Phone Number',
+      date: 'Date of Birth',
+      textarea: 'Additional Notes',
+      select: 'Gender',
+      checkbox: 'Consent Agreement',
+      radio: 'Preferred Contact Method',
+      number: 'Age',
+      file: 'Upload Document'
+    };
+
+    const fieldPlaceholders: Record<string, string> = {
+      text: 'Enter your full name',
+      email: 'Enter your email address',
+      phone: 'Enter your phone number',
+      textarea: 'Enter additional notes',
+      number: 'Enter your age'
+    };
+
     const newField: FormField = {
       id: `field_${Date.now()}`,
       type,
-      label: `New ${type} field`,
-      required: false,
-      placeholder: type === 'textarea' ? 'Enter your response...' : 'Enter value...'
+      label: fieldLabels[type] || `${type} Field`,
+      placeholder: fieldPlaceholders[type] || '',
+      required: false
     };
 
     if (type === 'select' || type === 'radio') {
-      newField.options = ['Option 1', 'Option 2', 'Option 3'];
+      const optionSets: Record<string, string[]> = {
+        select: ['Male', 'Female', 'Other'],
+        radio: ['Email', 'Phone', 'Text']
+      };
+      newField.options = optionSets[type] || ['Option 1', 'Option 2'];
+    }
+
+    if (type === 'checkbox') {
+      newField.options = ['I agree to the terms and conditions'];
     }
 
     setFormData(prev => ({
@@ -278,10 +308,67 @@ export function AdvancedFormBuilder({ form, onSave, onCancel }: AdvancedFormBuil
 
           {!previewMode ? (
             <>
+              {/* Quick Templates */}
+              {formData.fields.length === 0 && (
+                <Card className="mb-6 bg-blue-50 border-blue-200">
+                  <CardHeader>
+                    <CardTitle className="text-lg text-blue-900">Quick Start Templates</CardTitle>
+                    <p className="text-sm text-blue-700">Choose a template to get started quickly</p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <Button
+                        variant="outline"
+                        className="h-auto flex-col p-4 bg-white hover:bg-blue-50"
+                        onClick={() => {
+                          addField('text');
+                          setTimeout(() => addField('email'), 100);
+                          setTimeout(() => addField('phone'), 200);
+                          setTimeout(() => addField('date'), 300);
+                        }}
+                      >
+                        <User className="h-6 w-6 mb-2 text-blue-600" />
+                        <span className="font-medium">Basic Patient Info</span>
+                        <span className="text-xs text-gray-600">Name, Email, Phone, DOB</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="h-auto flex-col p-4 bg-white hover:bg-blue-50"
+                        onClick={() => {
+                          addField('text');
+                          setTimeout(() => addField('email'), 100);
+                          setTimeout(() => addField('textarea'), 200);
+                          setTimeout(() => addField('checkbox'), 300);
+                        }}
+                      >
+                        <FileText className="h-6 w-6 mb-2 text-blue-600" />
+                        <span className="font-medium">Contact Form</span>
+                        <span className="text-xs text-gray-600">Name, Email, Message, Consent</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="h-auto flex-col p-4 bg-white hover:bg-blue-50"
+                        onClick={() => {
+                          addField('text');
+                          setTimeout(() => addField('select'), 100);
+                          setTimeout(() => addField('textarea'), 200);
+                          setTimeout(() => addField('radio'), 300);
+                        }}
+                      >
+                        <Settings className="h-6 w-6 mb-2 text-blue-600" />
+                        <span className="font-medium">Feedback Survey</span>
+                        <span className="text-xs text-gray-600">Name, Rating, Comments, Contact</span>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Field Types Palette */}
               <Card className="mb-6">
                 <CardHeader>
-                  <CardTitle className="text-lg">Form Fields</CardTitle>
+                  <CardTitle className="text-lg">Add Form Fields</CardTitle>
+                  <p className="text-sm text-gray-600">Click any field type to add it to your form</p>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
@@ -289,11 +376,11 @@ export function AdvancedFormBuilder({ form, onSave, onCancel }: AdvancedFormBuil
                       <Button
                         key={type}
                         variant="outline"
-                        className="h-auto flex-col p-3"
+                        className="h-auto flex-col p-3 hover:bg-blue-50 hover:border-blue-300"
                         onClick={() => addField(type as FormField['type'])}
                       >
-                        <Icon className="h-5 w-5 mb-1" />
-                        <span className="text-xs">{label}</span>
+                        <Icon className="h-5 w-5 mb-1 text-blue-600" />
+                        <span className="text-xs font-medium">{label}</span>
                       </Button>
                     ))}
                   </div>
@@ -373,18 +460,26 @@ export function AdvancedFormBuilder({ form, onSave, onCancel }: AdvancedFormBuil
               <CardContent className="space-y-6">
                 {formData.fields.map((field) => (
                   <div key={field.id} className="space-y-2">
-                    <Label className="text-sm font-medium">
+                    <Label className="text-sm font-medium block">
                       {field.label}
                       {field.required && <span className="text-red-500 ml-1">*</span>}
                     </Label>
-                    {field.description && (
-                      <p className="text-sm text-gray-600">{field.description}</p>
+                    {field.description && field.description.trim() && (
+                      <p className="text-sm text-gray-600 mb-2">{field.description}</p>
                     )}
-                    {renderPreviewField(field)}
+                    <div className="w-full">
+                      {renderPreviewField(field)}
+                    </div>
                   </div>
                 ))}
+                {formData.fields.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p>No fields added yet. Switch to Edit mode to add fields.</p>
+                  </div>
+                )}
                 {formData.fields.length > 0 && (
-                  <Button className="w-full">Submit Form</Button>
+                  <Button className="w-full mt-6">Submit Form</Button>
                 )}
               </CardContent>
             </Card>
@@ -423,15 +518,10 @@ export function AdvancedFormBuilder({ form, onSave, onCancel }: AdvancedFormBuil
                 
                 <div>
                   <Label>Description</Label>
-                  <Textarea
+                  <Input
                     value={selectedField.description || ''}
-                    onChange={(e) => {
-                      console.log('Description changed:', e.target.value);
-                      updateField(selectedField.id, { description: e.target.value });
-                    }}
+                    onChange={(e) => updateField(selectedField.id, { description: e.target.value })}
                     placeholder="Help text for this field"
-                    className="w-full min-h-[80px] resize-y"
-                    autoFocus={false}
                   />
                 </div>
                 
