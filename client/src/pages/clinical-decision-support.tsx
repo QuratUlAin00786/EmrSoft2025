@@ -868,10 +868,7 @@ export default function ClinicalDecisionSupport() {
                             <Button 
                               variant="outline" 
                               className="h-20 flex flex-col items-center justify-center"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                console.log("Emergency button clicked!");
+                              onClick={() => {
                                 toast({
                                   title: "Emergency Protocols",
                                   description: "Quick access to emergency protocols and critical care guidelines activated.",
@@ -884,10 +881,7 @@ export default function ClinicalDecisionSupport() {
                             <Button 
                               variant="outline" 
                               className="h-20 flex flex-col items-center justify-center"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                console.log("Medications button clicked!");
+                              onClick={() => {
                                 toast({
                                   title: "Medication Guide",
                                   description: "Accessing drug interaction checker and medication reference database.",
@@ -900,10 +894,7 @@ export default function ClinicalDecisionSupport() {
                             <Button 
                               variant="outline" 
                               className="h-20 flex flex-col items-center justify-center"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                console.log("Prevention button clicked!");
+                              onClick={() => {
                                 toast({
                                   title: "Prevention Guidelines",
                                   description: "Opening preventive care recommendations and screening protocols.",
@@ -916,10 +907,7 @@ export default function ClinicalDecisionSupport() {
                             <Button 
                               variant="outline" 
                               className="h-20 flex flex-col items-center justify-center"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                console.log("Procedures button clicked!");
+                              onClick={() => {
                                 toast({
                                   title: "Clinical Procedures",
                                   description: "Accessing step-by-step clinical procedure guides and protocols.",
