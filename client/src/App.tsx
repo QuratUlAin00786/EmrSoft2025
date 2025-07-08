@@ -74,10 +74,21 @@ function ProtectedApp() {
     }
   };
 
-  // Apply theme when organization data loads
+  // Apply theme when organization data loads or changes
   useEffect(() => {
     if (organization?.settings?.theme?.primaryColor) {
       applyTheme(organization.settings.theme.primaryColor);
+    } else {
+      // Apply default theme if no theme is set
+      applyTheme('blue');
+    }
+  }, [organization?.settings?.theme?.primaryColor]);
+
+  // Also apply theme on initial load to handle cached data
+  useEffect(() => {
+    if (organization) {
+      const themeColor = organization.settings?.theme?.primaryColor || 'blue';
+      applyTheme(themeColor);
     }
   }, [organization]);
 
