@@ -869,10 +869,7 @@ export default function ClinicalDecisionSupport() {
                               variant="outline" 
                               className="h-20 flex flex-col items-center justify-center"
                               onClick={() => {
-                                toast({
-                                  title: "Emergency Protocols",
-                                  description: "Quick access to emergency protocols and critical care guidelines activated.",
-                                });
+                                alert("Emergency Protocols: Quick access to emergency protocols and critical care guidelines activated.");
                               }}
                             >
                               <Activity className="w-6 h-6 mb-1" />
@@ -882,10 +879,7 @@ export default function ClinicalDecisionSupport() {
                               variant="outline" 
                               className="h-20 flex flex-col items-center justify-center"
                               onClick={() => {
-                                toast({
-                                  title: "Medication Guide",
-                                  description: "Accessing drug interaction checker and medication reference database.",
-                                });
+                                alert("Medication Guide: Accessing drug interaction checker and medication reference database.");
                               }}
                             >
                               <Pill className="w-6 h-6 mb-1" />
@@ -895,10 +889,7 @@ export default function ClinicalDecisionSupport() {
                               variant="outline" 
                               className="h-20 flex flex-col items-center justify-center"
                               onClick={() => {
-                                toast({
-                                  title: "Prevention Guidelines",
-                                  description: "Opening preventive care recommendations and screening protocols.",
-                                });
+                                alert("Prevention Guidelines: Opening preventive care recommendations and screening protocols.");
                               }}
                             >
                               <Shield className="w-6 h-6 mb-1" />
@@ -908,10 +899,7 @@ export default function ClinicalDecisionSupport() {
                               variant="outline" 
                               className="h-20 flex flex-col items-center justify-center"
                               onClick={() => {
-                                toast({
-                                  title: "Clinical Procedures",
-                                  description: "Accessing step-by-step clinical procedure guides and protocols.",
-                                });
+                                alert("Clinical Procedures: Accessing step-by-step clinical procedure guides and protocols.");
                               }}
                             >
                               <FileText className="w-6 h-6 mb-1" />
