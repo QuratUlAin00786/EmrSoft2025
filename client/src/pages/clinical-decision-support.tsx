@@ -949,15 +949,137 @@ export default function ClinicalDecisionSupport() {
 
               {/* Actions */}
               <div className="flex gap-3 pt-4 border-t">
-                <Button variant="outline">
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    // Generate and download PDF of the guideline
+                    const pdfContent = `
+Clinical Guideline: ${selectedGuideline.title}
+
+Organization: ${selectedGuideline.organization}
+Last Updated: ${selectedGuideline.updated}
+Evidence Level: ${selectedGuideline.evidenceLevel}
+Category: ${selectedGuideline.category}
+
+Description: ${selectedGuideline.description}
+
+${selectedGuideline.sections.map(section => `
+${section.title}:
+${section.content.map(item => `• ${item}`).join('\n')}
+`).join('\n')}
+
+Generated on ${new Date().toLocaleDateString()}
+                    `;
+                    
+                    const blob = new Blob([pdfContent], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${selectedGuideline.title.replace(/[^a-zA-Z0-9]/g, '_')}.txt`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    toast({ 
+                      title: "Guideline downloaded", 
+                      description: "Clinical guideline has been saved to your downloads" 
+                    });
+                  }}
+                >
                   <Download className="w-4 h-4 mr-2" />
                   Download PDF
                 </Button>
-                <Button variant="outline">
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    // Print the guideline content
+                    const printWindow = window.open('', '_blank');
+                    if (printWindow) {
+                      printWindow.document.write(`
+                        <html>
+                          <head>
+                            <title>${selectedGuideline.title}</title>
+                            <style>
+                              body { font-family: Arial, sans-serif; margin: 20px; }
+                              h1 { color: #333; }
+                              h2 { color: #666; margin-top: 20px; }
+                              ul { margin: 10px 0; }
+                              li { margin: 5px 0; }
+                              .header { border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+                              .meta { color: #666; font-size: 14px; }
+                            </style>
+                          </head>
+                          <body>
+                            <div class="header">
+                              <h1>${selectedGuideline.title}</h1>
+                              <div class="meta">
+                                <p><strong>Organization:</strong> ${selectedGuideline.organization}</p>
+                                <p><strong>Last Updated:</strong> ${selectedGuideline.updated}</p>
+                                <p><strong>Evidence Level:</strong> ${selectedGuideline.evidenceLevel}</p>
+                                <p><strong>Category:</strong> ${selectedGuideline.category}</p>
+                              </div>
+                            </div>
+                            
+                            <p><strong>Description:</strong> ${selectedGuideline.description}</p>
+                            
+                            ${selectedGuideline.sections.map(section => `
+                              <h2>${section.title}</h2>
+                              <ul>
+                                ${section.content.map(item => `<li>${item}</li>`).join('')}
+                              </ul>
+                            `).join('')}
+                            
+                            <div style="margin-top: 30px; font-size: 12px; color: #666;">
+                              Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}
+                            </div>
+                          </body>
+                        </html>
+                      `);
+                      printWindow.document.close();
+                      printWindow.print();
+                    }
+                    
+                    toast({ 
+                      title: "Printing guideline", 
+                      description: "Clinical guideline is being prepared for printing" 
+                    });
+                  }}
+                >
                   <FileText className="w-4 h-4 mr-2" />
                   Print Guideline
                 </Button>
-                <Button variant="outline">
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    // Add guideline to favorites (localStorage)
+                    const favorites = JSON.parse(localStorage.getItem('cura_favorite_guidelines') || '[]');
+                    const favoriteItem = {
+                      id: selectedGuideline.id,
+                      title: selectedGuideline.title,
+                      organization: selectedGuideline.organization,
+                      category: selectedGuideline.category,
+                      addedAt: new Date().toISOString()
+                    };
+                    
+                    // Check if already in favorites
+                    const existingIndex = favorites.findIndex((fav: any) => fav.id === selectedGuideline.id);
+                    if (existingIndex === -1) {
+                      favorites.push(favoriteItem);
+                      localStorage.setItem('cura_favorite_guidelines', JSON.stringify(favorites));
+                      toast({ 
+                        title: "Added to favorites", 
+                        description: `${selectedGuideline.title} has been saved to your favorites` 
+                      });
+                    } else {
+                      toast({ 
+                        title: "Already in favorites", 
+                        description: "This guideline is already in your favorites list",
+                        variant: "default"
+                      });
+                    }
+                  }}
+                >
                   <Target className="w-4 h-4 mr-2" />
                   Add to Favorites
                 </Button>
