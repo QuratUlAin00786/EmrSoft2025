@@ -1,5 +1,5 @@
 import { Switch, Route, useLocation } from "wouter";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TenantProvider } from "@/hooks/use-tenant";
@@ -8,6 +8,7 @@ import { LocaleProvider } from "@/hooks/use-locale";
 import { Sidebar } from "@/components/layout/sidebar";
 import { LoadingPage } from "@/components/common/loading-spinner";
 import { useAuth } from "@/hooks/use-auth";
+import { useEffect } from "react";
 import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
 
 // Pages
@@ -43,6 +44,43 @@ import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 
 function ProtectedApp() {
+  // Load and apply theme from organization settings
+  const { data: organization } = useQuery({
+    queryKey: ["/api/tenant/info"],
+    retry: false,
+  });
+
+  // Apply theme colors to CSS variables
+  const applyTheme = (themeValue: string) => {
+    const root = document.documentElement;
+    
+    switch (themeValue) {
+      case 'green':
+        root.style.setProperty('--primary', 'hsl(142, 70%, 45%)'); // Medical Green
+        root.style.setProperty('--medical-blue', 'hsl(142, 70%, 45%)');
+        break;
+      case 'purple':
+        root.style.setProperty('--primary', 'hsl(261, 73%, 52%)'); // Professional Purple
+        root.style.setProperty('--medical-blue', 'hsl(261, 73%, 52%)');
+        break;
+      case 'dark':
+        root.style.setProperty('--primary', 'hsl(0, 0%, 20%)'); // Dark Mode
+        root.style.setProperty('--medical-blue', 'hsl(0, 0%, 20%)');
+        break;
+      default: // Medical Blue
+        root.style.setProperty('--primary', 'hsl(210, 100%, 46%)');
+        root.style.setProperty('--medical-blue', 'hsl(210, 100%, 46%)');
+        break;
+    }
+  };
+
+  // Apply theme when organization data loads
+  useEffect(() => {
+    if (organization?.settings?.theme?.primaryColor) {
+      applyTheme(organization.settings.theme.primaryColor);
+    }
+  }, [organization]);
+
   return (
     <div className="flex h-screen bg-neutral-50">
       <Sidebar />
