@@ -192,9 +192,12 @@ export default function ClinicalDecisionSupport() {
       if (!response.ok) throw new Error("Failed to update insight");
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/clinical/insights"] });
-      toast({ title: "Insight updated successfully" });
+      toast({ 
+        title: "Insight updated successfully", 
+        description: `Status changed to ${variables.status}` 
+      });
     }
   });
 
@@ -364,11 +367,11 @@ export default function ClinicalDecisionSupport() {
               const reportData = {
                 title: "Clinical Decision Support Report",
                 generatedAt: new Date().toISOString(),
-                activeInsights: mockInsights.filter(insight => insight.status === 'active').length,
-                totalInsights: mockInsights.length,
+                activeInsights: insights?.filter(insight => insight.status === 'active').length || 0,
+                totalInsights: insights?.length || 0,
                 riskAssessments: mockRiskScores.length,
-                criticalAlerts: mockInsights.filter(insight => insight.priority === 'critical').length,
-                insights: mockInsights.map(insight => ({
+                criticalAlerts: insights?.filter(insight => insight.priority === 'critical').length || 0,
+                insights: insights?.map(insight => ({
                   patient: insight.patientName,
                   type: insight.type,
                   priority: insight.priority,
@@ -480,7 +483,7 @@ export default function ClinicalDecisionSupport() {
           </div>
 
           <div className="grid gap-4">
-            {mockInsights.map((insight) => (
+            {(insights || []).map((insight) => (
               <Card key={insight.id} className="border-l-4 border-l-orange-500">
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-start">
@@ -564,32 +567,35 @@ export default function ClinicalDecisionSupport() {
                   <div className="flex gap-2 pt-2">
                     <Button 
                       size="sm"
+                      disabled={updateInsightMutation.isPending}
                       onClick={() => updateInsightMutation.mutate({ 
                         insightId: insight.id, 
                         status: "reviewed" 
                       })}
                     >
-                      Mark Reviewed
+                      {updateInsightMutation.isPending ? "Updating..." : "Mark Reviewed"}
                     </Button>
                     <Button 
                       size="sm" 
                       variant="outline"
+                      disabled={updateInsightMutation.isPending}
                       onClick={() => updateInsightMutation.mutate({ 
                         insightId: insight.id, 
                         status: "implemented" 
                       })}
                     >
-                      Mark Implemented
+                      {updateInsightMutation.isPending ? "Updating..." : "Mark Implemented"}
                     </Button>
                     <Button 
                       size="sm" 
                       variant="ghost"
+                      disabled={updateInsightMutation.isPending}
                       onClick={() => updateInsightMutation.mutate({ 
                         insightId: insight.id, 
                         status: "dismissed" 
                       })}
                     >
-                      Dismiss
+                      {updateInsightMutation.isPending ? "Updating..." : "Dismiss"}
                     </Button>
                   </div>
                 </CardContent>
