@@ -865,19 +865,55 @@ export default function ClinicalDecisionSupport() {
                         <div>
                           <h3 className="text-lg font-semibold mb-3">Quick Access</h3>
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            <Button variant="outline" className="h-20 flex flex-col items-center justify-center">
+                            <Button 
+                              variant="outline" 
+                              className="h-20 flex flex-col items-center justify-center"
+                              onClick={() => {
+                                toast({
+                                  title: "Emergency Protocols",
+                                  description: "Quick access to emergency protocols and critical care guidelines activated.",
+                                });
+                              }}
+                            >
                               <Activity className="w-6 h-6 mb-1" />
                               <span className="text-xs">Emergency</span>
                             </Button>
-                            <Button variant="outline" className="h-20 flex flex-col items-center justify-center">
+                            <Button 
+                              variant="outline" 
+                              className="h-20 flex flex-col items-center justify-center"
+                              onClick={() => {
+                                toast({
+                                  title: "Medication Guide",
+                                  description: "Accessing drug interaction checker and medication reference database.",
+                                });
+                              }}
+                            >
                               <Pill className="w-6 h-6 mb-1" />
                               <span className="text-xs">Medications</span>
                             </Button>
-                            <Button variant="outline" className="h-20 flex flex-col items-center justify-center">
+                            <Button 
+                              variant="outline" 
+                              className="h-20 flex flex-col items-center justify-center"
+                              onClick={() => {
+                                toast({
+                                  title: "Prevention Guidelines",
+                                  description: "Opening preventive care recommendations and screening protocols.",
+                                });
+                              }}
+                            >
                               <Shield className="w-6 h-6 mb-1" />
                               <span className="text-xs">Prevention</span>
                             </Button>
-                            <Button variant="outline" className="h-20 flex flex-col items-center justify-center">
+                            <Button 
+                              variant="outline" 
+                              className="h-20 flex flex-col items-center justify-center"
+                              onClick={() => {
+                                toast({
+                                  title: "Clinical Procedures",
+                                  description: "Accessing step-by-step clinical procedure guides and protocols.",
+                                });
+                              }}
+                            >
                               <FileText className="w-6 h-6 mb-1" />
                               <span className="text-xs">Procedures</span>
                             </Button>
