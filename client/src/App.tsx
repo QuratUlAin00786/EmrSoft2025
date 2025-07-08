@@ -74,30 +74,22 @@ function ProtectedApp() {
     }
   };
 
-  // Apply theme when organization data loads or changes
+  // Apply theme immediately on component mount from localStorage
   useEffect(() => {
-    console.log('Theme effect triggered:', { 
-      organization: organization,
-      primaryColor: organization?.settings?.theme?.primaryColor 
-    });
+    const savedTheme = localStorage.getItem('cura-theme');
+    if (savedTheme) {
+      applyTheme(savedTheme);
+    }
+  }, []);
+
+  // Apply theme when organization data loads and save to localStorage
+  useEffect(() => {
     if (organization?.settings?.theme?.primaryColor) {
-      console.log('Applying theme:', organization.settings.theme.primaryColor);
-      applyTheme(organization.settings.theme.primaryColor);
-    } else {
-      console.log('No theme found, applying default blue');
-      // Apply default theme if no theme is set
-      applyTheme('blue');
+      const themeColor = organization.settings.theme.primaryColor;
+      applyTheme(themeColor);
+      localStorage.setItem('cura-theme', themeColor);
     }
   }, [organization?.settings?.theme?.primaryColor]);
-
-  // Also apply theme on initial load to handle cached data
-  useEffect(() => {
-    if (organization) {
-      const themeColor = organization.settings?.theme?.primaryColor || 'blue';
-      console.log('Initial theme application:', themeColor);
-      applyTheme(themeColor);
-    }
-  }, [organization]);
 
   return (
     <div className="flex h-screen bg-neutral-50">
