@@ -19,6 +19,10 @@ import {
   Type,
   Hash,
   User,
+  Mail,
+  List,
+  AlignLeft,
+  X,
   Calendar,
   CheckSquare,
   Circle,
@@ -26,7 +30,6 @@ import {
   Upload,
   Star,
   Phone,
-  Mail,
   MapPin
 } from "lucide-react";
 
@@ -307,152 +310,163 @@ export function AdvancedFormBuilder({ form, onSave, onCancel }: AdvancedFormBuil
           </div>
 
           {!previewMode ? (
-            <>
-              {/* Quick Templates */}
-              {formData.fields.length === 0 && (
-                <Card className="mb-6 bg-blue-50 border-blue-200">
-                  <CardHeader>
-                    <CardTitle className="text-lg text-blue-900">Quick Start Templates</CardTitle>
-                    <p className="text-sm text-blue-700">Choose a template to get started quickly</p>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                      <Button
-                        variant="outline"
-                        className="h-auto flex-col p-4 bg-white hover:bg-blue-50"
-                        onClick={() => {
-                          addField('text');
-                          setTimeout(() => addField('email'), 100);
-                          setTimeout(() => addField('phone'), 200);
-                          setTimeout(() => addField('date'), 300);
-                        }}
-                      >
-                        <User className="h-6 w-6 mb-2 text-blue-600" />
-                        <span className="font-medium">Basic Patient Info</span>
-                        <span className="text-xs text-gray-600">Name, Email, Phone, DOB</span>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="h-auto flex-col p-4 bg-white hover:bg-blue-50"
-                        onClick={() => {
-                          addField('text');
-                          setTimeout(() => addField('email'), 100);
-                          setTimeout(() => addField('textarea'), 200);
-                          setTimeout(() => addField('checkbox'), 300);
-                        }}
-                      >
-                        <FileText className="h-6 w-6 mb-2 text-blue-600" />
-                        <span className="font-medium">Contact Form</span>
-                        <span className="text-xs text-gray-600">Name, Email, Message, Consent</span>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="h-auto flex-col p-4 bg-white hover:bg-blue-50"
-                        onClick={() => {
-                          addField('text');
-                          setTimeout(() => addField('select'), 100);
-                          setTimeout(() => addField('textarea'), 200);
-                          setTimeout(() => addField('radio'), 300);
-                        }}
-                      >
-                        <Settings className="h-6 w-6 mb-2 text-blue-600" />
-                        <span className="font-medium">Feedback Survey</span>
-                        <span className="text-xs text-gray-600">Name, Rating, Comments, Contact</span>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Field Types Palette */}
-              <Card className="mb-6">
+            <div className="space-y-6">
+              {/* Simple Form Builder */}
+              <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Add Form Fields</CardTitle>
-                  <p className="text-sm text-gray-600">Click any field type to add it to your form</p>
+                  <CardTitle className="text-lg">Build Your Form</CardTitle>
+                  <p className="text-sm text-gray-600">Add fields to create your custom form</p>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-                    {fieldTypes.map(({ type, label, icon: Icon }) => (
-                      <Button
-                        key={type}
-                        variant="outline"
-                        className="h-auto flex-col p-3 hover:bg-blue-50 hover:border-blue-300"
-                        onClick={() => addField(type as FormField['type'])}
-                      >
-                        <Icon className="h-5 w-5 mb-1 text-blue-600" />
-                        <span className="text-xs font-medium">{label}</span>
-                      </Button>
+                  {/* Quick Add Buttons */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                    <Button
+                      variant="outline"
+                      className="h-16 flex-col gap-1"
+                      onClick={() => addField('text')}
+                    >
+                      <Type className="h-5 w-5" />
+                      <span className="text-xs">Text Field</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="h-16 flex-col gap-1"
+                      onClick={() => addField('email')}
+                    >
+                      <Mail className="h-5 w-5" />
+                      <span className="text-xs">Email</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="h-16 flex-col gap-1"
+                      onClick={() => addField('select')}
+                    >
+                      <List className="h-5 w-5" />
+                      <span className="text-xs">Dropdown</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="h-16 flex-col gap-1"
+                      onClick={() => addField('textarea')}
+                    >
+                      <AlignLeft className="h-5 w-5" />
+                      <span className="text-xs">Text Area</span>
+                    </Button>
+                  </div>
+
+                  {/* Form Fields List */}
+                  <div className="space-y-3">
+                    {formData.fields.map((field, index) => (
+                      <Card key={field.id} className="border border-gray-200">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              {renderFieldIcon(field.type)}
+                              <span className="font-medium">{field.label}</span>
+                              <Badge variant="outline" className="text-xs">{field.type}</Badge>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeField(field.id)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          
+                          {/* Simple Field Editor */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                              <Label className="text-xs text-gray-600">Field Label</Label>
+                              <Input
+                                value={field.label}
+                                onChange={(e) => updateField(field.id, { label: e.target.value })}
+                                placeholder="Enter field label"
+                                className="mt-1"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs text-gray-600">Placeholder</Label>
+                              <Input
+                                value={field.placeholder || ''}
+                                onChange={(e) => updateField(field.id, { placeholder: e.target.value })}
+                                placeholder="Enter placeholder text"
+                                className="mt-1"
+                              />
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Switch
+                                checked={field.required}
+                                onCheckedChange={(checked) => updateField(field.id, { required: checked })}
+                              />
+                              <Label className="text-xs text-gray-600">Required field</Label>
+                            </div>
+                          </div>
+
+                          {/* Options for select/radio/checkbox */}
+                          {(field.type === 'select' || field.type === 'radio' || field.type === 'checkbox') && (
+                            <div className="mt-3">
+                              <Label className="text-xs text-gray-600">Options</Label>
+                              <div className="space-y-2 mt-1">
+                                {field.options?.map((option, optIndex) => (
+                                  <div key={optIndex} className="flex items-center gap-2">
+                                    <Input
+                                      value={option}
+                                      onChange={(e) => {
+                                        const newOptions = [...(field.options || [])];
+                                        newOptions[optIndex] = e.target.value;
+                                        updateField(field.id, { options: newOptions });
+                                      }}
+                                      placeholder={`Option ${optIndex + 1}`}
+                                      className="flex-1"
+                                    />
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        const newOptions = field.options?.filter((_, i) => i !== optIndex);
+                                        updateField(field.id, { options: newOptions });
+                                      }}
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                ))}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    const newOptions = [...(field.options || []), `Option ${(field.options?.length || 0) + 1}`];
+                                    updateField(field.id, { options: newOptions });
+                                  }}
+                                >
+                                  <Plus className="h-4 w-4 mr-1" />
+                                  Add Option
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
 
-              {/* Form Fields */}
-              <DragDropContext onDragEnd={onDragEnd}>
-                <Droppable droppableId="form-fields">
-                  {(provided) => (
-                    <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
-                      {formData.fields.map((field, index) => (
-                        <Draggable key={field.id} draggableId={field.id} index={index}>
-                          {(provided) => (
-                            <Card
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              className={`cursor-pointer border-2 ${
-                                selectedField?.id === field.id ? 'border-blue-500' : 'border-gray-200'
-                              }`}
-                              onClick={() => setSelectedField(field)}
-                            >
-                              <CardContent className="p-4">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-3">
-                                    <div {...provided.dragHandleProps}>
-                                      <GripVertical className="h-4 w-4 text-gray-400" />
-                                    </div>
-                                    {renderFieldIcon(field.type)}
-                                    <div>
-                                      <div className="font-medium">{field.label}</div>
-                                      <div className="text-sm text-gray-500 capitalize">{field.type}</div>
-                                    </div>
-                                    {field.required && (
-                                      <Badge variant="secondary" className="text-xs">Required</Badge>
-                                    )}
-                                  </div>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      removeField(field.id);
-                                    }}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
+                  {formData.fields.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No fields added yet</h3>
+                      <p className="text-gray-600">Click the buttons above to add fields to your form</p>
                     </div>
                   )}
-                </Droppable>
-              </DragDropContext>
-
-              {formData.fields.length === 0 && (
-                <div className="text-center py-12 text-gray-500">
-                  <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No fields added yet</h3>
-                  <p className="text-gray-600">Add fields from the palette above to get started</p>
-                </div>
-              )}
-            </>
+                </CardContent>
+              </Card>
+            </div>
           ) : (
             /* Preview Mode */
-            <Card>
-              <CardHeader>
-                <CardTitle>{formData.title}</CardTitle>
+            <Card className="max-w-2xl mx-auto">
+              <CardHeader className="text-center">
+                <CardTitle className="text-2xl">{formData.title}</CardTitle>
                 {formData.description && (
                   <p className="text-gray-600">{formData.description}</p>
                 )}
@@ -460,26 +474,88 @@ export function AdvancedFormBuilder({ form, onSave, onCancel }: AdvancedFormBuil
               <CardContent className="space-y-6">
                 {formData.fields.map((field) => (
                   <div key={field.id} className="space-y-2">
-                    <Label className="text-sm font-medium block">
+                    <Label className="text-sm font-medium">
                       {field.label}
                       {field.required && <span className="text-red-500 ml-1">*</span>}
                     </Label>
-                    {field.description && field.description.trim() && (
-                      <p className="text-sm text-gray-600 mb-2">{field.description}</p>
+                    
+                    {field.type === 'text' && (
+                      <Input 
+                        placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+                        className="w-full"
+                        disabled
+                      />
                     )}
-                    <div className="w-full">
-                      {renderPreviewField(field)}
-                    </div>
+                    
+                    {field.type === 'email' && (
+                      <Input 
+                        type="email"
+                        placeholder={field.placeholder || "Enter your email"}
+                        className="w-full"
+                        disabled
+                      />
+                    )}
+                    
+                    {field.type === 'textarea' && (
+                      <Textarea 
+                        placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+                        className="w-full"
+                        rows={3}
+                        disabled
+                      />
+                    )}
+                    
+                    {field.type === 'select' && (
+                      <Select disabled>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder={field.placeholder || `Select ${field.label.toLowerCase()}`} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {field.options?.map((option, index) => (
+                            <SelectItem key={index} value={option.toLowerCase().replace(/\s+/g, '-')}>
+                              {option}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    
+                    {field.type === 'checkbox' && (
+                      <div className="space-y-2">
+                        {field.options?.map((option, index) => (
+                          <div key={index} className="flex items-center space-x-2">
+                            <input type="checkbox" disabled id={`${field.id}-${index}`} />
+                            <Label htmlFor={`${field.id}-${index}`} className="text-sm">{option}</Label>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {field.type === 'radio' && (
+                      <div className="space-y-2">
+                        {field.options?.map((option, index) => (
+                          <div key={index} className="flex items-center space-x-2">
+                            <input type="radio" disabled name={field.id} id={`${field.id}-${index}`} />
+                            <Label htmlFor={`${field.id}-${index}`} className="text-sm">{option}</Label>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
+                
                 {formData.fields.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                    <p>No fields added yet. Switch to Edit mode to add fields.</p>
+                  <div className="text-center py-12 text-gray-500">
+                    <FileText className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                    <h3 className="text-xl font-medium text-gray-900 mb-2">Form Preview</h3>
+                    <p className="text-gray-600">Add fields to see how your form will look</p>
                   </div>
                 )}
+                
                 {formData.fields.length > 0 && (
-                  <Button className="w-full mt-6">Submit Form</Button>
+                  <Button className="w-full mt-8" size="lg" disabled>
+                    Submit Form
+                  </Button>
                 )}
               </CardContent>
             </Card>
