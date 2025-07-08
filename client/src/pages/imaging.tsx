@@ -169,6 +169,7 @@ export default function ImagingPage() {
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);
+  const [showFinalReportDialog, setShowFinalReportDialog] = useState(false);
   const [modalityFilter, setModalityFilter] = useState<string>("all");
   const [selectedStudy, setSelectedStudy] = useState<ImagingStudy | null>(null);
   const [shareFormData, setShareFormData] = useState({
@@ -805,11 +806,16 @@ export default function ImagingPage() {
                   </Button>
                   <Button 
                     onClick={() => {
-                      toast({
-                        title: "Report Generated",
-                        description: `Radiology report for ${selectedStudy.patientName} has been generated and signed`,
-                      });
-                      setShowReportDialog(false);
+                      if (selectedStudy.status === 'final') {
+                        setShowReportDialog(false);
+                        setShowFinalReportDialog(true);
+                      } else {
+                        toast({
+                          title: "Report Generated",
+                          description: `Radiology report for ${selectedStudy.patientName} has been generated and signed`,
+                        });
+                        setShowReportDialog(false);
+                      }
                     }}
                     className="bg-medical-blue hover:bg-blue-700"
                   >
@@ -1132,6 +1138,163 @@ export default function ImagingPage() {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Final Report Viewer Dialog */}
+      <Dialog open={showFinalReportDialog} onOpenChange={setShowFinalReportDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Final Radiology Report</DialogTitle>
+          </DialogHeader>
+          {selectedStudy && (
+            <div className="space-y-6">
+              {/* Patient Information */}
+              <div className="border-b pb-4">
+                <h3 className="font-semibold text-lg mb-3">Patient Information</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium">Patient Name:</span> {selectedStudy.patientName}
+                  </div>
+                  <div>
+                    <span className="font-medium">Patient ID:</span> {selectedStudy.patientId}
+                  </div>
+                  <div>
+                    <span className="font-medium">Study Date:</span> {format(new Date(selectedStudy.orderedAt), "PPP")}
+                  </div>
+                  <div>
+                    <span className="font-medium">Study Type:</span> {selectedStudy.studyType}
+                  </div>
+                  <div>
+                    <span className="font-medium">Modality:</span> {selectedStudy.modality}
+                  </div>
+                  <div>
+                    <span className="font-medium">Body Part:</span> {selectedStudy.bodyPart}
+                  </div>
+                  <div>
+                    <span className="font-medium">Ordering Physician:</span> {selectedStudy.orderedBy}
+                  </div>
+                  <div>
+                    <span className="font-medium">Radiologist:</span> {selectedStudy.radiologist || "Dr. Michael Chen"}
+                  </div>
+                </div>
+              </div>
+
+              {/* Clinical Information */}
+              <div className="border-b pb-4">
+                <h3 className="font-semibold text-lg mb-3">Clinical Information</h3>
+                <div className="text-sm">
+                  <div className="mb-2">
+                    <span className="font-medium">Indication:</span> {selectedStudy.indication}
+                  </div>
+                  <div>
+                    <span className="font-medium">Priority:</span> 
+                    <span className={`ml-2 px-2 py-1 rounded text-xs ${
+                      selectedStudy.priority === 'stat' ? 'bg-red-100 text-red-800' :
+                      selectedStudy.priority === 'urgent' ? 'bg-orange-100 text-orange-800' :
+                      'bg-blue-100 text-blue-800'
+                    }`}>
+                      {selectedStudy.priority.toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Report Content */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Report</h3>
+                
+                {selectedStudy.findings && (
+                  <div>
+                    <h4 className="font-medium mb-2">FINDINGS:</h4>
+                    <div className="bg-gray-50 p-4 rounded border text-sm whitespace-pre-wrap">
+                      {selectedStudy.findings}
+                    </div>
+                  </div>
+                )}
+
+                {selectedStudy.impression && (
+                  <div>
+                    <h4 className="font-medium mb-2">IMPRESSION:</h4>
+                    <div className="bg-gray-50 p-4 rounded border text-sm whitespace-pre-wrap">
+                      {selectedStudy.impression}
+                    </div>
+                  </div>
+                )}
+
+                {selectedStudy.report && (
+                  <div>
+                    <h4 className="font-medium mb-2">FULL REPORT:</h4>
+                    <div className="bg-gray-50 p-4 rounded border text-sm whitespace-pre-wrap">
+                      {selectedStudy.report.content}
+                    </div>
+                  </div>
+                )}
+
+                {/* Report Status */}
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className="font-medium text-green-800">Report Status: FINAL</span>
+                  </div>
+                  <div className="text-sm text-green-700 space-y-1">
+                    {selectedStudy.report?.dictatedAt && (
+                      <div><strong>Dictated:</strong> {format(new Date(selectedStudy.report.dictatedAt), "PPpp")}</div>
+                    )}
+                    {selectedStudy.report?.signedAt && (
+                      <div><strong>Signed:</strong> {format(new Date(selectedStudy.report.signedAt), "PPpp")}</div>
+                    )}
+                    <div><strong>Radiologist:</strong> {selectedStudy.radiologist || "Dr. Michael Chen"}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-between items-center pt-4 border-t">
+                <Button variant="outline" onClick={() => setShowFinalReportDialog(false)}>
+                  Close
+                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      // Download report logic
+                      const reportContent = selectedStudy.report?.content || 
+                        `RADIOLOGY REPORT\n\nPatient: ${selectedStudy.patientName}\nPatient ID: ${selectedStudy.patientId}\nStudy: ${selectedStudy.studyType}\nModality: ${selectedStudy.modality}\nDate: ${format(new Date(selectedStudy.orderedAt), "PPP")}\nBody Part: ${selectedStudy.bodyPart}\nOrdering Physician: ${selectedStudy.orderedBy}\nRadiologist: ${selectedStudy.radiologist || "Dr. Michael Chen"}\n\nCLINICAL INDICATION:\n${selectedStudy.indication}\n\nFINDINGS:\n${selectedStudy.findings || "Normal findings"}\n\nIMPRESSION:\n${selectedStudy.impression || "No acute abnormalities"}`;
+                      
+                      const blob = new Blob([reportContent], { type: 'text/plain' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `radiology-report-${selectedStudy.patientName.replace(/\s+/g, '-').toLowerCase()}-${format(new Date(selectedStudy.orderedAt), "yyyy-MM-dd")}.txt`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                      
+                      toast({
+                        title: "Report Downloaded",
+                        description: `Final report for ${selectedStudy.patientName} downloaded successfully`,
+                      });
+                    }}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Report
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      setShowFinalReportDialog(false);
+                      setShowShareDialog(true);
+                    }}
+                    className="bg-medical-blue hover:bg-blue-700"
+                  >
+                    <Share2 className="h-4 w-4 mr-2" />
+                    Share Report
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </>
