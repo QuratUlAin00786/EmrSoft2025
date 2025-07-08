@@ -101,6 +101,10 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system des
 
 ## Changelog
 
+**July 8, 2025:**
+- **COMPLETED**: Added Cura favicon to browser tab - implemented proper Cura icon favicon using official brand assets, placed in public directory for proper Vite serving, added comprehensive favicon support including PNG and ICO formats for all browser compatibility, updated page title to "Cura - AI-Powered Healthcare Platform"
+- **COMPLETED**: Completely redesigned form creation interface for user-friendliness - simplified form builder with just 4 main field types, removed complex drag-and-drop interface, added inline field editing with clear labels, proper form preview that matches actual appearance, clean field names like "Full Name" and "Email Address", eliminated garbled text issues
+
 **July 7, 2025:**
 - **COMPLETED**: Complete Cura rebranding implementation - replaced all Halo Health/Averox references with Cura branding, updated color scheme to Cura brand colors (BlueWave primary, Electric Lilac accents, Midnight text), integrated new Cura logo and icon assets, updated login page with "Welcome to Cura" and "AI-Powered Healthcare Platform" messaging, sidebar now displays Cura icon with "by halo group" tagline, maintaining all existing functionality while refreshing visual identity
 
