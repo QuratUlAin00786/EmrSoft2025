@@ -29,7 +29,8 @@ import {
   Archive,
   Trash2,
   Edit,
-  Copy
+  Copy,
+  ArrowLeft
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -587,9 +588,20 @@ export default function MessagingPage() {
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Messaging Center</h1>
-          <p className="text-gray-600 mt-1">Secure communication with patients and staff</p>
+        <div className="flex items-center space-x-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => window.history.back()}
+            className="flex items-center space-x-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back</span>
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Messaging Center</h1>
+            <p className="text-gray-600 mt-1">Secure communication with patients and staff</p>
+          </div>
         </div>
         <div className="flex items-center gap-4">
           <Dialog open={showVideoCall} onOpenChange={setShowVideoCall}>
