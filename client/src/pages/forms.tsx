@@ -42,6 +42,9 @@ export default function FormsPage() {
   const [isEditing, setIsEditing] = useState(true);
   const [documentContent, setDocumentContent] = useState(selectedDocument?.content || "");
   const [documentTitle, setDocumentTitle] = useState(selectedDocument?.title || "");
+  const [fontSize, setFontSize] = useState("12pt");
+  const [fontFamily, setFontFamily] = useState("verdana");
+  const [textStyle, setTextStyle] = useState("paragraph");
   const { toast } = useToast();
 
   const handleSave = () => {
@@ -65,12 +68,124 @@ export default function FormsPage() {
     });
   };
 
+  const handleUndo = () => {
+    toast({
+      title: "Undo",
+      description: "Last action undone.",
+    });
+  };
+
+  const handleRedo = () => {
+    toast({
+      title: "Redo",
+      description: "Action redone.",
+    });
+  };
+
+  const handleBold = () => {
+    toast({
+      title: "Bold",
+      description: "Bold formatting applied.",
+    });
+  };
+
+  const handleItalic = () => {
+    toast({
+      title: "Italic",
+      description: "Italic formatting applied.",
+    });
+  };
+
+  const handleUnderline = () => {
+    toast({
+      title: "Underline",
+      description: "Underline formatting applied.",
+    });
+  };
+
+  const handleAlignment = (alignment: string) => {
+    toast({
+      title: "Text Alignment",
+      description: `Text aligned to ${alignment}.`,
+    });
+  };
+
+  const handleList = (type: string) => {
+    toast({
+      title: "List",
+      description: `${type} list inserted.`,
+    });
+  };
+
+  const handleInsertTemplate = () => {
+    toast({
+      title: "Insert Template",
+      description: "Template selection opened.",
+    });
+  };
+
+  const handleInsertLogo = () => {
+    toast({
+      title: "Insert Logo",
+      description: "Logo insertion dialog opened.",
+    });
+  };
+
+  const handleClinic = () => {
+    toast({
+      title: "Clinic",
+      description: "Clinic information options opened.",
+    });
+  };
+
+  const handlePatient = () => {
+    toast({
+      title: "Patient",
+      description: "Patient information options opened.",
+    });
+  };
+
+  const handleRecipient = () => {
+    toast({
+      title: "Recipient",
+      description: "Recipient selection opened.",
+    });
+  };
+
+  const handleAppointments = () => {
+    toast({
+      title: "Appointments",
+      description: "Appointment data options opened.",
+    });
+  };
+
+  const handleLabs = () => {
+    toast({
+      title: "Labs",
+      description: "Lab results options opened.",
+    });
+  };
+
+  const handlePatientRecords = () => {
+    toast({
+      title: "Patient Records",
+      description: "Patient records options opened.",
+    });
+  };
+
+  const handleInsertProduct = () => {
+    toast({
+      title: "Insert Product",
+      description: "Product insertion dialog opened.",
+    });
+  };
+
   return (
     <div className="h-screen flex flex-col bg-gray-100">
       {/* Header */}
       <div className="bg-white border-b px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" onClick={() => toast({ title: "Letters", description: "Navigating back to letters list." })}>
             <ArrowLeft className="h-4 w-4 mr-1" />
             <span className="text-sm">Letters</span>
           </Button>
@@ -91,16 +206,16 @@ export default function FormsPage() {
       <div className="bg-white border-b px-4 py-3">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={handleUndo}>
               <Undo className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={handleRedo}>
               <Redo className="h-4 w-4" />
             </Button>
           </div>
 
           <div className="flex items-center space-x-2">
-            <Select defaultValue="paragraph">
+            <Select value={textStyle} onValueChange={setTextStyle}>
               <SelectTrigger className="w-32">
                 <SelectValue />
               </SelectTrigger>
@@ -112,7 +227,7 @@ export default function FormsPage() {
               </SelectContent>
             </Select>
 
-            <Select defaultValue="verdana">
+            <Select value={fontFamily} onValueChange={setFontFamily}>
               <SelectTrigger className="w-24">
                 <SelectValue />
               </SelectTrigger>
@@ -124,7 +239,7 @@ export default function FormsPage() {
               </SelectContent>
             </Select>
 
-            <Select defaultValue="12pt">
+            <Select value={fontSize} onValueChange={setFontSize}>
               <SelectTrigger className="w-16">
                 <SelectValue />
               </SelectTrigger>
@@ -141,70 +256,70 @@ export default function FormsPage() {
           </div>
 
           <div className="flex items-center space-x-1">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => handleList('Bullet')}>
               <List className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => handleList('Numbered')}>
               <ListOrdered className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={handleBold}>
               <Bold className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={handleItalic}>
               <Italic className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={handleUnderline}>
               <Underline className="h-4 w-4" />
             </Button>
           </div>
 
           <div className="flex items-center space-x-1">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => handleAlignment('left')}>
               <AlignLeft className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => handleAlignment('center')}>
               <AlignCenter className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => handleAlignment('right')}>
               <AlignRight className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => handleAlignment('justify')}>
               <AlignJustify className="h-4 w-4" />
             </Button>
           </div>
 
           <div className="flex items-center space-x-1">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => toast({ title: "Border", description: "Border tool activated." })}>
               <div className="w-4 h-4 border border-gray-400"></div>
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => toast({ title: "Fill Color", description: "Fill color tool activated." })}>
               <div className="w-4 h-4 bg-gray-800"></div>
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => toast({ title: "Highlight", description: "Text highlight tool activated." })}>
               <div className="w-4 h-4 border border-gray-400 bg-yellow-300"></div>
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => toast({ title: "Settings", description: "Document settings opened." })}>
               <Settings className="h-4 w-4" />
             </Button>
           </div>
 
           <div className="flex items-center space-x-1">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => toast({ title: "Shape Tool", description: "Shape insertion tool activated." })}>
               <div className="w-4 h-4 border border-gray-400 flex items-center justify-center">
                 <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
               </div>
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => toast({ title: "Image Tool", description: "Image insertion tool activated." })}>
               <div className="w-4 h-4 border border-gray-400 bg-gray-100 flex items-center justify-center">
                 <div className="w-2 h-2 bg-gray-600"></div>
               </div>
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => toast({ title: "Check Tool", description: "Checkbox tool activated." })}>
               <div className="w-4 h-4 border border-gray-400 flex items-center justify-center text-xs">
                 ✓
               </div>
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => toast({ title: "Advanced Settings", description: "Advanced settings opened." })}>
               <div className="w-4 h-4 border border-gray-400 flex items-center justify-center">
                 <Settings className="h-3 w-3" />
               </div>
@@ -213,41 +328,41 @@ export default function FormsPage() {
         </div>
 
         <div className="flex items-center space-x-2 mt-3">
-          <Button variant="ghost" size="sm" className="text-sm">
+          <Button variant="ghost" size="sm" className="text-sm" onClick={handleInsertTemplate}>
             Insert template
             <ChevronDown className="h-4 w-4 ml-1" />
           </Button>
-          <Button variant="ghost" size="sm" className="text-sm">
+          <Button variant="ghost" size="sm" className="text-sm" onClick={handleInsertLogo}>
             Insert logo
           </Button>
-          <Button variant="ghost" size="sm" className="text-sm">
+          <Button variant="ghost" size="sm" className="text-sm" onClick={handleClinic}>
             Clinic
             <ChevronDown className="h-4 w-4 ml-1" />
           </Button>
-          <Button variant="ghost" size="sm" className="text-sm">
+          <Button variant="ghost" size="sm" className="text-sm" onClick={handlePatient}>
             Patient
             <ChevronDown className="h-4 w-4 ml-1" />
           </Button>
-          <Button variant="ghost" size="sm" className="text-sm">
+          <Button variant="ghost" size="sm" className="text-sm" onClick={handleRecipient}>
             Recipient
             <ChevronDown className="h-4 w-4 ml-1" />
           </Button>
-          <Button variant="ghost" size="sm" className="text-sm">
+          <Button variant="ghost" size="sm" className="text-sm" onClick={handleAppointments}>
             Appointments
             <ChevronDown className="h-4 w-4 ml-1" />
           </Button>
-          <Button variant="ghost" size="sm" className="text-sm">
+          <Button variant="ghost" size="sm" className="text-sm" onClick={handleLabs}>
             Labs
             <ChevronDown className="h-4 w-4 ml-1" />
           </Button>
         </div>
 
         <div className="flex items-center space-x-2 mt-2">
-          <Button variant="ghost" size="sm" className="text-sm">
+          <Button variant="ghost" size="sm" className="text-sm" onClick={handlePatientRecords}>
             Patient records
             <ChevronDown className="h-4 w-4 ml-1" />
           </Button>
-          <Button variant="ghost" size="sm" className="text-sm">
+          <Button variant="ghost" size="sm" className="text-sm" onClick={handleInsertProduct}>
             Insert product
           </Button>
         </div>
