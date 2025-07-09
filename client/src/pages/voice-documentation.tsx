@@ -263,6 +263,11 @@ export default function VoiceDocumentation() {
         // Force complete cache refresh to ensure server data is used
         queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
         queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      } else {
+        // Manual save - clear transcript and refresh
+        setCurrentTranscript("");
+        queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
+        queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
       }
       
       toast({ title: "Voice note saved successfully!" });
@@ -1035,15 +1040,26 @@ export default function VoiceDocumentation() {
                       <span className="text-sm font-medium text-gray-800">Transcript</span>
                     )}
                   </div>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => setCurrentTranscript("")}
-                    disabled={!currentTranscript}
-                  >
-                    <X className="w-4 h-4 mr-1" />
-                    Clear
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="default"
+                      onClick={saveVoiceNote}
+                      disabled={!currentTranscript || !selectedPatient || !selectedNoteType || isRecording}
+                    >
+                      <FileText className="w-4 h-4 mr-1" />
+                      Save Note
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setCurrentTranscript("")}
+                      disabled={!currentTranscript}
+                    >
+                      <X className="w-4 h-4 mr-1" />
+                      Clear
+                    </Button>
+                  </div>
                 </div>
                 <div className="text-sm text-gray-700 min-h-[3rem] p-2 bg-white border rounded">
                   {currentTranscript || (isRecording ? "Start speaking to see real-time transcription..." : "No transcript available. Start recording to capture speech.")}
