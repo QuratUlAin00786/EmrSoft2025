@@ -1,7 +1,9 @@
-import { Globe } from "lucide-react";
+import { Globe, ArrowLeft } from "lucide-react";
 import { useTenant } from "@/hooks/use-tenant";
 import { useAuth } from "@/hooks/use-auth";
 import { NotificationBell } from "@/components/layout/notification-bell";
+import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
 import curaIconPath from "@assets/Cura Icon Main_1751893631980.png";
 
 interface HeaderProps {
@@ -12,15 +14,35 @@ interface HeaderProps {
 export function Header({ title, subtitle }: HeaderProps) {
   const { tenant } = useTenant();
   const { user } = useAuth();
+  const [location, setLocation] = useLocation();
+
+  const handleBack = () => {
+    window.history.back();
+  };
+
+  const showBackButton = location !== "/" && location !== "/dashboard";
 
   return (
     <header className="bg-white shadow-sm border-b border-neutral-100 p-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-          {subtitle && (
-            <p className="text-neutral-600 mt-1">{subtitle}</p>
+        <div className="flex items-center space-x-4">
+          {showBackButton && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleBack}
+              className="flex items-center space-x-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back</span>
+            </Button>
           )}
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+            {subtitle && (
+              <p className="text-neutral-600 mt-1">{subtitle}</p>
+            )}
+          </div>
         </div>
         
         <div className="flex items-center space-x-4">
