@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 interface Message {
   id: string;
@@ -89,6 +90,7 @@ interface Campaign {
 }
 
 export default function MessagingPage() {
+  const [, setLocation] = useLocation();
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [newMessageContent, setNewMessageContent] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -592,7 +594,7 @@ export default function MessagingPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => window.history.back()}
+            onClick={() => setLocation("/")}
             className="flex items-center space-x-2"
           >
             <ArrowLeft className="h-4 w-4" />
