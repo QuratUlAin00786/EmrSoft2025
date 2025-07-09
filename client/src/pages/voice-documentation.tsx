@@ -339,15 +339,28 @@ export default function VoiceDocumentation() {
     onError: (error, noteId) => {
       console.error("Voice note deletion error:", error);
       
-      // Restore the note on failure
-      queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
-      queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
-      
-      toast({ 
-        title: "Failed to delete voice note", 
-        description: "Please try again.",
-        variant: "destructive" 
-      });
+      // If it's a 404 error (note doesn't exist), remove it from the UI cache anyway
+      if (error.message?.includes('404') || error.message?.includes('not found')) {
+        queryClient.setQueryData(["/api/voice-documentation/notes"], (oldData: any) => {
+          if (!oldData) return [];
+          return oldData.filter((note: any) => note.id !== noteId);
+        });
+        
+        toast({ 
+          title: "Note already deleted", 
+          description: "This voice note was already removed.",
+        });
+      } else {
+        // For other errors, refresh from server
+        queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
+        queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
+        
+        toast({ 
+          title: "Failed to delete voice note", 
+          description: "Please try again.",
+          variant: "destructive" 
+        });
+      }
     }
   });
 
