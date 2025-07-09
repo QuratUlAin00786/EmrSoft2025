@@ -150,7 +150,18 @@ export default function VoiceDocumentation() {
 
   // Fetch voice notes
   const { data: voiceNotes, isLoading: notesLoading } = useQuery({
-    queryKey: ["/api/voice-documentation/notes"]
+    queryKey: ["/api/voice-documentation/notes"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/voice-documentation/notes', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch voice notes');
+      return response.json();
+    }
   });
 
   // Fetch smart templates
