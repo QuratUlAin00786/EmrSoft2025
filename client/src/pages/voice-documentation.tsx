@@ -545,50 +545,11 @@ export default function VoiceDocumentation() {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
         const audioUrl = URL.createObjectURL(audioBlob);
         
-        // Create voice note with selected patient and type
+        // Store audio for potential future use
         if (selectedPatient && selectedNoteType) {
-          // Create optimistic note for immediate UI update
+          // Store audio URL for potential playback
           const tempNoteId = `temp_${Date.now()}`;
-          const finalTranscript = currentTranscript.replace(/\[Speaking\.\.\.\]/g, '').trim();
-          const optimisticNote = {
-            id: tempNoteId,
-            patientId: selectedPatient,
-            patientName: patients.data?.find((p: any) => p.id.toString() === selectedPatient)?.firstName + " " + patients.data?.find((p: any) => p.id.toString() === selectedPatient)?.lastName || "Unknown Patient",
-            providerId: "1",
-            providerName: "Dr. Provider", 
-            type: selectedNoteType,
-            transcript: finalTranscript || "No speech detected during recording",
-            recordingDuration: recordingTime,
-            createdAt: new Date().toISOString(),
-            confidence: finalTranscript ? 0.95 : 0,
-            status: finalTranscript ? "completed" : "processing",
-            medicalTerms: [],
-            structuredData: {}
-          };
-          
-          // Store audio URL for immediate playback
           setAudioStorage(prev => new Map(prev.set(tempNoteId, audioUrl)));
-          
-          // Add optimistic note to query cache immediately
-          queryClient.setQueryData(["/api/voice-documentation/notes"], (oldData: any) => {
-            return oldData ? [optimisticNote, ...oldData] : [optimisticNote];
-          });
-          
-          // Show immediate success message
-          toast({ title: "Voice note recorded!", description: "Saving in background..." });
-          
-          // Save to backend in background
-
-          createVoiceNoteMutation.mutate({
-            audioBlob,
-            patientId: selectedPatient,
-            type: selectedNoteType,
-            transcript: finalTranscript,
-            duration: recordingTime,
-            confidence: finalTranscript ? 95 : 0,
-            tempAudioUrl: audioUrl,
-            tempNoteId: tempNoteId
-          });
         }
         
         stream.getTracks().forEach(track => track.stop());
@@ -629,10 +590,7 @@ export default function VoiceDocumentation() {
         return;
       }
       
-      toast({ title: "Recording stopped. Saving transcript..." });
-      
-      // Automatically save the voice note
-      saveVoiceNote();
+      toast({ title: "Recording stopped", description: "Use 'Save Note' button to save your transcript" });
     }
   };
 
