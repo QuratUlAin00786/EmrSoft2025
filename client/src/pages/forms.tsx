@@ -1,34 +1,13 @@
 import { useState } from "react";
-import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { 
-  Plus, 
-  FileText, 
-  Save, 
-  Share,
-  Download,
-  Eye,
-  Edit,
-  Trash2,
-  Bold,
-  Italic,
-  Underline,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  List,
-  ListOrdered,
-  Table,
-  Image,
-  Link,
-  MoreHorizontal,
-  ChevronDown,
-  User,
-  Settings,
-  Search
+  FileText, Plus, Share, Settings, User, Save, Eye, Download, Upload, 
+  Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, AlignJustify,
+  List, ListOrdered, Image, Link, Table, Bookmark, Search, Undo, Redo,
+  Printer, Palette, Type, Users, MoreHorizontal, ChevronDown, Folder
 } from "lucide-react";
 
 interface DocumentForm {
@@ -96,226 +75,236 @@ export default function FormsPage() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-white">
-      <Header title="Form Editor" />
-      
-      {/* Top Navigation */}
-      <div className="border-b bg-white px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <FileText className="h-5 w-5 text-blue-600" />
-            <span className="font-semibold text-gray-900">Cura Forms</span>
+    <div className="h-screen flex flex-col bg-gray-50">
+      {/* Top Header Bar */}
+      <div className="bg-white border-b px-6 py-3 flex items-center justify-between">
+        <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-purple-600 rounded flex items-center justify-center">
+              <FileText className="h-5 w-5 text-white" />
+            </div>
+            <span className="text-xl font-bold text-gray-900">Cura Forms</span>
           </div>
-          <Button variant="outline" size="sm" onClick={handleNewDocument}>
-            <Plus className="h-4 w-4 mr-2" />
-            New
-          </Button>
+          
+          <nav className="flex items-center space-x-8">
+            <button className="text-gray-600 hover:text-gray-900 font-medium">Dashboard</button>
+            <button className="text-gray-600 hover:text-gray-900 font-medium">Documents</button>
+            <button className="text-purple-600 font-medium border-b-2 border-purple-600 pb-1">PDF Forms</button>
+            <button className="text-gray-600 hover:text-gray-900 font-medium">Contacts</button>
+            <button className="text-gray-600 hover:text-gray-900 font-medium">User Management</button>
+          </nav>
         </div>
         
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-3">
+          <Search className="h-5 w-5 text-gray-500" />
           <Button variant="outline" size="sm">
-            <Share className="h-4 w-4 mr-2" />
-            Share
+            <Plus className="h-4 w-4 mr-2" />
+            Invite
+          </Button>
+          <Button variant="outline" size="sm">
+            <Share className="h-4 w-4" />
           </Button>
           <Button variant="outline" size="sm">
             <Settings className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm">
-            <User className="h-4 w-4" />
+          <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+            <User className="h-4 w-4 text-gray-600" />
+          </div>
+        </div>
+      </div>
+
+      {/* Secondary Header */}
+      <div className="bg-white border-b px-6 py-3 flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <Folder className="h-4 w-4 text-blue-600" />
+            <span className="text-sm font-medium text-gray-700">Documents</span>
+            <ChevronDown className="h-4 w-4 text-gray-500" />
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-gray-600">Fatima Zahra</span>
+          <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
+            <span className="text-xs text-white font-medium">FZ</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Toolbar */}
+      <div className="bg-white border-b px-6 py-2">
+        <div className="flex items-center space-x-1">
+          <Button variant="ghost" size="sm" onClick={handleNewDocument}>
+            <Plus className="h-4 w-4" />
+            <span className="text-xs ml-1">New</span>
+          </Button>
+          <Button variant="ghost" size="sm">
+            <Folder className="h-4 w-4" />
+            <span className="text-xs ml-1">Open</span>
+          </Button>
+          <Button variant="ghost" size="sm">
+            <FileText className="h-4 w-4" />
+            <span className="text-xs ml-1">Templates</span>
+          </Button>
+          <Button variant="ghost" size="sm" onClick={handleSave}>
+            <Save className="h-4 w-4" />
+            <span className="text-xs ml-1">Save</span>
+          </Button>
+          <Button variant="ghost" size="sm">
+            <Download className="h-4 w-4" />
+            <span className="text-xs ml-1">Export</span>
+          </Button>
+          
+          <div className="w-px h-6 bg-gray-300 mx-2"></div>
+          
+          <Button variant="ghost" size="sm">
+            <Undo className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm">
+            <Redo className="h-4 w-4" />
+          </Button>
+          
+          <div className="w-px h-6 bg-gray-300 mx-2"></div>
+          
+          <Button variant="ghost" size="sm">
+            <Image className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm">
+            <Table className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm">
+            <Link className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm">
+            <Bookmark className="h-4 w-4" />
+          </Button>
+          
+          <div className="w-px h-6 bg-gray-300 mx-2"></div>
+          
+          <Button variant="ghost" size="sm">
+            <List className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm">
+            <ListOrdered className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm">
+            <AlignLeft className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm">
+            <AlignCenter className="h-4 w-4" />
+          </Button>
+          
+          <div className="w-px h-6 bg-gray-300 mx-2"></div>
+          
+          <Button variant="ghost" size="sm">
+            <Search className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm">
+            <FileText className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm">
+            <Upload className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm">
+            <Printer className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      <div className="flex-1 flex">
-        {/* Sidebar */}
-        <div className="w-64 border-r bg-gray-50 p-4">
-          <div className="mb-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input 
-                placeholder="Search forms..." 
-                className="pl-10 bg-white"
-              />
-            </div>
-          </div>
+      {/* Formatting Toolbar */}
+      <div className="bg-white border-b px-6 py-2">
+        <div className="flex items-center space-x-4">
+          <Select defaultValue="calibri">
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="calibri">Calibri</SelectItem>
+              <SelectItem value="arial">Arial</SelectItem>
+              <SelectItem value="times">Times New Roman</SelectItem>
+            </SelectContent>
+          </Select>
           
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Recent Forms</h3>
-            {mockDocuments.map((doc) => (
-              <div
-                key={doc.id}
-                onClick={() => {
-                  setSelectedDocument(doc);
-                  setDocumentTitle(doc.title);
-                  setDocumentContent(doc.content);
-                  setIsEditing(false);
-                }}
-                className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                  selectedDocument?.id === doc.id 
-                    ? 'bg-blue-100 border border-blue-200' 
-                    : 'bg-white hover:bg-gray-100 border border-gray-200'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <FileText className="h-4 w-4 text-gray-500" />
-                  <span className={`text-xs px-2 py-1 rounded ${
-                    doc.status === 'published' 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-yellow-100 text-yellow-700'
-                  }`}>
-                    {doc.status}
-                  </span>
-                </div>
-                <h4 className="font-medium text-sm mt-2 text-gray-900">{doc.title}</h4>
-                <p className="text-xs text-gray-500 mt-1">
-                  Modified {new Date(doc.lastModified).toLocaleDateString()}
-                </p>
-              </div>
-            ))}
+          <Select defaultValue="11">
+            <SelectTrigger className="w-16">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="8">8</SelectItem>
+              <SelectItem value="9">9</SelectItem>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="11">11</SelectItem>
+              <SelectItem value="12">12</SelectItem>
+              <SelectItem value="14">14</SelectItem>
+              <SelectItem value="16">16</SelectItem>
+              <SelectItem value="18">18</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <div className="flex items-center space-x-1">
+            <Button variant="ghost" size="sm">
+              <Bold className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm">
+              <Italic className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm">
+              <Underline className="h-4 w-4" />
+            </Button>
+            <div className="w-px h-6 bg-gray-300 mx-2"></div>
+            <Button variant="ghost" size="sm">
+              <Palette className="h-4 w-4" />
+            </Button>
+            <div className="w-px h-6 bg-gray-300 mx-2"></div>
+            <Button variant="ghost" size="sm">
+              <AlignLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm">
+              <AlignCenter className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm">
+              <AlignRight className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm">
+              <AlignJustify className="h-4 w-4" />
+            </Button>
+            <div className="w-px h-6 bg-gray-300 mx-2"></div>
+            <Select defaultValue="normal">
+              <SelectTrigger className="w-24">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="normal">Normal</SelectItem>
+                <SelectItem value="heading1">Heading 1</SelectItem>
+                <SelectItem value="heading2">Heading 2</SelectItem>
+                <SelectItem value="heading3">Heading 3</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
+      </div>
 
-        {/* Main Editor */}
-        <div className="flex-1 flex flex-col">
-          {selectedDocument && (
-            <>
-              {/* Document Header */}
-              <div className="border-b bg-white px-6 py-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    {isEditing ? (
-                      <Input
-                        value={documentTitle}
-                        onChange={(e) => setDocumentTitle(e.target.value)}
-                        className="text-xl font-semibold border-none shadow-none p-0 focus:ring-0"
-                        placeholder="Document title..."
-                      />
-                    ) : (
-                      <h1 className="text-xl font-semibold text-gray-900">{documentTitle}</h1>
-                    )}
-                    <p className="text-sm text-gray-500 mt-1">
-                      Last modified {new Date(selectedDocument.lastModified).toLocaleString()}
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant={isEditing ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setIsEditing(!isEditing)}
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      {isEditing ? "Done" : "Edit"}
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Eye className="h-4 w-4 mr-2" />
-                      Preview
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={handleSave}>
-                      <Save className="h-4 w-4 mr-2" />
-                      Save
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={handleShare}>
-                      <Share className="h-4 w-4 mr-2" />
-                      Share
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Download className="h-4 w-4 mr-2" />
-                      Export
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Toolbar */}
-              {isEditing && (
-                <div className="border-b bg-gray-50 px-6 py-2">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-1">
-                      <Button variant="ghost" size="sm">
-                        <Bold className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Italic className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Underline className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    
-                    <Separator orientation="vertical" className="h-6" />
-                    
-                    <div className="flex items-center space-x-1">
-                      <Button variant="ghost" size="sm">
-                        <AlignLeft className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <AlignCenter className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <AlignRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    
-                    <Separator orientation="vertical" className="h-6" />
-                    
-                    <div className="flex items-center space-x-1">
-                      <Button variant="ghost" size="sm">
-                        <List className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <ListOrdered className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    
-                    <Separator orientation="vertical" className="h-6" />
-                    
-                    <div className="flex items-center space-x-1">
-                      <Button variant="ghost" size="sm">
-                        <Table className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Image className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Link className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    
-                    <Separator orientation="vertical" className="h-6" />
-                    
-                    <Button variant="ghost" size="sm">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+      {/* Document Editor */}
+      <div className="flex-1 bg-gray-100 overflow-hidden">
+        <div className="h-full flex items-center justify-center">
+          <div className="w-full max-w-4xl h-full bg-white shadow-sm mx-6 my-4 overflow-y-auto">
+            <div className="p-16">
+              {isEditing ? (
+                <textarea
+                  value={documentContent}
+                  onChange={(e) => setDocumentContent(e.target.value)}
+                  className="w-full h-96 resize-none border-none outline-none font-calibri text-base leading-relaxed"
+                  placeholder="Start typing your document here..."
+                />
+              ) : (
+                <div 
+                  className="prose prose-lg max-w-none min-h-96 font-calibri text-base leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: documentContent }}
+                />
               )}
-
-              {/* Editor Content */}
-              <div className="flex-1 bg-white">
-                <div className="max-w-4xl mx-auto p-8">
-                  {isEditing ? (
-                    <div className="space-y-4">
-                      <textarea
-                        value={documentContent}
-                        onChange={(e) => setDocumentContent(e.target.value)}
-                        className="w-full h-96 p-4 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Start typing your form content here..."
-                      />
-                      <div className="text-sm text-gray-500">
-                        Tip: Use HTML tags for formatting or use the toolbar above
-                      </div>
-                    </div>
-                  ) : (
-                    <div 
-                      className="prose prose-lg max-w-none"
-                      dangerouslySetInnerHTML={{ __html: documentContent }}
-                    />
-                  )}
-                </div>
-              </div>
-            </>
-          )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
