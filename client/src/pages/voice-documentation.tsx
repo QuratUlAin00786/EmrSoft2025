@@ -463,8 +463,10 @@ export default function VoiceDocumentation() {
   const startRecording = async () => {
     try {
       // Don't automatically clear transcript - let users decide with Clear button
+      console.log('Requesting microphone access...');
       
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log('Microphone access granted');
       mediaRecorderRef.current = new MediaRecorder(stream);
       audioChunksRef.current = [];
 
@@ -476,7 +478,12 @@ export default function VoiceDocumentation() {
         speechRecognitionRef.current.interimResults = true;
         speechRecognitionRef.current.lang = 'en-US';
 
+        speechRecognitionRef.current.onstart = () => {
+          console.log('Speech recognition started');
+        };
+
         speechRecognitionRef.current.onresult = (event: any) => {
+          console.log('Speech recognition result:', event);
           let finalTranscript = '';
           let interimTranscript = '';
 
@@ -497,10 +504,24 @@ export default function VoiceDocumentation() {
         };
 
         speechRecognitionRef.current.onerror = (event: any) => {
-          console.warn('Speech recognition error:', event.error);
+          console.error('Speech recognition error:', event.error);
+          toast({ title: `Speech recognition error: ${event.error}`, variant: "destructive" });
         };
 
-        speechRecognitionRef.current.start();
+        speechRecognitionRef.current.onend = () => {
+          console.log('Speech recognition ended');
+        };
+
+        try {
+          speechRecognitionRef.current.start();
+          console.log('Speech recognition start requested');
+        } catch (error) {
+          console.error('Failed to start speech recognition:', error);
+          toast({ title: "Failed to start speech recognition", variant: "destructive" });
+        }
+      } else {
+        console.warn('Speech recognition not supported in this browser');
+        toast({ title: "Speech recognition not supported in this browser", variant: "destructive" });
       }
 
       mediaRecorderRef.current.ondataavailable = (event) => {
