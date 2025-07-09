@@ -2020,14 +2020,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const noteId = req.params.id;
+      console.log("DELETE request for noteId:", noteId);
+      console.log("Current voiceNotes array:", voiceNotes.map(note => ({ id: note.id, patientName: note.patientName })));
+      
       const noteIndex = voiceNotes.findIndex(note => note.id === noteId);
+      console.log("Found noteIndex:", noteIndex);
       
       if (noteIndex === -1) {
+        console.log("Voice note not found in array. Available IDs:", voiceNotes.map(note => note.id));
         return res.status(404).json({ error: "Voice note not found" });
       }
 
       // Remove the note from the array
       const deletedNote = voiceNotes.splice(noteIndex, 1)[0];
+      console.log("Successfully deleted note:", deletedNote.id);
+      console.log("Remaining voiceNotes count:", voiceNotes.length);
       
       res.status(200).json({ 
         message: "Voice note deleted successfully", 
