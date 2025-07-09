@@ -264,13 +264,15 @@ export default function VoiceDocumentation() {
         setCurrentTranscript("");
       }
       
-      // Force complete refresh from server to show the new note
-      queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      // Immediate UI update - add the new note to cache
+      queryClient.setQueryData(["/api/voice-documentation/notes"], (oldData: any) => {
+        if (!oldData) return [newNote];
+        return [newNote, ...oldData];
+      });
       
-      // Add a delay to ensure the server has processed the note before refetching
-      setTimeout(() => {
-        queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
-      }, 500);
+      // Also invalidate and refetch to sync with server
+      queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
       
       toast({ title: "Voice note saved successfully!" });
     },
@@ -321,7 +323,13 @@ export default function VoiceDocumentation() {
       return response.json();
     },
     onSuccess: (data, noteId) => {
-      // Force complete refetch to ensure UI is synchronized
+      // Immediate UI update - remove from cache first
+      queryClient.setQueryData(["/api/voice-documentation/notes"], (oldData: any) => {
+        if (!oldData) return [];
+        return oldData.filter((note: any) => note.id !== noteId);
+      });
+      
+      // Then invalidate and refetch to sync with server
       queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
       queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
       
