@@ -251,15 +251,6 @@ export default function VoiceDocumentation() {
       return JSON.parse(responseText);
     },
     onSuccess: (newNote, variables) => {
-      // Add the new note optimistically to the cache
-      queryClient.setQueryData(["/api/voice-documentation/notes"], (oldData: any) => {
-        if (!oldData) return [newNote];
-        // Check if note already exists to prevent duplicates
-        const existingNote = oldData.find((note: any) => note.id === newNote.id);
-        if (existingNote) return oldData;
-        return [newNote, ...oldData];
-      });
-      
       // Map the temporary audio URL to the actual note ID
       if (variables.tempAudioUrl && variables.tempNoteId) {
         setAudioStorage(prev => {
@@ -273,10 +264,9 @@ export default function VoiceDocumentation() {
         setCurrentTranscript("");
       }
       
-      // Force a background refresh to sync with server
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
-      }, 100);
+      // Force immediate complete refresh from server to show the new note
+      queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
       
       toast({ title: "Voice note saved successfully!" });
     },
@@ -318,7 +308,12 @@ export default function VoiceDocumentation() {
           'X-Tenant-Subdomain': 'demo'
         }
       });
-      if (!response.ok) throw new Error("Failed to delete voice note");
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error("404: Voice note not found");
+        }
+        throw new Error("Failed to delete voice note");
+      }
       return response.json();
     },
     onSuccess: (data, noteId) => {
