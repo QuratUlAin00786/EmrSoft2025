@@ -264,9 +264,13 @@ export default function VoiceDocumentation() {
         setCurrentTranscript("");
       }
       
-      // Force immediate complete refresh from server to show the new note
+      // Force complete refresh from server to show the new note
       queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
-      queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      
+      // Add a delay to ensure the server has processed the note before refetching
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      }, 500);
       
       toast({ title: "Voice note saved successfully!" });
     },
