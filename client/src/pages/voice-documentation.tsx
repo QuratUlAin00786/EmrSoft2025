@@ -264,15 +264,21 @@ export default function VoiceDocumentation() {
         setCurrentTranscript("");
       }
       
-      // Immediate UI update - add the new note to cache
+      // Force immediate cache update by setting data directly
       queryClient.setQueryData(["/api/voice-documentation/notes"], (oldData: any) => {
-        if (!oldData) return [newNote];
-        return [newNote, ...oldData];
+        const currentData = oldData || [];
+        // Check if note already exists to avoid duplicates
+        const existingIndex = currentData.findIndex((note: any) => note.id === newNote.id);
+        if (existingIndex >= 0) {
+          // Update existing note
+          const updatedData = [...currentData];
+          updatedData[existingIndex] = newNote;
+          return updatedData;
+        } else {
+          // Add new note at the beginning
+          return [newNote, ...currentData];
+        }
       });
-      
-      // Also invalidate and refetch to sync with server
-      queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
-      queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
       
       toast({ title: "Voice note saved successfully!" });
     },
@@ -323,15 +329,11 @@ export default function VoiceDocumentation() {
       return response.json();
     },
     onSuccess: (data, noteId) => {
-      // Immediate UI update - remove from cache first
+      // Force immediate cache update by removing the note
       queryClient.setQueryData(["/api/voice-documentation/notes"], (oldData: any) => {
         if (!oldData) return [];
         return oldData.filter((note: any) => note.id !== noteId);
       });
-      
-      // Then invalidate and refetch to sync with server
-      queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
-      queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
       
       // Clean up audio storage
       setAudioStorage(prev => {
