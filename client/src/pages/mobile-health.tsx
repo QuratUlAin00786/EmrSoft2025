@@ -423,7 +423,7 @@ export default function MobileHealth() {
             className="flex items-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
+            Back
           </Button>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Mobile Health</h1>

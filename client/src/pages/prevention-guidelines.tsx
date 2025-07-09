@@ -131,7 +131,7 @@ export default function PreventionGuidelines() {
             className="mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Clinical Decision Support
+            Back
           </Button>
           
           <div className="flex items-center gap-3">
