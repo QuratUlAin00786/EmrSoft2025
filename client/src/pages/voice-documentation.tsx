@@ -491,8 +491,7 @@ export default function VoiceDocumentation() {
 
   const startRecording = async () => {
     try {
-      // Clear previous transcript
-      setCurrentTranscript("");
+      // Don't automatically clear transcript - let users decide with Clear button
       
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorderRef.current = new MediaRecorder(stream);
@@ -589,8 +588,7 @@ export default function VoiceDocumentation() {
         
         stream.getTracks().forEach(track => track.stop());
         
-        // Clear state for next recording
-        setCurrentTranscript("");
+        // Don't clear transcript here - it should persist for the user to see
       };
 
       mediaRecorderRef.current.start();
@@ -1024,17 +1022,33 @@ export default function VoiceDocumentation() {
                 </div>
               </div>
 
-              {isRecording && (
-                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm font-medium text-red-800">Live Transcription</span>
+              {/* Transcript Display Area */}
+              <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    {isRecording ? (
+                      <>
+                        <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                        <span className="text-sm font-medium text-red-800">Live Transcription</span>
+                      </>
+                    ) : (
+                      <span className="text-sm font-medium text-gray-800">Transcript</span>
+                    )}
                   </div>
-                  <div className="text-sm text-gray-700">
-                    {currentTranscript || "Start speaking to see real-time transcription..."}
-                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => setCurrentTranscript("")}
+                    disabled={!currentTranscript}
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Clear
+                  </Button>
                 </div>
-              )}
+                <div className="text-sm text-gray-700 min-h-[3rem] p-2 bg-white border rounded">
+                  {currentTranscript || (isRecording ? "Start speaking to see real-time transcription..." : "No transcript available. Start recording to capture speech.")}
+                </div>
+              </div>
             </CardContent>
           </Card>
 
