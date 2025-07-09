@@ -250,7 +250,33 @@ export default function VoiceDocumentation() {
       
       return JSON.parse(responseText);
     },
-    onSuccess: (newNote, variables) => {
+    onMutate: async (variables) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      
+      // Snapshot the previous value
+      const previousNotes = queryClient.getQueryData(["/api/voice-documentation/notes"]);
+      
+      // Optimistically update to the new value
+      const optimisticNote = {
+        id: `temp_${Date.now()}`,
+        patientId: variables.patientId,
+        patientName: "Loading...",
+        type: variables.type,
+        transcript: variables.transcript || "",
+        status: "completed",
+        recordingDuration: variables.duration || 0,
+        confidence: variables.confidence || 0,
+        createdAt: new Date().toISOString()
+      };
+      
+      queryClient.setQueryData(["/api/voice-documentation/notes"], (old: any) => {
+        return [optimisticNote, ...(old || [])];
+      });
+      
+      return { previousNotes };
+    },
+    onSuccess: (newNote, variables, context) => {
       // Map the temporary audio URL to the actual note ID
       if (variables.tempAudioUrl && variables.tempNoteId) {
         setAudioStorage(prev => {
@@ -264,48 +290,19 @@ export default function VoiceDocumentation() {
         setCurrentTranscript("");
       }
       
-      // Force immediate cache update by setting data directly
-      queryClient.setQueryData(["/api/voice-documentation/notes"], (oldData: any) => {
-        const currentData = oldData || [];
-        // Check if note already exists to avoid duplicates
-        const existingIndex = currentData.findIndex((note: any) => note.id === newNote.id);
-        if (existingIndex >= 0) {
-          // Update existing note
-          const updatedData = [...currentData];
-          updatedData[existingIndex] = newNote;
-          return updatedData;
-        } else {
-          // Add new note at the beginning
-          return [newNote, ...currentData];
-        }
+      // Update with real data from server
+      queryClient.setQueryData(["/api/voice-documentation/notes"], (old: any) => {
+        if (!old) return [newNote];
+        // Replace the optimistic note with the real note
+        return [newNote, ...old.filter((note: any) => !note.id.startsWith('temp_'))];
       });
       
       toast({ title: "Voice note saved successfully!" });
     },
-    onError: (error, variables) => {
-      console.error("Voice note creation error:", error);
-      console.error("Variables that failed:", variables);
-      
-      // Remove optimistic note on failure and show error
-      if (variables.tempNoteId) {
-        queryClient.setQueryData(["/api/voice-documentation/notes"], (oldData: any) => {
-          if (!oldData) return [];
-          return oldData.filter((note: any) => note.id !== variables.tempNoteId);
-        });
-        
-        // Clean up audio storage
-        setAudioStorage(prev => {
-          const newMap = new Map(prev);
-          newMap.delete(variables.tempNoteId!);
-          return newMap;
-        });
-      }
-      
-      toast({ 
-        title: "Failed to save voice note", 
-        description: "Your recording was not saved. Please try again.",
-        variant: "destructive" 
-      });
+    onError: (err, variables, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      queryClient.setQueryData(["/api/voice-documentation/notes"], context?.previousNotes);
+      toast({ title: "Failed to save voice note", variant: "destructive" });
     }
   });
 
@@ -328,13 +325,22 @@ export default function VoiceDocumentation() {
       }
       return response.json();
     },
-    onSuccess: (data, noteId) => {
-      // Force immediate cache update by removing the note
-      queryClient.setQueryData(["/api/voice-documentation/notes"], (oldData: any) => {
-        if (!oldData) return [];
-        return oldData.filter((note: any) => note.id !== noteId);
+    onMutate: async (noteId) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      
+      // Snapshot the previous value
+      const previousNotes = queryClient.getQueryData(["/api/voice-documentation/notes"]);
+      
+      // Optimistically update by removing the note
+      queryClient.setQueryData(["/api/voice-documentation/notes"], (old: any) => {
+        if (!old) return [];
+        return old.filter((note: any) => note.id !== noteId);
       });
       
+      return { previousNotes, noteId };
+    },
+    onSuccess: (data, noteId) => {
       // Clean up audio storage
       setAudioStorage(prev => {
         const newMap = new Map(prev);
@@ -345,31 +351,10 @@ export default function VoiceDocumentation() {
       toast({ title: "Voice note deleted successfully!" });
       console.log("Voice note deleted from backend:", noteId);
     },
-    onError: (error, noteId) => {
-      console.error("Voice note deletion error:", error);
-      
-      // If it's a 404 error (note doesn't exist), remove it from the UI cache anyway
-      if (error.message?.includes('404') || error.message?.includes('not found')) {
-        queryClient.setQueryData(["/api/voice-documentation/notes"], (oldData: any) => {
-          if (!oldData) return [];
-          return oldData.filter((note: any) => note.id !== noteId);
-        });
-        
-        toast({ 
-          title: "Note already deleted", 
-          description: "This voice note was already removed.",
-        });
-      } else {
-        // For other errors, refresh from server
-        queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
-        queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
-        
-        toast({ 
-          title: "Failed to delete voice note", 
-          description: "Please try again.",
-          variant: "destructive" 
-        });
-      }
+    onError: (err, noteId, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      queryClient.setQueryData(["/api/voice-documentation/notes"], context?.previousNotes);
+      toast({ title: "Failed to delete voice note", variant: "destructive" });
     }
   });
 
