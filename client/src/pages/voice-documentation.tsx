@@ -1061,9 +1061,14 @@ export default function VoiceDocumentation() {
                     </Button>
                   </div>
                 </div>
-                <div className="text-sm text-gray-700 min-h-[3rem] p-2 bg-white border rounded">
-                  {currentTranscript || (isRecording ? "Start speaking to see real-time transcription..." : "No transcript available. Start recording to capture speech.")}
-                </div>
+                <textarea
+                  value={currentTranscript}
+                  onChange={(e) => setCurrentTranscript(e.target.value)}
+                  placeholder={isRecording ? "Start speaking to see real-time transcription..." : "Type your transcript here or start recording to capture speech automatically..."}
+                  className="w-full text-sm text-gray-700 min-h-[3rem] p-2 bg-white border rounded resize-none"
+                  rows={3}
+                  disabled={isRecording}
+                />
               </div>
             </CardContent>
           </Card>
