@@ -245,7 +245,7 @@ export default function VoiceDocumentation() {
       
       return JSON.parse(responseText);
     },
-    onSuccess: (newNote, variables) => {
+    onSuccess: async (newNote, variables) => {
       // Map the temporary audio URL to the actual note ID
       if (variables.tempAudioUrl && variables.tempNoteId) {
         setAudioStorage(prev => {
@@ -260,8 +260,8 @@ export default function VoiceDocumentation() {
       }
       
       // Force immediate refresh with both invalidate and refetch
-      queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
-      queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
       
       toast({ title: "Voice note saved successfully!" });
     },
@@ -289,7 +289,7 @@ export default function VoiceDocumentation() {
       }
       return response.json();
     },
-    onSuccess: (data, noteId) => {
+    onSuccess: async (data, noteId) => {
       // Clean up audio storage
       setAudioStorage(prev => {
         const newMap = new Map(prev);
@@ -298,8 +298,8 @@ export default function VoiceDocumentation() {
       });
       
       // Force immediate refresh with both invalidate and refetch
-      queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
-      queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
       
       toast({ title: "Voice note deleted successfully!" });
       console.log("Voice note deleted from backend:", noteId);
