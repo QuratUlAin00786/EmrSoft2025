@@ -251,6 +251,15 @@ export default function VoiceDocumentation() {
       return JSON.parse(responseText);
     },
     onSuccess: (newNote, variables) => {
+      // Add the new note optimistically to the cache
+      queryClient.setQueryData(["/api/voice-documentation/notes"], (oldData: any) => {
+        if (!oldData) return [newNote];
+        // Check if note already exists to prevent duplicates
+        const existingNote = oldData.find((note: any) => note.id === newNote.id);
+        if (existingNote) return oldData;
+        return [newNote, ...oldData];
+      });
+      
       // Map the temporary audio URL to the actual note ID
       if (variables.tempAudioUrl && variables.tempNoteId) {
         setAudioStorage(prev => {
@@ -259,16 +268,15 @@ export default function VoiceDocumentation() {
           newMap.set(newNote.id, variables.tempAudioUrl); // Add actual note mapping
           return newMap;
         });
-        
-        // Force complete cache refresh to ensure server data is used
-        queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
-        queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
       } else {
-        // Manual save - clear transcript and refresh
+        // Manual save - clear transcript
         setCurrentTranscript("");
-        queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
-        queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
       }
+      
+      // Force a background refresh to sync with server
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      }, 100);
       
       toast({ title: "Voice note saved successfully!" });
     },
