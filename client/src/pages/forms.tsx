@@ -187,6 +187,29 @@ export default function FormsPage() {
               <Settings className="h-4 w-4" />
             </Button>
           </div>
+
+          <div className="flex items-center space-x-1">
+            <Button variant="ghost" size="sm">
+              <div className="w-4 h-4 border border-gray-400 flex items-center justify-center">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              </div>
+            </Button>
+            <Button variant="ghost" size="sm">
+              <div className="w-4 h-4 border border-gray-400 bg-gray-100 flex items-center justify-center">
+                <div className="w-2 h-2 bg-gray-600"></div>
+              </div>
+            </Button>
+            <Button variant="ghost" size="sm">
+              <div className="w-4 h-4 border border-gray-400 flex items-center justify-center text-xs">
+                ✓
+              </div>
+            </Button>
+            <Button variant="ghost" size="sm">
+              <div className="w-4 h-4 border border-gray-400 flex items-center justify-center">
+                <Settings className="h-3 w-3" />
+              </div>
+            </Button>
+          </div>
         </div>
 
         <div className="flex items-center space-x-2 mt-3">
