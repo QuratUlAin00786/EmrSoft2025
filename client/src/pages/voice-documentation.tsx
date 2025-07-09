@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,8 @@ import {
   Copy,
   Save,
   Maximize,
-  Edit
+  Edit,
+  ArrowLeft
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -118,6 +120,7 @@ interface ClinicalPhoto {
 }
 
 export default function VoiceDocumentation() {
+  const [location, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("voice");
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -819,10 +822,21 @@ export default function VoiceDocumentation() {
     <div className="h-full overflow-y-auto">
       <div className="p-6 space-y-6">
         <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Voice Documentation</h1>
-          <p className="text-gray-600 mt-1">AI-powered voice transcription and clinical photography</p>
-        </div>
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLocation("/")}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Voice Documentation</h1>
+              <p className="text-gray-600 mt-1">AI-powered voice transcription and clinical photography</p>
+            </div>
+          </div>
         <div className="flex gap-3">
           <Dialog>
             <DialogTrigger asChild>

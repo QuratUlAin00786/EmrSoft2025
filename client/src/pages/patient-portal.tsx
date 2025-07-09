@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,7 +43,8 @@ import {
   Eye,
   BookOpen,
   Activity,
-  Star
+  Star,
+  ArrowLeft
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -228,6 +230,7 @@ const mockPortalData: PatientPortalData = {
 };
 
 export default function PatientPortal() {
+  const [location, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
   const [showAllNotifications, setShowAllNotifications] = useState(false);
@@ -266,9 +269,20 @@ export default function PatientPortal() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Patient Portal</h1>
-            <p className="text-gray-600 mt-1">Manage your health information and appointments</p>
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLocation("/")}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Patient Portal</h1>
+              <p className="text-gray-600 mt-1">Manage your health information and appointments</p>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <DropdownMenu>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,7 +34,8 @@ import {
   Globe,
   Calendar,
   MessageSquare,
-  Camera
+  Camera,
+  ArrowLeft
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -85,6 +87,7 @@ interface PushNotification {
 }
 
 export default function MobileHealth() {
+  const [location, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("devices");
   const [selectedDevice, setSelectedDevice] = useState<WearableDevice | null>(null);
   const [configureOpen, setConfigureOpen] = useState(false);
@@ -412,9 +415,20 @@ export default function MobileHealth() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Mobile Health</h1>
-          <p className="text-gray-600 mt-1">Wearable devices, mobile apps, and patient engagement</p>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation("/")}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Dashboard
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Mobile Health</h1>
+            <p className="text-gray-600 mt-1">Wearable devices, mobile apps, and patient engagement</p>
+          </div>
         </div>
         <div className="flex gap-3">
           <Dialog>

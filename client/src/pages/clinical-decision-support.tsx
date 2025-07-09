@@ -26,7 +26,8 @@ import {
   Search,
   Filter,
   Download,
-  Settings
+  Settings,
+  ArrowLeft
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -304,9 +305,20 @@ export default function ClinicalDecisionSupport() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Clinical Decision Support</h1>
-          <p className="text-gray-600 mt-1">AI-powered insights and recommendations</p>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation("/")}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Clinical Decision Support</h1>
+            <p className="text-gray-600 mt-1">AI-powered insights and recommendations</p>
+          </div>
         </div>
         <div className="flex gap-3">
           <Dialog>

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,7 +37,8 @@ import {
   Download,
   Share2,
   MessageSquare,
-  MonitorSpeaker
+  MonitorSpeaker,
+  ArrowLeft
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -82,6 +84,7 @@ interface WaitingRoom {
 }
 
 export default function Telemedicine() {
+  const [location, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("consultations");
   const [currentCall, setCurrentCall] = useState<Consultation | null>(null);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
@@ -430,9 +433,20 @@ export default function Telemedicine() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Telemedicine</h1>
-          <p className="text-gray-600 mt-1">Virtual consultations and remote patient care</p>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation("/")}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Telemedicine</h1>
+            <p className="text-gray-600 mt-1">Virtual consultations and remote patient care</p>
+          </div>
         </div>
         <div className="flex gap-3">
           <Dialog open={scheduleOpen} onOpenChange={setScheduleOpen}>
