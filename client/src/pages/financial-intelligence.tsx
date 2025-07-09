@@ -45,10 +45,12 @@ import {
   Shield,
   Calculator,
   Banknote,
-  ChevronDown
+  ChevronDown,
+  ArrowLeft
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 interface RevenueData {
   month: string;
@@ -111,6 +113,7 @@ interface FinancialForecast {
 }
 
 export default function FinancialIntelligence() {
+  const [location, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("overview");
   const [dateRange, setDateRange] = useState("last_3_months");
   const [selectedClaim, setSelectedClaim] = useState<Claim | null>(null);
@@ -382,6 +385,18 @@ export default function FinancialIntelligence() {
 
   return (
     <div className="p-6 space-y-6">
+      {/* Back Button */}
+      <div className="mb-6">
+        <Button 
+          variant="ghost" 
+          onClick={() => setLocation("/")}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </Button>
+      </div>
+
       {/* Scroll Down Button */}
       {showScrollButton && (
         <Button
