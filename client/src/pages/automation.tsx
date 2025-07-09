@@ -21,10 +21,12 @@ import {
   CheckCircle,
   TrendingUp,
   Settings,
-  Filter
+  Filter,
+  ArrowLeft
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 interface AutomationRule {
   id: string;
@@ -88,6 +90,7 @@ interface AutomationStats {
 }
 
 export default function AutomationPage() {
+  const [, setLocation] = useLocation();
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -210,9 +213,20 @@ export default function AutomationPage() {
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Automation</h1>
-          <p className="text-gray-600 mt-1">Streamline workflows with intelligent automation</p>
+        <div className="flex items-center space-x-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation("/")}
+            className="flex items-center space-x-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back</span>
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Automation</h1>
+            <p className="text-gray-600 mt-1">Streamline workflows with intelligent automation</p>
+          </div>
         </div>
         <div className="flex items-center gap-4">
           <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>

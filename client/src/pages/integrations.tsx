@@ -30,9 +30,11 @@ import {
   Activity,
   Shield,
   Trash2,
-  RefreshCw
+  RefreshCw,
+  ArrowLeft
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 interface Integration {
   id: string;
@@ -82,6 +84,7 @@ interface ApiKey {
 }
 
 export default function IntegrationsPage() {
+  const [, setLocation] = useLocation();
   const [selectedIntegration, setSelectedIntegration] = useState<string | null>(null);
   const [isConnectionDialogOpen, setIsConnectionDialogOpen] = useState(false);
   const [isWebhookDialogOpen, setIsWebhookDialogOpen] = useState(false);
@@ -264,9 +267,20 @@ export default function IntegrationsPage() {
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Integrations</h1>
-          <p className="text-gray-600 mt-1">Connect external services and manage API access</p>
+        <div className="flex items-center space-x-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation("/")}
+            className="flex items-center space-x-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back</span>
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Integrations</h1>
+            <p className="text-gray-600 mt-1">Connect external services and manage API access</p>
+          </div>
         </div>
         <div className="flex items-center gap-4">
           <Dialog open={isConnectionDialogOpen} onOpenChange={setIsConnectionDialogOpen}>
