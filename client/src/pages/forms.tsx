@@ -55,106 +55,75 @@ export default function Forms() {
   const handleHighlight = () => toast({ title: "Text Highlight", description: "Text highlighting tool activated." });
   const handleClock = () => toast({ title: "Insert Time", description: "Time insertion dialog opened." });
   const handleMore = () => toast({ title: "More Options", description: "Additional formatting options opened." });
+  const applyTextFormatting = (formatType: 'paragraph' | 'heading1' | 'heading2') => {
+    if (!textareaRef) return;
+    
+    const start = textareaRef.selectionStart;
+    const end = textareaRef.selectionEnd;
+    const selectedText = documentContent.substring(start, end);
+    
+    if (!selectedText) {
+      toast({ 
+        title: "Select Text", 
+        description: `Please select text to apply ${formatType} formatting`,
+        duration: 3000
+      });
+      return;
+    }
+    
+    const beforeText = documentContent.substring(0, start);
+    const afterText = documentContent.substring(end);
+    let formattedText = selectedText;
+    
+    switch (formatType) {
+      case 'paragraph':
+        formattedText = selectedText.toLowerCase();
+        break;
+      case 'heading1':
+        formattedText = selectedText.toUpperCase();
+        break;
+      case 'heading2':
+        formattedText = selectedText.charAt(0).toUpperCase() + selectedText.slice(1).toLowerCase();
+        break;
+    }
+    
+    const newContent = beforeText + formattedText + afterText;
+    setDocumentContent(newContent);
+    
+    // Use requestAnimationFrame for better timing
+    requestAnimationFrame(() => {
+      if (textareaRef) {
+        textareaRef.focus();
+        textareaRef.setSelectionRange(start, start + formattedText.length);
+      }
+    });
+    
+    const titles = {
+      paragraph: "✓ Paragraph",
+      heading1: "✓ Heading 1", 
+      heading2: "✓ Heading 2"
+    };
+    
+    toast({ 
+      title: titles[formatType],
+      description: `${formatType} formatting applied successfully`,
+      duration: 3000
+    });
+  };
+
   const handleParagraph = () => {
     console.log("handleParagraph called");
-    if (textareaRef) {
-      const start = textareaRef.selectionStart;
-      const end = textareaRef.selectionEnd;
-      const selectedText = documentContent.substring(start, end);
-      
-      if (selectedText) {
-        const beforeText = documentContent.substring(0, start);
-        const afterText = documentContent.substring(end);
-        const formattedText = selectedText.toLowerCase(); // Convert to lowercase for paragraph
-        const newContent = beforeText + formattedText + afterText;
-        
-        setDocumentContent(newContent);
-        setTimeout(() => {
-          textareaRef.setSelectionRange(start, start + formattedText.length);
-          textareaRef.focus();
-        }, 0);
-        
-        toast({ 
-          title: "✓ Paragraph", 
-          description: "Text converted to paragraph formatting",
-          duration: 3000
-        });
-      } else {
-        toast({ 
-          title: "Select Text", 
-          description: "Please select text to apply paragraph formatting",
-          duration: 3000
-        });
-      }
-    }
+    applyTextFormatting('paragraph');
   };
 
   const handleH1 = () => {
     console.log("handleH1 called");
-    if (textareaRef) {
-      const start = textareaRef.selectionStart;
-      const end = textareaRef.selectionEnd;
-      const selectedText = documentContent.substring(start, end);
-      
-      if (selectedText) {
-        const beforeText = documentContent.substring(0, start);
-        const afterText = documentContent.substring(end);
-        const formattedText = selectedText.toUpperCase(); // Make text uppercase for H1 effect
-        const newContent = beforeText + formattedText + afterText;
-        
-        setDocumentContent(newContent);
-        setTimeout(() => {
-          textareaRef.setSelectionRange(start, start + formattedText.length);
-          textareaRef.focus();
-        }, 0);
-        
-        toast({ 
-          title: "✓ Heading 1", 
-          description: "H1 formatting applied to selected text",
-          duration: 3000
-        });
-      } else {
-        toast({ 
-          title: "Select Text", 
-          description: "Please select text to apply H1 formatting",
-          duration: 3000
-        });
-      }
-    }
+    applyTextFormatting('heading1');
   };
 
   const handleH2 = () => {
     console.log("handleH2 called");
-    if (textareaRef) {
-      const start = textareaRef.selectionStart;
-      const end = textareaRef.selectionEnd;
-      const selectedText = documentContent.substring(start, end);
-      
-      if (selectedText) {
-        const beforeText = documentContent.substring(0, start);
-        const afterText = documentContent.substring(end);
-        const formattedText = selectedText.charAt(0).toUpperCase() + selectedText.slice(1); // Capitalize first letter for H2
-        const newContent = beforeText + formattedText + afterText;
-        
-        setDocumentContent(newContent);
-        setTimeout(() => {
-          textareaRef.setSelectionRange(start, start + formattedText.length);
-          textareaRef.focus();
-        }, 0);
-        
-        toast({ 
-          title: "✓ Heading 2", 
-          description: "H2 formatting applied to selected text",
-          duration: 3000
-        });
-      } else {
-        toast({ 
-          title: "Select Text", 
-          description: "Please select text to apply H2 formatting",
-          duration: 3000
-        });
-      }
-    }
+    applyTextFormatting('heading2');
   };
 
   return (
