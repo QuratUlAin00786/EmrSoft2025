@@ -100,9 +100,26 @@ export default function Forms() {
               <SelectValue placeholder="Verdana" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="verdana">Verdana</SelectItem>
               <SelectItem value="arial">Arial</SelectItem>
-              <SelectItem value="times">Times</SelectItem>
+              <SelectItem value="calibri">Calibri</SelectItem>
+              <SelectItem value="cambria">Cambria</SelectItem>
+              <SelectItem value="comic-sans">Comic Sans MS</SelectItem>
+              <SelectItem value="consolas">Consolas</SelectItem>
+              <SelectItem value="courier">Courier New</SelectItem>
+              <SelectItem value="franklin">Franklin Gothic</SelectItem>
+              <SelectItem value="garamond">Garamond</SelectItem>
+              <SelectItem value="georgia">Georgia</SelectItem>
+              <SelectItem value="helvetica">Helvetica</SelectItem>
+              <SelectItem value="impact">Impact</SelectItem>
+              <SelectItem value="lato">Lato</SelectItem>
+              <SelectItem value="lucida">Lucida Console</SelectItem>
+              <SelectItem value="open-sans">Open Sans</SelectItem>
+              <SelectItem value="palatino">Palatino</SelectItem>
+              <SelectItem value="segoe">Segoe UI</SelectItem>
+              <SelectItem value="tahoma">Tahoma</SelectItem>
+              <SelectItem value="times">Times New Roman</SelectItem>
+              <SelectItem value="trebuchet">Trebuchet MS</SelectItem>
+              <SelectItem value="verdana">Verdana</SelectItem>
             </SelectContent>
           </Select>
           
