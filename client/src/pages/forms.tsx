@@ -5,7 +5,8 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, Bold, Italic, Underline, List, ListOrdered, 
   AlignLeft, AlignCenter, AlignRight, AlignJustify, Type,
-  Table, Paperclip
+  Table, Paperclip, Image, Link, MoreHorizontal, Clock,
+  Palette, Highlighter
 } from "lucide-react";
 
 export default function Forms() {
@@ -45,6 +46,11 @@ export default function Forms() {
   const handleLabs = () => toast({ title: "Labs", description: "Lab results options opened." });
   const handlePatientRecords = () => toast({ title: "Patient Records", description: "Patient records options opened." });
   const handleInsertProduct = () => toast({ title: "Insert Product", description: "Product insertion dialog opened." });
+  const handleImage = () => toast({ title: "Insert Image", description: "Image insertion dialog opened." });
+  const handleLink = () => toast({ title: "Insert Link", description: "Link insertion dialog opened." });
+  const handleHighlight = () => toast({ title: "Text Highlight", description: "Text highlighting tool activated." });
+  const handleClock = () => toast({ title: "Insert Time", description: "Time insertion dialog opened." });
+  const handleMore = () => toast({ title: "More Options", description: "Additional formatting options opened." });
 
   return (
     <div className="h-full flex flex-col bg-gray-50">
@@ -179,11 +185,29 @@ export default function Forms() {
             )}
           </div>
           
+          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleHighlight}>
+            <Highlighter className="h-3 w-3" />
+          </Button>
+          
+          <div className="h-3 w-px bg-gray-300 mx-1"></div>
+          
+          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleClock}>
+            <Clock className="h-3 w-3" />
+          </Button>
           <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleTable}>
             <Table className="h-3 w-3" />
           </Button>
           <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleAttachFile}>
             <Paperclip className="h-3 w-3" />
+          </Button>
+          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleImage}>
+            <Image className="h-3 w-3" />
+          </Button>
+          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleLink}>
+            <Link className="h-3 w-3" />
+          </Button>
+          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleMore}>
+            <MoreHorizontal className="h-3 w-3" />
           </Button>
         </div>
 
@@ -209,6 +233,12 @@ export default function Forms() {
           </Button>
           <Button variant="ghost" size="sm" className="text-xs h-4 px-2" onClick={handleLabs}>
             Labs
+          </Button>
+          <Button variant="ghost" size="sm" className="text-xs h-4 px-2" onClick={handlePatientRecords}>
+            Patient records
+          </Button>
+          <Button variant="ghost" size="sm" className="text-xs h-4 px-2" onClick={handleInsertProduct}>
+            Insert product
           </Button>
         </div>
       </div>
