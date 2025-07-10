@@ -6,7 +6,8 @@ import {
   ArrowLeft, Bold, Italic, Underline, List, ListOrdered, 
   AlignLeft, AlignCenter, AlignRight, AlignJustify, Type,
   Table, Paperclip, Image, Link, MoreHorizontal, Clock,
-  Palette, Highlighter
+  Palette, Highlighter, Minus, Plus, Eye, Download,
+  Settings, FileText, Calculator, Search
 } from "lucide-react";
 
 export default function Forms() {
@@ -78,13 +79,13 @@ export default function Forms() {
         </div>
       </div>
 
-      {/* Toolbar - exact match to Semble */}
-      <div className="bg-white border-b border-gray-200 px-3 py-1 flex-shrink-0">
+      {/* Toolbar - exact match to Semble with all visible options */}
+      <div className="bg-white border-b border-gray-200 px-2 py-2 flex-shrink-0">
         {/* Main formatting row */}
-        <div className="flex justify-center items-center gap-1 mb-1">
+        <div className="flex justify-center items-center gap-0.5 mb-2">
           {/* Font controls */}
           <Select value={textStyle} onValueChange={setTextStyle}>
-            <SelectTrigger className="w-16 h-5 text-xs">
+            <SelectTrigger className="w-14 h-6 text-xs border border-gray-300">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -95,7 +96,7 @@ export default function Forms() {
           </Select>
           
           <Select value={fontFamily} onValueChange={setFontFamily}>
-            <SelectTrigger className="w-18 h-5 text-xs">
+            <SelectTrigger className="w-16 h-6 text-xs border border-gray-300">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -106,7 +107,7 @@ export default function Forms() {
           </Select>
           
           <Select value={fontSize} onValueChange={setFontSize}>
-            <SelectTrigger className="w-12 h-5 text-xs">
+            <SelectTrigger className="w-12 h-6 text-xs border border-gray-300">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -117,50 +118,50 @@ export default function Forms() {
             </SelectContent>
           </Select>
           
-          <div className="h-3 w-px bg-gray-300 mx-1"></div>
+          <div className="h-4 w-px bg-gray-300 mx-1"></div>
           
-          {/* Text formatting */}
-          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleBold}>
+          {/* Text formatting - more visible */}
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleBold}>
             <Bold className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleItalic}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleItalic}>
             <Italic className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleUnderline}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleUnderline}>
             <Underline className="h-3 w-3" />
           </Button>
           
-          <div className="h-3 w-px bg-gray-300 mx-1"></div>
+          <div className="h-4 w-px bg-gray-300 mx-1"></div>
           
           {/* Lists */}
-          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleBulletList}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleBulletList}>
             <List className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleNumberedList}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleNumberedList}>
             <ListOrdered className="h-3 w-3" />
           </Button>
           
-          <div className="h-3 w-px bg-gray-300 mx-1"></div>
+          <div className="h-4 w-px bg-gray-300 mx-1"></div>
           
           {/* Alignment */}
-          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleAlignLeft}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleAlignLeft}>
             <AlignLeft className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleAlignCenter}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleAlignCenter}>
             <AlignCenter className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleAlignRight}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleAlignRight}>
             <AlignRight className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleAlignJustify}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleAlignJustify}>
             <AlignJustify className="h-3 w-3" />
           </Button>
           
-          <div className="h-3 w-px bg-gray-300 mx-1"></div>
+          <div className="h-4 w-px bg-gray-300 mx-1"></div>
           
           {/* Text color and tools */}
           <div className="relative">
-            <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={() => setShowColorPicker(!showColorPicker)}>
+            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={() => setShowColorPicker(!showColorPicker)}>
               <Type className="h-3 w-3" />
             </Button>
             {showColorPicker && (
@@ -185,59 +186,59 @@ export default function Forms() {
             )}
           </div>
           
-          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleHighlight}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleHighlight}>
             <Highlighter className="h-3 w-3" />
           </Button>
           
-          <div className="h-3 w-px bg-gray-300 mx-1"></div>
+          <div className="h-4 w-px bg-gray-300 mx-1"></div>
           
-          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleClock}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleClock}>
             <Clock className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleTable}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleTable}>
             <Table className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleAttachFile}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleAttachFile}>
             <Paperclip className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleImage}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleImage}>
             <Image className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleLink}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleLink}>
             <Link className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleMore}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleMore}>
             <MoreHorizontal className="h-3 w-3" />
           </Button>
         </div>
 
-        {/* Medical data buttons row */}
+        {/* Medical data buttons row - more clearly visible */}
         <div className="flex justify-center items-center gap-1">
-          <Button variant="ghost" size="sm" className="text-xs h-4 px-2" onClick={handleInsertTemplate}>
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={handleInsertTemplate}>
             Insert template
           </Button>
-          <Button variant="ghost" size="sm" className="text-xs h-4 px-2" onClick={handleInsertLogo}>
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={handleInsertLogo}>
             Insert logo
           </Button>
-          <Button variant="ghost" size="sm" className="text-xs h-4 px-2" onClick={handleClinic}>
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={handleClinic}>
             Clinic
           </Button>
-          <Button variant="ghost" size="sm" className="text-xs h-4 px-2" onClick={handlePatient}>
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={handlePatient}>
             Patient
           </Button>
-          <Button variant="ghost" size="sm" className="text-xs h-4 px-2" onClick={handleRecipient}>
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={handleRecipient}>
             Recipient
           </Button>
-          <Button variant="ghost" size="sm" className="text-xs h-4 px-2" onClick={handleAppointments}>
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={handleAppointments}>
             Appointments
           </Button>
-          <Button variant="ghost" size="sm" className="text-xs h-4 px-2" onClick={handleLabs}>
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={handleLabs}>
             Labs
           </Button>
-          <Button variant="ghost" size="sm" className="text-xs h-4 px-2" onClick={handlePatientRecords}>
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={handlePatientRecords}>
             Patient records
           </Button>
-          <Button variant="ghost" size="sm" className="text-xs h-4 px-2" onClick={handleInsertProduct}>
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={handleInsertProduct}>
             Insert product
           </Button>
         </div>
