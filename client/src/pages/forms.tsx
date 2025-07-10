@@ -363,6 +363,36 @@ export default function Forms() {
         </div>
       </div>
 
+      {/* Clinical Header Selection - Create the Letter */}
+      <div className="bg-white border-b border-gray-200 px-4 py-4">
+        <div className="max-w-md">
+          <h3 className="text-sm font-medium text-gray-900 mb-3">Create the Letter</h3>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-2">Select Header</label>
+            <Select>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Your Clinic" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="your-clinic">Your Clinic</SelectItem>
+                <SelectItem value="main-hospital">Main Hospital</SelectItem>
+                <SelectItem value="cardiology-dept">Cardiology Department</SelectItem>
+                <SelectItem value="neurology-dept">Neurology Department</SelectItem>
+                <SelectItem value="orthopedic-dept">Orthopedic Department</SelectItem>
+                <SelectItem value="pediatrics-dept">Pediatrics Department</SelectItem>
+                <SelectItem value="emergency-dept">Emergency Department</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* Header Preview Area */}
+          <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded text-center">
+            <div className="text-teal-600 text-lg font-semibold">🏥 Your Clinic</div>
+            <div className="text-xs text-gray-500 mt-1">Header preview will appear here</div>
+          </div>
+        </div>
+      </div>
+
       {/* Document Editor - exact match to Semble */}
       <div className="flex-1 bg-gray-100 overflow-hidden">
         <div className="h-full flex items-center justify-center p-4">
