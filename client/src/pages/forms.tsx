@@ -80,10 +80,10 @@ export default function Forms() {
         formattedText = selectedText.toLowerCase();
         break;
       case 'heading1':
-        formattedText = selectedText.toUpperCase(); // H1 - uppercase text
+        formattedText = "=== " + selectedText.toUpperCase() + " ==="; // H1 - large heading with triple equals
         break;
       case 'heading2':
-        formattedText = selectedText.charAt(0).toUpperCase() + selectedText.slice(1).toLowerCase(); // H2 - capitalize first letter
+        formattedText = "== " + selectedText.toUpperCase() + " =="; // H2 - medium heading with double equals
         break;
     }
     
