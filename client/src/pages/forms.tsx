@@ -56,11 +56,24 @@ export default function Forms() {
   const handleClock = () => toast({ title: "Insert Time", description: "Time insertion dialog opened." });
   const handleMore = () => toast({ title: "More Options", description: "Additional formatting options opened." });
   const applyTextFormatting = (formatType: 'paragraph' | 'heading1' | 'heading2') => {
-    if (!textareaRef) return;
+    console.log("applyTextFormatting called with:", formatType);
+    console.log("textareaRef:", textareaRef);
+    
+    if (!textareaRef) {
+      console.log("No textareaRef available");
+      toast({ 
+        title: "Error", 
+        description: "Text editor not ready. Please try again.",
+        duration: 3000
+      });
+      return;
+    }
     
     const start = textareaRef.selectionStart;
     const end = textareaRef.selectionEnd;
     const selectedText = documentContent.substring(start, end);
+    
+    console.log("Selection:", { start, end, selectedText });
     
     if (!selectedText) {
       toast({ 
