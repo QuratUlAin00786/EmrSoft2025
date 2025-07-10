@@ -93,10 +93,10 @@ export default function Forms() {
         formattedText = selectedText.toLowerCase();
         break;
       case 'heading1':
-        formattedText = "=== " + selectedText.toUpperCase() + " ==="; // H1 - large heading with triple equals
+        formattedText = "\n\n>>> " + selectedText.toUpperCase() + " <<<\n\n"; // H1 - major heading with arrows
         break;
       case 'heading2':
-        formattedText = "== " + selectedText.toUpperCase() + " =="; // H2 - medium heading with double equals
+        formattedText = "\n\n>> " + selectedText.toUpperCase() + " <<\n\n"; // H2 - subheading with arrows
         break;
     }
     
