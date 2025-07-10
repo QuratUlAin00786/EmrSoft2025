@@ -18,8 +18,6 @@ export default function Forms() {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [textColor, setTextColor] = useState("#000000");
   const [showFormFields, setShowFormFields] = useState(true);
-  const [selectionStart, setSelectionStart] = useState(0);
-  const [selectionEnd, setSelectionEnd] = useState(0);
   const { toast } = useToast();
 
   const handlePreview = () => {
@@ -30,18 +28,9 @@ export default function Forms() {
     toast({ title: "Save as Draft", description: "Document saved as draft." });
   };
 
-  const handleBold = () => {
-    document.execCommand('bold', false);
-    toast({ title: "Bold", description: "Bold formatting applied to selected text." });
-  };
-  const handleItalic = () => {
-    document.execCommand('italic', false);
-    toast({ title: "Italic", description: "Italic formatting applied to selected text." });
-  };
-  const handleUnderline = () => {
-    document.execCommand('underline', false);
-    toast({ title: "Underline", description: "Underline formatting applied to selected text." });
-  };
+  const handleBold = () => toast({ title: "Bold", description: "Bold formatting applied." });
+  const handleItalic = () => toast({ title: "Italic", description: "Italic formatting applied." });
+  const handleUnderline = () => toast({ title: "Underline", description: "Underline formatting applied." });
   const handleBulletList = () => toast({ title: "Bullet List", description: "Bullet list formatting applied." });
   const handleNumberedList = () => toast({ title: "Numbered List", description: "Numbered list formatting applied." });
   const handleAlignLeft = () => toast({ title: "Align Left", description: "Left alignment applied." });
@@ -64,24 +53,9 @@ export default function Forms() {
   const handleHighlight = () => toast({ title: "Text Highlight", description: "Text highlighting tool activated." });
   const handleClock = () => toast({ title: "Insert Time", description: "Time insertion dialog opened." });
   const handleMore = () => toast({ title: "More Options", description: "Additional formatting options opened." });
-  const handleParagraph = () => {
-    document.execCommand('formatBlock', false, 'p');
-    toast({ title: "Paragraph", description: "Paragraph formatting applied to selected text." });
-  };
-  const handleH1 = () => {
-    document.execCommand('formatBlock', false, 'h1');
-    toast({ title: "Heading 1", description: "H1 heading formatting applied to selected text." });
-  };
-  const handleH2 = () => {
-    document.execCommand('formatBlock', false, 'h2');
-    toast({ title: "Heading 2", description: "H2 heading formatting applied to selected text." });
-  };
-
-  const handleTextSelection = (e: React.SyntheticEvent<HTMLTextAreaElement>) => {
-    const target = e.target as HTMLTextAreaElement;
-    setSelectionStart(target.selectionStart);
-    setSelectionEnd(target.selectionEnd);
-  };
+  const handleParagraph = () => toast({ title: "Paragraph", description: "Paragraph formatting applied." });
+  const handleH1 = () => toast({ title: "Heading 1", description: "H1 heading formatting applied." });
+  const handleH2 = () => toast({ title: "Heading 2", description: "H2 heading formatting applied." });
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
@@ -434,22 +408,18 @@ export default function Forms() {
         <div className="h-full flex items-center justify-center p-4">
           <div className="bg-white shadow-sm border border-gray-300" style={{ width: '500px', height: '300px' }}>
             <div className="h-full p-4">
-              <div
-                contentEditable
-                suppressContentEditableWarning={true}
-                onInput={(e) => setDocumentContent((e.target as HTMLDivElement).textContent || "")}
-                onSelect={handleTextSelection}
-                className="w-full h-full border-none outline-none text-black leading-normal bg-transparent overflow-auto"
+              <textarea
+                value={documentContent}
+                onChange={(e) => setDocumentContent(e.target.value)}
+                className="w-full h-full resize-none border-none outline-none text-black leading-normal bg-transparent"
+                placeholder=""
                 style={{ 
                   fontFamily: fontFamily === 'verdana' ? 'Verdana, sans-serif' : fontFamily === 'arial' ? 'Arial, sans-serif' : 'Times, serif',
-                  fontSize: fontSize,
-                  lineHeight: '1.4',
-                  minHeight: '100%'
+                  fontSize: textStyle === 'heading1' ? '24px' : textStyle === 'heading2' ? '20px' : fontSize,
+                  fontWeight: textStyle === 'heading1' || textStyle === 'heading2' ? 'bold' : 'normal',
+                  lineHeight: '1.4'
                 }}
-                data-placeholder="Start typing here..."
-              >
-                {documentContent}
-              </div>
+              />
             </div>
           </div>
         </div>
