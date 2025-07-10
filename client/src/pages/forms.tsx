@@ -80,10 +80,10 @@ export default function Forms() {
         formattedText = selectedText.toLowerCase();
         break;
       case 'heading1':
-        formattedText = "##### " + selectedText.toUpperCase() + " #####"; // H1 with larger decorative markers
+        formattedText = "[ " + selectedText.toUpperCase() + " ]"; // H1 - bracket style for major heading
         break;
       case 'heading2':
-        formattedText = "** " + selectedText.toUpperCase() + " **"; // H2 with bold markers
+        formattedText = "{ " + selectedText.toUpperCase() + " }"; // H2 - brace style for subheading
         break;
     }
     
