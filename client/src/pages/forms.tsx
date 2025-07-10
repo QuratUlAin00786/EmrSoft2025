@@ -392,13 +392,13 @@ export default function FormsPage() {
       </div>
 
       {/* Document Editor */}
-      <div className="flex-1 bg-white p-6 overflow-y-auto">
-        <div className="max-w-md mx-auto mt-4">
-          <div className="bg-white border border-gray-300 rounded shadow-sm" style={{ height: '400px' }}>
+      <div className="flex-1 bg-gray-100 p-8 overflow-y-auto flex justify-center items-center">
+        <div className="bg-white shadow-lg border border-gray-200 rounded-sm" style={{ width: '650px', height: '450px' }}>
+          <div className="h-full p-6">
             <textarea
               value={documentContent}
               onChange={(e) => setDocumentContent(e.target.value)}
-              className="w-full h-full p-4 resize-none border-none outline-none text-black text-sm leading-relaxed"
+              className="w-full h-full resize-none border-none outline-none text-black text-sm leading-relaxed bg-transparent"
               placeholder=""
               style={{ 
                 fontFamily: fontFamily, 
