@@ -6,8 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, Save, ChevronDown, Undo, Redo, Bold, Italic, Underline,
   AlignLeft, AlignCenter, AlignRight, AlignJustify, List, ListOrdered,
-  FileText, Plus, Eye, Download, Settings, Image, Link, Users, MoreHorizontal,
-  Search, User
+  FileText, Plus, Eye, Download, Settings, Image, Link, Users, MoreHorizontal
 } from "lucide-react";
 
 interface DocumentForm {
@@ -182,249 +181,186 @@ export default function FormsPage() {
   };
 
   return (
-    <div className="h-screen flex bg-gray-50">
-      {/* Left Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        {/* Header */}
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-teal-600 rounded flex items-center justify-center">
-              <span className="text-white text-sm font-bold">S</span>
+    <div className="h-full flex flex-col bg-gray-50">
+      {/* Top Header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Button variant="ghost" size="sm" onClick={() => toast({ title: "Letters", description: "Navigating back to letters list." })}>
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              <span className="text-sm">Letters</span>
+            </Button>
+            <Button className="bg-teal-600 hover:bg-teal-700 text-white text-sm px-4 py-2" onClick={handlePreview}>
+              Save and preview
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleSaveAsDraft}>
+              Save as draft
+            </Button>
+          </div>
+          
+          <div className="text-sm text-gray-600">Letter body</div>
+          
+          <div className="flex items-center space-x-4">
+            <span className="text-sm text-gray-600">Select Patient...</span>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600">New Chris...</span>
+              <span className="text-sm text-gray-600">Share this...</span>
             </div>
-            <span className="font-semibold text-gray-900">Semble</span>
-          </div>
-        </div>
-
-        {/* Navigation Tabs */}
-        <div className="border-b border-gray-200">
-          <div className="flex">
-            <button className="flex-1 px-4 py-2 text-sm text-gray-600 hover:text-gray-900">Appointments</button>
-            <button className="flex-1 px-4 py-2 text-sm text-gray-600 hover:text-gray-900">Patients</button>
-            <button className="flex-1 px-4 py-2 text-sm text-gray-600 hover:text-gray-900">Tasks</button>
-          </div>
-          <div className="flex">
-            <button className="flex-1 px-4 py-2 text-sm text-gray-600 hover:text-gray-900">Labs</button>
-            <button className="flex-1 px-4 py-2 text-sm text-teal-600 border-b-2 border-teal-600 font-medium">Letters</button>
-            <button className="flex-1 px-4 py-2 text-sm text-gray-600 hover:text-gray-900">Invoices</button>
-          </div>
-          <div className="flex">
-            <button className="flex-1 px-4 py-2 text-sm text-gray-600 hover:text-gray-900">Products</button>
-            <button className="flex-1 px-4 py-2 text-sm text-gray-600 hover:text-gray-900">Contacts</button>
-            <button className="flex-1 px-4 py-2 text-sm text-gray-600 hover:text-gray-900">Analytics</button>
-          </div>
-        </div>
-
-        {/* Left Menu */}
-        <div className="flex-1 p-4">
-          <div className="space-y-1">
-            <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">BACK</div>
-            
-            <div className="text-sm font-medium text-gray-900 mb-4">Summary</div>
-            
-            <div className="space-y-1">
-              <div className="text-sm text-gray-700 py-1">Consultations</div>
-              <div className="text-sm text-gray-700 py-1">Letters and forms</div>
-              <div className="text-sm text-gray-700 py-1">Prescriptions</div>
-              <div className="text-sm text-gray-700 py-1">Labs</div>
-              <div className="text-sm text-gray-700 py-1 bg-red-100 px-2 rounded">Invoices</div>
-              <div className="text-sm text-gray-700 py-1">Account statements</div>
-              <div className="text-sm text-gray-700 py-1">Communications</div>
-              <div className="text-sm text-gray-700 py-1">Documents</div>
-            </div>
-          </div>
-        </div>
-
-        {/* User Profile */}
-        <div className="p-4 border-t border-gray-200">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
-            <div className="text-sm text-gray-700">Dr. Smith</div>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Top Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" onClick={() => toast({ title: "Letters", description: "Navigating back to letters list." })}>
-                <ArrowLeft className="h-4 w-4 mr-1" />
-                <span className="text-sm">Letters</span>
-              </Button>
-              <Button className="bg-teal-600 hover:bg-teal-700 text-white text-sm px-4 py-2" onClick={handlePreview}>
-                Save and preview
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleSaveAsDraft}>
-                Save as draft
-              </Button>
-            </div>
-            
-            <div className="text-sm text-gray-600">Letter body</div>
-            
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">Select Patient...</span>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600">New Chris...</span>
-                <span className="text-sm text-gray-600">Share this...</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Toolbar */}
-        <div className="bg-white border-b border-gray-200 px-6 py-2">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <Button variant="ghost" size="sm" onClick={handleUndo}>
-                <Undo className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm" onClick={handleRedo}>
-                <Redo className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Select value={textStyle} onValueChange={setTextStyle}>
-                <SelectTrigger className="w-24">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="paragraph">Paragraph</SelectItem>
-                  <SelectItem value="heading1">Heading 1</SelectItem>
-                  <SelectItem value="heading2">Heading 2</SelectItem>
-                  <SelectItem value="heading3">Heading 3</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={fontFamily} onValueChange={setFontFamily}>
-                <SelectTrigger className="w-20">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="verdana">Verdana</SelectItem>
-                  <SelectItem value="arial">Arial</SelectItem>
-                  <SelectItem value="times">Times</SelectItem>
-                  <SelectItem value="calibri">Calibri</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={fontSize} onValueChange={setFontSize}>
-                <SelectTrigger className="w-16">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="8pt">8pt</SelectItem>
-                  <SelectItem value="10pt">10pt</SelectItem>
-                  <SelectItem value="12pt">12pt</SelectItem>
-                  <SelectItem value="14pt">14pt</SelectItem>
-                  <SelectItem value="16pt">16pt</SelectItem>
-                  <SelectItem value="18pt">18pt</SelectItem>
-                  <SelectItem value="20pt">20pt</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-center space-x-1">
-              <Button variant="ghost" size="sm" onClick={() => handleList('Bullet')}>
-                <List className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => handleList('Numbered')}>
-                <ListOrdered className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm" onClick={handleBold}>
-                <Bold className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm" onClick={handleItalic}>
-                <Italic className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm" onClick={handleUnderline}>
-                <Underline className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="flex items-center space-x-1">
-              <Button variant="ghost" size="sm" onClick={() => handleAlignment('left')}>
-                <AlignLeft className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => handleAlignment('center')}>
-                <AlignCenter className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => handleAlignment('right')}>
-                <AlignRight className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => handleAlignment('justify')}>
-                <AlignJustify className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="flex items-center space-x-1">
-              <Button variant="ghost" size="sm" onClick={() => toast({ title: "Text Color", description: "Text color picker opened." })}>
-                <div className="w-4 h-4 border-b-2 border-red-500">A</div>
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => toast({ title: "Highlight", description: "Text highlight tool activated." })}>
-                <div className="w-4 h-4 bg-yellow-300 border border-gray-400"></div>
-              </Button>
-            </div>
-
-            <div className="flex items-center space-x-1">
-              <Button variant="ghost" size="sm" onClick={() => toast({ title: "More Options", description: "Additional formatting options." })}>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => toast({ title: "Settings", description: "Document settings opened." })}>
-                <Settings className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Second Row */}
-          <div className="flex items-center space-x-2 mt-2">
-            <Button variant="ghost" size="sm" className="text-sm" onClick={handleInsertTemplate}>
-              Insert template
+      {/* Toolbar */}
+      <div className="bg-white border-b border-gray-200 px-6 py-2">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <Button variant="ghost" size="sm" onClick={handleUndo}>
+              <Undo className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" className="text-sm" onClick={handleInsertLogo}>
-              Insert logo
-            </Button>
-            <Button variant="ghost" size="sm" className="text-sm" onClick={handleClinic}>
-              Clinic
-            </Button>
-            <Button variant="ghost" size="sm" className="text-sm" onClick={handlePatient}>
-              Patient
-            </Button>
-            <Button variant="ghost" size="sm" className="text-sm" onClick={handleRecipient}>
-              Recipient
-            </Button>
-            <Button variant="ghost" size="sm" className="text-sm" onClick={handleAppointments}>
-              Appointments
-            </Button>
-            <Button variant="ghost" size="sm" className="text-sm" onClick={handleLabs}>
-              Labs
+            <Button variant="ghost" size="sm" onClick={handleRedo}>
+              <Redo className="h-4 w-4" />
             </Button>
           </div>
 
-          {/* Third Row */}
-          <div className="flex items-center space-x-2 mt-2">
-            <Button variant="ghost" size="sm" className="text-sm" onClick={handlePatientRecords}>
-              Patient records
+          <div className="flex items-center space-x-2">
+            <Select value={textStyle} onValueChange={setTextStyle}>
+              <SelectTrigger className="w-24">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="paragraph">Paragraph</SelectItem>
+                <SelectItem value="heading1">Heading 1</SelectItem>
+                <SelectItem value="heading2">Heading 2</SelectItem>
+                <SelectItem value="heading3">Heading 3</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={fontFamily} onValueChange={setFontFamily}>
+              <SelectTrigger className="w-20">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="verdana">Verdana</SelectItem>
+                <SelectItem value="arial">Arial</SelectItem>
+                <SelectItem value="times">Times</SelectItem>
+                <SelectItem value="calibri">Calibri</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={fontSize} onValueChange={setFontSize}>
+              <SelectTrigger className="w-16">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="8pt">8pt</SelectItem>
+                <SelectItem value="10pt">10pt</SelectItem>
+                <SelectItem value="12pt">12pt</SelectItem>
+                <SelectItem value="14pt">14pt</SelectItem>
+                <SelectItem value="16pt">16pt</SelectItem>
+                <SelectItem value="18pt">18pt</SelectItem>
+                <SelectItem value="20pt">20pt</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center space-x-1">
+            <Button variant="ghost" size="sm" onClick={() => handleList('Bullet')}>
+              <List className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" className="text-sm" onClick={handleInsertProduct}>
-              Insert product
+            <Button variant="ghost" size="sm" onClick={() => handleList('Numbered')}>
+              <ListOrdered className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={handleBold}>
+              <Bold className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={handleItalic}>
+              <Italic className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={handleUnderline}>
+              <Underline className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <div className="flex items-center space-x-1">
+            <Button variant="ghost" size="sm" onClick={() => handleAlignment('left')}>
+              <AlignLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => handleAlignment('center')}>
+              <AlignCenter className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => handleAlignment('right')}>
+              <AlignRight className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => handleAlignment('justify')}>
+              <AlignJustify className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <div className="flex items-center space-x-1">
+            <Button variant="ghost" size="sm" onClick={() => toast({ title: "Text Color", description: "Text color picker opened." })}>
+              <div className="w-4 h-4 border-b-2 border-red-500">A</div>
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => toast({ title: "Highlight", description: "Text highlight tool activated." })}>
+              <div className="w-4 h-4 bg-yellow-300 border border-gray-400"></div>
+            </Button>
+          </div>
+
+          <div className="flex items-center space-x-1">
+            <Button variant="ghost" size="sm" onClick={() => toast({ title: "More Options", description: "Additional formatting options." })}>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => toast({ title: "Settings", description: "Document settings opened." })}>
+              <Settings className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
-        {/* Document Editor */}
-        <div className="flex-1 bg-gray-50 p-6 overflow-y-auto">
-          <div className="max-w-4xl mx-auto bg-white shadow-sm min-h-full border border-gray-200">
-            <div className="p-8">
-              <textarea
-                value={documentContent}
-                onChange={(e) => setDocumentContent(e.target.value)}
-                className="w-full h-96 resize-none border-none outline-none text-base leading-relaxed bg-transparent"
-                placeholder="Start typing your document here..."
-              />
-            </div>
+        {/* Second Row */}
+        <div className="flex items-center space-x-2 mt-2">
+          <Button variant="ghost" size="sm" className="text-sm" onClick={handleInsertTemplate}>
+            Insert template
+          </Button>
+          <Button variant="ghost" size="sm" className="text-sm" onClick={handleInsertLogo}>
+            Insert logo
+          </Button>
+          <Button variant="ghost" size="sm" className="text-sm" onClick={handleClinic}>
+            Clinic
+          </Button>
+          <Button variant="ghost" size="sm" className="text-sm" onClick={handlePatient}>
+            Patient
+          </Button>
+          <Button variant="ghost" size="sm" className="text-sm" onClick={handleRecipient}>
+            Recipient
+          </Button>
+          <Button variant="ghost" size="sm" className="text-sm" onClick={handleAppointments}>
+            Appointments
+          </Button>
+          <Button variant="ghost" size="sm" className="text-sm" onClick={handleLabs}>
+            Labs
+          </Button>
+        </div>
+
+        {/* Third Row */}
+        <div className="flex items-center space-x-2 mt-2">
+          <Button variant="ghost" size="sm" className="text-sm" onClick={handlePatientRecords}>
+            Patient records
+          </Button>
+          <Button variant="ghost" size="sm" className="text-sm" onClick={handleInsertProduct}>
+            Insert product
+          </Button>
+        </div>
+      </div>
+
+      {/* Document Editor */}
+      <div className="flex-1 bg-gray-50 p-6 overflow-y-auto">
+        <div className="max-w-4xl mx-auto bg-white shadow-sm min-h-full border border-gray-200">
+          <div className="p-8">
+            <textarea
+              value={documentContent}
+              onChange={(e) => setDocumentContent(e.target.value)}
+              className="w-full h-96 resize-none border-none outline-none text-base leading-relaxed bg-transparent"
+              placeholder="Start typing your document here..."
+            />
           </div>
         </div>
       </div>
