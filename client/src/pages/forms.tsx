@@ -55,9 +55,11 @@ export default function Forms() {
   const handleMore = () => toast({ title: "More Options", description: "Additional formatting options opened." });
 
   return (
-    <div className="h-full flex flex-col bg-gray-50 overflow-y-auto">
-      {/* Top Header - exact match to Semble */}
-      <div className="bg-white border-b border-gray-200 px-3 py-2 flex-shrink-0">
+    <div className="h-screen flex flex-col bg-gray-50">
+      {/* Scrollable Content Wrapper */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Top Header - exact match to Semble */}
+        <div className="bg-white border-b border-gray-200 px-3 py-2 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => toast({ title: "Letters", description: "Navigating back to letters list." })}>
@@ -412,6 +414,7 @@ export default function Forms() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
