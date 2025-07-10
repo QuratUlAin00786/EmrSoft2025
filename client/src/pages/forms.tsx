@@ -173,10 +173,10 @@ export default function Forms() {
 
       {/* Clinical Header Selection - Create the Letter */}
       <div className="bg-white border-b border-gray-200 px-4 py-4">
-        <div>
+        <div className="flex flex-col items-center">
           <h3 className="text-sm font-medium text-gray-900 mb-3">Create the Letter</h3>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-2">Select Header</label>
+            <label className="block text-xs font-medium text-gray-700 mb-2 text-center">Select Header</label>
             <Select>
               <SelectTrigger style={{ width: '700px' }}>
                 <SelectValue placeholder="Your Clinic" />
