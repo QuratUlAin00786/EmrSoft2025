@@ -6,7 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, Save, ChevronDown, Undo, Redo, Bold, Italic, Underline,
   AlignLeft, AlignCenter, AlignRight, AlignJustify, List, ListOrdered,
-  FileText, Plus, Eye, Download, Settings, Image, Link, Users, MoreHorizontal
+  FileText, Plus, Eye, Download, Settings, Image, Link, Users, MoreHorizontal,
+  Table, Paperclip, Palette, Type
 } from "lucide-react";
 
 interface DocumentForm {
@@ -180,6 +181,34 @@ export default function FormsPage() {
     });
   };
 
+  const handleTable = () => {
+    toast({
+      title: "Insert Table",
+      description: "Table insertion dialog opened.",
+    });
+  };
+
+  const handleAttachFile = () => {
+    toast({
+      title: "Attach File",
+      description: "File attachment dialog opened.",
+    });
+  };
+
+  const handleTextColor = () => {
+    toast({
+      title: "Text Color",
+      description: "Text color picker opened.",
+    });
+  };
+
+  const handleHighlight = () => {
+    toast({
+      title: "Text Highlight",
+      description: "Text highlighting tool activated.",
+    });
+  };
+
   return (
     <div className="h-full flex flex-col bg-gray-50">
       {/* Top Header */}
@@ -211,20 +240,23 @@ export default function FormsPage() {
       </div>
 
       {/* Toolbar */}
-      <div className="bg-white border-b border-gray-200 px-6 py-2">
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
+      <div className="bg-white border-b border-gray-200 px-6 py-3">
+        {/* Centered toolbar with all formatting options */}
+        <div className="flex justify-center">
+          <div className="flex items-center space-x-1 bg-gray-50 px-4 py-2 rounded-lg">
+            {/* Undo/Redo */}
             <Button variant="ghost" size="sm" onClick={handleUndo}>
               <Undo className="h-4 w-4" />
             </Button>
             <Button variant="ghost" size="sm" onClick={handleRedo}>
               <Redo className="h-4 w-4" />
             </Button>
-          </div>
-
-          <div className="flex items-center space-x-2">
+            
+            <div className="h-4 w-px bg-gray-300 mx-2"></div>
+            
+            {/* Text Style Dropdown */}
             <Select value={textStyle} onValueChange={setTextStyle}>
-              <SelectTrigger className="w-24">
+              <SelectTrigger className="w-20 h-8">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -235,8 +267,9 @@ export default function FormsPage() {
               </SelectContent>
             </Select>
 
+            {/* Font Family */}
             <Select value={fontFamily} onValueChange={setFontFamily}>
-              <SelectTrigger className="w-20">
+              <SelectTrigger className="w-18 h-8">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -247,8 +280,9 @@ export default function FormsPage() {
               </SelectContent>
             </Select>
 
+            {/* Font Size */}
             <Select value={fontSize} onValueChange={setFontSize}>
-              <SelectTrigger className="w-16">
+              <SelectTrigger className="w-14 h-8">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -261,15 +295,10 @@ export default function FormsPage() {
                 <SelectItem value="20pt">20pt</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-
-          <div className="flex items-center space-x-1">
-            <Button variant="ghost" size="sm" onClick={() => handleList('Bullet')}>
-              <List className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => handleList('Numbered')}>
-              <ListOrdered className="h-4 w-4" />
-            </Button>
+            
+            <div className="h-4 w-px bg-gray-300 mx-2"></div>
+            
+            {/* Text Formatting */}
             <Button variant="ghost" size="sm" onClick={handleBold}>
               <Bold className="h-4 w-4" />
             </Button>
@@ -279,9 +308,20 @@ export default function FormsPage() {
             <Button variant="ghost" size="sm" onClick={handleUnderline}>
               <Underline className="h-4 w-4" />
             </Button>
-          </div>
-
-          <div className="flex items-center space-x-1">
+            
+            <div className="h-4 w-px bg-gray-300 mx-2"></div>
+            
+            {/* Lists */}
+            <Button variant="ghost" size="sm" onClick={() => handleList('Bullet')}>
+              <List className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => handleList('Numbered')}>
+              <ListOrdered className="h-4 w-4" />
+            </Button>
+            
+            <div className="h-4 w-px bg-gray-300 mx-2"></div>
+            
+            {/* Text Alignment */}
             <Button variant="ghost" size="sm" onClick={() => handleAlignment('left')}>
               <AlignLeft className="h-4 w-4" />
             </Button>
@@ -294,60 +334,66 @@ export default function FormsPage() {
             <Button variant="ghost" size="sm" onClick={() => handleAlignment('justify')}>
               <AlignJustify className="h-4 w-4" />
             </Button>
-          </div>
-
-          <div className="flex items-center space-x-1">
-            <Button variant="ghost" size="sm" onClick={() => toast({ title: "Text Color", description: "Text color picker opened." })}>
+            
+            <div className="h-4 w-px bg-gray-300 mx-2"></div>
+            
+            {/* Text Color and Highlight */}
+            <Button variant="ghost" size="sm" onClick={handleTextColor}>
               <div className="w-4 h-4 border-b-2 border-red-500">A</div>
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => toast({ title: "Highlight", description: "Text highlight tool activated." })}>
+            <Button variant="ghost" size="sm" onClick={handleHighlight}>
               <div className="w-4 h-4 bg-yellow-300 border border-gray-400"></div>
             </Button>
-          </div>
-
-          <div className="flex items-center space-x-1">
-            <Button variant="ghost" size="sm" onClick={() => toast({ title: "More Options", description: "Additional formatting options." })}>
-              <MoreHorizontal className="h-4 w-4" />
+            
+            <div className="h-4 w-px bg-gray-300 mx-2"></div>
+            
+            {/* Insert Options */}
+            <Button variant="ghost" size="sm" onClick={handleTable}>
+              <Table className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => toast({ title: "Settings", description: "Document settings opened." })}>
-              <Settings className="h-4 w-4" />
+            <Button variant="ghost" size="sm" onClick={handleAttachFile}>
+              <Paperclip className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => toast({ title: "Insert Image", description: "Image insertion dialog opened." })}>
+              <Image className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => toast({ title: "Insert Link", description: "Link insertion dialog opened." })}>
+              <Link className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
-        {/* Second Row */}
-        <div className="flex items-center space-x-2 mt-2">
-          <Button variant="ghost" size="sm" className="text-sm" onClick={handleInsertTemplate}>
-            Insert template
-          </Button>
-          <Button variant="ghost" size="sm" className="text-sm" onClick={handleInsertLogo}>
-            Insert logo
-          </Button>
-          <Button variant="ghost" size="sm" className="text-sm" onClick={handleClinic}>
-            Clinic
-          </Button>
-          <Button variant="ghost" size="sm" className="text-sm" onClick={handlePatient}>
-            Patient
-          </Button>
-          <Button variant="ghost" size="sm" className="text-sm" onClick={handleRecipient}>
-            Recipient
-          </Button>
-          <Button variant="ghost" size="sm" className="text-sm" onClick={handleAppointments}>
-            Appointments
-          </Button>
-          <Button variant="ghost" size="sm" className="text-sm" onClick={handleLabs}>
-            Labs
-          </Button>
-        </div>
-
-        {/* Third Row */}
-        <div className="flex items-center space-x-2 mt-2">
-          <Button variant="ghost" size="sm" className="text-sm" onClick={handlePatientRecords}>
-            Patient records
-          </Button>
-          <Button variant="ghost" size="sm" className="text-sm" onClick={handleInsertProduct}>
-            Insert product
-          </Button>
+        {/* Medical Data Row - Centered */}
+        <div className="flex justify-center mt-3">
+          <div className="flex items-center space-x-2">
+            <Button variant="ghost" size="sm" className="text-sm" onClick={handleInsertTemplate}>
+              Insert template
+            </Button>
+            <Button variant="ghost" size="sm" className="text-sm" onClick={handleInsertLogo}>
+              Insert logo
+            </Button>
+            <Button variant="ghost" size="sm" className="text-sm" onClick={handleClinic}>
+              Clinic
+            </Button>
+            <Button variant="ghost" size="sm" className="text-sm" onClick={handlePatient}>
+              Patient
+            </Button>
+            <Button variant="ghost" size="sm" className="text-sm" onClick={handleRecipient}>
+              Recipient
+            </Button>
+            <Button variant="ghost" size="sm" className="text-sm" onClick={handleAppointments}>
+              Appointments
+            </Button>
+            <Button variant="ghost" size="sm" className="text-sm" onClick={handleLabs}>
+              Labs
+            </Button>
+            <Button variant="ghost" size="sm" className="text-sm" onClick={handlePatientRecords}>
+              Patient records
+            </Button>
+            <Button variant="ghost" size="sm" className="text-sm" onClick={handleInsertProduct}>
+              Insert product
+            </Button>
+          </div>
         </div>
       </div>
 
