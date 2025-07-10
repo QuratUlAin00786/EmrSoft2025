@@ -96,8 +96,8 @@ export default function Forms() {
           </Select>
           
           <Select value={fontFamily} onValueChange={setFontFamily}>
-            <SelectTrigger className="w-16 h-6 text-xs border border-gray-300">
-              <SelectValue />
+            <SelectTrigger className="w-20 h-6 text-xs border border-gray-300 bg-white">
+              <SelectValue placeholder="Verdana" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="verdana">Verdana</SelectItem>
@@ -107,14 +107,14 @@ export default function Forms() {
           </Select>
           
           <Select value={fontSize} onValueChange={setFontSize}>
-            <SelectTrigger className="w-12 h-6 text-xs border border-gray-300">
-              <SelectValue />
+            <SelectTrigger className="w-14 h-6 text-xs border border-gray-300 bg-white">
+              <SelectValue placeholder="12pt" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="10pt">10</SelectItem>
-              <SelectItem value="11pt">11</SelectItem>
-              <SelectItem value="12pt">12</SelectItem>
-              <SelectItem value="14pt">14</SelectItem>
+              <SelectItem value="10pt">10pt</SelectItem>
+              <SelectItem value="11pt">11pt</SelectItem>
+              <SelectItem value="12pt">12pt</SelectItem>
+              <SelectItem value="14pt">14pt</SelectItem>
             </SelectContent>
           </Select>
           
