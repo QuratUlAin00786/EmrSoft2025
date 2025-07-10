@@ -62,6 +62,25 @@ export default function Forms() {
       const end = textareaRef.selectionEnd;
       const selectedText = documentContent.substring(start, end);
       console.log("Selected text:", selectedText);
+      
+      const beforeText = documentContent.substring(0, start);
+      const afterText = documentContent.substring(end);
+      
+      if (selectedText) {
+        // Apply paragraph formatting to selected text
+        const newContent = beforeText + selectedText + afterText;
+        setDocumentContent(newContent);
+        setTimeout(() => {
+          textareaRef.setSelectionRange(start, end);
+        }, 0);
+      } else {
+        // Insert paragraph marker at cursor position
+        const newContent = beforeText + "\n\n" + afterText;
+        setDocumentContent(newContent);
+        setTimeout(() => {
+          textareaRef.setSelectionRange(start + 2, start + 2);
+        }, 0);
+      }
     }
     toast({ 
       title: "✓ Paragraph", 
@@ -76,6 +95,27 @@ export default function Forms() {
       const end = textareaRef.selectionEnd;
       const selectedText = documentContent.substring(start, end);
       console.log("Selected text:", selectedText);
+      
+      const beforeText = documentContent.substring(0, start);
+      const afterText = documentContent.substring(end);
+      
+      if (selectedText) {
+        // Apply H1 formatting to selected text
+        const formattedText = `# ${selectedText}`;
+        const newContent = beforeText + formattedText + afterText;
+        setDocumentContent(newContent);
+        setTimeout(() => {
+          textareaRef.setSelectionRange(start, start + formattedText.length);
+        }, 0);
+      } else {
+        // Insert H1 marker at cursor position
+        const formattedText = "# ";
+        const newContent = beforeText + formattedText + afterText;
+        setDocumentContent(newContent);
+        setTimeout(() => {
+          textareaRef.setSelectionRange(start + formattedText.length, start + formattedText.length);
+        }, 0);
+      }
     }
     toast({ 
       title: "✓ Heading 1", 
@@ -90,6 +130,27 @@ export default function Forms() {
       const end = textareaRef.selectionEnd;
       const selectedText = documentContent.substring(start, end);
       console.log("Selected text:", selectedText);
+      
+      const beforeText = documentContent.substring(0, start);
+      const afterText = documentContent.substring(end);
+      
+      if (selectedText) {
+        // Apply H2 formatting to selected text
+        const formattedText = `## ${selectedText}`;
+        const newContent = beforeText + formattedText + afterText;
+        setDocumentContent(newContent);
+        setTimeout(() => {
+          textareaRef.setSelectionRange(start, start + formattedText.length);
+        }, 0);
+      } else {
+        // Insert H2 marker at cursor position
+        const formattedText = "## ";
+        const newContent = beforeText + formattedText + afterText;
+        setDocumentContent(newContent);
+        setTimeout(() => {
+          textareaRef.setSelectionRange(start + formattedText.length, start + formattedText.length);
+        }, 0);
+      }
     }
     toast({ 
       title: "✓ Heading 2", 
