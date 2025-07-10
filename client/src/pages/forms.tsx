@@ -79,6 +79,82 @@ export default function Forms() {
         </div>
       </div>
 
+      {/* Form Fields Section */}
+      <div className="bg-gray-50 border-b border-gray-200 px-4 py-4">
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+            <input
+              type="text"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+              placeholder="Enter subject"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Recipient (optional)</label>
+            <input
+              type="text"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+              placeholder="Enter recipient"
+            />
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Location (optional)</label>
+            <Select>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="main-clinic">Main Clinic</SelectItem>
+                <SelectItem value="branch-office">Branch Office</SelectItem>
+                <SelectItem value="hospital">Hospital</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Copied in recipients (optional)</label>
+            <input
+              type="text"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+              placeholder="Enter copied recipients"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Practitioner (optional)</label>
+            <Select>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select practitioner" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="dr-smith">Dr. Smith</SelectItem>
+                <SelectItem value="dr-johnson">Dr. Johnson</SelectItem>
+                <SelectItem value="dr-brown">Dr. Brown</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Select Header</label>
+            <Select>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Your Clinic" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="your-clinic">Your Clinic</SelectItem>
+                <SelectItem value="main-hospital">Main Hospital</SelectItem>
+                <SelectItem value="specialty-center">Specialty Center</SelectItem>
+                <SelectItem value="urgent-care">Urgent Care</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
       {/* Toolbar - exact match to Semble with all visible options */}
       <div className="bg-white border-b border-gray-200 px-2 py-2 flex-shrink-0">
         {/* Main formatting row */}
