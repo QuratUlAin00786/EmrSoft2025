@@ -53,6 +53,9 @@ export default function Forms() {
   const handleHighlight = () => toast({ title: "Text Highlight", description: "Text highlighting tool activated." });
   const handleClock = () => toast({ title: "Insert Time", description: "Time insertion dialog opened." });
   const handleMore = () => toast({ title: "More Options", description: "Additional formatting options opened." });
+  const handleParagraph = () => toast({ title: "Paragraph", description: "Paragraph formatting applied." });
+  const handleH1 = () => toast({ title: "Heading 1", description: "H1 heading formatting applied." });
+  const handleH2 = () => toast({ title: "Heading 2", description: "H2 heading formatting applied." });
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
@@ -206,7 +209,12 @@ export default function Forms() {
         {/* Main formatting row */}
         <div className="flex justify-center items-center gap-0.5 mb-2">
           {/* Font controls */}
-          <Select value={textStyle} onValueChange={setTextStyle}>
+          <Select value={textStyle} onValueChange={(value) => {
+            setTextStyle(value);
+            if (value === "paragraph") handleParagraph();
+            else if (value === "heading1") handleH1();
+            else if (value === "heading2") handleH2();
+          }}>
             <SelectTrigger className="w-20 h-6 text-xs border border-gray-300">
               <SelectValue />
             </SelectTrigger>
