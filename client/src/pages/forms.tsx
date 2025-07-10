@@ -173,12 +173,12 @@ export default function Forms() {
 
       {/* Clinical Header Selection - Create the Letter */}
       <div className="bg-white border-b border-gray-200 px-4 py-4">
-        <div className="max-w-md">
+        <div className="max-w-2xl">
           <h3 className="text-sm font-medium text-gray-900 mb-3">Create the Letter</h3>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-2">Select Header</label>
             <Select>
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full max-w-lg">
                 <SelectValue placeholder="Your Clinic" />
               </SelectTrigger>
               <SelectContent>
@@ -194,7 +194,7 @@ export default function Forms() {
           </div>
           
           {/* Header Preview Area */}
-          <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded text-center">
+          <div className="mt-4 p-6 bg-gray-50 border border-gray-200 rounded text-center max-w-lg">
             <div className="text-teal-600 text-lg font-semibold">🏥 Your Clinic</div>
             <div className="text-xs text-gray-500 mt-1">Header preview will appear here</div>
           </div>
