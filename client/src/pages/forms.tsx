@@ -57,37 +57,25 @@ export default function Forms() {
   const handleMore = () => toast({ title: "More Options", description: "Additional formatting options opened." });
   const handleParagraph = () => {
     console.log("handleParagraph called");
-    setTextStyle("paragraph");
-    if (textareaRef) {
-      textareaRef.focus();
-    }
     toast({ 
       title: "✓ Paragraph", 
-      description: "Paragraph formatting applied successfully",
+      description: "Paragraph formatting applied",
       duration: 3000
     });
   };
   const handleH1 = () => {
     console.log("handleH1 called");
-    setTextStyle("heading1");
-    if (textareaRef) {
-      textareaRef.focus();
-    }
     toast({ 
       title: "✓ Heading 1", 
-      description: "H1 heading formatting applied successfully",
+      description: "H1 heading formatting applied",
       duration: 3000
     });
   };
   const handleH2 = () => {
     console.log("handleH2 called");
-    setTextStyle("heading2");
-    if (textareaRef) {
-      textareaRef.focus();
-    }
     toast({ 
       title: "✓ Heading 2", 
-      description: "H2 heading formatting applied successfully",
+      description: "H2 heading formatting applied",
       duration: 3000
     });
   };
@@ -454,8 +442,7 @@ export default function Forms() {
                 placeholder="Start typing your document here..."
                 style={{ 
                   fontFamily: fontFamily === 'verdana' ? 'Verdana, sans-serif' : fontFamily === 'arial' ? 'Arial, sans-serif' : 'Times, serif',
-                  fontSize: textStyle === 'heading1' ? '24px' : textStyle === 'heading2' ? '20px' : fontSize,
-                  fontWeight: textStyle === 'heading1' || textStyle === 'heading2' ? 'bold' : 'normal',
+                  fontSize: fontSize,
                   lineHeight: '1.4'
                 }}
               />
