@@ -398,16 +398,22 @@ export default function FormsPage() {
       </div>
 
       {/* Document Editor */}
-      <div className="flex-1 bg-gray-50 flex justify-center items-start pt-8 overflow-y-auto">
-        <div className="w-full max-w-3xl bg-white shadow-lg border border-gray-300 rounded-lg mx-4">
-          <div className="p-12">
-            <textarea
-              value={documentContent}
-              onChange={(e) => setDocumentContent(e.target.value)}
-              className="w-full h-96 resize-none border-none outline-none text-base leading-relaxed bg-transparent font-sans"
-              placeholder="Start typing your document here..."
-              style={{ fontFamily: fontFamily, fontSize: fontSize }}
-            />
+      <div className="flex-1 bg-gray-100 overflow-y-auto">
+        <div className="flex justify-center py-8">
+          <div className="bg-white shadow-md" style={{ width: '8.5in', minHeight: '11in' }}>
+            <div className="p-16">
+              <textarea
+                value={documentContent}
+                onChange={(e) => setDocumentContent(e.target.value)}
+                className="w-full h-full min-h-96 resize-none border-none outline-none text-black leading-relaxed bg-transparent"
+                placeholder="Start typing your document here..."
+                style={{ 
+                  fontFamily: fontFamily, 
+                  fontSize: fontSize,
+                  lineHeight: '1.6'
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>
