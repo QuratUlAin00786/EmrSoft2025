@@ -47,195 +47,181 @@ export default function Forms() {
   const handleInsertProduct = () => toast({ title: "Insert Product", description: "Product insertion dialog opened." });
 
   return (
-    <div className="h-screen flex flex-col">
-      {/* Top Header */}
+    <div className="h-full flex flex-col bg-gray-50">
+      {/* Top Header - exact match to Semble */}
       <div className="bg-white border-b border-gray-200 px-3 py-2 flex-shrink-0">
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="sm" className="h-7" onClick={() => toast({ title: "Letters", description: "Navigating back to letters list." })}>
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              <span className="text-sm">Letters</span>
+            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => toast({ title: "Letters", description: "Navigating back to letters list." })}>
+              <ArrowLeft className="h-3 w-3 mr-1" />
+              <span>Letters</span>
             </Button>
-            <Button className="bg-teal-600 hover:bg-teal-700 text-white text-sm px-3 py-1 h-7" onClick={handlePreview}>
+            <Button className="bg-teal-600 hover:bg-teal-700 text-white text-xs px-3 py-1 h-6" onClick={handlePreview}>
               Save and preview
             </Button>
-            <Button variant="outline" size="sm" className="h-7" onClick={handleSaveAsDraft}>
+            <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={handleSaveAsDraft}>
               Save as draft
             </Button>
-            <div className="text-sm text-gray-600 mx-2">Letter body</div>
-            <span className="text-sm text-gray-600 cursor-pointer">Select Patient...</span>
-            <span className="text-sm text-gray-600 cursor-pointer">New Chris...</span>
-            <span className="text-sm text-gray-600 cursor-pointer">Share this...</span>
+          </div>
+          <div className="text-xs text-gray-600">Letter body</div>
+          <div className="flex items-center space-x-2">
+            <span className="text-xs text-gray-600 cursor-pointer">Select Patient...</span>
+            <span className="text-xs text-gray-600 cursor-pointer">New Chris...</span>
+            <span className="text-xs text-gray-600 cursor-pointer">Share this...</span>
           </div>
         </div>
       </div>
 
-      {/* Toolbar */}
+      {/* Toolbar - exact match to Semble */}
       <div className="bg-white border-b border-gray-200 px-3 py-1 flex-shrink-0">
-        {/* First row - Main formatting options */}
-        <div className="flex justify-center w-full mb-1">
-          <div className="flex items-center gap-1">
-            {/* Font controls */}
-            <Select value={textStyle} onValueChange={setTextStyle}>
-              <SelectTrigger className="w-20 h-6 text-xs">
-                <SelectValue placeholder="Paragraph" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="paragraph">Paragraph</SelectItem>
-                <SelectItem value="heading1">Heading 1</SelectItem>
-                <SelectItem value="heading2">Heading 2</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Select value={fontFamily} onValueChange={setFontFamily}>
-              <SelectTrigger className="w-16 h-6 text-xs">
-                <SelectValue placeholder="Verdana" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="verdana">Verdana</SelectItem>
-                <SelectItem value="arial">Arial</SelectItem>
-                <SelectItem value="times">Times</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Select value={fontSize} onValueChange={setFontSize}>
-              <SelectTrigger className="w-12 h-6 text-xs">
-                <SelectValue placeholder="12pt" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="10pt">10pt</SelectItem>
-                <SelectItem value="11pt">11pt</SelectItem>
-                <SelectItem value="12pt">12pt</SelectItem>
-                <SelectItem value="14pt">14pt</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <div className="h-4 w-px bg-gray-300 mx-1"></div>
-            
-            {/* Text formatting */}
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={handleBold}>
-              <Bold className="h-3 w-3" />
+        {/* Main formatting row */}
+        <div className="flex justify-center items-center gap-1 mb-1">
+          {/* Font controls */}
+          <Select value={textStyle} onValueChange={setTextStyle}>
+            <SelectTrigger className="w-16 h-5 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="paragraph">P</SelectItem>
+              <SelectItem value="heading1">H1</SelectItem>
+              <SelectItem value="heading2">H2</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Select value={fontFamily} onValueChange={setFontFamily}>
+            <SelectTrigger className="w-18 h-5 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="verdana">Verdana</SelectItem>
+              <SelectItem value="arial">Arial</SelectItem>
+              <SelectItem value="times">Times</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Select value={fontSize} onValueChange={setFontSize}>
+            <SelectTrigger className="w-12 h-5 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10pt">10</SelectItem>
+              <SelectItem value="11pt">11</SelectItem>
+              <SelectItem value="12pt">12</SelectItem>
+              <SelectItem value="14pt">14</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <div className="h-3 w-px bg-gray-300 mx-1"></div>
+          
+          {/* Text formatting */}
+          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleBold}>
+            <Bold className="h-3 w-3" />
+          </Button>
+          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleItalic}>
+            <Italic className="h-3 w-3" />
+          </Button>
+          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleUnderline}>
+            <Underline className="h-3 w-3" />
+          </Button>
+          
+          <div className="h-3 w-px bg-gray-300 mx-1"></div>
+          
+          {/* Lists */}
+          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleBulletList}>
+            <List className="h-3 w-3" />
+          </Button>
+          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleNumberedList}>
+            <ListOrdered className="h-3 w-3" />
+          </Button>
+          
+          <div className="h-3 w-px bg-gray-300 mx-1"></div>
+          
+          {/* Alignment */}
+          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleAlignLeft}>
+            <AlignLeft className="h-3 w-3" />
+          </Button>
+          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleAlignCenter}>
+            <AlignCenter className="h-3 w-3" />
+          </Button>
+          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleAlignRight}>
+            <AlignRight className="h-3 w-3" />
+          </Button>
+          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleAlignJustify}>
+            <AlignJustify className="h-3 w-3" />
+          </Button>
+          
+          <div className="h-3 w-px bg-gray-300 mx-1"></div>
+          
+          {/* Text color and tools */}
+          <div className="relative">
+            <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={() => setShowColorPicker(!showColorPicker)}>
+              <Type className="h-3 w-3" />
             </Button>
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={handleItalic}>
-              <Italic className="h-3 w-3" />
-            </Button>
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={handleUnderline}>
-              <Underline className="h-3 w-3" />
-            </Button>
-            
-            <div className="h-4 w-px bg-gray-300 mx-1"></div>
-            
-            {/* Lists */}
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={handleBulletList}>
-              <List className="h-3 w-3" />
-            </Button>
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={handleNumberedList}>
-              <ListOrdered className="h-3 w-3" />
-            </Button>
-            
-            <div className="h-4 w-px bg-gray-300 mx-1"></div>
-            
-            {/* Alignment */}
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={handleAlignLeft}>
-              <AlignLeft className="h-3 w-3" />
-            </Button>
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={handleAlignCenter}>
-              <AlignCenter className="h-3 w-3" />
-            </Button>
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={handleAlignRight}>
-              <AlignRight className="h-3 w-3" />
-            </Button>
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={handleAlignJustify}>
-              <AlignJustify className="h-3 w-3" />
-            </Button>
-            
-            <div className="h-4 w-px bg-gray-300 mx-1"></div>
-            
-            {/* Text color */}
-            <div className="relative">
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setShowColorPicker(!showColorPicker)}>
-                <div className="flex flex-col items-center">
-                  <Type className="h-2 w-2" />
-                  <div className="w-3 h-0.5 bg-red-500 mt-0.5"></div>
+            {showColorPicker && (
+              <div className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded shadow-lg p-2 z-50">
+                <div className="grid grid-cols-8 gap-1">
+                  {[
+                    '#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#FFFFFF',
+                    '#808080', '#800000', '#008000', '#000080', '#808000', '#800080', '#008080', '#C0C0C0'
+                  ].map((color) => (
+                    <button
+                      key={color}
+                      className="w-4 h-4 border border-gray-300 rounded"
+                      style={{ backgroundColor: color }}
+                      onClick={() => {
+                        setTextColor(color);
+                        setShowColorPicker(false);
+                      }}
+                    />
+                  ))}
                 </div>
-              </Button>
-              {showColorPicker && (
-                <div className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded shadow-lg p-2 z-50">
-                  <div className="grid grid-cols-8 gap-1">
-                    {[
-                      '#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#FFFFFF',
-                      '#808080', '#800000', '#008000', '#000080', '#808000', '#800080', '#008080', '#C0C0C0'
-                    ].map((color) => (
-                      <button
-                        key={color}
-                        className="w-4 h-4 border border-gray-300 rounded"
-                        style={{ backgroundColor: color }}
-                        onClick={() => {
-                          setTextColor(color);
-                          setShowColorPicker(false);
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            <div className="h-4 w-px bg-gray-300 mx-1"></div>
-            
-            {/* Insert Options */}
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={handleTable}>
-              <Table className="h-3 w-3" />
-            </Button>
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={handleAttachFile}>
-              <Paperclip className="h-3 w-3" />
-            </Button>
+              </div>
+            )}
           </div>
+          
+          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleTable}>
+            <Table className="h-3 w-3" />
+          </Button>
+          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleAttachFile}>
+            <Paperclip className="h-3 w-3" />
+          </Button>
         </div>
 
-        {/* Second row - Medical data buttons */}
-        <div className="flex justify-center w-full">
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="sm" className="text-xs h-5 px-2" onClick={handleInsertTemplate}>
-              Insert template
-            </Button>
-            <Button variant="ghost" size="sm" className="text-xs h-5 px-2" onClick={handleInsertLogo}>
-              Insert logo
-            </Button>
-            <Button variant="ghost" size="sm" className="text-xs h-5 px-2" onClick={handleClinic}>
-              Clinic
-            </Button>
-            <Button variant="ghost" size="sm" className="text-xs h-5 px-2" onClick={handlePatient}>
-              Patient
-            </Button>
-            <Button variant="ghost" size="sm" className="text-xs h-5 px-2" onClick={handleRecipient}>
-              Recipient
-            </Button>
-            <Button variant="ghost" size="sm" className="text-xs h-5 px-2" onClick={handleAppointments}>
-              Appointments
-            </Button>
-            <Button variant="ghost" size="sm" className="text-xs h-5 px-2" onClick={handleLabs}>
-              Labs
-            </Button>
-            <Button variant="ghost" size="sm" className="text-xs h-5 px-2" onClick={handlePatientRecords}>
-              Patient records
-            </Button>
-            <Button variant="ghost" size="sm" className="text-xs h-5 px-2" onClick={handleInsertProduct}>
-              Insert product
-            </Button>
-          </div>
+        {/* Medical data buttons row */}
+        <div className="flex justify-center items-center gap-1">
+          <Button variant="ghost" size="sm" className="text-xs h-4 px-2" onClick={handleInsertTemplate}>
+            Insert template
+          </Button>
+          <Button variant="ghost" size="sm" className="text-xs h-4 px-2" onClick={handleInsertLogo}>
+            Insert logo
+          </Button>
+          <Button variant="ghost" size="sm" className="text-xs h-4 px-2" onClick={handleClinic}>
+            Clinic
+          </Button>
+          <Button variant="ghost" size="sm" className="text-xs h-4 px-2" onClick={handlePatient}>
+            Patient
+          </Button>
+          <Button variant="ghost" size="sm" className="text-xs h-4 px-2" onClick={handleRecipient}>
+            Recipient
+          </Button>
+          <Button variant="ghost" size="sm" className="text-xs h-4 px-2" onClick={handleAppointments}>
+            Appointments
+          </Button>
+          <Button variant="ghost" size="sm" className="text-xs h-4 px-2" onClick={handleLabs}>
+            Labs
+          </Button>
         </div>
       </div>
 
-      {/* Document Editor */}
-      <div className="flex-1 bg-gray-50 overflow-hidden">
-        <div className="h-full flex items-center justify-center p-3">
-          <div className="bg-white shadow-md border border-gray-200" style={{ width: '580px', height: '360px', borderRadius: '1px' }}>
+      {/* Document Editor - exact match to Semble */}
+      <div className="flex-1 bg-gray-100 overflow-hidden">
+        <div className="h-full flex items-center justify-center p-4">
+          <div className="bg-white shadow-sm border border-gray-300" style={{ width: '500px', height: '300px' }}>
             <div className="h-full p-4">
               <textarea
                 value={documentContent}
                 onChange={(e) => setDocumentContent(e.target.value)}
-                className="w-full h-full resize-none border-none outline-none text-black text-sm leading-relaxed bg-transparent"
+                className="w-full h-full resize-none border-none outline-none text-black text-sm leading-normal bg-transparent"
                 placeholder=""
                 style={{ 
                   fontFamily: fontFamily === 'verdana' ? 'Verdana, sans-serif' : fontFamily === 'arial' ? 'Arial, sans-serif' : 'Times, serif',
