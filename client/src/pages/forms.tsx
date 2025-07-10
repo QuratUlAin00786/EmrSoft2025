@@ -96,7 +96,7 @@ export default function Forms() {
           </Select>
           
           <Select value={fontFamily} onValueChange={setFontFamily}>
-            <SelectTrigger className="w-20 h-6 text-xs border border-gray-300 bg-white">
+            <SelectTrigger className="w-24 h-7 text-sm border-2 border-gray-400 bg-white font-medium">
               <SelectValue placeholder="Verdana" />
             </SelectTrigger>
             <SelectContent>
@@ -107,7 +107,7 @@ export default function Forms() {
           </Select>
           
           <Select value={fontSize} onValueChange={setFontSize}>
-            <SelectTrigger className="w-14 h-6 text-xs border border-gray-300 bg-white">
+            <SelectTrigger className="w-16 h-7 text-sm border-2 border-gray-400 bg-white font-medium">
               <SelectValue placeholder="12pt" />
             </SelectTrigger>
             <SelectContent>
