@@ -16,7 +16,6 @@ export default function Forms() {
   const [fontFamily, setFontFamily] = useState("verdana");
   const [fontSize, setFontSize] = useState("12pt");
   const [textStyle, setTextStyle] = useState("heading2");
-  const [currentTextFormat, setCurrentTextFormat] = useState<'paragraph' | 'heading1' | 'heading2'>('paragraph');
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [textColor, setTextColor] = useState("#000000");
   const [showFormFields, setShowFormFields] = useState(true);
@@ -87,9 +86,6 @@ export default function Forms() {
         formattedText = selectedText.charAt(0).toUpperCase() + selectedText.slice(1).toLowerCase(); // H2 - capitalize first letter
         break;
     }
-    
-    // Update current format for styling
-    setCurrentTextFormat(formatType);
     
     const newContent = beforeText + formattedText + afterText;
     setDocumentContent(newContent);
@@ -492,9 +488,8 @@ export default function Forms() {
                 placeholder="Start typing your document here..."
                 style={{ 
                   fontFamily: fontFamily === 'verdana' ? 'Verdana, sans-serif' : fontFamily === 'arial' ? 'Arial, sans-serif' : 'Times, serif',
-                  fontSize: currentTextFormat === 'heading1' ? '18pt' : currentTextFormat === 'heading2' ? '14pt' : fontSize,
-                  lineHeight: '1.4',
-                  fontWeight: currentTextFormat === 'heading1' ? 'bold' : currentTextFormat === 'heading2' ? '600' : 'normal'
+                  fontSize: fontSize,
+                  lineHeight: '1.4'
                 }}
               />
             </div>
