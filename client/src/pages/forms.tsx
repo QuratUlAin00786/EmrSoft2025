@@ -240,23 +240,23 @@ export default function FormsPage() {
       </div>
 
       {/* Toolbar */}
-      <div className="bg-white border-b border-gray-200 py-3">
-        {/* Centered toolbar with all formatting options */}
-        <div className="flex justify-center w-full">
-          <div className="flex items-center space-x-1 bg-gray-50 px-4 py-2 rounded-lg mx-auto">
+      <div className="bg-white border-b border-gray-200 py-2 px-4">
+        {/* First row - Main formatting tools */}
+        <div className="flex justify-center w-full mb-2">
+          <div className="flex items-center gap-1 bg-gray-50 px-3 py-1 rounded">
             {/* Undo/Redo */}
-            <Button variant="ghost" size="sm" onClick={handleUndo}>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleUndo}>
               <Undo className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={handleRedo}>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleRedo}>
               <Redo className="h-4 w-4" />
             </Button>
             
-            <div className="h-4 w-px bg-gray-300 mx-2"></div>
+            <div className="h-4 w-px bg-gray-300 mx-1"></div>
             
             {/* Text Style Dropdown */}
             <Select value={textStyle} onValueChange={setTextStyle}>
-              <SelectTrigger className="w-20 h-8">
+              <SelectTrigger className="w-24 h-7 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -269,7 +269,7 @@ export default function FormsPage() {
 
             {/* Font Family */}
             <Select value={fontFamily} onValueChange={setFontFamily}>
-              <SelectTrigger className="w-18 h-8">
+              <SelectTrigger className="w-20 h-7 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -282,7 +282,7 @@ export default function FormsPage() {
 
             {/* Font Size */}
             <Select value={fontSize} onValueChange={setFontSize}>
-              <SelectTrigger className="w-14 h-8">
+              <SelectTrigger className="w-16 h-7 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -296,101 +296,101 @@ export default function FormsPage() {
               </SelectContent>
             </Select>
             
-            <div className="h-4 w-px bg-gray-300 mx-2"></div>
+            <div className="h-4 w-px bg-gray-300 mx-1"></div>
             
             {/* Text Formatting */}
-            <Button variant="ghost" size="sm" onClick={handleBold}>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleBold}>
               <Bold className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={handleItalic}>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleItalic}>
               <Italic className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={handleUnderline}>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleUnderline}>
               <Underline className="h-4 w-4" />
             </Button>
             
-            <div className="h-4 w-px bg-gray-300 mx-2"></div>
+            <div className="h-4 w-px bg-gray-300 mx-1"></div>
             
             {/* Lists */}
-            <Button variant="ghost" size="sm" onClick={() => handleList('Bullet')}>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => handleList('Bullet')}>
               <List className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => handleList('Numbered')}>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => handleList('Numbered')}>
               <ListOrdered className="h-4 w-4" />
             </Button>
             
-            <div className="h-4 w-px bg-gray-300 mx-2"></div>
+            <div className="h-4 w-px bg-gray-300 mx-1"></div>
             
             {/* Text Alignment */}
-            <Button variant="ghost" size="sm" onClick={() => handleAlignment('left')}>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => handleAlignment('left')}>
               <AlignLeft className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => handleAlignment('center')}>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => handleAlignment('center')}>
               <AlignCenter className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => handleAlignment('right')}>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => handleAlignment('right')}>
               <AlignRight className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => handleAlignment('justify')}>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => handleAlignment('justify')}>
               <AlignJustify className="h-4 w-4" />
             </Button>
             
-            <div className="h-4 w-px bg-gray-300 mx-2"></div>
+            <div className="h-4 w-px bg-gray-300 mx-1"></div>
             
             {/* Text Color and Highlight */}
-            <Button variant="ghost" size="sm" onClick={handleTextColor}>
-              <div className="w-4 h-4 border-b-2 border-red-500">A</div>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleTextColor}>
+              <div className="w-4 h-4 border-b-2 border-red-500 flex items-center justify-center text-xs">A</div>
             </Button>
-            <Button variant="ghost" size="sm" onClick={handleHighlight}>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleHighlight}>
               <div className="w-4 h-4 bg-yellow-300 border border-gray-400"></div>
             </Button>
             
-            <div className="h-4 w-px bg-gray-300 mx-2"></div>
+            <div className="h-4 w-px bg-gray-300 mx-1"></div>
             
             {/* Insert Options */}
-            <Button variant="ghost" size="sm" onClick={handleTable}>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleTable}>
               <Table className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={handleAttachFile}>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleAttachFile}>
               <Paperclip className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => toast({ title: "Insert Image", description: "Image insertion dialog opened." })}>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => toast({ title: "Insert Image", description: "Image insertion dialog opened." })}>
               <Image className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => toast({ title: "Insert Link", description: "Link insertion dialog opened." })}>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => toast({ title: "Insert Link", description: "Link insertion dialog opened." })}>
               <Link className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
-        {/* Medical Data Row - Centered */}
-        <div className="flex justify-center w-full mt-3">
-          <div className="flex items-center space-x-2 mx-auto">
-            <Button variant="ghost" size="sm" className="text-sm" onClick={handleInsertTemplate}>
+        {/* Second row - Medical data buttons */}
+        <div className="flex justify-center w-full">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" className="text-xs h-7 px-2" onClick={handleInsertTemplate}>
               Insert template
             </Button>
-            <Button variant="ghost" size="sm" className="text-sm" onClick={handleInsertLogo}>
+            <Button variant="ghost" size="sm" className="text-xs h-7 px-2" onClick={handleInsertLogo}>
               Insert logo
             </Button>
-            <Button variant="ghost" size="sm" className="text-sm" onClick={handleClinic}>
+            <Button variant="ghost" size="sm" className="text-xs h-7 px-2" onClick={handleClinic}>
               Clinic
             </Button>
-            <Button variant="ghost" size="sm" className="text-sm" onClick={handlePatient}>
+            <Button variant="ghost" size="sm" className="text-xs h-7 px-2" onClick={handlePatient}>
               Patient
             </Button>
-            <Button variant="ghost" size="sm" className="text-sm" onClick={handleRecipient}>
+            <Button variant="ghost" size="sm" className="text-xs h-7 px-2" onClick={handleRecipient}>
               Recipient
             </Button>
-            <Button variant="ghost" size="sm" className="text-sm" onClick={handleAppointments}>
+            <Button variant="ghost" size="sm" className="text-xs h-7 px-2" onClick={handleAppointments}>
               Appointments
             </Button>
-            <Button variant="ghost" size="sm" className="text-sm" onClick={handleLabs}>
+            <Button variant="ghost" size="sm" className="text-xs h-7 px-2" onClick={handleLabs}>
               Labs
             </Button>
-            <Button variant="ghost" size="sm" className="text-sm" onClick={handlePatientRecords}>
+            <Button variant="ghost" size="sm" className="text-xs h-7 px-2" onClick={handlePatientRecords}>
               Patient records
             </Button>
-            <Button variant="ghost" size="sm" className="text-sm" onClick={handleInsertProduct}>
+            <Button variant="ghost" size="sm" className="text-xs h-7 px-2" onClick={handleInsertProduct}>
               Insert product
             </Button>
           </div>
