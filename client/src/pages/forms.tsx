@@ -80,10 +80,10 @@ export default function Forms() {
         formattedText = selectedText.toLowerCase();
         break;
       case 'heading1':
-        formattedText = selectedText.toUpperCase();
+        formattedText = "### " + selectedText.toUpperCase() + " ###"; // H1 with decorative markers
         break;
       case 'heading2':
-        formattedText = selectedText.charAt(0).toUpperCase() + selectedText.slice(1).toLowerCase();
+        formattedText = "** " + selectedText.toUpperCase() + " **"; // H2 with bold markers
         break;
     }
     
