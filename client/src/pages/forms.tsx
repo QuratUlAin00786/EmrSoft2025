@@ -212,9 +212,9 @@ export default function FormsPage() {
   return (
     <div className="h-full flex flex-col bg-gray-50">
       {/* Top Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3">
-        <div className="flex items-center justify-center">
-          <div className="flex items-center space-x-4">
+      <div className="bg-white border-b border-gray-200 px-4 py-3">
+        <div className="flex items-center justify-center w-full">
+          <div className="flex items-center space-x-3 max-w-6xl">
             <Button variant="ghost" size="sm" onClick={() => toast({ title: "Letters", description: "Navigating back to letters list." })}>
               <ArrowLeft className="h-4 w-4 mr-1" />
               <span className="text-sm">Letters</span>
@@ -225,10 +225,10 @@ export default function FormsPage() {
             <Button variant="outline" size="sm" onClick={handleSaveAsDraft}>
               Save as draft
             </Button>
-            <div className="text-sm text-gray-600 mx-4">Letter body</div>
-            <span className="text-sm text-gray-600">Select Patient...</span>
-            <span className="text-sm text-gray-600">New Chris...</span>
-            <span className="text-sm text-gray-600">Share this...</span>
+            <div className="text-sm text-gray-600 mx-3">Letter body</div>
+            <span className="text-sm text-gray-600 cursor-pointer">Select Patient...</span>
+            <span className="text-sm text-gray-600 cursor-pointer">New Chris...</span>
+            <span className="text-sm text-gray-600 cursor-pointer">Share this...</span>
           </div>
         </div>
       </div>
