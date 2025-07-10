@@ -101,6 +101,9 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system des
 
 ## Changelog
 
+**July 10, 2025:**
+- **COMPLETED**: Fixed H1 and H2 formatting visual hierarchy in Forms page - implemented clear HTML-style tag formatting system with [H1] and [H2] tags, switched to monospace font (Consolas, Monaco, Courier New) for better tag visibility, ensuring distinct visual hierarchy between paragraph (lowercase), H1 (uppercase with [H1] tags), and H2 (uppercase with [H2] tags) formatting levels
+
 **July 8, 2025:**
 - **COMPLETED**: Fixed View Patient button functionality on AI Insights page - added navigation import (wouter useLocation hook), implemented click handler to navigate to patient details page (/patients/:id), ensuring proper patient navigation from AI insights without modifying any other application functionality
 - **COMPLETED**: Added Cura favicon to browser tab - implemented proper Cura icon favicon using official brand assets, placed in public directory for proper Vite serving, added comprehensive favicon support including PNG and ICO formats for all browser compatibility, updated page title to "Cura - AI-Powered Healthcare Platform"

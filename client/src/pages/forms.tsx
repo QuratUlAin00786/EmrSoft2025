@@ -497,12 +497,13 @@ export default function Forms() {
                 ref={setTextareaRef}
                 value={documentContent}
                 onChange={(e) => setDocumentContent(e.target.value)}
-                className="w-full h-full resize-none border-none outline-none text-black leading-normal bg-transparent"
+                className="w-full h-full resize-none border-none outline-none text-black leading-normal bg-transparent font-mono"
                 placeholder="Start typing your document here..."
                 style={{ 
-                  fontFamily: fontFamily === 'verdana' ? 'Verdana, sans-serif' : fontFamily === 'arial' ? 'Arial, sans-serif' : 'Times, serif',
+                  fontFamily: 'Consolas, Monaco, "Courier New", monospace',
                   fontSize: fontSize,
-                  lineHeight: '1.4'
+                  lineHeight: '1.6',
+                  letterSpacing: '0.5px'
                 }}
               />
             </div>
