@@ -178,7 +178,7 @@ export default function Forms() {
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-2">Select Header</label>
             <Select>
-              <SelectTrigger className="w-80">
+              <SelectTrigger style={{ width: '700px' }}>
                 <SelectValue placeholder="Your Clinic" />
               </SelectTrigger>
               <SelectContent>
@@ -194,7 +194,7 @@ export default function Forms() {
           </div>
           
           {/* Header Preview Area */}
-          <div className="mt-4 p-6 bg-gray-50 border border-gray-200 rounded text-center w-80">
+          <div className="mt-4 p-6 bg-gray-50 border border-gray-200 rounded text-center" style={{ width: '700px' }}>
             <div className="text-teal-600 text-lg font-semibold">🏥 Your Clinic</div>
             <div className="text-xs text-gray-500 mt-1">Header preview will appear here</div>
           </div>
