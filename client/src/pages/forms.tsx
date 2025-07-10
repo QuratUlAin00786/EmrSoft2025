@@ -93,10 +93,10 @@ export default function Forms() {
         formattedText = selectedText.toLowerCase();
         break;
       case 'heading1':
-        formattedText = "** " + selectedText.toUpperCase() + " **"; // H1 - bold uppercase with double asterisks
+        formattedText = "### " + selectedText.toUpperCase() + " ###"; // H1 - large heading with triple hash
         break;
       case 'heading2':
-        formattedText = "* " + selectedText.toUpperCase() + " *"; // H2 - bold uppercase with single asterisks
+        formattedText = "## " + selectedText.toUpperCase() + " ##"; // H2 - medium heading with double hash
         break;
     }
     
