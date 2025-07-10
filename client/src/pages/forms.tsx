@@ -7,7 +7,7 @@ import {
   AlignLeft, AlignCenter, AlignRight, AlignJustify, Type,
   Table, Paperclip, Image, Link, MoreHorizontal, Clock,
   Palette, Highlighter, Minus, Plus, Eye, Download,
-  Settings, FileText, Calculator, Search
+  Settings, FileText, Calculator, Search, ChevronDown, ChevronUp
 } from "lucide-react";
 
 export default function Forms() {
@@ -17,6 +17,7 @@ export default function Forms() {
   const [textStyle, setTextStyle] = useState("paragraph");
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [textColor, setTextColor] = useState("#000000");
+  const [showFormFields, setShowFormFields] = useState(true);
   const { toast } = useToast();
 
   const handlePreview = () => {
@@ -79,80 +80,93 @@ export default function Forms() {
         </div>
       </div>
 
-      {/* Form Fields Section */}
-      <div className="bg-gray-50 border-b border-gray-200 px-4 py-4">
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-            <input
-              type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-              placeholder="Enter subject"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Recipient (optional)</label>
-            <input
-              type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-              placeholder="Enter recipient"
-            />
-          </div>
+      {/* Form Fields Section - Collapsible */}
+      <div className="bg-gray-50 border-b border-gray-200">
+        {/* Toggle Header */}
+        <div className="px-4 py-2 flex items-center justify-between cursor-pointer" onClick={() => setShowFormFields(!showFormFields)}>
+          <span className="text-sm font-medium text-gray-700">Letter Details</span>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+            {showFormFields ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </Button>
         </div>
         
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Location (optional)</label>
-            <Select>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="main-clinic">Main Clinic</SelectItem>
-                <SelectItem value="branch-office">Branch Office</SelectItem>
-                <SelectItem value="hospital">Hospital</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Copied in recipients (optional)</label>
-            <input
-              type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-              placeholder="Enter copied recipients"
-            />
-          </div>
-        </div>
+        {/* Collapsible Content */}
+        {showFormFields && (
+          <div className="px-4 pb-4">
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="Enter subject"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Recipient (optional)</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="Enter recipient"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Location (optional)</label>
+                <Select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="main-clinic">Main Clinic</SelectItem>
+                    <SelectItem value="branch-office">Branch Office</SelectItem>
+                    <SelectItem value="hospital">Hospital</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Copied in recipients (optional)</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="Enter copied recipients"
+                />
+              </div>
+            </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Practitioner (optional)</label>
-            <Select>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select practitioner" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="dr-smith">Dr. Smith</SelectItem>
-                <SelectItem value="dr-johnson">Dr. Johnson</SelectItem>
-                <SelectItem value="dr-brown">Dr. Brown</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Practitioner (optional)</label>
+                <Select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select practitioner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="dr-smith">Dr. Smith</SelectItem>
+                    <SelectItem value="dr-johnson">Dr. Johnson</SelectItem>
+                    <SelectItem value="dr-brown">Dr. Brown</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Select Header</label>
+                <Select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Your Clinic" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="your-clinic">Your Clinic</SelectItem>
+                    <SelectItem value="main-hospital">Main Hospital</SelectItem>
+                    <SelectItem value="specialty-center">Specialty Center</SelectItem>
+                    <SelectItem value="urgent-care">Urgent Care</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Select Header</label>
-            <Select>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Your Clinic" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="your-clinic">Your Clinic</SelectItem>
-                <SelectItem value="main-hospital">Main Hospital</SelectItem>
-                <SelectItem value="specialty-center">Specialty Center</SelectItem>
-                <SelectItem value="urgent-care">Urgent Care</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Toolbar - exact match to Semble with all visible options */}
