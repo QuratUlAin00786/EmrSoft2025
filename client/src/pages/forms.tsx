@@ -63,9 +63,20 @@ export default function Forms() {
       const selectedText = documentContent.substring(start, end);
       
       if (selectedText) {
+        const beforeText = documentContent.substring(0, start);
+        const afterText = documentContent.substring(end);
+        const formattedText = selectedText.toLowerCase(); // Convert to lowercase for paragraph
+        const newContent = beforeText + formattedText + afterText;
+        
+        setDocumentContent(newContent);
+        setTimeout(() => {
+          textareaRef.setSelectionRange(start, start + formattedText.length);
+          textareaRef.focus();
+        }, 0);
+        
         toast({ 
           title: "✓ Paragraph", 
-          description: "Paragraph formatting applied to selected text",
+          description: "Text converted to paragraph formatting",
           duration: 3000
         });
       } else {
