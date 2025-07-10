@@ -128,10 +128,22 @@ export default function Forms() {
               <SelectValue placeholder="12pt" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="8pt">8pt</SelectItem>
+              <SelectItem value="9pt">9pt</SelectItem>
               <SelectItem value="10pt">10pt</SelectItem>
               <SelectItem value="11pt">11pt</SelectItem>
               <SelectItem value="12pt">12pt</SelectItem>
               <SelectItem value="14pt">14pt</SelectItem>
+              <SelectItem value="16pt">16pt</SelectItem>
+              <SelectItem value="18pt">18pt</SelectItem>
+              <SelectItem value="20pt">20pt</SelectItem>
+              <SelectItem value="22pt">22pt</SelectItem>
+              <SelectItem value="24pt">24pt</SelectItem>
+              <SelectItem value="26pt">26pt</SelectItem>
+              <SelectItem value="28pt">28pt</SelectItem>
+              <SelectItem value="36pt">36pt</SelectItem>
+              <SelectItem value="48pt">48pt</SelectItem>
+              <SelectItem value="72pt">72pt</SelectItem>
             </SelectContent>
           </Select>
           
