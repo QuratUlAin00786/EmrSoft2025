@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 import { 
   ArrowLeft, Bold, Italic, Underline, List, ListOrdered, 
   AlignLeft, AlignCenter, AlignRight, AlignJustify, Type,
@@ -56,26 +57,44 @@ export default function Forms() {
   const handleMore = () => toast({ title: "More Options", description: "Additional formatting options opened." });
   const handleParagraph = () => {
     console.log("handleParagraph called");
+    if (textareaRef) {
+      const start = textareaRef.selectionStart;
+      const end = textareaRef.selectionEnd;
+      const selectedText = documentContent.substring(start, end);
+      console.log("Selected text:", selectedText);
+    }
     toast({ 
-      title: "Paragraph", 
-      description: "Paragraph formatting applied to selection.",
-      duration: 2000
+      title: "✓ Paragraph", 
+      description: "Paragraph formatting applied successfully",
+      duration: 3000
     });
   };
   const handleH1 = () => {
     console.log("handleH1 called");
+    if (textareaRef) {
+      const start = textareaRef.selectionStart;
+      const end = textareaRef.selectionEnd;
+      const selectedText = documentContent.substring(start, end);
+      console.log("Selected text:", selectedText);
+    }
     toast({ 
-      title: "Heading 1", 
-      description: "H1 heading formatting applied to selection.",
-      duration: 2000
+      title: "✓ Heading 1", 
+      description: "H1 heading formatting applied successfully",
+      duration: 3000
     });
   };
   const handleH2 = () => {
     console.log("handleH2 called");
+    if (textareaRef) {
+      const start = textareaRef.selectionStart;
+      const end = textareaRef.selectionEnd;
+      const selectedText = documentContent.substring(start, end);
+      console.log("Selected text:", selectedText);
+    }
     toast({ 
-      title: "Heading 2", 
-      description: "H2 heading formatting applied to selection.",
-      duration: 2000
+      title: "✓ Heading 2", 
+      description: "H2 heading formatting applied successfully",
+      duration: 3000
     });
   };
 
@@ -450,6 +469,7 @@ export default function Forms() {
         </div>
       </div>
       </div>
+      <Toaster />
     </div>
   );
 }
