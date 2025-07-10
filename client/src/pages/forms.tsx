@@ -210,18 +210,10 @@ export default function Forms() {
         <div className="flex justify-center items-center gap-0.5 mb-2">
           {/* Font controls */}
           <Select value={textStyle} onValueChange={(value) => {
-            console.log("Text style changed to:", value);
             setTextStyle(value);
-            if (value === "paragraph") {
-              console.log("Calling handleParagraph");
-              handleParagraph();
-            } else if (value === "heading1") {
-              console.log("Calling handleH1");
-              handleH1();
-            } else if (value === "heading2") {
-              console.log("Calling handleH2");
-              handleH2();
-            }
+            if (value === "paragraph") handleParagraph();
+            else if (value === "heading1") handleH1();
+            else if (value === "heading2") handleH2();
           }}>
             <SelectTrigger className="w-20 h-6 text-xs border border-gray-300">
               <SelectValue placeholder="H2" />
@@ -419,11 +411,12 @@ export default function Forms() {
               <textarea
                 value={documentContent}
                 onChange={(e) => setDocumentContent(e.target.value)}
-                className="w-full h-full resize-none border-none outline-none text-black text-sm leading-normal bg-transparent"
+                className="w-full h-full resize-none border-none outline-none text-black leading-normal bg-transparent"
                 placeholder=""
                 style={{ 
                   fontFamily: fontFamily === 'verdana' ? 'Verdana, sans-serif' : fontFamily === 'arial' ? 'Arial, sans-serif' : 'Times, serif',
-                  fontSize: fontSize,
+                  fontSize: textStyle === 'heading1' ? '24px' : textStyle === 'heading2' ? '20px' : fontSize,
+                  fontWeight: textStyle === 'heading1' || textStyle === 'heading2' ? 'bold' : 'normal',
                   lineHeight: '1.4'
                 }}
               />
