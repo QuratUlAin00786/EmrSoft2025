@@ -89,7 +89,7 @@ export default function Forms() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="paragraph">P</SelectItem>
+              <SelectItem value="paragraph">Paragraph</SelectItem>
               <SelectItem value="heading1">H1</SelectItem>
               <SelectItem value="heading2">H2</SelectItem>
             </SelectContent>
