@@ -210,18 +210,26 @@ export default function Forms() {
         <div className="flex justify-center items-center gap-0.5 mb-2">
           {/* Font controls */}
           <Select value={textStyle} onValueChange={(value) => {
+            console.log("Text style changed to:", value);
             setTextStyle(value);
-            if (value === "paragraph") handleParagraph();
-            else if (value === "heading1") handleH1();
-            else if (value === "heading2") handleH2();
+            if (value === "paragraph") {
+              console.log("Calling handleParagraph");
+              handleParagraph();
+            } else if (value === "heading1") {
+              console.log("Calling handleH1");
+              handleH1();
+            } else if (value === "heading2") {
+              console.log("Calling handleH2");
+              handleH2();
+            }
           }}>
             <SelectTrigger className="w-20 h-6 text-xs border border-gray-300">
               <SelectValue placeholder="H2" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="paragraph" onClick={handleParagraph}>Paragraph</SelectItem>
-              <SelectItem value="heading1" onClick={handleH1}>H1</SelectItem>
-              <SelectItem value="heading2" onClick={handleH2}>H2</SelectItem>
+              <SelectItem value="paragraph">Paragraph</SelectItem>
+              <SelectItem value="heading1">H1</SelectItem>
+              <SelectItem value="heading2">H2</SelectItem>
             </SelectContent>
           </Select>
           
