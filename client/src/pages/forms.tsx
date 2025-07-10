@@ -14,7 +14,7 @@ export default function Forms() {
   const [documentContent, setDocumentContent] = useState("");
   const [fontFamily, setFontFamily] = useState("verdana");
   const [fontSize, setFontSize] = useState("12pt");
-  const [textStyle, setTextStyle] = useState("paragraph");
+  const [textStyle, setTextStyle] = useState("heading2");
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [textColor, setTextColor] = useState("#000000");
   const [showFormFields, setShowFormFields] = useState(true);
@@ -216,12 +216,12 @@ export default function Forms() {
             else if (value === "heading2") handleH2();
           }}>
             <SelectTrigger className="w-20 h-6 text-xs border border-gray-300">
-              <SelectValue />
+              <SelectValue placeholder="H2" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="paragraph">Paragraph</SelectItem>
-              <SelectItem value="heading1">H1</SelectItem>
-              <SelectItem value="heading2">H2</SelectItem>
+              <SelectItem value="paragraph" onClick={handleParagraph}>Paragraph</SelectItem>
+              <SelectItem value="heading1" onClick={handleH1}>H1</SelectItem>
+              <SelectItem value="heading2" onClick={handleH2}>H2</SelectItem>
             </SelectContent>
           </Select>
           
