@@ -85,7 +85,7 @@ export default function Forms() {
         <div className="flex justify-center items-center gap-0.5 mb-2">
           {/* Font controls */}
           <Select value={textStyle} onValueChange={setTextStyle}>
-            <SelectTrigger className="w-14 h-6 text-xs border border-gray-300">
+            <SelectTrigger className="w-20 h-6 text-xs border border-gray-300">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
