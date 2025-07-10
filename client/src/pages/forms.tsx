@@ -93,10 +93,10 @@ export default function Forms() {
         formattedText = selectedText.toLowerCase();
         break;
       case 'heading1':
-        formattedText = "\n\n>>> " + selectedText.toUpperCase() + " <<<\n\n"; // H1 - major heading with arrows
+        formattedText = "** " + selectedText.toUpperCase() + " **"; // H1 - bold uppercase with double asterisks
         break;
       case 'heading2':
-        formattedText = "\n\n>> " + selectedText.toUpperCase() + " <<\n\n"; // H2 - subheading with arrows
+        formattedText = "* " + selectedText.toUpperCase() + " *"; // H2 - bold uppercase with single asterisks
         break;
     }
     
