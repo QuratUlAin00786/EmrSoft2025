@@ -101,8 +101,12 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system des
 
 ## Changelog
 
+**July 11, 2025:**
+- **COMPLETED**: Fixed typewriter jumping issue in Forms page - replaced dangerouslySetInnerHTML with proper contentEditable implementation, preventing cursor jumping during typing while maintaining H1/H2 font size functionality, ensuring smooth professional text editing experience in LIVE deployment
+- **COMPLETED**: Extended JWT token expiration to 7 days - prevents automatic logout during development sessions, maintaining user authentication across code changes and server restarts for improved development workflow
+
 **July 10, 2025:**
-- **COMPLETED**: Fixed H1 and H2 formatting visual hierarchy in Forms page - implemented clear HTML-style tag formatting system with [H1] and [H2] tags, switched to monospace font (Consolas, Monaco, Courier New) for better tag visibility, ensuring distinct visual hierarchy between paragraph (lowercase), H1 (uppercase with [H1] tags), and H2 (uppercase with [H2] tags) formatting levels
+- **COMPLETED**: Fixed H1 and H2 formatting visual hierarchy in Forms page - implemented contentEditable rich text editor with actual font size differences (H1: 24px bold, H2: 18px bold, Paragraph: 14px normal), creating visually distinct formatting levels with proper HTML element rendering instead of tag-based system
 
 **July 8, 2025:**
 - **COMPLETED**: Fixed View Patient button functionality on AI Insights page - added navigation import (wouter useLocation hook), implemented click handler to navigate to patient details page (/patients/:id), ensuring proper patient navigation from AI insights without modifying any other application functionality
