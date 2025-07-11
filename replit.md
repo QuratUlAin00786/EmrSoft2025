@@ -102,6 +102,9 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system des
 ## Changelog
 
 **July 11, 2025:**
+- **COMPLETED**: Created comprehensive Cura EMR specifications document (CURA_COMPLETE_SPECIFICATIONS.md) - documented all 24+ healthcare modules including core features (Patient Management, Appointments, Medical Records, Prescriptions, Voice Documentation, AI Insights, Billing, Forms, Analytics, Telemedicine) and 14 additional modules (Medical Imaging, Lab Management, Pharmacy, Population Health, Clinical Decision Support, Patient Portal, Inventory, Staff Management, Quality Management, Emergency Management, Research, Mobile Health, Integrations, Advanced Reporting)
+- **COMPLETED**: Enhanced font selection with visually distinct options - added Times New Roman (serif) and Courier New (monospace) fonts with improved fallbacks, ensuring clear visual differences when applied to selected text in Forms editor
+- **COMPLETED**: Fixed font style application to selected text only - removed global font styling, added proper text selection requirement for font changes, enabling different text sections to have different fonts
 - **COMPLETED**: Fixed typewriter jumping issue in Forms page - replaced dangerouslySetInnerHTML with proper contentEditable implementation, preventing cursor jumping during typing while maintaining H1/H2 font size functionality, ensuring smooth professional text editing experience in LIVE deployment
 - **COMPLETED**: Extended JWT token expiration to 7 days - prevents automatic logout during development sessions, maintaining user authentication across code changes and server restarts for improved development workflow
 
