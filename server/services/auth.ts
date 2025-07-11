@@ -30,7 +30,7 @@ export class AuthService {
     };
 
     return jwt.sign(payload, JWT_SECRET, { 
-      expiresIn: "24h",
+      expiresIn: "7d", // Extended to 7 days for development
       issuer: "medicore-emr",
       audience: "medicore-users"
     });
