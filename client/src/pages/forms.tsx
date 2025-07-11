@@ -166,26 +166,32 @@ export default function Forms() {
       return;
     }
 
-    // Get the font family name for CSS
+    // Get the font family name for CSS with distinct fallbacks
     let fontFamilyCSS = '';
     switch (fontFamilyValue) {
       case 'arial':
-        fontFamilyCSS = 'Arial, sans-serif';
+        fontFamilyCSS = 'Arial, "Helvetica Neue", Helvetica, sans-serif';
         break;
       case 'calibri':
-        fontFamilyCSS = 'Calibri, sans-serif';
+        fontFamilyCSS = 'Calibri, "Trebuchet MS", "Lucida Grande", sans-serif';
         break;
       case 'cambria':
-        fontFamilyCSS = 'Cambria, serif';
+        fontFamilyCSS = 'Cambria, "Times New Roman", Georgia, serif';
         break;
       case 'comic-sans':
-        fontFamilyCSS = 'Comic Sans MS, cursive';
+        fontFamilyCSS = '"Comic Sans MS", "Chalkboard SE", cursive';
         break;
       case 'verdana':
-        fontFamilyCSS = 'Verdana, sans-serif';
+        fontFamilyCSS = 'Verdana, Geneva, "DejaVu Sans", sans-serif';
+        break;
+      case 'times':
+        fontFamilyCSS = '"Times New Roman", Times, Georgia, serif';
+        break;
+      case 'courier':
+        fontFamilyCSS = '"Courier New", Courier, "Lucida Console", monospace';
         break;
       default:
-        fontFamilyCSS = 'Verdana, sans-serif';
+        fontFamilyCSS = 'Verdana, Geneva, "DejaVu Sans", sans-serif';
     }
 
     // Create a span with the font family applied
@@ -395,6 +401,8 @@ export default function Forms() {
               <SelectItem value="calibri">Calibri</SelectItem>
               <SelectItem value="cambria">Cambria</SelectItem>
               <SelectItem value="comic-sans">Comic Sans MS</SelectItem>
+              <SelectItem value="times">Times New Roman</SelectItem>
+              <SelectItem value="courier">Courier New</SelectItem>
               <SelectItem value="consolas">Consolas</SelectItem>
               <SelectItem value="courier">Courier New</SelectItem>
               <SelectItem value="franklin">Franklin Gothic</SelectItem>
