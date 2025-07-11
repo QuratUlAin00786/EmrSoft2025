@@ -500,7 +500,13 @@ export default function Forms() {
               <div
                 ref={setTextareaRef}
                 contentEditable
-                onInput={(e) => setDocumentContent(e.currentTarget.innerHTML || '')}
+                onInput={(e) => {
+                  // Only update state, don't re-render
+                  const content = e.currentTarget.innerHTML || '';
+                  if (content !== documentContent) {
+                    setDocumentContent(content);
+                  }
+                }}
                 className="w-full h-full resize-none border-none outline-none text-black leading-normal bg-transparent"
                 style={{ 
                   fontFamily: fontFamily === 'verdana' ? 'Verdana, sans-serif' : fontFamily === 'arial' ? 'Arial, sans-serif' : 'Times, serif',
@@ -509,8 +515,13 @@ export default function Forms() {
                   minHeight: '100%'
                 }}
                 suppressContentEditableWarning={true}
-                dangerouslySetInnerHTML={{ __html: documentContent || '<p style="color: #999; font-style: italic;">Start typing your document here...</p>' }}
-              />
+              >
+                {!documentContent && (
+                  <p style={{ color: '#999', fontStyle: 'italic', margin: 0 }}>
+                    Start typing your document here...
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>
