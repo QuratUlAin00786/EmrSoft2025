@@ -99,9 +99,18 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system des
 - **Multi-tenant Setup**: Subdomain routing with tenant-specific branding and settings
 - **Compliance**: Regional data residency and GDPR compliance controls
 
+## Mobile Applications
+
+### Flutter Apps
+- **Cura Patient App** (`mobile/cura_patient/`): Native mobile app for patients to access medical history, prescriptions, appointments, notifications, and voice documentation
+- **Cura Doctor App** (`mobile/cura_doctor/`): Professional mobile app for healthcare providers with dashboard, appointment management, patient records, and medication alerts
+- **Architecture**: Clean Flutter architecture with JWT authentication, secure token storage, and consistent Cura design system
+- **Features**: Full API integration with appointment booking, medical record access, medication tracking, and real-time notifications
+
 ## Changelog
 
 **July 11, 2025:**
+- **COMPLETED**: Created comprehensive Flutter mobile applications for both patients and doctors - implemented patient app with medical history, prescriptions, appointments, notifications, and voice documentation screens; created doctor app with dashboard, appointment management, patient records, and medication alerts; both apps feature JWT authentication, secure token storage, API integration, and consistent Cura branding with demo credentials (patient@gmail.com/patient123, doctor@gmail.com/doctor123)
 - **COMPLETED**: Created comprehensive Cura EMR specifications document (CURA_COMPLETE_SPECIFICATIONS.md) - documented all 24+ healthcare modules including core features (Patient Management, Appointments, Medical Records, Prescriptions, Voice Documentation, AI Insights, Billing, Forms, Analytics, Telemedicine) and 14 additional modules (Medical Imaging, Lab Management, Pharmacy, Population Health, Clinical Decision Support, Patient Portal, Inventory, Staff Management, Quality Management, Emergency Management, Research, Mobile Health, Integrations, Advanced Reporting)
 - **COMPLETED**: Enhanced font selection with visually distinct options - added Times New Roman (serif) and Courier New (monospace) fonts with improved fallbacks, ensuring clear visual differences when applied to selected text in Forms editor
 - **COMPLETED**: Fixed font style application to selected text only - removed global font styling, added proper text selection requirement for font changes, enabling different text sections to have different fonts
