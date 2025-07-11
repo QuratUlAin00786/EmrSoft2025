@@ -57,23 +57,21 @@ export default function Forms() {
   const handleMore = () => toast({ title: "More Options", description: "Additional formatting options opened." });
   const applyTextFormatting = (formatType: 'paragraph' | 'heading1' | 'heading2') => {
     console.log("applyTextFormatting called with:", formatType);
-    console.log("textareaRef:", textareaRef);
     
-    if (!textareaRef) {
-      console.log("No textareaRef available");
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
       toast({ 
-        title: "Error", 
-        description: "Text editor not ready. Please try again.",
+        title: "Select Text", 
+        description: `Please select text to apply ${formatType} formatting`,
         duration: 3000
       });
       return;
     }
+
+    const range = selection.getRangeAt(0);
+    const selectedText = range.toString();
     
-    const start = textareaRef.selectionStart;
-    const end = textareaRef.selectionEnd;
-    const selectedText = documentContent.substring(start, end);
-    
-    console.log("Selection:", { start, end, selectedText });
+    console.log("Selection:", { selectedText });
     
     if (!selectedText) {
       toast({ 
@@ -83,33 +81,39 @@ export default function Forms() {
       });
       return;
     }
-    
-    const beforeText = documentContent.substring(0, start);
-    const afterText = documentContent.substring(end);
-    let formattedText = selectedText;
+
+    let formattedHTML = '';
     
     switch (formatType) {
       case 'paragraph':
-        formattedText = selectedText.toLowerCase();
+        formattedHTML = `<p style="font-size: 14px; margin: 4px 0;">${selectedText.toLowerCase()}</p>`;
         break;
       case 'heading1':
-        formattedText = "[H1] " + selectedText.toUpperCase() + " [/H1]"; // H1 - large heading with clear tags
+        formattedHTML = `<h1 style="font-size: 24px; font-weight: bold; margin: 8px 0; color: #1a1a1a;">${selectedText.toUpperCase()}</h1>`;
         break;
       case 'heading2':
-        formattedText = "[H2] " + selectedText.toUpperCase() + " [/H2]"; // H2 - medium heading with clear tags
+        formattedHTML = `<h2 style="font-size: 18px; font-weight: bold; margin: 6px 0; color: #2a2a2a;">${selectedText.toUpperCase()}</h2>`;
         break;
     }
     
-    const newContent = beforeText + formattedText + afterText;
-    setDocumentContent(newContent);
+    // Create a new element from the formatted HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = formattedHTML;
+    const newElement = tempDiv.firstChild;
     
-    // Use requestAnimationFrame for better timing
-    requestAnimationFrame(() => {
+    // Replace the selected content with the new formatted element
+    if (newElement) {
+      range.deleteContents();
+      range.insertNode(newElement);
+      
+      // Update the document content state
       if (textareaRef) {
-        textareaRef.focus();
-        textareaRef.setSelectionRange(start, start + formattedText.length);
+        setDocumentContent(textareaRef.innerHTML);
       }
-    });
+    }
+    
+    // Clear selection
+    selection.removeAllRanges();
     
     const titles = {
       paragraph: "✓ Paragraph",
@@ -493,18 +497,19 @@ export default function Forms() {
         <div className="h-full flex items-center justify-center p-4">
           <div className="bg-white shadow-sm border border-gray-300" style={{ width: '500px', height: '300px' }}>
             <div className="h-full p-4">
-              <textarea
+              <div
                 ref={setTextareaRef}
-                value={documentContent}
-                onChange={(e) => setDocumentContent(e.target.value)}
-                className="w-full h-full resize-none border-none outline-none text-black leading-normal bg-transparent font-mono"
-                placeholder="Start typing your document here..."
+                contentEditable
+                onInput={(e) => setDocumentContent(e.currentTarget.innerHTML || '')}
+                className="w-full h-full resize-none border-none outline-none text-black leading-normal bg-transparent"
                 style={{ 
-                  fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                  fontFamily: fontFamily === 'verdana' ? 'Verdana, sans-serif' : fontFamily === 'arial' ? 'Arial, sans-serif' : 'Times, serif',
                   fontSize: fontSize,
                   lineHeight: '1.6',
-                  letterSpacing: '0.5px'
+                  minHeight: '100%'
                 }}
+                suppressContentEditableWarning={true}
+                dangerouslySetInnerHTML={{ __html: documentContent || '<p style="color: #999; font-style: italic;">Start typing your document here...</p>' }}
               />
             </div>
           </div>
