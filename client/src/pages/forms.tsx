@@ -143,6 +143,75 @@ export default function Forms() {
     applyTextFormatting('heading2');
   };
 
+  const applyFontFamily = (fontFamilyValue: string) => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      toast({ 
+        title: "Select Text", 
+        description: "Please select text to apply font family",
+        duration: 3000
+      });
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    const selectedText = range.toString();
+    
+    if (!selectedText) {
+      toast({ 
+        title: "Select Text", 
+        description: "Please select text to apply font family",
+        duration: 3000
+      });
+      return;
+    }
+
+    // Get the font family name for CSS
+    let fontFamilyCSS = '';
+    switch (fontFamilyValue) {
+      case 'arial':
+        fontFamilyCSS = 'Arial, sans-serif';
+        break;
+      case 'calibri':
+        fontFamilyCSS = 'Calibri, sans-serif';
+        break;
+      case 'cambria':
+        fontFamilyCSS = 'Cambria, serif';
+        break;
+      case 'comic-sans':
+        fontFamilyCSS = 'Comic Sans MS, cursive';
+        break;
+      case 'verdana':
+        fontFamilyCSS = 'Verdana, sans-serif';
+        break;
+      default:
+        fontFamilyCSS = 'Verdana, sans-serif';
+    }
+
+    // Create a span with the font family applied
+    const span = document.createElement('span');
+    span.style.fontFamily = fontFamilyCSS;
+    span.textContent = selectedText;
+    
+    // Replace the selected content with the new span
+    range.deleteContents();
+    range.insertNode(span);
+    
+    // Update the document content state
+    if (textareaRef) {
+      setDocumentContent(textareaRef.innerHTML);
+    }
+    
+    // Clear selection
+    selection.removeAllRanges();
+    
+    toast({ 
+      title: "✓ Font Applied",
+      description: `Font family changed to ${fontFamilyValue}`,
+      duration: 2000
+    });
+  };
+
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* Scrollable Content Wrapper */}
@@ -314,7 +383,10 @@ export default function Forms() {
             </SelectContent>
           </Select>
           
-          <Select value={fontFamily} onValueChange={setFontFamily}>
+          <Select value={fontFamily} onValueChange={(value) => {
+            setFontFamily(value);
+            applyFontFamily(value);
+          }}>
             <SelectTrigger className="w-24 h-7 text-sm border-2 border-gray-400 bg-white font-medium">
               <SelectValue placeholder="Verdana" />
             </SelectTrigger>
@@ -509,7 +581,6 @@ export default function Forms() {
                 }}
                 className="w-full h-full resize-none border-none outline-none text-black leading-normal bg-transparent"
                 style={{ 
-                  fontFamily: fontFamily === 'verdana' ? 'Verdana, sans-serif' : fontFamily === 'arial' ? 'Arial, sans-serif' : 'Times, serif',
                   fontSize: fontSize,
                   lineHeight: '1.6',
                   minHeight: '100%'
