@@ -23,42 +23,42 @@ export function Header({ title, subtitle }: HeaderProps) {
   const showBackButton = location !== "/" && location !== "/dashboard";
 
   return (
-    <header className="bg-white shadow-sm border-b border-neutral-100 p-6">
+    <header className="bg-white shadow-sm border-b border-neutral-100 p-4 lg:p-6">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 lg:space-x-4 min-w-0 flex-1">
           {showBackButton && (
             <Button
               variant="ghost"
               size="sm"
               onClick={handleBack}
-              className="flex items-center space-x-2"
+              className="flex items-center space-x-1 lg:space-x-2 shrink-0"
             >
               <ArrowLeft className="h-4 w-4" />
-              <span>Back</span>
+              <span className="hidden sm:inline">Back</span>
             </Button>
           )}
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-xl lg:text-2xl font-bold text-gray-900 truncate">{title}</h2>
             {subtitle && (
-              <p className="text-neutral-600 mt-1">{subtitle}</p>
+              <p className="text-neutral-600 mt-1 text-sm lg:text-base truncate">{subtitle}</p>
             )}
           </div>
         </div>
         
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 lg:space-x-4 shrink-0">
           {/* AI Status Indicator */}
           {tenant?.settings?.features?.aiEnabled && (
-            <div className="flex items-center space-x-2 bg-green-50 px-3 py-2 rounded-lg">
+            <div className="hidden md:flex items-center space-x-2 bg-green-50 px-2 lg:px-3 py-1 lg:py-2 rounded-lg">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-green-700">AI Assistant Active</span>
+              <span className="text-xs lg:text-sm text-green-700">AI Active</span>
             </div>
           )}
           
           {/* Regional Settings */}
-          <div className="flex items-center space-x-2 bg-neutral-50 px-3 py-2 rounded-lg">
-            <Globe className="h-4 w-4 text-neutral-600" />
-            <span className="text-sm text-neutral-700">
-              {tenant?.region}/{tenant?.settings?.compliance?.gdprEnabled ? "GDPR" : "Standard"}
+          <div className="hidden sm:flex items-center space-x-1 lg:space-x-2 bg-neutral-50 px-2 lg:px-3 py-1 lg:py-2 rounded-lg">
+            <Globe className="h-3 lg:h-4 w-3 lg:w-4 text-neutral-600" />
+            <span className="text-xs lg:text-sm text-neutral-700">
+              {tenant?.region?.substring(0, 2)}/{tenant?.settings?.compliance?.gdprEnabled ? "GDPR" : "Std"}
             </span>
           </div>
           

@@ -24,7 +24,9 @@ import {
   Video,
   Smartphone,
   Mic,
-  Calculator
+  Calculator,
+  Menu,
+  X
 } from "lucide-react";
 import { useTenant } from "@/hooks/use-tenant";
 import curaIconPath from "@assets/Cura Icon Main_1751893631980.png";
@@ -41,6 +43,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { LogOut, User, Settings as SettingsIcon } from "lucide-react";
+import { useState, useEffect } from "react";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -75,6 +78,19 @@ export function Sidebar() {
   const [location] = useLocation();
   const { tenant } = useTenant();
   const { user, logout } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if we're on mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
@@ -83,8 +99,48 @@ export function Sidebar() {
   // Force admin navigation to always show for any authenticated user
   const isAdmin = user && user.id;
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
-    <aside className="w-64 bg-white shadow-lg flex flex-col h-screen">
+    <>
+      {/* Mobile Menu Button */}
+      {isMobile && (
+        <div className="lg:hidden fixed top-4 left-4 z-50">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleMobileMenu}
+            className="bg-white shadow-lg"
+          >
+            {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          </Button>
+        </div>
+      )}
+
+      {/* Mobile Overlay */}
+      {isMobile && isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={closeMobileMenu}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside className={cn(
+        "bg-white shadow-lg flex flex-col h-screen transition-transform duration-300 ease-in-out z-40",
+        // Desktop
+        "lg:w-64 lg:relative lg:translate-x-0",
+        // Mobile
+        "fixed w-64 lg:w-64",
+        isMobile && !isMobileMenuOpen && "-translate-x-full",
+        isMobile && isMobileMenuOpen && "translate-x-0"
+      )}>
       {/* Logo Section */}
       <div className="p-6 border-b border-neutral-100">
         <div className="flex flex-col items-center text-center">
@@ -107,10 +163,13 @@ export function Sidebar() {
             const isActive = location === item.href;
             return (
               <Link key={item.name} href={item.href}>
-                <a className={cn(
-                  "sidebar-nav-item",
-                  isActive && "active"
-                )}>
+                <a 
+                  className={cn(
+                    "sidebar-nav-item",
+                    isActive && "active"
+                  )}
+                  onClick={isMobile ? closeMobileMenu : undefined}
+                >
                   <item.icon className="h-5 w-5" />
                   <span>{item.name}</span>
                 </a>
@@ -131,28 +190,37 @@ export function Sidebar() {
               </p>
               <div className="sidebar-nav">
                 <Link href="/users">
-                  <a className={cn(
-                    "sidebar-nav-item",
-                    location === "/users" && "active"
-                  )}>
+                  <a 
+                    className={cn(
+                      "sidebar-nav-item",
+                      location === "/users" && "active"
+                    )}
+                    onClick={isMobile ? closeMobileMenu : undefined}
+                  >
                     <UserCog className="h-5 w-5" />
                     <span>User Management</span>
                   </a>
                 </Link>
                 <Link href="/subscription">
-                  <a className={cn(
-                    "sidebar-nav-item",
-                    location === "/subscription" && "active"
-                  )}>
+                  <a 
+                    className={cn(
+                      "sidebar-nav-item",
+                      location === "/subscription" && "active"
+                    )}
+                    onClick={isMobile ? closeMobileMenu : undefined}
+                  >
                     <Crown className="h-5 w-5" />
                     <span>Subscription</span>
                   </a>
                 </Link>
                 <Link href="/settings">
-                  <a className={cn(
-                    "sidebar-nav-item",
-                    location === "/settings" && "active"
-                  )}>
+                  <a 
+                    className={cn(
+                      "sidebar-nav-item",
+                      location === "/settings" && "active"
+                    )}
+                    onClick={isMobile ? closeMobileMenu : undefined}
+                  >
                     <Settings className="h-5 w-5" />
                     <span>Settings</span>
                   </a>
@@ -220,5 +288,6 @@ export function Sidebar() {
         </DropdownMenu>
       </div>
     </aside>
+    </>
   );
 }

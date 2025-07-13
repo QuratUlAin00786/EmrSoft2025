@@ -315,3 +315,59 @@
     @apply text-black;
   }
 }
+
+/* Additional responsive utilities for mobile-first design */
+@media (max-width: 1023px) {
+  .main-content {
+    margin-left: 0 !important;
+  }
+  
+  .mobile-padding {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Mobile container utilities */
+.responsive-container {
+  width: 100%;
+  max-width: 100%;
+  padding: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .responsive-container {
+    padding: 1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-container {
+    padding: 1.5rem;
+  }
+}
+
+/* Responsive grid systems */
+.responsive-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .responsive-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .responsive-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
