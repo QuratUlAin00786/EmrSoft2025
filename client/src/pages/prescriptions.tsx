@@ -518,56 +518,56 @@ export default function PrescriptionsPage() {
         subtitle="Manage patient prescriptions and medications"
       />
       
-      <div className="flex-1 overflow-auto p-6">
-        <div className="space-y-6">
+      <div className="flex-1 overflow-auto p-4 sm:p-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Active Prescriptions</p>
-                    <p className="text-2xl font-bold">{filteredPrescriptions.filter((p: any) => p.status === 'active').length}</p>
+                    <p className="text-xs sm:text-sm font-medium text-gray-600">Active Prescriptions</p>
+                    <p className="text-xl sm:text-2xl font-bold">{filteredPrescriptions.filter((p: any) => p.status === 'active').length}</p>
                   </div>
-                  <Pill className="h-8 w-8 text-green-600" />
+                  <Pill className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
                 </div>
               </CardContent>
             </Card>
             
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Pending Approval</p>
-                    <p className="text-2xl font-bold">{filteredPrescriptions.filter((p: any) => p.status === 'pending').length}</p>
+                    <p className="text-xs sm:text-sm font-medium text-gray-600">Pending Approval</p>
+                    <p className="text-xl sm:text-2xl font-bold">{filteredPrescriptions.filter((p: any) => p.status === 'pending').length}</p>
                   </div>
-                  <Clock className="h-8 w-8 text-yellow-600" />
+                  <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-600" />
                 </div>
               </CardContent>
             </Card>
             
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Drug Interactions</p>
-                    <p className="text-2xl font-bold">
+                    <p className="text-xs sm:text-sm font-medium text-gray-600">Drug Interactions</p>
+                    <p className="text-xl sm:text-2xl font-bold">
                       {filteredPrescriptions.filter((p: any) => p.interactions && p.interactions.length > 0).length}
                     </p>
                   </div>
-                  <AlertTriangle className="h-8 w-8 text-red-600" />
+                  <AlertTriangle className="h-6 w-6 sm:h-8 sm:w-8 text-red-600" />
                 </div>
               </CardContent>
             </Card>
             
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Total Prescriptions</p>
-                    <p className="text-2xl font-bold">{filteredPrescriptions.length}</p>
+                    <p className="text-xs sm:text-sm font-medium text-gray-600">Total Prescriptions</p>
+                    <p className="text-xl sm:text-2xl font-bold">{filteredPrescriptions.length}</p>
                   </div>
-                  <FileText className="h-8 w-8 text-blue-600" />
+                  <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
                 </div>
               </CardContent>
             </Card>
@@ -756,9 +756,9 @@ export default function PrescriptionsPage() {
               filteredPrescriptions.map((prescription) => (
                 <Card key={prescription.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-3">
+                        <div className="flex flex-wrap items-center gap-2 mb-3">
                           <h3 className="text-lg font-semibold">{prescription.patientName}</h3>
                           <Badge className={getStatusColor(prescription.status)}>
                             {prescription.status}
@@ -828,33 +828,38 @@ export default function PrescriptionsPage() {
                         )}
                       </div>
                       
-                      <div className="flex gap-2 ml-4">
-                        <Button variant="outline" size="sm" onClick={() => handleViewPrescription(prescription)}>
-                          <Eye className="h-4 w-4 mr-1" />
-                          View
+                      <div className="flex flex-wrap gap-1 sm:gap-2 lg:ml-4">
+                        <Button variant="outline" size="sm" onClick={() => handleViewPrescription(prescription)} className="text-xs sm:text-sm px-2 sm:px-3">
+                          <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                          <span className="hidden sm:inline">View</span>
+                          <span className="sm:hidden">View</span>
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => handlePrintPrescription(prescription.id)}>
-                          <Printer className="h-4 w-4 mr-1" />
-                          Print
+                        <Button variant="outline" size="sm" onClick={() => handlePrintPrescription(prescription.id)} className="text-xs sm:text-sm px-2 sm:px-3">
+                          <Printer className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                          <span className="hidden sm:inline">Print</span>
+                          <span className="sm:hidden">Print</span>
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => handleSendToPharmacy(prescription.id)}>
-                          <Send className="h-4 w-4 mr-1" />
-                          Send to Pharmacy
+                        <Button variant="outline" size="sm" onClick={() => handleSendToPharmacy(prescription.id)} className="text-xs sm:text-sm px-2 sm:px-3">
+                          <Send className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                          <span className="hidden lg:inline">Send to Pharmacy</span>
+                          <span className="lg:hidden">Send</span>
                         </Button>
                         {prescription.status === 'active' && (
-                          <Button variant="outline" size="sm" onClick={() => handleEditPrescription(prescription)}>
-                            <Edit className="h-4 w-4 mr-1" />
-                            Edit
+                          <Button variant="outline" size="sm" onClick={() => handleEditPrescription(prescription)} className="text-xs sm:text-sm px-2 sm:px-3">
+                            <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                            <span className="hidden sm:inline">Edit</span>
+                            <span className="sm:hidden">Edit</span>
                           </Button>
                         )}
                         <Button 
                           variant="outline" 
                           size="sm" 
                           onClick={() => handleDeletePrescription(prescription.id)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs sm:text-sm px-2 sm:px-3"
                         >
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          Delete
+                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                          <span className="hidden sm:inline">Delete</span>
+                          <span className="sm:hidden">Delete</span>
                         </Button>
                       </div>
                     </div>

@@ -276,17 +276,17 @@ export default function AppointmentCalendar() {
       {/* Calendar Header */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
               Appointment Calendar
             </CardTitle>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 flex-wrap">
               <Button
                 variant={viewMode === "month" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setViewMode("month")}
-                className={viewMode === "month" ? "bg-medical-blue text-white" : ""}
+                className={`${viewMode === "month" ? "bg-medical-blue text-white" : ""} text-xs sm:text-sm`}
               >
                 Month
               </Button>
@@ -294,7 +294,7 @@ export default function AppointmentCalendar() {
                 variant={viewMode === "week" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setViewMode("week")}
-                className={viewMode === "week" ? "bg-medical-blue text-white" : ""}
+                className={`${viewMode === "week" ? "bg-medical-blue text-white" : ""} text-xs sm:text-sm`}
               >
                 Week
               </Button>
@@ -302,7 +302,7 @@ export default function AppointmentCalendar() {
                 variant={viewMode === "day" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setViewMode("day")}
-                className={viewMode === "day" ? "bg-medical-blue text-white" : ""}
+                className={`${viewMode === "day" ? "bg-medical-blue text-white" : ""} text-xs sm:text-sm`}
               >
                 Day
               </Button>
@@ -310,15 +310,16 @@ export default function AppointmentCalendar() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
             <h3 className="text-lg font-semibold">
               {format(selectedDate, "MMMM yyyy")}
             </h3>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-1 sm:gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1))}
+                className="text-xs sm:text-sm px-2 sm:px-3"
               >
                 Previous
               </Button>
@@ -326,6 +327,7 @@ export default function AppointmentCalendar() {
                 variant="outline"
                 size="sm"
                 onClick={() => setSelectedDate(new Date())}
+                className="text-xs sm:text-sm px-2 sm:px-3"
               >
                 Today
               </Button>
@@ -333,6 +335,7 @@ export default function AppointmentCalendar() {
                 variant="outline"
                 size="sm"
                 onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1))}
+                className="text-xs sm:text-sm px-2 sm:px-3"
               >
                 Next
               </Button>
@@ -345,7 +348,7 @@ export default function AppointmentCalendar() {
                     description: "Opening appointment booking form",
                   });
                 }}
-                className="bg-medical-blue text-white hover:bg-blue-700"
+                className="bg-medical-blue text-white hover:bg-blue-700 text-xs sm:text-sm px-2 sm:px-3 whitespace-nowrap"
               >
                 + New Appointment
               </Button>
