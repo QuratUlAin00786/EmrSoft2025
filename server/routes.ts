@@ -700,7 +700,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/appointments", requireRole(["doctor", "nurse", "receptionist", "admin"]), async (req: TenantRequest, res) => {
     try {
       const appointmentData = z.object({
-        patientId: z.union([z.number(), z.string()]), // Accept both number and string
+        patientId: z.any().transform((val) => {
+          // Handle null, undefined, empty string, or NaN
+          if (val === null || val === undefined || val === "" || (typeof val === "number" && isNaN(val))) {
+            return null;
+          }
+          return val;
+        }),
         providerId: z.number(),
         title: z.string().min(1),
         description: z.string().optional(),
@@ -711,9 +717,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isVirtual: z.boolean().default(false)
       }).parse(req.body);
 
-      // Handle patientId conversion - if it's a string (like "P000007"), find the patient by patientId
+      // Handle patientId conversion
       let numericPatientId: number;
-      if (typeof appointmentData.patientId === "string") {
+      if (appointmentData.patientId === null) {
+        return res.status(400).json({ error: "Patient ID is required" });
+      } else if (typeof appointmentData.patientId === "string") {
+        // If it's a string (like "P000007"), find the patient by patientId
         const patient = await storage.getPatientByPatientId(appointmentData.patientId, req.tenant!.id);
         if (!patient) {
           return res.status(400).json({ error: "Patient not found" });
