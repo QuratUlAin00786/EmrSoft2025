@@ -109,6 +109,9 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system des
 
 ## Changelog
 
+**July 15, 2025:**
+- **COMPLETED**: Fixed Provider dropdown in appointment booking showing no options - root cause was missing medical staff users (doctors/nurses) in database; added Dr. Sarah Smith (Cardiology), Dr. Michael Johnson (Neurology), and Nurse Emily Wilson (General Medicine) to provide provider options for appointment scheduling in LIVE deployment
+
 **July 11, 2025:**
 - **COMPLETED**: Created comprehensive Flutter mobile applications for both patients and doctors - implemented patient app with medical history, prescriptions, appointments, notifications, and voice documentation screens; created doctor app with dashboard, appointment management, patient records, and medication alerts; both apps feature JWT authentication, secure token storage, API integration, and consistent Cura branding with demo credentials (patient@gmail.com/patient123, doctor@gmail.com/doctor123)
 - **COMPLETED**: Created comprehensive Cura EMR specifications document (CURA_COMPLETE_SPECIFICATIONS.md) - documented all 24+ healthcare modules including core features (Patient Management, Appointments, Medical Records, Prescriptions, Voice Documentation, AI Insights, Billing, Forms, Analytics, Telemedicine) and 14 additional modules (Medical Imaging, Lab Management, Pharmacy, Population Health, Clinical Decision Support, Patient Portal, Inventory, Staff Management, Quality Management, Emergency Management, Research, Mobile Health, Integrations, Advanced Reporting)
