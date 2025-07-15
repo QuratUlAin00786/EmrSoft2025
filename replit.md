@@ -111,6 +111,7 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system des
 ## Changelog
 
 **July 15, 2025:**
+- **COMPLETED**: Fixed nurse and sample taker password length validation errors - updated passwords to meet 6-character minimum requirement (nurse/nurse123, sample.taker@demo.com/sample123), resolving login validation failures and enabling successful authentication for all user roles in LIVE deployment
 - **COMPLETED**: Fixed sample taker login credentials issue - corrected username field to match email address for sample taker user (changed username from "sample_taker" to "sample.taker@demo.com"), enabling successful login with sample.taker@demo.com/sample_taker credentials in LIVE deployment
 - **COMPLETED**: Fixed patient login credentials issue - corrected username field to match email address for patient user (changed username from "patient" to "patient@gmail.com"), enabling successful login with patient@gmail.com/patient123 credentials in LIVE deployment
 - **COMPLETED**: Fixed doctor login credentials issue - updated seed data to use correct individual passwords for each role (doctor/doctor123, nurse/nurse, patient@gmail.com/patient123, sample.taker@demo.com/sample_taker), implemented proper cascading delete to recreate users with correct authentication, enabling successful login for all user roles in LIVE deployment

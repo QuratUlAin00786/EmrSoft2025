@@ -50,9 +50,9 @@ export async function seedDatabase() {
     // Always create users with correct passwords
       const hashedAdminPassword = await authService.hashPassword("admin123");
       const hashedDoctorPassword = await authService.hashPassword("doctor123");
-      const hashedNursePassword = await authService.hashPassword("nurse");
+      const hashedNursePassword = await authService.hashPassword("nurse123");
       const hashedPatientPassword = await authService.hashPassword("patient123");
-      const hashedSampleTakerPassword = await authService.hashPassword("sample_taker");
+      const hashedSampleTakerPassword = await authService.hashPassword("sample123");
       
       const sampleUsers = [
       {
