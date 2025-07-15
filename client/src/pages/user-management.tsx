@@ -35,18 +35,23 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Edit, Trash2, UserPlus, Shield, Stethoscope, Users, Calendar } from "lucide-react";
+import { Plus, Edit, Trash2, UserPlus, Shield, Stethoscope, Users, Calendar, Lock, User, TestTube } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Header } from "@/components/layout/header";
+import { PermissionMatrix } from "@/components/permissions/permission-matrix";
 
 const userSchema = z.object({
   email: z.string().email("Invalid email address"),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
-  role: z.enum(["admin", "doctor", "nurse", "receptionist"]),
+  role: z.enum(["admin", "doctor", "nurse", "receptionist", "patient", "sample_taker"]),
   department: z.string().optional(),
   password: z.string().min(1, "Password is required"),
+  permissions: z.object({
+    modules: z.object({}).optional(),
+    fields: z.object({}).optional(),
+  }).optional(),
 });
 
 type UserFormData = z.infer<typeof userSchema>;
@@ -58,6 +63,10 @@ interface User {
   lastName: string;
   role: string;
   department?: string;
+  permissions?: {
+    modules?: any;
+    fields?: any;
+  };
   isActive: boolean;
   lastLoginAt?: string;
   createdAt: string;
@@ -66,6 +75,7 @@ interface User {
 export default function UserManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [permissionsUser, setPermissionsUser] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
   const [users, setUsers] = useState<User[]>([]);
@@ -252,6 +262,10 @@ export default function UserManagement() {
         return <Users className="h-4 w-4" />;
       case "receptionist":
         return <Calendar className="h-4 w-4" />;
+      case "patient":
+        return <User className="h-4 w-4" />;
+      case "sample_taker":
+        return <TestTube className="h-4 w-4" />;
       default:
         return <Users className="h-4 w-4" />;
     }
@@ -267,6 +281,10 @@ export default function UserManagement() {
         return "bg-green-100 text-green-800";
       case "receptionist":
         return "bg-yellow-100 text-yellow-800";
+      case "patient":
+        return "bg-purple-100 text-purple-800";
+      case "sample_taker":
+        return "bg-cyan-100 text-cyan-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -429,6 +447,8 @@ export default function UserManagement() {
                       <SelectItem value="doctor">Doctor</SelectItem>
                       <SelectItem value="nurse">Nurse</SelectItem>
                       <SelectItem value="receptionist">Receptionist</SelectItem>
+                      <SelectItem value="patient">Patient</SelectItem>
+                      <SelectItem value="sample_taker">Sample Taker</SelectItem>
                     </SelectContent>
                   </Select>
                   {form.formState.errors.role && (
@@ -534,7 +554,17 @@ export default function UserManagement() {
                         <Button
                           variant="ghost"
                           size="sm"
+                          onClick={() => setPermissionsUser(user)}
+                          title="Manage Permissions"
+                        >
+                          <Lock className="h-4 w-4" />
+                        </Button>
+                        
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleEdit(user)}
+                          title="Edit User"
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -573,6 +603,49 @@ export default function UserManagement() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Permissions Management Dialog */}
+      <Dialog open={!!permissionsUser} onOpenChange={(open) => {
+        if (!open) {
+          setPermissionsUser(null);
+        }
+      }}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="h-5 w-5" />
+              Manage Permissions - {permissionsUser?.firstName} {permissionsUser?.lastName}
+            </DialogTitle>
+            <DialogDescription>
+              Configure detailed permissions for {permissionsUser?.role} role. 
+              Use the checkboxes below to control access to modules, sections, and specific actions.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {permissionsUser && (
+            <PermissionMatrix
+              permissions={permissionsUser.permissions}
+              role={permissionsUser.role}
+              onChange={(updatedPermissions) => {
+                // Update permissions via API
+                updateUserMutation.mutate({
+                  id: permissionsUser.id,
+                  userData: { permissions: updatedPermissions }
+                });
+              }}
+            />
+          )}
+          
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setPermissionsUser(null)}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

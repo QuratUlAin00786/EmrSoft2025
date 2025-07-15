@@ -31,6 +31,40 @@ export const users = pgTable("users", {
   lastName: text("last_name").notNull(),
   role: varchar("role", { length: 20 }).notNull().default("doctor"), // admin, doctor, nurse, receptionist, patient, sample_taker
   department: text("department"),
+  permissions: jsonb("permissions").$type<{
+    modules?: {
+      patients?: { view?: boolean; create?: boolean; edit?: boolean; delete?: boolean };
+      appointments?: { view?: boolean; create?: boolean; edit?: boolean; delete?: boolean };
+      medicalRecords?: { view?: boolean; create?: boolean; edit?: boolean; delete?: boolean };
+      prescriptions?: { view?: boolean; create?: boolean; edit?: boolean; delete?: boolean };
+      billing?: { view?: boolean; create?: boolean; edit?: boolean; delete?: boolean };
+      analytics?: { view?: boolean; create?: boolean; edit?: boolean; delete?: boolean };
+      userManagement?: { view?: boolean; create?: boolean; edit?: boolean; delete?: boolean };
+      settings?: { view?: boolean; create?: boolean; edit?: boolean; delete?: boolean };
+      aiInsights?: { view?: boolean; create?: boolean; edit?: boolean; delete?: boolean };
+      messaging?: { view?: boolean; create?: boolean; edit?: boolean; delete?: boolean };
+      telemedicine?: { view?: boolean; create?: boolean; edit?: boolean; delete?: boolean };
+      populationHealth?: { view?: boolean; create?: boolean; edit?: boolean; delete?: boolean };
+      clinicalDecision?: { view?: boolean; create?: boolean; edit?: boolean; delete?: boolean };
+      labResults?: { view?: boolean; create?: boolean; edit?: boolean; delete?: boolean };
+      medicalImaging?: { view?: boolean; create?: boolean; edit?: boolean; delete?: boolean };
+      voiceDocumentation?: { view?: boolean; create?: boolean; edit?: boolean; delete?: boolean };
+      forms?: { view?: boolean; create?: boolean; edit?: boolean; delete?: boolean };
+      integrations?: { view?: boolean; create?: boolean; edit?: boolean; delete?: boolean };
+      automation?: { view?: boolean; create?: boolean; edit?: boolean; delete?: boolean };
+      mobileHealth?: { view?: boolean; create?: boolean; edit?: boolean; delete?: boolean };
+    };
+    fields?: {
+      patientSensitiveInfo?: boolean;
+      financialData?: boolean;
+      medicalHistory?: boolean;
+      prescriptionDetails?: boolean;
+      labResults?: boolean;
+      imagingResults?: boolean;
+      billingInformation?: boolean;
+      insuranceDetails?: boolean;
+    };
+  }>().default({}),
   isActive: boolean("is_active").notNull().default(true),
   lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
