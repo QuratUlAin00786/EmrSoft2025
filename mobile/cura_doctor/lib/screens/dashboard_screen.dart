@@ -415,10 +415,13 @@ class _DashboardHomeState extends State<_DashboardHome> {
                     title: 'Total Patients',
                     value: '${_stats['totalPatients'] ?? 0}',
                     color: AppColors.accent,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const PatientsScreen()),
-                    ),
+                    onTap: () {
+                      print('Total Patients card tapped!');
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const PatientsScreen()),
+                      );
+                    },
                   ),
                 ),
               ],
@@ -587,41 +590,45 @@ class _QuickStatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, color: color, size: 24),
-                const Spacer(),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: color,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, color: color, size: 24),
+                  const Spacer(),
+                  Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.textLight,
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textLight,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
