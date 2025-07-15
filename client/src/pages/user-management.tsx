@@ -290,6 +290,25 @@ export default function UserManagement() {
     }
   };
 
+  const getRoleDisplayName = (role: string) => {
+    switch (role) {
+      case "admin":
+        return "Administrator";
+      case "doctor":
+        return "Doctor";
+      case "nurse":
+        return "Nurse";
+      case "receptionist":
+        return "Receptionist";
+      case "patient":
+        return "Patient";
+      case "sample_taker":
+        return "Lab Technician";
+      default:
+        return role;
+    }
+  };
+
   const filteredUsers = users.filter(
     (user) =>
       user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -448,7 +467,7 @@ export default function UserManagement() {
                       <SelectItem value="nurse">Nurse</SelectItem>
                       <SelectItem value="receptionist">Receptionist</SelectItem>
                       <SelectItem value="patient">Patient</SelectItem>
-                      <SelectItem value="sample_taker">Sample Taker</SelectItem>
+                      <SelectItem value="sample_taker">Lab Technician</SelectItem>
                     </SelectContent>
                   </Select>
                   {form.formState.errors.role && (
@@ -543,7 +562,7 @@ export default function UserManagement() {
                     
                     <div className="flex items-center space-x-3">
                       <Badge className={getRoleColor(user.role)}>
-                        {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                        {getRoleDisplayName(user.role)}
                       </Badge>
                       
                       <Badge variant={user.isActive ? "default" : "secondary"}>
