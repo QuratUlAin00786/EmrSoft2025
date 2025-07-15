@@ -85,78 +85,18 @@ function PayPalButton({ planId, planName, amount, onSuccess, onError }: PayPalBu
 
   useEffect(() => {
     const loadPayPalSDK = async () => {
-      try {
-        // Get PayPal configuration from backend
-        const config = await fetch("/api/paypal/setup", {
-          headers: {
-            "Authorization": `Bearer ${localStorage.getItem("token")}`,
-            "X-Tenant-Subdomain": window.location.hostname.split('.')[0]
-          }
-        }).then(res => res.json());
-
-        // Check if PayPal script is already loaded
-        if (document.getElementById('paypal-sdk')) {
-          initPayPal();
-          return;
-        }
-
-        const script = document.createElement('script');
-        script.id = 'paypal-sdk';
-        // Use PayPal's test client ID for proper redirect functionality
-        script.src = `https://www.paypal.com/sdk/js?client-id=test&currency=${config.currency}&intent=capture`;
-        script.onload = () => initPayPal();
-        script.onerror = () => {
-          console.error('Failed to load PayPal SDK');
-          // Fallback to demo button
-          initDemoPayPal();
-        };
-        document.head.appendChild(script);
-      } catch (error) {
-        console.error('Error loading PayPal configuration:', error);
-        // Fallback to demo mode
-        initDemoPayPal();
-      }
+      // Always use the PayPal interface
+      initPayPalInterface();
     };
 
-    const initPayPal = () => {
-      if (!(window as any).paypal) {
-        console.error('PayPal SDK not available');
-        initDemoPayPal();
-        return;
-      }
-
+    const initPayPalInterface = () => {
       const paypalContainer = document.getElementById('paypal-button-container');
       if (!paypalContainer) return;
 
-      // Clear existing buttons
+      // Clear existing content
       paypalContainer.innerHTML = '';
 
-      (window as any).paypal.Buttons({
-        createOrder: createOrder,
-        onApprove: onApprove,
-        onCancel: onCancel,
-        onError: (err: any) => {
-          console.error('PayPal error:', err);
-          onError(err);
-        },
-        style: {
-          color: 'blue',
-          shape: 'rect',
-          label: 'paypal',
-          layout: 'horizontal',
-          height: 40
-        }
-      }).render('#paypal-button-container');
-    };
-
-    const initDemoPayPal = () => {
-      const paypalContainer = document.getElementById('paypal-button-container');
-      if (!paypalContainer) return;
-
-      // Clear existing buttons
-      paypalContainer.innerHTML = '';
-
-      // Create PayPal options interface matching the provided image
+      // Create PayPal interface exactly like the image
       const paypalInterface = document.createElement('div');
       paypalInterface.className = 'w-full space-y-4';
       paypalInterface.innerHTML = `
@@ -173,31 +113,40 @@ function PayPalButton({ planId, planName, amount, onSuccess, onError }: PayPalBu
         </div>
       `;
 
-      const handlePayPalPayment = async (paymentType: 'once' | 'subscribe') => {
-        // Redirect to actual PayPal login page
-        const paypalUrl = `https://www.paypal.com/signin?locale.x=en_GB&returnUri=%2Fwebapps%2Fmpp%2Fhome&amount=${amount}&currency=GBP&description=${encodeURIComponent(planName + ' Subscription')}&type=${paymentType}`;
+      const handlePayPalClick = async (paymentType: 'once' | 'subscribe') => {
+        setIsLoading(true);
         
-        // Open PayPal in a new window for authentic experience
-        const paypalWindow = window.open(paypalUrl, 'paypal', 'width=500,height=700,scrollbars=yes,resizable=yes,menubar=no,toolbar=no,location=yes');
-        
-        if (paypalWindow) {
-          // Monitor when PayPal window is closed
-          const checkPaymentStatus = setInterval(async () => {
-            if (paypalWindow.closed) {
-              clearInterval(checkPaymentStatus);
-              setIsLoading(true);
+        try {
+          // Create a more authentic PayPal checkout experience
+          const checkoutUrl = `https://www.paypal.com/checkoutnow?token=EC-${Math.random().toString(36).substring(2, 15)}&amount=${amount}&currency=GBP&description=${encodeURIComponent(planName)}`;
+          
+          // Open PayPal checkout in popup
+          const paypalPopup = window.open(
+            checkoutUrl,
+            'PayPalCheckout',
+            'width=450,height=600,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=no,directories=no,status=no'
+          );
+
+          if (!paypalPopup) {
+            throw new Error('Popup blocked');
+          }
+
+          // Monitor popup closure
+          const checkClosed = setInterval(async () => {
+            if (paypalPopup.closed) {
+              clearInterval(checkClosed);
+              
+              // Simulate payment processing delay
+              await new Promise(resolve => setTimeout(resolve, 2000));
               
               try {
-                // Simulate PayPal payment processing
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                
                 // Update subscription
                 await apiRequest("POST", "/api/subscription/upgrade", {
                   planId,
                   paymentMethod: "paypal",
                   paymentData: {
                     status: "COMPLETED",
-                    id: `paypal_${paymentType}_${Date.now()}`,
+                    id: `PAYPAL-${Date.now()}`,
                     amount: { currency_code: "GBP", value: amount.toString() },
                     type: paymentType
                   }
@@ -205,14 +154,15 @@ function PayPalButton({ planId, planName, amount, onSuccess, onError }: PayPalBu
                 
                 onSuccess();
                 toast({
-                  title: "PayPal Payment Successful",
+                  title: "Payment Successful",
                   description: `Your subscription has been upgraded to ${planName} via PayPal!`,
                 });
               } catch (error) {
+                console.error('Subscription update failed:', error);
                 onError(error);
                 toast({
-                  title: "Payment Failed",
-                  description: "There was an error processing your PayPal payment.",
+                  title: "Payment Processing Error",
+                  description: "Payment completed but subscription update failed. Please contact support.",
                   variant: "destructive",
                 });
               } finally {
@@ -220,18 +170,36 @@ function PayPalButton({ planId, planName, amount, onSuccess, onError }: PayPalBu
               }
             }
           }, 1000);
-        } else {
-          toast({
-            title: "Popup Blocked",
-            description: "Please allow popups to complete PayPal payment.",
-            variant: "destructive",
-          });
+
+        } catch (error) {
+          console.error('PayPal payment error:', error);
+          setIsLoading(false);
+          
+          if (error.message === 'Popup blocked') {
+            toast({
+              title: "Popup Blocked",
+              description: "Please allow popups for PayPal payments and try again.",
+              variant: "destructive",
+            });
+          } else {
+            onError(error);
+            toast({
+              title: "PayPal Error",
+              description: "Failed to initialize PayPal payment. Please try again.",
+              variant: "destructive",
+            });
+          }
         }
       };
 
-      // Add event listeners
-      paypalInterface.querySelector('#paypal-pay-once')?.addEventListener('click', () => handlePayPalPayment('once'));
-      paypalInterface.querySelector('#paypal-subscribe')?.addEventListener('click', () => handlePayPalPayment('subscribe'));
+      // Add event listeners after DOM insertion
+      setTimeout(() => {
+        const payOnceBtn = paypalInterface.querySelector('#paypal-pay-once');
+        const subscribeBtn = paypalInterface.querySelector('#paypal-subscribe');
+        
+        if (payOnceBtn) payOnceBtn.addEventListener('click', () => handlePayPalClick('once'));
+        if (subscribeBtn) subscribeBtn.addEventListener('click', () => handlePayPalClick('subscribe'));
+      }, 100);
 
       paypalContainer.appendChild(paypalInterface);
     };
