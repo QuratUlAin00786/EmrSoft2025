@@ -77,6 +77,8 @@ export default function UserManagement() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [permissionsUser, setPermissionsUser] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPermissions, setCurrentPermissions] = useState<any>(null);
+  const [selectedRole, setSelectedRole] = useState<string>("doctor");
 
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -229,15 +231,22 @@ export default function UserManagement() {
   });
 
   const onSubmit = (data: UserFormData) => {
+    const formDataWithPermissions = {
+      ...data,
+      permissions: currentPermissions
+    };
+    
     if (editingUser) {
-      updateUserMutation.mutate({ id: editingUser.id, userData: data });
+      updateUserMutation.mutate({ id: editingUser.id, userData: formDataWithPermissions });
     } else {
-      createUserMutation.mutate(data);
+      createUserMutation.mutate(formDataWithPermissions);
     }
   };
 
   const handleEdit = (user: User) => {
     setEditingUser(user);
+    setSelectedRole(user.role);
+    setCurrentPermissions(user.permissions);
     form.reset({
       email: user.email,
       firstName: user.firstName,
@@ -393,6 +402,8 @@ export default function UserManagement() {
             if (!open) {
               setIsCreateModalOpen(false);
               setEditingUser(null);
+              setCurrentPermissions(null);
+              setSelectedRole("doctor");
               form.reset();
             }
           }}>
@@ -402,7 +413,7 @@ export default function UserManagement() {
                 Add New User
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>
                   {editingUser ? "Edit User" : "Add New User"}
@@ -457,7 +468,11 @@ export default function UserManagement() {
                 
                 <div className="space-y-2">
                   <Label htmlFor="role">Role</Label>
-                  <Select onValueChange={(value) => form.setValue("role", value as any)} defaultValue={form.getValues("role")}>
+                  <Select onValueChange={(value) => {
+                    form.setValue("role", value as any);
+                    setSelectedRole(value);
+                    setCurrentPermissions(null); // Reset permissions when role changes
+                  }} defaultValue={form.getValues("role")}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a role" />
                     </SelectTrigger>
@@ -498,6 +513,44 @@ export default function UserManagement() {
                     <p className="text-sm text-red-500">{form.formState.errors.password.message}</p>
                   )}
                 </div>
+
+                {/* Permissions Section */}
+                <div className="border-t pt-6 mt-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Lock className="h-5 w-5" />
+                      <Label className="text-lg font-semibold">Role Permissions</Label>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      Configure access permissions for this {getRoleDisplayName(selectedRole)} role. Use checkboxes to control access to modules, sections, and specific actions (view, create, edit, delete).
+                    </p>
+                    
+                    {/* Role Description */}
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h4 className="font-medium text-blue-900 mb-2">
+                        {getRoleDisplayName(selectedRole)} Default Access:
+                      </h4>
+                      <p className="text-sm text-blue-700">
+                        {selectedRole === 'admin' && "Full system access including user management, settings, and all clinical modules."}
+                        {selectedRole === 'doctor' && "Clinical access to patient records, appointments, prescriptions, and medical documentation."}
+                        {selectedRole === 'nurse' && "Patient care access including medical records, medications, and care coordination."}
+                        {selectedRole === 'receptionist' && "Limited access to patient information, appointments, and billing functions."}
+                        {selectedRole === 'patient' && "Personal health record access including appointments, prescriptions, and medical history."}
+                        {selectedRole === 'sample_taker' && "Lab-focused access for sample collection, lab results, and basic patient information."}
+                      </p>
+                    </div>
+                    
+                    {selectedRole && (
+                      <PermissionMatrix
+                        permissions={currentPermissions || (editingUser?.permissions)}
+                        role={selectedRole}
+                        onChange={(updatedPermissions) => {
+                          setCurrentPermissions(updatedPermissions);
+                        }}
+                      />
+                    )}
+                  </div>
+                </div>
                 
                 <DialogFooter>
                   <Button
@@ -506,6 +559,8 @@ export default function UserManagement() {
                     onClick={() => {
                       setIsCreateModalOpen(false);
                       setEditingUser(null);
+                      setCurrentPermissions(null);
+                      setSelectedRole("doctor");
                       form.reset();
                     }}
                   >
