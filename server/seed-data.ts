@@ -28,20 +28,38 @@ export async function seedDatabase() {
       console.log(`Using existing organization: ${org.name} (ID: ${org.id})`);
     }
 
-    // Create sample users only if they don't exist
+    // Create sample users - recreate with correct passwords
     const existingUsers = await db.select().from(users).where(eq(users.organizationId, org.id));
+    
+    // Delete existing users to recreate with correct passwords
+    if (existingUsers.length > 0) {
+      // Delete related data first to avoid foreign key constraints
+      await db.delete(notifications).where(eq(notifications.organizationId, org.id));
+      await db.delete(prescriptions).where(eq(prescriptions.organizationId, org.id));
+      await db.delete(appointments).where(eq(appointments.organizationId, org.id));
+      await db.delete(medicalRecords).where(eq(medicalRecords.organizationId, org.id));
+      await db.delete(aiInsights).where(eq(aiInsights.organizationId, org.id));
+      
+      // Now safe to delete users
+      await db.delete(users).where(eq(users.organizationId, org.id));
+      console.log(`Deleted ${existingUsers.length} existing users and related data to recreate with correct passwords`);
+    }
     
     let createdUsers = existingUsers;
     
-    if (existingUsers.length === 0) {
-      const hashedPassword = await authService.hashPassword("admin123");
+    // Always create users with correct passwords
+      const hashedAdminPassword = await authService.hashPassword("admin123");
+      const hashedDoctorPassword = await authService.hashPassword("doctor123");
+      const hashedNursePassword = await authService.hashPassword("nurse");
+      const hashedPatientPassword = await authService.hashPassword("patient123");
+      const hashedSampleTakerPassword = await authService.hashPassword("sample_taker");
       
       const sampleUsers = [
       {
         organizationId: org.id,
         email: "admin",
         username: "admin",
-        password: hashedPassword,
+        password: hashedAdminPassword,
         firstName: "John",
         lastName: "Administrator",
         role: "admin",
@@ -52,7 +70,7 @@ export async function seedDatabase() {
         organizationId: org.id,
         email: "doctor",
         username: "doctor",
-        password: hashedPassword,
+        password: hashedDoctorPassword,
         firstName: "Sarah",
         lastName: "Smith",
         role: "doctor",
@@ -63,7 +81,7 @@ export async function seedDatabase() {
         organizationId: org.id,
         email: "nurse",
         username: "nurse",
-        password: hashedPassword,
+        password: hashedNursePassword,
         firstName: "Emily",
         lastName: "Johnson",
         role: "nurse",
@@ -74,7 +92,7 @@ export async function seedDatabase() {
         organizationId: org.id,
         email: "patient@gmail.com",
         username: "patient",
-        password: hashedPassword,
+        password: hashedPatientPassword,
         firstName: "John",
         lastName: "Patient",
         role: "patient",
@@ -85,7 +103,7 @@ export async function seedDatabase() {
         organizationId: org.id,
         email: "sample.taker@demo.com",
         username: "sample_taker",
-        password: hashedPassword,
+        password: hashedSampleTakerPassword,
         firstName: "Maria",
         lastName: "Rodriguez",
         role: "sample_taker",
@@ -94,11 +112,8 @@ export async function seedDatabase() {
       }
     ];
 
-      createdUsers = await db.insert(users).values(sampleUsers).returning();
-      console.log(`Created ${createdUsers.length} users`);
-    } else {
-      console.log(`Using existing ${existingUsers.length} users`);
-    }
+    createdUsers = await db.insert(users).values(sampleUsers).returning();
+    console.log(`Created ${createdUsers.length} users with correct passwords`);
 
     // Create sample patients only if they don't exist
     const existingPatients = await db.select().from(patients).where(eq(patients.organizationId, org.id));
