@@ -177,12 +177,14 @@ export default function PrescriptionsPage() {
   const [showPharmacyDialog, setShowPharmacyDialog] = useState(false);
   const [selectedPrescriptionId, setSelectedPrescriptionId] = useState<string>("");
   const [patients, setPatients] = useState<any[]>([]);
+  const [providers, setProviders] = useState<any[]>([]);
   const queryClient = useQueryClient();
 
   // Form state for prescription editing
   const [formData, setFormData] = useState({
     patientId: "",
     patientName: "",
+    providerId: "",
     diagnosis: "",
     medicationName: "",
     dosage: "",
@@ -199,6 +201,7 @@ export default function PrescriptionsPage() {
       setFormData({
         patientId: selectedPrescription.patientId,
         patientName: selectedPrescription.patientName,
+        providerId: selectedPrescription.providerId,
         diagnosis: selectedPrescription.diagnosis,
         medicationName: firstMedication.name || "",
         dosage: firstMedication.dosage || "",
@@ -211,6 +214,7 @@ export default function PrescriptionsPage() {
       setFormData({
         patientId: "",
         patientName: "",
+        providerId: "",
         diagnosis: "",
         medicationName: "",
         dosage: "",
@@ -254,8 +258,37 @@ export default function PrescriptionsPage() {
     }
   };
 
+  const fetchProviders = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch('/api/medical-staff', {
+        headers,
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setProviders(data || []);
+    } catch (err) {
+      console.error("Error fetching providers:", err);
+      setProviders([]);
+    }
+  };
+
   useEffect(() => {
     fetchPatients();
+    fetchProviders();
   }, []);
 
   const { data: rawPrescriptions = [], isLoading, error } = useQuery({
@@ -631,13 +664,29 @@ export default function PrescriptionsPage() {
                           </Select>
                         </div>
                         <div>
-                          <Label htmlFor="diagnosis">Diagnosis</Label>
-                          <Input 
-                            placeholder="Enter diagnosis" 
-                            value={formData.diagnosis}
-                            onChange={(e) => setFormData(prev => ({ ...prev, diagnosis: e.target.value }))}
-                          />
+                          <Label htmlFor="provider">Prescribing Doctor</Label>
+                          <Select value={formData.providerId} onValueChange={(value) => setFormData(prev => ({ ...prev, providerId: value }))}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select doctor" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {providers.map((provider: any) => (
+                                <SelectItem key={provider.id} value={provider.id.toString()}>
+                                  Dr. {provider.firstName} {provider.lastName}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="diagnosis">Diagnosis</Label>
+                        <Input 
+                          placeholder="Enter diagnosis" 
+                          value={formData.diagnosis}
+                          onChange={(e) => setFormData(prev => ({ ...prev, diagnosis: e.target.value }))}
+                        />
                       </div>
                       
                       <div className="space-y-3">
@@ -711,7 +760,8 @@ export default function PrescriptionsPage() {
                         <Button 
                           onClick={() => {
                             const prescriptionData = {
-                              patientId: formData.patientId,
+                              patientId: parseInt(formData.patientId),
+                              providerId: parseInt(formData.providerId),
                               diagnosis: formData.diagnosis,
                               medications: [{
                                 name: formData.medicationName,
