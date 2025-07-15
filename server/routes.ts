@@ -700,7 +700,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/appointments", requireRole(["doctor", "nurse", "receptionist", "admin"]), async (req: TenantRequest, res) => {
     try {
       const appointmentData = z.object({
-        patientId: z.number(),
+        patientId: z.union([z.number(), z.string()]), // Accept both number and string
         providerId: z.number(),
         title: z.string().min(1),
         description: z.string().optional(),
@@ -711,8 +711,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isVirtual: z.boolean().default(false)
       }).parse(req.body);
 
+      // Handle patientId conversion - if it's a string (like "P000007"), find the patient by patientId
+      let numericPatientId: number;
+      if (typeof appointmentData.patientId === "string") {
+        const patient = await storage.getPatientByPatientId(appointmentData.patientId, req.tenant!.id);
+        if (!patient) {
+          return res.status(400).json({ error: "Patient not found" });
+        }
+        numericPatientId = patient.id;
+      } else {
+        numericPatientId = appointmentData.patientId;
+      }
+
       const appointment = await storage.createAppointment({
         ...appointmentData,
+        patientId: numericPatientId,
         organizationId: req.tenant!.id,
         description: appointmentData.description || ""
       });
