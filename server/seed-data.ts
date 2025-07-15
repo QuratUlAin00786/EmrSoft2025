@@ -47,17 +47,17 @@ export async function seedDatabase() {
     
     let createdUsers = existingUsers;
     
-    // Always create users with correct passwords
+    // Always create users with distinct passwords for each role
       const hashedAdminPassword = await authService.hashPassword("admin123");
-      const hashedDoctorPassword = await authService.hashPassword("doctor123");
-      const hashedNursePassword = await authService.hashPassword("nurse123");
-      const hashedPatientPassword = await authService.hashPassword("patient123");
-      const hashedSampleTakerPassword = await authService.hashPassword("sample123");
+      const hashedDoctorPassword = await authService.hashPassword("medical456");
+      const hashedNursePassword = await authService.hashPassword("nursing789");
+      const hashedPatientPassword = await authService.hashPassword("patient000");
+      const hashedLabTechPassword = await authService.hashPassword("labtech555");
       
       const sampleUsers = [
       {
         organizationId: org.id,
-        email: "admin",
+        email: "admin@cura.com",
         username: "admin",
         password: hashedAdminPassword,
         firstName: "John",
@@ -68,7 +68,7 @@ export async function seedDatabase() {
       },
       {
         organizationId: org.id,
-        email: "doctor",
+        email: "doctor@cura.com",
         username: "doctor",
         password: hashedDoctorPassword,
         firstName: "Sarah",
@@ -79,7 +79,7 @@ export async function seedDatabase() {
       },
       {
         organizationId: org.id,
-        email: "nurse",
+        email: "nurse@cura.com",
         username: "nurse",
         password: hashedNursePassword,
         firstName: "Emily",
@@ -90,10 +90,10 @@ export async function seedDatabase() {
       },
       {
         organizationId: org.id,
-        email: "patient@gmail.com",
-        username: "patient@gmail.com",
+        email: "patient@cura.com",
+        username: "patient",
         password: hashedPatientPassword,
-        firstName: "John",
+        firstName: "Michael",
         lastName: "Patient",
         role: "patient",
         department: null,
@@ -101,9 +101,9 @@ export async function seedDatabase() {
       },
       {
         organizationId: org.id,
-        email: "sample.taker@demo.com",
-        username: "sample.taker@demo.com",
-        password: hashedSampleTakerPassword,
+        email: "labtech@cura.com",
+        username: "labtech",
+        password: hashedLabTechPassword,
         firstName: "Maria",
         lastName: "Rodriguez",
         role: "sample_taker",
