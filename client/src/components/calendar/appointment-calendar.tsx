@@ -749,7 +749,7 @@ export default function AppointmentCalendar() {
                 >
                   <option value="">Select patient...</option>
                   {patients.map((patient: any) => (
-                    <option key={patient.id} value={patient.id}>
+                    <option key={patient.id} value={patient.patientId}>
                       {patient.firstName} {patient.lastName} ({patient.patientId})
                     </option>
                   ))}
