@@ -102,7 +102,7 @@ export async function seedDatabase() {
       {
         organizationId: org.id,
         email: "sample.taker@demo.com",
-        username: "sample_taker",
+        username: "sample.taker@demo.com",
         password: hashedSampleTakerPassword,
         firstName: "Maria",
         lastName: "Rodriguez",
