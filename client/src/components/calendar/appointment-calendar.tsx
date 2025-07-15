@@ -175,7 +175,7 @@ export default function AppointmentCalendar() {
       const scheduledAt = new Date(`${formData.date}T${formData.time}`);
       
       const appointmentData = {
-        patientId: parseInt(formData.patientId),
+        patientId: formData.patientId, // Send as string for backend to handle properly
         providerId: parseInt(formData.providerId),
         title: formData.title,
         description: formData.description,
