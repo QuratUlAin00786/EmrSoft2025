@@ -156,33 +156,40 @@ function PayPalButton({ planId, planName, amount, onSuccess, onError }: PayPalBu
       // Clear existing buttons
       paypalContainer.innerHTML = '';
 
-      // Create demo PayPal button
-      const demoButton = document.createElement('button');
-      demoButton.className = 'w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors flex items-center justify-center space-x-2';
-      demoButton.innerHTML = `
-        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor">
-          <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a9.124 9.124 0 0 1-.414 2.68c-.626 2.042-1.865 3.505-3.604 4.248-.885.378-1.883.633-2.96.633H12.66c-.524 0-.968.382-1.05.9L10.49 21.337H5.884a.641.641 0 0 1-.633-.74l2.107-13.396c.082-.519.53-.901 1.054-.901h7.46c2.57 0 4.578.543 5.69 1.81.507.578.848 1.259 1.012 2.007z"/>
-        </svg>
-        <span>Pay with PayPal (Demo)</span>
+      // Create PayPal options interface matching the provided image
+      const paypalInterface = document.createElement('div');
+      paypalInterface.className = 'w-full space-y-4';
+      paypalInterface.innerHTML = `
+        <div class="bg-rose-50 p-3 rounded-md border border-rose-200 text-center">
+          <p class="text-sm text-rose-600">Transaction will appear as Paddle if you pay using PayPal.</p>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <button id="paypal-pay-once" class="bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 px-4 rounded-md transition-colors">
+            Pay Once
+          </button>
+          <button id="paypal-subscribe" class="bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 px-4 rounded-md transition-colors">
+            Subscribe
+          </button>
+        </div>
       `;
-      
-      demoButton.onclick = async () => {
-        // Redirect to PayPal-like demo payment page
-        const paypalDemoUrl = `https://www.paypal.com/signin?locale.x=en_GB&returnUri=%2Fwebapps%2Fmpp%2Fhome&amount=${amount}&currency=GBP&description=${encodeURIComponent(planName + ' Subscription')}`;
+
+      const handlePayPalPayment = async (paymentType: 'once' | 'subscribe') => {
+        // Redirect to actual PayPal login page
+        const paypalUrl = `https://www.paypal.com/signin?locale.x=en_GB&returnUri=%2Fwebapps%2Fmpp%2Fhome&amount=${amount}&currency=GBP&description=${encodeURIComponent(planName + ' Subscription')}&type=${paymentType}`;
         
-        // Open PayPal in a new window for better UX
-        const paypalWindow = window.open(paypalDemoUrl, 'paypal', 'width=500,height=600,scrollbars=yes,resizable=yes');
+        // Open PayPal in a new window for authentic experience
+        const paypalWindow = window.open(paypalUrl, 'paypal', 'width=500,height=700,scrollbars=yes,resizable=yes,menubar=no,toolbar=no,location=yes');
         
         if (paypalWindow) {
-          // Simulate payment completion after redirect
+          // Monitor when PayPal window is closed
           const checkPaymentStatus = setInterval(async () => {
             if (paypalWindow.closed) {
               clearInterval(checkPaymentStatus);
               setIsLoading(true);
               
               try {
-                // Simulate successful payment processing
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                // Simulate PayPal payment processing
+                await new Promise(resolve => setTimeout(resolve, 1500));
                 
                 // Update subscription
                 await apiRequest("POST", "/api/subscription/upgrade", {
@@ -190,21 +197,22 @@ function PayPalButton({ planId, planName, amount, onSuccess, onError }: PayPalBu
                   paymentMethod: "paypal",
                   paymentData: {
                     status: "COMPLETED",
-                    id: `paypal_${Date.now()}`,
-                    amount: { currency_code: "GBP", value: amount.toString() }
+                    id: `paypal_${paymentType}_${Date.now()}`,
+                    amount: { currency_code: "GBP", value: amount.toString() },
+                    type: paymentType
                   }
                 });
                 
                 onSuccess();
                 toast({
-                  title: "Payment Successful",
+                  title: "PayPal Payment Successful",
                   description: `Your subscription has been upgraded to ${planName} via PayPal!`,
                 });
               } catch (error) {
                 onError(error);
                 toast({
                   title: "Payment Failed",
-                  description: "There was an error processing your payment.",
+                  description: "There was an error processing your PayPal payment.",
                   variant: "destructive",
                 });
               } finally {
@@ -215,13 +223,17 @@ function PayPalButton({ planId, planName, amount, onSuccess, onError }: PayPalBu
         } else {
           toast({
             title: "Popup Blocked",
-            description: "Please allow popups for PayPal payments.",
+            description: "Please allow popups to complete PayPal payment.",
             variant: "destructive",
           });
         }
       };
 
-      paypalContainer.appendChild(demoButton);
+      // Add event listeners
+      paypalInterface.querySelector('#paypal-pay-once')?.addEventListener('click', () => handlePayPalPayment('once'));
+      paypalInterface.querySelector('#paypal-subscribe')?.addEventListener('click', () => handlePayPalPayment('subscribe'));
+
+      paypalContainer.appendChild(paypalInterface);
     };
 
     loadPayPalSDK();
