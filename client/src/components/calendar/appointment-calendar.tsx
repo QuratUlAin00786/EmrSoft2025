@@ -159,10 +159,12 @@ export default function AppointmentCalendar() {
   }, []);
 
   const createAppointment = async () => {
-    if (!formData.patientId || !formData.providerId || !formData.title || !formData.department) {
+    console.log("Creating appointment with form data:", formData);
+    
+    if (!formData.patientId || !formData.providerId) {
       toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields including department",
+        title: "Missing Information", 
+        description: "Please select both patient and provider",
         variant: "destructive"
       });
       return;
@@ -177,14 +179,16 @@ export default function AppointmentCalendar() {
       const appointmentData = {
         patientId: formData.patientId, // Send as string for backend to handle properly
         providerId: parseInt(formData.providerId),
-        title: formData.title,
-        description: formData.description,
+        title: formData.title || `${formData.type} appointment`,
+        description: formData.description || "",
         scheduledAt: scheduledAt.toISOString(),
         duration: parseInt(formData.duration),
         type: formData.type,
-        location: formData.isVirtual ? "Virtual" : `${formData.location || 'Room 101'}, ${formData.department} Department`,
+        location: formData.isVirtual ? "Virtual" : (formData.location || `${formData.department || 'General'} Department`),
         isVirtual: formData.isVirtual
       };
+
+      console.log("Sending appointment data:", appointmentData);
 
       const token = localStorage.getItem('auth_token');
       const headers: Record<string, string> = {
@@ -204,7 +208,9 @@ export default function AppointmentCalendar() {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        const errorText = await response.text();
+        console.error("Appointment creation failed:", response.status, errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
 
       const newAppointment = await response.json();
