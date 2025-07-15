@@ -410,19 +410,53 @@ class _DashboardHomeState extends State<_DashboardHome> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _QuickStatCard(
-                    icon: Icons.people,
-                    title: 'Total Patients',
-                    value: '${_stats['totalPatients'] ?? 0}',
-                    color: AppColors.accent,
-                    onTap: () {
-                      print('Total Patients card tapped!');
+                  child: ElevatedButton(
+                    onPressed: () {
+                      print('Total Patients button pressed!');
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => const PatientsScreen(),
                         ),
                       );
                     },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: AppColors.accent,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: AppColors.border),
+                      ),
+                      padding: const EdgeInsets.all(16),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.people, color: AppColors.accent, size: 24),
+                            const Spacer(),
+                            Text(
+                              '${_stats['totalPatients'] ?? 0}',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.accent,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Total Patients',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textLight,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
