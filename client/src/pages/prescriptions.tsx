@@ -279,6 +279,7 @@ export default function PrescriptionsPage() {
       }
       
       const data = await response.json();
+      console.log("Fetched providers:", data);
       setProviders(data || []);
     } catch (err) {
       console.error("Error fetching providers:", err);
@@ -635,7 +636,24 @@ export default function PrescriptionsPage() {
                 
                 <Dialog open={showNewPrescription} onOpenChange={setShowNewPrescription}>
                   <DialogTrigger asChild>
-                    <Button className="bg-medical-blue hover:bg-blue-700">
+                    <Button 
+                      className="bg-medical-blue hover:bg-blue-700"
+                      onClick={() => {
+                        setSelectedPrescription(null);
+                        setFormData({
+                          patientId: "",
+                          patientName: "",
+                          providerId: "",
+                          diagnosis: "",
+                          medicationName: "",
+                          dosage: "",
+                          frequency: "",
+                          quantity: "",
+                          refills: "",
+                          instructions: ""
+                        });
+                      }}
+                    >
                       <Plus className="h-4 w-4 mr-2" />
                       New Prescription
                     </Button>
@@ -759,6 +777,12 @@ export default function PrescriptionsPage() {
                         </Button>
                         <Button 
                           onClick={() => {
+                            // Validation
+                            if (!formData.patientId || !formData.providerId || !formData.medicationName) {
+                              alert("Please fill in all required fields (Patient, Doctor, and Medication Name)");
+                              return;
+                            }
+
                             const prescriptionData = {
                               patientId: parseInt(formData.patientId),
                               providerId: parseInt(formData.providerId),
@@ -775,6 +799,8 @@ export default function PrescriptionsPage() {
                               }]
                             };
 
+                            console.log("Creating prescription with data:", prescriptionData);
+                            console.log("Form data before parsing:", formData);
                             createPrescriptionMutation.mutate(prescriptionData);
                           }}
                           disabled={createPrescriptionMutation.isPending}
