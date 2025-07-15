@@ -41,8 +41,9 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system des
 - **Subscriptions**: Billing management with feature access control and usage tracking
 
 ### Authentication & Authorization
-- **JWT Tokens**: 24-hour expiration with proper issuer/audience validation for security
-- **Role-Based Access**: Hierarchical permissions system (admin > doctor > nurse > receptionist)
+- **JWT Tokens**: 7-day expiration with proper issuer/audience validation for security
+- **Role-Based Access**: Comprehensive permissions system supporting 6 user roles (admin, doctor, nurse, receptionist, patient, sample_taker) with granular module-level permissions for view, create, edit, and delete operations
+- **Dynamic UI**: Role-based sidebar navigation and dashboard components that adapt interface based on user permissions
 - **Tenant Isolation**: Automatic organization-level data filtering prevents cross-tenant data access
 - **Session Management**: Secure token storage with real-time validation endpoints
 
@@ -110,6 +111,7 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system des
 ## Changelog
 
 **July 15, 2025:**
+- **COMPLETED**: Implemented comprehensive role-based visibility system - created role permissions hook with detailed permission matrix for all 6 user roles (admin, doctor, nurse, receptionist, patient, sample_taker), updated database schema to support additional roles, created role-specific dashboard components with tailored UI and functionality for each user type, implemented dynamic sidebar navigation filtering based on role permissions, and added sample users for testing all roles including patient@gmail.com/patient123 and sample.taker@demo.com/sample_taker credentials
 - **COMPLETED**: Fixed Provider dropdown in appointment booking showing no options - root cause was missing medical staff users (doctors/nurses) in database; added Dr. Sarah Smith (Cardiology), Dr. Michael Johnson (Neurology), and Nurse Emily Wilson (General Medicine) to provide provider options for appointment scheduling in LIVE deployment
 - **COMPLETED**: Fixed duplicate "Dr." prefix display issue in Provider dropdown - removed "Dr." prefix from first names in database (changed "Dr. Sarah" to "Sarah", "Dr. Michael" to "Michael") so frontend display logic properly shows "Dr. Sarah Smith" instead of "Dr. Dr. Sarah Smith"
 - **COMPLETED**: Fixed appointment creation error completely - modified backend to accept both string and numeric patientId, added getPatientByPatientId method to storage interface, fixed frontend to send patient IDs as strings instead of attempting parseInt conversion, and corrected patient dropdown to use patient.patientId instead of patient.id, enabling successful appointment booking when frontend sends patient string ID (P000007) and backend converts to numeric database ID (163), with proper error handling for empty values - appointment booking system now fully operational

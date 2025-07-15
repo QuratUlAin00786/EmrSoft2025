@@ -59,15 +59,17 @@ export class AuthService {
 
   hasPermission(userRole: string, requiredRoles: string[]): boolean {
     const roleHierarchy = {
-      admin: 4,
-      doctor: 3,
-      nurse: 2,
-      receptionist: 1
+      admin: 6,
+      doctor: 5,
+      nurse: 4,
+      receptionist: 3,
+      sample_taker: 2,
+      patient: 1
     };
 
     const userLevel = roleHierarchy[userRole as keyof typeof roleHierarchy] || 0;
     const requiredLevel = Math.min(...requiredRoles.map(role => 
-      roleHierarchy[role as keyof typeof roleHierarchy] || 5
+      roleHierarchy[role as keyof typeof roleHierarchy] || 7
     ));
 
     return userLevel >= requiredLevel;

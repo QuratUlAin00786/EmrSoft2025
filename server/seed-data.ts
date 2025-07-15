@@ -69,6 +69,28 @@ export async function seedDatabase() {
         role: "nurse",
         department: "General Medicine",
         isActive: true
+      },
+      {
+        organizationId: org.id,
+        email: "patient@gmail.com",
+        username: "patient",
+        password: hashedPassword,
+        firstName: "John",
+        lastName: "Patient",
+        role: "patient",
+        department: null,
+        isActive: true
+      },
+      {
+        organizationId: org.id,
+        email: "sample.taker@demo.com",
+        username: "sample_taker",
+        password: hashedPassword,
+        firstName: "Maria",
+        lastName: "Rodriguez",
+        role: "sample_taker",
+        department: "Laboratory",
+        isActive: true
       }
     ];
 

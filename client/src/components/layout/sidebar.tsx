@@ -31,6 +31,7 @@ import {
 import { useTenant } from "@/hooks/use-tenant";
 import curaIconPath from "@assets/Cura Icon Main_1751893631980.png";
 import { useAuth } from "@/hooks/use-auth";
+import { useRolePermissions } from "@/hooks/use-role-permissions";
 import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -45,39 +46,40 @@ import {
 import { LogOut, User, Settings as SettingsIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 
-const navigation = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "Patients", href: "/patients", icon: Users },
-  { name: "Appointments", href: "/appointments", icon: Calendar },
-  { name: "Prescriptions", href: "/prescriptions", icon: Pill },
-  { name: "Lab Results", href: "/lab-results", icon: FlaskConical },
-  { name: "Imaging", href: "/imaging", icon: FileImage },
-  { name: "Forms", href: "/forms", icon: FileText },
-  { name: "Messaging", href: "/messaging", icon: MessageSquare },
-  { name: "Integrations", href: "/integrations", icon: LinkIcon },
-  { name: "Analytics", href: "/analytics", icon: BarChart3 },
-  { name: "Automation", href: "/automation", icon: Zap },
-  { name: "Patient Portal", href: "/patient-portal", icon: Globe },
-  { name: "AI Insights", href: "/ai-insights", icon: Brain },
-  { name: "Clinical Decision Support", href: "/clinical-decision-support", icon: Brain },
-  { name: "Telemedicine", href: "/telemedicine", icon: Video },
-  { name: "Population Health", href: "/population-health", icon: Users },
-  { name: "Mobile Health", href: "/mobile-health", icon: Smartphone },
-  { name: "Voice Documentation", href: "/voice-documentation", icon: Mic },
-  { name: "Financial Intelligence", href: "/financial-intelligence", icon: Calculator },
-  { name: "Billing", href: "/billing", icon: Receipt },
+const ALL_NAVIGATION = [
+  { name: "Dashboard", href: "/", icon: LayoutDashboard, module: "dashboard" },
+  { name: "Patients", href: "/patients", icon: Users, module: "patients" },
+  { name: "Appointments", href: "/appointments", icon: Calendar, module: "appointments" },
+  { name: "Prescriptions", href: "/prescriptions", icon: Pill, module: "prescriptions" },
+  { name: "Lab Results", href: "/lab-results", icon: FlaskConical, module: "lab_results" },
+  { name: "Imaging", href: "/imaging", icon: FileImage, module: "medical_imaging" },
+  { name: "Forms", href: "/forms", icon: FileText, module: "forms" },
+  { name: "Messaging", href: "/messaging", icon: MessageSquare, module: "messaging" },
+  { name: "Integrations", href: "/integrations", icon: LinkIcon, module: "integrations" },
+  { name: "Analytics", href: "/analytics", icon: BarChart3, module: "analytics" },
+  { name: "Automation", href: "/automation", icon: Zap, module: "automation" },
+  { name: "Patient Portal", href: "/patient-portal", icon: Globe, module: "patient_portal" },
+  { name: "AI Insights", href: "/ai-insights", icon: Brain, module: "ai_insights" },
+  { name: "Clinical Decision Support", href: "/clinical-decision-support", icon: Brain, module: "ai_insights" },
+  { name: "Telemedicine", href: "/telemedicine", icon: Video, module: "telemedicine" },
+  { name: "Population Health", href: "/population-health", icon: Users, module: "population_health" },
+  { name: "Mobile Health", href: "/mobile-health", icon: Smartphone, module: "mobile_health" },
+  { name: "Voice Documentation", href: "/voice-documentation", icon: Mic, module: "voice_documentation" },
+  { name: "Financial Intelligence", href: "/financial-intelligence", icon: Calculator, module: "billing" },
+  { name: "Billing", href: "/billing", icon: Receipt, module: "billing" },
 ];
 
-const adminNavigation = [
-  { name: "User Management", href: "/users", icon: UserCog },
-  { name: "Subscription", href: "/subscription", icon: Crown },  
-  { name: "Settings", href: "/settings", icon: Settings },
+const ADMIN_NAVIGATION = [
+  { name: "User Management", href: "/users", icon: UserCog, module: "user_management" },
+  { name: "Subscription", href: "/subscription", icon: Crown, module: "subscription" },  
+  { name: "Settings", href: "/settings", icon: Settings, module: "settings" },
 ];
 
 export function Sidebar() {
   const [location] = useLocation();
   const { tenant } = useTenant();
   const { user, logout } = useAuth();
+  const { canAccess, getUserRole } = useRolePermissions();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -96,8 +98,11 @@ export function Sidebar() {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
 
-  // Force admin navigation to always show for any authenticated user
-  const isAdmin = user && user.id;
+  // Filter navigation based on user role permissions
+  const filteredNavigation = ALL_NAVIGATION.filter(item => canAccess(item.module));
+  const filteredAdminNavigation = ADMIN_NAVIGATION.filter(item => canAccess(item.module));
+  
+  const currentRole = getUserRole();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -159,7 +164,7 @@ export function Sidebar() {
       {/* Navigation Menu */}
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         <div className="sidebar-nav">
-          {navigation.map((item) => {
+          {filteredNavigation.map((item) => {
             const isActive = location === item.href;
             return (
               <Link key={item.name} href={item.href}>
@@ -179,7 +184,7 @@ export function Sidebar() {
         </div>
 
         {/* Admin Section */}
-        {user && user.id && (
+        {filteredAdminNavigation.length > 0 && (
           <>
             <div className="pt-4 mt-4">
               <Separator />
@@ -189,42 +194,23 @@ export function Sidebar() {
                 ADMINISTRATION
               </p>
               <div className="sidebar-nav">
-                <Link href="/users">
-                  <a 
-                    className={cn(
-                      "sidebar-nav-item",
-                      location === "/users" && "active"
-                    )}
-                    onClick={isMobile ? closeMobileMenu : undefined}
-                  >
-                    <UserCog className="h-5 w-5" />
-                    <span>User Management</span>
-                  </a>
-                </Link>
-                <Link href="/subscription">
-                  <a 
-                    className={cn(
-                      "sidebar-nav-item",
-                      location === "/subscription" && "active"
-                    )}
-                    onClick={isMobile ? closeMobileMenu : undefined}
-                  >
-                    <Crown className="h-5 w-5" />
-                    <span>Subscription</span>
-                  </a>
-                </Link>
-                <Link href="/settings">
-                  <a 
-                    className={cn(
-                      "sidebar-nav-item",
-                      location === "/settings" && "active"
-                    )}
-                    onClick={isMobile ? closeMobileMenu : undefined}
-                  >
-                    <Settings className="h-5 w-5" />
-                    <span>Settings</span>
-                  </a>
-                </Link>
+                {filteredAdminNavigation.map((item) => {
+                  const isActive = location === item.href;
+                  return (
+                    <Link key={item.name} href={item.href}>
+                      <a 
+                        className={cn(
+                          "sidebar-nav-item",
+                          isActive && "active"
+                        )}
+                        onClick={isMobile ? closeMobileMenu : undefined}
+                      >
+                        <item.icon className="h-5 w-5" />
+                        <span>{item.name}</span>
+                      </a>
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           </>
