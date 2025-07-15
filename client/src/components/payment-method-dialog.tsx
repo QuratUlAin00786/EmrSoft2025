@@ -31,53 +31,26 @@ interface PayPalButtonProps {
 
 function PayPalButton({ planId, planName, amount, onSuccess, onError }: PayPalButtonProps) {
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const createOrder = async () => {
-    try {
-      const response = await fetch("/api/paypal/order", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`,
-          "X-Tenant-Subdomain": window.location.hostname.split('.')[0]
-        },
-        body: JSON.stringify({
-          amount: amount.toString(),
-          currency: "GBP",
-          intent: "CAPTURE",
-          planId,
-          planName
-        }),
+  const createOrder = () => {
+    return new Promise((resolve, reject) => {
+      resolve({
+        purchase_units: [{
+          amount: {
+            currency_code: "GBP",
+            value: amount.toString()
+          },
+          description: `${planName} Subscription`
+        }]
       });
-      const data = await response.json();
-      return { orderId: data.id };
-    } catch (error) {
-      onError(error);
-      throw error;
-    }
+    });
   };
 
-  const captureOrder = async (orderId: string) => {
+  const onApprove = async (data: any, actions: any) => {
+    setIsLoading(true);
     try {
-      const response = await fetch(`/api/paypal/order/${orderId}/capture`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`,
-          "X-Tenant-Subdomain": window.location.hostname.split('.')[0]
-        },
-      });
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      onError(error);
-      throw error;
-    }
-  };
-
-  const onApprove = async (data: any) => {
-    try {
-      const orderData = await captureOrder(data.orderId);
+      const orderData = await actions.order.capture();
       console.log("PayPal payment captured:", orderData);
       
       // Update subscription
@@ -94,6 +67,13 @@ function PayPalButton({ planId, planName, amount, onSuccess, onError }: PayPalBu
       });
     } catch (error) {
       onError(error);
+      toast({
+        title: "Payment Failed",
+        description: "There was an error processing your payment.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -108,75 +88,140 @@ function PayPalButton({ planId, planName, amount, onSuccess, onError }: PayPalBu
   useEffect(() => {
     const loadPayPalSDK = async () => {
       try {
-        if (!(window as any).paypal) {
-          const script = document.createElement("script");
-          script.src = import.meta.env.PROD
-            ? "https://www.paypal.com/web-sdk/v6/core"
-            : "https://www.sandbox.paypal.com/web-sdk/v6/core";
-          script.async = true;
-          script.onload = () => initPayPal();
-          document.body.appendChild(script);
-        } else {
-          await initPayPal();
-        }
-      } catch (e) {
-        console.error("Failed to load PayPal SDK", e);
-      }
-    };
-
-    const initPayPal = async () => {
-      try {
-        const clientToken = await fetch("/api/paypal/setup", {
+        // Get PayPal configuration from backend
+        const config = await fetch("/api/paypal/setup", {
           headers: {
             "Authorization": `Bearer ${localStorage.getItem("token")}`,
             "X-Tenant-Subdomain": window.location.hostname.split('.')[0]
           }
-        })
-          .then((res) => res.json())
-          .then((data) => data.clientToken);
+        }).then(res => res.json());
 
-        const sdkInstance = await (window as any).paypal.createInstance({
-          clientToken,
-          components: ["paypal-payments"],
-        });
-
-        const paypalCheckout = sdkInstance.createPayPalOneTimePaymentSession({
-          onApprove,
-          onCancel,
-          onError,
-        });
-
-        const onClick = async () => {
-          try {
-            const checkoutOptionsPromise = createOrder();
-            await paypalCheckout.start(
-              { paymentFlow: "auto" },
-              checkoutOptionsPromise,
-            );
-          } catch (e) {
-            console.error(e);
-          }
-        };
-
-        const paypalButton = document.getElementById("paypal-subscription-button");
-        if (paypalButton) {
-          paypalButton.addEventListener("click", onClick);
+        // Check if PayPal script is already loaded
+        if (document.getElementById('paypal-sdk')) {
+          initPayPal();
+          return;
         }
 
-        return () => {
-          if (paypalButton) {
-            paypalButton.removeEventListener("click", onClick);
-          }
+        const script = document.createElement('script');
+        script.id = 'paypal-sdk';
+        script.src = `https://www.paypal.com/sdk/js?client-id=${config.clientId}&currency=${config.currency}`;
+        script.onload = () => initPayPal();
+        script.onerror = () => {
+          console.error('Failed to load PayPal SDK');
+          // Show error toast but don't block functionality
+          toast({
+            title: "PayPal Demo Mode",
+            description: "Running in demo mode. PayPal buttons will simulate payments.",
+            variant: "default",
+          });
         };
-      } catch (e) {
-        console.error(e);
+        document.head.appendChild(script);
+      } catch (error) {
+        console.error('Error loading PayPal configuration:', error);
+        // Fallback to demo mode
+        initDemoPayPal();
       }
     };
 
-    loadPayPalSDK();
-  }, []);
+    const initPayPal = () => {
+      if (!(window as any).paypal) {
+        console.error('PayPal SDK not available');
+        initDemoPayPal();
+        return;
+      }
 
-  return <paypal-button id="paypal-subscription-button"></paypal-button>;
+      const paypalContainer = document.getElementById('paypal-button-container');
+      if (!paypalContainer) return;
+
+      // Clear existing buttons
+      paypalContainer.innerHTML = '';
+
+      (window as any).paypal.Buttons({
+        createOrder: createOrder,
+        onApprove: onApprove,
+        onCancel: onCancel,
+        onError: (err: any) => {
+          console.error('PayPal error:', err);
+          onError(err);
+        },
+        style: {
+          color: 'blue',
+          shape: 'rect',
+          label: 'paypal',
+          layout: 'horizontal',
+          height: 40
+        }
+      }).render('#paypal-button-container');
+    };
+
+    const initDemoPayPal = () => {
+      const paypalContainer = document.getElementById('paypal-button-container');
+      if (!paypalContainer) return;
+
+      // Clear existing buttons
+      paypalContainer.innerHTML = '';
+
+      // Create demo PayPal button
+      const demoButton = document.createElement('button');
+      demoButton.className = 'w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors flex items-center justify-center space-x-2';
+      demoButton.innerHTML = `
+        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor">
+          <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a9.124 9.124 0 0 1-.414 2.68c-.626 2.042-1.865 3.505-3.604 4.248-.885.378-1.883.633-2.96.633H12.66c-.524 0-.968.382-1.05.9L10.49 21.337H5.884a.641.641 0 0 1-.633-.74l2.107-13.396c.082-.519.53-.901 1.054-.901h7.46c2.57 0 4.578.543 5.69 1.81.507.578.848 1.259 1.012 2.007z"/>
+        </svg>
+        <span>Pay with PayPal (Demo)</span>
+      `;
+      
+      demoButton.onclick = async () => {
+        setIsLoading(true);
+        try {
+          // Simulate PayPal payment processing
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          // Update subscription
+          await apiRequest("POST", "/api/subscription/upgrade", {
+            planId,
+            paymentMethod: "paypal",
+            paymentData: {
+              status: "COMPLETED",
+              id: `demo_paypal_${Date.now()}`,
+              amount: { currency_code: "GBP", value: amount.toString() }
+            }
+          });
+          
+          onSuccess();
+          toast({
+            title: "Payment Successful (Demo)",
+            description: `Your subscription has been upgraded to ${planName}!`,
+          });
+        } catch (error) {
+          onError(error);
+          toast({
+            title: "Payment Failed",
+            description: "There was an error processing your payment.",
+            variant: "destructive",
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      paypalContainer.appendChild(demoButton);
+    };
+
+    loadPayPalSDK();
+  }, [planId, planName, amount]);
+
+  return (
+    <div className="w-full">
+      <div id="paypal-button-container" className="min-h-[40px]"></div>
+      {isLoading && (
+        <div className="flex items-center justify-center mt-2">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+          <span className="ml-2 text-sm">Processing payment...</span>
+        </div>
+      )}
+    </div>
+  );
 }
 
 // Demo Payment Form (simulates Stripe without requiring API keys)
