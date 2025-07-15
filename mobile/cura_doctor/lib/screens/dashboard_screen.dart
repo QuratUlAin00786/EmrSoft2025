@@ -7,6 +7,14 @@ import 'medication_alerts_screen.dart';
 import 'login_screen.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'prescriptions_screen.dart';
+import 'analytics_screen.dart';
+import 'telemedicine_screen.dart';
+import 'lab_results_screen.dart';
+import 'imaging_screen.dart';
+import 'voice_documentation_screen.dart';
+import 'ai_insights_screen.dart';
+import 'messaging_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -67,6 +75,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
+      drawer: _buildNavigationDrawer(context),
       body: pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
@@ -92,6 +101,179 @@ class _DashboardScreenState extends State<DashboardScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.notification_important),
             label: 'Alerts',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavigationDrawer(BuildContext context) {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          DrawerHeader(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppColors.primary, AppColors.secondary],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const CircleAvatar(
+                  radius: 30,
+                  backgroundColor: Colors.white,
+                  child: Icon(
+                    Icons.local_hospital,
+                    size: 35,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Dr. ${_user?['firstName'] ?? 'Doctor'}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  _user?['email'] ?? 'doctor@cura.health',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _buildDrawerItem(
+            icon: Icons.dashboard,
+            title: 'Dashboard',
+            onTap: () => _navigateToIndex(0),
+          ),
+          _buildDrawerItem(
+            icon: Icons.calendar_today,
+            title: 'Appointments',
+            onTap: () => _navigateToIndex(1),
+          ),
+          _buildDrawerItem(
+            icon: Icons.people,
+            title: 'Patients',
+            onTap: () => _navigateToIndex(2),
+          ),
+          _buildDrawerItem(
+            icon: Icons.medication,
+            title: 'Prescriptions',
+            onTap: () => _navigateToScreen(const PrescriptionsScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.science,
+            title: 'Lab Results',
+            onTap: () => _navigateToScreen(const LabResultsScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.image,
+            title: 'Medical Imaging',
+            onTap: () => _navigateToScreen(const ImagingScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.video_call,
+            title: 'Telemedicine',
+            onTap: () => _navigateToScreen(const TelemedicineScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.mic,
+            title: 'Voice Documentation',
+            onTap: () => _navigateToScreen(const VoiceDocumentationScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.psychology,
+            title: 'AI Clinical Insights',
+            onTap: () => _navigateToScreen(const AiInsightsScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.message,
+            title: 'Secure Messaging',
+            onTap: () => _navigateToScreen(const MessagingScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.analytics,
+            title: 'Analytics & Reports',
+            onTap: () => _navigateToScreen(const AnalyticsScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.notification_important,
+            title: 'Medication Alerts',
+            onTap: () => _navigateToIndex(3),
+          ),
+          const Divider(),
+          _buildDrawerItem(
+            icon: Icons.help_outline,
+            title: 'Clinical Guidelines',
+            onTap: () => _showComingSoon(context, 'Clinical Guidelines'),
+          ),
+          _buildDrawerItem(
+            icon: Icons.settings,
+            title: 'Settings',
+            onTap: () => _showComingSoon(context, 'Settings'),
+          ),
+          _buildDrawerItem(
+            icon: Icons.logout,
+            title: 'Logout',
+            onTap: _logout,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: AppColors.primary),
+      title: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      onTap: () {
+        Navigator.pop(context); // Close drawer
+        onTap();
+      },
+    );
+  }
+
+  void _navigateToIndex(int index) {
+    setState(() => _selectedIndex = index);
+  }
+
+  void _navigateToScreen(Widget screen) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => screen),
+    );
+  }
+
+  void _showComingSoon(BuildContext context, String feature) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('$feature'),
+        content: Text('$feature functionality is coming soon in the next update!'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
           ),
         ],
       ),
@@ -233,6 +415,10 @@ class _DashboardHomeState extends State<_DashboardHome> {
                     title: 'Total Patients',
                     value: '${_stats['totalPatients'] ?? 0}',
                     color: AppColors.accent,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const PatientsScreen()),
+                    ),
                   ),
                 ),
               ],
@@ -389,49 +575,54 @@ class _QuickStatCard extends StatelessWidget {
   final String title;
   final String value;
   final Color color;
+  final VoidCallback? onTap;
 
   const _QuickStatCard({
     required this.icon,
     required this.title,
     required this.value,
     required this.color,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: color, size: 24),
-              const Spacer(),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: color,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: color, size: 24),
+                const Spacer(),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.textLight,
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.textLight,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

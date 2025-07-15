@@ -6,6 +6,12 @@ import 'prescriptions_screen.dart';
 import 'appointments_screen.dart';
 import 'notifications_screen.dart';
 import 'login_screen.dart';
+import 'lab_results_screen.dart';
+import 'imaging_screen.dart';
+import 'telemedicine_screen.dart';
+import 'billing_screen.dart';
+import 'voice_documentation_screen.dart';
+import 'patient_portal_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -67,6 +73,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
+      drawer: _buildNavigationDrawer(context),
       body: pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
@@ -96,6 +103,174 @@ class _DashboardScreenState extends State<DashboardScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications),
             label: 'Alerts',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavigationDrawer(BuildContext context) {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          DrawerHeader(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppColors.primary, AppColors.secondary],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const CircleAvatar(
+                  radius: 30,
+                  backgroundColor: Colors.white,
+                  child: Icon(
+                    Icons.person,
+                    size: 35,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  _user?['firstName'] ?? 'Patient',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  _user?['email'] ?? 'patient@cura.health',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _buildDrawerItem(
+            icon: Icons.dashboard,
+            title: 'Dashboard',
+            onTap: () => _navigateToIndex(0),
+          ),
+          _buildDrawerItem(
+            icon: Icons.history,
+            title: 'Medical History',
+            onTap: () => _navigateToIndex(1),
+          ),
+          _buildDrawerItem(
+            icon: Icons.medication,
+            title: 'Prescriptions',
+            onTap: () => _navigateToIndex(2),
+          ),
+          _buildDrawerItem(
+            icon: Icons.calendar_today,
+            title: 'Appointments',
+            onTap: () => _navigateToIndex(3),
+          ),
+          _buildDrawerItem(
+            icon: Icons.science,
+            title: 'Lab Results',
+            onTap: () => _navigateToScreen(const LabResultsScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.image,
+            title: 'Medical Imaging',
+            onTap: () => _navigateToScreen(const ImagingScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.video_call,
+            title: 'Telemedicine',
+            onTap: () => _navigateToScreen(const TelemedicineScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.receipt_long,
+            title: 'Billing & Payments',
+            onTap: () => _navigateToScreen(const BillingScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.mic,
+            title: 'Voice Documentation',
+            onTap: () => _navigateToScreen(const VoiceDocumentationScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.web,
+            title: 'Patient Portal',
+            onTap: () => _navigateToScreen(const PatientPortalScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.notifications,
+            title: 'Notifications & Alerts',
+            onTap: () => _navigateToIndex(4),
+          ),
+          const Divider(),
+          _buildDrawerItem(
+            icon: Icons.help_outline,
+            title: 'Help & Support',
+            onTap: () => _showComingSoon(context, 'Help & Support'),
+          ),
+          _buildDrawerItem(
+            icon: Icons.settings,
+            title: 'Settings',
+            onTap: () => _showComingSoon(context, 'Settings'),
+          ),
+          _buildDrawerItem(
+            icon: Icons.logout,
+            title: 'Logout',
+            onTap: _logout,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: AppColors.primary),
+      title: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      onTap: () {
+        Navigator.pop(context); // Close drawer
+        onTap();
+      },
+    );
+  }
+
+  void _navigateToIndex(int index) {
+    setState(() => _selectedIndex = index);
+  }
+
+  void _navigateToScreen(Widget screen) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => screen),
+    );
+  }
+
+  void _showComingSoon(BuildContext context, String feature) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('$feature'),
+        content: Text('$feature functionality is coming soon in the next update!'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
           ),
         ],
       ),
