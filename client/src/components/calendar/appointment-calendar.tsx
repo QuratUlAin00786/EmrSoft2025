@@ -79,6 +79,15 @@ export default function AppointmentCalendar() {
       
       const data = await response.json();
       console.log("Fetched appointments data:", data);
+      console.log("Appointments count:", data?.length || 0);
+      if (data && data.length > 0) {
+        console.log("First appointment details:", {
+          id: data[0].id,
+          scheduledAt: data[0].scheduledAt,
+          patientId: data[0].patientId,
+          title: data[0].title
+        });
+      }
       setAppointments(data || []);
     } catch (err) {
       console.error("Error fetching appointments:", err);
@@ -158,6 +167,16 @@ export default function AppointmentCalendar() {
     fetchProviders();
   }, []);
 
+  // Auto-refresh appointments every 30 seconds to catch newly created appointments
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log("Auto-refreshing appointments...");
+      fetchAppointments();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const createAppointment = async () => {
     console.log("Creating appointment with form data:", formData);
     
@@ -215,8 +234,14 @@ export default function AppointmentCalendar() {
 
       const newAppointment = await response.json();
       
-      // Refresh the appointments list from the server
+      // Refresh the appointments list from the server and update calendar view
       await fetchAppointments();
+      
+      // Force calendar to show today if appointment was created for today
+      const appointmentDate = new Date(`${formData.date}T${formData.time}`);
+      if (isSameDay(appointmentDate, new Date())) {
+        setSelectedDate(new Date());
+      }
       
       // Reset form and close dialog
       setFormData({
@@ -257,9 +282,25 @@ export default function AppointmentCalendar() {
   const calendarDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
   const getAppointmentsForDate = (date: Date) => {
-    return (appointments as any || []).filter((apt: any) => 
-      isSameDay(new Date(apt.scheduledAt), date)
-    );
+    const filteredAppointments = (appointments as any || []).filter((apt: any) => {
+      const appointmentDate = new Date(apt.scheduledAt);
+      const isSameDate = isSameDay(appointmentDate, date);
+      
+      // Debug logging for the current date
+      if (isToday(date)) {
+        console.log("Checking appointments for today:", {
+          date: format(date, "yyyy-MM-dd"),
+          appointments: appointments.length,
+          filteredForToday: (appointments as any || []).filter((apt: any) => 
+            isSameDay(new Date(apt.scheduledAt), date)
+          ).length
+        });
+      }
+      
+      return isSameDate;
+    });
+    
+    return filteredAppointments;
   };
 
   const selectedDateAppointments = getAppointmentsForDate(selectedDate);
