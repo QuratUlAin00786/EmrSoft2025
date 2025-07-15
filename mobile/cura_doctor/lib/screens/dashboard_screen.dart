@@ -56,7 +56,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> pages = [
-      _DashboardHome(user: _user),
+      _DashboardHome(
+        user: _user,
+        onNavigateToPatients: () => _navigateToIndex(2),
+      ),
       const AppointmentsScreen(),
       const PatientsScreen(),
       const MedicationAlertsScreen(),
@@ -283,8 +286,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
 class _DashboardHome extends StatefulWidget {
   final Map<String, dynamic>? user;
+  final VoidCallback? onNavigateToPatients;
 
-  const _DashboardHome({this.user});
+  const _DashboardHome({this.user, this.onNavigateToPatients});
 
   @override
   State<_DashboardHome> createState() => _DashboardHomeState();
@@ -417,10 +421,7 @@ class _DashboardHomeState extends State<_DashboardHome> {
                     color: AppColors.accent,
                     onTap: () {
                       print('Total Patients card tapped!');
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const PatientsScreen()),
-                      );
+                      widget.onNavigateToPatients?.call();
                     },
                   ),
                 ),
