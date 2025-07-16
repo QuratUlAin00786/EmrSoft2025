@@ -1116,6 +1116,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createPrescription(prescription: InsertPrescription): Promise<Prescription> {
+    console.log("Storage: Creating prescription with data:", prescription);
+    console.log("Storage: Provider ID being inserted:", prescription.providerId);
     const [newPrescription] = await db
       .insert(prescriptions)
       .values(prescription)

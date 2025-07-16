@@ -1063,6 +1063,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/prescriptions", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+    console.log("POST /api/prescriptions endpoint reached!");
     try {
       if (!req.user) {
         return res.status(401).json({ error: "User not authenticated" });
@@ -1076,6 +1077,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: req.user.email,
         role: req.user.role
       });
+      console.log("Original providerId from form:", prescriptionData.providerId);
+      console.log("Will use authenticated user ID instead:", req.user.id);
       
       // Validate required fields
       if (!prescriptionData.patientId || isNaN(parseInt(prescriptionData.patientId))) {
