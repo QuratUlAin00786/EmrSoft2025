@@ -440,7 +440,7 @@ export default function Forms() {
   };
   const handleAlignLeft = () => {
     const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) {
+    if (!selection || selection.rangeCount === 0 || selection.toString().trim() === '') {
       toast({ 
         title: "Select Text", 
         description: "Please select text to apply left alignment",
@@ -449,45 +449,33 @@ export default function Forms() {
       return;
     }
 
-    const range = selection.getRangeAt(0);
-    const selectedText = range.toString();
-    
-    if (!selectedText) {
+    try {
+      // Use document.execCommand for reliable alignment
+      document.execCommand('justifyLeft', false);
+      
+      // Update the document content state
+      if (textareaRef) {
+        setDocumentContent(textareaRef.innerHTML);
+      }
+      
       toast({ 
-        title: "Select Text", 
-        description: "Please select text to apply left alignment",
+        title: "✓ Left Alignment Applied",
+        description: "Text aligned to the left",
+        duration: 2000
+      });
+    } catch (error) {
+      console.error('Left alignment error:', error);
+      toast({ 
+        title: "Error", 
+        description: "Failed to apply left alignment",
         duration: 3000
       });
-      return;
     }
-
-    // Create a div with left alignment
-    const div = document.createElement('div');
-    div.style.textAlign = 'left';
-    div.textContent = selectedText;
-    
-    // Replace the selected content with the aligned div
-    range.deleteContents();
-    range.insertNode(div);
-    
-    // Update the document content state
-    if (textareaRef) {
-      setDocumentContent(textareaRef.innerHTML);
-    }
-    
-    // Clear selection
-    selection.removeAllRanges();
-    
-    toast({ 
-      title: "✓ Left Alignment Applied",
-      description: "Left alignment applied to selected text",
-      duration: 2000
-    });
   };
 
   const handleAlignCenter = () => {
     const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) {
+    if (!selection || selection.rangeCount === 0 || selection.toString().trim() === '') {
       toast({ 
         title: "Select Text", 
         description: "Please select text to apply center alignment",
@@ -496,60 +484,33 @@ export default function Forms() {
       return;
     }
 
-    const range = selection.getRangeAt(0);
-    const selectedText = range.toString().trim();
-    
-    if (!selectedText) {
+    try {
+      // Use document.execCommand for reliable alignment
+      document.execCommand('justifyCenter', false);
+      
+      // Update the document content state
+      if (textareaRef) {
+        setDocumentContent(textareaRef.innerHTML);
+      }
+      
       toast({ 
-        title: "Select Text", 
-        description: "Please select text to apply center alignment",
+        title: "✓ Center Alignment Applied",
+        description: "Text centered successfully",
+        duration: 2000
+      });
+    } catch (error) {
+      console.error('Center alignment error:', error);
+      toast({ 
+        title: "Error", 
+        description: "Failed to apply center alignment",
         duration: 3000
       });
-      return;
     }
-
-    // Split text into lines and preserve line structure
-    const lines = selectedText.split('\n').filter(line => line.trim() !== '');
-    
-    // Create a div with center alignment
-    const div = document.createElement('div');
-    div.style.textAlign = 'center';
-    div.style.width = '100%';
-    div.style.display = 'block';
-    div.style.margin = '0';
-    div.style.padding = '0';
-    
-    // Add each line as a separate div to preserve line breaks
-    lines.forEach((line, index) => {
-      const lineDiv = document.createElement('div');
-      lineDiv.textContent = line.trim();
-      lineDiv.style.margin = '0';
-      lineDiv.style.padding = '0';
-      div.appendChild(lineDiv);
-    });
-    
-    // Replace the selected content with the aligned div
-    range.deleteContents();
-    range.insertNode(div);
-    
-    // Update the document content state
-    if (textareaRef) {
-      setDocumentContent(textareaRef.innerHTML);
-    }
-    
-    // Clear selection
-    selection.removeAllRanges();
-    
-    toast({ 
-      title: "✓ Center Alignment Applied",
-      description: `Text centered with ${lines.length} lines preserved`,
-      duration: 2000
-    });
   };
 
   const handleAlignRight = () => {
     const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) {
+    if (!selection || selection.rangeCount === 0 || selection.toString().trim() === '') {
       toast({ 
         title: "Select Text", 
         description: "Please select text to apply right alignment",
@@ -558,45 +519,33 @@ export default function Forms() {
       return;
     }
 
-    const range = selection.getRangeAt(0);
-    const selectedText = range.toString();
-    
-    if (!selectedText) {
+    try {
+      // Use document.execCommand for reliable alignment
+      document.execCommand('justifyRight', false);
+      
+      // Update the document content state
+      if (textareaRef) {
+        setDocumentContent(textareaRef.innerHTML);
+      }
+      
       toast({ 
-        title: "Select Text", 
-        description: "Please select text to apply right alignment",
+        title: "✓ Right Alignment Applied",
+        description: "Text aligned to the right",
+        duration: 2000
+      });
+    } catch (error) {
+      console.error('Right alignment error:', error);
+      toast({ 
+        title: "Error", 
+        description: "Failed to apply right alignment",
         duration: 3000
       });
-      return;
     }
-
-    // Create a div with right alignment
-    const div = document.createElement('div');
-    div.style.textAlign = 'right';
-    div.textContent = selectedText;
-    
-    // Replace the selected content with the aligned div
-    range.deleteContents();
-    range.insertNode(div);
-    
-    // Update the document content state
-    if (textareaRef) {
-      setDocumentContent(textareaRef.innerHTML);
-    }
-    
-    // Clear selection
-    selection.removeAllRanges();
-    
-    toast({ 
-      title: "✓ Right Alignment Applied",
-      description: "Right alignment applied to selected text",
-      duration: 2000
-    });
   };
 
   const handleAlignJustify = () => {
     const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) {
+    if (!selection || selection.rangeCount === 0 || selection.toString().trim() === '') {
       toast({ 
         title: "Select Text", 
         description: "Please select text to apply justify alignment",
@@ -605,40 +554,28 @@ export default function Forms() {
       return;
     }
 
-    const range = selection.getRangeAt(0);
-    const selectedText = range.toString();
-    
-    if (!selectedText) {
+    try {
+      // Use document.execCommand for reliable alignment
+      document.execCommand('justifyFull', false);
+      
+      // Update the document content state
+      if (textareaRef) {
+        setDocumentContent(textareaRef.innerHTML);
+      }
+      
       toast({ 
-        title: "Select Text", 
-        description: "Please select text to apply justify alignment",
+        title: "✓ Justify Alignment Applied",
+        description: "Text justified successfully",
+        duration: 2000
+      });
+    } catch (error) {
+      console.error('Justify alignment error:', error);
+      toast({ 
+        title: "Error", 
+        description: "Failed to apply justify alignment",
         duration: 3000
       });
-      return;
     }
-
-    // Create a div with justify alignment
-    const div = document.createElement('div');
-    div.style.textAlign = 'justify';
-    div.textContent = selectedText;
-    
-    // Replace the selected content with the aligned div
-    range.deleteContents();
-    range.insertNode(div);
-    
-    // Update the document content state
-    if (textareaRef) {
-      setDocumentContent(textareaRef.innerHTML);
-    }
-    
-    // Clear selection
-    selection.removeAllRanges();
-    
-    toast({ 
-      title: "✓ Justify Alignment Applied",
-      description: "Justify alignment applied to selected text",
-      duration: 2000
-    });
   };
   const handleTable = () => toast({ title: "Insert Table", description: "Table insertion dialog opened." });
   const handleAttachFile = () => toast({ title: "Attach File", description: "File attachment dialog opened." });
