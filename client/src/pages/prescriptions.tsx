@@ -323,10 +323,10 @@ export default function PrescriptionsPage() {
     patientNames[patient.id] = `${patient.firstName} ${patient.lastName}`;
   });
 
-  const providerNames: Record<number, string> = {
-    1: "Dr. Sarah Smith",
-    2: "Dr. Michael Johnson"
-  };
+  const providerNames: Record<number, string> = {};
+  providers.forEach(provider => {
+    providerNames[provider.id] = `Dr. ${provider.firstName} ${provider.lastName}`;
+  });
 
   const prescriptions = Array.isArray(rawPrescriptions) ? rawPrescriptions.map((prescription: any) => ({
     ...prescription,

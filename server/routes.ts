@@ -1099,7 +1099,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         interactions: prescriptionData.interactions || []
       };
 
+      console.log("About to create prescription with data:", prescriptionToInsert);
       const newPrescription = await storage.createPrescription(prescriptionToInsert);
+      console.log("Prescription created successfully:", newPrescription.id);
       res.status(201).json(newPrescription);
     } catch (error) {
       console.error("Error creating prescription:", error);
