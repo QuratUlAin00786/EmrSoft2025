@@ -799,8 +799,12 @@ export default function PrescriptionsPage() {
                               }]
                             };
 
-                            console.log("Creating prescription with data:", prescriptionData);
+                            console.log("=== FRONTEND PRESCRIPTION DEBUG ===");
                             console.log("Form data before parsing:", formData);
+                            console.log("Selected patient ID:", formData.patientId);
+                            console.log("Selected provider ID:", formData.providerId);
+                            console.log("Available providers:", providers);
+                            console.log("Final prescription data:", prescriptionData);
                             createPrescriptionMutation.mutate(prescriptionData);
                           }}
                           disabled={createPrescriptionMutation.isPending}

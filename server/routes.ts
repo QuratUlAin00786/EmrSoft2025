@@ -1069,11 +1069,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const prescriptionData = req.body;
-      console.log("Prescription creation data received:", {
-        patientId: prescriptionData.patientId,
-        providerId: prescriptionData.providerId,
-        authenticatedUserId: req.user.id,
-        userRole: req.user.role
+      console.log("=== PRESCRIPTION CREATION DEBUG ===");
+      console.log("Full request body:", JSON.stringify(prescriptionData, null, 2));
+      console.log("Authenticated user:", {
+        id: req.user.id,
+        email: req.user.email,
+        role: req.user.role
       });
       
       // Validate required fields
