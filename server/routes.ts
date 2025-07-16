@@ -1078,15 +1078,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: req.user.role
       });
       console.log("Original providerId from form:", prescriptionData.providerId);
-      console.log("Will use authenticated user ID instead:", req.user.id);
       
       // Validate required fields
       if (!prescriptionData.patientId || isNaN(parseInt(prescriptionData.patientId))) {
         return res.status(400).json({ error: "Valid patient ID is required" });
       }
       
-      // Determine provider ID - use the authenticated user's ID (not from form)
-      const providerId = req.user.id;
+      if (!prescriptionData.providerId || isNaN(parseInt(prescriptionData.providerId))) {
+        return res.status(400).json({ error: "Valid provider ID is required" });
+      }
+      
+      // Use the selected provider ID from the form
+      const providerId = parseInt(prescriptionData.providerId);
+      console.log("Using selected provider ID:", providerId);
       
       // Create prescription data for database
       const prescriptionToInsert = {
