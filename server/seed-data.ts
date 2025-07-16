@@ -109,6 +109,50 @@ export async function seedDatabase() {
         role: "sample_taker",
         department: "Laboratory",
         isActive: true
+      },
+      {
+        organizationId: org.id,
+        email: "doctor2@cura.com",
+        username: "doctor2",
+        password: hashedDoctorPassword,
+        firstName: "Michael",
+        lastName: "Johnson",
+        role: "doctor",
+        department: "Neurology",
+        isActive: true
+      },
+      {
+        organizationId: org.id,
+        email: "doctor3@cura.com",
+        username: "doctor3",
+        password: hashedDoctorPassword,
+        firstName: "David",
+        lastName: "Wilson",
+        role: "doctor",
+        department: "Orthopedics",
+        isActive: true
+      },
+      {
+        organizationId: org.id,
+        email: "doctor4@cura.com",
+        username: "doctor4",
+        password: hashedDoctorPassword,
+        firstName: "Lisa",
+        lastName: "Anderson",
+        role: "doctor",
+        department: "Pediatrics",
+        isActive: true
+      },
+      {
+        organizationId: org.id,
+        email: "doctor5@cura.com",
+        username: "doctor5",
+        password: hashedDoctorPassword,
+        firstName: "Robert",
+        lastName: "Brown",
+        role: "doctor",
+        department: "Dermatology",
+        isActive: true
       }
     ];
 
