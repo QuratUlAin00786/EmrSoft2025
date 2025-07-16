@@ -497,7 +497,7 @@ export default function Forms() {
     }
 
     const range = selection.getRangeAt(0);
-    const selectedText = range.toString();
+    const selectedText = range.toString().trim();
     
     if (!selectedText) {
       toast({ 
@@ -508,9 +508,13 @@ export default function Forms() {
       return;
     }
 
-    // Create a div with center alignment
+    // Create a div with center alignment and proper styling
     const div = document.createElement('div');
     div.style.textAlign = 'center';
+    div.style.width = '100%';
+    div.style.display = 'block';
+    div.style.margin = '0';
+    div.style.padding = '0';
     div.textContent = selectedText;
     
     // Replace the selected content with the aligned div
@@ -527,7 +531,7 @@ export default function Forms() {
     
     toast({ 
       title: "✓ Center Alignment Applied",
-      description: "Center alignment applied to selected text",
+      description: "Text centered successfully",
       duration: 2000
     });
   };
