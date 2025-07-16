@@ -577,7 +577,77 @@ export default function Forms() {
       });
     }
   };
-  const handleTable = () => toast({ title: "Insert Table", description: "Table insertion dialog opened." });
+  const handleTable = () => {
+    try {
+      // Create a basic 3x3 table HTML structure
+      const tableHTML = `
+        <table border="1" style="border-collapse: collapse; width: 100%; margin: 10px 0;">
+          <tr>
+            <td style="padding: 8px; border: 1px solid #ccc;">Header 1</td>
+            <td style="padding: 8px; border: 1px solid #ccc;">Header 2</td>
+            <td style="padding: 8px; border: 1px solid #ccc;">Header 3</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #ccc;">Row 1, Cell 1</td>
+            <td style="padding: 8px; border: 1px solid #ccc;">Row 1, Cell 2</td>
+            <td style="padding: 8px; border: 1px solid #ccc;">Row 1, Cell 3</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #ccc;">Row 2, Cell 1</td>
+            <td style="padding: 8px; border: 1px solid #ccc;">Row 2, Cell 2</td>
+            <td style="padding: 8px; border: 1px solid #ccc;">Row 2, Cell 3</td>
+          </tr>
+        </table>
+      `;
+
+      // Insert the table at cursor position
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+        
+        // Create a temporary div to hold the table HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = tableHTML;
+        const tableElement = tempDiv.firstElementChild;
+        
+        if (tableElement) {
+          range.insertNode(tableElement);
+          
+          // Move cursor after the table
+          range.setStartAfter(tableElement);
+          range.collapse(true);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
+      } else {
+        // If no selection, insert at the end of the content
+        if (textareaRef) {
+          const currentContent = textareaRef.innerHTML || '';
+          textareaRef.innerHTML = currentContent + tableHTML;
+          setDocumentContent(textareaRef.innerHTML);
+        }
+      }
+      
+      // Update the document content state
+      if (textareaRef) {
+        setDocumentContent(textareaRef.innerHTML);
+      }
+      
+      toast({ 
+        title: "✓ Table Inserted",
+        description: "3x3 table with headers successfully inserted",
+        duration: 2000
+      });
+    } catch (error) {
+      console.error('Insert table error:', error);
+      toast({ 
+        title: "Error", 
+        description: "Failed to insert table",
+        duration: 3000
+      });
+    }
+  };
   const handleAttachFile = () => toast({ title: "Attach File", description: "File attachment dialog opened." });
   const handleInsertTemplate = () => toast({ title: "Insert Template", description: "Template insertion dialog opened." });
   const handleInsertLogo = () => toast({ title: "Insert Logo", description: "Logo insertion dialog opened." });
