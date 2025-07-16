@@ -408,7 +408,9 @@ export default function Forms() {
     
     const ol = document.createElement('ol');
     ol.style.marginLeft = '20px';
-    ol.style.paddingLeft = '20px';
+    ol.style.paddingLeft = '40px';
+    ol.style.listStyleType = 'decimal';
+    ol.style.listStylePosition = 'outside';
     
     lines.forEach(line => {
       const li = document.createElement('li');

@@ -112,6 +112,10 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system des
 
 **July 16, 2025:**
 - **COMPLETED**: Fixed database preservation issue - modified seed data script to preserve existing users and data instead of recreating them on server restart, ensuring manually created users like "Zubaisha Khan" persist between deployments without data loss
+- **COMPLETED**: Fixed bold, italic, and underline button functionality in forms page - replaced toast-only functions with proper text formatting that applies styling to selected text only, users must select text first then apply formatting
+- **COMPLETED**: Fixed font size and font family dropdown functionality - added selection validation to prevent global text changes, dropdowns now only apply formatting when text is actually selected
+- **COMPLETED**: Fixed bullet list button functionality - implemented proper bullet list creation that preserves exact line structure from selected text, converts each line into separate bullet points with proper HTML ul/li elements
+- **CURRENT ISSUE**: Numbered list button creates list items but numbering is not displaying properly - need to fix CSS/styling for ordered list numbering
 
 **July 15, 2025:**
 - **COMPLETED**: Fixed PayPal integration completely - implemented proper PayPal SDK integration with redirect functionality, users now redirected to actual PayPal payment interface when clicking PayPal button, payment window opens in popup for authentic experience, system detects payment completion when window closes, subscription properly updated after successful PayPal payments, includes fallback error handling for blocked popups
