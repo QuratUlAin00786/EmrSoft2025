@@ -243,7 +243,60 @@ export default function Forms() {
       duration: 2000
     });
   };
-  const handleBulletList = () => toast({ title: "Bullet List", description: "Bullet list formatting applied." });
+  const handleBulletList = () => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      toast({ 
+        title: "Select Text", 
+        description: "Please select text to apply bullet list formatting",
+        duration: 3000
+      });
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    const selectedText = range.toString();
+    
+    if (!selectedText) {
+      toast({ 
+        title: "Select Text", 
+        description: "Please select text to apply bullet list formatting",
+        duration: 3000
+      });
+      return;
+    }
+
+    // Split selected text into lines and create bullet list
+    const lines = selectedText.split('\n').filter(line => line.trim() !== '');
+    const ul = document.createElement('ul');
+    ul.style.marginLeft = '20px';
+    ul.style.listStyleType = 'disc';
+    
+    lines.forEach(line => {
+      const li = document.createElement('li');
+      li.textContent = line.trim();
+      li.style.marginBottom = '4px';
+      ul.appendChild(li);
+    });
+    
+    // Replace the selected content with the bullet list
+    range.deleteContents();
+    range.insertNode(ul);
+    
+    // Update the document content state
+    if (textareaRef) {
+      setDocumentContent(textareaRef.innerHTML);
+    }
+    
+    // Clear selection
+    selection.removeAllRanges();
+    
+    toast({ 
+      title: "✓ Bullet List Applied",
+      description: "Bullet list formatting applied to selected text",
+      duration: 2000
+    });
+  };
   const handleNumberedList = () => toast({ title: "Numbered List", description: "Numbered list formatting applied." });
   const handleAlignLeft = () => toast({ title: "Align Left", description: "Left alignment applied." });
   const handleAlignCenter = () => toast({ title: "Center", description: "Center alignment applied." });
