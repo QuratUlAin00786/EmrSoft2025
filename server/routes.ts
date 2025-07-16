@@ -1069,17 +1069,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const prescriptionData = req.body;
+      console.log("Prescription creation data received:", {
+        patientId: prescriptionData.patientId,
+        providerId: prescriptionData.providerId,
+        authenticatedUserId: req.user.id,
+        userRole: req.user.role
+      });
       
       // Validate required fields
       if (!prescriptionData.patientId || isNaN(parseInt(prescriptionData.patientId))) {
         return res.status(400).json({ error: "Valid patient ID is required" });
       }
       
+      // Determine provider ID - use the authenticated user's ID (not from form)
+      const providerId = req.user.id;
+      
       // Create prescription data for database
       const prescriptionToInsert = {
         organizationId: req.tenant!.id,
         patientId: parseInt(prescriptionData.patientId),
-        providerId: req.user.id,
+        providerId: providerId,
         prescriptionNumber: `RX-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
         status: prescriptionData.status || "active",
         diagnosis: prescriptionData.diagnosis,
