@@ -1186,8 +1186,43 @@ export default function Forms() {
                       className="w-4 h-4 border border-gray-300 rounded"
                       style={{ backgroundColor: color }}
                       onClick={() => {
-                        setTextColor(color);
-                        setShowColorPicker(false);
+                        const selection = window.getSelection();
+                        if (!selection || selection.rangeCount === 0 || selection.toString().trim() === '') {
+                          toast({ 
+                            title: "Select Text", 
+                            description: "Please select text to apply color",
+                            duration: 3000
+                          });
+                          setShowColorPicker(false);
+                          return;
+                        }
+
+                        try {
+                          // Apply text color using document.execCommand
+                          document.execCommand('foreColor', false, color);
+                          
+                          // Update the document content state
+                          if (textareaRef) {
+                            setDocumentContent(textareaRef.innerHTML);
+                          }
+                          
+                          setTextColor(color);
+                          setShowColorPicker(false);
+                          
+                          toast({ 
+                            title: "✓ Text Color Applied",
+                            description: `Text color changed to ${color}`,
+                            duration: 2000
+                          });
+                        } catch (error) {
+                          console.error('Text color error:', error);
+                          toast({ 
+                            title: "Error", 
+                            description: "Failed to apply text color",
+                            duration: 3000
+                          });
+                          setShowColorPicker(false);
+                        }
                       }}
                     />
                   ))}
