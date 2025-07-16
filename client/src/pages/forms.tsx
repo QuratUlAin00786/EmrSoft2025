@@ -266,16 +266,45 @@ export default function Forms() {
       return;
     }
 
-    // Split selected text into lines and create bullet list
-    const lines = selectedText.split('\n').filter(line => line.trim() !== '');
+    // Get the selected content including HTML elements and preserve line breaks
+    const fragment = range.cloneContents();
+    const tempDiv = document.createElement('div');
+    tempDiv.appendChild(fragment);
+    
+    // Get text content while preserving line breaks from HTML
+    let textContent = tempDiv.innerHTML;
+    
+    // Convert <br> tags and <div> tags to newlines
+    textContent = textContent.replace(/<br\s*\/?>/gi, '\n');
+    textContent = textContent.replace(/<\/div>/gi, '\n');
+    textContent = textContent.replace(/<div[^>]*>/gi, '');
+    
+    // Remove HTML tags and get plain text
+    const textOnly = textContent.replace(/<[^>]*>/g, '');
+    
+    // Split into lines, handling multiple types of line breaks
+    const lines = textOnly.split(/\n+/).filter(line => line.trim() !== '');
+    
+    // If there's only one line, treat each sentence as a separate bullet point
+    let finalLines = lines;
+    if (lines.length === 1) {
+      // Split by periods, exclamation marks, or question marks followed by space
+      const sentences = lines[0].split(/[.!?]\s+/).filter(sentence => sentence.trim() !== '');
+      if (sentences.length > 1) {
+        finalLines = sentences.map(sentence => sentence.trim() + (sentence.match(/[.!?]$/) ? '' : '.'));
+      }
+    }
+    
     const ul = document.createElement('ul');
     ul.style.marginLeft = '20px';
     ul.style.listStyleType = 'disc';
+    ul.style.paddingLeft = '20px';
     
-    lines.forEach(line => {
+    finalLines.forEach(line => {
       const li = document.createElement('li');
       li.textContent = line.trim();
       li.style.marginBottom = '4px';
+      li.style.lineHeight = '1.5';
       ul.appendChild(li);
     });
     
@@ -293,7 +322,7 @@ export default function Forms() {
     
     toast({ 
       title: "✓ Bullet List Applied",
-      description: "Bullet list formatting applied to selected text",
+      description: `Bullet list created with ${finalLines.length} items`,
       duration: 2000
     });
   };
