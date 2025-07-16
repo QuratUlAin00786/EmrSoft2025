@@ -590,7 +590,40 @@ export default function Forms() {
   const handleInsertProduct = () => toast({ title: "Insert Product", description: "Product insertion dialog opened." });
   const handleImage = () => toast({ title: "Insert Image", description: "Image insertion dialog opened." });
   const handleLink = () => toast({ title: "Insert Link", description: "Link insertion dialog opened." });
-  const handleHighlight = () => toast({ title: "Text Highlight", description: "Text highlighting tool activated." });
+  const handleHighlight = () => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0 || selection.toString().trim() === '') {
+      toast({ 
+        title: "Select Text", 
+        description: "Please select text to apply highlighting",
+        duration: 3000
+      });
+      return;
+    }
+
+    try {
+      // Apply yellow background highlighting using document.execCommand
+      document.execCommand('hiliteColor', false, '#FFFF00');
+      
+      // Update the document content state
+      if (textareaRef) {
+        setDocumentContent(textareaRef.innerHTML);
+      }
+      
+      toast({ 
+        title: "✓ Text Highlighted",
+        description: "Yellow highlighting applied to selected text",
+        duration: 2000
+      });
+    } catch (error) {
+      console.error('Highlight error:', error);
+      toast({ 
+        title: "Error", 
+        description: "Failed to apply highlighting",
+        duration: 3000
+      });
+    }
+  };
   const handleClock = () => toast({ title: "Insert Time", description: "Time insertion dialog opened." });
   const handleMore = () => toast({ title: "More Options", description: "Additional formatting options opened." });
   const applyTextFormatting = (formatType: 'paragraph' | 'heading1' | 'heading2') => {
