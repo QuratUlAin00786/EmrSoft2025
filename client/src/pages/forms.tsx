@@ -734,7 +734,11 @@ export default function Forms() {
           
           <Select value={fontFamily} onValueChange={(value) => {
             setFontFamily(value);
-            applyFontFamily(value);
+            // Only apply font family if there's a valid selection
+            const selection = window.getSelection();
+            if (selection && selection.rangeCount > 0 && selection.toString().trim()) {
+              applyFontFamily(value);
+            }
           }}>
             <SelectTrigger className="w-24 h-7 text-sm border-2 border-gray-400 bg-white font-medium">
               <SelectValue placeholder="Verdana" />
@@ -767,7 +771,11 @@ export default function Forms() {
           
           <Select value={fontSize} onValueChange={(value) => {
             setFontSize(value);
-            applyFontSize(value);
+            // Only apply font size if there's a valid selection
+            const selection = window.getSelection();
+            if (selection && selection.rangeCount > 0 && selection.toString().trim()) {
+              applyFontSize(value);
+            }
           }}>
             <SelectTrigger className="w-16 h-7 text-sm border-2 border-gray-400 bg-white font-medium">
               <SelectValue placeholder="12pt" />
