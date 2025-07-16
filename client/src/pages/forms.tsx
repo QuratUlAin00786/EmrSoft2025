@@ -660,26 +660,41 @@ export default function Forms() {
       fileInput.onchange = (event: any) => {
         const file = event.target.files?.[0];
         if (file) {
-          // Create a file attachment representation
-          const fileAttachment = `📎 ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+          // Create a proper HTML file attachment with styling
+          const fileSize = (file.size / 1024).toFixed(1);
+          const fileAttachmentHTML = `
+            <div style="display: inline-block; background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 6px; padding: 8px 12px; margin: 4px; color: #0369a1; font-family: Arial, sans-serif; font-size: 14px;">
+              <span style="margin-right: 6px;">📎</span>
+              <strong>${file.name}</strong>
+              <span style="color: #64748b; margin-left: 8px;">(${fileSize} KB)</span>
+            </div>
+          `;
           
           // Insert the file attachment at cursor position
           const selection = window.getSelection();
           if (selection && selection.rangeCount > 0) {
             const range = selection.getRangeAt(0);
             range.deleteContents();
-            range.insertNode(document.createTextNode(fileAttachment));
             
-            // Move cursor after the attachment
-            range.setStartAfter(range.endContainer);
-            range.collapse(true);
-            selection.removeAllRanges();
-            selection.addRange(range);
+            // Create a temporary div to hold the attachment HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = fileAttachmentHTML;
+            const attachmentElement = tempDiv.firstElementChild;
+            
+            if (attachmentElement) {
+              range.insertNode(attachmentElement);
+              
+              // Move cursor after the attachment
+              range.setStartAfter(attachmentElement);
+              range.collapse(true);
+              selection.removeAllRanges();
+              selection.addRange(range);
+            }
           } else {
             // If no selection, insert at the end of the content
             if (textareaRef) {
               const currentContent = textareaRef.innerHTML || '';
-              textareaRef.innerHTML = currentContent + fileAttachment;
+              textareaRef.innerHTML = currentContent + fileAttachmentHTML;
               setDocumentContent(textareaRef.innerHTML);
             }
           }
