@@ -624,7 +624,60 @@ export default function Forms() {
       });
     }
   };
-  const handleClock = () => toast({ title: "Insert Time", description: "Time insertion dialog opened." });
+  const handleClock = () => {
+    try {
+      // Get current date and time
+      const now = new Date();
+      const currentTime = now.toLocaleString('en-GB', {
+        weekday: 'long',
+        year: 'numeric', 
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+
+      // Insert the time at cursor position
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+        range.insertNode(document.createTextNode(currentTime));
+        
+        // Move cursor to end of inserted text
+        range.setStartAfter(range.endContainer);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      } else {
+        // If no selection, try to insert at the end of the content
+        if (textareaRef) {
+          const currentContent = textareaRef.innerHTML || '';
+          textareaRef.innerHTML = currentContent + currentTime;
+          setDocumentContent(textareaRef.innerHTML);
+        }
+      }
+      
+      // Update the document content state
+      if (textareaRef) {
+        setDocumentContent(textareaRef.innerHTML);
+      }
+      
+      toast({ 
+        title: "✓ Time Inserted",
+        description: `Current date and time inserted: ${currentTime}`,
+        duration: 2000
+      });
+    } catch (error) {
+      console.error('Insert time error:', error);
+      toast({ 
+        title: "Error", 
+        description: "Failed to insert current time",
+        duration: 3000
+      });
+    }
+  };
   const handleMore = () => toast({ title: "More Options", description: "Additional formatting options opened." });
   const applyTextFormatting = (formatType: 'paragraph' | 'heading1' | 'heading2') => {
     console.log("applyTextFormatting called with:", formatType);
