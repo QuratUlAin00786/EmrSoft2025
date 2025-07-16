@@ -255,41 +255,58 @@ export default function Forms() {
     }
 
     const range = selection.getRangeAt(0);
-    const selectedText = range.toString();
     
-    if (!selectedText) {
+    // Get the container element and extract all text nodes
+    const fragment = range.cloneContents();
+    const tempDiv = document.createElement('div');
+    tempDiv.appendChild(fragment);
+    
+    // Get all direct child nodes to preserve line structure
+    const childNodes = Array.from(tempDiv.childNodes);
+    const lines = [];
+    
+    // Process each child node to extract text while preserving line breaks
+    childNodes.forEach(node => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent?.trim();
+        if (text) {
+          // Split text node by line breaks if any exist
+          const textLines = text.split('\n').filter(line => line.trim() !== '');
+          lines.push(...textLines);
+        }
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        const element = node as Element;
+        const text = element.textContent?.trim();
+        if (text) {
+          lines.push(text);
+        }
+      }
+    });
+    
+    // If we still don't have multiple lines, try a different approach
+    if (lines.length <= 1) {
+      const selectedText = range.toString();
+      if (selectedText) {
+        // Check for line breaks in the original selection
+        const textLines = selectedText.split(/\r?\n/).filter(line => line.trim() !== '');
+        if (textLines.length > 1) {
+          lines.splice(0, lines.length, ...textLines);
+        } else {
+          // As fallback, use the single line
+          if (selectedText.trim()) {
+            lines.splice(0, lines.length, selectedText.trim());
+          }
+        }
+      }
+    }
+    
+    if (lines.length === 0) {
       toast({ 
-        title: "Select Text", 
-        description: "Please select text to apply bullet list formatting",
+        title: "No Content", 
+        description: "No text found to convert to bullet list",
         duration: 3000
       });
       return;
-    }
-
-    // Use a simpler approach: split by Enter key press (line breaks)
-    // This preserves the exact structure the user typed
-    const lines = selectedText.split('\n').map(line => line.trim()).filter(line => line !== '');
-    
-    // If no line breaks were found in the plain text, try to detect visual line breaks
-    let finalLines = lines;
-    if (lines.length === 1) {
-      // Check if the selected content contains HTML that suggests line breaks
-      const fragment = range.cloneContents();
-      const tempDiv = document.createElement('div');
-      tempDiv.appendChild(fragment);
-      
-      // Count div elements and br elements as line indicators
-      const divElements = tempDiv.querySelectorAll('div');
-      const brElements = tempDiv.querySelectorAll('br');
-      
-      // If we have visual line breaks but only one text line, split by common separators
-      if (divElements.length > 1 || brElements.length > 0) {
-        // Try to extract text from each div element separately
-        const divTexts = Array.from(divElements).map(div => div.textContent?.trim()).filter(text => text);
-        if (divTexts.length > 1) {
-          finalLines = divTexts;
-        }
-      }
     }
     
     const ul = document.createElement('ul');
@@ -297,7 +314,7 @@ export default function Forms() {
     ul.style.listStyleType = 'disc';
     ul.style.paddingLeft = '20px';
     
-    finalLines.forEach(line => {
+    lines.forEach(line => {
       const li = document.createElement('li');
       li.textContent = line.trim();
       li.style.marginBottom = '4px';
@@ -319,7 +336,7 @@ export default function Forms() {
     
     toast({ 
       title: "✓ Bullet List Applied",
-      description: `Bullet list created with ${finalLines.length} items`,
+      description: `Bullet list created with ${lines.length} items`,
       duration: 2000
     });
   };
