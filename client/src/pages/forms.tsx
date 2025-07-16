@@ -103,9 +103,146 @@ export default function Forms() {
     toast({ title: "Save as Draft", description: "Document saved as draft." });
   };
 
-  const handleBold = () => toast({ title: "Bold", description: "Bold formatting applied." });
-  const handleItalic = () => toast({ title: "Italic", description: "Italic formatting applied." });
-  const handleUnderline = () => toast({ title: "Underline", description: "Underline formatting applied." });
+  const handleBold = () => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      toast({ 
+        title: "Select Text", 
+        description: "Please select text to apply bold formatting",
+        duration: 3000
+      });
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    const selectedText = range.toString();
+    
+    if (!selectedText) {
+      toast({ 
+        title: "Select Text", 
+        description: "Please select text to apply bold formatting",
+        duration: 3000
+      });
+      return;
+    }
+
+    // Create a span with bold styling
+    const span = document.createElement('span');
+    span.style.fontWeight = 'bold';
+    span.textContent = selectedText;
+    
+    // Replace the selected content with the new span
+    range.deleteContents();
+    range.insertNode(span);
+    
+    // Update the document content state
+    if (textareaRef) {
+      setDocumentContent(textareaRef.innerHTML);
+    }
+    
+    // Clear selection
+    selection.removeAllRanges();
+    
+    toast({ 
+      title: "✓ Bold Applied",
+      description: "Bold formatting applied to selected text",
+      duration: 2000
+    });
+  };
+
+  const handleItalic = () => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      toast({ 
+        title: "Select Text", 
+        description: "Please select text to apply italic formatting",
+        duration: 3000
+      });
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    const selectedText = range.toString();
+    
+    if (!selectedText) {
+      toast({ 
+        title: "Select Text", 
+        description: "Please select text to apply italic formatting",
+        duration: 3000
+      });
+      return;
+    }
+
+    // Create a span with italic styling
+    const span = document.createElement('span');
+    span.style.fontStyle = 'italic';
+    span.textContent = selectedText;
+    
+    // Replace the selected content with the new span
+    range.deleteContents();
+    range.insertNode(span);
+    
+    // Update the document content state
+    if (textareaRef) {
+      setDocumentContent(textareaRef.innerHTML);
+    }
+    
+    // Clear selection
+    selection.removeAllRanges();
+    
+    toast({ 
+      title: "✓ Italic Applied",
+      description: "Italic formatting applied to selected text",
+      duration: 2000
+    });
+  };
+
+  const handleUnderline = () => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      toast({ 
+        title: "Select Text", 
+        description: "Please select text to apply underline formatting",
+        duration: 3000
+      });
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    const selectedText = range.toString();
+    
+    if (!selectedText) {
+      toast({ 
+        title: "Select Text", 
+        description: "Please select text to apply underline formatting",
+        duration: 3000
+      });
+      return;
+    }
+
+    // Create a span with underline styling
+    const span = document.createElement('span');
+    span.style.textDecoration = 'underline';
+    span.textContent = selectedText;
+    
+    // Replace the selected content with the new span
+    range.deleteContents();
+    range.insertNode(span);
+    
+    // Update the document content state
+    if (textareaRef) {
+      setDocumentContent(textareaRef.innerHTML);
+    }
+    
+    // Clear selection
+    selection.removeAllRanges();
+    
+    toast({ 
+      title: "✓ Underline Applied",
+      description: "Underline formatting applied to selected text",
+      duration: 2000
+    });
+  };
   const handleBulletList = () => toast({ title: "Bullet List", description: "Bullet list formatting applied." });
   const handleNumberedList = () => toast({ title: "Numbered List", description: "Numbered list formatting applied." });
   const handleAlignLeft = () => toast({ title: "Align Left", description: "Left alignment applied." });
