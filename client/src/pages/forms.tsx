@@ -266,32 +266,29 @@ export default function Forms() {
       return;
     }
 
-    // Get the selected content including HTML elements and preserve line breaks
-    const fragment = range.cloneContents();
-    const tempDiv = document.createElement('div');
-    tempDiv.appendChild(fragment);
+    // Use a simpler approach: split by Enter key press (line breaks)
+    // This preserves the exact structure the user typed
+    const lines = selectedText.split('\n').map(line => line.trim()).filter(line => line !== '');
     
-    // Get text content while preserving line breaks from HTML
-    let textContent = tempDiv.innerHTML;
-    
-    // Convert <br> tags and <div> tags to newlines
-    textContent = textContent.replace(/<br\s*\/?>/gi, '\n');
-    textContent = textContent.replace(/<\/div>/gi, '\n');
-    textContent = textContent.replace(/<div[^>]*>/gi, '');
-    
-    // Remove HTML tags and get plain text
-    const textOnly = textContent.replace(/<[^>]*>/g, '');
-    
-    // Split into lines, handling multiple types of line breaks
-    const lines = textOnly.split(/\n+/).filter(line => line.trim() !== '');
-    
-    // If there's only one line, treat each sentence as a separate bullet point
+    // If no line breaks were found in the plain text, try to detect visual line breaks
     let finalLines = lines;
     if (lines.length === 1) {
-      // Split by periods, exclamation marks, or question marks followed by space
-      const sentences = lines[0].split(/[.!?]\s+/).filter(sentence => sentence.trim() !== '');
-      if (sentences.length > 1) {
-        finalLines = sentences.map(sentence => sentence.trim() + (sentence.match(/[.!?]$/) ? '' : '.'));
+      // Check if the selected content contains HTML that suggests line breaks
+      const fragment = range.cloneContents();
+      const tempDiv = document.createElement('div');
+      tempDiv.appendChild(fragment);
+      
+      // Count div elements and br elements as line indicators
+      const divElements = tempDiv.querySelectorAll('div');
+      const brElements = tempDiv.querySelectorAll('br');
+      
+      // If we have visual line breaks but only one text line, split by common separators
+      if (divElements.length > 1 || brElements.length > 0) {
+        // Try to extract text from each div element separately
+        const divTexts = Array.from(divElements).map(div => div.textContent?.trim()).filter(text => text);
+        if (divTexts.length > 1) {
+          finalLines = divTexts;
+        }
       }
     }
     
