@@ -199,10 +199,10 @@ export default function PrescriptionsPage() {
     if (selectedPrescription) {
       const firstMedication = selectedPrescription.medications[0] || {};
       setFormData({
-        patientId: selectedPrescription.patientId,
-        patientName: selectedPrescription.patientName,
-        providerId: selectedPrescription.providerId,
-        diagnosis: selectedPrescription.diagnosis,
+        patientId: selectedPrescription.patientId?.toString() || "",
+        patientName: selectedPrescription.patientName || "",
+        providerId: selectedPrescription.providerId?.toString() || "",
+        diagnosis: selectedPrescription.diagnosis || "",
         medicationName: firstMedication.name || "",
         dosage: firstMedication.dosage || "",
         frequency: firstMedication.frequency || "",
