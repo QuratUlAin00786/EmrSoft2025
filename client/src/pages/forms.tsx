@@ -1,6 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { 
@@ -8,7 +12,7 @@ import {
   AlignLeft, AlignCenter, AlignRight, AlignJustify, Type,
   Table, Paperclip, Image, Link, MoreHorizontal, Clock,
   Palette, Highlighter, Minus, Plus, Eye, Download,
-  Settings, FileText, Calculator, Search, ChevronDown, ChevronUp
+  Settings, FileText, Calculator, Search, ChevronDown, ChevronUp, Edit
 } from "lucide-react";
 
 export default function Forms() {
@@ -20,7 +24,76 @@ export default function Forms() {
   const [textColor, setTextColor] = useState("#000000");
   const [showFormFields, setShowFormFields] = useState(true);
   const [textareaRef, setTextareaRef] = useState<HTMLTextAreaElement | null>(null);
+  const [selectedHeader, setSelectedHeader] = useState("your-clinic");
+  const [showEditClinic, setShowEditClinic] = useState(false);
+  const [clinicInfo, setClinicInfo] = useState({
+    name: "",
+    address: "",
+    phone: "",
+    email: "",
+    website: ""
+  });
   const { toast } = useToast();
+
+  // Fetch organization data
+  const { data: organization } = useQuery({
+    queryKey: ["/api/tenant/info"],
+    queryFn: async () => {
+      const response = await fetch('/api/tenant/info', {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    }
+  });
+
+  // Update clinic info when organization data loads
+  useEffect(() => {
+    if (organization) {
+      setClinicInfo({
+        name: organization.name || "Your Clinic",
+        address: organization.address || "123 Healthcare Street, Medical City, MC 12345",
+        phone: organization.phone || "+44 20 1234 5678",
+        email: organization.email || "info@yourclinic.com",
+        website: organization.website || "www.yourclinic.com"
+      });
+    }
+  }, [organization]);
+
+  const handleSaveClinicInfo = async () => {
+    try {
+      const response = await fetch('/api/organization/settings', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        },
+        body: JSON.stringify({
+          name: clinicInfo.name,
+          address: clinicInfo.address,
+          phone: clinicInfo.phone,
+          email: clinicInfo.email,
+          website: clinicInfo.website
+        })
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Clinic Information Updated",
+          description: "Your clinic information has been saved successfully."
+        });
+        setShowEditClinic(false);
+      } else {
+        throw new Error('Failed to update clinic information');
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update clinic information. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const handlePreview = () => {
     toast({ title: "Save and Preview", description: "Document saved and preview opened." });
@@ -341,7 +414,7 @@ export default function Forms() {
           <h3 className="text-sm font-medium text-gray-900 mb-3">Create the Letter</h3>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-2 text-center">Select Header</label>
-            <Select>
+            <Select value={selectedHeader} onValueChange={setSelectedHeader}>
               <SelectTrigger style={{ width: '700px' }}>
                 <SelectValue placeholder="Your Clinic" />
               </SelectTrigger>
@@ -358,9 +431,95 @@ export default function Forms() {
           </div>
           
           {/* Header Preview Area */}
-          <div className="mt-4 p-6 bg-gray-50 border border-gray-200 rounded text-center" style={{ width: '700px' }}>
-            <div className="text-teal-600 text-lg font-semibold">🏥 Your Clinic</div>
-            <div className="text-xs text-gray-500 mt-1">Header preview will appear here</div>
+          <div className="mt-4 p-6 bg-gray-50 border border-gray-200 rounded text-center relative" style={{ width: '700px' }}>
+            {selectedHeader === "your-clinic" ? (
+              <div>
+                <div className="text-teal-600 text-lg font-semibold">🏥 {clinicInfo.name}</div>
+                <div className="text-sm text-gray-600 mt-1">{clinicInfo.address}</div>
+                <div className="text-sm text-gray-600">{clinicInfo.phone} • {clinicInfo.email}</div>
+                <div className="text-sm text-gray-600">{clinicInfo.website}</div>
+                
+                {/* Edit Button */}
+                <Dialog open={showEditClinic} onOpenChange={setShowEditClinic}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="absolute top-2 right-2"
+                      onClick={() => setShowEditClinic(true)}
+                    >
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit Clinic Info
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Edit Clinic Information</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="clinic-name">Clinic Name</Label>
+                        <Input
+                          id="clinic-name"
+                          value={clinicInfo.name}
+                          onChange={(e) => setClinicInfo(prev => ({ ...prev, name: e.target.value }))}
+                          placeholder="Enter clinic name"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="clinic-address">Address</Label>
+                        <Input
+                          id="clinic-address"
+                          value={clinicInfo.address}
+                          onChange={(e) => setClinicInfo(prev => ({ ...prev, address: e.target.value }))}
+                          placeholder="Enter clinic address"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="clinic-phone">Phone</Label>
+                        <Input
+                          id="clinic-phone"
+                          value={clinicInfo.phone}
+                          onChange={(e) => setClinicInfo(prev => ({ ...prev, phone: e.target.value }))}
+                          placeholder="Enter phone number"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="clinic-email">Email</Label>
+                        <Input
+                          id="clinic-email"
+                          value={clinicInfo.email}
+                          onChange={(e) => setClinicInfo(prev => ({ ...prev, email: e.target.value }))}
+                          placeholder="Enter email address"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="clinic-website">Website</Label>
+                        <Input
+                          id="clinic-website"
+                          value={clinicInfo.website}
+                          onChange={(e) => setClinicInfo(prev => ({ ...prev, website: e.target.value }))}
+                          placeholder="Enter website URL"
+                        />
+                      </div>
+                      <div className="flex justify-end space-x-2">
+                        <Button variant="outline" onClick={() => setShowEditClinic(false)}>
+                          Cancel
+                        </Button>
+                        <Button onClick={handleSaveClinicInfo}>
+                          Save Changes
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            ) : (
+              <div>
+                <div className="text-teal-600 text-lg font-semibold">🏥 {selectedHeader.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</div>
+                <div className="text-xs text-gray-500 mt-1">Header preview will appear here</div>
+              </div>
+            )}
           </div>
         </div>
       </div>
