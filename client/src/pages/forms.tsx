@@ -508,14 +508,25 @@ export default function Forms() {
       return;
     }
 
-    // Create a div with center alignment and proper styling
+    // Split text into lines and preserve line structure
+    const lines = selectedText.split('\n').filter(line => line.trim() !== '');
+    
+    // Create a div with center alignment
     const div = document.createElement('div');
     div.style.textAlign = 'center';
     div.style.width = '100%';
     div.style.display = 'block';
     div.style.margin = '0';
     div.style.padding = '0';
-    div.textContent = selectedText;
+    
+    // Add each line as a separate div to preserve line breaks
+    lines.forEach((line, index) => {
+      const lineDiv = document.createElement('div');
+      lineDiv.textContent = line.trim();
+      lineDiv.style.margin = '0';
+      lineDiv.style.padding = '0';
+      div.appendChild(lineDiv);
+    });
     
     // Replace the selected content with the aligned div
     range.deleteContents();
@@ -531,7 +542,7 @@ export default function Forms() {
     
     toast({ 
       title: "✓ Center Alignment Applied",
-      description: "Text centered successfully",
+      description: `Text centered with ${lines.length} lines preserved`,
       duration: 2000
     });
   };
