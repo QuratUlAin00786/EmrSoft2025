@@ -291,6 +291,53 @@ export default function Forms() {
     });
   };
 
+  const applyFontSize = (fontSizeValue: string) => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      toast({ 
+        title: "Select Text", 
+        description: "Please select text to apply font size",
+        duration: 3000
+      });
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    const selectedText = range.toString();
+    
+    if (!selectedText) {
+      toast({ 
+        title: "Select Text", 
+        description: "Please select text to apply font size",
+        duration: 3000
+      });
+      return;
+    }
+
+    // Create a span with the font size applied
+    const span = document.createElement('span');
+    span.style.fontSize = fontSizeValue;
+    span.textContent = selectedText;
+    
+    // Replace the selected content with the new span
+    range.deleteContents();
+    range.insertNode(span);
+    
+    // Update the document content state
+    if (textareaRef) {
+      setDocumentContent(textareaRef.innerHTML);
+    }
+    
+    // Clear selection
+    selection.removeAllRanges();
+    
+    toast({ 
+      title: "✓ Font Size Applied",
+      description: `Font size changed to ${fontSizeValue}`,
+      duration: 2000
+    });
+  };
+
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* Scrollable Content Wrapper */}
@@ -581,7 +628,10 @@ export default function Forms() {
             </SelectContent>
           </Select>
           
-          <Select value={fontSize} onValueChange={setFontSize}>
+          <Select value={fontSize} onValueChange={(value) => {
+            setFontSize(value);
+            applyFontSize(value);
+          }}>
             <SelectTrigger className="w-16 h-7 text-sm border-2 border-gray-400 bg-white font-medium">
               <SelectValue placeholder="12pt" />
             </SelectTrigger>
