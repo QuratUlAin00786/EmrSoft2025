@@ -110,6 +110,9 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system des
 
 ## Changelog
 
+**July 16, 2025:**
+- **COMPLETED**: Fixed database preservation issue - modified seed data script to preserve existing users and data instead of recreating them on server restart, ensuring manually created users like "Zubaisha Khan" persist between deployments without data loss
+
 **July 15, 2025:**
 - **COMPLETED**: Fixed PayPal integration completely - implemented proper PayPal SDK integration with redirect functionality, users now redirected to actual PayPal payment interface when clicking PayPal button, payment window opens in popup for authentic experience, system detects payment completion when window closes, subscription properly updated after successful PayPal payments, includes fallback error handling for blocked popups
 - **COMPLETED**: Implemented comprehensive user management with granular role-based permissions system - created detailed permission matrix with checkboxes for 20 modules (Patient Management, Appointments, Medical Records, Prescriptions, etc.) and 8 field categories, enabling fine-grained access control with view/create/edit/delete permissions for each module, role-specific permission templates (admin gets full access, receptionist gets limited access to only patient info and billing, doctor gets clinical access), and real-time permission updates through intuitive interface with lock icon for permission management

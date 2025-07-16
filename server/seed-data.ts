@@ -28,26 +28,15 @@ export async function seedDatabase() {
       console.log(`Using existing organization: ${org.name} (ID: ${org.id})`);
     }
 
-    // Create sample users - recreate with correct passwords
+    // Create sample users - only create if they don't exist
     const existingUsers = await db.select().from(users).where(eq(users.organizationId, org.id));
     
-    // Delete existing users to recreate with correct passwords
-    if (existingUsers.length > 0) {
-      // Delete related data first to avoid foreign key constraints
-      await db.delete(notifications).where(eq(notifications.organizationId, org.id));
-      await db.delete(prescriptions).where(eq(prescriptions.organizationId, org.id));
-      await db.delete(appointments).where(eq(appointments.organizationId, org.id));
-      await db.delete(medicalRecords).where(eq(medicalRecords.organizationId, org.id));
-      await db.delete(aiInsights).where(eq(aiInsights.organizationId, org.id));
-      
-      // Now safe to delete users
-      await db.delete(users).where(eq(users.organizationId, org.id));
-      console.log(`Deleted ${existingUsers.length} existing users and related data to recreate with correct passwords`);
-    }
+    console.log(`Found ${existingUsers.length} existing users, preserving user data`);
     
     let createdUsers = existingUsers;
     
-    // Always create users with distinct passwords for each role
+    // Only create default users if no users exist
+    if (existingUsers.length === 0) {
       const hashedAdminPassword = await authService.hashPassword("admin123");
       const hashedDoctorPassword = await authService.hashPassword("medical456");
       const hashedNursePassword = await authService.hashPassword("nursing789");
@@ -55,109 +44,112 @@ export async function seedDatabase() {
       const hashedLabTechPassword = await authService.hashPassword("labtech555");
       
       const sampleUsers = [
-      {
-        organizationId: org.id,
-        email: "admin@cura.com",
-        username: "admin",
-        password: hashedAdminPassword,
-        firstName: "John",
-        lastName: "Administrator",
-        role: "admin",
-        department: "Administration",
-        isActive: true
-      },
-      {
-        organizationId: org.id,
-        email: "doctor@cura.com",
-        username: "doctor",
-        password: hashedDoctorPassword,
-        firstName: "Sarah",
-        lastName: "Smith",
-        role: "doctor",
-        department: "Cardiology",
-        isActive: true
-      },
-      {
-        organizationId: org.id,
-        email: "nurse@cura.com",
-        username: "nurse",
-        password: hashedNursePassword,
-        firstName: "Emily",
-        lastName: "Johnson",
-        role: "nurse",
-        department: "General Medicine",
-        isActive: true
-      },
-      {
-        organizationId: org.id,
-        email: "patient@cura.com",
-        username: "patient",
-        password: hashedPatientPassword,
-        firstName: "Michael",
-        lastName: "Patient",
-        role: "patient",
-        department: null,
-        isActive: true
-      },
-      {
-        organizationId: org.id,
-        email: "labtech@cura.com",
-        username: "labtech",
-        password: hashedLabTechPassword,
-        firstName: "Maria",
-        lastName: "Rodriguez",
-        role: "sample_taker",
-        department: "Laboratory",
-        isActive: true
-      },
-      {
-        organizationId: org.id,
-        email: "doctor2@cura.com",
-        username: "doctor2",
-        password: hashedDoctorPassword,
-        firstName: "Michael",
-        lastName: "Johnson",
-        role: "doctor",
-        department: "Neurology",
-        isActive: true
-      },
-      {
-        organizationId: org.id,
-        email: "doctor3@cura.com",
-        username: "doctor3",
-        password: hashedDoctorPassword,
-        firstName: "David",
-        lastName: "Wilson",
-        role: "doctor",
-        department: "Orthopedics",
-        isActive: true
-      },
-      {
-        organizationId: org.id,
-        email: "doctor4@cura.com",
-        username: "doctor4",
-        password: hashedDoctorPassword,
-        firstName: "Lisa",
-        lastName: "Anderson",
-        role: "doctor",
-        department: "Pediatrics",
-        isActive: true
-      },
-      {
-        organizationId: org.id,
-        email: "doctor5@cura.com",
-        username: "doctor5",
-        password: hashedDoctorPassword,
-        firstName: "Robert",
-        lastName: "Brown",
-        role: "doctor",
-        department: "Dermatology",
-        isActive: true
-      }
-    ];
+        {
+          organizationId: org.id,
+          email: "admin@cura.com",
+          username: "admin",
+          password: hashedAdminPassword,
+          firstName: "John",
+          lastName: "Administrator",
+          role: "admin",
+          department: "Administration",
+          isActive: true
+        },
+        {
+          organizationId: org.id,
+          email: "doctor@cura.com",
+          username: "doctor",
+          password: hashedDoctorPassword,
+          firstName: "Sarah",
+          lastName: "Smith",
+          role: "doctor",
+          department: "Cardiology",
+          isActive: true
+        },
+        {
+          organizationId: org.id,
+          email: "nurse@cura.com",
+          username: "nurse",
+          password: hashedNursePassword,
+          firstName: "Emily",
+          lastName: "Johnson",
+          role: "nurse",
+          department: "General Medicine",
+          isActive: true
+        },
+        {
+          organizationId: org.id,
+          email: "patient@cura.com",
+          username: "patient",
+          password: hashedPatientPassword,
+          firstName: "Michael",
+          lastName: "Patient",
+          role: "patient",
+          department: null,
+          isActive: true
+        },
+        {
+          organizationId: org.id,
+          email: "labtech@cura.com",
+          username: "labtech",
+          password: hashedLabTechPassword,
+          firstName: "Maria",
+          lastName: "Rodriguez",
+          role: "sample_taker",
+          department: "Laboratory",
+          isActive: true
+        },
+        {
+          organizationId: org.id,
+          email: "doctor2@cura.com",
+          username: "doctor2",
+          password: hashedDoctorPassword,
+          firstName: "Michael",
+          lastName: "Johnson",
+          role: "doctor",
+          department: "Neurology",
+          isActive: true
+        },
+        {
+          organizationId: org.id,
+          email: "doctor3@cura.com",
+          username: "doctor3",
+          password: hashedDoctorPassword,
+          firstName: "David",
+          lastName: "Wilson",
+          role: "doctor",
+          department: "Orthopedics",
+          isActive: true
+        },
+        {
+          organizationId: org.id,
+          email: "doctor4@cura.com",
+          username: "doctor4",
+          password: hashedDoctorPassword,
+          firstName: "Lisa",
+          lastName: "Anderson",
+          role: "doctor",
+          department: "Pediatrics",
+          isActive: true
+        },
+        {
+          organizationId: org.id,
+          email: "doctor5@cura.com",
+          username: "doctor5",
+          password: hashedDoctorPassword,
+          firstName: "Robert",
+          lastName: "Brown",
+          role: "doctor",
+          department: "Dermatology",
+          isActive: true
+        }
+      ];
 
-    createdUsers = await db.insert(users).values(sampleUsers).returning();
-    console.log(`Created ${createdUsers.length} users with correct passwords`);
+      createdUsers = await db.insert(users).values(sampleUsers).returning();
+      console.log(`Created ${sampleUsers.length} initial users`);
+    } else {
+      console.log(`Preserving existing ${existingUsers.length} users including any manually created ones`);
+    }
 
     // Create sample patients only if they don't exist
     const existingPatients = await db.select().from(patients).where(eq(patients.organizationId, org.id));
