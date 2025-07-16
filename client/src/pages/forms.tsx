@@ -340,7 +340,102 @@ export default function Forms() {
       duration: 2000
     });
   };
-  const handleNumberedList = () => toast({ title: "Numbered List", description: "Numbered list formatting applied." });
+  const handleNumberedList = () => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      toast({ 
+        title: "Select Text", 
+        description: "Please select text to apply numbered list formatting",
+        duration: 3000
+      });
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    
+    // Get the container element and extract all text nodes
+    const fragment = range.cloneContents();
+    const tempDiv = document.createElement('div');
+    tempDiv.appendChild(fragment);
+    
+    // Get all direct child nodes to preserve line structure
+    const childNodes = Array.from(tempDiv.childNodes);
+    const lines = [];
+    
+    // Process each child node to extract text while preserving line breaks
+    childNodes.forEach(node => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent?.trim();
+        if (text) {
+          // Split text node by line breaks if any exist
+          const textLines = text.split('\n').filter(line => line.trim() !== '');
+          lines.push(...textLines);
+        }
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        const element = node as Element;
+        const text = element.textContent?.trim();
+        if (text) {
+          lines.push(text);
+        }
+      }
+    });
+    
+    // If we still don't have multiple lines, try a different approach
+    if (lines.length <= 1) {
+      const selectedText = range.toString();
+      if (selectedText) {
+        // Check for line breaks in the original selection
+        const textLines = selectedText.split(/\r?\n/).filter(line => line.trim() !== '');
+        if (textLines.length > 1) {
+          lines.splice(0, lines.length, ...textLines);
+        } else {
+          // As fallback, use the single line
+          if (selectedText.trim()) {
+            lines.splice(0, lines.length, selectedText.trim());
+          }
+        }
+      }
+    }
+    
+    if (lines.length === 0) {
+      toast({ 
+        title: "No Content", 
+        description: "No text found to convert to numbered list",
+        duration: 3000
+      });
+      return;
+    }
+    
+    const ol = document.createElement('ol');
+    ol.style.marginLeft = '20px';
+    ol.style.paddingLeft = '20px';
+    
+    lines.forEach(line => {
+      const li = document.createElement('li');
+      li.textContent = line.trim();
+      li.style.marginBottom = '4px';
+      li.style.lineHeight = '1.5';
+      ol.appendChild(li);
+    });
+    
+    // Replace the selected content with the numbered list
+    range.deleteContents();
+    range.insertNode(ol);
+    
+    // Update the document content state
+    if (textareaRef) {
+      setDocumentContent(textareaRef.innerHTML);
+    }
+    
+    // Clear selection
+    selection.removeAllRanges();
+    
+    toast({ 
+      title: "✓ Numbered List Applied",
+      description: `Numbered list created with ${lines.length} items`,
+      duration: 2000
+    });
+  };
   const handleAlignLeft = () => toast({ title: "Align Left", description: "Left alignment applied." });
   const handleAlignCenter = () => toast({ title: "Center", description: "Center alignment applied." });
   const handleAlignRight = () => toast({ title: "Align Right", description: "Right alignment applied." });
