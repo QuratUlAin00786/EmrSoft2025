@@ -648,7 +648,71 @@ export default function Forms() {
       });
     }
   };
-  const handleAttachFile = () => toast({ title: "Attach File", description: "File attachment dialog opened." });
+  const handleAttachFile = () => {
+    try {
+      // Create a hidden file input element
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = '.pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif';
+      fileInput.style.display = 'none';
+      
+      // Handle file selection
+      fileInput.onchange = (event: any) => {
+        const file = event.target.files?.[0];
+        if (file) {
+          // Create a file attachment representation
+          const fileAttachment = `📎 ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+          
+          // Insert the file attachment at cursor position
+          const selection = window.getSelection();
+          if (selection && selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+            range.insertNode(document.createTextNode(fileAttachment));
+            
+            // Move cursor after the attachment
+            range.setStartAfter(range.endContainer);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+          } else {
+            // If no selection, insert at the end of the content
+            if (textareaRef) {
+              const currentContent = textareaRef.innerHTML || '';
+              textareaRef.innerHTML = currentContent + fileAttachment;
+              setDocumentContent(textareaRef.innerHTML);
+            }
+          }
+          
+          // Update the document content state
+          if (textareaRef) {
+            setDocumentContent(textareaRef.innerHTML);
+          }
+          
+          toast({ 
+            title: "✓ File Attached",
+            description: `File "${file.name}" attached successfully`,
+            duration: 2000
+          });
+        }
+        
+        // Clean up
+        document.body.removeChild(fileInput);
+      };
+      
+      // Add to DOM and trigger click
+      document.body.appendChild(fileInput);
+      fileInput.click();
+      
+    } catch (error) {
+      console.error('Attach file error:', error);
+      toast({ 
+        title: "Error", 
+        description: "Failed to attach file",
+        duration: 3000
+      });
+    }
+  };
   const handleInsertTemplate = () => toast({ title: "Insert Template", description: "Template insertion dialog opened." });
   const handleInsertLogo = () => toast({ title: "Insert Logo", description: "Logo insertion dialog opened." });
   const handleClinic = () => toast({ title: "Clinic", description: "Clinic information options opened." });
