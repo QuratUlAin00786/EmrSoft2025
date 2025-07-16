@@ -579,23 +579,23 @@ export default function Forms() {
   };
   const handleTable = () => {
     try {
-      // Create a basic 3x3 table HTML structure
+      // Create a basic 3x3 table HTML structure with empty cells
       const tableHTML = `
         <table border="1" style="border-collapse: collapse; width: 100%; margin: 10px 0;">
           <tr>
-            <td style="padding: 8px; border: 1px solid #ccc;">Header 1</td>
-            <td style="padding: 8px; border: 1px solid #ccc;">Header 2</td>
-            <td style="padding: 8px; border: 1px solid #ccc;">Header 3</td>
+            <td style="padding: 8px; border: 1px solid #ccc; min-height: 20px;">&nbsp;</td>
+            <td style="padding: 8px; border: 1px solid #ccc; min-height: 20px;">&nbsp;</td>
+            <td style="padding: 8px; border: 1px solid #ccc; min-height: 20px;">&nbsp;</td>
           </tr>
           <tr>
-            <td style="padding: 8px; border: 1px solid #ccc;">Row 1, Cell 1</td>
-            <td style="padding: 8px; border: 1px solid #ccc;">Row 1, Cell 2</td>
-            <td style="padding: 8px; border: 1px solid #ccc;">Row 1, Cell 3</td>
+            <td style="padding: 8px; border: 1px solid #ccc; min-height: 20px;">&nbsp;</td>
+            <td style="padding: 8px; border: 1px solid #ccc; min-height: 20px;">&nbsp;</td>
+            <td style="padding: 8px; border: 1px solid #ccc; min-height: 20px;">&nbsp;</td>
           </tr>
           <tr>
-            <td style="padding: 8px; border: 1px solid #ccc;">Row 2, Cell 1</td>
-            <td style="padding: 8px; border: 1px solid #ccc;">Row 2, Cell 2</td>
-            <td style="padding: 8px; border: 1px solid #ccc;">Row 2, Cell 3</td>
+            <td style="padding: 8px; border: 1px solid #ccc; min-height: 20px;">&nbsp;</td>
+            <td style="padding: 8px; border: 1px solid #ccc; min-height: 20px;">&nbsp;</td>
+            <td style="padding: 8px; border: 1px solid #ccc; min-height: 20px;">&nbsp;</td>
           </tr>
         </table>
       `;
@@ -636,7 +636,7 @@ export default function Forms() {
       
       toast({ 
         title: "✓ Table Inserted",
-        description: "3x3 table with headers successfully inserted",
+        description: "3x3 empty table successfully inserted",
         duration: 2000
       });
     } catch (error) {
