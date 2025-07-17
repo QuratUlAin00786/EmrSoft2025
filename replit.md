@@ -110,6 +110,13 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system des
 
 ## Changelog
 
+**July 17, 2025:**
+- **COMPLETED**: Fixed Labs button functionality with comprehensive laboratory information dialog containing 5 professional templates (Laboratory Results, Blood Work Results, Urinalysis Results, Culture Results, Pending Laboratory Tests) with proper placeholder text and dialog state management
+- **COMPLETED**: Fixed Patient Records button functionality with comprehensive patient medical record templates including Complete Medical History, Current Medications, Allergies & Reactions, Latest Vital Signs, and Diagnosis History with proper formatting and cursor positioning
+- **COMPLETED**: Fixed Insert Product button functionality with comprehensive product information dialog containing 5 professional templates (Medication Information, Medical Device, Medical Supplies, Laboratory Test, Treatment Package) with detailed placeholder fields and proper insertion logic
+- **COMPLETED**: Fixed More Options button functionality with comprehensive additional formatting dialog containing 6 advanced tools (Insert Table, Checkbox List, Horizontal Line, Current Date & Time, Signature Line, Text Box) enabling professional document creation with tables, interactive elements, and structured formatting
+- **COMPLETED**: Fixed table creation to generate empty cells instead of placeholder data - tables now insert with clean formatting and blank cells that users can populate with their own content
+
 **July 16, 2025:**
 - **COMPLETED**: Fixed database preservation issue - modified seed data script to preserve existing users and data instead of recreating them on server restart, ensuring manually created users like "Zubaisha Khan" persist between deployments without data loss
 - **COMPLETED**: Fixed bold, italic, and underline button functionality in forms page - replaced toast-only functions with proper text formatting that applies styling to selected text only, users must select text first then apply formatting
