@@ -38,6 +38,7 @@ export default function Forms() {
   const [showRecipientDialog, setShowRecipientDialog] = useState(false);
   const [showAppointmentsDialog, setShowAppointmentsDialog] = useState(false);
   const [showLabsDialog, setShowLabsDialog] = useState(false);
+  const [showPatientRecordsDialog, setShowPatientRecordsDialog] = useState(false);
   const [editingClinicInfo, setEditingClinicInfo] = useState({
     name: "",
     address: "",
@@ -1598,7 +1599,149 @@ export default function Forms() {
       });
     }
   };
-  const handlePatientRecords = () => toast({ title: "Patient Records", description: "Patient records options opened." });
+  const handlePatientRecords = () => {
+    setShowPatientRecordsDialog(true);
+  };
+
+  const insertPatientRecordsInfo = (infoType: string) => {
+    if (!textareaRef) {
+      toast({
+        title: "Error",
+        description: "Document editor not ready",
+        duration: 3000
+      });
+      return;
+    }
+
+    try {
+      // Get current cursor position or create a new range at the end
+      const selection = window.getSelection();
+      let range;
+
+      if (selection && selection.rangeCount > 0) {
+        range = selection.getRangeAt(0);
+      } else {
+        // Create range at the end of content
+        range = document.createRange();
+        if (textareaRef && textareaRef.childNodes.length > 0) {
+          range.setStartAfter(textareaRef.lastChild!);
+        } else if (textareaRef) {
+          range.setStart(textareaRef, 0);
+        }
+        range.collapse(true);
+      }
+
+      let patientRecordsHTML = '';
+      
+      switch (infoType) {
+        case 'medical-history':
+          patientRecordsHTML = `
+            <div style="margin: 15px 0; padding: 10px; border: 1px solid #e0e0e0; border-radius: 5px;">
+              <p><strong>Medical History</strong></p>
+              <p>Past Medical History: [Past Medical History]</p>
+              <p>Surgical History: [Surgical History]</p>
+              <p>Family History: [Family History]</p>
+              <p>Social History: [Social History]</p>
+              <p>Allergies: [Known Allergies]</p>
+              <p>Current Medications: [Current Medications]</p>
+            </div>
+          `;
+          break;
+        case 'current-medications':
+          patientRecordsHTML = `
+            <div style="margin: 10px 0;">
+              <p><strong>Current Medications:</strong></p>
+              <p>• [Medication 1] - [Dosage] - [Frequency]</p>
+              <p>• [Medication 2] - [Dosage] - [Frequency]</p>
+              <p>• [Medication 3] - [Dosage] - [Frequency]</p>
+              <p>Last Updated: [Update Date]</p>
+            </div>
+          `;
+          break;
+        case 'allergies':
+          patientRecordsHTML = `
+            <div style="margin: 10px 0;">
+              <p><strong>Known Allergies:</strong></p>
+              <p>Drug Allergies: [Drug Allergies]</p>
+              <p>Food Allergies: [Food Allergies]</p>
+              <p>Environmental Allergies: [Environmental Allergies]</p>
+              <p>Reactions: [Allergic Reactions]</p>
+              <p>Severity: [Severity Level]</p>
+            </div>
+          `;
+          break;
+        case 'vital-signs':
+          patientRecordsHTML = `
+            <div style="margin: 10px 0;">
+              <p><strong>Latest Vital Signs:</strong></p>
+              <p>Blood Pressure: [Blood Pressure] mmHg</p>
+              <p>Heart Rate: [Heart Rate] bpm</p>
+              <p>Temperature: [Temperature]°F</p>
+              <p>Respiratory Rate: [Respiratory Rate] breaths/min</p>
+              <p>Weight: [Weight] lbs</p>
+              <p>Height: [Height] ft/in</p>
+              <p>Date Recorded: [Vital Signs Date]</p>
+            </div>
+          `;
+          break;
+        case 'diagnosis-history':
+          patientRecordsHTML = `
+            <div style="margin: 10px 0;">
+              <p><strong>Diagnosis History:</strong></p>
+              <p>Primary Diagnosis: [Primary Diagnosis]</p>
+              <p>Secondary Diagnoses: [Secondary Diagnoses]</p>
+              <p>Chronic Conditions: [Chronic Conditions]</p>
+              <p>Date of Diagnosis: [Diagnosis Date]</p>
+              <p>ICD-10 Codes: [ICD-10 Codes]</p>
+            </div>
+          `;
+          break;
+      }
+
+      // Create patient records info element
+      const patientRecordsDiv = document.createElement('div');
+      patientRecordsDiv.innerHTML = patientRecordsHTML;
+
+      // Insert patient records info
+      range.insertNode(patientRecordsDiv);
+      
+      // Move cursor after the patient records info
+      range.setStartAfter(patientRecordsDiv);
+      range.collapse(true);
+
+      // Update selection
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+
+      // Update document content
+      setDocumentContent(textareaRef.innerHTML);
+
+      // Focus editor
+      textareaRef.focus();
+
+      // Close dialog immediately
+      setShowPatientRecordsDialog(false);
+
+      // Small delay to ensure state update
+      setTimeout(() => {
+        toast({
+          title: "✓ Patient Records Inserted",
+          description: "Patient records template has been added to your document",
+          duration: 2000
+        });
+      }, 100);
+
+    } catch (error) {
+      console.error('Patient records insertion error:', error);
+      // Close dialog on error too
+      setShowPatientRecordsDialog(false);
+      toast({
+        title: "Error",
+        description: "Failed to insert patient records information",
+        duration: 3000
+      });
+    }
+  };
   const handleInsertProduct = () => toast({ title: "Insert Product", description: "Product insertion dialog opened." });
   const handleImage = () => {
     try {
@@ -3486,6 +3629,96 @@ export default function Forms() {
             
             <div className="flex justify-end">
               <Button variant="outline" onClick={() => setShowLabsDialog(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Patient Records Information Dialog */}
+      <Dialog open={showPatientRecordsDialog} onOpenChange={setShowPatientRecordsDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Insert Patient Records Information</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
+              {/* Patient Records Options */}
+              <div>
+                <h3 className="font-semibold mb-2">Patient Records Templates</h3>
+                <div className="space-y-2">
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertPatientRecordsInfo('medical-history')}
+                  >
+                    <div>
+                      <div className="font-medium">Complete Medical History</div>
+                      <div className="text-sm text-gray-500">Comprehensive medical history including past conditions, surgeries, family history, and allergies</div>
+                    </div>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertPatientRecordsInfo('current-medications')}
+                  >
+                    <div>
+                      <div className="font-medium">Current Medications</div>
+                      <div className="text-sm text-gray-500">List of current medications with dosages and frequencies</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertPatientRecordsInfo('allergies')}
+                  >
+                    <div>
+                      <div className="font-medium">Allergies & Reactions</div>
+                      <div className="text-sm text-gray-500">Known allergies including drugs, foods, environmental triggers, and reaction severity</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertPatientRecordsInfo('vital-signs')}
+                  >
+                    <div>
+                      <div className="font-medium">Latest Vital Signs</div>
+                      <div className="text-sm text-gray-500">Recent vital signs measurements including blood pressure, heart rate, and temperature</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertPatientRecordsInfo('diagnosis-history')}
+                  >
+                    <div>
+                      <div className="font-medium">Diagnosis History</div>
+                      <div className="text-sm text-gray-500">Current and past diagnoses with ICD-10 codes and treatment history</div>
+                    </div>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Information Note */}
+              <div>
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-blue-800 mb-2">Patient Records Templates</h4>
+                  <p className="text-sm text-blue-700">
+                    These templates insert comprehensive patient medical record information for clinical documentation. 
+                    The placeholders are marked with square brackets (e.g., [Medical History]) for easy identification and replacement with actual patient data.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={() => setShowPatientRecordsDialog(false)}>
                 Cancel
               </Button>
             </div>
