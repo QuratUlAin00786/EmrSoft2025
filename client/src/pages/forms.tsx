@@ -41,6 +41,7 @@ export default function Forms() {
   const [showPatientRecordsDialog, setShowPatientRecordsDialog] = useState(false);
   const [showInsertProductDialog, setShowInsertProductDialog] = useState(false);
   const [showMoreOptionsDialog, setShowMoreOptionsDialog] = useState(false);
+  const [showSavedTemplatesDialog, setShowSavedTemplatesDialog] = useState(false);
   const [editingClinicInfo, setEditingClinicInfo] = useState({
     name: "",
     address: "",
@@ -3146,7 +3147,7 @@ export default function Forms() {
         </div>
         
         {/* Save Button - Prominent and easily accessible */}
-        <div className="flex justify-center items-center mt-2">
+        <div className="flex justify-center items-center mt-2 gap-2">
           <Button 
             variant="default" 
             size="sm" 
@@ -3154,6 +3155,14 @@ export default function Forms() {
             onClick={handleSave}
           >
             💾 Save Template
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="border-teal-600 text-teal-600 hover:bg-teal-50 px-4 py-2 text-sm font-medium"
+            onClick={() => setShowSavedTemplatesDialog(true)}
+          >
+            📋 View Saved Templates
           </Button>
         </div>
       </div>
@@ -4341,6 +4350,95 @@ export default function Forms() {
             <div className="flex justify-end">
               <Button variant="outline" onClick={() => setShowMoreOptionsDialog(false)}>
                 Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Saved Templates Dialog */}
+      <Dialog open={showSavedTemplatesDialog} onOpenChange={setShowSavedTemplatesDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Saved Templates</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {templates && templates.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
+                {templates.map((template: any) => (
+                  <div key={template.id} className="border rounded-lg p-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h3 className="font-medium">{template.name}</h3>
+                        <p className="text-sm text-gray-500">
+                          Created: {new Date(template.createdAt).toLocaleDateString()}
+                        </p>
+                        <div className="mt-2 text-sm text-gray-700">
+                          <div dangerouslySetInnerHTML={{ __html: template.content.substring(0, 200) + "..." }} />
+                        </div>
+                      </div>
+                      <div className="flex gap-2 ml-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            loadTemplate(template.id);
+                            setShowSavedTemplatesDialog(false);
+                          }}
+                        >
+                          Load
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700"
+                          onClick={async () => {
+                            try {
+                              const response = await fetch(`/api/documents/${template.id}`, {
+                                method: 'DELETE',
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                  'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                                }
+                              });
+
+                              if (response.ok) {
+                                toast({
+                                  title: "✓ Template Deleted",
+                                  description: "Template deleted successfully",
+                                  duration: 3000
+                                });
+                                // Refresh templates
+                                window.location.reload();
+                              } else {
+                                throw new Error('Failed to delete template');
+                              }
+                            } catch (error) {
+                              toast({
+                                title: "Error",
+                                description: "Failed to delete template",
+                                duration: 3000
+                              });
+                            }
+                          }}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>No saved templates found.</p>
+                <p className="text-sm mt-2">Create a document and click "Save Template" to save it for reuse.</p>
+              </div>
+            )}
+            
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={() => setShowSavedTemplatesDialog(false)}>
+                Close
               </Button>
             </div>
           </div>
