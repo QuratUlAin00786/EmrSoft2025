@@ -579,7 +579,7 @@ export default function Forms() {
   };
   const handleTable = () => {
     try {
-      // Create a basic 3x3 table HTML structure with empty cells
+      // Create a basic 3x3 table HTML structure with empty cells and ensure cursor positioning after table
       const tableHTML = `
         <table border="1" style="border-collapse: collapse; width: 100%; margin: 10px 0;">
           <tr>
@@ -598,6 +598,7 @@ export default function Forms() {
             <td style="padding: 8px; border: 1px solid #ccc; min-height: 20px;">&nbsp;</td>
           </tr>
         </table>
+        <p><br></p>
       `;
 
       // Insert the table at cursor position
@@ -609,16 +610,23 @@ export default function Forms() {
         // Create a temporary div to hold the table HTML
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = tableHTML;
-        const tableElement = tempDiv.firstElementChild;
         
-        if (tableElement) {
-          range.insertNode(tableElement);
-          
-          // Move cursor after the table
-          range.setStartAfter(tableElement);
-          range.collapse(true);
-          selection.removeAllRanges();
-          selection.addRange(range);
+        // Insert all elements (table and paragraph)
+        const fragment = document.createDocumentFragment();
+        while (tempDiv.firstChild) {
+          fragment.appendChild(tempDiv.firstChild);
+        }
+        
+        range.insertNode(fragment);
+        
+        // Position cursor in the paragraph after the table
+        range.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        
+        // Ensure the editor maintains focus
+        if (textareaRef) {
+          textareaRef.focus();
         }
       } else {
         // If no selection, insert at the end of the content
