@@ -23,7 +23,7 @@ export default function Forms() {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [textColor, setTextColor] = useState("#000000");
   const [showFormFields, setShowFormFields] = useState(true);
-  const [textareaRef, setTextareaRef] = useState<HTMLDivElement | null>(null);
+  const [textareaRef, setTextareaRef] = useState<HTMLTextAreaElement | null>(null);
   const [selectedHeader, setSelectedHeader] = useState("your-clinic");
   const [showEditClinic, setShowEditClinic] = useState(false);
   const [clinicInfo, setClinicInfo] = useState({
@@ -104,18 +104,11 @@ export default function Forms() {
   };
 
   const handleBold = () => {
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) {
-      toast({ 
-        title: "Select Text", 
-        description: "Please select text to apply bold formatting",
-        duration: 3000
-      });
-      return;
-    }
-
-    const range = selection.getRangeAt(0);
-    const selectedText = range.toString();
+    if (!textareaRef) return;
+    
+    const start = textareaRef.selectionStart;
+    const end = textareaRef.selectionEnd;
+    const selectedText = documentContent.substring(start, end);
     
     if (!selectedText) {
       toast({ 
@@ -126,22 +119,20 @@ export default function Forms() {
       return;
     }
 
-    // Create a span with bold styling
-    const span = document.createElement('span');
-    span.style.fontWeight = 'bold';
-    span.textContent = selectedText;
+    // For textarea, we'll just wrap with **bold** markdown style
+    const beforeText = documentContent.substring(0, start);
+    const afterText = documentContent.substring(end);
+    const newContent = beforeText + `**${selectedText}**` + afterText;
     
-    // Replace the selected content with the new span
-    range.deleteContents();
-    range.insertNode(span);
+    setDocumentContent(newContent);
     
-    // Update the document content state
-    if (textareaRef) {
-      setDocumentContent(textareaRef.innerHTML);
-    }
-    
-    // Clear selection
-    selection.removeAllRanges();
+    // Restore cursor position after the formatting
+    setTimeout(() => {
+      if (textareaRef) {
+        textareaRef.focus();
+        textareaRef.setSelectionRange(start + 2, end + 2);
+      }
+    }, 0);
     
     toast({ 
       title: "✓ Bold Applied",
@@ -1536,21 +1527,20 @@ export default function Forms() {
       <div className="flex-1 bg-gray-100 overflow-y-auto min-h-0">
         <div className="h-full flex items-start justify-center p-4">
           <div className="bg-white shadow-sm border border-gray-300 min-h-[600px]" style={{ width: '700px', maxWidth: '700px' }}>
-            <div className="p-6 relative">
-              <div
-                ref={setTextareaRef}
-                contentEditable
-                className="w-full resize-none border-none outline-none text-black leading-normal bg-transparent cursor-text focus:outline-none"
+            <div className="p-6">
+              <textarea
+                ref={(el) => setTextareaRef(el as any)}
+                value={documentContent}
+                onChange={(e) => setDocumentContent(e.target.value)}
+                placeholder="Start typing your document here..."
+                className="w-full resize-none border-none outline-none text-black leading-normal bg-transparent focus:outline-none"
                 style={{ 
                   fontSize: fontSize,
                   lineHeight: '1.6',
                   minHeight: '500px',
                   maxWidth: '100%',
-                  wordWrap: 'break-word',
-                  overflowWrap: 'break-word'
+                  fontFamily: fontFamily
                 }}
-                suppressContentEditableWarning={true}
-                data-placeholder="Start typing your document here..."
               />
             </div>
           </div>
