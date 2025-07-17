@@ -747,41 +747,72 @@ export default function Forms() {
       input.onchange = (e) => {
         const file = (e.target as HTMLInputElement).files?.[0];
         if (file) {
-          if (!textareaRef) {
-            toast({
-              title: "Error",
-              description: "Document editor not ready",
-              duration: 3000
-            });
-            return;
-          }
-          
-          // Get current cursor position
-          const start = textareaRef.selectionStart || 0;
-          const end = textareaRef.selectionEnd || 0;
-          
-          // Insert image placeholder text at cursor position
-          const beforeText = documentContent.substring(0, start);
-          const afterText = documentContent.substring(end);
-          const imageText = `[Image: ${file.name}]`;
-          
-          const newContent = beforeText + imageText + afterText;
-          setDocumentContent(newContent);
-          
-          // Position cursor after the inserted image
-          setTimeout(() => {
-            if (textareaRef) {
-              textareaRef.focus();
-              const newPosition = start + imageText.length;
-              textareaRef.setSelectionRange(newPosition, newPosition);
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const imageData = event.target?.result as string;
+            
+            if (!textareaRef) {
+              toast({
+                title: "Error",
+                description: "Document editor not ready",
+                duration: 3000
+              });
+              return;
             }
-          }, 50);
-          
-          toast({
-            title: "✓ Image Inserted",
-            description: `Image "${file.name}" added to document`,
-            duration: 2000
-          });
+            
+            // Get current selection/cursor position for contentEditable
+            const selection = window.getSelection();
+            let range: Range | null = null;
+            
+            if (selection && selection.rangeCount > 0) {
+              range = selection.getRangeAt(0);
+            } else {
+              // If no selection, create range at the end of content
+              range = document.createRange();
+              if (textareaRef && textareaRef.childNodes.length > 0) {
+                range.setStartAfter(textareaRef.lastChild!);
+              } else if (textareaRef) {
+                range.setStart(textareaRef, 0);
+              }
+              range.collapse(true);
+            }
+            
+            // Create image element
+            const img = document.createElement('img');
+            img.src = imageData;
+            img.alt = file.name;
+            img.style.maxWidth = '100%';
+            img.style.height = 'auto';
+            img.style.display = 'block';
+            img.style.margin = '10px 0';
+            
+            // Insert image at cursor position
+            if (range && textareaRef) {
+              range.deleteContents();
+              range.insertNode(img);
+              
+              // Move cursor after the image
+              range.setStartAfter(img);
+              range.collapse(true);
+              
+              // Update selection
+              selection?.removeAllRanges();
+              selection?.addRange(range);
+              
+              // Update document content
+              setDocumentContent(textareaRef.innerHTML);
+              
+              // Focus the editor
+              textareaRef.focus();
+            }
+            
+            toast({
+              title: "✓ Image Inserted",
+              description: `Image "${file.name}" added to document`,
+              duration: 2000
+            });
+          };
+          reader.readAsDataURL(file);
         }
         
         // Clean up
@@ -1592,12 +1623,16 @@ export default function Forms() {
         <div className="h-full flex items-start justify-center p-4">
           <div className="bg-white shadow-sm border border-gray-300 min-h-[600px]" style={{ width: '700px', maxWidth: '700px' }}>
             <div className="p-6">
-              <textarea
+              <div
                 ref={(el) => setTextareaRef(el as any)}
-                value={documentContent}
-                onChange={(e) => setDocumentContent(e.target.value)}
-                placeholder="Start typing your document here..."
-                className="w-full resize-none border-none outline-none text-black leading-normal bg-transparent focus:outline-none"
+                contentEditable
+                suppressContentEditableWarning={true}
+                dangerouslySetInnerHTML={{ __html: documentContent || 'Start typing your document here...' }}
+                onInput={(e) => {
+                  const content = (e.target as HTMLDivElement).innerHTML;
+                  setDocumentContent(content);
+                }}
+                className="w-full border-none outline-none text-black leading-normal bg-transparent focus:outline-none"
                 style={{ 
                   fontSize: fontSize,
                   lineHeight: '1.6',
