@@ -869,6 +869,26 @@ export default function Forms() {
       return;
     }
 
+    // Validate and fix URL format
+    let validUrl = linkUrl.trim();
+    
+    // Add https:// if no protocol is specified
+    if (!validUrl.startsWith('http://') && !validUrl.startsWith('https://')) {
+      validUrl = 'https://' + validUrl;
+    }
+    
+    // Basic URL validation
+    try {
+      new URL(validUrl);
+    } catch (error) {
+      toast({
+        title: "Invalid URL",
+        description: "Please enter a valid URL (e.g., https://example.com)",
+        duration: 3000
+      });
+      return;
+    }
+
     if (!textareaRef) {
       toast({
         title: "Error",
@@ -899,7 +919,7 @@ export default function Forms() {
 
       // Create link element
       const link = document.createElement('a');
-      link.href = linkUrl;
+      link.href = validUrl;
       link.textContent = linkText || linkUrl;
       link.style.color = '#2563eb';
       link.style.textDecoration = 'underline';
