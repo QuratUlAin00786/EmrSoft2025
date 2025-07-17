@@ -39,6 +39,7 @@ export default function Forms() {
   const [showAppointmentsDialog, setShowAppointmentsDialog] = useState(false);
   const [showLabsDialog, setShowLabsDialog] = useState(false);
   const [showPatientRecordsDialog, setShowPatientRecordsDialog] = useState(false);
+  const [showInsertProductDialog, setShowInsertProductDialog] = useState(false);
   const [editingClinicInfo, setEditingClinicInfo] = useState({
     name: "",
     address: "",
@@ -1742,7 +1743,157 @@ export default function Forms() {
       });
     }
   };
-  const handleInsertProduct = () => toast({ title: "Insert Product", description: "Product insertion dialog opened." });
+  const handleInsertProduct = () => {
+    setShowInsertProductDialog(true);
+  };
+
+  const insertProductInfo = (productType: string) => {
+    if (!textareaRef) {
+      toast({
+        title: "Error",
+        description: "Document editor not ready",
+        duration: 3000
+      });
+      return;
+    }
+
+    try {
+      // Get current cursor position or create a new range at the end
+      const selection = window.getSelection();
+      let range;
+
+      if (selection && selection.rangeCount > 0) {
+        range = selection.getRangeAt(0);
+      } else {
+        // Create range at the end of content
+        range = document.createRange();
+        if (textareaRef && textareaRef.childNodes.length > 0) {
+          range.setStartAfter(textareaRef.lastChild!);
+        } else if (textareaRef) {
+          range.setStart(textareaRef, 0);
+        }
+        range.collapse(true);
+      }
+
+      let productHTML = '';
+      
+      switch (productType) {
+        case 'medication':
+          productHTML = `
+            <div style="margin: 15px 0; padding: 10px; border: 1px solid #e0e0e0; border-radius: 5px;">
+              <p><strong>Medication Information</strong></p>
+              <p>Product Name: [Medication Name]</p>
+              <p>Generic Name: [Generic Name]</p>
+              <p>Strength: [Strength/Dosage]</p>
+              <p>Form: [Tablet/Capsule/Liquid/Injection]</p>
+              <p>Manufacturer: [Manufacturer Name]</p>
+              <p>NDC Number: [NDC Number]</p>
+              <p>Price: £[Price]</p>
+              <p>Instructions: [Dosage Instructions]</p>
+            </div>
+          `;
+          break;
+        case 'medical-device':
+          productHTML = `
+            <div style="margin: 10px 0;">
+              <p><strong>Medical Device:</strong></p>
+              <p>Device Name: [Device Name]</p>
+              <p>Model Number: [Model Number]</p>
+              <p>Manufacturer: [Manufacturer]</p>
+              <p>Category: [Device Category]</p>
+              <p>FDA Approval: [FDA Status]</p>
+              <p>Price: £[Device Price]</p>
+              <p>Warranty: [Warranty Period]</p>
+            </div>
+          `;
+          break;
+        case 'medical-supplies':
+          productHTML = `
+            <div style="margin: 10px 0;">
+              <p><strong>Medical Supplies:</strong></p>
+              <p>Supply Type: [Supply Type]</p>
+              <p>Brand: [Brand Name]</p>
+              <p>Quantity: [Quantity/Package Size]</p>
+              <p>Unit Price: £[Unit Price]</p>
+              <p>Total Price: £[Total Price]</p>
+              <p>Sterility: [Sterile/Non-sterile]</p>
+              <p>Expiration: [Expiration Date]</p>
+            </div>
+          `;
+          break;
+        case 'laboratory-test':
+          productHTML = `
+            <div style="margin: 10px 0;">
+              <p><strong>Laboratory Test:</strong></p>
+              <p>Test Name: [Test Name]</p>
+              <p>Test Code: [CPT/Lab Code]</p>
+              <p>Test Type: [Blood/Urine/Culture/Imaging]</p>
+              <p>Processing Time: [Turnaround Time]</p>
+              <p>Price: £[Test Price]</p>
+              <p>Requirements: [Fasting/Special Instructions]</p>
+            </div>
+          `;
+          break;
+        case 'treatment-package':
+          productHTML = `
+            <div style="margin: 10px 0;">
+              <p><strong>Treatment Package:</strong></p>
+              <p>Package Name: [Treatment Package]</p>
+              <p>Services Included: [Included Services]</p>
+              <p>Duration: [Treatment Duration]</p>
+              <p>Provider: [Healthcare Provider]</p>
+              <p>Package Price: £[Package Price]</p>
+              <p>Coverage: [Insurance Coverage]</p>
+              <p>Follow-up: [Follow-up Included]</p>
+            </div>
+          `;
+          break;
+      }
+
+      // Create product info element
+      const productDiv = document.createElement('div');
+      productDiv.innerHTML = productHTML;
+
+      // Insert product info
+      range.insertNode(productDiv);
+      
+      // Move cursor after the product info
+      range.setStartAfter(productDiv);
+      range.collapse(true);
+
+      // Update selection
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+
+      // Update document content
+      setDocumentContent(textareaRef.innerHTML);
+
+      // Focus editor
+      textareaRef.focus();
+
+      // Close dialog immediately
+      setShowInsertProductDialog(false);
+
+      // Small delay to ensure state update
+      setTimeout(() => {
+        toast({
+          title: "✓ Product Information Inserted",
+          description: "Product details have been added to your document",
+          duration: 2000
+        });
+      }, 100);
+
+    } catch (error) {
+      console.error('Product insertion error:', error);
+      // Close dialog on error too
+      setShowInsertProductDialog(false);
+      toast({
+        title: "Error",
+        description: "Failed to insert product information",
+        duration: 3000
+      });
+    }
+  };
   const handleImage = () => {
     try {
       // Create a file input element
@@ -3719,6 +3870,96 @@ export default function Forms() {
             
             <div className="flex justify-end">
               <Button variant="outline" onClick={() => setShowPatientRecordsDialog(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Insert Product Dialog */}
+      <Dialog open={showInsertProductDialog} onOpenChange={setShowInsertProductDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Insert Product Information</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
+              {/* Product Options */}
+              <div>
+                <h3 className="font-semibold mb-2">Product Information Templates</h3>
+                <div className="space-y-2">
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertProductInfo('medication')}
+                  >
+                    <div>
+                      <div className="font-medium">Medication Information</div>
+                      <div className="text-sm text-gray-500">Complete medication details including generic name, strength, form, manufacturer, NDC, and pricing</div>
+                    </div>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertProductInfo('medical-device')}
+                  >
+                    <div>
+                      <div className="font-medium">Medical Device</div>
+                      <div className="text-sm text-gray-500">Medical device specifications including model number, manufacturer, category, FDA approval, and warranty</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertProductInfo('medical-supplies')}
+                  >
+                    <div>
+                      <div className="font-medium">Medical Supplies</div>
+                      <div className="text-sm text-gray-500">Medical supplies information including brand, quantity, unit pricing, sterility, and expiration</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertProductInfo('laboratory-test')}
+                  >
+                    <div>
+                      <div className="font-medium">Laboratory Test</div>
+                      <div className="text-sm text-gray-500">Lab test details including test code, type, processing time, pricing, and special requirements</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertProductInfo('treatment-package')}
+                  >
+                    <div>
+                      <div className="font-medium">Treatment Package</div>
+                      <div className="text-sm text-gray-500">Treatment package information including services, duration, provider, pricing, and coverage details</div>
+                    </div>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Information Note */}
+              <div>
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-blue-800 mb-2">Product Information Templates</h4>
+                  <p className="text-sm text-blue-700">
+                    These templates insert detailed product information for healthcare documentation and billing purposes. 
+                    The placeholders are marked with square brackets (e.g., [Product Name]) for easy identification and replacement with actual product data.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={() => setShowInsertProductDialog(false)}>
                 Cancel
               </Button>
             </div>
