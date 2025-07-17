@@ -37,6 +37,7 @@ export default function Forms() {
   const [showPatientDialog, setShowPatientDialog] = useState(false);
   const [showRecipientDialog, setShowRecipientDialog] = useState(false);
   const [showAppointmentsDialog, setShowAppointmentsDialog] = useState(false);
+  const [showLabsDialog, setShowLabsDialog] = useState(false);
   const [editingClinicInfo, setEditingClinicInfo] = useState({
     name: "",
     address: "",
@@ -1455,7 +1456,143 @@ export default function Forms() {
       });
     }
   };
-  const handleLabs = () => toast({ title: "Labs", description: "Lab results options opened." });
+  const handleLabs = () => {
+    setShowLabsDialog(true);
+  };
+
+  const insertLabInfo = (infoType: string) => {
+    if (!textareaRef) {
+      toast({
+        title: "Error",
+        description: "Document editor not ready",
+        duration: 3000
+      });
+      return;
+    }
+
+    try {
+      // Get current cursor position or create a new range at the end
+      const selection = window.getSelection();
+      let range;
+
+      if (selection && selection.rangeCount > 0) {
+        range = selection.getRangeAt(0);
+      } else {
+        // Create range at the end of content
+        range = document.createRange();
+        if (textareaRef && textareaRef.childNodes.length > 0) {
+          range.setStartAfter(textareaRef.lastChild!);
+        } else if (textareaRef) {
+          range.setStart(textareaRef, 0);
+        }
+        range.collapse(true);
+      }
+
+      let labHTML = '';
+      
+      switch (infoType) {
+        case 'lab-results':
+          labHTML = `
+            <div style="margin: 15px 0; padding: 10px; border: 1px solid #e0e0e0; border-radius: 5px;">
+              <p><strong>Laboratory Results</strong></p>
+              <p>Date Collected: [Date Collected]</p>
+              <p>Lab Name: [Laboratory Name]</p>
+              <p>Test Type: [Test Type]</p>
+              <p>Results: [Test Results]</p>
+              <p>Reference Range: [Normal Range]</p>
+              <p>Status: [Normal/Abnormal]</p>
+            </div>
+          `;
+          break;
+        case 'blood-work':
+          labHTML = `
+            <div style="margin: 10px 0;">
+              <p><strong>Blood Work Results:</strong></p>
+              <p>• CBC: [Complete Blood Count Results]</p>
+              <p>• Glucose: [Glucose Level] mg/dL</p>
+              <p>• Cholesterol: [Cholesterol Level] mg/dL</p>
+              <p>• Hemoglobin: [Hemoglobin Level] g/dL</p>
+              <p>Date: [Test Date]</p>
+            </div>
+          `;
+          break;
+        case 'urine-analysis':
+          labHTML = `
+            <div style="margin: 10px 0;">
+              <p><strong>Urinalysis Results:</strong></p>
+              <p>Color: [Color]</p>
+              <p>Clarity: [Clarity]</p>
+              <p>Protein: [Protein Level]</p>
+              <p>Glucose: [Glucose Level]</p>
+              <p>RBC: [Red Blood Cells]</p>
+              <p>WBC: [White Blood Cells]</p>
+            </div>
+          `;
+          break;
+        case 'culture-results':
+          labHTML = `
+            <div style="margin: 10px 0;">
+              <p><strong>Culture Results:</strong></p>
+              <p>Specimen Type: [Specimen Type]</p>
+              <p>Culture Result: [Culture Result]</p>
+              <p>Organism: [Organism Identified]</p>
+              <p>Sensitivity: [Antibiotic Sensitivity]</p>
+              <p>Date Reported: [Report Date]</p>
+            </div>
+          `;
+          break;
+        case 'pending-labs':
+          labHTML = `
+            <div style="margin: 10px 0;">
+              <p><strong>Pending Laboratory Tests:</strong></p>
+              <p>• [Test Name 1] - Ordered: [Date 1]</p>
+              <p>• [Test Name 2] - Ordered: [Date 2]</p>
+              <p>• [Test Name 3] - Ordered: [Date 3]</p>
+              <p>Expected Results: [Expected Date]</p>
+            </div>
+          `;
+          break;
+      }
+
+      // Create lab info element
+      const labDiv = document.createElement('div');
+      labDiv.innerHTML = labHTML;
+
+      // Insert lab info
+      range.insertNode(labDiv);
+      
+      // Move cursor after the lab info
+      range.setStartAfter(labDiv);
+      range.collapse(true);
+
+      // Update selection
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+
+      // Update document content
+      setDocumentContent(textareaRef.innerHTML);
+
+      // Focus editor
+      textareaRef.focus();
+
+      // Close dialog
+      setShowLabsDialog(false);
+
+      toast({
+        title: "✓ Lab Info Inserted",
+        description: "Laboratory information template has been added to your document",
+        duration: 2000
+      });
+
+    } catch (error) {
+      console.error('Lab info insertion error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to insert laboratory information",
+        duration: 3000
+      });
+    }
+  };
   const handlePatientRecords = () => toast({ title: "Patient Records", description: "Patient records options opened." });
   const handleInsertProduct = () => toast({ title: "Insert Product", description: "Product insertion dialog opened." });
   const handleImage = () => {
@@ -3254,6 +3391,96 @@ export default function Forms() {
             
             <div className="flex justify-end">
               <Button variant="outline" onClick={() => setShowAppointmentsDialog(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Labs Information Dialog */}
+      <Dialog open={showLabsDialog} onOpenChange={setShowLabsDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Insert Laboratory Information</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
+              {/* Lab Information Options */}
+              <div>
+                <h3 className="font-semibold mb-2">Laboratory Information Templates</h3>
+                <div className="space-y-2">
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertLabInfo('lab-results')}
+                  >
+                    <div>
+                      <div className="font-medium">Laboratory Results</div>
+                      <div className="text-sm text-gray-500">Complete lab results with test type, values, and reference ranges</div>
+                    </div>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertLabInfo('blood-work')}
+                  >
+                    <div>
+                      <div className="font-medium">Blood Work Results</div>
+                      <div className="text-sm text-gray-500">Blood test results including CBC, glucose, cholesterol, and hemoglobin</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertLabInfo('urine-analysis')}
+                  >
+                    <div>
+                      <div className="font-medium">Urinalysis Results</div>
+                      <div className="text-sm text-gray-500">Urine test results including color, clarity, protein, glucose, and cell counts</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertLabInfo('culture-results')}
+                  >
+                    <div>
+                      <div className="font-medium">Culture Results</div>
+                      <div className="text-sm text-gray-500">Microbiology culture results with organism identification and sensitivity</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertLabInfo('pending-labs')}
+                  >
+                    <div>
+                      <div className="font-medium">Pending Laboratory Tests</div>
+                      <div className="text-sm text-gray-500">List of pending lab tests with order dates and expected results</div>
+                    </div>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Information Note */}
+              <div>
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-blue-800 mb-2">Laboratory Information Templates</h4>
+                  <p className="text-sm text-blue-700">
+                    These templates insert laboratory test information for medical documents and reports. 
+                    The placeholders are marked with square brackets (e.g., [Test Results]) for easy identification and replacement with actual laboratory data.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={() => setShowLabsDialog(false)}>
                 Cancel
               </Button>
             </div>
