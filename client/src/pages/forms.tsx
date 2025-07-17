@@ -736,7 +736,55 @@ export default function Forms() {
   const handleLabs = () => toast({ title: "Labs", description: "Lab results options opened." });
   const handlePatientRecords = () => toast({ title: "Patient Records", description: "Patient records options opened." });
   const handleInsertProduct = () => toast({ title: "Insert Product", description: "Product insertion dialog opened." });
-  const handleImage = () => toast({ title: "Insert Image", description: "Image insertion dialog opened." });
+  const handleImage = () => {
+    // Create a file input element
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const imageData = event.target?.result as string;
+          
+          if (!textareaRef) return;
+          
+          // Get current cursor position
+          const start = textareaRef.selectionStart;
+          const end = textareaRef.selectionEnd;
+          
+          // Insert image placeholder text at cursor position
+          const beforeText = documentContent.substring(0, start);
+          const afterText = documentContent.substring(end);
+          const imageText = `\n[Image: ${file.name}]\n`;
+          
+          const newContent = beforeText + imageText + afterText;
+          setDocumentContent(newContent);
+          
+          // Position cursor after the inserted image
+          setTimeout(() => {
+            if (textareaRef) {
+              textareaRef.focus();
+              const newPosition = start + imageText.length;
+              textareaRef.setSelectionRange(newPosition, newPosition);
+            }
+          }, 0);
+          
+          toast({
+            title: "Image Inserted",
+            description: `Image "${file.name}" has been inserted into the document`,
+            duration: 3000
+          });
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+    
+    // Trigger file selection
+    input.click();
+  };
   const handleLink = () => toast({ title: "Insert Link", description: "Link insertion dialog opened." });
   const handleHighlight = () => {
     const selection = window.getSelection();
