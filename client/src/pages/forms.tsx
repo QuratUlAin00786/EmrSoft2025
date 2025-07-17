@@ -23,7 +23,7 @@ export default function Forms() {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [textColor, setTextColor] = useState("#000000");
   const [showFormFields, setShowFormFields] = useState(true);
-  const [textareaRef, setTextareaRef] = useState<HTMLTextAreaElement | null>(null);
+  const [textareaRef, setTextareaRef] = useState<HTMLDivElement | null>(null);
   const [selectedHeader, setSelectedHeader] = useState("your-clinic");
   const [showEditClinic, setShowEditClinic] = useState(false);
   const [clinicInfo, setClinicInfo] = useState({
@@ -1536,31 +1536,13 @@ export default function Forms() {
       <div className="flex-1 bg-gray-100 overflow-y-auto min-h-0">
         <div className="h-full flex items-start justify-center p-4">
           <div className="bg-white shadow-sm border border-gray-300 min-h-[600px]" style={{ width: '700px', maxWidth: '700px' }}>
-            <div className="p-6">
+            <div className="p-6 relative">
               <div
                 ref={setTextareaRef}
-                contentEditable={true}
-                onInput={(e) => {
-                  // Only update state, don't re-render
-                  const content = e.currentTarget.innerHTML || '';
-                  if (content !== documentContent) {
-                    setDocumentContent(content);
-                  }
-                }}
-                onKeyDown={(e) => {
-                  // Ensure typing works normally
-                  e.stopPropagation();
-                }}
-                onKeyUp={(e) => {
-                  // Update content after key operations
-                  const content = e.currentTarget.innerHTML || '';
-                  if (content !== documentContent) {
-                    setDocumentContent(content);
-                  }
-                }}
-                onClick={(e) => {
-                  // Simple click handler to maintain focus
-                  e.currentTarget.focus();
+                contentEditable
+                dangerouslySetInnerHTML={{ __html: documentContent }}
+                onBlur={(e) => {
+                  setDocumentContent(e.currentTarget.innerHTML);
                 }}
                 className="w-full resize-none border-none outline-none text-black leading-normal bg-transparent cursor-text focus:outline-none"
                 style={{ 
@@ -1572,14 +1554,15 @@ export default function Forms() {
                   overflowWrap: 'break-word'
                 }}
                 suppressContentEditableWarning={true}
-                spellCheck={false}
-              >
-                {!documentContent && (
-                  <p style={{ color: '#999', fontStyle: 'italic', margin: 0 }}>
-                    Start typing your document here...
-                  </p>
-                )}
-              </div>
+              />
+              {!documentContent && (
+                <p 
+                  className="absolute top-6 left-6 text-gray-400 italic pointer-events-none"
+                  style={{ margin: 0 }}
+                >
+                  Start typing your document here...
+                </p>
+              )}
             </div>
           </div>
         </div>
