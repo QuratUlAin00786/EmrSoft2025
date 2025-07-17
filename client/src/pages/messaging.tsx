@@ -118,7 +118,9 @@ export default function MessagingPage() {
     subject: "",
     content: "",
     priority: "normal" as "low" | "normal" | "high" | "urgent",
-    type: "internal" as "internal" | "patient" | "broadcast"
+    type: "internal" as "internal" | "patient" | "broadcast",
+    phoneNumber: "",
+    messageType: "sms" as "sms" | "whatsapp" | "email"
   });
   const [videoCall, setVideoCall] = useState({
     participant: "",
@@ -253,6 +255,18 @@ export default function MessagingPage() {
     }
   });
 
+  const resetNewMessage = () => {
+    setNewMessage({
+      recipient: "",
+      subject: "",
+      content: "",
+      priority: "normal",
+      type: "internal",
+      phoneNumber: "",
+      messageType: "email"
+    });
+  };
+
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
       const token = localStorage.getItem('auth_token');
@@ -276,9 +290,18 @@ export default function MessagingPage() {
         setShowNewMessage(false);
         resetNewMessage();
         queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
+        
+        // Show different success message based on communication method
+        let description = "Your message has been sent successfully.";
+        if (variables.messageType === 'sms') {
+          description = "Your SMS message has been sent successfully via Twilio.";
+        } else if (variables.messageType === 'whatsapp') {
+          description = "Your WhatsApp message has been sent successfully via Twilio.";
+        }
+        
         toast({
           title: "Message Sent",
-          description: "Your message has been sent successfully.",
+          description: description,
         });
       }
       // Conversation message success is handled in handleSendConversationMessage
@@ -348,12 +371,24 @@ export default function MessagingPage() {
       return;
     }
 
+    // Additional validation for SMS/WhatsApp
+    if ((newMessage.messageType === 'sms' || newMessage.messageType === 'whatsapp') && !newMessage.phoneNumber.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please provide a phone number for SMS/WhatsApp messages.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     sendMessageMutation.mutate({
       recipientId: newMessage.recipient,
       subject: newMessage.subject,
       content: newMessage.content,
       priority: newMessage.priority,
-      type: newMessage.type
+      type: newMessage.type,
+      phoneNumber: newMessage.phoneNumber,
+      messageType: newMessage.messageType
     });
   };
 
@@ -444,15 +479,7 @@ export default function MessagingPage() {
     }
   };
 
-  const resetNewMessage = () => {
-    setNewMessage({
-      recipient: "",
-      subject: "",
-      content: "",
-      priority: "normal",
-      type: "internal"
-    });
-  };
+
 
   const handleStartVideoCall = () => {
     if (!videoCall.participant.trim()) {
@@ -606,6 +633,63 @@ export default function MessagingPage() {
           </div>
         </div>
         <div className="flex items-center gap-4">
+          {/* Healthcare Quick Actions */}
+          <div className="flex gap-2 mr-4">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                setNewMessage({
+                  recipient: "",
+                  subject: "Appointment Reminder",
+                  content: "Hi {{patientName}},\n\nThis is a reminder that you have an appointment scheduled on {{appointmentDate}} with {{doctorName}} at {{clinicName}}.\n\nPlease arrive 15 minutes early for check-in.\n\nIf you need to reschedule, please call us.\n\nThank you,\n{{clinicName}}",
+                  priority: "normal",
+                  type: "patient",
+                  phoneNumber: "",
+                  messageType: "sms"
+                });
+                setShowNewMessage(true);
+              }}
+            >
+              📅 Appointment Reminder
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                setNewMessage({
+                  recipient: "",
+                  subject: "Lab Results Available",
+                  content: "Hi {{patientName}},\n\nYour lab results are now available for review.\n\nPlease call us at {{clinicPhone}} or visit your patient portal to discuss the results with your provider.\n\nBest regards,\n{{clinicName}}",
+                  priority: "normal",
+                  type: "patient",
+                  phoneNumber: "",
+                  messageType: "sms"
+                });
+                setShowNewMessage(true);
+              }}
+            >
+              🧪 Lab Results
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                setNewMessage({
+                  recipient: "",
+                  subject: "Prescription Ready",
+                  content: "Hi {{patientName}},\n\nYour prescription is ready for pickup at:\n{{pharmacyName}}\n{{pharmacyAddress}}\n\nPlease bring a valid ID when collecting your medication.\n\nThank you!",
+                  priority: "normal",
+                  type: "patient",
+                  phoneNumber: "",
+                  messageType: "sms"
+                });
+                setShowNewMessage(true);
+              }}
+            >
+              💊 Prescription Ready
+            </Button>
+          </div>
           <Dialog open={showVideoCall} onOpenChange={setShowVideoCall}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm">
@@ -794,6 +878,38 @@ export default function MessagingPage() {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="communicationMethod">Communication Method</Label>
+                    <Select 
+                      value={newMessage.messageType} 
+                      onValueChange={(value: "sms" | "whatsapp" | "email") => 
+                        setNewMessage(prev => ({ ...prev, messageType: value }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="email">📧 Email</SelectItem>
+                        <SelectItem value="sms">📱 SMS</SelectItem>
+                        <SelectItem value="whatsapp">💬 WhatsApp</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {(newMessage.messageType === 'sms' || newMessage.messageType === 'whatsapp') && (
+                    <div className="space-y-2">
+                      <Label htmlFor="phoneNumber">Phone Number</Label>
+                      <Input 
+                        id="phoneNumber"
+                        placeholder="Enter phone number (e.g., +44 123 456 7890)"
+                        value={newMessage.phoneNumber}
+                        onChange={(e) => setNewMessage(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">

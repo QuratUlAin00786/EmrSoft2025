@@ -111,6 +111,11 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system des
 ## Changelog
 
 **July 17, 2025:**
+- **COMPLETED**: Implemented real SMS and WhatsApp messaging integration using Twilio API - healthcare providers can now send actual text messages and WhatsApp messages to patients for appointment reminders, lab results notifications, prescription alerts, and emergency communications, with proper phone number validation and delivery status tracking
+- **COMPLETED**: Added comprehensive messaging service with healthcare-specific endpoints for appointment reminders, lab results, prescription notifications, and emergency alerts - all messages are sent via real Twilio API with proper authentication and error handling
+- **COMPLETED**: Enhanced messaging interface with SMS/WhatsApp communication method selection - users can choose between email, SMS, or WhatsApp delivery methods with phone number validation and pre-populated healthcare message templates
+- **COMPLETED**: Added healthcare quick action buttons for common messaging scenarios - one-click access to appointment reminder, lab results, and prescription ready message templates with proper SMS/WhatsApp formatting and patient placeholders
+- **COMPLETED**: Integrated Twilio credentials (TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER) for production-ready SMS and WhatsApp messaging capabilities with proper UK phone number formatting and international support
 - **COMPLETED**: Fixed Labs button functionality with comprehensive laboratory information dialog containing 5 professional templates (Laboratory Results, Blood Work Results, Urinalysis Results, Culture Results, Pending Laboratory Tests) with proper placeholder text and dialog state management
 - **COMPLETED**: Fixed Patient Records button functionality with comprehensive patient medical record templates including Complete Medical History, Current Medications, Allergies & Reactions, Latest Vital Signs, and Diagnosis History with proper formatting and cursor positioning
 - **COMPLETED**: Fixed Insert Product button functionality with comprehensive product information dialog containing 5 professional templates (Medication Information, Medical Device, Medical Supplies, Laboratory Test, Treatment Package) with detailed placeholder fields and proper insertion logic

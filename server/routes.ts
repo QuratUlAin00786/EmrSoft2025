@@ -6,6 +6,7 @@ import { storage } from "./storage";
 import { authService } from "./services/auth";
 import { aiService } from "./services/ai";
 import { tenantMiddleware, authMiddleware, requireRole, gdprComplianceMiddleware, type TenantRequest } from "./middleware/tenant";
+import { messagingService } from "./messaging-service";
 
 // In-memory storage for voice notes - persistent across server restarts
 let voiceNotes: any[] = [];
@@ -1420,9 +1421,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/messaging/send", authMiddleware, async (req: TenantRequest, res) => {
     try {
       console.log("Received message data:", JSON.stringify(req.body, null, 2));
-      console.log("Conversation ID from request:", req.body.conversationId);
-      console.log("Organization ID:", req.organizationId);
+      const { recipientId, content, type, priority, phoneNumber, messageType } = req.body;
+      
+      // Store the message in the database
       const message = await storage.sendMessage(req.body, req.organizationId!);
+      
+      // If phone number is provided, send via SMS or WhatsApp
+      if (phoneNumber && (messageType === 'sms' || messageType === 'whatsapp')) {
+        try {
+          const result = await messagingService.sendMessage({
+            to: phoneNumber,
+            message: content,
+            type: messageType,
+            priority: priority || 'normal'
+          });
+          
+          if (result.success) {
+            console.log(`${messageType.toUpperCase()} sent successfully:`, result.messageId);
+            // Update message with delivery status
+            message.deliveryStatus = 'sent';
+            message.externalMessageId = result.messageId;
+          } else {
+            console.error(`${messageType.toUpperCase()} sending failed:`, result.error);
+            message.deliveryStatus = 'failed';
+            message.error = result.error;
+          }
+        } catch (twilioError) {
+          console.error('Twilio API error:', twilioError);
+          message.deliveryStatus = 'failed';
+          message.error = 'Failed to send via Twilio';
+        }
+      }
+      
       res.json(message);
     } catch (error) {
       console.error("Error sending message:", error);
@@ -1447,6 +1477,177 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating campaign:", error);
       res.status(500).json({ error: "Failed to create campaign" });
+    }
+  });
+
+  // Healthcare-specific messaging endpoints
+  app.post("/api/messaging/appointment-reminder", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const { patientPhone, patientName, appointmentDate, doctorName, clinicName, messageType = 'sms' } = req.body;
+      
+      const result = await messagingService.sendAppointmentReminder(
+        patientPhone,
+        patientName,
+        appointmentDate,
+        doctorName,
+        clinicName,
+        messageType
+      );
+      
+      if (result.success) {
+        res.json({ success: true, messageId: result.messageId, cost: result.cost });
+      } else {
+        res.status(400).json({ success: false, error: result.error });
+      }
+    } catch (error) {
+      console.error("Error sending appointment reminder:", error);
+      res.status(500).json({ error: "Failed to send appointment reminder" });
+    }
+  });
+
+  app.post("/api/messaging/lab-results", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const { patientPhone, patientName, clinicName, clinicPhone, messageType = 'sms' } = req.body;
+      
+      const result = await messagingService.sendLabResultsNotification(
+        patientPhone,
+        patientName,
+        clinicName,
+        clinicPhone,
+        messageType
+      );
+      
+      if (result.success) {
+        res.json({ success: true, messageId: result.messageId, cost: result.cost });
+      } else {
+        res.status(400).json({ success: false, error: result.error });
+      }
+    } catch (error) {
+      console.error("Error sending lab results notification:", error);
+      res.status(500).json({ error: "Failed to send lab results notification" });
+    }
+  });
+
+  app.post("/api/messaging/prescription-ready", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const { patientPhone, patientName, pharmacyName, pharmacyAddress, messageType = 'sms' } = req.body;
+      
+      const result = await messagingService.sendPrescriptionReady(
+        patientPhone,
+        patientName,
+        pharmacyName,
+        pharmacyAddress,
+        messageType
+      );
+      
+      if (result.success) {
+        res.json({ success: true, messageId: result.messageId, cost: result.cost });
+      } else {
+        res.status(400).json({ success: false, error: result.error });
+      }
+    } catch (error) {
+      console.error("Error sending prescription ready notification:", error);
+      res.status(500).json({ error: "Failed to send prescription ready notification" });
+    }
+  });
+
+  app.post("/api/messaging/emergency", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const { patientPhone, patientName, urgentMessage, clinicPhone, messageType = 'sms' } = req.body;
+      
+      const result = await messagingService.sendEmergencyNotification(
+        patientPhone,
+        patientName,
+        urgentMessage,
+        clinicPhone,
+        messageType
+      );
+      
+      if (result.success) {
+        res.json({ success: true, messageId: result.messageId, cost: result.cost });
+      } else {
+        res.status(400).json({ success: false, error: result.error });
+      }
+    } catch (error) {
+      console.error("Error sending emergency notification:", error);
+      res.status(500).json({ error: "Failed to send emergency notification" });
+    }
+  });
+
+  app.post("/api/messaging/bulk", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const { recipients, message, messageType = 'sms' } = req.body;
+      
+      const results = await messagingService.sendBulkMessages(recipients, message, messageType);
+      
+      const successCount = results.filter(r => r.success).length;
+      const failureCount = results.filter(r => !r.success).length;
+      
+      res.json({
+        success: true,
+        totalSent: successCount,
+        totalFailed: failureCount,
+        results: results
+      });
+    } catch (error) {
+      console.error("Error sending bulk messages:", error);
+      res.status(500).json({ error: "Failed to send bulk messages" });
+    }
+  });
+
+  app.get("/api/messaging/status/:messageId", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const status = await messagingService.getMessageStatus(req.params.messageId);
+      if (status) {
+        res.json(status);
+      } else {
+        res.status(404).json({ error: "Message not found" });
+      }
+    } catch (error) {
+      console.error("Error fetching message status:", error);
+      res.status(500).json({ error: "Failed to fetch message status" });
+    }
+  });
+
+  app.get("/api/messaging/account-info", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const accountInfo = await messagingService.getAccountInfo();
+      if (accountInfo) {
+        res.json(accountInfo);
+      } else {
+        res.status(500).json({ error: "Failed to fetch account info" });
+      }
+    } catch (error) {
+      console.error("Error fetching account info:", error);
+      res.status(500).json({ error: "Failed to fetch account info" });
+    }
+  });
+
+  // Test endpoint for SMS/WhatsApp integration
+  app.post("/api/messaging/test", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const { phoneNumber, message, type = 'sms' } = req.body;
+      
+      if (!phoneNumber || !message) {
+        return res.status(400).json({ error: "Phone number and message are required" });
+      }
+      
+      const result = await messagingService.sendMessage({
+        to: phoneNumber,
+        message: message,
+        type: type,
+        priority: 'normal'
+      });
+      
+      res.json({
+        success: result.success,
+        messageId: result.messageId,
+        error: result.error,
+        cost: result.cost
+      });
+    } catch (error) {
+      console.error("Error in test messaging:", error);
+      res.status(500).json({ error: "Failed to send test message" });
     }
   });
 
