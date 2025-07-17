@@ -1540,10 +1540,6 @@ export default function Forms() {
               <div
                 ref={setTextareaRef}
                 contentEditable
-                dangerouslySetInnerHTML={{ __html: documentContent }}
-                onBlur={(e) => {
-                  setDocumentContent(e.currentTarget.innerHTML);
-                }}
                 className="w-full resize-none border-none outline-none text-black leading-normal bg-transparent cursor-text focus:outline-none"
                 style={{ 
                   fontSize: fontSize,
@@ -1554,15 +1550,8 @@ export default function Forms() {
                   overflowWrap: 'break-word'
                 }}
                 suppressContentEditableWarning={true}
+                data-placeholder="Start typing your document here..."
               />
-              {!documentContent && (
-                <p 
-                  className="absolute top-6 left-6 text-gray-400 italic pointer-events-none"
-                  style={{ margin: 0 }}
-                >
-                  Start typing your document here...
-                </p>
-              )}
             </div>
           </div>
         </div>

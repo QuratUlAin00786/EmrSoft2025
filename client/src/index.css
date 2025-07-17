@@ -70,6 +70,18 @@
   --neutral-600: hsl(240, 5%, 64.9%);
 }
 
+/* ContentEditable placeholder styling */
+[contenteditable][data-placeholder]:empty::before {
+  content: attr(data-placeholder);
+  color: #999;
+  font-style: italic;
+  pointer-events: none;
+}
+
+[contenteditable][data-placeholder]:empty:focus::before {
+  content: "";
+}
+
 @layer base {
   * {
     @apply border-border;
