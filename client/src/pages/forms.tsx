@@ -2244,19 +2244,19 @@ export default function Forms() {
           optionHTML = `
             <table style="border-collapse: collapse; width: 100%; margin: 10px 0;">
               <tr>
-                <th style="border: 1px solid #ddd; padding: 8px; background-color: #f2f2f2;">Header 1</th>
-                <th style="border: 1px solid #ddd; padding: 8px; background-color: #f2f2f2;">Header 2</th>
-                <th style="border: 1px solid #ddd; padding: 8px; background-color: #f2f2f2;">Header 3</th>
+                <th style="border: 1px solid #ddd; padding: 8px; background-color: #f2f2f2;">&nbsp;</th>
+                <th style="border: 1px solid #ddd; padding: 8px; background-color: #f2f2f2;">&nbsp;</th>
+                <th style="border: 1px solid #ddd; padding: 8px; background-color: #f2f2f2;">&nbsp;</th>
               </tr>
               <tr>
-                <td style="border: 1px solid #ddd; padding: 8px;">Row 1, Cell 1</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">Row 1, Cell 2</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">Row 1, Cell 3</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">&nbsp;</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">&nbsp;</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">&nbsp;</td>
               </tr>
               <tr>
-                <td style="border: 1px solid #ddd; padding: 8px;">Row 2, Cell 1</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">Row 2, Cell 2</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">Row 2, Cell 3</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">&nbsp;</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">&nbsp;</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">&nbsp;</td>
               </tr>
             </table>
           `;
