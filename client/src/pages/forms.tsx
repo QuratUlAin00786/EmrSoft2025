@@ -35,6 +35,7 @@ export default function Forms() {
   const [showClinicDialog, setShowClinicDialog] = useState(false);
   const [showEditClinicDialog, setShowEditClinicDialog] = useState(false);
   const [showPatientDialog, setShowPatientDialog] = useState(false);
+  const [showRecipientDialog, setShowRecipientDialog] = useState(false);
   const [editingClinicInfo, setEditingClinicInfo] = useState({
     name: "",
     address: "",
@@ -1190,7 +1191,137 @@ export default function Forms() {
       });
     }
   };
-  const handleRecipient = () => toast({ title: "Recipient", description: "Recipient information options opened." });
+  const handleRecipient = () => {
+    setShowRecipientDialog(true);
+  };
+
+  const insertRecipientInfo = (infoType: string) => {
+    if (!textareaRef) {
+      toast({
+        title: "Error",
+        description: "Document editor not ready",
+        duration: 3000
+      });
+      return;
+    }
+
+    try {
+      // Get current cursor position or create a new range at the end
+      const selection = window.getSelection();
+      let range;
+
+      if (selection && selection.rangeCount > 0) {
+        range = selection.getRangeAt(0);
+      } else {
+        // Create range at the end of content
+        range = document.createRange();
+        if (textareaRef && textareaRef.childNodes.length > 0) {
+          range.setStartAfter(textareaRef.lastChild!);
+        } else if (textareaRef) {
+          range.setStart(textareaRef, 0);
+        }
+        range.collapse(true);
+      }
+
+      let recipientHTML = '';
+      
+      switch (infoType) {
+        case 'doctor-details':
+          recipientHTML = `
+            <div style="margin: 15px 0; padding: 10px; border: 1px solid #e0e0e0; border-radius: 5px;">
+              <p><strong>Dr. [Doctor Name]</strong></p>
+              <p>[Medical Specialty]</p>
+              <p>[Clinic/Hospital Name]</p>
+              <p>[Address]</p>
+              <p>Phone: [Phone Number]</p>
+              <p>Email: [Email Address]</p>
+            </div>
+          `;
+          break;
+        case 'specialist-referral':
+          recipientHTML = `
+            <div style="margin: 10px 0;">
+              <p><strong>To: Dr. [Specialist Name]</strong></p>
+              <p>[Specialty Department]</p>
+              <p>[Hospital/Clinic Name]</p>
+              <p>Re: [Patient Name] - [Referral Reason]</p>
+            </div>
+          `;
+          break;
+        case 'insurance-company':
+          recipientHTML = `
+            <div style="margin: 10px 0;">
+              <p><strong>[Insurance Company Name]</strong></p>
+              <p>Claims Department</p>
+              <p>[Address]</p>
+              <p>Policy Number: [Policy Number]</p>
+              <p>Member ID: [Member ID]</p>
+            </div>
+          `;
+          break;
+        case 'patient-family':
+          recipientHTML = `
+            <div style="margin: 10px 0;">
+              <p><strong>[Family Member Name]</strong></p>
+              <p>Relationship: [Relationship to Patient]</p>
+              <p>[Address]</p>
+              <p>Phone: [Phone Number]</p>
+              <p>Email: [Email Address]</p>
+            </div>
+          `;
+          break;
+        case 'pharmacy':
+          recipientHTML = `
+            <div style="margin: 10px 0;">
+              <p><strong>[Pharmacy Name]</strong></p>
+              <p>[Pharmacy Address]</p>
+              <p>Phone: [Pharmacy Phone]</p>
+              <p>Fax: [Pharmacy Fax]</p>
+              <p>License: [Pharmacy License Number]</p>
+            </div>
+          `;
+          break;
+      }
+
+      // Create recipient info element
+      const recipientDiv = document.createElement('div');
+      recipientDiv.innerHTML = recipientHTML;
+
+      // Insert recipient info
+      range.insertNode(recipientDiv);
+      
+      // Move cursor after the recipient info
+      range.setStartAfter(recipientDiv);
+      range.collapse(true);
+
+      // Update selection
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+
+      // Update document content
+      setDocumentContent(textareaRef.innerHTML);
+
+      // Focus editor
+      textareaRef.focus();
+
+      // Close dialog
+      setShowRecipientDialog(false);
+
+      toast({
+        title: "✓ Recipient Info Inserted",
+        description: "Recipient information template has been added to your document",
+        duration: 2000
+      });
+
+    } catch (error) {
+      console.error('Recipient info insertion error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to insert recipient information",
+        duration: 3000
+      });
+    }
+  };
   const handleAppointments = () => toast({ title: "Appointments", description: "Appointment information options opened." });
   const handleLabs = () => toast({ title: "Labs", description: "Lab results options opened." });
   const handlePatientRecords = () => toast({ title: "Patient Records", description: "Patient records options opened." });
@@ -2811,6 +2942,96 @@ export default function Forms() {
             
             <div className="flex justify-end">
               <Button variant="outline" onClick={() => setShowPatientDialog(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Recipient Information Dialog */}
+      <Dialog open={showRecipientDialog} onOpenChange={setShowRecipientDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Insert Recipient Information</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
+              {/* Recipient Information Options */}
+              <div>
+                <h3 className="font-semibold mb-2">Recipient Information Templates</h3>
+                <div className="space-y-2">
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertRecipientInfo('doctor-details')}
+                  >
+                    <div>
+                      <div className="font-medium">Doctor Details</div>
+                      <div className="text-sm text-gray-500">Complete doctor information including name, specialty, clinic, and contact details</div>
+                    </div>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertRecipientInfo('specialist-referral')}
+                  >
+                    <div>
+                      <div className="font-medium">Specialist Referral</div>
+                      <div className="text-sm text-gray-500">Referral header for specialist consultations with department and reason</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertRecipientInfo('insurance-company')}
+                  >
+                    <div>
+                      <div className="font-medium">Insurance Company</div>
+                      <div className="text-sm text-gray-500">Insurance company details with policy and member information</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertRecipientInfo('patient-family')}
+                  >
+                    <div>
+                      <div className="font-medium">Patient Family Member</div>
+                      <div className="text-sm text-gray-500">Family member contact information with relationship details</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertRecipientInfo('pharmacy')}
+                  >
+                    <div>
+                      <div className="font-medium">Pharmacy</div>
+                      <div className="text-sm text-gray-500">Pharmacy details including address, phone, fax, and license information</div>
+                    </div>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Information Note */}
+              <div>
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-blue-800 mb-2">Recipient Information Templates</h4>
+                  <p className="text-sm text-blue-700">
+                    These templates insert recipient information for medical letters and documents. 
+                    The placeholders are marked with square brackets (e.g., [Doctor Name]) for easy identification and replacement with actual recipient details.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={() => setShowRecipientDialog(false)}>
                 Cancel
               </Button>
             </div>
