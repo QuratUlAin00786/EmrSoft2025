@@ -1735,10 +1735,14 @@ export default function Forms() {
           <div className="bg-white shadow-sm border border-gray-300 min-h-[600px]" style={{ width: '700px', maxWidth: '700px' }}>
             <div className="p-6">
               <div
-                ref={(el) => setTextareaRef(el as any)}
+                ref={(el) => {
+                  setTextareaRef(el as any);
+                  if (el && documentContent && el.innerHTML !== documentContent) {
+                    el.innerHTML = documentContent;
+                  }
+                }}
                 contentEditable
                 suppressContentEditableWarning={true}
-                dangerouslySetInnerHTML={{ __html: documentContent || '' }}
                 data-placeholder={documentContent ? '' : 'Start typing your document here...'}
                 onInput={(e) => {
                   const content = (e.target as HTMLDivElement).innerHTML;
