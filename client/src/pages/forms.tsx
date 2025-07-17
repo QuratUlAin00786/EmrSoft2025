@@ -26,6 +26,10 @@ export default function Forms() {
   const [textareaRef, setTextareaRef] = useState<HTMLTextAreaElement | null>(null);
   const [selectedHeader, setSelectedHeader] = useState("your-clinic");
   const [showEditClinic, setShowEditClinic] = useState(false);
+  const [showLinkDialog, setShowLinkDialog] = useState(false);
+  const [linkUrl, setLinkUrl] = useState("");
+  const [linkText, setLinkText] = useState("");
+  const [savedSelection, setSavedSelection] = useState<Range | null>(null);
   const [clinicInfo, setClinicInfo] = useState({
     name: "",
     address: "",
@@ -832,7 +836,114 @@ export default function Forms() {
       });
     }
   };
-  const handleLink = () => toast({ title: "Insert Link", description: "Link insertion dialog opened." });
+  const handleLink = () => {
+    // Get current selection
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      setSavedSelection(range.cloneRange());
+      
+      // If text is selected, use it as link text
+      const selectedText = selection.toString();
+      if (selectedText) {
+        setLinkText(selectedText);
+      } else {
+        setLinkText("");
+      }
+    } else {
+      setSavedSelection(null);
+      setLinkText("");
+    }
+    
+    setLinkUrl("");
+    setShowLinkDialog(true);
+  };
+
+  const handleInsertLink = () => {
+    if (!linkUrl.trim()) {
+      toast({
+        title: "URL Required",
+        description: "Please enter a valid URL",
+        duration: 3000
+      });
+      return;
+    }
+
+    if (!textareaRef) {
+      toast({
+        title: "Error",
+        description: "Document editor not ready",
+        duration: 3000
+      });
+      return;
+    }
+
+    try {
+      const selection = window.getSelection();
+      let range = savedSelection;
+
+      if (!range && selection && selection.rangeCount > 0) {
+        range = selection.getRangeAt(0);
+      }
+
+      if (!range) {
+        // Create range at the end of content
+        range = document.createRange();
+        if (textareaRef && textareaRef.childNodes.length > 0) {
+          range.setStartAfter(textareaRef.lastChild!);
+        } else if (textareaRef) {
+          range.setStart(textareaRef, 0);
+        }
+        range.collapse(true);
+      }
+
+      // Create link element
+      const link = document.createElement('a');
+      link.href = linkUrl;
+      link.textContent = linkText || linkUrl;
+      link.style.color = '#2563eb';
+      link.style.textDecoration = 'underline';
+      link.target = '_blank';
+
+      // Insert link
+      range.deleteContents();
+      range.insertNode(link);
+
+      // Move cursor after the link
+      range.setStartAfter(link);
+      range.collapse(true);
+
+      // Update selection
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+
+      // Update document content
+      setDocumentContent(textareaRef.innerHTML);
+
+      // Focus editor
+      textareaRef.focus();
+
+      // Close dialog and reset
+      setShowLinkDialog(false);
+      setLinkUrl("");
+      setLinkText("");
+      setSavedSelection(null);
+
+      toast({
+        title: "✓ Link Inserted",
+        description: `Link "${linkText || linkUrl}" added to document`,
+        duration: 2000
+      });
+
+    } catch (error) {
+      console.error('Link insertion error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to insert link",
+        duration: 3000
+      });
+    }
+  };
   const handleHighlight = () => {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0 || selection.toString().trim() === '') {
@@ -1646,6 +1757,46 @@ export default function Forms() {
         </div>
       </div>
       </div>
+
+      {/* Insert Link Dialog */}
+      <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Insert Link</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="link-url">URL</Label>
+              <Input
+                id="link-url"
+                value={linkUrl}
+                onChange={(e) => setLinkUrl(e.target.value)}
+                placeholder="https://example.com"
+                className="w-full"
+              />
+            </div>
+            <div>
+              <Label htmlFor="link-text">Link Text</Label>
+              <Input
+                id="link-text"
+                value={linkText}
+                onChange={(e) => setLinkText(e.target.value)}
+                placeholder="Click here"
+                className="w-full"
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setShowLinkDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleInsertLink}>
+                Insert Link
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Toaster />
     </div>
   );
