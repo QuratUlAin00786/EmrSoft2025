@@ -1738,10 +1738,32 @@ export default function Forms() {
                 ref={(el) => setTextareaRef(el as any)}
                 contentEditable
                 suppressContentEditableWarning={true}
-                dangerouslySetInnerHTML={{ __html: documentContent || 'Start typing your document here...' }}
+                dangerouslySetInnerHTML={{ __html: documentContent || '<span style="color: #999;">Start typing your document here...</span>' }}
                 onInput={(e) => {
                   const content = (e.target as HTMLDivElement).innerHTML;
+                  
+                  // Remove placeholder text when user starts typing
+                  if (content.includes('Start typing your document here...')) {
+                    const cleanContent = content.replace('<span style="color: #999;">Start typing your document here...</span>', '');
+                    if (cleanContent.trim() !== '') {
+                      setDocumentContent(cleanContent);
+                      setTimeout(() => {
+                        if (e.target) {
+                          (e.target as HTMLDivElement).innerHTML = cleanContent;
+                        }
+                      }, 0);
+                      return;
+                    }
+                  }
+                  
                   setDocumentContent(content);
+                }}
+                onFocus={(e) => {
+                  // Clear placeholder on focus if it's still there
+                  if (documentContent === '' || documentContent.includes('Start typing your document here...')) {
+                    setDocumentContent('');
+                    (e.target as HTMLDivElement).innerHTML = '';
+                  }
                 }}
                 onClick={(e) => {
                   // Handle link clicks
