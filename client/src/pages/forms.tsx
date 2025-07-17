@@ -660,14 +660,14 @@ export default function Forms() {
       fileInput.onchange = (event: any) => {
         const file = event.target.files?.[0];
         if (file) {
-          // Create a proper HTML file attachment with styling
+          // Create a proper inline file attachment with styling
           const fileSize = (file.size / 1024).toFixed(1);
           const fileAttachmentHTML = `
-            <div style="display: inline-block; background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 6px; padding: 8px 12px; margin: 4px; color: #0369a1; font-family: Arial, sans-serif; font-size: 14px;">
-              <span style="margin-right: 6px;">📎</span>
+            <span style="display: inline-block; background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 4px; padding: 4px 8px; margin: 0 2px; color: #0369a1; font-family: Arial, sans-serif; font-size: 12px; vertical-align: middle;">
+              <span style="margin-right: 4px;">📎</span>
               <strong>${file.name}</strong>
-              <span style="color: #64748b; margin-left: 8px;">(${fileSize} KB)</span>
-            </div>
+              <span style="color: #64748b; margin-left: 4px;">(${fileSize} KB)</span>
+            </span>
           `;
           
           // Insert the file attachment at cursor position
