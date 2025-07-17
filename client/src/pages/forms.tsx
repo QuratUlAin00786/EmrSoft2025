@@ -36,6 +36,7 @@ export default function Forms() {
   const [showEditClinicDialog, setShowEditClinicDialog] = useState(false);
   const [showPatientDialog, setShowPatientDialog] = useState(false);
   const [showRecipientDialog, setShowRecipientDialog] = useState(false);
+  const [showAppointmentsDialog, setShowAppointmentsDialog] = useState(false);
   const [editingClinicInfo, setEditingClinicInfo] = useState({
     name: "",
     address: "",
@@ -1322,7 +1323,138 @@ export default function Forms() {
       });
     }
   };
-  const handleAppointments = () => toast({ title: "Appointments", description: "Appointment information options opened." });
+  const handleAppointments = () => {
+    setShowAppointmentsDialog(true);
+  };
+
+  const insertAppointmentInfo = (infoType: string) => {
+    if (!textareaRef) {
+      toast({
+        title: "Error",
+        description: "Document editor not ready",
+        duration: 3000
+      });
+      return;
+    }
+
+    try {
+      // Get current cursor position or create a new range at the end
+      const selection = window.getSelection();
+      let range;
+
+      if (selection && selection.rangeCount > 0) {
+        range = selection.getRangeAt(0);
+      } else {
+        // Create range at the end of content
+        range = document.createRange();
+        if (textareaRef && textareaRef.childNodes.length > 0) {
+          range.setStartAfter(textareaRef.lastChild!);
+        } else if (textareaRef) {
+          range.setStart(textareaRef, 0);
+        }
+        range.collapse(true);
+      }
+
+      let appointmentHTML = '';
+      
+      switch (infoType) {
+        case 'appointment-details':
+          appointmentHTML = `
+            <div style="margin: 15px 0; padding: 10px; border: 1px solid #e0e0e0; border-radius: 5px;">
+              <p><strong>Appointment Details</strong></p>
+              <p>Date: [Appointment Date]</p>
+              <p>Time: [Appointment Time]</p>
+              <p>Duration: [Duration]</p>
+              <p>Provider: Dr. [Provider Name]</p>
+              <p>Department: [Department]</p>
+              <p>Location: [Clinic Location]</p>
+            </div>
+          `;
+          break;
+        case 'next-appointment':
+          appointmentHTML = `
+            <div style="margin: 10px 0;">
+              <p><strong>Next Appointment:</strong></p>
+              <p>Date: [Next Appointment Date]</p>
+              <p>Time: [Next Appointment Time]</p>
+              <p>Provider: Dr. [Provider Name]</p>
+              <p>Purpose: [Appointment Purpose]</p>
+            </div>
+          `;
+          break;
+        case 'appointment-history':
+          appointmentHTML = `
+            <div style="margin: 10px 0;">
+              <p><strong>Recent Appointments:</strong></p>
+              <p>• [Date 1] - Dr. [Provider 1] - [Purpose 1]</p>
+              <p>• [Date 2] - Dr. [Provider 2] - [Purpose 2]</p>
+              <p>• [Date 3] - Dr. [Provider 3] - [Purpose 3]</p>
+            </div>
+          `;
+          break;
+        case 'follow-up':
+          appointmentHTML = `
+            <div style="margin: 10px 0;">
+              <p><strong>Follow-up Appointment Required:</strong></p>
+              <p>Recommended timeframe: [Timeframe]</p>
+              <p>Purpose: [Follow-up Purpose]</p>
+              <p>Please contact our office at [Phone Number] to schedule.</p>
+            </div>
+          `;
+          break;
+        case 'appointment-reminder':
+          appointmentHTML = `
+            <div style="margin: 10px 0;">
+              <p><strong>Appointment Reminder</strong></p>
+              <p>You have an upcoming appointment:</p>
+              <p>Date: [Appointment Date]</p>
+              <p>Time: [Appointment Time]</p>
+              <p>Provider: Dr. [Provider Name]</p>
+              <p>Please arrive 15 minutes early and bring your insurance card and ID.</p>
+            </div>
+          `;
+          break;
+      }
+
+      // Create appointment info element
+      const appointmentDiv = document.createElement('div');
+      appointmentDiv.innerHTML = appointmentHTML;
+
+      // Insert appointment info
+      range.insertNode(appointmentDiv);
+      
+      // Move cursor after the appointment info
+      range.setStartAfter(appointmentDiv);
+      range.collapse(true);
+
+      // Update selection
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+
+      // Update document content
+      setDocumentContent(textareaRef.innerHTML);
+
+      // Focus editor
+      textareaRef.focus();
+
+      // Close dialog
+      setShowAppointmentsDialog(false);
+
+      toast({
+        title: "✓ Appointment Info Inserted",
+        description: "Appointment information template has been added to your document",
+        duration: 2000
+      });
+
+    } catch (error) {
+      console.error('Appointment info insertion error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to insert appointment information",
+        duration: 3000
+      });
+    }
+  };
   const handleLabs = () => toast({ title: "Labs", description: "Lab results options opened." });
   const handlePatientRecords = () => toast({ title: "Patient Records", description: "Patient records options opened." });
   const handleInsertProduct = () => toast({ title: "Insert Product", description: "Product insertion dialog opened." });
@@ -3032,6 +3164,96 @@ export default function Forms() {
             
             <div className="flex justify-end">
               <Button variant="outline" onClick={() => setShowRecipientDialog(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Appointments Information Dialog */}
+      <Dialog open={showAppointmentsDialog} onOpenChange={setShowAppointmentsDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Insert Appointment Information</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
+              {/* Appointment Information Options */}
+              <div>
+                <h3 className="font-semibold mb-2">Appointment Information Templates</h3>
+                <div className="space-y-2">
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertAppointmentInfo('appointment-details')}
+                  >
+                    <div>
+                      <div className="font-medium">Appointment Details</div>
+                      <div className="text-sm text-gray-500">Complete appointment information including date, time, provider, and location</div>
+                    </div>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertAppointmentInfo('next-appointment')}
+                  >
+                    <div>
+                      <div className="font-medium">Next Appointment</div>
+                      <div className="text-sm text-gray-500">Information about the patient's next scheduled appointment</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertAppointmentInfo('appointment-history')}
+                  >
+                    <div>
+                      <div className="font-medium">Appointment History</div>
+                      <div className="text-sm text-gray-500">List of recent appointments with dates and providers</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertAppointmentInfo('follow-up')}
+                  >
+                    <div>
+                      <div className="font-medium">Follow-up Required</div>
+                      <div className="text-sm text-gray-500">Follow-up appointment recommendation with timeframe and purpose</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertAppointmentInfo('appointment-reminder')}
+                  >
+                    <div>
+                      <div className="font-medium">Appointment Reminder</div>
+                      <div className="text-sm text-gray-500">Patient reminder with appointment details and instructions</div>
+                    </div>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Information Note */}
+              <div>
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-blue-800 mb-2">Appointment Information Templates</h4>
+                  <p className="text-sm text-blue-700">
+                    These templates insert appointment-related information for medical documents and letters. 
+                    The placeholders are marked with square brackets (e.g., [Appointment Date]) for easy identification and replacement with actual appointment details.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={() => setShowAppointmentsDialog(false)}>
                 Cancel
               </Button>
             </div>
