@@ -1524,11 +1524,11 @@ export default function Forms() {
         </div>
       </div>
 
-      {/* Document Editor - exact match to Semble */}
+      {/* Document Editor - expandable page layout */}
       <div className="flex-1 bg-gray-100 overflow-y-auto min-h-0">
-        <div className="h-full flex items-center justify-center p-4">
-          <div className="bg-white shadow-sm border border-gray-300" style={{ width: '500px', height: '300px' }}>
-            <div className="h-full p-4">
+        <div className="h-full flex items-start justify-center p-4">
+          <div className="bg-white shadow-sm border border-gray-300 min-h-[600px]" style={{ width: '700px', maxWidth: '700px' }}>
+            <div className="p-6">
               <div
                 ref={setTextareaRef}
                 contentEditable
@@ -1539,11 +1539,14 @@ export default function Forms() {
                     setDocumentContent(content);
                   }
                 }}
-                className="w-full h-full resize-none border-none outline-none text-black leading-normal bg-transparent"
+                className="w-full resize-none border-none outline-none text-black leading-normal bg-transparent"
                 style={{ 
                   fontSize: fontSize,
                   lineHeight: '1.6',
-                  minHeight: '100%'
+                  minHeight: '500px',
+                  maxWidth: '100%',
+                  wordWrap: 'break-word',
+                  overflowWrap: 'break-word'
                 }}
                 suppressContentEditableWarning={true}
               >
