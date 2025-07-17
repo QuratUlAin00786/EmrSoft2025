@@ -2362,6 +2362,151 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Document API routes
+  app.get("/api/documents", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const documents = await storage.getDocumentsByOrganization(req.tenant!.id, 50);
+      res.json(documents);
+    } catch (error) {
+      console.error("Error fetching documents:", error);
+      res.status(500).json({ error: "Failed to fetch documents" });
+    }
+  });
+
+  app.get("/api/documents/user", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const documents = await storage.getDocumentsByUser(req.user.id, req.tenant!.id);
+      res.json(documents);
+    } catch (error) {
+      console.error("Error fetching user documents:", error);
+      res.status(500).json({ error: "Failed to fetch user documents" });
+    }
+  });
+
+  app.post("/api/documents", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const documentData = z.object({
+        name: z.string().min(1),
+        type: z.string().optional().default("medical_form"),
+        content: z.string().min(1),
+        metadata: z.object({
+          subject: z.string().optional(),
+          recipient: z.string().optional(),
+          location: z.string().optional(),
+          practitioner: z.string().optional(),
+          header: z.string().optional(),
+          templateUsed: z.string().optional(),
+        }).optional().default({}),
+        isTemplate: z.boolean().optional().default(false),
+      }).parse(req.body);
+
+      const document = await storage.createDocument({
+        ...documentData,
+        organizationId: req.tenant!.id,
+        userId: req.user.id,
+      });
+
+      res.status(201).json(document);
+    } catch (error) {
+      console.error("Error creating document:", error);
+      res.status(500).json({ error: "Failed to create document" });
+    }
+  });
+
+  app.get("/api/documents/:id", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const documentId = parseInt(req.params.id);
+      if (isNaN(documentId)) {
+        return res.status(400).json({ error: "Invalid document ID" });
+      }
+
+      const document = await storage.getDocument(documentId, req.tenant!.id);
+      if (!document) {
+        return res.status(404).json({ error: "Document not found" });
+      }
+
+      res.json(document);
+    } catch (error) {
+      console.error("Error fetching document:", error);
+      res.status(500).json({ error: "Failed to fetch document" });
+    }
+  });
+
+  app.put("/api/documents/:id", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const documentId = parseInt(req.params.id);
+      if (isNaN(documentId)) {
+        return res.status(400).json({ error: "Invalid document ID" });
+      }
+
+      const updateData = z.object({
+        name: z.string().min(1).optional(),
+        content: z.string().min(1).optional(),
+        metadata: z.object({
+          subject: z.string().optional(),
+          recipient: z.string().optional(),
+          location: z.string().optional(),
+          practitioner: z.string().optional(),
+          header: z.string().optional(),
+          templateUsed: z.string().optional(),
+        }).optional(),
+      }).parse(req.body);
+
+      const document = await storage.updateDocument(documentId, req.tenant!.id, updateData);
+      if (!document) {
+        return res.status(404).json({ error: "Document not found" });
+      }
+
+      res.json(document);
+    } catch (error) {
+      console.error("Error updating document:", error);
+      res.status(500).json({ error: "Failed to update document" });
+    }
+  });
+
+  app.delete("/api/documents/:id", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const documentId = parseInt(req.params.id);
+      if (isNaN(documentId)) {
+        return res.status(400).json({ error: "Invalid document ID" });
+      }
+
+      const deleted = await storage.deleteDocument(documentId, req.tenant!.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Document not found" });
+      }
+
+      res.json({ message: "Document deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting document:", error);
+      res.status(500).json({ error: "Failed to delete document" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

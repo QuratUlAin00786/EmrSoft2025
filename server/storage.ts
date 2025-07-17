@@ -1,5 +1,5 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions,
+  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Patient, type InsertPatient,
@@ -10,7 +10,8 @@ import {
   type PatientCommunication, type InsertPatientCommunication,
   type Consultation, type InsertConsultation,
   type Notification, type InsertNotification,
-  type Prescription, type InsertPrescription
+  type Prescription, type InsertPrescription,
+  type Document, type InsertDocument
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, not, sql } from "drizzle-orm";
@@ -138,6 +139,14 @@ export interface IStorage {
   // Lab Results
   getLabResults(organizationId: number): Promise<any[]>;
   createLabResult(labResult: any): Promise<any>;
+
+  // Documents
+  getDocument(id: number, organizationId: number): Promise<Document | undefined>;
+  getDocumentsByUser(userId: number, organizationId: number): Promise<Document[]>;
+  getDocumentsByOrganization(organizationId: number, limit?: number): Promise<Document[]>;
+  createDocument(document: InsertDocument): Promise<Document>;
+  updateDocument(id: number, organizationId: number, updates: Partial<InsertDocument>): Promise<Document | undefined>;
+  deleteDocument(id: number, organizationId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1376,6 +1385,68 @@ export class DatabaseStorage implements IStorage {
     };
 
     return campaign;
+  }
+
+  // Documents implementation
+  async getDocument(id: number, organizationId: number): Promise<Document | undefined> {
+    const [document] = await db
+      .select()
+      .from(documents)
+      .where(and(eq(documents.id, id), eq(documents.organizationId, organizationId)));
+    return document;
+  }
+
+  async getDocumentsByUser(userId: number, organizationId: number): Promise<Document[]> {
+    return await db
+      .select()
+      .from(documents)
+      .where(and(eq(documents.userId, userId), eq(documents.organizationId, organizationId)))
+      .orderBy(desc(documents.createdAt));
+  }
+
+  async getDocumentsByOrganization(organizationId: number, limit?: number): Promise<Document[]> {
+    let query = db
+      .select()
+      .from(documents)
+      .where(eq(documents.organizationId, organizationId))
+      .orderBy(desc(documents.createdAt));
+
+    if (limit) {
+      query = query.limit(limit);
+    }
+
+    return await query;
+  }
+
+  async createDocument(document: InsertDocument): Promise<Document> {
+    const [newDocument] = await db
+      .insert(documents)
+      .values({
+        ...document,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newDocument;
+  }
+
+  async updateDocument(id: number, organizationId: number, updates: Partial<InsertDocument>): Promise<Document | undefined> {
+    const [updatedDocument] = await db
+      .update(documents)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(documents.id, id), eq(documents.organizationId, organizationId)))
+      .returning();
+    return updatedDocument;
+  }
+
+  async deleteDocument(id: number, organizationId: number): Promise<boolean> {
+    const result = await db
+      .delete(documents)
+      .where(and(eq(documents.id, id), eq(documents.organizationId, organizationId)));
+    return result.rowCount > 0;
   }
 }
 

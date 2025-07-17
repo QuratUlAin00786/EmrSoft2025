@@ -2226,22 +2226,40 @@ export default function Forms() {
       const now = new Date();
       const documentName = `Document_${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}`;
       
-      // Create a simple data structure to save
+      // Create document data
       const documentData = {
         name: documentName,
         content: documentContent,
-        createdAt: now.toISOString(),
-        type: 'medical_form'
+        type: 'medical_form',
+        metadata: {
+          subject: 'Medical Form',
+          recipient: 'Patient',
+          location: clinicInfo.name || 'Clinic',
+          practitioner: 'Dr. Provider',
+          header: selectedHeader,
+          templateUsed: 'Custom Form'
+        }
       };
 
-      // Save to localStorage as a simple solution
-      const savedDocuments = JSON.parse(localStorage.getItem('cura_saved_documents') || '[]');
-      savedDocuments.push(documentData);
-      localStorage.setItem('cura_saved_documents', JSON.stringify(savedDocuments));
+      // Save to database
+      const response = await fetch('/api/documents', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        },
+        body: JSON.stringify(documentData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const savedDocument = await response.json();
 
       toast({
         title: "✓ Document Saved",
-        description: `Document saved successfully as "${documentName}"`,
+        description: `Document saved successfully as "${documentName}" to database`,
         duration: 3000
       });
 
@@ -2249,7 +2267,7 @@ export default function Forms() {
       console.error('Save error:', error);
       toast({
         title: "Error",
-        description: "Failed to save document",
+        description: "Failed to save document to database. Please try again.",
         duration: 3000
       });
     }

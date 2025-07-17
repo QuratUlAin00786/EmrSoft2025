@@ -210,6 +210,27 @@ export const aiInsights = pgTable("ai_insights", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Documents - For Forms and other document storage
+export const documents = pgTable("documents", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  userId: integer("user_id").notNull(),
+  name: text("name").notNull(),
+  type: varchar("type", { length: 50 }).notNull().default("medical_form"), // medical_form, letter, report, etc.
+  content: text("content").notNull(), // HTML content of the document
+  metadata: jsonb("metadata").$type<{
+    subject?: string;
+    recipient?: string;
+    location?: string;
+    practitioner?: string;
+    header?: string;
+    templateUsed?: string;
+  }>().default({}),
+  isTemplate: boolean("is_template").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Subscriptions
 export const subscriptions = pgTable("subscriptions", {
   id: serial("id").primaryKey(),
@@ -466,6 +487,17 @@ export const aiInsightsRelations = relations(aiInsights, ({ one }) => ({
   }),
 }));
 
+export const documentsRelations = relations(documents, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [documents.organizationId],
+    references: [organizations.id],
+  }),
+  user: one(users, {
+    fields: [documents.userId],
+    references: [users.id],
+  }),
+}));
+
 export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
   organization: one(organizations, {
     fields: [subscriptions.organizationId],
@@ -544,6 +576,12 @@ export const insertAiInsightSchema = createInsertSchema(aiInsights).omit({
   createdAt: true,
 });
 
+export const insertDocumentSchema = createInsertSchema(documents).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({
   id: true,
   createdAt: true,
@@ -592,6 +630,9 @@ export type InsertAppointment = z.infer<typeof insertAppointmentSchema>;
 
 export type AiInsight = typeof aiInsights.$inferSelect;
 export type InsertAiInsight = z.infer<typeof insertAiInsightSchema>;
+
+export type Document = typeof documents.$inferSelect;
+export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 
 export type Subscription = typeof subscriptions.$inferSelect;
 export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
