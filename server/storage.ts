@@ -144,6 +144,7 @@ export interface IStorage {
   getDocument(id: number, organizationId: number): Promise<Document | undefined>;
   getDocumentsByUser(userId: number, organizationId: number): Promise<Document[]>;
   getDocumentsByOrganization(organizationId: number, limit?: number): Promise<Document[]>;
+  getTemplatesByOrganization(organizationId: number, limit?: number): Promise<Document[]>;
   createDocument(document: InsertDocument): Promise<Document>;
   updateDocument(id: number, organizationId: number, updates: Partial<InsertDocument>): Promise<Document | undefined>;
   deleteDocument(id: number, organizationId: number): Promise<boolean>;
@@ -1409,6 +1410,20 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(documents)
       .where(eq(documents.organizationId, organizationId))
+      .orderBy(desc(documents.createdAt));
+
+    if (limit) {
+      query = query.limit(limit);
+    }
+
+    return await query;
+  }
+
+  async getTemplatesByOrganization(organizationId: number, limit?: number): Promise<Document[]> {
+    let query = db
+      .select()
+      .from(documents)
+      .where(and(eq(documents.organizationId, organizationId), eq(documents.isTemplate, true)))
       .orderBy(desc(documents.createdAt));
 
     if (limit) {

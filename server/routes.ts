@@ -2369,8 +2369,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "User not authenticated" });
       }
 
-      const documents = await storage.getDocumentsByOrganization(req.tenant!.id, 50);
-      res.json(documents);
+      const isTemplatesOnly = req.query.templates === 'true';
+      
+      if (isTemplatesOnly) {
+        // Fetch only templates
+        const templates = await storage.getTemplatesByOrganization(req.tenant!.id, 50);
+        res.json(templates);
+      } else {
+        // Fetch all documents
+        const documents = await storage.getDocumentsByOrganization(req.tenant!.id, 50);
+        res.json(documents);
+      }
     } catch (error) {
       console.error("Error fetching documents:", error);
       res.status(500).json({ error: "Failed to fetch documents" });

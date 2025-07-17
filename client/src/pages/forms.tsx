@@ -69,6 +69,21 @@ export default function Forms() {
     }
   });
 
+  // Fetch saved templates
+  const { data: templates = [] } = useQuery({
+    queryKey: ["/api/documents/templates"],
+    queryFn: async () => {
+      const response = await fetch('/api/documents?templates=true', {
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        }
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    }
+  });
+
   // Update clinic info when organization data loads
   useEffect(() => {
     if (organization) {
@@ -2211,6 +2226,44 @@ export default function Forms() {
     setShowMoreOptionsDialog(true);
   };
 
+  const loadTemplate = async (templateId: number) => {
+    try {
+      const response = await fetch(`/api/documents/${templateId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const template = await response.json();
+      setDocumentContent(template.content);
+      
+      // Update the editor content
+      if (textareaRef) {
+        textareaRef.innerHTML = template.content;
+      }
+
+      toast({
+        title: "✓ Template Loaded",
+        description: `Template "${template.name}" loaded successfully`,
+        duration: 3000
+      });
+
+      setShowTemplateDialog(false);
+    } catch (error) {
+      console.error('Template loading error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load template. Please try again.",
+        duration: 3000
+      });
+    }
+  };
+
   const handleSave = async () => {
     try {
       if (!documentContent || documentContent.trim() === '') {
@@ -2226,13 +2279,14 @@ export default function Forms() {
       const now = new Date();
       const documentName = `Document_${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}`;
       
-      // Create document data
-      const documentData = {
+      // Create template data
+      const templateData = {
         name: documentName,
         content: documentContent,
         type: 'medical_form',
+        isTemplate: true,
         metadata: {
-          subject: 'Medical Form',
+          subject: 'Medical Form Template',
           recipient: 'Patient',
           location: clinicInfo.name || 'Clinic',
           practitioner: 'Dr. Provider',
@@ -2248,18 +2302,18 @@ export default function Forms() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
         },
-        body: JSON.stringify(documentData)
+        body: JSON.stringify(templateData)
       });
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const savedDocument = await response.json();
+      const savedTemplate = await response.json();
 
       toast({
-        title: "✓ Document Saved",
-        description: `Document saved successfully as "${documentName}" to database`,
+        title: "✓ Template Saved",
+        description: `Template saved successfully as "${documentName}" and is now available for reuse`,
         duration: 3000
       });
 
@@ -3099,7 +3153,7 @@ export default function Forms() {
             className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 text-sm font-medium"
             onClick={handleSave}
           >
-            💾 Save Document
+            💾 Save Template
           </Button>
         </div>
       </div>
@@ -3197,6 +3251,30 @@ export default function Forms() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
+              {/* Saved Templates */}
+              {templates && templates.length > 0 && (
+                <div>
+                  <h3 className="font-semibold mb-2">Saved Templates</h3>
+                  <div className="space-y-2">
+                    {templates.map((template: any) => (
+                      <Button
+                        key={template.id}
+                        variant="outline"
+                        className="w-full text-left justify-start h-auto p-4"
+                        onClick={() => loadTemplate(template.id)}
+                      >
+                        <div>
+                          <div className="font-medium">{template.name}</div>
+                          <div className="text-sm text-gray-500">
+                            Created: {new Date(template.createdAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Medical Letter Templates */}
               <div>
                 <h3 className="font-semibold mb-2">Medical Letter Templates</h3>
