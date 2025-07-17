@@ -33,6 +33,14 @@ export default function Forms() {
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const [showLogoDialog, setShowLogoDialog] = useState(false);
   const [showClinicDialog, setShowClinicDialog] = useState(false);
+  const [showEditClinicDialog, setShowEditClinicDialog] = useState(false);
+  const [editingClinicInfo, setEditingClinicInfo] = useState({
+    name: "",
+    address: "",
+    phone: "",
+    email: "",
+    website: ""
+  });
   const [clinicInfo, setClinicInfo] = useState({
     name: "",
     address: "",
@@ -1024,6 +1032,39 @@ export default function Forms() {
       });
     }
   };
+
+  const handleEditClinicInfo = () => {
+    // Initialize editing form with current clinic info
+    setEditingClinicInfo({
+      name: clinicInfo.name || "",
+      address: clinicInfo.address || "",
+      phone: clinicInfo.phone || "",
+      email: clinicInfo.email || "",
+      website: clinicInfo.website || ""
+    });
+    setShowEditClinicDialog(true);
+  };
+
+  const saveClinicInfo = () => {
+    // Update clinic info state with edited values
+    setClinicInfo({
+      name: editingClinicInfo.name,
+      address: editingClinicInfo.address,
+      phone: editingClinicInfo.phone,
+      email: editingClinicInfo.email,
+      website: editingClinicInfo.website
+    });
+
+    // Close edit dialog
+    setShowEditClinicDialog(false);
+
+    toast({
+      title: "✓ Clinic Information Updated",
+      description: "Your clinic information has been saved successfully",
+      duration: 2000
+    });
+  };
+
   const handlePatient = () => toast({ title: "Patient", description: "Patient information options opened." });
   const handleRecipient = () => toast({ title: "Recipient", description: "Recipient information options opened." });
   const handleAppointments = () => toast({ title: "Appointments", description: "Appointment information options opened." });
@@ -2464,9 +2505,13 @@ export default function Forms() {
                   <div><strong>Phone:</strong> {clinicInfo.phone || 'Not set'}</div>
                   <div><strong>Email:</strong> {clinicInfo.email || 'Not set'}</div>
                   <div><strong>Website:</strong> {clinicInfo.website || 'Not set'}</div>
-                  <div className="text-sm text-gray-600 mt-2">
-                    You can edit clinic information using the "Edit Clinic Info" button in the header section above.
-                  </div>
+                  <Button 
+                    onClick={handleEditClinicInfo} 
+                    className="mt-3 w-full"
+                    variant="default"
+                  >
+                    Edit Clinic Info
+                  </Button>
                 </div>
               </div>
             </div>
@@ -2474,6 +2519,85 @@ export default function Forms() {
             <div className="flex justify-end">
               <Button variant="outline" onClick={() => setShowClinicDialog(false)}>
                 Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Clinic Information Dialog */}
+      <Dialog open={showEditClinicDialog} onOpenChange={setShowEditClinicDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Clinic Information</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-medium">Clinic Name</label>
+                <input
+                  type="text"
+                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter clinic name"
+                  value={editingClinicInfo.name}
+                  onChange={(e) => setEditingClinicInfo({...editingClinicInfo, name: e.target.value})}
+                />
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium">Address</label>
+                <input
+                  type="text"
+                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter clinic address"
+                  value={editingClinicInfo.address}
+                  onChange={(e) => setEditingClinicInfo({...editingClinicInfo, address: e.target.value})}
+                />
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium">Phone Number</label>
+                <input
+                  type="text"
+                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter phone number"
+                  value={editingClinicInfo.phone}
+                  onChange={(e) => setEditingClinicInfo({...editingClinicInfo, phone: e.target.value})}
+                />
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium">Email Address</label>
+                <input
+                  type="email"
+                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter email address"
+                  value={editingClinicInfo.email}
+                  onChange={(e) => setEditingClinicInfo({...editingClinicInfo, email: e.target.value})}
+                />
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium">Website</label>
+                <input
+                  type="url"
+                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter website URL"
+                  value={editingClinicInfo.website}
+                  onChange={(e) => setEditingClinicInfo({...editingClinicInfo, website: e.target.value})}
+                />
+              </div>
+            </div>
+            
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowEditClinicDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={saveClinicInfo}>
+                Save Changes
               </Button>
             </div>
           </div>
