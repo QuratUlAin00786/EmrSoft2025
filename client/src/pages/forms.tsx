@@ -32,6 +32,7 @@ export default function Forms() {
   const [savedSelection, setSavedSelection] = useState<Range | null>(null);
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const [showLogoDialog, setShowLogoDialog] = useState(false);
+  const [showClinicDialog, setShowClinicDialog] = useState(false);
   const [clinicInfo, setClinicInfo] = useState({
     name: "",
     address: "",
@@ -902,7 +903,127 @@ export default function Forms() {
       });
     }
   };
-  const handleClinic = () => toast({ title: "Clinic", description: "Clinic information options opened." });
+  const handleClinic = () => {
+    setShowClinicDialog(true);
+  };
+
+  const insertClinicInfo = (infoType: string) => {
+    if (!textareaRef) {
+      toast({
+        title: "Error",
+        description: "Document editor not ready",
+        duration: 3000
+      });
+      return;
+    }
+
+    try {
+      // Get current cursor position or create a new range at the end
+      const selection = window.getSelection();
+      let range;
+
+      if (selection && selection.rangeCount > 0) {
+        range = selection.getRangeAt(0);
+      } else {
+        // Create range at the end of content
+        range = document.createRange();
+        if (textareaRef && textareaRef.childNodes.length > 0) {
+          range.setStartAfter(textareaRef.lastChild!);
+        } else if (textareaRef) {
+          range.setStart(textareaRef, 0);
+        }
+        range.collapse(true);
+      }
+
+      let clinicHTML = '';
+      
+      switch (infoType) {
+        case 'full-header':
+          clinicHTML = `
+            <div style="text-align: center; margin: 20px 0; padding: 15px; border-bottom: 2px solid #0D9488;">
+              <h2 style="color: #0D9488; margin: 0; font-size: 24px; font-weight: bold;">${clinicInfo.name || 'Your Clinic Name'}</h2>
+              <p style="margin: 5px 0; color: #666;">${clinicInfo.address || 'Clinic Address'}</p>
+              <p style="margin: 5px 0; color: #666;">Phone: ${clinicInfo.phone || 'Phone Number'} | Email: ${clinicInfo.email || 'Email Address'}</p>
+              <p style="margin: 5px 0; color: #666;">Website: ${clinicInfo.website || 'Website URL'}</p>
+            </div>
+          `;
+          break;
+        case 'name-only':
+          clinicHTML = `<strong>${clinicInfo.name || 'Your Clinic Name'}</strong>`;
+          break;
+        case 'contact-info':
+          clinicHTML = `
+            <div style="margin: 10px 0;">
+              <p><strong>Contact Information:</strong></p>
+              <p>Address: ${clinicInfo.address || 'Clinic Address'}</p>
+              <p>Phone: ${clinicInfo.phone || 'Phone Number'}</p>
+              <p>Email: ${clinicInfo.email || 'Email Address'}</p>
+              <p>Website: ${clinicInfo.website || 'Website URL'}</p>
+            </div>
+          `;
+          break;
+        case 'letterhead':
+          clinicHTML = `
+            <div style="text-align: center; margin: 20px 0; padding: 20px; background: #f8f9fa; border: 1px solid #e9ecef;">
+              <h1 style="color: #0D9488; margin: 0; font-size: 28px; font-weight: bold;">${clinicInfo.name || 'Medical Center'}</h1>
+              <p style="margin: 10px 0; color: #666; font-style: italic;">Excellence in Healthcare</p>
+              <hr style="width: 50%; border: 1px solid #0D9488; margin: 15px auto;">
+              <p style="margin: 5px 0; color: #333;">${clinicInfo.address || 'Address'}</p>
+              <p style="margin: 5px 0; color: #333;">Tel: ${clinicInfo.phone || 'Phone'} | Email: ${clinicInfo.email || 'Email'}</p>
+            </div>
+          `;
+          break;
+        case 'signature-block':
+          clinicHTML = `
+            <div style="margin: 30px 0; padding: 15px; border-top: 1px solid #ccc;">
+              <p><strong>${clinicInfo.name || 'Your Clinic Name'}</strong></p>
+              <p>${clinicInfo.address || 'Clinic Address'}</p>
+              <p>Phone: ${clinicInfo.phone || 'Phone Number'}</p>
+              <p>Email: ${clinicInfo.email || 'Email Address'}</p>
+            </div>
+          `;
+          break;
+      }
+
+      // Create clinic info element
+      const clinicDiv = document.createElement('div');
+      clinicDiv.innerHTML = clinicHTML;
+
+      // Insert clinic info
+      range.insertNode(clinicDiv);
+      
+      // Move cursor after the clinic info
+      range.setStartAfter(clinicDiv);
+      range.collapse(true);
+
+      // Update selection
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+
+      // Update document content
+      setDocumentContent(textareaRef.innerHTML);
+
+      // Focus editor
+      textareaRef.focus();
+
+      // Close dialog
+      setShowClinicDialog(false);
+
+      toast({
+        title: "✓ Clinic Info Inserted",
+        description: "Clinic information has been added to your document",
+        duration: 2000
+      });
+
+    } catch (error) {
+      console.error('Clinic info insertion error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to insert clinic information",
+        duration: 3000
+      });
+    }
+  };
   const handlePatient = () => toast({ title: "Patient", description: "Patient information options opened." });
   const handleRecipient = () => toast({ title: "Recipient", description: "Recipient information options opened." });
   const handleAppointments = () => toast({ title: "Appointments", description: "Appointment information options opened." });
@@ -2258,6 +2379,100 @@ export default function Forms() {
             
             <div className="flex justify-end">
               <Button variant="outline" onClick={() => setShowLogoDialog(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Clinic Information Dialog */}
+      <Dialog open={showClinicDialog} onOpenChange={setShowClinicDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Insert Clinic Information</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
+              {/* Clinic Information Options */}
+              <div>
+                <h3 className="font-semibold mb-2">Clinic Information Templates</h3>
+                <div className="space-y-2">
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertClinicInfo('full-header')}
+                  >
+                    <div>
+                      <div className="font-medium">Full Header</div>
+                      <div className="text-sm text-gray-500">Complete clinic header with name, address, phone, email, and website</div>
+                    </div>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertClinicInfo('letterhead')}
+                  >
+                    <div>
+                      <div className="font-medium">Professional Letterhead</div>
+                      <div className="text-sm text-gray-500">Formal letterhead design with clinic branding</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertClinicInfo('name-only')}
+                  >
+                    <div>
+                      <div className="font-medium">Clinic Name Only</div>
+                      <div className="text-sm text-gray-500">Just the clinic name in bold text</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertClinicInfo('contact-info')}
+                  >
+                    <div>
+                      <div className="font-medium">Contact Information Block</div>
+                      <div className="text-sm text-gray-500">Formatted contact details section</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertClinicInfo('signature-block')}
+                  >
+                    <div>
+                      <div className="font-medium">Signature Block</div>
+                      <div className="text-sm text-gray-500">Professional signature with clinic details</div>
+                    </div>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Current Clinic Info Preview */}
+              <div>
+                <h3 className="font-semibold mb-2">Current Clinic Information</h3>
+                <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                  <div><strong>Name:</strong> {clinicInfo.name || 'Not set'}</div>
+                  <div><strong>Address:</strong> {clinicInfo.address || 'Not set'}</div>
+                  <div><strong>Phone:</strong> {clinicInfo.phone || 'Not set'}</div>
+                  <div><strong>Email:</strong> {clinicInfo.email || 'Not set'}</div>
+                  <div><strong>Website:</strong> {clinicInfo.website || 'Not set'}</div>
+                  <div className="text-sm text-gray-600 mt-2">
+                    You can edit clinic information using the "Edit Clinic Info" button in the header section above.
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={() => setShowClinicDialog(false)}>
                 Cancel
               </Button>
             </div>
