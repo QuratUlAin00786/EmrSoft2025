@@ -1539,7 +1539,7 @@ export default function Forms() {
             <div className="p-6">
               <div
                 ref={setTextareaRef}
-                contentEditable
+                contentEditable={true}
                 onInput={(e) => {
                   // Only update state, don't re-render
                   const content = e.currentTarget.innerHTML || '';
@@ -1547,37 +1547,32 @@ export default function Forms() {
                     setDocumentContent(content);
                   }
                 }}
-                onClick={(e) => {
-                  // Ensure the editor maintains focus when clicked
-                  const target = e.currentTarget;
-                  target.focus();
-                  
-                  // If clicking on empty area, position cursor at the end
-                  if (!window.getSelection()?.toString()) {
-                    const range = document.createRange();
-                    const selection = window.getSelection();
-                    range.selectNodeContents(target);
-                    range.collapse(false);
-                    selection?.removeAllRanges();
-                    selection?.addRange(range);
+                onKeyDown={(e) => {
+                  // Ensure typing works normally
+                  e.stopPropagation();
+                }}
+                onKeyUp={(e) => {
+                  // Update content after key operations
+                  const content = e.currentTarget.innerHTML || '';
+                  if (content !== documentContent) {
+                    setDocumentContent(content);
                   }
                 }}
-                onFocus={(e) => {
-                  // Ensure contentEditable is enabled
-                  e.currentTarget.contentEditable = 'true';
+                onClick={(e) => {
+                  // Simple click handler to maintain focus
+                  e.currentTarget.focus();
                 }}
-                tabIndex={0}
-                className="w-full resize-none border-none outline-none text-black leading-normal bg-transparent cursor-text"
+                className="w-full resize-none border-none outline-none text-black leading-normal bg-transparent cursor-text focus:outline-none"
                 style={{ 
                   fontSize: fontSize,
                   lineHeight: '1.6',
                   minHeight: '500px',
                   maxWidth: '100%',
                   wordWrap: 'break-word',
-                  overflowWrap: 'break-word',
-                  pointerEvents: 'auto'
+                  overflowWrap: 'break-word'
                 }}
                 suppressContentEditableWarning={true}
+                spellCheck={false}
               >
                 {!documentContent && (
                   <p style={{ color: '#999', fontStyle: 'italic', margin: 0 }}>
