@@ -31,6 +31,7 @@ export default function Forms() {
   const [linkText, setLinkText] = useState("");
   const [savedSelection, setSavedSelection] = useState<Range | null>(null);
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
+  const [showLogoDialog, setShowLogoDialog] = useState(false);
   const [clinicInfo, setClinicInfo] = useState({
     name: "",
     address: "",
@@ -804,7 +805,103 @@ export default function Forms() {
       });
     }
   };
-  const handleInsertLogo = () => toast({ title: "Insert Logo", description: "Logo insertion dialog opened." });
+  const handleInsertLogo = () => {
+    setShowLogoDialog(true);
+  };
+
+  const insertLogo = (logoType: string, logoData?: string) => {
+    if (!textareaRef) {
+      toast({
+        title: "Error",
+        description: "Document editor not ready",
+        duration: 3000
+      });
+      return;
+    }
+
+    try {
+      // Get current cursor position or create a new range at the end
+      const selection = window.getSelection();
+      let range;
+
+      if (selection && selection.rangeCount > 0) {
+        range = selection.getRangeAt(0);
+      } else {
+        // Create range at the end of content
+        range = document.createRange();
+        if (textareaRef && textareaRef.childNodes.length > 0) {
+          range.setStartAfter(textareaRef.lastChild!);
+        } else if (textareaRef) {
+          range.setStart(textareaRef, 0);
+        }
+        range.collapse(true);
+      }
+
+      let logoHTML = '';
+      
+      if (logoType === 'custom' && logoData) {
+        // Custom uploaded logo
+        logoHTML = `<div style="text-align: center; margin: 20px 0;"><img src="${logoData}" alt="Custom Logo" style="max-width: 200px; max-height: 100px; object-fit: contain;" /></div>`;
+      } else {
+        // Predefined clinic logos
+        switch (logoType) {
+          case 'clinic-modern':
+            logoHTML = `<div style="text-align: center; margin: 20px 0; color: #0D9488; font-size: 24px; font-weight: bold;">🏥 ${clinicInfo.name || 'Healthcare Clinic'}</div>`;
+            break;
+          case 'clinic-professional':
+            logoHTML = `<div style="text-align: center; margin: 20px 0; border: 2px solid #0D9488; padding: 15px; border-radius: 8px;"><div style="color: #0D9488; font-size: 20px; font-weight: bold;">${clinicInfo.name || 'Medical Center'}</div><div style="color: #666; font-size: 12px; margin-top: 5px;">Healthcare Excellence</div></div>`;
+            break;
+          case 'clinic-minimal':
+            logoHTML = `<div style="text-align: center; margin: 20px 0; color: #1F2937; font-size: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">${clinicInfo.name || 'Medical Practice'}</div>`;
+            break;
+          case 'medical-cross':
+            logoHTML = `<div style="text-align: center; margin: 20px 0;"><div style="display: inline-block; width: 60px; height: 60px; background: #DC2626; position: relative; margin-bottom: 10px;"><div style="position: absolute; top: 15px; left: 25px; width: 10px; height: 30px; background: white;"></div><div style="position: absolute; top: 25px; left: 15px; width: 30px; height: 10px; background: white;"></div></div><div style="color: #DC2626; font-size: 16px; font-weight: bold;">${clinicInfo.name || 'Medical Services'}</div></div>`;
+            break;
+          case 'health-plus':
+            logoHTML = `<div style="text-align: center; margin: 20px 0;"><div style="color: #059669; font-size: 32px; margin-bottom: 8px;">⚕️</div><div style="color: #059669; font-size: 18px; font-weight: bold;">${clinicInfo.name || 'Health Plus'}</div></div>`;
+            break;
+        }
+      }
+
+      // Create logo element
+      const logoDiv = document.createElement('div');
+      logoDiv.innerHTML = logoHTML;
+
+      // Insert logo
+      range.insertNode(logoDiv);
+      
+      // Move cursor after the logo
+      range.setStartAfter(logoDiv);
+      range.collapse(true);
+
+      // Update selection
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+
+      // Update document content
+      setDocumentContent(textareaRef.innerHTML);
+
+      // Focus editor
+      textareaRef.focus();
+
+      // Close dialog
+      setShowLogoDialog(false);
+
+      toast({
+        title: "✓ Logo Inserted",
+        description: "Logo has been added to your document",
+        duration: 2000
+      });
+
+    } catch (error) {
+      console.error('Logo insertion error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to insert logo",
+        duration: 3000
+      });
+    }
+  };
   const handleClinic = () => toast({ title: "Clinic", description: "Clinic information options opened." });
   const handlePatient = () => toast({ title: "Patient", description: "Patient information options opened." });
   const handleRecipient = () => toast({ title: "Recipient", description: "Recipient information options opened." });
@@ -2050,6 +2147,117 @@ export default function Forms() {
             
             <div className="flex justify-end">
               <Button variant="outline" onClick={() => setShowTemplateDialog(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Logo Selection Dialog */}
+      <Dialog open={showLogoDialog} onOpenChange={setShowLogoDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Insert Logo</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
+              {/* Predefined Logo Options */}
+              <div>
+                <h3 className="font-semibold mb-2">Clinic Logo Templates</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    className="h-auto p-4 flex flex-col items-center justify-center"
+                    onClick={() => insertLogo('clinic-modern')}
+                  >
+                    <div className="text-2xl mb-2 text-teal-600">🏥</div>
+                    <div className="text-sm font-medium">Modern Clinic</div>
+                    <div className="text-xs text-gray-500">Icon with clinic name</div>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="h-auto p-4 flex flex-col items-center justify-center"
+                    onClick={() => insertLogo('clinic-professional')}
+                  >
+                    <div className="w-full h-12 border-2 border-teal-600 rounded flex items-center justify-center mb-2">
+                      <div className="text-xs font-bold text-teal-600">MEDICAL</div>
+                    </div>
+                    <div className="text-sm font-medium">Professional</div>
+                    <div className="text-xs text-gray-500">Boxed design</div>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="h-auto p-4 flex flex-col items-center justify-center"
+                    onClick={() => insertLogo('clinic-minimal')}
+                  >
+                    <div className="text-sm font-bold uppercase tracking-wider mb-2">PRACTICE</div>
+                    <div className="text-sm font-medium">Minimal</div>
+                    <div className="text-xs text-gray-500">Clean typography</div>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="h-auto p-4 flex flex-col items-center justify-center"
+                    onClick={() => insertLogo('medical-cross')}
+                  >
+                    <div className="w-8 h-8 bg-red-600 relative mb-2">
+                      <div className="absolute top-2 left-3 w-2 h-4 bg-white"></div>
+                      <div className="absolute top-3 left-2 w-4 h-2 bg-white"></div>
+                    </div>
+                    <div className="text-sm font-medium">Medical Cross</div>
+                    <div className="text-xs text-gray-500">Classic red cross</div>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="h-auto p-4 flex flex-col items-center justify-center"
+                    onClick={() => insertLogo('health-plus')}
+                  >
+                    <div className="text-2xl mb-2 text-green-600">⚕️</div>
+                    <div className="text-sm font-medium">Health Plus</div>
+                    <div className="text-xs text-gray-500">Medical symbol</div>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="h-auto p-4 flex flex-col items-center justify-center"
+                    onClick={() => {
+                      // Create file input for custom logo upload
+                      const input = document.createElement('input');
+                      input.type = 'file';
+                      input.accept = 'image/*';
+                      input.style.display = 'none';
+                      
+                      input.onchange = (e) => {
+                        const file = (e.target as HTMLInputElement).files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (event) => {
+                            const imageData = event.target?.result as string;
+                            insertLogo('custom', imageData);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      };
+                      
+                      document.body.appendChild(input);
+                      input.click();
+                      document.body.removeChild(input);
+                    }}
+                  >
+                    <div className="text-2xl mb-2">📁</div>
+                    <div className="text-sm font-medium">Upload Custom</div>
+                    <div className="text-xs text-gray-500">Browse files</div>
+                  </Button>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={() => setShowLogoDialog(false)}>
                 Cancel
               </Button>
             </div>
