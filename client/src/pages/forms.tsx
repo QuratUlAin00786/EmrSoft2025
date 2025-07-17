@@ -34,6 +34,7 @@ export default function Forms() {
   const [showLogoDialog, setShowLogoDialog] = useState(false);
   const [showClinicDialog, setShowClinicDialog] = useState(false);
   const [showEditClinicDialog, setShowEditClinicDialog] = useState(false);
+  const [showPatientDialog, setShowPatientDialog] = useState(false);
   const [editingClinicInfo, setEditingClinicInfo] = useState({
     name: "",
     address: "",
@@ -1065,7 +1066,130 @@ export default function Forms() {
     });
   };
 
-  const handlePatient = () => toast({ title: "Patient", description: "Patient information options opened." });
+  const handlePatient = () => {
+    setShowPatientDialog(true);
+  };
+
+  const insertPatientInfo = (infoType: string) => {
+    if (!textareaRef) {
+      toast({
+        title: "Error",
+        description: "Document editor not ready",
+        duration: 3000
+      });
+      return;
+    }
+
+    try {
+      // Get current cursor position or create a new range at the end
+      const selection = window.getSelection();
+      let range;
+
+      if (selection && selection.rangeCount > 0) {
+        range = selection.getRangeAt(0);
+      } else {
+        // Create range at the end of content
+        range = document.createRange();
+        if (textareaRef && textareaRef.childNodes.length > 0) {
+          range.setStartAfter(textareaRef.lastChild!);
+        } else if (textareaRef) {
+          range.setStart(textareaRef, 0);
+        }
+        range.collapse(true);
+      }
+
+      let patientHTML = '';
+      
+      switch (infoType) {
+        case 'full-details':
+          patientHTML = `
+            <div style="margin: 15px 0; padding: 10px; border: 1px solid #e0e0e0; border-radius: 5px;">
+              <p><strong>Patient Name:</strong> [Patient Name]</p>
+              <p><strong>Date of Birth:</strong> [Date of Birth]</p>
+              <p><strong>Patient ID:</strong> [Patient ID]</p>
+              <p><strong>Address:</strong> [Patient Address]</p>
+              <p><strong>Phone:</strong> [Patient Phone]</p>
+              <p><strong>Email:</strong> [Patient Email]</p>
+            </div>
+          `;
+          break;
+        case 'name-dob':
+          patientHTML = `<p><strong>Patient:</strong> [Patient Name] | <strong>DOB:</strong> [Date of Birth]</p>`;
+          break;
+        case 'contact-info':
+          patientHTML = `
+            <div style="margin: 10px 0;">
+              <p><strong>Patient Contact Information:</strong></p>
+              <p>Name: [Patient Name]</p>
+              <p>Phone: [Patient Phone]</p>
+              <p>Email: [Patient Email]</p>
+              <p>Address: [Patient Address]</p>
+            </div>
+          `;
+          break;
+        case 'demographics':
+          patientHTML = `
+            <div style="margin: 10px 0;">
+              <p><strong>Patient Demographics:</strong></p>
+              <p>Name: [Patient Name]</p>
+              <p>Age: [Patient Age]</p>
+              <p>Gender: [Patient Gender]</p>
+              <p>Date of Birth: [Date of Birth]</p>
+              <p>Insurance: [Insurance Information]</p>
+            </div>
+          `;
+          break;
+        case 'emergency-contact':
+          patientHTML = `
+            <div style="margin: 10px 0;">
+              <p><strong>Emergency Contact:</strong></p>
+              <p>Name: [Emergency Contact Name]</p>
+              <p>Relationship: [Relationship]</p>
+              <p>Phone: [Emergency Contact Phone]</p>
+            </div>
+          `;
+          break;
+      }
+
+      // Create patient info element
+      const patientDiv = document.createElement('div');
+      patientDiv.innerHTML = patientHTML;
+
+      // Insert patient info
+      range.insertNode(patientDiv);
+      
+      // Move cursor after the patient info
+      range.setStartAfter(patientDiv);
+      range.collapse(true);
+
+      // Update selection
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+
+      // Update document content
+      setDocumentContent(textareaRef.innerHTML);
+
+      // Focus editor
+      textareaRef.focus();
+
+      // Close dialog
+      setShowPatientDialog(false);
+
+      toast({
+        title: "✓ Patient Info Inserted",
+        description: "Patient information template has been added to your document",
+        duration: 2000
+      });
+
+    } catch (error) {
+      console.error('Patient info insertion error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to insert patient information",
+        duration: 3000
+      });
+    }
+  };
   const handleRecipient = () => toast({ title: "Recipient", description: "Recipient information options opened." });
   const handleAppointments = () => toast({ title: "Appointments", description: "Appointment information options opened." });
   const handleLabs = () => toast({ title: "Labs", description: "Lab results options opened." });
@@ -2598,6 +2722,96 @@ export default function Forms() {
               </Button>
               <Button onClick={saveClinicInfo}>
                 Save Changes
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Patient Information Dialog */}
+      <Dialog open={showPatientDialog} onOpenChange={setShowPatientDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Insert Patient Information</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
+              {/* Patient Information Options */}
+              <div>
+                <h3 className="font-semibold mb-2">Patient Information Templates</h3>
+                <div className="space-y-2">
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertPatientInfo('full-details')}
+                  >
+                    <div>
+                      <div className="font-medium">Full Patient Details</div>
+                      <div className="text-sm text-gray-500">Complete patient information including name, DOB, ID, address, phone, and email</div>
+                    </div>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertPatientInfo('name-dob')}
+                  >
+                    <div>
+                      <div className="font-medium">Name & Date of Birth</div>
+                      <div className="text-sm text-gray-500">Essential patient identification - name and DOB only</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertPatientInfo('contact-info')}
+                  >
+                    <div>
+                      <div className="font-medium">Contact Information</div>
+                      <div className="text-sm text-gray-500">Patient contact details including phone, email, and address</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertPatientInfo('demographics')}
+                  >
+                    <div>
+                      <div className="font-medium">Demographics</div>
+                      <div className="text-sm text-gray-500">Patient demographics including age, gender, DOB, and insurance</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertPatientInfo('emergency-contact')}
+                  >
+                    <div>
+                      <div className="font-medium">Emergency Contact</div>
+                      <div className="text-sm text-gray-500">Emergency contact information with relationship and phone</div>
+                    </div>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Information Note */}
+              <div>
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-blue-800 mb-2">Patient Information Templates</h4>
+                  <p className="text-sm text-blue-700">
+                    These templates insert placeholder text that you can replace with actual patient information. 
+                    The placeholders are marked with square brackets (e.g., [Patient Name]) for easy identification and replacement.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={() => setShowPatientDialog(false)}>
+                Cancel
               </Button>
             </div>
           </div>
