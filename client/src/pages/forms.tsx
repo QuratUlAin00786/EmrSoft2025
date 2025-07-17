@@ -1743,6 +1743,18 @@ export default function Forms() {
                   const content = (e.target as HTMLDivElement).innerHTML;
                   setDocumentContent(content);
                 }}
+                onClick={(e) => {
+                  // Handle link clicks
+                  const target = e.target as HTMLElement;
+                  if (target.tagName === 'A') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const href = target.getAttribute('href');
+                    if (href) {
+                      window.open(href, '_blank');
+                    }
+                  }
+                }}
                 className="w-full border-none outline-none text-black leading-normal bg-transparent focus:outline-none"
                 style={{ 
                   fontSize: fontSize,
