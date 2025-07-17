@@ -1575,17 +1575,22 @@ export default function Forms() {
       // Focus editor
       textareaRef.focus();
 
-      // Close dialog
+      // Close dialog immediately
       setShowLabsDialog(false);
 
-      toast({
-        title: "✓ Lab Info Inserted",
-        description: "Laboratory information template has been added to your document",
-        duration: 2000
-      });
+      // Small delay to ensure state update
+      setTimeout(() => {
+        toast({
+          title: "✓ Lab Info Inserted",
+          description: "Laboratory information template has been added to your document",
+          duration: 2000
+        });
+      }, 100);
 
     } catch (error) {
       console.error('Lab info insertion error:', error);
+      // Close dialog on error too
+      setShowLabsDialog(false);
       toast({
         title: "Error",
         description: "Failed to insert laboratory information",
