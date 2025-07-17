@@ -40,6 +40,7 @@ export default function Forms() {
   const [showLabsDialog, setShowLabsDialog] = useState(false);
   const [showPatientRecordsDialog, setShowPatientRecordsDialog] = useState(false);
   const [showInsertProductDialog, setShowInsertProductDialog] = useState(false);
+  const [showMoreOptionsDialog, setShowMoreOptionsDialog] = useState(false);
   const [editingClinicInfo, setEditingClinicInfo] = useState({
     name: "",
     address: "",
@@ -2206,7 +2207,133 @@ export default function Forms() {
       });
     }
   };
-  const handleMore = () => toast({ title: "More Options", description: "Additional formatting options opened." });
+  const handleMore = () => {
+    setShowMoreOptionsDialog(true);
+  };
+
+  const handleMoreOption = (optionType: string) => {
+    if (!textareaRef) {
+      toast({
+        title: "Error",
+        description: "Document editor not ready",
+        duration: 3000
+      });
+      return;
+    }
+
+    try {
+      const selection = window.getSelection();
+      let range;
+
+      if (selection && selection.rangeCount > 0) {
+        range = selection.getRangeAt(0);
+      } else {
+        range = document.createRange();
+        if (textareaRef && textareaRef.childNodes.length > 0) {
+          range.setStartAfter(textareaRef.lastChild!);
+        } else if (textareaRef) {
+          range.setStart(textareaRef, 0);
+        }
+        range.collapse(true);
+      }
+
+      let optionHTML = '';
+      
+      switch (optionType) {
+        case 'table':
+          optionHTML = `
+            <table style="border-collapse: collapse; width: 100%; margin: 10px 0;">
+              <tr>
+                <th style="border: 1px solid #ddd; padding: 8px; background-color: #f2f2f2;">Header 1</th>
+                <th style="border: 1px solid #ddd; padding: 8px; background-color: #f2f2f2;">Header 2</th>
+                <th style="border: 1px solid #ddd; padding: 8px; background-color: #f2f2f2;">Header 3</th>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #ddd; padding: 8px;">Row 1, Cell 1</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Row 1, Cell 2</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Row 1, Cell 3</td>
+              </tr>
+              <tr>
+                <td style="border: 1px solid #ddd; padding: 8px;">Row 2, Cell 1</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Row 2, Cell 2</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Row 2, Cell 3</td>
+              </tr>
+            </table>
+          `;
+          break;
+        case 'checkbox-list':
+          optionHTML = `
+            <div style="margin: 10px 0;">
+              <p><strong>Checklist:</strong></p>
+              <div style="margin-left: 20px;">
+                <input type="checkbox" style="margin-right: 8px;"> [Task 1]<br>
+                <input type="checkbox" style="margin-right: 8px;"> [Task 2]<br>
+                <input type="checkbox" style="margin-right: 8px;"> [Task 3]<br>
+                <input type="checkbox" style="margin-right: 8px;"> [Task 4]<br>
+              </div>
+            </div>
+          `;
+          break;
+        case 'horizontal-line':
+          optionHTML = `<hr style="margin: 20px 0; border: 1px solid #ddd;">`;
+          break;
+        case 'date-time':
+          const now = new Date();
+          const dateTime = now.toLocaleString();
+          optionHTML = `<p><strong>Date & Time:</strong> ${dateTime}</p>`;
+          break;
+        case 'signature-line':
+          optionHTML = `
+            <div style="margin: 30px 0;">
+              <p>Signature: _________________________________</p>
+              <p>Print Name: _________________________________</p>
+              <p>Date: _________________________________</p>
+            </div>
+          `;
+          break;
+        case 'text-box':
+          optionHTML = `
+            <div style="border: 2px solid #ddd; padding: 15px; margin: 10px 0; background-color: #f9f9f9;">
+              <p><strong>Important Note:</strong></p>
+              <p>[Insert important information here]</p>
+            </div>
+          `;
+          break;
+      }
+
+      const optionDiv = document.createElement('div');
+      optionDiv.innerHTML = optionHTML;
+
+      range.insertNode(optionDiv);
+      range.setStartAfter(optionDiv);
+      range.collapse(true);
+
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+
+      setDocumentContent(textareaRef.innerHTML);
+      textareaRef.focus();
+
+      setShowMoreOptionsDialog(false);
+
+      setTimeout(() => {
+        toast({
+          title: "✓ Additional Option Inserted",
+          description: `${optionType.replace('-', ' ')} has been added to your document`,
+          duration: 2000
+        });
+      }, 100);
+
+    } catch (error) {
+      console.error('More option insertion error:', error);
+      setShowMoreOptionsDialog(false);
+      toast({
+        title: "Error",
+        description: "Failed to insert additional option",
+        duration: 3000
+      });
+    }
+  };
   const applyTextFormatting = (formatType: 'paragraph' | 'heading1' | 'heading2') => {
     console.log("applyTextFormatting called with:", formatType);
     
@@ -3960,6 +4087,107 @@ export default function Forms() {
             
             <div className="flex justify-end">
               <Button variant="outline" onClick={() => setShowInsertProductDialog(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* More Options Dialog */}
+      <Dialog open={showMoreOptionsDialog} onOpenChange={setShowMoreOptionsDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>More Formatting Options</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
+              {/* Additional Formatting Options */}
+              <div>
+                <h3 className="font-semibold mb-2">Additional Formatting Tools</h3>
+                <div className="space-y-2">
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => handleMoreOption('table')}
+                  >
+                    <div>
+                      <div className="font-medium">Insert Table</div>
+                      <div className="text-sm text-gray-500">Add a 3x3 table with headers for organizing data</div>
+                    </div>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => handleMoreOption('checkbox-list')}
+                  >
+                    <div>
+                      <div className="font-medium">Checkbox List</div>
+                      <div className="text-sm text-gray-500">Create a checklist with interactive checkboxes</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => handleMoreOption('horizontal-line')}
+                  >
+                    <div>
+                      <div className="font-medium">Horizontal Line</div>
+                      <div className="text-sm text-gray-500">Insert a horizontal divider line</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => handleMoreOption('date-time')}
+                  >
+                    <div>
+                      <div className="font-medium">Current Date & Time</div>
+                      <div className="text-sm text-gray-500">Insert current date and time stamp</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => handleMoreOption('signature-line')}
+                  >
+                    <div>
+                      <div className="font-medium">Signature Line</div>
+                      <div className="text-sm text-gray-500">Add signature, print name, and date lines</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => handleMoreOption('text-box')}
+                  >
+                    <div>
+                      <div className="font-medium">Text Box</div>
+                      <div className="text-sm text-gray-500">Insert a highlighted text box for important notes</div>
+                    </div>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Information Note */}
+              <div>
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-blue-800 mb-2">Additional Formatting Options</h4>
+                  <p className="text-sm text-blue-700">
+                    These advanced formatting options provide additional document structure and interactive elements. 
+                    Use these tools to create professional documents with tables, checklists, signatures, and highlighted content.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={() => setShowMoreOptionsDialog(false)}>
                 Cancel
               </Button>
             </div>
