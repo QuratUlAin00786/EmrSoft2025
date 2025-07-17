@@ -2211,6 +2211,50 @@ export default function Forms() {
     setShowMoreOptionsDialog(true);
   };
 
+  const handleSave = async () => {
+    try {
+      if (!documentContent || documentContent.trim() === '') {
+        toast({
+          title: "Error",
+          description: "Please create some content before saving",
+          duration: 3000
+        });
+        return;
+      }
+
+      // Get current date for the document
+      const now = new Date();
+      const documentName = `Document_${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}`;
+      
+      // Create a simple data structure to save
+      const documentData = {
+        name: documentName,
+        content: documentContent,
+        createdAt: now.toISOString(),
+        type: 'medical_form'
+      };
+
+      // Save to localStorage as a simple solution
+      const savedDocuments = JSON.parse(localStorage.getItem('cura_saved_documents') || '[]');
+      savedDocuments.push(documentData);
+      localStorage.setItem('cura_saved_documents', JSON.stringify(savedDocuments));
+
+      toast({
+        title: "✓ Document Saved",
+        description: `Document saved successfully as "${documentName}"`,
+        duration: 3000
+      });
+
+    } catch (error) {
+      console.error('Save error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save document",
+        duration: 3000
+      });
+    }
+  };
+
   const handleMoreOption = (optionType: string) => {
     if (!textareaRef) {
       toast({
@@ -3026,6 +3070,18 @@ export default function Forms() {
           </Button>
           <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={handleInsertProduct}>
             Insert product
+          </Button>
+        </div>
+        
+        {/* Save Button - Prominent and easily accessible */}
+        <div className="flex justify-center items-center mt-2">
+          <Button 
+            variant="default" 
+            size="sm" 
+            className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 text-sm font-medium"
+            onClick={handleSave}
+          >
+            💾 Save Document
           </Button>
         </div>
       </div>
