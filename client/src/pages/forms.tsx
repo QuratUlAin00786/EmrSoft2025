@@ -1547,14 +1547,35 @@ export default function Forms() {
                     setDocumentContent(content);
                   }
                 }}
-                className="w-full resize-none border-none outline-none text-black leading-normal bg-transparent"
+                onClick={(e) => {
+                  // Ensure the editor maintains focus when clicked
+                  const target = e.currentTarget;
+                  target.focus();
+                  
+                  // If clicking on empty area, position cursor at the end
+                  if (!window.getSelection()?.toString()) {
+                    const range = document.createRange();
+                    const selection = window.getSelection();
+                    range.selectNodeContents(target);
+                    range.collapse(false);
+                    selection?.removeAllRanges();
+                    selection?.addRange(range);
+                  }
+                }}
+                onFocus={(e) => {
+                  // Ensure contentEditable is enabled
+                  e.currentTarget.contentEditable = 'true';
+                }}
+                tabIndex={0}
+                className="w-full resize-none border-none outline-none text-black leading-normal bg-transparent cursor-text"
                 style={{ 
                   fontSize: fontSize,
                   lineHeight: '1.6',
                   minHeight: '500px',
                   maxWidth: '100%',
                   wordWrap: 'break-word',
-                  overflowWrap: 'break-word'
+                  overflowWrap: 'break-word',
+                  pointerEvents: 'auto'
                 }}
                 suppressContentEditableWarning={true}
               >
