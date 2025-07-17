@@ -737,28 +737,33 @@ export default function Forms() {
   const handlePatientRecords = () => toast({ title: "Patient Records", description: "Patient records options opened." });
   const handleInsertProduct = () => toast({ title: "Insert Product", description: "Product insertion dialog opened." });
   const handleImage = () => {
-    // Create a file input element
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const imageData = event.target?.result as string;
-          
-          if (!textareaRef) return;
+    try {
+      // Create a file input element
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.style.display = 'none';
+      
+      input.onchange = (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (file) {
+          if (!textareaRef) {
+            toast({
+              title: "Error",
+              description: "Document editor not ready",
+              duration: 3000
+            });
+            return;
+          }
           
           // Get current cursor position
-          const start = textareaRef.selectionStart;
-          const end = textareaRef.selectionEnd;
+          const start = textareaRef.selectionStart || 0;
+          const end = textareaRef.selectionEnd || 0;
           
           // Insert image placeholder text at cursor position
           const beforeText = documentContent.substring(0, start);
           const afterText = documentContent.substring(end);
-          const imageText = `\n[Image: ${file.name}]\n`;
+          const imageText = `[Image: ${file.name}]`;
           
           const newContent = beforeText + imageText + afterText;
           setDocumentContent(newContent);
@@ -770,20 +775,31 @@ export default function Forms() {
               const newPosition = start + imageText.length;
               textareaRef.setSelectionRange(newPosition, newPosition);
             }
-          }, 0);
+          }, 50);
           
           toast({
-            title: "Image Inserted",
-            description: `Image "${file.name}" has been inserted into the document`,
-            duration: 3000
+            title: "✓ Image Inserted",
+            description: `Image "${file.name}" added to document`,
+            duration: 2000
           });
-        };
-        reader.readAsDataURL(file);
-      }
-    };
-    
-    // Trigger file selection
-    input.click();
+        }
+        
+        // Clean up
+        document.body.removeChild(input);
+      };
+      
+      // Add to DOM and trigger click
+      document.body.appendChild(input);
+      input.click();
+      
+    } catch (error) {
+      console.error('Image insertion error:', error);
+      toast({ 
+        title: "Error", 
+        description: "Failed to insert image",
+        duration: 3000
+      });
+    }
   };
   const handleLink = () => toast({ title: "Insert Link", description: "Link insertion dialog opened." });
   const handleHighlight = () => {
