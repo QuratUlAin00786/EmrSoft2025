@@ -30,6 +30,7 @@ export default function Forms() {
   const [linkUrl, setLinkUrl] = useState("");
   const [linkText, setLinkText] = useState("");
   const [savedSelection, setSavedSelection] = useState<Range | null>(null);
+  const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const [clinicInfo, setClinicInfo] = useState({
     name: "",
     address: "",
@@ -731,7 +732,78 @@ export default function Forms() {
       });
     }
   };
-  const handleInsertTemplate = () => toast({ title: "Insert Template", description: "Template insertion dialog opened." });
+  const handleInsertTemplate = () => {
+    setShowTemplateDialog(true);
+  };
+
+  const insertTemplate = (templateText: string) => {
+    if (!textareaRef) {
+      toast({
+        title: "Error",
+        description: "Document editor not ready",
+        duration: 3000
+      });
+      return;
+    }
+
+    try {
+      // Get current cursor position or create a new range at the end
+      const selection = window.getSelection();
+      let range;
+
+      if (selection && selection.rangeCount > 0) {
+        range = selection.getRangeAt(0);
+      } else {
+        // Create range at the end of content
+        range = document.createRange();
+        if (textareaRef && textareaRef.childNodes.length > 0) {
+          range.setStartAfter(textareaRef.lastChild!);
+        } else if (textareaRef) {
+          range.setStart(textareaRef, 0);
+        }
+        range.collapse(true);
+      }
+
+      // Create template content as HTML
+      const templateDiv = document.createElement('div');
+      templateDiv.innerHTML = templateText;
+      templateDiv.style.marginBottom = '20px';
+
+      // Insert template
+      range.insertNode(templateDiv);
+      
+      // Move cursor after the template
+      range.setStartAfter(templateDiv);
+      range.collapse(true);
+
+      // Update selection
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+
+      // Update document content
+      setDocumentContent(textareaRef.innerHTML);
+
+      // Focus editor
+      textareaRef.focus();
+
+      // Close dialog
+      setShowTemplateDialog(false);
+
+      toast({
+        title: "✓ Template Inserted",
+        description: "Template has been added to your document",
+        duration: 2000
+      });
+
+    } catch (error) {
+      console.error('Template insertion error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to insert template",
+        duration: 3000
+      });
+    }
+  };
   const handleInsertLogo = () => toast({ title: "Insert Logo", description: "Logo insertion dialog opened." });
   const handleClinic = () => toast({ title: "Clinic", description: "Clinic information options opened." });
   const handlePatient = () => toast({ title: "Patient", description: "Patient information options opened." });
@@ -1828,6 +1900,157 @@ export default function Forms() {
               </Button>
               <Button onClick={handleInsertLink}>
                 Insert Link
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Template Selection Dialog */}
+      <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Insert Template</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
+              {/* Medical Letter Templates */}
+              <div>
+                <h3 className="font-semibold mb-2">Medical Letter Templates</h3>
+                <div className="space-y-2">
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertTemplate(`
+                      <h2 style="font-size: 18px; font-weight: bold; margin: 6px 0;">Referral Letter</h2>
+                      <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                      <p><strong>Dear Colleague,</strong></p>
+                      <p>I am writing to refer <strong>[Patient Name]</strong> for your expert opinion and management.</p>
+                      <p><strong>Clinical History:</strong><br>[Enter clinical history here]</p>
+                      <p><strong>Current Medications:</strong><br>[Enter current medications]</p>
+                      <p><strong>Examination Findings:</strong><br>[Enter examination findings]</p>
+                      <p><strong>Reason for Referral:</strong><br>[Enter reason for referral]</p>
+                      <p>Thank you for your assistance in the care of this patient.</p>
+                      <p>Yours sincerely,<br><br><strong>[Your Name]</strong><br>[Your Title]</p>
+                    `)}
+                  >
+                    <div>
+                      <div className="font-medium">Referral Letter</div>
+                      <div className="text-sm text-gray-500">Standard medical referral template</div>
+                    </div>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertTemplate(`
+                      <h2 style="font-size: 18px; font-weight: bold; margin: 6px 0;">Discharge Summary</h2>
+                      <p><strong>Date of Admission:</strong> [Date]</p>
+                      <p><strong>Date of Discharge:</strong> ${new Date().toLocaleDateString()}</p>
+                      <p><strong>Patient:</strong> [Patient Name]</p>
+                      <p><strong>Admission Diagnosis:</strong><br>[Enter admission diagnosis]</p>
+                      <p><strong>Discharge Diagnosis:</strong><br>[Enter discharge diagnosis]</p>
+                      <p><strong>Treatment Received:</strong><br>[Enter treatment details]</p>
+                      <p><strong>Medications on Discharge:</strong><br>[Enter discharge medications]</p>
+                      <p><strong>Follow-up Instructions:</strong><br>[Enter follow-up instructions]</p>
+                      <p><strong>GP Actions Required:</strong><br>[Enter GP actions if any]</p>
+                    `)}
+                  >
+                    <div>
+                      <div className="font-medium">Discharge Summary</div>
+                      <div className="text-sm text-gray-500">Hospital discharge summary template</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertTemplate(`
+                      <h2 style="font-size: 18px; font-weight: bold; margin: 6px 0;">Medical Certificate</h2>
+                      <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                      <p><strong>Patient Name:</strong> [Patient Name]</p>
+                      <p><strong>Date of Birth:</strong> [DOB]</p>
+                      <p>I certify that I examined the above named patient on <strong>${new Date().toLocaleDateString()}</strong></p>
+                      <p><strong>Clinical Findings:</strong><br>[Enter clinical findings]</p>
+                      <p><strong>Diagnosis:</strong><br>[Enter diagnosis]</p>
+                      <p><strong>Fitness for Work:</strong><br>☐ Fit for normal duties<br>☐ Fit for light duties<br>☐ Unfit for work</p>
+                      <p><strong>Period:</strong> From [Date] to [Date]</p>
+                      <p><strong>Additional Comments:</strong><br>[Enter any additional comments]</p>
+                      <p><br><strong>Dr. [Name]</strong><br>Medical Practitioner<br>Registration No: [Number]</p>
+                    `)}
+                  >
+                    <div>
+                      <div className="font-medium">Medical Certificate</div>
+                      <div className="text-sm text-gray-500">Fitness for work certificate</div>
+                    </div>
+                  </Button>
+                </div>
+              </div>
+
+              {/* General Templates */}
+              <div>
+                <h3 className="font-semibold mb-2">General Templates</h3>
+                <div className="space-y-2">
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertTemplate(`
+                      <h2 style="font-size: 18px; font-weight: bold; margin: 6px 0;">Appointment Confirmation</h2>
+                      <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                      <p>Dear [Patient Name],</p>
+                      <p>This letter confirms your upcoming appointment:</p>
+                      <p><strong>Date:</strong> [Appointment Date]<br>
+                      <strong>Time:</strong> [Appointment Time]<br>
+                      <strong>Location:</strong> [Clinic Address]<br>
+                      <strong>Provider:</strong> [Doctor Name]</p>
+                      <p><strong>Please bring:</strong><br>• Photo ID<br>• Insurance card<br>• List of current medications<br>• Previous test results (if applicable)</p>
+                      <p>If you need to reschedule, please contact us at least 24 hours in advance.</p>
+                      <p>We look forward to seeing you.</p>
+                      <p>Best regards,<br>[Clinic Name]</p>
+                    `)}
+                  >
+                    <div>
+                      <div className="font-medium">Appointment Confirmation</div>
+                      <div className="text-sm text-gray-500">Patient appointment confirmation</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => insertTemplate(`
+                      <h2 style="font-size: 18px; font-weight: bold; margin: 6px 0;">Treatment Plan</h2>
+                      <p><strong>Patient:</strong> [Patient Name]</p>
+                      <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                      <p><strong>Diagnosis:</strong> [Primary Diagnosis]</p>
+                      <p><strong>Treatment Goals:</strong></p>
+                      <ul style="margin-left: 20px; list-style-type: disc;">
+                        <li>[Goal 1]</li>
+                        <li>[Goal 2]</li>
+                        <li>[Goal 3]</li>
+                      </ul>
+                      <p><strong>Treatment Plan:</strong></p>
+                      <ol style="margin-left: 20px; list-style-type: decimal;">
+                        <li><strong>Medications:</strong> [Specify medications and dosages]</li>
+                        <li><strong>Therapy:</strong> [Specify therapy type and frequency]</li>
+                        <li><strong>Lifestyle Modifications:</strong> [Specify recommendations]</li>
+                        <li><strong>Follow-up:</strong> [Specify follow-up schedule]</li>
+                      </ol>
+                      <p><strong>Next Review:</strong> [Date]</p>
+                    `)}
+                  >
+                    <div>
+                      <div className="font-medium">Treatment Plan</div>
+                      <div className="text-sm text-gray-500">Comprehensive treatment planning template</div>
+                    </div>
+                  </Button>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={() => setShowTemplateDialog(false)}>
+                Cancel
               </Button>
             </div>
           </div>
