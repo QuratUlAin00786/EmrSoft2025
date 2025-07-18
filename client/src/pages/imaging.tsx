@@ -1730,11 +1730,78 @@ export default function ImagingPage() {
                 {/* Image Tools */}
                 <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
                   <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        if (selectedImageSeries?.imageData) {
+                          // Create download link for base64 image
+                          const link = document.createElement('a');
+                          link.href = `data:${selectedImageSeries.mimeType || 'image/jpeg'};base64,${selectedImageSeries.imageData}`;
+                          link.download = `medical-image-${selectedImageSeries.id}.${selectedImageSeries.mimeType?.includes('png') ? 'png' : 'jpg'}`;
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                          
+                          toast({
+                            title: "Download Started",
+                            description: "Medical image download has begun.",
+                          });
+                        } else {
+                          toast({
+                            title: "Download Failed",
+                            description: "Image data not available for download.",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                    >
                       <Download className="h-4 w-4 mr-2" />
                       Download
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        if (navigator.share && selectedImageSeries?.imageData) {
+                          // Use Web Share API if available
+                          fetch(`data:${selectedImageSeries.mimeType || 'image/jpeg'};base64,${selectedImageSeries.imageData}`)
+                            .then(res => res.blob())
+                            .then(blob => {
+                              const file = new File([blob], `medical-image-${selectedImageSeries.id}.jpg`, { type: selectedImageSeries.mimeType || 'image/jpeg' });
+                              navigator.share({
+                                title: 'Medical Image',
+                                text: `Medical Image - ${selectedImageSeries.seriesDescription}`,
+                                files: [file]
+                              });
+                            })
+                            .catch(err => {
+                              toast({
+                                title: "Share Failed",
+                                description: "Unable to share image. Try downloading instead.",
+                                variant: "destructive",
+                              });
+                            });
+                        } else {
+                          // Fallback: copy image data URL to clipboard
+                          if (selectedImageSeries?.imageData) {
+                            const imageDataUrl = `data:${selectedImageSeries.mimeType || 'image/jpeg'};base64,${selectedImageSeries.imageData}`;
+                            navigator.clipboard.writeText(imageDataUrl).then(() => {
+                              toast({
+                                title: "Image Data Copied",
+                                description: "Image data URL copied to clipboard.",
+                              });
+                            }).catch(() => {
+                              toast({
+                                title: "Share Failed",
+                                description: "Unable to share or copy image data.",
+                                variant: "destructive",
+                              });
+                            });
+                          }
+                        }
+                      }}
+                    >
                       <Share className="h-4 w-4 mr-2" />
                       Share
                     </Button>
