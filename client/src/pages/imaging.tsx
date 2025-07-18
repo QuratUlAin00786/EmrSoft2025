@@ -1550,7 +1550,7 @@ export default function ImagingPage() {
                       type="file"
                       id="upload-files"
                       multiple
-                      accept="image/*,.dcm,.dicom"
+                      accept="image/*,.dcm,.dicom,.jpg,.jpeg,.png,.gif,.bmp,.tiff,.tif,.webp,.svg,.ico,.jfif,.pjpeg,.pjp"
                       onChange={handleFileUpload}
                       className="hidden"
                     />
@@ -1566,7 +1566,7 @@ export default function ImagingPage() {
                     Select X-ray images, DICOM files, or other medical images
                   </p>
                   <p className="text-xs text-gray-400">
-                    Supported formats: JPEG, PNG, DICOM (.dcm)
+                    Supported formats: All image formats (JPEG, PNG, GIF, BMP, TIFF, WebP, SVG), DICOM (.dcm), and medical imaging files
                   </p>
                 </div>
               </div>
