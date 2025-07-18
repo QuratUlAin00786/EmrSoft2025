@@ -882,9 +882,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Messaging implementations
+  private static conversationsStore: any[] = [];
+
   async getConversations(organizationId: number): Promise<any[]> {
-    // Mock conversations data
-    return [
+    // Initialize conversations store if it doesn't exist
+    if (!DatabaseStorage.conversationsStore) {
+      DatabaseStorage.conversationsStore = [];
+    }
+
+    // Get stored conversations for this organization
+    const storedConversations = DatabaseStorage.conversationsStore.filter(conv => 
+      conv.organizationId === organizationId
+    );
+
+    // Sample conversation if no stored ones exist
+    const sampleConversations = storedConversations.length === 0 ? [
       {
         id: "conv_1",
         participants: [
@@ -900,9 +912,13 @@ export class DatabaseStorage implements IStorage {
           priority: "normal"
         },
         unreadCount: 0,
-        isPatientConversation: true
+        isPatientConversation: true,
+        organizationId: organizationId
       }
-    ];
+    ] : [];
+
+    console.log(`Returning ${storedConversations.length + sampleConversations.length} conversations for org ${organizationId}`);
+    return [...sampleConversations, ...storedConversations];
   }
 
   async getMessages(conversationId: string, organizationId: number): Promise<any[]> {
@@ -1320,8 +1336,9 @@ export class DatabaseStorage implements IStorage {
   // Missing messaging implementations
   async sendMessage(messageData: any, organizationId: number): Promise<any> {
     // Create a new message with timestamp and unique ID
+    const messageId = Date.now().toString();
     const message = {
-      id: Date.now().toString(),
+      id: messageId,
       senderId: messageData.senderId || "current_user",
       senderName: messageData.senderName || "Current User",
       senderRole: messageData.senderRole || "admin",
@@ -1335,12 +1352,46 @@ export class DatabaseStorage implements IStorage {
       priority: messageData.priority || "normal",
       type: messageData.type || "internal",
       isStarred: false,
-      organizationId: organizationId
+      organizationId: organizationId,
+      phoneNumber: messageData.phoneNumber,
+      messageType: messageData.messageType,
+      deliveryStatus: "pending"
     };
 
-    // Initialize the store if it doesn't exist
+    // Initialize the stores if they don't exist
     if (!DatabaseStorage.messagesStore) {
       DatabaseStorage.messagesStore = [];
+    }
+    if (!DatabaseStorage.conversationsStore) {
+      DatabaseStorage.conversationsStore = [];
+    }
+
+    // If this is a new conversation (recipientId but no conversationId), create a conversation
+    if (messageData.recipientId && !messageData.conversationId) {
+      const conversationId = `conv_${Date.now()}`;
+      const newConversation = {
+        id: conversationId,
+        participants: [
+          { id: "current_user", name: "Current User", role: "staff" },
+          { id: messageData.recipientId, name: messageData.recipientId, role: "patient" }
+        ],
+        lastMessage: {
+          id: messageId,
+          senderId: "current_user",
+          subject: messageData.subject || "New Message",
+          content: messageData.content,
+          timestamp: new Date().toISOString(),
+          priority: messageData.priority || "normal"
+        },
+        unreadCount: 0,
+        isPatientConversation: true,
+        organizationId: organizationId
+      };
+
+      // Add conversation to storage
+      DatabaseStorage.conversationsStore.push(newConversation);
+      message.conversationId = conversationId;
+      console.log(`✅ Created new conversation: ${conversationId} for recipient: ${messageData.recipientId}`);
     }
     
     // Store the message
@@ -1349,6 +1400,7 @@ export class DatabaseStorage implements IStorage {
     // Log for debugging
     console.log(`Message stored: ${message.id} for conversation ${message.conversationId}`);
     console.log(`Total messages in store: ${DatabaseStorage.messagesStore.length}`);
+    console.log(`Total conversations in store: ${DatabaseStorage.conversationsStore.length}`);
 
     return message;
   }

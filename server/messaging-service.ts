@@ -1,7 +1,9 @@
 import twilio from 'twilio';
 
-// Initialize Twilio client
-const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+// Initialize Twilio client with proper error handling
+const client = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN 
+  ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
+  : null;
 
 export interface MessageOptions {
   to: string;
@@ -32,6 +34,15 @@ export class MessagingService {
    */
   async sendSMS(to: string, message: string, priority: 'low' | 'normal' | 'high' = 'normal'): Promise<MessageResult> {
     try {
+      // Check if Twilio is properly configured
+      if (!client) {
+        console.error('Twilio client not configured - missing credentials');
+        return {
+          success: false,
+          error: 'SMS service not configured. Please check Twilio credentials.'
+        };
+      }
+
       // Validate phone number format
       const phoneNumber = this.formatPhoneNumber(to);
       
@@ -68,6 +79,15 @@ export class MessagingService {
    */
   async sendWhatsApp(to: string, message: string, priority: 'low' | 'normal' | 'high' = 'normal'): Promise<MessageResult> {
     try {
+      // Check if Twilio is properly configured
+      if (!client) {
+        console.error('Twilio client not configured - missing credentials');
+        return {
+          success: false,
+          error: 'WhatsApp service not configured. Please check Twilio credentials.'
+        };
+      }
+
       const phoneNumber = this.formatPhoneNumber(to);
       const whatsappTo = `whatsapp:${phoneNumber}`;
       
