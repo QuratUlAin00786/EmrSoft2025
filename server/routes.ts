@@ -2767,7 +2767,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }).parse(req.body);
 
       const image = await storage.createMedicalImage({
-        ...imageData,
+        patientId: imageData.patientId,
+        studyType: imageData.imageType, // Map imageType to studyType for database
+        modality: "X-Ray", // Default modality
+        bodyPart: imageData.bodyPart,
+        indication: imageData.notes || "",
+        fileName: imageData.filename,
+        fileSize: imageData.fileSize,
+        mimeType: "image/jpeg", // Default mime type
+        uploadedBy: imageData.uploadedBy,
         organizationId: req.tenant!.id
       });
 
