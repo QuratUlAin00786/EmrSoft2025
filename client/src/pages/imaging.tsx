@@ -208,8 +208,8 @@ export default function ImagingPage() {
     queryFn: async () => {
       try {
         const response = await apiRequest('GET', '/api/medical-images');
-        console.log('Medical images response:', response);
-        return Array.isArray(response) ? response : [];
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
       } catch (error) {
         console.error('Error fetching medical images:', error);
         return [];
@@ -452,8 +452,6 @@ export default function ImagingPage() {
         size: `${(image.fileSize / (1024 * 1024)).toFixed(2)} MB`
       }]
     }));
-  } else {
-    console.log('medicalImages is not an array:', medicalImages);
   }
 
   const filteredStudies = (studies as any || []).filter((study: any) => {
