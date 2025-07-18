@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { Header } from "@/components/layout/header";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -253,7 +254,7 @@ export default function ImagingPage() {
     }
   };
 
-  const handleUploadSubmit = () => {
+  const handleUploadSubmit = async () => {
     if (!uploadFormData.patientId || !uploadFormData.studyType || selectedFiles.length === 0) {
       toast({
         title: "Upload Failed",
@@ -263,26 +264,70 @@ export default function ImagingPage() {
       return;
     }
 
-    // Simulate image upload
-    const totalSize = selectedFiles.reduce((sum, file) => sum + file.size, 0);
-    const totalSizeMB = (totalSize / (1024 * 1024)).toFixed(1);
+    try {
+      // Find the selected patient to get the numeric ID
+      const selectedPatient = patients.find(p => p.patientId === uploadFormData.patientId);
+      if (!selectedPatient) {
+        toast({
+          title: "Upload Failed",
+          description: "Selected patient not found",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    toast({
-      title: "Images Uploaded Successfully",
-      description: `${selectedFiles.length} images (${totalSizeMB} MB) uploaded for ${uploadFormData.studyType}`,
-    });
+      // Upload each file
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        
+        // Create a mock file URL (in a real app, you'd upload to cloud storage)
+        const fileUrl = `https://storage.example.com/medical-images/${Date.now()}-${file.name}`;
+        
+        const imageData = {
+          patientId: selectedPatient.id, // Use the numeric database ID
+          imageType: uploadFormData.studyType,
+          bodyPart: uploadFormData.bodyPart || "Not specified",
+          notes: uploadFormData.indication || "",
+          filename: file.name,
+          fileUrl: fileUrl,
+          fileSize: file.size,
+          uploadedBy: 348 // Current user ID (admin)
+        };
 
-    // Reset form and close dialog
-    setUploadFormData({
-      patientId: "",
-      studyType: "",
-      modality: "X-Ray",
-      bodyPart: "",
-      indication: "",
-      priority: "routine"
-    });
-    setSelectedFiles([]);
-    setShowUploadDialog(false);
+        await apiRequest("POST", "/api/medical-images", imageData);
+      }
+
+      const totalSize = selectedFiles.reduce((sum, file) => sum + file.size, 0);
+      const totalSizeMB = (totalSize / (1024 * 1024)).toFixed(1);
+
+      toast({
+        title: "Images Uploaded Successfully",
+        description: `${selectedFiles.length} images (${totalSizeMB} MB) uploaded for ${selectedPatient.firstName} ${selectedPatient.lastName}`,
+      });
+
+      // Reset form and close dialog
+      setUploadFormData({
+        patientId: "",
+        studyType: "",
+        modality: "X-Ray",
+        bodyPart: "",
+        indication: "",
+        priority: "routine"
+      });
+      setSelectedFiles([]);
+      setShowUploadDialog(false);
+      
+      // Refresh the medical images list if needed
+      // This would trigger a re-fetch of imaging studies
+      
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast({
+        title: "Upload Failed",
+        description: "Failed to upload images. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleViewStudy = (study: ImagingStudy) => {
