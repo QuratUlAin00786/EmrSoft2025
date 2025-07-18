@@ -1423,8 +1423,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Received message data:", JSON.stringify(req.body, null, 2));
       const { recipientId, content, type, priority, phoneNumber, messageType } = req.body;
       
+      // Add authenticated user information to message data
+      const messageDataWithUser = {
+        ...req.body,
+        senderId: req.user!.id,
+        senderName: req.user!.firstName && req.user!.lastName 
+          ? `${req.user!.firstName} ${req.user!.lastName}` 
+          : req.user!.email,
+        senderRole: req.user!.role
+      };
+      
       // Store the message in the database
-      const message = await storage.sendMessage(req.body, req.tenant!.id);
+      const message = await storage.sendMessage(messageDataWithUser, req.tenant!.id);
       
       // If phone number is provided, send via SMS or WhatsApp
       if (phoneNumber && (messageType === 'sms' || messageType === 'whatsapp')) {

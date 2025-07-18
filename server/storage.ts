@@ -1372,12 +1372,12 @@ export class DatabaseStorage implements IStorage {
       const newConversation = {
         id: conversationId,
         participants: [
-          { id: "current_user", name: "Current User", role: "staff" },
+          { id: messageData.senderId || "current_user", name: messageData.senderName || "Current User", role: messageData.senderRole || "staff" },
           { id: messageData.recipientId, name: messageData.recipientId, role: "patient" }
         ],
         lastMessage: {
           id: messageId,
-          senderId: "current_user",
+          senderId: messageData.senderId || "current_user",
           subject: messageData.subject || "New Message",
           content: messageData.content,
           timestamp: new Date().toISOString(),
