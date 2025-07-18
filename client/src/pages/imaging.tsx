@@ -247,11 +247,8 @@ export default function ImagingPage() {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
-      const fileList = Array.from(files).filter(file => 
-        file.type.includes('image/') || 
-        file.type.includes('application/dicom') || 
-        file.name.toLowerCase().includes('.dcm')
-      );
+      const fileList = Array.from(files);
+      console.log('Selected files:', fileList.map(f => ({ name: f.name, size: f.size, type: f.type })));
       setSelectedFiles(fileList);
     }
   };
@@ -1579,7 +1576,14 @@ export default function ImagingPage() {
                     {selectedFiles.map((file, index) => (
                       <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
                         <span className="text-sm truncate">{file.name}</span>
-                        <span className="text-xs text-gray-500">{(file.size / (1024 * 1024)).toFixed(1)} MB</span>
+                        <span className="text-xs text-gray-500">
+                          {file.size ? 
+                            file.size < 1024 ? `${file.size} B` :
+                            file.size < 1024 * 1024 ? `${(file.size / 1024).toFixed(1)} KB` :
+                            `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+                            : 'Unknown size'
+                          }
+                        </span>
                       </div>
                     ))}
                   </div>
