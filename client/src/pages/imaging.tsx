@@ -199,6 +199,7 @@ export default function ImagingPage() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [selectedImageSeries, setSelectedImageSeries] = useState<any>(null);
+  const [deletedStudyIds, setDeletedStudyIds] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   // Fetch patients using the exact working pattern from prescriptions
@@ -393,16 +394,13 @@ export default function ImagingPage() {
     if (!confirmDelete) return;
 
     try {
-      // Since we're using mock data with string IDs, simulate the delete operation
-      // In a real implementation with database integration, this would make an actual API call
+      // Add the study ID to the deleted set to remove it from the display
+      setDeletedStudyIds(prev => new Set([...prev, studyId]));
       
       toast({
         title: "Study Deleted",
         description: `${study.studyType} study for ${study.patientName} has been deleted successfully`,
       });
-
-      // Note: With mock data, the record will reappear on page refresh
-      // In a real database implementation, the record would be permanently deleted
       
     } catch (error) {
       console.error("Delete error:", error);
@@ -420,6 +418,11 @@ export default function ImagingPage() {
   });
 
   const filteredStudies = (studies as any || []).filter((study: any) => {
+    // First check if this study has been deleted
+    if (deletedStudyIds.has(study.id)) {
+      return false;
+    }
+    
     const matchesSearch = !searchQuery || 
       study.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       study.studyType.toLowerCase().includes(searchQuery.toLowerCase()) ||
