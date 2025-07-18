@@ -156,7 +156,13 @@
   }
   
   .sidebar-nav-item:not(.active) {
-    @apply text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900;
+    @apply text-neutral-700;
+    border-left: 3px solid transparent;
+  }
+  
+  .sidebar-nav-item:not(.active):hover {
+    @apply bg-neutral-100 text-neutral-900;
+    border-left: 3px solid transparent;
   }
   
   .dashboard-card {
