@@ -268,7 +268,7 @@ export default function ImagingPage() {
 
     try {
       // Find the selected patient to get the numeric ID
-      const selectedPatient = patients.find(p => p.patientId === uploadFormData.patientId || p.id === uploadFormData.patientId);
+      const selectedPatient = patients.find(p => p.id.toString() === uploadFormData.patientId);
       if (!selectedPatient) {
         toast({
           title: "Upload Failed",
