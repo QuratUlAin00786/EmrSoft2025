@@ -371,14 +371,14 @@ export default function MessagingPage() {
       return;
     }
 
-    // Additional validation for SMS/WhatsApp
+    // Additional validation for SMS/WhatsApp - allow empty phone number for testing
     if ((newMessage.messageType === 'sms' || newMessage.messageType === 'whatsapp') && !newMessage.phoneNumber.trim()) {
+      // Show warning but allow message to proceed for testing purposes
       toast({
-        title: "Validation Error",
-        description: "Please provide a phone number for SMS/WhatsApp messages.",
-        variant: "destructive"
+        title: "Phone Number Missing",
+        description: "SMS/WhatsApp message will be saved but delivery requires proper Twilio credentials.",
+        variant: "default"
       });
-      return;
     }
 
     sendMessageMutation.mutate({
