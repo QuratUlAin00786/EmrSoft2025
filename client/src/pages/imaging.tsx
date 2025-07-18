@@ -1708,18 +1708,20 @@ export default function ImagingPage() {
                       />
                     </div>
                   ) : (
-                    <div className="text-center text-white space-y-4">
-                      <div className="w-16 h-16 mx-auto border-2 border-white rounded-lg flex items-center justify-center">
-                        <FileImage className="h-8 w-8" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-medium">Medical Image Display</h3>
-                        <p className="text-gray-300 text-sm">
-                          Viewing {selectedImageSeries.seriesDescription}
-                        </p>
-                        <p className="text-gray-400 text-xs mt-2">
-                          {selectedImageSeries.type} format • {selectedImageSeries.imageCount} images • {selectedImageSeries.size}
-                        </p>
+                    <div className="w-full h-full flex items-center justify-center">
+                      <div className="text-center text-white space-y-4">
+                        <div className="w-72 h-72 bg-gray-800 rounded-lg flex items-center justify-center border-2 border-gray-600">
+                          <div className="text-center">
+                            <div className="w-24 h-24 mx-auto mb-4 border-2 border-gray-500 rounded-lg flex items-center justify-center">
+                              <FileImage className="h-12 w-12 text-gray-500" />
+                            </div>
+                            <div className="text-gray-400">
+                              <p className="font-medium">Medical Image</p>
+                              <p className="text-sm">{selectedImageSeries.seriesDescription}</p>
+                              <p className="text-xs mt-2">Upload a new image to view it here</p>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
