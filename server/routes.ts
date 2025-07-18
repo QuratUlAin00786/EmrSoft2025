@@ -1424,7 +1424,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { recipientId, content, type, priority, phoneNumber, messageType } = req.body;
       
       // Store the message in the database
-      const message = await storage.sendMessage(req.body, req.organizationId!);
+      const message = await storage.sendMessage(req.body, req.tenant!.id);
       
       // If phone number is provided, send via SMS or WhatsApp
       if (phoneNumber && (messageType === 'sms' || messageType === 'whatsapp')) {
