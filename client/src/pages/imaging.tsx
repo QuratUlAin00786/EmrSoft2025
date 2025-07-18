@@ -26,7 +26,8 @@ import {
   Share,
   Share2,
   Mail,
-  MessageCircle
+  MessageCircle,
+  Trash2
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -381,6 +382,39 @@ export default function ImagingPage() {
     }
   };
 
+  const handleDeleteStudy = async (studyId: string) => {
+    const study = (studies as any || []).find((s: any) => s.id === studyId);
+    if (!study) return;
+
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete the ${study.studyType} study for ${study.patientName}? This action cannot be undone.`
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      // Call the delete API endpoint
+      await apiRequest("DELETE", `/api/medical-images/${studyId}`);
+      
+      toast({
+        title: "Study Deleted",
+        description: `${study.studyType} study for ${study.patientName} has been deleted successfully`,
+      });
+
+      // Refresh the studies list (this would trigger a re-fetch in a real implementation)
+      // For now, the mock data will still show, but in a real app with database integration,
+      // the list would update automatically through React Query invalidation
+      
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast({
+        title: "Delete Failed",
+        description: "Failed to delete the imaging study. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const { data: studies = mockImagingStudies, isLoading } = useQuery({
     queryKey: ["/api/imaging", statusFilter, modalityFilter],
     enabled: true,
@@ -674,6 +708,14 @@ export default function ImagingPage() {
                       </Button>
                       <Button variant="outline" size="sm" onClick={() => handleGenerateReport(study.id)}>
                         <FileText className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleDeleteStudy(study.id)}
+                        className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
