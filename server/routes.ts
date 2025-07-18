@@ -2790,7 +2790,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         filename: z.string(),
         fileUrl: z.string(),
         fileSize: z.number(),
-        uploadedBy: z.number()
+        uploadedBy: z.number(),
+        imageData: z.string().optional(), // Add base64 image data field
+        mimeType: z.string().optional() // Add MIME type field
       }).parse(req.body);
 
       // Create proper object for database insertion
@@ -2802,9 +2804,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         indication: imageData.notes || "",
         fileName: imageData.filename,
         fileSize: imageData.fileSize,
-        mimeType: "image/jpeg", // Default mime type
+        mimeType: imageData.mimeType || "image/jpeg", // Use provided MIME type or default
         uploadedBy: imageData.uploadedBy,
-        organizationId: req.tenant!.id
+        organizationId: req.tenant!.id,
+        imageData: imageData.imageData || null // Store the base64 image data
       };
 
 

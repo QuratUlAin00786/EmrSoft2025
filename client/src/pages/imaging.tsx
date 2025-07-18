@@ -293,8 +293,18 @@ export default function ImagingPage() {
       for (let i = 0; i < selectedFiles.length; i++) {
         const file = selectedFiles[i];
         
-        // Create a mock file URL (in a real app, you'd upload to cloud storage)
-        const fileUrl = `https://storage.example.com/medical-images/${Date.now()}-${file.name}`;
+        // Convert file to base64
+        const base64Data = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result as string;
+            // Remove the data URL prefix to get just the base64 data
+            const base64 = result.split(',')[1];
+            resolve(base64);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
         
         const imageData = {
           patientId: selectedPatient.id, // Use the numeric database ID
@@ -302,9 +312,11 @@ export default function ImagingPage() {
           bodyPart: uploadFormData.bodyPart || "Not specified",
           notes: uploadFormData.indication || "",
           filename: file.name,
-          fileUrl: fileUrl,
+          fileUrl: `data:${file.type};base64,${base64Data}`,
           fileSize: file.size,
-          uploadedBy: 348 // Current user ID (admin)
+          uploadedBy: 348, // Current user ID (admin)
+          imageData: base64Data, // Include the base64 image data
+          mimeType: file.type
         };
 
         await apiRequest("POST", "/api/medical-images", imageData);
@@ -449,7 +461,9 @@ export default function ImagingPage() {
         type: image.mimeType?.includes('jpeg') ? 'JPEG' : 'DICOM',
         seriesDescription: `${image.modality} ${image.bodyPart}`,
         imageCount: 1,
-        size: `${(image.fileSize / (1024 * 1024)).toFixed(2)} MB`
+        size: `${(image.fileSize / (1024 * 1024)).toFixed(2)} MB`,
+        imageData: image.imageData, // Include the base64 image data
+        mimeType: image.mimeType // Include the MIME type
       }]
     }));
   }
@@ -1106,7 +1120,16 @@ export default function ImagingPage() {
                           variant="outline" 
                           size="sm"
                           onClick={() => {
-                            setSelectedImageSeries(image);
+                            // Convert the uploaded medical image to the viewer format
+                            const imageForViewer = {
+                              seriesDescription: image.seriesDescription,
+                              type: image.type,
+                              imageCount: image.imageCount,
+                              size: image.size,
+                              imageData: image.imageData, // This should come from the database
+                              mimeType: image.mimeType || 'image/jpeg'
+                            };
+                            setSelectedImageSeries(imageForViewer);
                             setShowImageViewer(true);
                           }}
                         >
@@ -1675,45 +1698,31 @@ export default function ImagingPage() {
 
                 {/* Image Display Area */}
                 <div className="bg-black rounded-lg p-4 min-h-[400px] flex items-center justify-center">
-                  <div className="text-center text-white space-y-4">
-                    <div className="w-16 h-16 mx-auto border-2 border-white rounded-lg flex items-center justify-center">
-                      <FileImage className="h-8 w-8" />
+                  {selectedImageSeries.imageData ? (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <img 
+                        src={`data:${selectedImageSeries.mimeType || 'image/jpeg'};base64,${selectedImageSeries.imageData}`}
+                        alt={`Medical Image - ${selectedImageSeries.seriesDescription}`}
+                        className="max-w-full max-h-96 object-contain rounded-lg border border-gray-600"
+                        style={{ maxHeight: '400px' }}
+                      />
                     </div>
-                    <div>
-                      <h3 className="text-lg font-medium">Medical Image Display</h3>
-                      <p className="text-gray-300 text-sm">
-                        Viewing {selectedImageSeries.seriesDescription}
-                      </p>
-                      <p className="text-gray-400 text-xs mt-2">
-                        {selectedImageSeries.type} format • {selectedImageSeries.imageCount} images • {selectedImageSeries.size}
-                      </p>
+                  ) : (
+                    <div className="text-center text-white space-y-4">
+                      <div className="w-16 h-16 mx-auto border-2 border-white rounded-lg flex items-center justify-center">
+                        <FileImage className="h-8 w-8" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-medium">Medical Image Display</h3>
+                        <p className="text-gray-300 text-sm">
+                          Viewing {selectedImageSeries.seriesDescription}
+                        </p>
+                        <p className="text-gray-400 text-xs mt-2">
+                          {selectedImageSeries.type} format • {selectedImageSeries.imageCount} images • {selectedImageSeries.size}
+                        </p>
+                      </div>
                     </div>
-                    
-                    {/* Sample Image Thumbnails */}
-                    <div className="grid grid-cols-3 gap-2 mt-6 max-w-md mx-auto">
-                      {Array.from({length: Math.min(6, selectedImageSeries.imageCount)}).map((_, index) => (
-                        <div key={index} className="bg-gray-800 rounded p-4 h-20 flex items-center justify-center border border-gray-600">
-                          <span className="text-xs text-gray-400">Image {index + 1}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Image Controls */}
-                    <div className="flex justify-center space-x-2 mt-4">
-                      <Button variant="outline" size="sm" className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700">
-                        Previous
-                      </Button>
-                      <Button variant="outline" size="sm" className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700">
-                        Next
-                      </Button>
-                      <Button variant="outline" size="sm" className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700">
-                        Zoom In
-                      </Button>
-                      <Button variant="outline" size="sm" className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700">
-                        Zoom Out
-                      </Button>
-                    </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Image Tools */}
