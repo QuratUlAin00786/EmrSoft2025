@@ -2766,7 +2766,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         uploadedBy: z.number()
       }).parse(req.body);
 
-      const image = await storage.createMedicalImage({
+      // Create proper object for database insertion
+      const dbImageData = {
         patientId: imageData.patientId,
         studyType: imageData.imageType, // Map imageType to studyType for database
         modality: "X-Ray", // Default modality
@@ -2777,7 +2778,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mimeType: "image/jpeg", // Default mime type
         uploadedBy: imageData.uploadedBy,
         organizationId: req.tenant!.id
-      });
+      };
+
+
+      const image = await storage.createMedicalImage(dbImageData);
 
       res.status(201).json(image);
     } catch (error) {
