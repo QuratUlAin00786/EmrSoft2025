@@ -889,7 +889,7 @@ export default function ImagingPage() {
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">{selectedStudy.patientName.charAt(0)}</span>
+                    <span className="text-white text-sm font-bold">{selectedStudy.patientName?.charAt(0) || 'P'}</span>
                   </div>
                   <div>
                     <h3 className="font-semibold text-lg">{selectedStudy.patientName}</h3>
@@ -1026,7 +1026,7 @@ export default function ImagingPage() {
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-lg font-bold">{selectedStudy.patientName.charAt(0)}</span>
+                    <span className="text-white text-lg font-bold">{selectedStudy.patientName?.charAt(0) || 'P'}</span>
                   </div>
                   <div>
                     <h3 className="font-semibold text-xl">{selectedStudy.patientName}</h3>
@@ -1039,7 +1039,7 @@ export default function ImagingPage() {
                       selectedStudy.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
-                      {selectedStudy.status.charAt(0).toUpperCase() + selectedStudy.status.slice(1).replace('_', ' ')}
+                      {selectedStudy.status?.charAt(0).toUpperCase() + selectedStudy.status?.slice(1).replace('_', ' ') || 'Unknown'}
                     </span>
                   </div>
                 </div>
