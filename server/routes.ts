@@ -2727,6 +2727,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Medical Images API endpoints
+  app.get("/api/medical-images", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const images = await storage.getMedicalImagesByOrganization(req.tenant!.id);
+      res.json(images);
+    } catch (error) {
+      console.error("Error fetching medical images:", error);
+      res.status(500).json({ error: "Failed to fetch medical images" });
+    }
+  });
+
+  app.get("/api/medical-images/patient/:patientId", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const patientId = parseInt(req.params.patientId);
+      if (isNaN(patientId)) {
+        return res.status(400).json({ error: "Invalid patient ID" });
+      }
+      
+      const images = await storage.getMedicalImagesByPatient(patientId, req.tenant!.id);
+      res.json(images);
+    } catch (error) {
+      console.error("Error fetching patient medical images:", error);
+      res.status(500).json({ error: "Failed to fetch patient medical images" });
+    }
+  });
+
+  app.post("/api/medical-images", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const imageData = z.object({
+        patientId: z.number(),
+        imageType: z.string(),
+        bodyPart: z.string(),
+        notes: z.string().optional(),
+        filename: z.string(),
+        fileUrl: z.string(),
+        fileSize: z.number(),
+        uploadedBy: z.number()
+      }).parse(req.body);
+
+      const image = await storage.createMedicalImage({
+        ...imageData,
+        organizationId: req.tenant!.id
+      });
+
+      res.status(201).json(image);
+    } catch (error) {
+      console.error("Error creating medical image:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+        });
+      }
+      res.status(500).json({ error: "Failed to create medical image" });
+    }
+  });
+
+  app.delete("/api/medical-images/:id", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const imageId = parseInt(req.params.id);
+      if (isNaN(imageId)) {
+        return res.status(400).json({ error: "Invalid image ID" });
+      }
+
+      const success = await storage.deleteMedicalImage(imageId, req.tenant!.id);
+      if (!success) {
+        return res.status(404).json({ error: "Medical image not found" });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting medical image:", error);
+      res.status(500).json({ error: "Failed to delete medical image" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

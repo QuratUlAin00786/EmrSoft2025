@@ -329,6 +329,32 @@ export const prescriptions = pgTable("prescriptions", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Medical Images
+export const medicalImages = pgTable("medical_images", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  patientId: integer("patient_id").notNull().references(() => patients.id),
+  uploadedBy: integer("uploaded_by").notNull().references(() => users.id),
+  studyType: text("study_type").notNull(),
+  modality: varchar("modality", { length: 50 }).notNull(), // X-Ray, CT, MRI, Ultrasound, etc.
+  bodyPart: text("body_part"),
+  indication: text("indication"),
+  priority: varchar("priority", { length: 20 }).notNull().default("routine"), // routine, urgent, stat
+  fileName: text("file_name").notNull(),
+  fileSize: integer("file_size").notNull(), // in bytes
+  mimeType: varchar("mime_type", { length: 100 }).notNull(),
+  imageData: text("image_data"), // base64 encoded image data
+  status: varchar("status", { length: 20 }).notNull().default("uploaded"), // uploaded, processing, analyzed, reported
+  metadata: jsonb("metadata").$type<{
+    imageCount?: number;
+    totalSize?: string;
+    resolution?: string;
+    acquisitionDate?: string;
+  }>().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Patient Communications Tracking
 export const patientCommunications = pgTable("patient_communications", {
   id: serial("id").primaryKey(),
@@ -418,6 +444,7 @@ export const patientsRelations = relations(patients, ({ one, many }) => ({
   aiInsights: many(aiInsights),
   communications: many(patientCommunications),
   prescriptions: many(prescriptions),
+  medicalImages: many(medicalImages),
 }));
 
 export const notificationsRelations = relations(notifications, ({ one }) => ({
@@ -543,6 +570,21 @@ export const prescriptionsRelations = relations(prescriptions, ({ one }) => ({
   }),
 }));
 
+export const medicalImagesRelations = relations(medicalImages, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [medicalImages.organizationId],
+    references: [organizations.id],
+  }),
+  patient: one(patients, {
+    fields: [medicalImages.patientId],
+    references: [patients.id],
+  }),
+  uploadedByUser: one(users, {
+    fields: [medicalImages.uploadedBy],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertOrganizationSchema = createInsertSchema(organizations).omit({
   id: true,
@@ -612,6 +654,12 @@ export const insertPrescriptionSchema = createInsertSchema(prescriptions).omit({
   updatedAt: true,
 });
 
+export const insertMedicalImageSchema = createInsertSchema(medicalImages).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type Organization = typeof organizations.$inferSelect;
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
@@ -648,5 +696,8 @@ export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 export type Prescription = typeof prescriptions.$inferSelect;
 export type InsertPrescription = z.infer<typeof insertPrescriptionSchema>;
+
+export type MedicalImage = typeof medicalImages.$inferSelect;
+export type InsertMedicalImage = z.infer<typeof insertMedicalImageSchema>;
 
 

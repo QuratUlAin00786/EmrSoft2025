@@ -1,5 +1,5 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents,
+  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Patient, type InsertPatient,
@@ -11,7 +11,8 @@ import {
   type Consultation, type InsertConsultation,
   type Notification, type InsertNotification,
   type Prescription, type InsertPrescription,
-  type Document, type InsertDocument
+  type Document, type InsertDocument,
+  type MedicalImage, type InsertMedicalImage
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, not, sql } from "drizzle-orm";
@@ -139,6 +140,14 @@ export interface IStorage {
   // Lab Results
   getLabResults(organizationId: number): Promise<any[]>;
   createLabResult(labResult: any): Promise<any>;
+
+  // Medical Images
+  getMedicalImage(id: number, organizationId: number): Promise<MedicalImage | undefined>;
+  getMedicalImagesByPatient(patientId: number, organizationId: number): Promise<MedicalImage[]>;
+  getMedicalImagesByOrganization(organizationId: number, limit?: number): Promise<MedicalImage[]>;
+  createMedicalImage(image: InsertMedicalImage): Promise<MedicalImage>;
+  updateMedicalImage(id: number, organizationId: number, updates: Partial<InsertMedicalImage>): Promise<MedicalImage | undefined>;
+  deleteMedicalImage(id: number, organizationId: number): Promise<boolean>;
 
   // Documents
   getDocument(id: number, organizationId: number): Promise<Document | undefined>;
@@ -1513,6 +1522,63 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(documents)
       .where(and(eq(documents.id, id), eq(documents.organizationId, organizationId)));
+    return result.rowCount > 0;
+  }
+
+  // Medical Images implementation
+  async getMedicalImage(id: number, organizationId: number): Promise<MedicalImage | undefined> {
+    const [image] = await db
+      .select()
+      .from(medicalImages)
+      .where(and(eq(medicalImages.id, id), eq(medicalImages.organizationId, organizationId)));
+    return image;
+  }
+
+  async getMedicalImagesByPatient(patientId: number, organizationId: number): Promise<MedicalImage[]> {
+    return await db
+      .select()
+      .from(medicalImages)
+      .where(and(eq(medicalImages.patientId, patientId), eq(medicalImages.organizationId, organizationId)))
+      .orderBy(desc(medicalImages.createdAt));
+  }
+
+  async getMedicalImagesByOrganization(organizationId: number, limit: number = 50): Promise<MedicalImage[]> {
+    return await db
+      .select()
+      .from(medicalImages)
+      .where(eq(medicalImages.organizationId, organizationId))
+      .orderBy(desc(medicalImages.createdAt))
+      .limit(limit);
+  }
+
+  async createMedicalImage(image: InsertMedicalImage): Promise<MedicalImage> {
+    const [newImage] = await db
+      .insert(medicalImages)
+      .values({
+        ...image,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newImage;
+  }
+
+  async updateMedicalImage(id: number, organizationId: number, updates: Partial<InsertMedicalImage>): Promise<MedicalImage | undefined> {
+    const [updatedImage] = await db
+      .update(medicalImages)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(medicalImages.id, id), eq(medicalImages.organizationId, organizationId)))
+      .returning();
+    return updatedImage;
+  }
+
+  async deleteMedicalImage(id: number, organizationId: number): Promise<boolean> {
+    const result = await db
+      .delete(medicalImages)
+      .where(and(eq(medicalImages.id, id), eq(medicalImages.organizationId, organizationId)));
     return result.rowCount > 0;
   }
 }
