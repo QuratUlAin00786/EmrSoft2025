@@ -287,7 +287,7 @@ export default function ImagingPage() {
         
         const imageData = {
           patientId: selectedPatient.id, // Use the numeric database ID
-          studyType: uploadFormData.studyType,
+          imageType: uploadFormData.studyType,
           bodyPart: uploadFormData.bodyPart || "Not specified",
           notes: uploadFormData.indication || "",
           filename: file.name,
