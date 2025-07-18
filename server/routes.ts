@@ -2753,6 +2753,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all medical images for the organization
+  app.get("/api/medical-images", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const medicalImages = await storage.getMedicalImagesByOrganization(req.tenant!.id);
+      
+      // Transform the data to include patient information
+      const imagesWithPatients = await Promise.all(
+        medicalImages.map(async (image) => {
+          const patient = await storage.getPatient(image.patientId, req.tenant!.id);
+          const uploader = await storage.getUser(image.uploadedBy.toString());
+          
+          return {
+            ...image,
+            patientName: patient ? `${patient.firstName} ${patient.lastName}` : "Unknown Patient",
+            patientId: patient?.patientId || "Unknown",
+            uploadedByName: uploader ? `${uploader.firstName} ${uploader.lastName}` : "Unknown User"
+          };
+        })
+      );
+      
+      res.json(imagesWithPatients);
+    } catch (error) {
+      console.error("Error fetching medical images:", error);
+      res.status(500).json({ error: "Failed to fetch medical images" });
+    }
+  });
+
   app.post("/api/medical-images", authMiddleware, async (req: TenantRequest, res) => {
     try {
       const imageData = z.object({

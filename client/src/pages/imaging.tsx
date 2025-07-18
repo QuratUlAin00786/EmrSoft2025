@@ -201,6 +201,21 @@ export default function ImagingPage() {
   const [selectedImageSeries, setSelectedImageSeries] = useState<any>(null);
   const [deletedStudyIds, setDeletedStudyIds] = useState<Set<string>>(new Set());
   const { toast } = useToast();
+  
+  // Fetch medical images using React Query
+  const { data: medicalImages = [], isLoading: imagesLoading, refetch: refetchImages } = useQuery({
+    queryKey: ['/api/medical-images'],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest('GET', '/api/medical-images');
+        console.log('Medical images response:', response);
+        return Array.isArray(response) ? response : [];
+      } catch (error) {
+        console.error('Error fetching medical images:', error);
+        return [];
+      }
+    }
+  });
 
   // Fetch patients using the exact working pattern from prescriptions
   const fetchPatients = async () => {
@@ -248,7 +263,6 @@ export default function ImagingPage() {
     const files = event.target.files;
     if (files) {
       const fileList = Array.from(files);
-      console.log('Selected files:', fileList.map(f => ({ name: f.name, size: f.size, type: f.type })));
       setSelectedFiles(fileList);
     }
   };
@@ -316,8 +330,8 @@ export default function ImagingPage() {
       setSelectedFiles([]);
       setShowUploadDialog(false);
       
-      // Refresh the medical images list if needed
-      // This would trigger a re-fetch of imaging studies
+      // Refresh the medical images list
+      refetchImages();
       
     } catch (error) {
       console.error("Upload error:", error);
@@ -409,10 +423,38 @@ export default function ImagingPage() {
     }
   };
 
-  const { data: studies = mockImagingStudies, isLoading } = useQuery({
-    queryKey: ["/api/imaging", statusFilter, modalityFilter],
-    enabled: true,
-  });
+  // Transform medical images data to match ImagingStudy format
+  let studies: any[] = [];
+  
+  if (medicalImages && Array.isArray(medicalImages)) {
+    studies = medicalImages.map((image: any) => ({
+      id: image.id.toString(),
+      patientId: image.patientId,
+      patientName: image.patientName,
+      studyType: image.studyType,
+      modality: image.modality,
+      bodyPart: image.bodyPart || "Not specified",
+      orderedBy: image.uploadedByName || "Unknown",
+      orderedAt: image.createdAt,
+      scheduledAt: image.createdAt,
+      performedAt: image.createdAt,
+      status: image.status === "uploaded" ? "completed" : image.status,
+      priority: image.priority || "routine",
+      indication: image.indication || "No indication provided",
+      findings: `Medical image uploaded: ${image.fileName}`,
+      impression: `File: ${image.fileName} (${(image.fileSize / (1024 * 1024)).toFixed(2)} MB)`,
+      radiologist: image.uploadedByName || "Unknown",
+      images: [{
+        id: image.id.toString(),
+        type: image.mimeType?.includes('jpeg') ? 'JPEG' : 'DICOM',
+        seriesDescription: `${image.modality} ${image.bodyPart}`,
+        imageCount: 1,
+        size: `${(image.fileSize / (1024 * 1024)).toFixed(2)} MB`
+      }]
+    }));
+  } else {
+    console.log('medicalImages is not an array:', medicalImages);
+  }
 
   const filteredStudies = (studies as any || []).filter((study: any) => {
     // First check if this study has been deleted
@@ -463,7 +505,7 @@ export default function ImagingPage() {
     }
   };
 
-  if (isLoading) {
+  if (imagesLoading) {
     return (
       <div className="space-y-6">
         {[1, 2, 3].map(i => (
