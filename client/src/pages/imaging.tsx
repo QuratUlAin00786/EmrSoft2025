@@ -195,6 +195,8 @@ export default function ImagingPage() {
     priority: "routine"
   });
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [showImageViewer, setShowImageViewer] = useState(false);
+  const [selectedImageSeries, setSelectedImageSeries] = useState<any>(null);
   const { toast } = useToast();
 
   // Fetch patients using the exact working pattern from prescriptions
@@ -978,10 +980,8 @@ export default function ImagingPage() {
                           variant="outline" 
                           size="sm"
                           onClick={() => {
-                            toast({
-                              title: "Opening Image Viewer",
-                              description: `Loading ${image.seriesDescription} images`,
-                            });
+                            setSelectedImageSeries(image);
+                            setShowImageViewer(true);
                           }}
                         >
                           <Eye className="h-4 w-4 mr-2" />
@@ -1511,6 +1511,102 @@ export default function ImagingPage() {
                 Upload Images
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Image Viewer Dialog */}
+      <Dialog open={showImageViewer} onOpenChange={setShowImageViewer}>
+        <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Medical Image Viewer</DialogTitle>
+            {selectedImageSeries && (
+              <p className="text-sm text-gray-600">
+                {selectedImageSeries.seriesDescription} - {selectedImageSeries.imageCount} images
+              </p>
+            )}
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-auto">
+            {selectedImageSeries && (
+              <div className="space-y-4">
+                {/* Series Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div><strong>Series:</strong> {selectedImageSeries.seriesDescription}</div>
+                    <div><strong>Type:</strong> {selectedImageSeries.type}</div>
+                    <div><strong>Images:</strong> {selectedImageSeries.imageCount}</div>
+                    <div><strong>Size:</strong> {selectedImageSeries.size}</div>
+                  </div>
+                </div>
+
+                {/* Image Display Area */}
+                <div className="bg-black rounded-lg p-4 min-h-[400px] flex items-center justify-center">
+                  <div className="text-center text-white space-y-4">
+                    <div className="w-16 h-16 mx-auto border-2 border-white rounded-lg flex items-center justify-center">
+                      <FileImage className="h-8 w-8" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-medium">Medical Image Display</h3>
+                      <p className="text-gray-300 text-sm">
+                        Viewing {selectedImageSeries.seriesDescription}
+                      </p>
+                      <p className="text-gray-400 text-xs mt-2">
+                        {selectedImageSeries.type} format • {selectedImageSeries.imageCount} images • {selectedImageSeries.size}
+                      </p>
+                    </div>
+                    
+                    {/* Sample Image Thumbnails */}
+                    <div className="grid grid-cols-3 gap-2 mt-6 max-w-md mx-auto">
+                      {Array.from({length: Math.min(6, selectedImageSeries.imageCount)}).map((_, index) => (
+                        <div key={index} className="bg-gray-800 rounded p-4 h-20 flex items-center justify-center border border-gray-600">
+                          <span className="text-xs text-gray-400">Image {index + 1}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Image Controls */}
+                    <div className="flex justify-center space-x-2 mt-4">
+                      <Button variant="outline" size="sm" className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700">
+                        Previous
+                      </Button>
+                      <Button variant="outline" size="sm" className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700">
+                        Next
+                      </Button>
+                      <Button variant="outline" size="sm" className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700">
+                        Zoom In
+                      </Button>
+                      <Button variant="outline" size="sm" className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700">
+                        Zoom Out
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Image Tools */}
+                <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
+                  <div className="flex space-x-2">
+                    <Button variant="outline" size="sm">
+                      <Download className="h-4 w-4 mr-2" />
+                      Download
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Share className="h-4 w-4 mr-2" />
+                      Share
+                    </Button>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    Image 1 of {selectedImageSeries.imageCount}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end pt-4 border-t">
+            <Button variant="outline" onClick={() => setShowImageViewer(false)}>
+              Close Viewer
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
