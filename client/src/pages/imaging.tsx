@@ -170,6 +170,7 @@ export default function ImagingPage() {
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [showFinalReportDialog, setShowFinalReportDialog] = useState(false);
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [modalityFilter, setModalityFilter] = useState<string>("all");
   const [selectedStudy, setSelectedStudy] = useState<ImagingStudy | null>(null);
   const [shareFormData, setShareFormData] = useState({
@@ -185,6 +186,15 @@ export default function ImagingPage() {
     impression: "",
     radiologist: ""
   });
+  const [uploadFormData, setUploadFormData] = useState({
+    patientId: "",
+    studyType: "",
+    modality: "X-Ray",
+    bodyPart: "",
+    indication: "",
+    priority: "routine"
+  });
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const { toast } = useToast();
 
   // Fetch patients using the exact working pattern from prescriptions
@@ -224,10 +234,54 @@ export default function ImagingPage() {
   };
 
   useEffect(() => {
-    if (showNewOrder) {
+    if (showNewOrder || showUploadDialog) {
       fetchPatients();
     }
-  }, [showNewOrder]);
+  }, [showNewOrder, showUploadDialog]);
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const fileList = Array.from(files).filter(file => 
+        file.type.includes('image/') || 
+        file.type.includes('application/dicom') || 
+        file.name.toLowerCase().includes('.dcm')
+      );
+      setSelectedFiles(fileList);
+    }
+  };
+
+  const handleUploadSubmit = () => {
+    if (!uploadFormData.patientId || !uploadFormData.studyType || selectedFiles.length === 0) {
+      toast({
+        title: "Upload Failed",
+        description: "Please fill in all required fields and select images to upload",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Simulate image upload
+    const totalSize = selectedFiles.reduce((sum, file) => sum + file.size, 0);
+    const totalSizeMB = (totalSize / (1024 * 1024)).toFixed(1);
+
+    toast({
+      title: "Images Uploaded Successfully",
+      description: `${selectedFiles.length} images (${totalSizeMB} MB) uploaded for ${uploadFormData.studyType}`,
+    });
+
+    // Reset form and close dialog
+    setUploadFormData({
+      patientId: "",
+      studyType: "",
+      modality: "X-Ray",
+      bodyPart: "",
+      indication: "",
+      priority: "routine"
+    });
+    setSelectedFiles([]);
+    setShowUploadDialog(false);
+  };
 
   const handleViewStudy = (study: ImagingStudy) => {
     setSelectedStudy(study);
@@ -454,6 +508,10 @@ export default function ImagingPage() {
                 <Button onClick={() => setShowNewOrder(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Order Study
+                </Button>
+                <Button variant="outline" onClick={() => setShowUploadDialog(true)}>
+                  <FileImage className="h-4 w-4 mr-2" />
+                  Upload Images
                 </Button>
               </div>
             </CardContent>
@@ -1295,6 +1353,165 @@ export default function ImagingPage() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Upload Images Dialog */}
+      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Upload Medical Images</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6">
+            {/* Patient Selection */}
+            <div>
+              <Label htmlFor="upload-patient">Patient *</Label>
+              <Select value={uploadFormData.patientId} onValueChange={(value) => setUploadFormData({...uploadFormData, patientId: value})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select patient" />
+                </SelectTrigger>
+                <SelectContent>
+                  {patientsLoading ? (
+                    <SelectItem value="loading">Loading patients...</SelectItem>
+                  ) : patients.length === 0 ? (
+                    <SelectItem value="no-patients">No patients available</SelectItem>
+                  ) : (
+                    patients.map((patient) => (
+                      <SelectItem key={patient.id} value={patient.id.toString()}>
+                        {patient.firstName} {patient.lastName} ({patient.patientId})
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Study Information */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="upload-modality">Modality *</Label>
+                <Select value={uploadFormData.modality} onValueChange={(value) => setUploadFormData({...uploadFormData, modality: value})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="X-Ray">X-Ray</SelectItem>
+                    <SelectItem value="CT">CT Scan</SelectItem>
+                    <SelectItem value="MRI">MRI</SelectItem>
+                    <SelectItem value="Ultrasound">Ultrasound</SelectItem>
+                    <SelectItem value="Nuclear Medicine">Nuclear Medicine</SelectItem>
+                    <SelectItem value="Mammography">Mammography</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="upload-priority">Priority</Label>
+                <Select value={uploadFormData.priority} onValueChange={(value) => setUploadFormData({...uploadFormData, priority: value})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="routine">Routine</SelectItem>
+                    <SelectItem value="urgent">Urgent</SelectItem>
+                    <SelectItem value="stat">STAT</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="upload-study-type">Study Type *</Label>
+              <Input
+                id="upload-study-type"
+                value={uploadFormData.studyType}
+                onChange={(e) => setUploadFormData({...uploadFormData, studyType: e.target.value})}
+                placeholder="e.g., Chest X-Ray PA and Lateral"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="upload-body-part">Body Part</Label>
+              <Input
+                id="upload-body-part"
+                value={uploadFormData.bodyPart}
+                onChange={(e) => setUploadFormData({...uploadFormData, bodyPart: e.target.value})}
+                placeholder="e.g., Chest, Abdomen, Left Hand"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="upload-indication">Clinical Indication</Label>
+              <Textarea
+                id="upload-indication"
+                value={uploadFormData.indication}
+                onChange={(e) => setUploadFormData({...uploadFormData, indication: e.target.value})}
+                placeholder="Reason for imaging study..."
+                rows={2}
+              />
+            </div>
+
+            {/* File Upload */}
+            <div>
+              <Label htmlFor="upload-files">Medical Images *</Label>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                <FileImage className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <div className="space-y-2">
+                  <div>
+                    <input
+                      type="file"
+                      id="upload-files"
+                      multiple
+                      accept="image/*,.dcm,.dicom"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => document.getElementById('upload-files')?.click()}
+                    >
+                      Select Images
+                    </Button>
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    Select X-ray images, DICOM files, or other medical images
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    Supported formats: JPEG, PNG, DICOM (.dcm)
+                  </p>
+                </div>
+              </div>
+              
+              {/* Selected Files Display */}
+              {selectedFiles.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  <Label>Selected Files ({selectedFiles.length}):</Label>
+                  <div className="max-h-32 overflow-y-auto space-y-1">
+                    {selectedFiles.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                        <span className="text-sm truncate">{file.name}</span>
+                        <span className="text-xs text-gray-500">{(file.size / (1024 * 1024)).toFixed(1)} MB</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-between items-center pt-4 border-t">
+              <Button variant="outline" onClick={() => setShowUploadDialog(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleUploadSubmit}
+                className="bg-medical-blue hover:bg-blue-700"
+                disabled={!uploadFormData.patientId || !uploadFormData.studyType || selectedFiles.length === 0}
+              >
+                <FileImage className="h-4 w-4 mr-2" />
+                Upload Images
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </>
