@@ -111,6 +111,8 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system des
 ## Changelog
 
 **July 20, 2025:**
+- **COMPLETED**: Fixed patient filter functionality completely - resolved filter logic condition that wasn't properly detecting active filters, enhanced insurance provider filtering to handle different data formats, added automatic filter application when filter values change, improved search filter detection for better user experience, both Search and Filters buttons now fully functional with real-time filtering capabilities
+- **COMPLETED**: Fixed send reminder validation error - resolved backend validation issue where "Phone Call" communication method was being sent as "phone" instead of expected "sms", added proper mapping in frontend to convert "phone" to "sms" for backend compatibility, send reminder functionality now works correctly for all communication methods including Phone Call, SMS, WhatsApp, and Email
 - **COMPLETED**: BigBlueButton video conferencing integration fully functional - successfully integrated real BigBlueButton service (vid2.averox.com) with Cura messaging system, fixed crypto import issues in server-side API, video calls now create authentic meetings that open in new windows with HD video quality, proper meeting lifecycle management with automatic window detection, meetings display correct participant names and branding ("Powered by BigBlueButton"), users can now conduct real video consultations through external BigBlueButton service with full audio/video/chat/screen sharing capabilities
 
 **July 18, 2025:**

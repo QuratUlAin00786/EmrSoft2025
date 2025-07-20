@@ -142,9 +142,12 @@ export function PatientCommunicationDialog({ open, onOpenChange, patient, mode }
       return;
     }
 
+    // Map phone to sms for backend compatibility
+    const backendMethod = selectedMethod === "phone" ? "sms" : selectedMethod;
+    
     sendReminderMutation.mutate({
       type: selectedType,
-      method: selectedMethod,
+      method: backendMethod,
       message: message.trim(),
       scheduledFor: scheduledFor || null,
       metadata: {
