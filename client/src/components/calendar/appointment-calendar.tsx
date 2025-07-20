@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Calendar, Clock, MapPin, User, Video, Stethoscope, FileText } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -761,8 +761,11 @@ export default function AppointmentCalendar() {
               <Calendar className="h-5 w-5 text-blue-600" />
               Schedule New Appointment
             </DialogTitle>
+            <DialogDescription>
+              Fill in the details below to schedule a new patient appointment.
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 overflow-y-auto max-h-[calc(90vh-120px)]">
+          <form onSubmit={(e) => e.preventDefault()} className="space-y-4 overflow-y-auto max-h-[calc(90vh-120px)]">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 block">Patient *</label>
@@ -914,16 +917,29 @@ export default function AppointmentCalendar() {
             
             <div className="flex gap-2 pt-4">
               <Button 
-                onClick={createAppointment}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  createAppointment();
+                }}
                 disabled={isCreatingAppointment}
               >
                 {isCreatingAppointment ? "Scheduling..." : "Schedule Appointment"}
               </Button>
-              <Button variant="outline" onClick={() => setShowNewAppointment(false)}>
+              <Button 
+                type="button"
+                variant="outline" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowNewAppointment(false);
+                }}
+              >
                 Cancel
               </Button>
             </div>
-          </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
