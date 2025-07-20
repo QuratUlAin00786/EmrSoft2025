@@ -2809,30 +2809,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const imageData = z.object({
         patientId: z.number(),
-        imageType: z.string(),
+        imageType: z.string().optional(),
+        studyType: z.string().optional(),
+        modality: z.string().optional(),
         bodyPart: z.string(),
+        indication: z.string().optional(),
+        priority: z.string().optional(),
         notes: z.string().optional(),
         filename: z.string(),
-        fileUrl: z.string(),
+        fileUrl: z.string().optional(),
         fileSize: z.number(),
         uploadedBy: z.number(),
         imageData: z.string().optional(), // Add base64 image data field
-        mimeType: z.string().optional() // Add MIME type field
+        mimeType: z.string().optional(), // Add MIME type field
+        status: z.string().optional() // Add status field for orders vs uploads
       }).parse(req.body);
 
       // Create proper object for database insertion
       const dbImageData = {
         patientId: imageData.patientId,
-        studyType: imageData.imageType, // Map imageType to studyType for database
-        modality: "X-Ray", // Default modality
+        studyType: imageData.studyType || imageData.imageType || "Unknown Study", // Use studyType first, then imageType as fallback
+        modality: imageData.modality || "X-Ray", // Use provided modality or default
         bodyPart: imageData.bodyPart,
-        indication: imageData.notes || "",
+        indication: imageData.indication || imageData.notes || "",
+        priority: imageData.priority || "routine",
         fileName: imageData.filename,
         fileSize: imageData.fileSize,
         mimeType: imageData.mimeType || "image/jpeg", // Use provided MIME type or default
         uploadedBy: imageData.uploadedBy,
         organizationId: req.tenant!.id,
-        imageData: imageData.imageData || null // Store the base64 image data
+        imageData: imageData.imageData || null, // Store the base64 image data
+        status: imageData.status || "uploaded" // Use provided status or default to uploaded
       };
 
 

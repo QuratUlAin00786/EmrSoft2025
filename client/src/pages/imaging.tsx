@@ -196,6 +196,15 @@ export default function ImagingPage() {
     indication: "",
     priority: "routine"
   });
+  const [orderFormData, setOrderFormData] = useState({
+    patientId: "",
+    studyType: "",
+    modality: "X-Ray",
+    bodyPart: "",
+    indication: "",
+    priority: "routine",
+    specialInstructions: ""
+  });
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [selectedImageSeries, setSelectedImageSeries] = useState<any>(null);
@@ -350,6 +359,78 @@ export default function ImagingPage() {
       toast({
         title: "Upload Failed",
         description: "Failed to upload images. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleOrderSubmit = async () => {
+    if (!orderFormData.patientId || !orderFormData.studyType || !orderFormData.modality || !orderFormData.bodyPart) {
+      toast({
+        title: "Order Failed",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Find the selected patient to get the numeric ID
+      const selectedPatient = patients.find(p => p.id.toString() === orderFormData.patientId);
+      if (!selectedPatient) {
+        toast({
+          title: "Order Failed",
+          description: "Selected patient not found",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const orderData = {
+        patientId: selectedPatient.id, // Use the numeric database ID
+        imageType: orderFormData.studyType,
+        studyType: orderFormData.studyType,
+        modality: orderFormData.modality,
+        bodyPart: orderFormData.bodyPart,
+        indication: orderFormData.indication,
+        priority: orderFormData.priority,
+        filename: `${orderFormData.studyType}_${Date.now()}_order.dcm`, // Placeholder filename for order
+        fileUrl: "", // Empty for orders
+        fileSize: 0, // Zero for orders
+        uploadedBy: 348, // Current user ID (admin)
+        imageData: "", // Empty for orders
+        mimeType: "application/dicom", // Standard DICOM MIME type
+        status: "ordered", // Set status as ordered instead of uploaded
+        notes: orderFormData.specialInstructions || ""
+      };
+
+      await apiRequest("POST", "/api/medical-images", orderData);
+
+      toast({
+        title: "Study Ordered Successfully",
+        description: `${orderFormData.studyType} study ordered for ${selectedPatient.firstName} ${selectedPatient.lastName}`,
+      });
+
+      // Reset form and close dialog
+      setOrderFormData({
+        patientId: "",
+        studyType: "",
+        modality: "X-Ray",
+        bodyPart: "",
+        indication: "",
+        priority: "routine",
+        specialInstructions: ""
+      });
+      setShowNewOrder(false);
+      
+      // Refresh the medical images list to show the new order
+      refetchImages();
+      
+    } catch (error) {
+      console.error("Order error:", error);
+      toast({
+        title: "Order Failed",
+        description: "Failed to create imaging study order. Please try again.",
         variant: "destructive",
       });
     }
@@ -1226,7 +1307,7 @@ export default function ImagingPage() {
                 <Label htmlFor="patient" className="text-sm font-medium">
                   Patient
                 </Label>
-                <Select>
+                <Select value={orderFormData.patientId} onValueChange={(value) => setOrderFormData(prev => ({ ...prev, patientId: value }))}>
                   <SelectTrigger>
                     <SelectValue placeholder={patientsLoading ? "Loading patients..." : "Select patient"} />
                   </SelectTrigger>
@@ -1250,7 +1331,7 @@ export default function ImagingPage() {
                 <Label htmlFor="modality" className="text-sm font-medium">
                   Modality
                 </Label>
-                <Select>
+                <Select value={orderFormData.modality} onValueChange={(value) => setOrderFormData(prev => ({ ...prev, modality: value }))}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select imaging type" />
                   </SelectTrigger>
@@ -1274,6 +1355,8 @@ export default function ImagingPage() {
                 <Input
                   id="bodyPart"
                   placeholder="e.g., Chest, Abdomen, Head"
+                  value={orderFormData.bodyPart}
+                  onChange={(e) => setOrderFormData(prev => ({ ...prev, bodyPart: e.target.value }))}
                 />
               </div>
 
@@ -1281,7 +1364,7 @@ export default function ImagingPage() {
                 <Label htmlFor="priority" className="text-sm font-medium">
                   Priority
                 </Label>
-                <Select>
+                <Select value={orderFormData.priority} onValueChange={(value) => setOrderFormData(prev => ({ ...prev, priority: value }))}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select priority" />
                   </SelectTrigger>
@@ -1301,6 +1384,8 @@ export default function ImagingPage() {
               <Input
                 id="studyType"
                 placeholder="e.g., Chest X-Ray PA and Lateral"
+                value={orderFormData.studyType}
+                onChange={(e) => setOrderFormData(prev => ({ ...prev, studyType: e.target.value }))}
               />
             </div>
 
@@ -1312,6 +1397,8 @@ export default function ImagingPage() {
                 id="indication"
                 placeholder="Reason for imaging study..."
                 rows={3}
+                value={orderFormData.indication}
+                onChange={(e) => setOrderFormData(prev => ({ ...prev, indication: e.target.value }))}
               />
             </div>
 
@@ -1323,6 +1410,8 @@ export default function ImagingPage() {
                 id="notes"
                 placeholder="Any special instructions for the imaging technologist..."
                 rows={2}
+                value={orderFormData.specialInstructions}
+                onChange={(e) => setOrderFormData(prev => ({ ...prev, specialInstructions: e.target.value }))}
               />
             </div>
 
@@ -1331,13 +1420,7 @@ export default function ImagingPage() {
                 Cancel
               </Button>
               <Button 
-                onClick={() => {
-                  toast({
-                    title: "Study Ordered",
-                    description: "Imaging study has been successfully ordered and will be scheduled",
-                  });
-                  setShowNewOrder(false);
-                }}
+                onClick={handleOrderSubmit}
                 className="bg-medical-blue hover:bg-blue-700"
               >
                 <Plus className="h-4 w-4 mr-2" />
