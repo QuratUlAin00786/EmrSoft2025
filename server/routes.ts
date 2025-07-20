@@ -1101,6 +1101,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const providerId = parseInt(prescriptionData.providerId);
       console.log("Using selected provider ID:", providerId);
       
+      // Check for duplicate prescriptions (same patient, same medication, active status)
+      const existingPrescriptions = await storage.getPrescriptions(req.tenant!.id);
+      const isDuplicate = existingPrescriptions.some(existing => 
+        existing.patientId === parseInt(prescriptionData.patientId) &&
+        existing.status === 'active' &&
+        existing.medications.some(med => 
+          prescriptionData.medications?.some((newMed: any) => 
+            newMed.name === med.name && 
+            newMed.dosage === med.dosage
+          )
+        )
+      );
+      
+      if (isDuplicate) {
+        return res.status(400).json({ error: "A similar active prescription already exists for this patient" });
+      }
+      
       // Create prescription data for database
       const prescriptionToInsert = {
         organizationId: req.tenant!.id,

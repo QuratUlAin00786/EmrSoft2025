@@ -782,6 +782,11 @@ export default function PrescriptionsPage() {
                         </Button>
                         <Button 
                           onClick={() => {
+                            // Prevent multiple submissions
+                            if (createPrescriptionMutation.isPending) {
+                              return;
+                            }
+                            
                             // Validation
                             if (!formData.patientId || !formData.providerId || !formData.medicationName) {
                               alert("Please fill in all required fields (Patient, Doctor, and Medication Name)");
