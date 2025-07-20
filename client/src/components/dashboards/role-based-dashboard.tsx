@@ -9,9 +9,6 @@ import { SampleTakerDashboard } from "./sample-taker-dashboard";
 export function RoleBasedDashboard() {
   const { getUserRole, user } = useRolePermissions();
   const userRole = getUserRole();
-  
-  console.log("RoleBasedDashboard - user:", user);
-  console.log("RoleBasedDashboard - userRole:", userRole);
 
   if (!user || !userRole) {
     return (

@@ -1,161 +1,102 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
-import { Users, Calendar, Brain, CreditCard, Settings, UserCog, Crown, BarChart3 } from "lucide-react";
+import { Users, Calendar, Brain, CreditCard, Settings, UserCog, Crown, BarChart3, Plus, UserPlus, ClipboardPlus, Pill } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import AppointmentCalendar from "../calendar/appointment-calendar";
 
 export function AdminDashboard() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ["/api/dashboard/stats"],
   });
 
-  const { data: organizationData } = useQuery({
-    queryKey: ["/api/organization/settings"],
-  });
-
-  const adminCards = [
-    {
-      title: "Total Users",
-      value: stats?.totalUsers || "0",
-      description: "Across all roles",
-      icon: Users,
-      href: "/users",
-      color: "bg-blue-100 text-blue-800"
-    },
+  const dashboardCards = [
     {
       title: "Total Patients",
-      value: stats?.totalPatients || "0",
-      description: "+2 new this week",
+      value: "--",
+      description: "Fetch data for Total Patients",
       icon: Users,
       href: "/patients",
-      color: "bg-green-100 text-green-800"
+      color: "text-blue-500"
     },
     {
-      title: "Organization Revenue",
-      value: `£${stats?.revenue?.toLocaleString() || "0"}`,
-      description: "Monthly recurring",
-      icon: CreditCard,
-      href: "/billing",
-      color: "bg-purple-100 text-purple-800"
+      title: "Today's Appointments", 
+      value: "--",
+      description: "Fetch data for Today's Appointments",
+      icon: Calendar,
+      href: "/appointments",
+      color: "text-green-500"
     },
     {
-      title: "AI Insights Generated",
-      value: stats?.aiSuggestions || "0",
-      description: "This month",
+      title: "AI Suggestions",
+      value: "--", 
+      description: "Fetch data for AI Suggestions",
       icon: Brain,
       href: "/ai-insights",
-      color: "bg-orange-100 text-orange-800"
+      color: "text-purple-500"
+    },
+    {
+      title: "Revenue (MTD)",
+      value: "--",
+      description: "Fetch data for Revenue (MTD)",
+      icon: CreditCard,
+      href: "/billing",
+      color: "text-yellow-500"
     }
   ];
 
   const quickActions = [
-    { title: "Manage Users", description: "Add, edit, or deactivate user accounts", icon: UserCog, href: "/users" },
-    { title: "System Settings", description: "Configure organization preferences", icon: Settings, href: "/settings" },
-    { title: "Subscription", description: "Manage billing and features", icon: Crown, href: "/subscription" },
-    { title: "Analytics", description: "View system-wide reports", icon: BarChart3, href: "/analytics" }
+    { title: "Add New Patient", description: "", icon: UserPlus, href: "/patients" },
+    { title: "Schedule Appointment", description: "", icon: Calendar, href: "/appointments" },
+    { title: "Create Prescription", description: "", icon: Pill, href: "/prescriptions" },
+    { title: "Medical Records", description: "", icon: ClipboardPlus, href: "/patients" },
+    { title: "AI Assistant", description: "", icon: Brain, href: "/ai-insights" }
   ];
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-32 bg-gray-200 rounded animate-pulse"></div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  console.log("AdminDashboard component is rendering", { stats, adminCards });
-  
   return (
-    <div className="space-y-6 bg-white p-4 min-h-screen">
-      <div className="bg-red-100 p-4 border border-red-300 rounded mb-4">
-        <h1 className="text-3xl font-bold text-gray-900">🔧 ADMIN DASHBOARD DEBUG</h1>
-        <p className="text-neutral-600">
-          If you see this, the admin dashboard is rendering correctly. Stats: {JSON.stringify(stats)}
-        </p>
-      </div>
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-neutral-600">
-          Welcome back, John. Here's your patient overview.
-        </p>
-      </div>
-
-      {/* Key Metrics */}
+    <div className="space-y-6">
+      {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {adminCards.map((card) => (
-          <Link key={card.title} href={card.href}>
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
-                <div className={`p-2 rounded-full ${card.color}`}>
-                  <card.icon className="h-4 w-4" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{card.value}</div>
-                <p className="text-xs text-neutral-500">{card.description}</p>
-              </CardContent>
-            </Card>
-          </Link>
+        {dashboardCards.map((card) => (
+          <Card key={card.title} className="hover:shadow-lg transition-shadow cursor-pointer">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">{card.title}</CardTitle>
+              <card.icon className={`h-6 w-6 ${card.color}`} />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900">{card.value}</div>
+              <p className="text-xs text-gray-500">{card.description}</p>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
-      {/* Quick Actions */}
-      <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {quickActions.map((action) => (
-            <Card key={action.title} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <div className="flex items-center space-x-3">
-                  <action.icon className="h-8 w-8 text-primary" />
-                  <div>
-                    <CardTitle className="text-base">{action.title}</CardTitle>
-                    <CardDescription className="text-sm">{action.description}</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <Link href={action.href}>
-                  <Button className="w-full" variant="outline">Access</Button>
+      {/* Main Content Area with Calendar and Quick Actions */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Appointment Calendar */}
+        <div className="lg:col-span-2">
+          <AppointmentCalendar />
+        </div>
+
+        {/* Quick Actions */}
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {quickActions.map((action) => (
+                <Link key={action.title} href={action.href}>
+                  <Button variant="outline" className="w-full justify-start text-left">
+                    <action.icon className="h-4 w-4 mr-2" />
+                    {action.title}
+                  </Button>
                 </Link>
-              </CardContent>
-            </Card>
-          ))}
+              ))}
+            </CardContent>
+          </Card>
         </div>
       </div>
-
-      {/* System Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle>System Status</CardTitle>
-          <CardDescription>Current system health and performance</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">99.9%</div>
-              <p className="text-sm text-neutral-600">System Uptime</p>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{stats?.totalPatients || 0}</div>
-              <p className="text-sm text-neutral-600">Active Patients</p>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">{stats?.todayAppointments || 0}</div>
-              <p className="text-sm text-neutral-600">Today's Appointments</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
