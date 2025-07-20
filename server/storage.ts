@@ -437,9 +437,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteAppointment(id: number, organizationId: number): Promise<boolean> {
+    console.log(`🗑️ DELETING APPOINTMENT - ID: ${id}, OrgID: ${organizationId}`);
+    
+    // First check if appointment exists
+    const existing = await db.select().from(appointments)
+      .where(and(eq(appointments.id, id), eq(appointments.organizationId, organizationId)));
+    
+    console.log(`Found ${existing.length} appointments matching criteria`);
+    if (existing.length > 0) {
+      console.log(`Appointment details:`, existing[0]);
+    }
+    
     const [deleted] = await db.delete(appointments)
       .where(and(eq(appointments.id, id), eq(appointments.organizationId, organizationId)))
       .returning();
+    
+    console.log(`Deletion result:`, deleted ? 'SUCCESS' : 'FAILED');
+    console.log(`Deleted appointment:`, deleted);
+    
     return !!deleted;
   }
 

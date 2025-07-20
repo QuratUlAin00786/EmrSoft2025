@@ -750,21 +750,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/appointments/:id", requireRole(["doctor", "nurse", "receptionist", "admin"]), async (req: TenantRequest, res) => {
     try {
+      console.log(`📞 DELETE REQUEST - Appointment ID: ${req.params.id}, User: ${req.user?.email}, Tenant: ${req.tenant?.id}`);
+      
       const appointmentId = parseInt(req.params.id);
       
       if (isNaN(appointmentId)) {
+        console.log(`❌ Invalid appointment ID: ${req.params.id}`);
         return res.status(400).json({ error: "Invalid appointment ID" });
       }
 
+      console.log(`🚀 Calling deleteAppointment with ID: ${appointmentId}, OrgID: ${req.tenant!.id}`);
       const deleted = await storage.deleteAppointment(appointmentId, req.tenant!.id);
+      console.log(`✅ Deletion response: ${deleted}`);
       
       if (!deleted) {
+        console.log(`❌ Appointment not found or not deleted`);
         return res.status(404).json({ error: "Appointment not found" });
       }
 
+      console.log(`🎉 Appointment ${appointmentId} deleted successfully`);
       res.json({ success: true, message: "Appointment deleted successfully" });
     } catch (error) {
-      console.error("Appointment deletion error:", error);
+      console.error("❌ Appointment deletion error:", error);
       res.status(500).json({ error: "Failed to delete appointment" });
     }
   });
