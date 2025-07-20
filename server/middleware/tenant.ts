@@ -78,14 +78,37 @@ export async function authMiddleware(req: TenantRequest, res: Response, next: Ne
   try {
     // Skip authentication in development mode for easier testing
     if (process.env.NODE_ENV === "development") {
-      // Create a mock user for development
-      req.user = {
-        id: 1,
-        email: "demo@demo.com",
-        role: "admin",
-        organizationId: req.tenant?.id || 1
-      };
-      return next();
+      // Get a real admin user for development instead of using hardcoded ID
+      try {
+        const users = await storage.getUsersByOrganization(req.tenant?.id || 1);
+        const adminUser = users.find(u => u.role === "admin" && u.isActive);
+        
+        if (adminUser) {
+          req.user = {
+            id: adminUser.id,
+            email: adminUser.email,
+            role: adminUser.role,
+            organizationId: adminUser.organizationId
+          };
+        } else {
+          // Fallback to first active user if no admin found
+          const activeUser = users.find(u => u.isActive);
+          if (activeUser) {
+            req.user = {
+              id: activeUser.id,
+              email: activeUser.email,
+              role: activeUser.role,
+              organizationId: activeUser.organizationId
+            };
+          } else {
+            return res.status(401).json({ error: "No active users found in development mode" });
+          }
+        }
+        return next();
+      } catch (error) {
+        console.error("Development auth error:", error);
+        return res.status(500).json({ error: "Development authentication failed" });
+      }
     }
 
     const token = authService.extractTokenFromHeader(req.get("Authorization"));
