@@ -710,12 +710,17 @@ export default function AppointmentCalendar() {
                         credentials: 'include'
                       });
 
+                      const result = await response.json();
+                      
                       if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}`);
+                        throw new Error(result.error || `HTTP ${response.status}`);
                       }
 
                       // Close dialog first
                       setShowAppointmentDetails(false);
+                      
+                      // Refresh appointments list immediately
+                      fetchAppointments();
                       
                       toast({
                         title: "Appointment Deleted",
@@ -723,11 +728,22 @@ export default function AppointmentCalendar() {
                       });
                     } catch (error) {
                       console.error("Error deleting appointment:", error);
-                      toast({
-                        title: "Error",
-                        description: "Failed to delete appointment. Please try again.",
-                        variant: "destructive"
-                      });
+                      
+                      // Check if it's already deleted (404 error)
+                      if (error?.message?.includes('404') || error?.message?.includes('not found')) {
+                        setShowAppointmentDetails(false);
+                        fetchAppointments();
+                        toast({
+                          title: "Appointment Deleted",
+                          description: "The appointment has been successfully deleted",
+                        });
+                      } else {
+                        toast({
+                          title: "Error",
+                          description: "Failed to delete appointment. Please try again.",
+                          variant: "destructive"
+                        });
+                      }
                     }
                   }}
                 >
