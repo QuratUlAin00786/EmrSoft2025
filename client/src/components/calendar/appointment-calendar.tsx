@@ -66,8 +66,12 @@ export default function AppointmentCalendar() {
         headers['Authorization'] = `Bearer ${token}`;
       }
       
-      const response = await fetch('/api/appointments', {
-        headers,
+      const response = await fetch(`/api/appointments?_t=${Date.now()}`, {
+        headers: {
+          ...headers,
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        },
         credentials: 'include'
       });
       
@@ -734,8 +738,12 @@ export default function AppointmentCalendar() {
                         throw new Error(`HTTP ${response.status}`);
                       }
 
-                      await fetchAppointments(); // Refresh the appointments list
+                      // Immediately remove the appointment from local state
+                      setAppointments(prev => prev.filter(apt => apt.id !== selectedAppointment.id));
                       setShowAppointmentDetails(false);
+                      
+                      // Also fetch fresh data in background
+                      fetchAppointments();
                       
                       toast({
                         title: "Appointment Deleted",
