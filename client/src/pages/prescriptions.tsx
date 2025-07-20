@@ -505,6 +505,11 @@ export default function PrescriptionsPage() {
   };
 
   const handleDeletePrescription = (prescriptionId: string | number) => {
+    // Prevent multiple deletion attempts
+    if (deletePrescriptionMutation.isPending) {
+      return;
+    }
+    
     const prescription = Array.isArray(prescriptions) ? prescriptions.find((p: any) => p.id == prescriptionId) : null;
     if (prescription && window.confirm(`Are you sure you want to delete the prescription for ${prescription.patientName}? This action cannot be undone.`)) {
       deletePrescriptionMutation.mutate(String(prescriptionId));
@@ -935,11 +940,12 @@ export default function PrescriptionsPage() {
                           variant="outline" 
                           size="sm" 
                           onClick={() => handleDeletePrescription(prescription.id)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs sm:text-sm px-2 sm:px-3"
+                          disabled={deletePrescriptionMutation.isPending}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs sm:text-sm px-2 sm:px-3 disabled:opacity-50"
                         >
                           <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                          <span className="hidden sm:inline">Delete</span>
-                          <span className="sm:hidden">Delete</span>
+                          <span className="hidden sm:inline">{deletePrescriptionMutation.isPending ? 'Deleting...' : 'Delete'}</span>
+                          <span className="sm:hidden">{deletePrescriptionMutation.isPending ? 'Deleting...' : 'Delete'}</span>
                         </Button>
                       </div>
                     </div>
