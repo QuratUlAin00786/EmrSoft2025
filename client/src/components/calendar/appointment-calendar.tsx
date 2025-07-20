@@ -772,38 +772,38 @@ export default function AppointmentCalendar() {
         } : null}
       />
 
-      {/* New Appointment Dialog */}
+      {/* New Appointment Modal */}
       {showNewAppointment && (
-        <Dialog 
-          open={true} 
-          onOpenChange={() => {}}
+        <div 
+          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowNewAppointment(false);
+            }
+          }}
         >
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <div className="absolute right-4 top-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setShowNewAppointment(false);
-              }}
-              className="h-6 w-6 p-0"
-            >
-              ✕
-            </Button>
-          </div>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-blue-600" />
-              Schedule New Appointment
-            </DialogTitle>
-            <DialogDescription>
-              Fill in the details below to schedule a new patient appointment.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 overflow-y-auto max-h-[calc(90vh-120px)]">
-            <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-6 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-blue-600" />
+                  <h2 className="text-lg font-semibold">Schedule New Appointment</h2>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowNewAppointment(false)}
+                  className="h-8 w-8 p-0"
+                >
+                  ✕
+                </Button>
+              </div>
+              <p className="text-sm text-gray-600 mt-1">
+                Fill in the details below to schedule a new patient appointment.
+              </p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 block">Patient *</label>
                 <select 
@@ -976,9 +976,9 @@ export default function AppointmentCalendar() {
                 Cancel
               </Button>
             </div>
+            </div>
           </div>
-        </DialogContent>
-        </Dialog>
+        </div>
       )}
     </div>
   );
