@@ -286,25 +286,10 @@ export default function AppointmentCalendar() {
   const calendarDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
   const getAppointmentsForDate = (date: Date) => {
-    const filteredAppointments = (appointments as any || []).filter((apt: any) => {
+    return (appointments as any || []).filter((apt: any) => {
       const appointmentDate = new Date(apt.scheduledAt);
-      const isSameDate = isSameDay(appointmentDate, date);
-      
-      // Debug logging for the current date
-      if (isToday(date)) {
-        console.log("Checking appointments for today:", {
-          date: format(date, "yyyy-MM-dd"),
-          appointments: appointments.length,
-          filteredForToday: (appointments as any || []).filter((apt: any) => 
-            isSameDay(new Date(apt.scheduledAt), date)
-          ).length
-        });
-      }
-      
-      return isSameDate;
+      return isSameDay(appointmentDate, date);
     });
-    
-    return filteredAppointments;
   };
 
   const selectedDateAppointments = getAppointmentsForDate(selectedDate);
@@ -437,7 +422,7 @@ export default function AppointmentCalendar() {
                         <div className="flex flex-wrap gap-1 mt-1 justify-center">
                           {dayAppointments.slice(0, 2).map((apt: any, index: number) => (
                             <div
-                              key={index}
+                              key={`${apt.id}-${index}`}
                               className="w-2 h-2 rounded-full bg-blue-500"
                             />
                           ))}
