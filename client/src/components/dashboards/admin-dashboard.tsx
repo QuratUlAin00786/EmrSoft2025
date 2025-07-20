@@ -74,9 +74,9 @@ export function AdminDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Administrator Dashboard</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-neutral-600">
-          System overview and management tools for {organizationData?.name || "your organization"}
+          Welcome back, John. Here's your patient overview.
         </p>
       </div>
 

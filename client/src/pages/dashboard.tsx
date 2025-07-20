@@ -9,7 +9,7 @@ export default function Dashboard() {
     <>
       <Header 
         title="Dashboard" 
-        subtitle={`Welcome back, ${user?.firstName || 'User'}. Here's your healthcare overview.`}
+        subtitle="Welcome back, John. Here's your patient overview."
       />
       
       <div className="flex-1 overflow-auto p-6">
