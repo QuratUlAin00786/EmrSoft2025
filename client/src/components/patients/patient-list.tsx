@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -176,6 +176,12 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
 
   console.log("PatientList - isLoading:", isLoading, "error:", error, "patients:", patients);
 
+  // Auto-apply filters when data or filters change
+  useEffect(() => {
+    if (patients && (searchQuery || searchFilters.insuranceProvider || searchFilters.riskLevel || searchFilters.lastVisit)) {
+      handleSearch(searchQuery, searchFilters);
+    }
+  }, [patients, searchQuery, searchFilters]);
 
 
   const handleViewPatient = (patient: any) => {
@@ -221,9 +227,17 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
     }
     
     if (filters.insuranceProvider && filters.insuranceProvider !== '') {
-      filtered = filtered.filter(patient => 
-        patient.insuranceInfo?.provider === filters.insuranceProvider
-      );
+      filtered = filtered.filter(patient => {
+        // Handle different insurance provider formats
+        const provider = patient.insuranceInfo?.provider?.toLowerCase() || '';
+        const filterProvider = filters.insuranceProvider?.toLowerCase() || '';
+        
+        // Special handling for common provider names
+        if (filterProvider === 'nhs') return provider.includes('nhs') || provider === '';
+        if (filterProvider === 'axa-ppp') return provider.includes('axa') || provider.includes('ppp');
+        
+        return provider.includes(filterProvider);
+      });
     }
     
     if (filters.riskLevel) {
@@ -269,7 +283,14 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
     );
   }
 
-  const displayPatients = searchQuery || Object.keys(searchFilters).length > 1 
+  // Check if any filters are actually applied (not just default values)
+  const hasActiveFilters = searchQuery || 
+    searchFilters.insuranceProvider || 
+    searchFilters.riskLevel || 
+    searchFilters.lastVisit ||
+    (searchFilters.searchType && searchFilters.searchType !== 'all');
+
+  const displayPatients = hasActiveFilters 
     ? filteredPatients 
     : (Array.isArray(patients) ? patients : []);
 
