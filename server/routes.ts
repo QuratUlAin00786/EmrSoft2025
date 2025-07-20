@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { z } from "zod";
 import Stripe from "stripe";
+import crypto from "crypto";
 import { storage } from "./storage";
 import { authService } from "./services/auth";
 import { aiService } from "./services/ai";
@@ -2856,8 +2857,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         duration: z.number().optional().default(60), // duration in minutes
         maxParticipants: z.number().optional().default(10)
       }).parse(req.body);
-
-      const crypto = require('crypto');
       const BBB_URL = "https://vid2.averox.com/bigbluebutton/";
       const BBB_SECRET = "W8tt2cQCSIy43cGwrGDfeKMEdQn1Bfm9l3aygXn8XA";
 
@@ -2957,8 +2956,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { meetingID } = req.params;
       const { moderatorPassword } = req.body;
-
-      const crypto = require('crypto');
       const BBB_URL = "https://vid2.averox.com/bigbluebutton/";
       const BBB_SECRET = "W8tt2cQCSIy43cGwrGDfeKMEdQn1Bfm9l3aygXn8XA";
 
