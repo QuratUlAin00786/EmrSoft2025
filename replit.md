@@ -110,6 +110,9 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system des
 
 ## Changelog
 
+**July 20, 2025:**
+- **COMPLETED**: BigBlueButton video conferencing integration fully functional - successfully integrated real BigBlueButton service (vid2.averox.com) with Cura messaging system, fixed crypto import issues in server-side API, video calls now create authentic meetings that open in new windows with HD video quality, proper meeting lifecycle management with automatic window detection, meetings display correct participant names and branding ("Powered by BigBlueButton"), users can now conduct real video consultations through external BigBlueButton service with full audio/video/chat/screen sharing capabilities
+
 **July 18, 2025:**
 - **COMPLETED**: Fixed medical image viewer completely - resolved charAt errors that were preventing image viewing, implemented proper base64 image data storage and retrieval system, fixed frontend to convert uploaded files to base64 before sending to server, updated server API to accept and store base64 image data in database, connected image viewer to display actual uploaded medical images instead of placeholder, users can now successfully view their uploaded X-ray images in the medical image viewer with proper display functionality
 - **COMPLETED**: Fixed medical image upload and display system completely - created GET /api/medical-images endpoint to fetch uploaded images from database, replaced mock data with real uploaded medical images, added proper data transformation to display patient names and image details, implemented automatic list refresh after uploads, resolved file size detection issues for all X-ray image formats, users can now see their uploaded medical images immediately displayed in the imaging page with proper patient information, file sizes, and metadata
