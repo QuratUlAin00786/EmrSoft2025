@@ -381,15 +381,11 @@ export default function AppointmentCalendar() {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  if (dialogStable) {
-                    setDialogStable(false);
-                    setShowNewAppointment(true);
-                    setTimeout(() => setDialogStable(true), 300);
-                    toast({
-                      title: "New Appointment",
-                      description: "Opening appointment booking form",
-                    });
-                  }
+                  setShowNewAppointment(true);
+                  toast({
+                    title: "New Appointment",
+                    description: "Opening appointment booking form",
+                  });
                 }}
                 className="bg-medical-blue text-white hover:bg-blue-700 text-xs sm:text-sm px-2 sm:px-3 whitespace-nowrap"
               >
@@ -761,15 +757,26 @@ export default function AppointmentCalendar() {
       />
 
       {/* New Appointment Dialog */}
-      <Dialog 
-        open={showNewAppointment} 
-        onOpenChange={(open) => {
-          if (!isCreatingAppointment && dialogStable) {
-            setShowNewAppointment(open);
-          }
-        }}
-      >
+      {showNewAppointment && (
+        <Dialog 
+          open={true} 
+          onOpenChange={() => {}}
+        >
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="absolute right-4 top-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowNewAppointment(false);
+              }}
+              className="h-6 w-6 p-0"
+            >
+              ✕
+            </Button>
+          </div>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-blue-600" />
@@ -947,11 +954,7 @@ export default function AppointmentCalendar() {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  if (dialogStable) {
-                    setDialogStable(false);
-                    setShowNewAppointment(false);
-                    setTimeout(() => setDialogStable(true), 300);
-                  }
+                  setShowNewAppointment(false);
                 }}
               >
                 Cancel
@@ -959,7 +962,8 @@ export default function AppointmentCalendar() {
             </div>
           </div>
         </DialogContent>
-      </Dialog>
+        </Dialog>
+      )}
     </div>
   );
 }
