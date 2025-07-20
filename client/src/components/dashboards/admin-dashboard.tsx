@@ -71,8 +71,16 @@ export function AdminDashboard() {
     );
   }
 
+  console.log("AdminDashboard component is rendering", { stats, adminCards });
+  
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-white p-4 min-h-screen">
+      <div className="bg-red-100 p-4 border border-red-300 rounded mb-4">
+        <h1 className="text-3xl font-bold text-gray-900">🔧 ADMIN DASHBOARD DEBUG</h1>
+        <p className="text-neutral-600">
+          If you see this, the admin dashboard is rendering correctly. Stats: {JSON.stringify(stats)}
+        </p>
+      </div>
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-neutral-600">
