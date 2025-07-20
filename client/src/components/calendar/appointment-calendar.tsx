@@ -8,6 +8,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday
 import { useToast } from "@/hooks/use-toast";
 import { FullConsultationInterface } from "@/components/consultation/full-consultation-interface";
 import type { Appointment } from "@/types";
+import { NewAppointmentModal } from "./new-appointment-modal";
 
 const statusColors = {
   scheduled: "bg-blue-100 text-blue-800",
@@ -33,25 +34,7 @@ export default function AppointmentCalendar() {
   const { toast } = useToast();
 
   const [appointments, setAppointments] = useState<any[]>([]);
-  const [patients, setPatients] = useState<any[]>([]);
-  const [providers, setProviders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isCreatingAppointment, setIsCreatingAppointment] = useState(false);
-  
-  // Form state for new appointment
-  const [formData, setFormData] = useState({
-    patientId: "",
-    providerId: "",
-    title: "",
-    description: "",
-    date: format(new Date(), "yyyy-MM-dd"),
-    time: "09:00",
-    type: "consultation",
-    duration: "30",
-    isVirtual: false,
-    location: "",
-    department: ""
-  });
 
   const fetchAppointments = async () => {
     try {
@@ -102,74 +85,8 @@ export default function AppointmentCalendar() {
     }
   };
 
-  const fetchPatients = async () => {
-    try {
-      const token = localStorage.getItem('auth_token');
-      const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': 'demo'
-      };
-      
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      
-      const response = await fetch('/api/patients', {
-        headers,
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      
-      const data = await response.json();
-      // Remove duplicates based on patient name (what user sees)
-      const uniquePatients = data ? data.filter((patient: any, index: number, self: any[]) => 
-        index === self.findIndex((p: any) => `${p.firstName} ${p.lastName}` === `${patient.firstName} ${patient.lastName}`)
-      ) : [];
-      setPatients(uniquePatients);
-    } catch (err) {
-      console.error("Error fetching patients:", err);
-      setPatients([]);
-    }
-  };
-
-  const fetchProviders = async () => {
-    try {
-      const token = localStorage.getItem('auth_token');
-      const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': 'demo'
-      };
-      
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      
-      const response = await fetch('/api/medical-staff', {
-        headers,
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      
-      const data = await response.json();
-      // Remove duplicates based on provider name (what user sees)
-      const uniqueProviders = data ? data.filter((provider: any, index: number, self: any[]) => 
-        index === self.findIndex((p: any) => `${p.firstName} ${p.lastName}` === `${provider.firstName} ${provider.lastName}`)
-      ) : [];
-      setProviders(uniqueProviders);
-    } catch (err) {
-      console.error("Error fetching providers:", err);
-      setProviders([]);
-    }
-  };
-
   useEffect(() => {
     fetchAppointments();
-    fetchPatients();
-    fetchProviders();
   }, []);
 
   // Auto-refresh appointments every 30 seconds to catch newly created appointments
@@ -182,105 +99,7 @@ export default function AppointmentCalendar() {
     return () => clearInterval(interval);
   }, []);
 
-  const createAppointment = async () => {
-    console.log("Creating appointment with form data:", formData);
-    
-    if (!formData.patientId || !formData.providerId) {
-      toast({
-        title: "Missing Information", 
-        description: "Please select both patient and provider",
-        variant: "destructive"
-      });
-      return;
-    }
 
-    try {
-      setIsCreatingAppointment(true);
-      
-      // Combine date and time into a proper datetime
-      const scheduledAt = new Date(`${formData.date}T${formData.time}`);
-      
-      const appointmentData = {
-        patientId: formData.patientId, // Send as string for backend to handle properly
-        providerId: parseInt(formData.providerId),
-        title: formData.title || `${formData.type} appointment`,
-        description: formData.description || "",
-        scheduledAt: scheduledAt.toISOString(),
-        duration: parseInt(formData.duration),
-        type: formData.type,
-        location: formData.isVirtual ? "Virtual" : (formData.location || `${formData.department || 'General'} Department`),
-        isVirtual: formData.isVirtual
-      };
-
-      console.log("Sending appointment data:", appointmentData);
-
-      const token = localStorage.getItem('auth_token');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'X-Tenant-Subdomain': 'demo'
-      };
-      
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const response = await fetch('/api/appointments', {
-        method: 'POST',
-        headers,
-        credentials: 'include',
-        body: JSON.stringify(appointmentData)
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Appointment creation failed:", response.status, errorText);
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
-      }
-
-      const newAppointment = await response.json();
-      
-      // Refresh the appointments list from the server and update calendar view
-      await fetchAppointments();
-      
-      // Force calendar to show today if appointment was created for today
-      const appointmentDate = new Date(`${formData.date}T${formData.time}`);
-      if (isSameDay(appointmentDate, new Date())) {
-        setSelectedDate(new Date());
-      }
-      
-      // Reset form and close dialog
-      setFormData({
-        patientId: "",
-        providerId: "",
-        title: "",
-        description: "",
-        date: format(selectedDate, "yyyy-MM-dd"),
-        time: "09:00",
-        type: "consultation",
-        duration: "30",
-        isVirtual: false,
-        location: "",
-        department: ""
-      });
-      
-      setShowNewAppointment(false);
-      
-      toast({
-        title: "Appointment Scheduled",
-        description: "New appointment has been successfully created",
-      });
-      
-    } catch (error) {
-      console.error("Error creating appointment:", error);
-      toast({
-        title: "Error",
-        description: "Failed to create appointment. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsCreatingAppointment(false);
-    }
-  };
 
   const monthStart = startOfMonth(selectedDate);
   const monthEnd = endOfMonth(selectedDate);
@@ -773,213 +592,14 @@ export default function AppointmentCalendar() {
       />
 
       {/* New Appointment Modal */}
-      {showNewAppointment && (
-        <div 
-          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowNewAppointment(false);
-            }
-          }}
-        >
-          <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b px-6 py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-blue-600" />
-                  <h2 className="text-lg font-semibold">Schedule New Appointment</h2>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowNewAppointment(false)}
-                  className="h-8 w-8 p-0"
-                >
-                  ✕
-                </Button>
-              </div>
-              <p className="text-sm text-gray-600 mt-1">
-                Fill in the details below to schedule a new patient appointment.
-              </p>
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Patient *</label>
-                <select 
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                  value={formData.patientId}
-                  onChange={(e) => setFormData(prev => ({ ...prev, patientId: e.target.value }))}
-                >
-                  <option value="">Select patient...</option>
-                  {patients.map((patient: any) => (
-                    <option key={patient.id} value={patient.patientId}>
-                      {patient.firstName} {patient.lastName} ({patient.patientId})
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Provider *</label>
-                <select 
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                  value={formData.providerId}
-                  onChange={(e) => setFormData(prev => ({ ...prev, providerId: e.target.value }))}
-                >
-                  <option value="">Select provider...</option>
-                  {providers.map((provider: any) => (
-                    <option key={provider.id} value={provider.id}>
-                      Dr. {provider.firstName} {provider.lastName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Department *</label>
-              <select 
-                className="w-full p-2 border border-gray-300 rounded-md"
-                value={formData.department}
-                onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
-              >
-                <option value="">Select department...</option>
-                <option value="Cardiology">Cardiology</option>
-                <option value="Neurology">Neurology</option>
-                <option value="Orthopedics">Orthopedics</option>
-                <option value="Pediatrics">Pediatrics</option>
-                <option value="Dermatology">Dermatology</option>
-                <option value="Radiology">Radiology</option>
-                <option value="Emergency Medicine">Emergency Medicine</option>
-                <option value="Family Medicine">Family Medicine</option>
-                <option value="Internal Medicine">Internal Medicine</option>
-                <option value="Surgery">Surgery</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Title *</label>
-              <input 
-                type="text"
-                className="w-full p-2 border border-gray-300 rounded-md"
-                placeholder="Enter appointment title..."
-                value={formData.title}
-                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Date</label>
-                <input 
-                  type="date" 
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                  value={formData.date}
-                  onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Time</label>
-                <input 
-                  type="time" 
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                  value={formData.time}
-                  onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Type</label>
-                <select 
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                  value={formData.type}
-                  onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
-                >
-                  <option value="consultation">Consultation</option>
-                  <option value="follow_up">Follow-up</option>
-                  <option value="procedure">Procedure</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Duration (minutes)</label>
-                <select 
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                  value={formData.duration}
-                  onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))}
-                >
-                  <option value="15">15 minutes</option>
-                  <option value="30">30 minutes</option>
-                  <option value="45">45 minutes</option>
-                  <option value="60">60 minutes</option>
-                </select>
-              </div>
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Description</label>
-              <textarea 
-                className="w-full p-2 border border-gray-300 rounded-md"
-                rows={3}
-                placeholder="Enter appointment details..."
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              />
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <input 
-                type="checkbox" 
-                id="virtual" 
-                className="rounded"
-                checked={formData.isVirtual}
-                onChange={(e) => setFormData(prev => ({ ...prev, isVirtual: e.target.checked }))}
-              />
-              <label htmlFor="virtual" className="text-sm text-gray-700">Virtual appointment</label>
-            </div>
-            
-            {!formData.isVirtual && (
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Location</label>
-                <input 
-                  type="text"
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                  placeholder="Enter appointment location..."
-                  value={formData.location}
-                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                />
-              </div>
-            )}
-            
-            <div className="flex gap-2 pt-4">
-              <Button 
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  createAppointment();
-                }}
-                disabled={isCreatingAppointment}
-              >
-                {isCreatingAppointment ? "Scheduling..." : "Schedule Appointment"}
-              </Button>
-              <Button 
-                type="button"
-                variant="outline" 
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setShowNewAppointment(false);
-                }}
-              >
-                Cancel
-              </Button>
-            </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <NewAppointmentModal 
+        isOpen={showNewAppointment}
+        onClose={() => setShowNewAppointment(false)}
+        onAppointmentCreated={() => {
+          fetchAppointments();
+          setSelectedDate(new Date());
+        }}
+      />
     </div>
   );
 }
