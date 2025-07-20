@@ -738,12 +738,8 @@ export default function AppointmentCalendar() {
                         throw new Error(`HTTP ${response.status}`);
                       }
 
-                      // Immediately remove the appointment from local state
-                      setAppointments(prev => prev.filter(apt => apt.id !== selectedAppointment.id));
+                      // Close dialog first
                       setShowAppointmentDetails(false);
-                      
-                      // Also fetch fresh data in background
-                      fetchAppointments();
                       
                       toast({
                         title: "Appointment Deleted",
