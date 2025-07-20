@@ -95,6 +95,32 @@ export function AdminDashboard() {
               ))}
             </CardContent>
           </Card>
+          
+          {/* AI Patient Insights */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg font-semibold">AI Patient Insights</CardTitle>
+              <div className="flex items-center gap-1 text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
+                <Brain className="h-3 w-3" />
+                AI Powered
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-500 text-center py-4">
+                No AI insights available at the moment.
+              </p>
+            </CardContent>
+          </Card>
+          
+          {/* Subscription Info */}
+          <Card>
+            <CardContent className="pt-4">
+              <div className="text-center">
+                <div className="text-sm text-gray-500 mb-2">Subscription info unavailable</div>
+                <div className="w-8 h-8 bg-gray-100 rounded mx-auto"></div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
