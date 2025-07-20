@@ -101,6 +101,7 @@ export default function MessagingPage() {
   const [activeVideoCall, setActiveVideoCall] = useState(false);
   const [callParticipant, setCallParticipant] = useState("");
   const [callDuration, setCallDuration] = useState(0);
+  const [meetingInfo, setMeetingInfo] = useState<{meetingID: string, moderatorPassword: string} | null>(null);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [isMuted, setIsMuted] = useState(false);
@@ -481,7 +482,7 @@ export default function MessagingPage() {
 
 
 
-  const handleStartVideoCall = () => {
+  const handleStartVideoCall = async () => {
     if (!videoCall.participant.trim()) {
       toast({
         title: "Validation Error",
@@ -493,30 +494,90 @@ export default function MessagingPage() {
 
     const participantName = videoCall.participant;
     
-    // Close dialog and start call
-    setShowVideoCall(false);
-    setCallParticipant(participantName);
-    setActiveVideoCall(true);
-    setCallDuration(0);
-    
-    toast({
-      title: "Video Call Started",
-      description: `Connecting to ${participantName}...`,
-    });
-
-    // Start call timer
-    const timer = setInterval(() => {
-      setCallDuration(prev => prev + 1);
-    }, 1000);
-    setCallTimer(timer);
-
-    // Show connection success after delay
-    setTimeout(() => {
-      toast({
-        title: "Call Connected",
-        description: `Video call with ${participantName} is now active`,
+    try {
+      // Create BigBlueButton meeting
+      const response = await fetch('/api/video-conference/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          meetingName: `Consultation with ${participantName}`,
+          participantName: participantName,
+          duration: parseInt(videoCall.duration),
+          maxParticipants: videoCall.type === 'team_meeting' ? 20 : 2
+        })
       });
-    }, 1500);
+
+      if (!response.ok) {
+        throw new Error('Failed to create video conference');
+      }
+
+      const meetingData = await response.json();
+
+      // Open BigBlueButton meeting in new window
+      const meetingWindow = window.open(
+        meetingData.moderatorJoinUrl,
+        'bbb-meeting',
+        'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=no'
+      );
+
+      if (!meetingWindow) {
+        toast({
+          title: "Popup Blocked",
+          description: "Please allow popups for video conferencing and try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Close dialog and start call interface
+      setShowVideoCall(false);
+      setCallParticipant(participantName);
+      setActiveVideoCall(true);
+      setCallDuration(0);
+      
+      // Store meeting info for ending later
+      setMeetingInfo({
+        meetingID: meetingData.meetingID,
+        moderatorPassword: meetingData.moderatorPassword
+      });
+      
+      toast({
+        title: "Video Conference Started",
+        description: `BigBlueButton meeting created for ${participantName}`,
+      });
+
+      // Start call timer
+      const timer = setInterval(() => {
+        setCallDuration(prev => prev + 1);
+      }, 1000);
+      setCallTimer(timer);
+
+      // Monitor window closure
+      const checkClosed = setInterval(() => {
+        if (meetingWindow.closed) {
+          clearInterval(checkClosed);
+          handleEndVideoCall();
+        }
+      }, 1000);
+
+      // Show connection success after delay
+      setTimeout(() => {
+        toast({
+          title: "Meeting Ready",
+          description: `Video conference with ${participantName} is now accessible in the new window`,
+        });
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error creating video conference:', error);
+      toast({
+        title: "Connection Failed",
+        description: "Unable to create video conference. Please try again.",
+        variant: "destructive"
+      });
+    }
 
     // Reset form
     setVideoCall({
@@ -528,7 +589,31 @@ export default function MessagingPage() {
     });
   };
 
-  const handleEndVideoCall = () => {
+  const handleEndVideoCall = async () => {
+    // End BigBlueButton meeting if we have meeting info
+    if (meetingInfo) {
+      try {
+        const response = await fetch(`/api/video-conference/end/${meetingInfo.meetingID}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            moderatorPassword: meetingInfo.moderatorPassword
+          })
+        });
+
+        if (response.ok) {
+          toast({
+            title: "Meeting Ended",
+            description: "BigBlueButton meeting has been terminated.",
+          });
+        }
+      } catch (error) {
+        console.error('Error ending meeting:', error);
+      }
+    }
+
     // Stop all media tracks
     if (localStream) {
       localStream.getTracks().forEach(track => track.stop());
@@ -546,6 +631,7 @@ export default function MessagingPage() {
     setCallDuration(0);
     setIsMuted(false);
     setIsVideoOn(true);
+    setMeetingInfo(null);
     
     toast({
       title: "Call Ended",
@@ -1655,13 +1741,13 @@ export default function MessagingPage() {
                 <Video className="h-5 w-5" />
                 <div>
                   <h3 className="font-semibold">Video Call with {callParticipant}</h3>
-                  <p className="text-sm text-gray-300">Duration: {formatCallDuration(callDuration)}</p>
+                  <p className="text-sm text-gray-300">Duration: {formatCallDuration(callDuration)} • Powered by BigBlueButton</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <span className="flex items-center gap-1 text-green-400 text-sm">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  Connected
+                  Live Meeting
                 </span>
               </div>
             </div>
@@ -1697,7 +1783,11 @@ export default function MessagingPage() {
                       <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
                       <p className="text-lg font-medium">Connected • Speaking</p>
                     </div>
-                    <p className="text-sm opacity-90 bg-black bg-opacity-30 px-3 py-1 rounded-full">Patient Consultation Session</p>
+                    <p className="text-sm opacity-90 bg-black bg-opacity-30 px-3 py-1 rounded-full mb-3">Patient Consultation Session</p>
+                    <div className="bg-blue-600 bg-opacity-80 px-4 py-2 rounded-lg">
+                      <p className="text-sm font-medium">✓ BigBlueButton meeting is active in new window</p>
+                      <p className="text-xs opacity-90">Switch to the meeting window for full video conference</p>
+                    </div>
                   </div>
                 </div>
 

@@ -2845,6 +2845,148 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // BigBlueButton Video Conference Integration
+  app.post("/api/video-conference/create", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const meetingData = z.object({
+        meetingName: z.string(),
+        participantName: z.string(),
+        moderatorPassword: z.string().optional(),
+        attendeePassword: z.string().optional(),
+        duration: z.number().optional().default(60), // duration in minutes
+        maxParticipants: z.number().optional().default(10)
+      }).parse(req.body);
+
+      const crypto = require('crypto');
+      const BBB_URL = "https://vid2.averox.com/bigbluebutton/";
+      const BBB_SECRET = "W8tt2cQCSIy43cGwrGDfeKMEdQn1Bfm9l3aygXn8XA";
+
+      // Generate meeting ID and passwords
+      const meetingID = `cura-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const moderatorPW = meetingData.moderatorPassword || `mod-${Math.random().toString(36).substr(2, 8)}`;
+      const attendeePW = meetingData.attendeePassword || `att-${Math.random().toString(36).substr(2, 8)}`;
+
+      // Create meeting parameters
+      const createParams = new URLSearchParams({
+        name: meetingData.meetingName,
+        meetingID: meetingID,
+        moderatorPW: moderatorPW,
+        attendeePW: attendeePW,
+        duration: meetingData.duration.toString(),
+        maxParticipants: meetingData.maxParticipants.toString(),
+        record: 'false',
+        autoStartRecording: 'false',
+        allowStartStopRecording: 'false',
+        webcamsOnlyForModerator: 'false',
+        logo: '',
+        bannerText: `Cura Video Consultation - ${meetingData.meetingName}`,
+        bannerColor: '#4F46E5',
+        copyright: 'Powered by Cura EMR',
+        muteOnStart: 'false',
+        guestPolicy: 'ALWAYS_ACCEPT'
+      });
+
+      // Generate checksum for create API call
+      const createQuery = `create${createParams.toString()}${BBB_SECRET}`;
+      const createChecksum = crypto.createHash('sha1').update(createQuery).digest('hex');
+      
+      // Create the meeting
+      const createUrl = `${BBB_URL}api/create?${createParams.toString()}&checksum=${createChecksum}`;
+      
+      const createResponse = await fetch(createUrl, { method: 'GET' });
+      const createXML = await createResponse.text();
+
+      // Parse XML response to check if meeting was created successfully
+      const isSuccess = createXML.includes('<returncode>SUCCESS</returncode>');
+      
+      if (!isSuccess) {
+        throw new Error('Failed to create BigBlueButton meeting');
+      }
+
+      // Generate join URLs for moderator and attendee
+      const moderatorJoinParams = new URLSearchParams({
+        fullName: `${meetingData.participantName} (Moderator)`,
+        meetingID: meetingID,
+        password: moderatorPW,
+        redirect: 'true',
+        clientURL: `${BBB_URL}html5client/join`
+      });
+
+      const attendeeJoinParams = new URLSearchParams({
+        fullName: meetingData.participantName,
+        meetingID: meetingID,
+        password: attendeePW,
+        redirect: 'true',
+        clientURL: `${BBB_URL}html5client/join`
+      });
+
+      const moderatorJoinQuery = `join${moderatorJoinParams.toString()}${BBB_SECRET}`;
+      const moderatorJoinChecksum = crypto.createHash('sha1').update(moderatorJoinQuery).digest('hex');
+      const moderatorJoinUrl = `${BBB_URL}api/join?${moderatorJoinParams.toString()}&checksum=${moderatorJoinChecksum}`;
+
+      const attendeeJoinQuery = `join${attendeeJoinParams.toString()}${BBB_SECRET}`;
+      const attendeeJoinChecksum = crypto.createHash('sha1').update(attendeeJoinQuery).digest('hex');
+      const attendeeJoinUrl = `${BBB_URL}api/join?${attendeeJoinParams.toString()}&checksum=${attendeeJoinChecksum}`;
+
+      res.json({
+        success: true,
+        meetingID: meetingID,
+        meetingName: meetingData.meetingName,
+        moderatorJoinUrl: moderatorJoinUrl,
+        attendeeJoinUrl: attendeeJoinUrl,
+        moderatorPassword: moderatorPW,
+        attendeePassword: attendeePW,
+        duration: meetingData.duration,
+        maxParticipants: meetingData.maxParticipants
+      });
+
+    } catch (error) {
+      console.error("Error creating BigBlueButton meeting:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+        });
+      }
+      res.status(500).json({ error: "Failed to create video conference" });
+    }
+  });
+
+  // End meeting endpoint
+  app.post("/api/video-conference/end/:meetingID", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const { meetingID } = req.params;
+      const { moderatorPassword } = req.body;
+
+      const crypto = require('crypto');
+      const BBB_URL = "https://vid2.averox.com/bigbluebutton/";
+      const BBB_SECRET = "W8tt2cQCSIy43cGwrGDfeKMEdQn1Bfm9l3aygXn8XA";
+
+      const endParams = new URLSearchParams({
+        meetingID: meetingID,
+        password: moderatorPassword
+      });
+
+      const endQuery = `end${endParams.toString()}${BBB_SECRET}`;
+      const endChecksum = crypto.createHash('sha1').update(endQuery).digest('hex');
+      const endUrl = `${BBB_URL}api/end?${endParams.toString()}&checksum=${endChecksum}`;
+
+      const endResponse = await fetch(endUrl, { method: 'GET' });
+      const endXML = await endResponse.text();
+
+      const isSuccess = endXML.includes('<returncode>SUCCESS</returncode>');
+
+      res.json({
+        success: isSuccess,
+        message: isSuccess ? 'Meeting ended successfully' : 'Failed to end meeting'
+      });
+
+    } catch (error) {
+      console.error("Error ending BigBlueButton meeting:", error);
+      res.status(500).json({ error: "Failed to end video conference" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
