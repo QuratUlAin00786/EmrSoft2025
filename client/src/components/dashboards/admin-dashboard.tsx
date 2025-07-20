@@ -5,6 +5,44 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import AppointmentCalendar from "../calendar/appointment-calendar";
 
+// Recent Patients List Component
+function RecentPatientsList() {
+  const { data: patients, isLoading } = useQuery({
+    queryKey: ["/api/patients"],
+  });
+
+  if (isLoading) {
+    return <div className="text-sm text-gray-500 text-center py-4">Loading patients...</div>;
+  }
+
+  if (!patients || patients.length === 0) {
+    return <div className="text-sm text-gray-500 text-center py-4">Unable to load patient data. Please try again later.</div>;
+  }
+
+  // Get the 5 most recent patients
+  const recentPatients = patients.slice(0, 5);
+
+  return (
+    <div className="space-y-3">
+      {recentPatients.map((patient: any) => (
+        <div key={patient.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+          <div className="flex-1">
+            <div className="font-medium text-sm">
+              {patient.firstName} {patient.lastName}
+            </div>
+            <div className="text-xs text-gray-500">
+              Patient ID: {patient.patientId || patient.id}
+            </div>
+          </div>
+          <div className="text-xs text-gray-400">
+            {patient.createdAt ? new Date(patient.createdAt).toLocaleDateString() : "Recent"}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function AdminDashboard() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ["/api/dashboard/stats"],
@@ -122,6 +160,21 @@ export function AdminDashboard() {
             </CardContent>
           </Card>
         </div>
+      </div>
+      
+      {/* Recent Patients List */}
+      <div className="mt-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-lg font-semibold">Recent Patients</CardTitle>
+            <Link href="/patients">
+              <Button variant="outline" size="sm">View All</Button>
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <RecentPatientsList />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
