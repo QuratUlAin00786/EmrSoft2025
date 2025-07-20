@@ -29,6 +29,7 @@ export default function AppointmentCalendar() {
   const [showAppointmentDetails, setShowAppointmentDetails] = useState(false);
   const [showConsultation, setShowConsultation] = useState(false);
   const [showNewAppointment, setShowNewAppointment] = useState(false);
+  const [dialogStable, setDialogStable] = useState(true);
   const { toast } = useToast();
 
   const [appointments, setAppointments] = useState<any[]>([]);
@@ -377,12 +378,18 @@ export default function AppointmentCalendar() {
               </Button>
               <Button
                 size="sm"
-                onClick={() => {
-                  setShowNewAppointment(true);
-                  toast({
-                    title: "New Appointment",
-                    description: "Opening appointment booking form",
-                  });
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (dialogStable) {
+                    setDialogStable(false);
+                    setShowNewAppointment(true);
+                    setTimeout(() => setDialogStable(true), 300);
+                    toast({
+                      title: "New Appointment",
+                      description: "Opening appointment booking form",
+                    });
+                  }
                 }}
                 className="bg-medical-blue text-white hover:bg-blue-700 text-xs sm:text-sm px-2 sm:px-3 whitespace-nowrap"
               >
@@ -754,7 +761,14 @@ export default function AppointmentCalendar() {
       />
 
       {/* New Appointment Dialog */}
-      <Dialog open={showNewAppointment} onOpenChange={setShowNewAppointment}>
+      <Dialog 
+        open={showNewAppointment} 
+        onOpenChange={(open) => {
+          if (!isCreatingAppointment && dialogStable) {
+            setShowNewAppointment(open);
+          }
+        }}
+      >
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -765,7 +779,7 @@ export default function AppointmentCalendar() {
               Fill in the details below to schedule a new patient appointment.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={(e) => e.preventDefault()} className="space-y-4 overflow-y-auto max-h-[calc(90vh-120px)]">
+          <div className="space-y-4 overflow-y-auto max-h-[calc(90vh-120px)]">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 block">Patient *</label>
@@ -933,13 +947,17 @@ export default function AppointmentCalendar() {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  setShowNewAppointment(false);
+                  if (dialogStable) {
+                    setDialogStable(false);
+                    setShowNewAppointment(false);
+                    setTimeout(() => setDialogStable(true), 300);
+                  }
                 }}
               >
                 Cancel
               </Button>
             </div>
-          </form>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
