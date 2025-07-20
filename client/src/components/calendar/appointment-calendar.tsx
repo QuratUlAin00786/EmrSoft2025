@@ -418,19 +418,7 @@ export default function AppointmentCalendar() {
                       <div className={isCurrentDay ? "text-blue-600" : ""}>
                         {format(day, "d")}
                       </div>
-                      {dayAppointments.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-1 justify-center">
-                          {dayAppointments.slice(0, 2).map((apt: any, index: number) => (
-                            <div
-                              key={`${apt.id}-${index}`}
-                              className="w-2 h-2 rounded-full bg-blue-500"
-                            />
-                          ))}
-                          {dayAppointments.length > 2 && (
-                            <div className="text-xs text-gray-500">+{dayAppointments.length - 2}</div>
-                          )}
-                        </div>
-                      )}
+
                     </div>
                   </button>
                 );
