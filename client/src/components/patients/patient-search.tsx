@@ -50,7 +50,10 @@ export function PatientSearch({ onSearch, onClear }: PatientSearchProps) {
           <Input
             placeholder="Search patients by name, postcode, phone, NHS number..."
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              onSearch(e.target.value, filters);
+            }}
             onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
             className="pl-10"
           />
@@ -58,9 +61,11 @@ export function PatientSearch({ onSearch, onClear }: PatientSearchProps) {
         
         <Select 
           value={filters.searchType} 
-          onValueChange={(value: SearchFilters['searchType']) => 
-            setFilters(prev => ({ ...prev, searchType: value }))
-          }
+          onValueChange={(value: SearchFilters['searchType']) => {
+            const newFilters = { ...filters, searchType: value };
+            setFilters(newFilters);
+            onSearch(query, newFilters);
+          }}
         >
           <SelectTrigger className="w-40">
             <SelectValue />
@@ -110,9 +115,11 @@ export function PatientSearch({ onSearch, onClear }: PatientSearchProps) {
               <label className="text-sm font-medium text-gray-600 mb-2 block">Insurance Provider</label>
               <Select 
                 value={filters.insuranceProvider || 'all'} 
-                onValueChange={(value) => 
-                  setFilters(prev => ({ ...prev, insuranceProvider: value === 'all' ? undefined : value }))
-                }
+                onValueChange={(value) => {
+                  const newFilters = { ...filters, insuranceProvider: value === 'all' ? undefined : value };
+                  setFilters(newFilters);
+                  onSearch(query, newFilters);
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Any provider" />
@@ -133,9 +140,11 @@ export function PatientSearch({ onSearch, onClear }: PatientSearchProps) {
               <label className="text-sm font-medium text-gray-600 mb-2 block">Risk Level</label>
               <Select 
                 value={filters.riskLevel || 'all'} 
-                onValueChange={(value) => 
-                  setFilters(prev => ({ ...prev, riskLevel: value === 'all' ? undefined : value as SearchFilters['riskLevel'] }))
-                }
+                onValueChange={(value) => {
+                  const newFilters = { ...filters, riskLevel: value === 'all' ? undefined : value as SearchFilters['riskLevel'] };
+                  setFilters(newFilters);
+                  onSearch(query, newFilters);
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Any risk level" />
@@ -154,9 +163,11 @@ export function PatientSearch({ onSearch, onClear }: PatientSearchProps) {
               <label className="text-sm font-medium text-gray-600 mb-2 block">Last Visit</label>
               <Select 
                 value={filters.lastVisit || 'all'} 
-                onValueChange={(value) => 
-                  setFilters(prev => ({ ...prev, lastVisit: value === 'all' ? undefined : value as SearchFilters['lastVisit'] }))
-                }
+                onValueChange={(value) => {
+                  const newFilters = { ...filters, lastVisit: value === 'all' ? undefined : value as SearchFilters['lastVisit'] };
+                  setFilters(newFilters);
+                  onSearch(query, newFilters);
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Any time" />
