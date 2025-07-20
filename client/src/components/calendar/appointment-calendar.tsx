@@ -90,14 +90,7 @@ export default function AppointmentCalendar() {
   }, []);
 
   // Auto-refresh appointments every 30 seconds to catch newly created appointments
-  useEffect(() => {
-    const interval = setInterval(() => {
-      console.log("Auto-refreshing appointments...");
-      fetchAppointments();
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
+  // Auto-refresh removed to prevent screen blinking
 
 
 
