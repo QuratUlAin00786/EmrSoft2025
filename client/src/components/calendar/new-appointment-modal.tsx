@@ -150,11 +150,6 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
 
       const newAppointment = await response.json();
       
-      toast({
-        title: "Success",
-        description: "Appointment scheduled successfully"
-      });
-      
       // Reset form
       setFormData({
         patientId: "",
@@ -170,9 +165,17 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
         isVirtual: false
       });
       
-      // Close modal and refresh parent
+      // Close modal and refresh parent first
       onClose();
       onAppointmentCreated();
+      
+      // Show success notification after modal closes
+      setTimeout(() => {
+        toast({
+          title: "Success",
+          description: "Appointment scheduled successfully"
+        });
+      }, 100);
       
     } catch (error: any) {
       console.error("Error creating appointment:", error);
