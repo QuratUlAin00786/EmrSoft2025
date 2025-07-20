@@ -504,10 +504,10 @@ export default function PrescriptionsPage() {
     }
   };
 
-  const handleDeletePrescription = (prescriptionId: string) => {
-    const prescription = Array.isArray(prescriptions) ? prescriptions.find((p: any) => p.id === prescriptionId) : null;
+  const handleDeletePrescription = (prescriptionId: string | number) => {
+    const prescription = Array.isArray(prescriptions) ? prescriptions.find((p: any) => p.id == prescriptionId) : null;
     if (prescription && window.confirm(`Are you sure you want to delete the prescription for ${prescription.patientName}? This action cannot be undone.`)) {
-      deletePrescriptionMutation.mutate(prescriptionId);
+      deletePrescriptionMutation.mutate(String(prescriptionId));
     }
   };
 
