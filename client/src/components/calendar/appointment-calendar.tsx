@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Calendar, Clock, MapPin, User, Video, Stethoscope, FileText } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 import { FullConsultationInterface } from "@/components/consultation/full-consultation-interface";
 import type { Appointment } from "@/types";
 import { NewAppointmentModal } from "./new-appointment-modal";
@@ -33,13 +34,10 @@ export default function AppointmentCalendar() {
   const [dialogStable, setDialogStable] = useState(true);
   const { toast } = useToast();
 
-  const [appointments, setAppointments] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const fetchAppointments = async () => {
-    try {
-      setIsLoading(true);
-      console.log("Fetching appointments from calendar...");
+  const { data: appointments = [], isLoading, refetch } = useQuery({
+    queryKey: ["/api/appointments"],
+    queryFn: async () => {
+      console.log("Fetching appointments from calendar using React Query...");
       
       const token = localStorage.getItem('auth_token');
       const headers: Record<string, string> = {
@@ -76,18 +74,11 @@ export default function AppointmentCalendar() {
           title: data[0].title
         });
       }
-      setAppointments(data || []);
-    } catch (err) {
-      console.error("Error fetching appointments:", err);
-      setAppointments([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchAppointments();
-  }, []);
+      return data || [];
+    },
+    staleTime: 30000,
+    refetchOnWindowFocus: true
+  });
 
   // Auto-refresh appointments every 30 seconds to catch newly created appointments
   // Auto-refresh removed to prevent screen blinking
@@ -589,7 +580,7 @@ export default function AppointmentCalendar() {
         isOpen={showNewAppointment}
         onClose={() => setShowNewAppointment(false)}
         onAppointmentCreated={() => {
-          fetchAppointments();
+          refetch();
           setSelectedDate(new Date());
         }}
       />
