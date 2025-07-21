@@ -338,6 +338,7 @@ export default function PrescriptionsPage() {
 
   const createPrescriptionMutation = useMutation({
     mutationFn: async (prescriptionData: any) => {
+      console.log("🚀 PRESCRIPTION MUTATION START - Sending data:", prescriptionData);
       const isUpdate = selectedPrescription && selectedPrescription.id;
       const url = isUpdate ? `/api/prescriptions/${selectedPrescription.id}` : "/api/prescriptions";
       const method = isUpdate ? "PATCH" : "POST";
@@ -352,20 +353,43 @@ export default function PrescriptionsPage() {
         headers['Authorization'] = `Bearer ${token}`;
       }
       
+      console.log("📡 Making request to:", url, "Method:", method);
       const response = await fetch(url, {
         method,
         headers,
         body: JSON.stringify(prescriptionData),
         credentials: "include",
       });
-      if (!response.ok) throw new Error(`Failed to ${isUpdate ? 'update' : 'create'} prescription`);
-      return response.json();
+      
+      console.log("📡 Response status:", response.status);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ API Error:", errorText);
+        throw new Error(`Failed to ${isUpdate ? 'update' : 'create'} prescription: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log("✅ PRESCRIPTION SUCCESS - API returned:", result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("🎉 PRESCRIPTION onSuccess triggered with data:", data);
       queryClient.invalidateQueries({ queryKey: ["/api/prescriptions"] });
       setShowNewPrescription(false);
       setSelectedPrescription(null);
+      toast({
+        title: "Success",
+        description: "Prescription created successfully - ID: " + (data?.id || 'Unknown')
+      });
     },
+    onError: (error: any) => {
+      console.error("❌ PRESCRIPTION ERROR:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create prescription",
+        variant: "destructive"
+      });
+    }
   });
 
   const sendToPharmacyMutation = useMutation({
