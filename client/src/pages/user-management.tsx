@@ -522,7 +522,7 @@ export default function UserManagement() {
                       <Label className="text-lg font-semibold">Role Permissions</Label>
                     </div>
                     <p className="text-sm text-gray-600">
-                      Configure access permissions for this {getRoleDisplayName(selectedRole)} role. Use checkboxes to control access to modules, sections, and specific actions (view, create, edit, delete).
+                      View role-based permissions for this {getRoleDisplayName(selectedRole)}. Permissions are automatically assigned based on the user's role and cannot be manually edited.
                     </p>
                     
                     {/* Role Description */}
@@ -540,12 +540,23 @@ export default function UserManagement() {
                       </p>
                     </div>
                     
+                    <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Lock className="h-4 w-4 text-amber-600" />
+                        <span className="text-sm font-medium text-amber-800">Permissions are automatically assigned based on role</span>
+                      </div>
+                      <p className="text-xs text-amber-700">
+                        The permissions below are read-only and determined by the selected user role. They cannot be manually edited.
+                      </p>
+                    </div>
+                    
                     {selectedRole && (
                       <PermissionMatrix
                         permissions={currentPermissions || (editingUser?.permissions)}
                         role={selectedRole}
-                        onChange={(updatedPermissions) => {
-                          setCurrentPermissions(updatedPermissions);
+                        readonly={true}
+                        onChange={() => {
+                          // Permissions are read-only based on role
                         }}
                       />
                     )}
@@ -688,24 +699,31 @@ export default function UserManagement() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Lock className="h-5 w-5" />
-              Manage Permissions - {permissionsUser?.firstName} {permissionsUser?.lastName}
+              View Permissions - {permissionsUser?.firstName} {permissionsUser?.lastName}
             </DialogTitle>
             <DialogDescription>
-              Configure detailed permissions for {permissionsUser?.role} role. 
-              Use the checkboxes below to control access to modules, sections, and specific actions.
+              View role-based permissions for {permissionsUser?.role}. 
+              Permissions are automatically assigned based on the user's role and cannot be edited.
             </DialogDescription>
           </DialogHeader>
+          
+          <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Lock className="h-4 w-4 text-amber-600" />
+              <span className="text-sm font-medium text-amber-800">Permissions are automatically assigned based on role</span>
+            </div>
+            <p className="text-xs text-amber-700">
+              The permissions shown below are read-only and determined by the user's role. To change permissions, update the user's role.
+            </p>
+          </div>
           
           {permissionsUser && (
             <PermissionMatrix
               permissions={permissionsUser.permissions}
               role={permissionsUser.role}
-              onChange={(updatedPermissions) => {
-                // Update permissions via API
-                updateUserMutation.mutate({
-                  id: permissionsUser.id,
-                  userData: { permissions: updatedPermissions }
-                });
+              readonly={true}
+              onChange={() => {
+                // Permissions are read-only based on role
               }}
             />
           )}

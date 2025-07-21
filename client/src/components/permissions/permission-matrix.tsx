@@ -30,6 +30,7 @@ interface PermissionMatrixProps {
   permissions: any;
   onChange: (permissions: any) => void;
   role: string;
+  readonly?: boolean;
 }
 
 const MODULE_DEFINITIONS = [
@@ -243,7 +244,7 @@ const ROLE_TEMPLATES = {
   }
 };
 
-export function PermissionMatrix({ permissions, onChange, role }: PermissionMatrixProps) {
+export function PermissionMatrix({ permissions, onChange, role, readonly = false }: PermissionMatrixProps) {
   const [currentPermissions, setCurrentPermissions] = useState(permissions || { modules: {}, fields: {} });
 
   useEffect(() => {
@@ -353,9 +354,12 @@ export function PermissionMatrix({ permissions, onChange, role }: PermissionMatr
                     <div key={action} className="flex justify-center">
                       <Checkbox
                         checked={getPermissionValue(module.key, action)}
-                        onCheckedChange={(checked) => 
-                          updateModulePermission(module.key, action, checked as boolean)
-                        }
+                        disabled={readonly}
+                        onCheckedChange={(checked) => {
+                          if (!readonly) {
+                            updateModulePermission(module.key, action, checked as boolean);
+                          }
+                        }}
                       />
                     </div>
                   ))}
@@ -391,9 +395,12 @@ export function PermissionMatrix({ permissions, onChange, role }: PermissionMatr
                 <div className="flex justify-center">
                   <Checkbox
                     checked={getFieldValue(field.key)}
-                    onCheckedChange={(checked) => 
-                      updateFieldPermission(field.key, checked as boolean)
-                    }
+                    disabled={readonly}
+                    onCheckedChange={(checked) => {
+                      if (!readonly) {
+                        updateFieldPermission(field.key, checked as boolean);
+                      }
+                    }}
                   />
                 </div>
               </div>
