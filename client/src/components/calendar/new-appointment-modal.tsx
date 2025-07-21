@@ -157,8 +157,11 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
 
     const scheduledAt = new Date(`${formData.date}T${formData.time}`);
     
+    // Find the actual patient ID from the selected patientId string
+    const selectedPatient = patients.find(p => p.patientId === formData.patientId);
+    
     const appointmentData = {
-      patientId: formData.patientId,
+      patientId: selectedPatient ? selectedPatient.id : parseInt(formData.patientId), // Use numeric ID
       providerId: parseInt(formData.providerId),
       title: formData.title || `${formData.type} appointment`,
       description: formData.description || "",
@@ -168,6 +171,8 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
       location: formData.isVirtual ? "Virtual" : (formData.location || `${formData.department || 'General'} Department`),
       isVirtual: formData.isVirtual
     };
+    
+    console.log("Appointment data being sent:", appointmentData);
 
     createAppointmentMutation.mutate(appointmentData);
   };
