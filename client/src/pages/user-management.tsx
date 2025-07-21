@@ -35,11 +35,11 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Edit, Trash2, UserPlus, Shield, Stethoscope, Users, Calendar, Lock, User, TestTube } from "lucide-react";
+import { Plus, Edit, Trash2, UserPlus, Shield, Stethoscope, Users, Calendar, User, TestTube, Lock } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Header } from "@/components/layout/header";
-import { PermissionMatrix } from "@/components/permissions/permission-matrix";
+
 
 const userSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -48,10 +48,6 @@ const userSchema = z.object({
   role: z.enum(["admin", "doctor", "nurse", "receptionist", "patient", "sample_taker"]),
   department: z.string().optional(),
   password: z.string().min(1, "Password is required"),
-  permissions: z.object({
-    modules: z.object({}).optional(),
-    fields: z.object({}).optional(),
-  }).optional(),
 });
 
 type UserFormData = z.infer<typeof userSchema>;
@@ -75,9 +71,7 @@ interface User {
 export default function UserManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [permissionsUser, setPermissionsUser] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentPermissions, setCurrentPermissions] = useState<any>(null);
   const [selectedRole, setSelectedRole] = useState<string>("doctor");
 
   const [users, setUsers] = useState<User[]>([]);
@@ -231,22 +225,16 @@ export default function UserManagement() {
   });
 
   const onSubmit = (data: UserFormData) => {
-    const formDataWithPermissions = {
-      ...data,
-      permissions: currentPermissions
-    };
-    
     if (editingUser) {
-      updateUserMutation.mutate({ id: editingUser.id, userData: formDataWithPermissions });
+      updateUserMutation.mutate({ id: editingUser.id, userData: data });
     } else {
-      createUserMutation.mutate(formDataWithPermissions);
+      createUserMutation.mutate(data);
     }
   };
 
   const handleEdit = (user: User) => {
     setEditingUser(user);
     setSelectedRole(user.role);
-    setCurrentPermissions(user.permissions);
     form.reset({
       email: user.email,
       firstName: user.firstName,
@@ -402,7 +390,6 @@ export default function UserManagement() {
             if (!open) {
               setIsCreateModalOpen(false);
               setEditingUser(null);
-              setCurrentPermissions(null);
               setSelectedRole("doctor");
               form.reset();
             }
@@ -471,7 +458,6 @@ export default function UserManagement() {
                   <Select onValueChange={(value) => {
                     form.setValue("role", value as any);
                     setSelectedRole(value);
-                    setCurrentPermissions(null); // Reset permissions when role changes
                   }} defaultValue={form.getValues("role")}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a role" />
@@ -514,53 +500,22 @@ export default function UserManagement() {
                   )}
                 </div>
 
-                {/* Permissions Section */}
-                <div className="border-t pt-6 mt-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <Lock className="h-5 w-5" />
-                      <Label className="text-lg font-semibold">Role Permissions</Label>
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      View role-based permissions for this {getRoleDisplayName(selectedRole)}. Permissions are automatically assigned based on the user's role and cannot be manually edited.
-                    </p>
-                    
-                    {/* Role Description */}
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      <h4 className="font-medium text-blue-900 mb-2">
-                        {getRoleDisplayName(selectedRole)} Default Access:
-                      </h4>
-                      <p className="text-sm text-blue-700">
-                        {selectedRole === 'admin' && "Full system access including user management, settings, and all clinical modules."}
-                        {selectedRole === 'doctor' && "Clinical access to patient records, appointments, prescriptions, and medical documentation."}
-                        {selectedRole === 'nurse' && "Patient care access including medical records, medications, and care coordination."}
-                        {selectedRole === 'receptionist' && "Limited access to patient information, appointments, and billing functions."}
-                        {selectedRole === 'patient' && "Personal health record access including appointments, prescriptions, and medical history."}
-                        {selectedRole === 'sample_taker' && "Lab-focused access for sample collection, lab results, and basic patient information."}
-                      </p>
-                    </div>
-                    
-                    <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Lock className="h-4 w-4 text-amber-600" />
-                        <span className="text-sm font-medium text-amber-800">Permissions are automatically assigned based on role</span>
-                      </div>
-                      <p className="text-xs text-amber-700">
-                        The permissions below are read-only and determined by the selected user role. They cannot be manually edited.
-                      </p>
-                    </div>
-                    
-                    {selectedRole && (
-                      <PermissionMatrix
-                        permissions={currentPermissions || (editingUser?.permissions)}
-                        role={selectedRole}
-                        readonly={true}
-                        onChange={() => {
-                          // Permissions are read-only based on role
-                        }}
-                      />
-                    )}
-                  </div>
+                {/* Role Information */}
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-blue-900 mb-2">
+                    {getRoleDisplayName(selectedRole)} Access Level:
+                  </h4>
+                  <p className="text-sm text-blue-700">
+                    {selectedRole === 'admin' && "Full system access including user management, settings, and all clinical modules."}
+                    {selectedRole === 'doctor' && "Clinical access to patient records, appointments, prescriptions, and medical documentation."}
+                    {selectedRole === 'nurse' && "Patient care access including medical records, medications, and care coordination."}
+                    {selectedRole === 'receptionist' && "Limited access to patient information, appointments, and billing functions."}
+                    {selectedRole === 'patient' && "Personal health record access including appointments, prescriptions, and medical history."}
+                    {selectedRole === 'sample_taker' && "Lab-focused access for sample collection, lab results, and basic patient information."}
+                  </p>
+                  <p className="text-xs text-blue-600 mt-2">
+                    ✓ Permissions will be automatically assigned based on the selected role
+                  </p>
                 </div>
                 
                 <DialogFooter>
@@ -570,7 +525,6 @@ export default function UserManagement() {
                     onClick={() => {
                       setIsCreateModalOpen(false);
                       setEditingUser(null);
-                      setCurrentPermissions(null);
                       setSelectedRole("doctor");
                       form.reset();
                     }}
@@ -639,15 +593,6 @@ export default function UserManagement() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => setPermissionsUser(user)}
-                          title="Manage Permissions"
-                        >
-                          <Lock className="h-4 w-4" />
-                        </Button>
-                        
-                        <Button
-                          variant="ghost"
-                          size="sm"
                           onClick={() => handleEdit(user)}
                           title="Edit User"
                         >
@@ -689,55 +634,7 @@ export default function UserManagement() {
         </Card>
       </div>
 
-      {/* Permissions Management Dialog */}
-      <Dialog open={!!permissionsUser} onOpenChange={(open) => {
-        if (!open) {
-          setPermissionsUser(null);
-        }
-      }}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Lock className="h-5 w-5" />
-              View Permissions - {permissionsUser?.firstName} {permissionsUser?.lastName}
-            </DialogTitle>
-            <DialogDescription>
-              View role-based permissions for {permissionsUser?.role}. 
-              Permissions are automatically assigned based on the user's role and cannot be edited.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg mb-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Lock className="h-4 w-4 text-amber-600" />
-              <span className="text-sm font-medium text-amber-800">Permissions are automatically assigned based on role</span>
-            </div>
-            <p className="text-xs text-amber-700">
-              The permissions shown below are read-only and determined by the user's role. To change permissions, update the user's role.
-            </p>
-          </div>
-          
-          {permissionsUser && (
-            <PermissionMatrix
-              permissions={permissionsUser.permissions}
-              role={permissionsUser.role}
-              readonly={true}
-              onChange={() => {
-                // Permissions are read-only based on role
-              }}
-            />
-          )}
-          
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setPermissionsUser(null)}
-            >
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
     </div>
   );
 }
