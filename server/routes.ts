@@ -713,12 +713,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return val;
         }),
         providerId: z.number(),
-        title: z.string().min(1),
+        title: z.string().optional(),
         description: z.string().optional(),
-        scheduledAt: z.string().transform(str => new Date(str)),
+        appointmentDate: z.string().optional(),
+        scheduledAt: z.string().optional(),
         duration: z.number().default(30),
         type: z.enum(["consultation", "follow_up", "procedure"]).default("consultation"),
         location: z.string().optional(),
+        department: z.string().optional(),
+        notes: z.string().optional(),
+        status: z.string().optional(),
         isVirtual: z.boolean().default(false)
       }).parse(req.body);
 
@@ -745,10 +749,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const appointmentToCreate = {
-        ...appointmentData,
         patientId: numericPatientId,
+        providerId: appointmentData.providerId,
         organizationId: req.tenant!.id,
-        description: appointmentData.description || ""
+        title: appointmentData.title || `${appointmentData.type} appointment`,
+        description: appointmentData.description || appointmentData.notes || "",
+        scheduledAt: new Date(appointmentData.appointmentDate || appointmentData.scheduledAt || new Date()),
+        duration: appointmentData.duration,
+        type: appointmentData.type,
+        location: appointmentData.location || "",
+        isVirtual: appointmentData.isVirtual
       };
       
       console.log("Creating appointment with final data:", appointmentToCreate);
@@ -1117,7 +1127,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Using selected provider ID:", providerId);
       
       // Check for duplicate prescriptions (same patient, same medication, active status)
-      const existingPrescriptions = await storage.getPrescriptions(req.tenant!.id);
+      const existingPrescriptions = await storage.getPrescriptionsByOrganization(req.tenant!.id);
       const isDuplicate = existingPrescriptions.some(existing => 
         existing.patientId === parseInt(prescriptionData.patientId) &&
         existing.status === 'active' &&

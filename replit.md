@@ -110,6 +110,10 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system des
 
 ## Changelog
 
+**July 21, 2025:**
+- **COMPLETED**: Fixed critical prescription creation 500 error in LIVE deployment - identified and resolved missing `getPrescriptionsByOrganization` method call that was causing "storage.getPrescriptions is not a function" error, prescription creation now working perfectly with database ID generation and proper duplicate prevention validation
+- **COMPLETED**: Fixed critical appointment creation 500 error in LIVE deployment - resolved validation schema mismatch between frontend sending `appointmentDate` and backend expecting `scheduledAt` and `title` fields, updated appointment API to handle both field formats with proper fallbacks, appointment creation now working perfectly with database ID generation
+
 **July 20, 2025:**
 - **COMPLETED**: Fixed Order Study dialog functionality completely - replaced toast-only implementation with proper database integration, added comprehensive form state management with controlled inputs for all fields (patient selection, modality, body part, priority, study description, clinical indication, special instructions), connected Order Study form to backend API with proper validation schema updates, orders now create actual database records in medicalImages table with status "ordered", implemented automatic list refresh after successful order creation, Order Study button now fully functional creating authentic imaging study orders that immediately appear in imaging list
 - **COMPLETED**: Fixed patient filter functionality completely - resolved filter logic condition that wasn't properly detecting active filters, enhanced insurance provider filtering to handle different data formats, added automatic filter application when filter values change, improved search filter detection for better user experience, both Search and Filters buttons now fully functional with real-time filtering capabilities
