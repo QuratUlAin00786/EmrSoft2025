@@ -7,20 +7,49 @@ import AppointmentCalendar from "../calendar/appointment-calendar";
 
 // Recent Patients List Component
 function RecentPatientsList() {
-  const { data: patients, isLoading } = useQuery({
+  const { data: patients, isLoading, error } = useQuery({
     queryKey: ["/api/patients"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch('/api/patients', {
+        headers: {
+          ...headers,
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        },
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      return response.json();
+    },
+    retry: 1,
+    staleTime: 30000
   });
 
   if (isLoading) {
     return <div className="text-sm text-gray-500 text-center py-4">Loading patients...</div>;
   }
 
-  if (!patients || patients.length === 0) {
+  if (error || !patients || patients.length === 0) {
     return <div className="text-sm text-gray-500 text-center py-4">Unable to load patient data. Please try again later.</div>;
   }
 
-  // Get the 5 most recent patients
-  const recentPatients = patients.slice(0, 5);
+  // Get the 5 most recent patients (sorted by creation date)
+  const recentPatients = patients
+    .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 5);
 
   return (
     <div className="space-y-3">

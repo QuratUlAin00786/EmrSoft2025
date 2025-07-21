@@ -701,6 +701,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/appointments", requireRole(["doctor", "nurse", "receptionist", "admin"]), async (req: TenantRequest, res) => {
     try {
+      console.log("Appointment creation request received:", req.body);
+      console.log("Tenant ID:", req.tenant?.id);
+      
       const appointmentData = z.object({
         patientId: z.any().transform((val) => {
           // Handle null, undefined, empty string, or NaN
@@ -719,28 +722,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isVirtual: z.boolean().default(false)
       }).parse(req.body);
 
+      console.log("Parsed appointment data:", appointmentData);
+
       // Handle patientId conversion
       let numericPatientId: number;
       if (appointmentData.patientId === null) {
+        console.log("Patient ID is null, returning error");
         return res.status(400).json({ error: "Patient ID is required" });
       } else if (typeof appointmentData.patientId === "string") {
         // If it's a string (like "P000007"), find the patient by patientId
+        console.log("Looking up patient by patientId:", appointmentData.patientId);
         const patient = await storage.getPatientByPatientId(appointmentData.patientId, req.tenant!.id);
         if (!patient) {
+          console.log("Patient not found for patientId:", appointmentData.patientId);
           return res.status(400).json({ error: "Patient not found" });
         }
         numericPatientId = patient.id;
+        console.log("Found patient with numeric ID:", numericPatientId);
       } else {
         numericPatientId = appointmentData.patientId;
+        console.log("Using provided numeric patient ID:", numericPatientId);
       }
 
-      const appointment = await storage.createAppointment({
+      const appointmentToCreate = {
         ...appointmentData,
         patientId: numericPatientId,
         organizationId: req.tenant!.id,
         description: appointmentData.description || ""
-      });
-
+      };
+      
+      console.log("Creating appointment with final data:", appointmentToCreate);
+      
+      const appointment = await storage.createAppointment(appointmentToCreate);
+      
+      console.log("Appointment creation completed, returning:", appointment);
       res.status(201).json(appointment);
     } catch (error) {
       console.error("Appointment creation error:", error);

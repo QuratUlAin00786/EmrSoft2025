@@ -424,8 +424,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createAppointment(appointment: InsertAppointment): Promise<Appointment> {
-    const [created] = await db.insert(appointments).values([appointment]).returning();
-    return created;
+    console.log("Creating appointment with data:", appointment);
+    try {
+      const [created] = await db.insert(appointments).values([appointment]).returning();
+      console.log("Appointment created successfully:", created);
+      return created;
+    } catch (error) {
+      console.error("Error creating appointment:", error);
+      throw error;
+    }
   }
 
   async updateAppointment(id: number, organizationId: number, updates: Partial<InsertAppointment>): Promise<Appointment | undefined> {
