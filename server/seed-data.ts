@@ -232,37 +232,46 @@ export async function seedDatabase() {
     const todayAfternoon = new Date();
     todayAfternoon.setHours(14, 30, 0, 0);
 
-    const sampleAppointments = [
-      {
-        organizationId: org.id,
-        patientId: createdPatients[0].id,
-        providerId: createdUsers[1].id, // Dr. Smith
-        title: "Cardiology Consultation",
-        description: "Follow-up for hypertension management",
-        scheduledAt: today,
-        duration: 30,
-        status: "scheduled",
-        type: "consultation",
-        location: "Room 205, Cardiology Department",
-        isVirtual: false
-      },
-      {
-        organizationId: org.id,
-        patientId: createdPatients[1].id,
-        providerId: createdUsers[1].id, // Dr. Smith
-        title: "Diabetes Review",
-        description: "Annual diabetes checkup and medication review",
-        scheduledAt: todayAfternoon,
-        duration: 45,
-        status: "scheduled",
-        type: "follow_up",
-        location: "Room 102, General Medicine",
-        isVirtual: false
-      }
-    ];
+    // Create sample appointments only if they don't exist
+    const existingAppointments = await db.select().from(appointments).where(eq(appointments.organizationId, org.id));
+    
+    let createdAppointments = existingAppointments;
+    
+    if (existingAppointments.length === 0) {
+      const sampleAppointments = [
+        {
+          organizationId: org.id,
+          patientId: createdPatients[0].id,
+          providerId: createdUsers[1].id, // Dr. Smith
+          title: "Cardiology Consultation",
+          description: "Follow-up for hypertension management",
+          scheduledAt: today,
+          duration: 30,
+          status: "scheduled",
+          type: "consultation",
+          location: "Room 205, Cardiology Department",
+          isVirtual: false
+        },
+        {
+          organizationId: org.id,
+          patientId: createdPatients[1].id,
+          providerId: createdUsers[1].id, // Dr. Smith
+          title: "Diabetes Review",
+          description: "Annual diabetes checkup and medication review",
+          scheduledAt: todayAfternoon,
+          duration: 45,
+          status: "scheduled",
+          type: "follow_up",
+          location: "Room 102, General Medicine",
+          isVirtual: false
+        }
+      ];
 
-    const createdAppointments = await db.insert(appointments).values(sampleAppointments).returning();
-    console.log(`Created ${createdAppointments.length} appointments`);
+      createdAppointments = await db.insert(appointments).values(sampleAppointments).returning();
+      console.log(`Created ${createdAppointments.length} appointments`);
+    } else {
+      console.log(`Using existing ${existingAppointments.length} appointments`);
+    }
 
     // Create sample medical records
     const sampleRecords = [

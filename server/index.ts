@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { seedDatabase } from "./seed-data";
+import { cleanupDuplicates } from "./cleanup-duplicates";
 
 const app = express();
 app.use(express.json());
@@ -51,12 +52,13 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // Seed database on startup in development
+  // Clean up duplicates and seed database on startup in development
   if (process.env.NODE_ENV === "development") {
     try {
+      await cleanupDuplicates();
       await seedDatabase();
     } catch (error: any) {
-      console.log("Database already seeded or seeding failed:", error.message);
+      console.log("Database cleanup/seeding failed:", error.message);
     }
   }
 
