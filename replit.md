@@ -111,6 +111,7 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system des
 ## Changelog
 
 **July 21, 2025:**
+- **COMPLETED**: Database duplicate cleanup fully completed in LIVE deployment - successfully removed 282 duplicate appointments (301→19), 169 duplicate medical records, 836 duplicate notifications, and 5 duplicate medical images while preserving all manually created user data, system now has clean production data with each entry saved only once as requested
 - **COMPLETED**: Fixed critical prescription creation 500 error in LIVE deployment - identified and resolved missing `getPrescriptionsByOrganization` method call that was causing "storage.getPrescriptions is not a function" error, prescription creation now working perfectly with database ID generation and proper duplicate prevention validation
 - **COMPLETED**: Fixed critical appointment creation 500 error in LIVE deployment - resolved validation schema mismatch between frontend sending `appointmentDate` and backend expecting `scheduledAt` and `title` fields, updated appointment API to handle both field formats with proper fallbacks, appointment creation now working perfectly with database ID generation
 - **COMPLETED**: Removed marketplace functionality from Integrations page per user request - cleaned up UI by removing all marketplace browsing, integration details dialogs, and "Browse Marketplace" button, streamlined integrations page to focus only on core integration management (Connected Services, Webhooks, API Keys) without external marketplace browsing features
