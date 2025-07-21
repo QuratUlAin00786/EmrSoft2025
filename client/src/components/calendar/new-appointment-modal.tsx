@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 
 interface NewAppointmentModalProps {
   isOpen: boolean;
@@ -13,7 +16,51 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
   const { toast } = useToast();
   const [patients, setPatients] = useState<any[]>([]);
   const [providers, setProviders] = useState<any[]>([]);
-  const [isCreatingAppointment, setIsCreatingAppointment] = useState(false);
+
+  const createAppointmentMutation = useMutation({
+    mutationFn: async (appointmentData: any) => {
+      return await apiRequest("POST", "/api/appointments", appointmentData);
+    },
+    onSuccess: () => {
+      // Invalidate appointments cache to refresh the calendar
+      queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+      
+      // Reset form
+      setFormData({
+        patientId: "",
+        providerId: "",
+        title: "",
+        description: "",
+        date: new Date().toISOString().split('T')[0],
+        time: "09:00",
+        duration: "30",
+        type: "consultation",
+        department: "Cardiology",
+        location: "",
+        isVirtual: false
+      });
+      
+      // Close modal and notify parent
+      onClose();
+      onAppointmentCreated();
+      
+      // Show success toast
+      setTimeout(() => {
+        toast({
+          title: "Success",
+          description: "Appointment scheduled successfully"
+        });
+      }, 100);
+    },
+    onError: (error: any) => {
+      console.error("Error creating appointment:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create appointment",
+        variant: "destructive"
+      });
+    }
+  });
   
   const [formData, setFormData] = useState({
     patientId: "",
@@ -98,7 +145,7 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
     }
   }, [isOpen]);
 
-  const createAppointment = async () => {
+  const createAppointment = () => {
     if (!formData.patientId || !formData.providerId) {
       toast({
         title: "Missing Information", 
@@ -108,85 +155,21 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
       return;
     }
 
-    try {
-      setIsCreatingAppointment(true);
-      
-      const scheduledAt = new Date(`${formData.date}T${formData.time}`);
-      
-      const appointmentData = {
-        patientId: formData.patientId,
-        providerId: parseInt(formData.providerId),
-        title: formData.title || `${formData.type} appointment`,
-        description: formData.description || "",
-        scheduledAt: scheduledAt.toISOString(),
-        duration: parseInt(formData.duration),
-        type: formData.type,
-        location: formData.isVirtual ? "Virtual" : (formData.location || `${formData.department || 'General'} Department`),
-        isVirtual: formData.isVirtual
-      };
+    const scheduledAt = new Date(`${formData.date}T${formData.time}`);
+    
+    const appointmentData = {
+      patientId: formData.patientId,
+      providerId: parseInt(formData.providerId),
+      title: formData.title || `${formData.type} appointment`,
+      description: formData.description || "",
+      scheduledAt: scheduledAt.toISOString(),
+      duration: parseInt(formData.duration),
+      type: formData.type,
+      location: formData.isVirtual ? "Virtual" : (formData.location || `${formData.department || 'General'} Department`),
+      isVirtual: formData.isVirtual
+    };
 
-      const token = localStorage.getItem('auth_token');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'X-Tenant-Subdomain': 'demo'
-      };
-      
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const response = await fetch('/api/appointments', {
-        method: 'POST',
-        headers,
-        credentials: 'include',
-        body: JSON.stringify(appointmentData)
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Appointment creation failed:", response.status, errorText);
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
-      }
-
-      const newAppointment = await response.json();
-      
-      // Reset form
-      setFormData({
-        patientId: "",
-        providerId: "",
-        title: "",
-        description: "",
-        date: new Date().toISOString().split('T')[0],
-        time: "09:00",
-        duration: "30",
-        type: "consultation",
-        department: "Cardiology",
-        location: "",
-        isVirtual: false
-      });
-      
-      // Close modal and refresh parent first
-      onClose();
-      onAppointmentCreated();
-      
-      // Show success notification after modal closes
-      setTimeout(() => {
-        toast({
-          title: "Success",
-          description: "Appointment scheduled successfully"
-        });
-      }, 100);
-      
-    } catch (error: any) {
-      console.error("Error creating appointment:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create appointment",
-        variant: "destructive"
-      });
-    } finally {
-      setIsCreatingAppointment(false);
-    }
+    createAppointmentMutation.mutate(appointmentData);
   };
 
   if (!isOpen) return null;
@@ -364,9 +347,9 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
           <div className="flex gap-2 pt-4">
             <Button 
               onClick={createAppointment}
-              disabled={isCreatingAppointment}
+              disabled={createAppointmentMutation.isPending}
             >
-              {isCreatingAppointment ? "Scheduling..." : "Schedule Appointment"}
+              {createAppointmentMutation.isPending ? "Scheduling..." : "Schedule Appointment"}
             </Button>
             <Button 
               variant="outline" 
