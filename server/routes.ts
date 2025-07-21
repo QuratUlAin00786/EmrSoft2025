@@ -1587,16 +1587,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const labData = req.body;
       
+      // Generate unique test ID
+      const testId = `LAB${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+      
+      // Convert patientId from string to number if needed
+      const patientId = typeof labData.patientId === 'string' ? 
+        parseInt(labData.patientId) || null : 
+        labData.patientId;
+      
+      if (!patientId) {
+        return res.status(400).json({ error: "Valid patient ID is required" });
+      }
+      
       const newLabResult = await storage.createLabResult({
-        patientId: labData.patientId,
-        patientName: labData.patientName,
-        testType: labData.testType,
-        orderedBy: req.user.email,
         organizationId: req.organizationId!,
-        providerId: req.user.id,
+        patientId: patientId,
+        testId: testId,
+        testType: labData.testType,
+        orderedBy: req.user.id,
+        orderedAt: new Date(),
         status: "pending",
-        priority: labData.priority || "routine",
-        notes: labData.notes
+        notes: labData.notes || null
       });
 
       res.status(201).json(newLabResult);

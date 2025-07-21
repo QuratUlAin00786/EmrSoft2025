@@ -444,22 +444,29 @@ export default function LabResultsPage() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="patientId">Patient ID</Label>
-              <Input
-                id="patientId"
-                placeholder="Enter patient ID"
-                value={orderFormData.patientId}
-                onChange={(e) => setOrderFormData(prev => ({ ...prev, patientId: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="patientName">Patient Name</Label>
-              <Input
-                id="patientName"
-                placeholder="Enter patient name"
-                value={orderFormData.patientName}
-                onChange={(e) => setOrderFormData(prev => ({ ...prev, patientName: e.target.value }))}
-              />
+              <Label htmlFor="patient">Select Patient</Label>
+              <Select 
+                value={orderFormData.patientId} 
+                onValueChange={(value) => {
+                  const selectedPatient = patients.find((p: any) => p.id.toString() === value);
+                  setOrderFormData(prev => ({ 
+                    ...prev, 
+                    patientId: value,
+                    patientName: selectedPatient ? `${selectedPatient.firstName} ${selectedPatient.lastName}` : ''
+                  }));
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a patient" />
+                </SelectTrigger>
+                <SelectContent>
+                  {patients.map((patient: any) => (
+                    <SelectItem key={patient.id} value={patient.id.toString()}>
+                      {`${patient.firstName} ${patient.lastName} (${patient.patientId})`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="testType">Test Type</Label>
@@ -510,10 +517,8 @@ export default function LabResultsPage() {
               <Button 
                 onClick={() => {
                   createLabOrderMutation.mutate({
-                    patientId: orderFormData.patientId,
-                    patientName: orderFormData.patientName,
+                    patientId: parseInt(orderFormData.patientId),
                     testType: orderFormData.testType,
-                    priority: orderFormData.priority,
                     notes: orderFormData.notes
                   });
                 }}
