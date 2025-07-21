@@ -28,7 +28,7 @@ export function NurseDashboard() {
     },
     {
       title: "Vital Signs Due",
-      value: "8",
+      value: isLoading ? "--" : "0",
       description: "Pending measurements",
       icon: Heart,
       href: "/patients",
@@ -36,7 +36,7 @@ export function NurseDashboard() {
     },
     {
       title: "Medication Admin",
-      value: "12",
+      value: isLoading ? "--" : "0",
       description: "Scheduled today",
       icon: Pill,
       href: "/prescriptions",

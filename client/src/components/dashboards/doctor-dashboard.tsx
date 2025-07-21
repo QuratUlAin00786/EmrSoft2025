@@ -40,7 +40,7 @@ export function DoctorDashboard() {
     },
     {
       title: "Pending Prescriptions",
-      value: "3",
+      value: isLoading ? "--" : "0",
       description: "Awaiting review",
       icon: Pill,
       href: "/prescriptions",

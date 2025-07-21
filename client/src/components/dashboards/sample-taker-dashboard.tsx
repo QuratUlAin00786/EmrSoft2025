@@ -12,7 +12,7 @@ export function SampleTakerDashboard() {
   const sampleTakerCards = [
     {
       title: "Samples Today",
-      value: "15",
+      value: isLoading ? "--" : "0",
       description: "Collections scheduled",
       icon: FlaskConical,
       href: "/lab-results",
@@ -20,7 +20,7 @@ export function SampleTakerDashboard() {
     },
     {
       title: "Pending Results",
-      value: "8",
+      value: isLoading ? "--" : "0",
       description: "Processing in lab",
       icon: Clock,
       href: "/lab-results",
@@ -28,7 +28,7 @@ export function SampleTakerDashboard() {
     },
     {
       title: "Completed Today",
-      value: "12",
+      value: isLoading ? "--" : "0",
       description: "Samples processed",
       icon: CheckCircle,
       href: "/lab-results",
@@ -36,7 +36,7 @@ export function SampleTakerDashboard() {
     },
     {
       title: "Priority Samples",
-      value: "3",
+      value: isLoading ? "--" : "0",
       description: "Urgent processing",
       icon: AlertCircle,
       href: "/lab-results",

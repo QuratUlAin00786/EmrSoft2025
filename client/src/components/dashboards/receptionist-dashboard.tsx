@@ -20,7 +20,7 @@ export function ReceptionistDashboard() {
     },
     {
       title: "New Patients",
-      value: "3",
+      value: isLoading ? "--" : "0",
       description: "This week",
       icon: UserPlus,
       href: "/patients",
@@ -28,7 +28,7 @@ export function ReceptionistDashboard() {
     },
     {
       title: "Pending Payments",
-      value: "£1,240",
+      value: isLoading ? "--" : "£0",
       description: "Outstanding balance",
       icon: CreditCard,
       href: "/billing",
@@ -36,7 +36,7 @@ export function ReceptionistDashboard() {
     },
     {
       title: "Wait Time",
-      value: "12 min",
+      value: isLoading ? "--" : "0 min",
       description: "Average today",
       icon: Clock,
       href: "/appointments",

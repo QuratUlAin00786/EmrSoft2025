@@ -87,32 +87,32 @@ export function AdminDashboard() {
   const dashboardCards = [
     {
       title: "Total Patients",
-      value: "--",
-      description: "Fetch data for Total Patients",
+      value: isLoading ? "--" : (stats?.totalPatients?.toString() || "0"),
+      description: isLoading ? "Loading..." : `${stats?.totalPatients || 0} active patients`,
       icon: Users,
       href: "/patients",
       color: "text-blue-500"
     },
     {
       title: "Today's Appointments", 
-      value: "--",
-      description: "Fetch data for Today's Appointments",
+      value: isLoading ? "--" : (stats?.todayAppointments?.toString() || "0"),
+      description: isLoading ? "Loading..." : `${stats?.todayAppointments || 0} scheduled today`,
       icon: Calendar,
       href: "/appointments",
       color: "text-green-500"
     },
     {
       title: "AI Suggestions",
-      value: "--", 
-      description: "Fetch data for AI Suggestions",
+      value: isLoading ? "--" : (stats?.aiSuggestions?.toString() || "0"), 
+      description: isLoading ? "Loading..." : `${stats?.aiSuggestions || 0} active insights`,
       icon: Brain,
       href: "/ai-insights",
       color: "text-purple-500"
     },
     {
       title: "Revenue (MTD)",
-      value: "--",
-      description: "Fetch data for Revenue (MTD)",
+      value: isLoading ? "--" : `£${(stats?.revenue || 0).toLocaleString()}`,
+      description: isLoading ? "Loading..." : "Month to date revenue",
       icon: CreditCard,
       href: "/billing",
       color: "text-yellow-500"

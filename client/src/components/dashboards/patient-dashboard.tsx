@@ -43,7 +43,7 @@ export function PatientDashboard() {
     },
     {
       title: "Pending Results",
-      value: "1",
+      value: "0",
       description: "Lab test results",
       icon: FileText,
       href: "/lab-results",
