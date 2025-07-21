@@ -31,16 +31,24 @@ interface DatabaseLabResult {
   id: number;
   organizationId: number;
   patientId: number;
-  testName: string;
-  category: string;
-  value: string;
-  unit?: string;
-  referenceRange?: string;
-  status: 'pending' | 'completed' | 'reviewed';
+  testId: string;
+  testType: string;
   orderedBy: number;
+  orderedAt: string;
+  collectedAt?: string;
+  completedAt?: string;
+  status: 'pending' | 'processing' | 'completed' | 'cancelled';
+  results: Array<{
+    name: string;
+    value: string;
+    unit: string;
+    referenceRange: string;
+    status: "normal" | "abnormal_high" | "abnormal_low" | "critical";
+    flag?: string;
+  }>;
+  criticalValues: boolean;
   notes?: string;
   createdAt: string;
-  updatedAt?: string;
 }
 
 // Database-driven lab results - no more mock data
@@ -123,7 +131,7 @@ export default function LabResultsPage() {
     setShowOrderDialog(true);
   };
 
-  const handleViewResult = (result: LabResult) => {
+  const handleViewResult = (result: DatabaseLabResult) => {
     console.log("handleViewResult called with:", result);
     setSelectedResult(result);
     setShowViewDialog(true);
@@ -131,20 +139,22 @@ export default function LabResultsPage() {
   };
 
   const handleDownloadResult = (resultId: string) => {
-    const result = Array.isArray(labResults) ? labResults.find((r: any) => r.id === resultId) : null;
+    const result = Array.isArray(labResults) ? labResults.find((r: any) => r.id.toString() === resultId) : null;
     if (result) {
+      const patientName = getPatientName(result.patientId);
       toast({
         title: "Download Report",
-        description: `Lab report for ${result.patientName} downloaded successfully`,
+        description: `Lab report for ${patientName} downloaded successfully`,
       });
       
       // Simulate PDF download
-      const blob = new Blob([`Lab Results Report\n\nPatient: ${result.patientName}\nTest: ${result.testType}\nDate: ${new Date(result.orderedAt).toLocaleDateString()}\n\nResults:\n${result.results.map((r: any) => `${r.name}: ${r.value} ${r.unit} (${r.referenceRange})`).join('\n')}`], 
+      const resultsText = result.results?.map((r: any) => `${r.name}: ${r.value} ${r.unit} (${r.referenceRange})`).join('\n') || 'No results available';
+      const blob = new Blob([`Lab Results Report\n\nPatient: ${patientName}\nTest: ${result.testType}\nDate: ${new Date(result.orderedAt).toLocaleDateString()}\n\nResults:\n${resultsText}`], 
         { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `lab-report-${result.patientName.replace(' ', '-').toLowerCase()}.txt`;
+      a.download = `lab-report-${patientName.replace(' ', '-').toLowerCase()}.txt`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -152,7 +162,7 @@ export default function LabResultsPage() {
     }
   };
 
-  const handleShareResult = (result: LabResult) => {
+  const handleShareResult = (result: DatabaseLabResult) => {
     setSelectedResult(result);
     setShowReviewDialog(true);
   };
@@ -162,7 +172,7 @@ export default function LabResultsPage() {
     if (result) {
       toast({
         title: "Critical Value Flagged",
-        description: `Critical alert created for ${result.patientName}`,
+        description: `Critical alert created for ${getPatientName(result.patientId)}`,
         variant: "destructive",
       });
       // In a real implementation, this would create alerts and notifications
@@ -171,13 +181,13 @@ export default function LabResultsPage() {
 
   // Helper function to get patient name from patient ID
   const getPatientName = (patientId: number) => {
-    const patient = patients.find((p: any) => p.id === patientId);
+    const patient = Array.isArray(patients) ? patients.find((p: any) => p.id === patientId) : null;
     return patient ? `${patient.firstName} ${patient.lastName}` : `Patient #${patientId}`;
   };
 
   // Helper function to get user name from user ID  
   const getUserName = (userId: number) => {
-    const user = users.find((u: any) => u.id === userId);
+    const user = Array.isArray(users) ? users.find((u: any) => u.id === userId) : null;
     return user ? `${user.firstName} ${user.lastName}` : `User #${userId}`;
   };
 
@@ -185,8 +195,7 @@ export default function LabResultsPage() {
     const patientName = getPatientName(result.patientId);
     const matchesSearch = !searchQuery || 
       patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      result.testName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      result.category.toLowerCase().includes(searchQuery.toLowerCase());
+      result.testType.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || result.status === statusFilter;
     
@@ -357,7 +366,7 @@ export default function LabResultsPage() {
                           <Badge className={getStatusColor(result.status)}>
                             {result.status}
                           </Badge>
-                          {(result.notes?.toLowerCase().includes('critical') || result.value?.toLowerCase().includes('high')) && (
+                          {result.criticalValues && (
                             <Badge variant="destructive" className="flex items-center gap-1">
                               <AlertTriangle className="h-3 w-3" />
                               Critical
@@ -367,40 +376,42 @@ export default function LabResultsPage() {
                         
                         <div className="space-y-2 mb-4">
                           <p className="text-sm text-gray-600">
-                            <strong>Test:</strong> {result.testName}
+                            <strong>Test:</strong> {result.testType}
                           </p>
                           <p className="text-sm text-gray-600">
-                            <strong>Category:</strong> {result.category}
+                            <strong>Test ID:</strong> {result.testId}
                           </p>
                           <p className="text-sm text-gray-600">
                             <strong>Ordered by:</strong> {getUserName(result.orderedBy)}
                           </p>
                           <p className="text-sm text-gray-600">
-                            <strong>Created:</strong> {format(new Date(result.createdAt), 'MMM dd, yyyy HH:mm')}
+                            <strong>Ordered:</strong> {format(new Date(result.orderedAt), 'MMM dd, yyyy HH:mm')}
                           </p>
-                          {result.updatedAt && (
+                          {result.completedAt && (
                             <p className="text-sm text-gray-600">
-                              <strong>Updated:</strong> {format(new Date(result.updatedAt), 'MMM dd, yyyy HH:mm')}
+                              <strong>Completed:</strong> {format(new Date(result.completedAt), 'MMM dd, yyyy HH:mm')}
                             </p>
                           )}
                         </div>
                         
-                        {result.value && (
+                        {result.results && result.results.length > 0 && (
                           <div className="mt-4">
-                            <h4 className="font-medium mb-2">Test Result:</h4>
-                            <div className="p-3 rounded-lg border bg-blue-50 border-blue-200">
-                              <div className="flex items-center justify-between">
-                                <span className="font-medium">{result.testName}</span>
-                                <Badge className={getStatusColor(result.status)}>
-                                  {result.status}
-                                </Badge>
-                              </div>
-                              <div className="text-sm text-gray-600 mt-1">
-                                <span className="font-medium">{result.value} {result.unit || ''}</span>
-                                {result.referenceRange && (
-                                  <span className="ml-2">Ref: {result.referenceRange}</span>
-                                )}
-                              </div>
+                            <h4 className="font-medium mb-2">Test Results:</h4>
+                            <div className="space-y-2">
+                              {result.results.map((testResult, index) => (
+                                <div key={index} className="p-3 rounded-lg border bg-blue-50 border-blue-200">
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-medium">{testResult.name}</span>
+                                    <Badge className={getStatusColor(testResult.status)}>
+                                      {testResult.status}
+                                    </Badge>
+                                  </div>
+                                  <div className="text-sm text-gray-600 mt-1">
+                                    <span className="font-medium">{testResult.value} {testResult.unit}</span>
+                                    <span className="ml-2">Ref: {testResult.referenceRange}</span>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           </div>
                         )}
@@ -543,7 +554,7 @@ export default function LabResultsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-sm font-medium text-gray-600">Patient</Label>
-                  <p className="text-lg font-semibold">{selectedResult.patientName}</p>
+                  <p className="text-lg font-semibold">{getPatientName(selectedResult.patientId)}</p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-gray-600">Patient ID</Label>
@@ -567,7 +578,7 @@ export default function LabResultsPage() {
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-gray-600">Ordered By</Label>
-                  <p className="text-lg">{selectedResult.orderedBy}</p>
+                  <p className="text-lg">{getUserName(selectedResult.orderedBy)}</p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-gray-600">Ordered Date</Label>
@@ -659,10 +670,10 @@ export default function LabResultsPage() {
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">{selectedResult.patientName.charAt(0)}</span>
+                    <span className="text-white text-sm font-bold">{getPatientName(selectedResult.patientId).charAt(0)}</span>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg">{selectedResult.patientName}</h3>
+                    <h3 className="font-semibold text-lg">{getPatientName(selectedResult.patientId)}</h3>
                     <p className="text-sm text-gray-600">Patient ID: {selectedResult.patientId}</p>
                   </div>
                 </div>
