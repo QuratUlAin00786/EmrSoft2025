@@ -125,6 +125,7 @@ function ProtectedApp() {
           <Route path="/prevention-guidelines" component={PreventionGuidelines} />
           <Route path="/clinical-procedures" component={ClinicalProcedures} />
           <Route path="/users" component={UserManagement} />
+          <Route path="/user-management" component={UserManagement} />
           <Route path="/staff/:id" component={StaffProfile} />
           <Route path="/subscription" component={Subscription} />
           <Route path="/settings" component={Settings} />
