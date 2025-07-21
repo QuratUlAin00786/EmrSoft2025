@@ -580,7 +580,10 @@ export default function AppointmentCalendar() {
         isOpen={showNewAppointment}
         onClose={() => setShowNewAppointment(false)}
         onAppointmentCreated={() => {
-          refetch();
+          console.log("📅 Calendar refetch triggered...");
+          refetch().then(() => {
+            console.log("✅ Calendar refetch completed");
+          });
           setSelectedDate(new Date());
         }}
       />

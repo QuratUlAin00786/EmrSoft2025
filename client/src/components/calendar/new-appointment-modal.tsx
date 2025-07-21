@@ -19,10 +19,16 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
 
   const createAppointmentMutation = useMutation({
     mutationFn: async (appointmentData: any) => {
-      return await apiRequest("POST", "/api/appointments", appointmentData);
+      console.log("🚀 MUTATION START - Sending appointment data:", appointmentData);
+      const result = await apiRequest("POST", "/api/appointments", appointmentData);
+      console.log("✅ MUTATION SUCCESS - API returned:", result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("🎉 MUTATION onSuccess triggered with data:", data);
+      
       // Invalidate appointments cache to refresh the calendar
+      console.log("♻️ Invalidating React Query cache...");
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
       
       // Reset form
@@ -41,6 +47,7 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
       });
       
       // Close modal and notify parent
+      console.log("🔄 Calling onAppointmentCreated callback...");
       onClose();
       onAppointmentCreated();
       
@@ -48,12 +55,12 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
       setTimeout(() => {
         toast({
           title: "Success",
-          description: "Appointment scheduled successfully"
+          description: "Appointment scheduled successfully - ID: " + (data?.id || 'Unknown')
         });
       }, 100);
     },
     onError: (error: any) => {
-      console.error("Error creating appointment:", error);
+      console.error("❌ MUTATION ERROR:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to create appointment",
