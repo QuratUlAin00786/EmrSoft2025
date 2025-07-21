@@ -35,7 +35,8 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Edit, Trash2, UserPlus, Shield, Stethoscope, Users, Calendar, User, TestTube, Lock } from "lucide-react";
+import { Plus, Edit, Trash2, UserPlus, Shield, Stethoscope, Users, Calendar, User, TestTube, Lock, BookOpen } from "lucide-react";
+import { Link } from "wouter";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Header } from "@/components/layout/header";
@@ -386,7 +387,17 @@ export default function UserManagement() {
             />
           </div>
           
-          <Dialog open={isCreateModalOpen || !!editingUser} onOpenChange={(open) => {
+          <div className="flex gap-2">
+            <Link href="/permissions-reference">
+              <Button variant="outline" className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4" />
+                View Role Permissions
+              </Button>
+            </Link>
+          </div>
+        </div>
+          
+        <Dialog open={isCreateModalOpen || !!editingUser} onOpenChange={(open) => {
             if (!open) {
               setIsCreateModalOpen(false);
               setEditingUser(null);
@@ -544,7 +555,6 @@ export default function UserManagement() {
               </form>
             </DialogContent>
           </Dialog>
-        </div>
 
         {/* Users List */}
         <Card>
@@ -633,8 +643,6 @@ export default function UserManagement() {
           </CardContent>
         </Card>
       </div>
-
-
     </div>
   );
 }

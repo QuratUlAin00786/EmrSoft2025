@@ -16,6 +16,7 @@ import Dashboard from "@/pages/dashboard";
 import Patients from "@/pages/patients";
 import AiInsights from "@/pages/ai-insights";
 import UserManagement from "@/pages/user-management";
+import PermissionsReference from "@/pages/permissions-reference";
 import StaffProfile from "@/pages/staff-profile";
 import Subscription from "@/pages/subscription";
 import Settings from "@/pages/settings";
@@ -126,6 +127,7 @@ function ProtectedApp() {
           <Route path="/clinical-procedures" component={ClinicalProcedures} />
           <Route path="/users" component={UserManagement} />
           <Route path="/user-management" component={UserManagement} />
+          <Route path="/permissions-reference" component={PermissionsReference} />
           <Route path="/staff/:id" component={StaffProfile} />
           <Route path="/subscription" component={Subscription} />
           <Route path="/settings" component={Settings} />
