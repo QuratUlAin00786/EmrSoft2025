@@ -42,12 +42,19 @@ function RecentPatientsList() {
     return <div className="text-sm text-gray-500 text-center py-4">Loading patients...</div>;
   }
 
-  if (error || !patients || patients.length === 0) {
+  if (error || !patients) {
     return <div className="text-sm text-gray-500 text-center py-4">Unable to load patient data. Please try again later.</div>;
   }
 
+  // Ensure patients is an array
+  const patientsArray = Array.isArray(patients) ? patients : [];
+  
+  if (patientsArray.length === 0) {
+    return <div className="text-sm text-gray-500 text-center py-4">No patients found.</div>;
+  }
+
   // Get the 5 most recent patients (sorted by creation date)
-  const recentPatients = patients
+  const recentPatients = patientsArray
     .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 5);
 
