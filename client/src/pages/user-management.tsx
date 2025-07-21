@@ -176,11 +176,19 @@ export default function UserManagement() {
     },
   });
 
-  // Fetch roles
-  const { data: roles = [], isLoading: rolesLoading } = useQuery({
+  // Fetch roles with explicit authentication
+  const { data: roles = [], isLoading: rolesLoading, error: rolesError } = useQuery({
     queryKey: ["/api/roles"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/roles");
+      return response.json();
+    },
     retry: false,
   });
+
+  // Debug roles data
+  console.log("Roles query - loading:", rolesLoading, "error:", rolesError, "roles count:", roles.length);
+  if (rolesError) console.log("Roles error details:", rolesError);
 
   // Role mutations
   const createRoleMutation = useMutation({
@@ -209,7 +217,7 @@ export default function UserManagement() {
 
   const updateRoleMutation = useMutation({
     mutationFn: async (data: RoleFormData & { id: number }) => {
-      const response = await apiRequest("PUT", `/api/roles/${data.id}`, data);
+      const response = await apiRequest("PATCH", `/api/roles/${data.id}`, data);
       return response.json();
     },
     onSuccess: () => {
