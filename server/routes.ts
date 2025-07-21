@@ -8,6 +8,7 @@ import { authService } from "./services/auth";
 import { aiService } from "./services/ai";
 import { tenantMiddleware, authMiddleware, requireRole, gdprComplianceMiddleware, type TenantRequest } from "./middleware/tenant";
 import { messagingService } from "./messaging-service";
+import { createPaypalOrder, capturePaypalOrder, loadPaypalDefault } from "./paypal";
 
 // In-memory storage for voice notes - persistent across server restarts
 let voiceNotes: any[] = [];
@@ -2584,48 +2585,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // PayPal Setup - Returns demo client configuration  
-  app.get("/api/paypal/setup", authMiddleware, async (req: TenantRequest, res) => {
-    try {
-      res.json({
-        clientId: "demo_paypal_client_id",
-        environment: "sandbox",
-        currency: "GBP",
-        message: "PayPal configured for demo mode"
-      });
-    } catch (error: any) {
-      console.error("Error setting up PayPal:", error);
-      res.status(500).json({ error: "Failed to setup PayPal" });
-    }
+  // PayPal Routes - Real PayPal Integration
+  app.get("/api/paypal/setup", async (req, res) => {
+    await loadPaypalDefault(req, res);
   });
 
-  // Subscription Upgrade
-  app.post("/api/subscription/upgrade", authMiddleware, async (req: TenantRequest, res) => {
-    try {
-      const { planId, paymentMethod, paymentData } = req.body;
-      const userId = req.user?.id;
-      const organizationId = req.organizationId;
+  app.post("/api/paypal/order", async (req, res) => {
+    // Request body should contain: { intent, amount, currency }
+    await createPaypalOrder(req, res);
+  });
 
-      console.log(`Upgrading subscription for user ${userId} to plan ${planId} using ${paymentMethod}`);
-
-      // Update subscription in storage
-      await storage.updateSubscription(organizationId, {
-        plan: planId,
-        status: "active",
-        paymentMethod,
-        updatedAt: new Date()
-      });
-
-      res.json({
-        success: true,
-        message: `Subscription upgraded to ${planId} plan`,
-        paymentMethod,
-        planId
-      });
-    } catch (error: any) {
-      console.error("Error upgrading subscription:", error);
-      res.status(500).json({ error: "Failed to upgrade subscription" });
-    }
+  app.post("/api/paypal/order/:orderID/capture", async (req, res) => {
+    await capturePaypalOrder(req, res);
   });
 
   // Document API routes

@@ -8,20 +8,10 @@ import { loadStripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import PayPalButton from "./PayPalButton";
 
-// PayPal Button Component
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      "paypal-button": React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement>,
-        HTMLElement
-      >;
-    }
-  }
-}
-
-interface PayPalButtonProps {
+// Real PayPal integration using imported component
+interface RealPayPalButtonProps {
   planId: string;
   planName: string;
   amount: number;
@@ -29,28 +19,11 @@ interface PayPalButtonProps {
   onError: (error: any) => void;
 }
 
-function PayPalButton({ planId, planName, amount, onSuccess, onError }: PayPalButtonProps) {
+function RealPayPalButton({ planId, planName, amount, onSuccess, onError }: RealPayPalButtonProps) {
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
 
-  const createOrder = (data: any, actions: any) => {
-    return actions.order.create({
-      purchase_units: [{
-        amount: {
-          currency_code: "GBP",
-          value: amount.toString()
-        },
-        description: `${planName} Subscription`
-      }]
-    });
-  };
-
-  const onApprove = async (data: any, actions: any) => {
-    setIsLoading(true);
+  const handleSuccess = async (orderData: any) => {
     try {
-      const orderData = await actions.order.capture();
-      console.log("PayPal payment captured:", orderData);
-      
       // Update subscription
       await apiRequest("POST", "/api/subscription/upgrade", {
         planId,
@@ -60,7 +33,7 @@ function PayPalButton({ planId, planName, amount, onSuccess, onError }: PayPalBu
       
       onSuccess();
       toast({
-        title: "Payment Successful",
+        title: "Payment Successful", 
         description: `Your subscription has been upgraded to ${planName}!`,
       });
     } catch (error) {
@@ -70,12 +43,19 @@ function PayPalButton({ planId, planName, amount, onSuccess, onError }: PayPalBu
         description: "There was an error processing your payment.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  const onCancel = (data: any) => {
+  const handleError = (error: any) => {
+    onError(error);
+    toast({
+      title: "Payment Failed",
+      description: "There was an error processing your payment.",
+      variant: "destructive",
+    });
+  };
+
+  const handleCancel = () => {
     toast({
       title: "Payment Cancelled",
       description: "Your payment was cancelled.",
@@ -83,209 +63,16 @@ function PayPalButton({ planId, planName, amount, onSuccess, onError }: PayPalBu
     });
   };
 
-  useEffect(() => {
-    const loadPayPalSDK = async () => {
-      try {
-        // Check if PayPal SDK is already loaded
-        if ((window as any).paypal) {
-          initPayPalButtons();
-          return;
-        }
-
-        // Load PayPal SDK with real client ID
-        const script = document.createElement('script');
-        script.src = 'https://www.paypal.com/sdk/js?client-id=AWRf8CRCgtiSSITXP2nPD9SE_FhpOluoD3SyGj3CJcwl_K8xHjc5c_lxzRpg4cRbZwd7wkN06LwiVPg9&currency=GBP&intent=capture';
-        script.async = true;
-        script.onload = () => initPayPalButtons();
-        script.onerror = () => {
-          console.error('Failed to load PayPal SDK');
-          initFallbackPayPal();
-        };
-        document.head.appendChild(script);
-      } catch (error) {
-        console.error('Error loading PayPal SDK:', error);
-        initFallbackPayPal();
-      }
-    };
-
-    const initPayPalButtons = () => {
-      const paypalContainer = document.getElementById('paypal-button-container');
-      if (!paypalContainer) return;
-
-      // Clear existing content
-      paypalContainer.innerHTML = '';
-
-      // Create PayPal interface with direct payment links
-      const paypalInterface = document.createElement('div');
-      paypalInterface.className = 'w-full space-y-4';
-      paypalInterface.innerHTML = `
-        <div class="bg-rose-50 p-3 rounded-md border border-rose-200 text-center">
-          <p class="text-sm text-rose-600">Transaction will appear as Paddle if you pay using PayPal.</p>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <button id="paypal-pay-once" class="bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 px-4 rounded-md transition-colors">
-            Pay Once
-          </button>
-          <button id="paypal-subscribe" class="bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 px-4 rounded-md transition-colors">
-            Subscribe
-          </button>
-        </div>
-      `;
-
-      paypalContainer.appendChild(paypalInterface);
-
-      // Direct PayPal payment handling
-      const handlePayPalPayment = async (paymentType: 'once' | 'subscribe') => {
-        setIsLoading(true);
-        
-        try {
-          // Create PayPal payment URL using your business email
-          const paypalParams = new URLSearchParams({
-            cmd: paymentType === 'subscribe' ? '_xclick-subscriptions' : '_xclick',
-            business: 'payments@averox.com',
-            item_name: `${planName} Subscription`,
-            amount: amount.toString(),
-            currency_code: 'GBP',
-            return: window.location.origin + '/payment-success',
-            cancel_return: window.location.origin + '/payment-cancel',
-            notify_url: window.location.origin + '/api/paypal/webhook'
-          });
-
-          // Add subscription parameters if needed
-          if (paymentType === 'subscribe') {
-            paypalParams.append('p3', '1');
-            paypalParams.append('t3', 'M');
-            paypalParams.append('src', '1');
-            paypalParams.append('sra', '1');
-          }
-
-          const paypalUrl = `https://www.paypal.com/cgi-bin/webscr?${paypalParams.toString()}`;
-          
-          // Store payment info for return handling
-          localStorage.setItem('pendingPayPalPayment', JSON.stringify({
-            planId,
-            planName,
-            amount,
-            paymentType,
-            timestamp: Date.now()
-          }));
-
-          // Open PayPal in new window
-          const paypalWindow = window.open(paypalUrl, 'paypal', 'width=500,height=700,scrollbars=yes,resizable=yes');
-          
-          if (!paypalWindow) {
-            throw new Error('Popup blocked');
-          }
-
-          // Monitor for window close (payment completion)
-          const checkClosed = setInterval(async () => {
-            if (paypalWindow.closed) {
-              clearInterval(checkClosed);
-              
-              // Simulate payment success after window closes
-              setTimeout(async () => {
-                try {
-                  // Update subscription
-                  await apiRequest("POST", "/api/subscription/upgrade", {
-                    planId,
-                    paymentMethod: "paypal",
-                    paymentData: {
-                      status: "COMPLETED",
-                      id: `PAYPAL-${Date.now()}`,
-                      amount: { currency_code: "GBP", value: amount.toString() },
-                      paymentType
-                    }
-                  });
-                  
-                  onSuccess();
-                  toast({
-                    title: "Payment Successful",
-                    description: `Your subscription has been upgraded to ${planName} via PayPal!`,
-                  });
-                } catch (error) {
-                  console.error('Subscription update error:', error);
-                  onError(error);
-                  toast({
-                    title: "Payment Processing Error",
-                    description: "Payment may have completed. Please check your subscription status.",
-                    variant: "default",
-                  });
-                } finally {
-                  setIsLoading(false);
-                }
-              }, 1000);
-            }
-          }, 1000);
-
-        } catch (error) {
-          console.error('PayPal payment error:', error);
-          setIsLoading(false);
-          
-          if (error.message === 'Popup blocked') {
-            toast({
-              title: "Popup Blocked",
-              description: "Please allow popups for PayPal payments.",
-              variant: "destructive",
-            });
-          } else {
-            onError(error);
-            toast({
-              title: "PayPal Error",
-              description: "Failed to open PayPal payment page.",
-              variant: "destructive",
-            });
-          }
-        }
-      };
-
-      // Add event listeners
-      setTimeout(() => {
-        const payOnceBtn = paypalInterface.querySelector('#paypal-pay-once');
-        const subscribeBtn = paypalInterface.querySelector('#paypal-subscribe');
-        
-        if (payOnceBtn) {
-          payOnceBtn.addEventListener('click', () => handlePayPalPayment('once'));
-        }
-        
-        if (subscribeBtn) {
-          subscribeBtn.addEventListener('click', () => handlePayPalPayment('subscribe'));
-        }
-      }, 100);
-    };
-
-    const initFallbackPayPal = () => {
-      const paypalContainer = document.getElementById('paypal-button-container');
-      if (!paypalContainer) return;
-
-      paypalContainer.innerHTML = `
-        <div class="w-full space-y-4">
-          <div class="bg-rose-50 p-3 rounded-md border border-rose-200 text-center">
-            <p class="text-sm text-rose-600">Transaction will appear as Paddle if you pay using PayPal.</p>
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <button onclick="window.open('https://www.paypal.com/signin', '_blank')" class="bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 px-4 rounded-md transition-colors">
-              Pay Once
-            </button>
-            <button onclick="window.open('https://www.paypal.com/signin', '_blank')" class="bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 px-4 rounded-md transition-colors">
-              Subscribe
-            </button>
-          </div>
-        </div>
-      `;
-    };
-
-    loadPayPalSDK();
-  }, [planId, planName, amount]);
-
   return (
     <div className="w-full">
-      <div id="paypal-button-container" className="min-h-[40px]"></div>
-      {isLoading && (
-        <div className="flex items-center justify-center mt-2">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-          <span className="ml-2 text-sm">Processing payment...</span>
-        </div>
-      )}
+      <PayPalButton
+        amount={amount.toString()}
+        currency="GBP"
+        intent="capture"
+        onSuccess={handleSuccess}
+        onError={handleError}
+        onCancel={handleCancel}
+      />
     </div>
   );
 }
@@ -785,7 +572,7 @@ export function PaymentMethodDialog({ open, onOpenChange, plan }: PaymentMethodD
                 <span>Secured by PayPal</span>
               </div>
               
-              <DemoPayPalForm
+              <RealPayPalButton
                 planId={plan.id}
                 planName={plan.name}
                 amount={plan.price}
