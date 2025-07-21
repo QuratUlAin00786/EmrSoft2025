@@ -1153,8 +1153,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Prescription created successfully:", newPrescription.id);
       res.status(201).json(newPrescription);
     } catch (error) {
-      console.error("Error creating prescription:", error);
-      res.status(500).json({ error: "Failed to create prescription" });
+      console.error("DETAILED ERROR creating prescription:", error);
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+      if (error.code) {
+        console.error("Error code:", error.code);
+      }
+      res.status(500).json({ error: "Failed to create prescription", details: error.message });
     }
   });
 
