@@ -225,14 +225,12 @@ export async function seedDatabase() {
       console.log(`Using existing ${existingPatients.length} patients`);
     }
 
-    // Create sample appointments
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(10, 0, 0, 0);
-
-    const nextWeek = new Date();
-    nextWeek.setDate(nextWeek.getDate() + 7);
-    nextWeek.setHours(14, 30, 0, 0);
+    // Create sample appointments - some for today, some for future
+    const today = new Date();
+    today.setHours(10, 0, 0, 0);
+    
+    const todayAfternoon = new Date();
+    todayAfternoon.setHours(14, 30, 0, 0);
 
     const sampleAppointments = [
       {
@@ -241,7 +239,7 @@ export async function seedDatabase() {
         providerId: createdUsers[1].id, // Dr. Smith
         title: "Cardiology Consultation",
         description: "Follow-up for hypertension management",
-        scheduledAt: tomorrow,
+        scheduledAt: today,
         duration: 30,
         status: "scheduled",
         type: "consultation",
@@ -254,7 +252,7 @@ export async function seedDatabase() {
         providerId: createdUsers[1].id, // Dr. Smith
         title: "Diabetes Review",
         description: "Annual diabetes checkup and medication review",
-        scheduledAt: nextWeek,
+        scheduledAt: todayAfternoon,
         duration: 45,
         status: "scheduled",
         type: "follow_up",

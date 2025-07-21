@@ -21,7 +21,7 @@ import {
   type MedicationsDatabase, type InsertMedicationsDatabase
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, count, not, sql } from "drizzle-orm";
+import { eq, and, desc, count, not, sql, gte, lt } from "drizzle-orm";
 
 export interface IStorage {
   // Organizations
@@ -591,11 +591,17 @@ export class DatabaseStorage implements IStorage {
       .from(patients)
       .where(and(eq(patients.organizationId, organizationId), eq(patients.isActive, true)));
 
+    // Only count appointments scheduled for today
     const [todayAppointmentsResult] = await db
       .select({ count: count() })
       .from(appointments)
-      .where(eq(appointments.organizationId, organizationId));
+      .where(and(
+        eq(appointments.organizationId, organizationId),
+        gte(appointments.scheduledAt, today),
+        lt(appointments.scheduledAt, tomorrow)
+      ));
 
+    // Only count active AI insights
     const [aiSuggestionsResult] = await db
       .select({ count: count() })
       .from(aiInsights)
