@@ -51,7 +51,26 @@ const userSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
+const roleSchema = z.object({
+  name: z.string().min(1, "Role name is required"),
+  displayName: z.string().min(1, "Display name is required"),
+  description: z.string().min(1, "Description is required"),
+  permissions: z.object({
+    modules: z.record(z.object({
+      view: z.boolean(),
+      create: z.boolean(),
+      edit: z.boolean(),
+      delete: z.boolean(),
+    })),
+    fields: z.record(z.object({
+      view: z.boolean(),
+      edit: z.boolean(),
+    })),
+  }),
+});
+
 type UserFormData = z.infer<typeof userSchema>;
+type RoleFormData = z.infer<typeof roleSchema>;
 
 interface User {
   id: number;
@@ -69,11 +88,38 @@ interface User {
   createdAt: string;
 }
 
+interface Role {
+  id: number;
+  name: string;
+  displayName: string;
+  description: string;
+  permissions: {
+    modules: Record<string, {
+      view: boolean;
+      create: boolean;
+      edit: boolean;
+      delete: boolean;
+    }>;
+    fields: Record<string, {
+      view: boolean;
+      edit: boolean;
+    }>;
+  };
+  isSystem: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export default function UserManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState<string>("doctor");
+  
+  // Role management states
+  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+  const [editingRole, setEditingRole] = useState<Role | null>(null);
+  const [activeTab, setActiveTab] = useState<"users" | "roles">("users");
 
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -116,6 +162,118 @@ export default function UserManagement() {
       password: "",
     },
   });
+
+  const roleForm = useForm<RoleFormData>({
+    resolver: zodResolver(roleSchema),
+    defaultValues: {
+      name: "",
+      displayName: "",
+      description: "",
+      permissions: {
+        modules: {},
+        fields: {},
+      },
+    },
+  });
+
+  // Fetch roles
+  const { data: roles = [], isLoading: rolesLoading } = useQuery({
+    queryKey: ["/api/roles"],
+    retry: false,
+  });
+
+  // Role mutations
+  const createRoleMutation = useMutation({
+    mutationFn: async (data: RoleFormData) => {
+      const response = await apiRequest("POST", "/api/roles", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
+      setIsRoleModalOpen(false);
+      setEditingRole(null);
+      roleForm.reset();
+      toast({
+        title: "Role Created",
+        description: "The new role has been created successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create role",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateRoleMutation = useMutation({
+    mutationFn: async (data: RoleFormData & { id: number }) => {
+      const response = await apiRequest("PUT", `/api/roles/${data.id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
+      setIsRoleModalOpen(false);
+      setEditingRole(null);
+      roleForm.reset();
+      toast({
+        title: "Role Updated",
+        description: "The role has been updated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update role",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteRoleMutation = useMutation({
+    mutationFn: async (roleId: number) => {
+      await apiRequest("DELETE", `/api/roles/${roleId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
+      toast({
+        title: "Role Deleted",
+        description: "The role has been deleted successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete role",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Role submission handlers
+  const onRoleSubmit = (data: RoleFormData) => {
+    if (editingRole) {
+      updateRoleMutation.mutate({ ...data, id: editingRole.id });
+    } else {
+      createRoleMutation.mutate(data);
+    }
+  };
+
+  const handleEditRole = (role: Role) => {
+    setEditingRole(role);
+    roleForm.reset({
+      name: role.name,
+      displayName: role.displayName,
+      description: role.description,
+      permissions: role.permissions,
+    });
+    setIsRoleModalOpen(true);
+  };
+
+  const handleDeleteRole = (roleId: number) => {
+    deleteRoleMutation.mutate(roleId);
+  };
 
   const createUserMutation = useMutation({
     mutationFn: async (userData: UserFormData) => {
@@ -376,8 +534,40 @@ export default function UserManagement() {
           </Card>
         </div>
 
-        {/* Header and Controls */}
-        <div className="flex items-center justify-between mb-6">
+        {/* Tab Navigation */}
+        <div className="mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab("users")}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === "users"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                <Users className="h-4 w-4 inline mr-2" />
+                User Management
+              </button>
+              <button
+                onClick={() => setActiveTab("roles")}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === "roles"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                <Shield className="h-4 w-4 inline mr-2" />
+                Role Management
+              </button>
+            </nav>
+          </div>
+        </div>
+
+        {activeTab === "users" && (
+          <>
+            {/* Header and Controls */}
+            <div className="flex items-center justify-between mb-6">
           <div className="flex-1">
             <Input
               placeholder="Search users by name, email, or role..."
@@ -642,6 +832,210 @@ export default function UserManagement() {
             )}
           </CardContent>
         </Card>
+          </>
+        )}
+
+        {activeTab === "roles" && (
+          <>
+            {/* Role Management Header and Controls */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex-1">
+                <h2 className="text-lg font-semibold text-gray-900">Role Management</h2>
+                <p className="text-sm text-gray-600">Create and manage custom roles with specific permissions</p>
+              </div>
+              
+              <Dialog open={isRoleModalOpen || !!editingRole} onOpenChange={(open) => {
+                if (!open) {
+                  setIsRoleModalOpen(false);
+                  setEditingRole(null);
+                  roleForm.reset();
+                }
+              }}>
+                <DialogTrigger asChild>
+                  <Button onClick={() => setIsRoleModalOpen(true)} className="flex items-center gap-2">
+                    <Plus className="h-4 w-4" />
+                    Create New Role
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingRole ? "Edit Role" : "Create New Role"}
+                    </DialogTitle>
+                    <DialogDescription>
+                      {editingRole 
+                        ? "Update the role's information and permissions."
+                        : "Create a new role with specific permissions and access levels."
+                      }
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <form onSubmit={roleForm.handleSubmit(onRoleSubmit)} className="space-y-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="roleName">Role Name</Label>
+                        <Input
+                          id="roleName"
+                          {...roleForm.register("name")}
+                          placeholder="e.g., senior_doctor"
+                          className={roleForm.formState.errors.name ? "border-red-500" : ""}
+                        />
+                        {roleForm.formState.errors.name && (
+                          <p className="text-sm text-red-500">{roleForm.formState.errors.name.message}</p>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="roleDisplayName">Display Name</Label>
+                        <Input
+                          id="roleDisplayName"
+                          {...roleForm.register("displayName")}
+                          placeholder="e.g., Senior Doctor"
+                          className={roleForm.formState.errors.displayName ? "border-red-500" : ""}
+                        />
+                        {roleForm.formState.errors.displayName && (
+                          <p className="text-sm text-red-500">{roleForm.formState.errors.displayName.message}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="roleDescription">Description</Label>
+                      <Input
+                        id="roleDescription"
+                        {...roleForm.register("description")}
+                        placeholder="Describe the role's responsibilities and access level"
+                        className={roleForm.formState.errors.description ? "border-red-500" : ""}
+                      />
+                      {roleForm.formState.errors.description && (
+                        <p className="text-sm text-red-500">{roleForm.formState.errors.description.message}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-4">
+                      <Label>Module Permissions</Label>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <p className="text-sm text-gray-600 mb-4">
+                          Configure what modules this role can access and what actions they can perform.
+                        </p>
+                        <div className="text-center text-gray-500 py-8">
+                          <Shield className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+                          <p>Permission matrix will be implemented here</p>
+                          <p className="text-sm">Select view, create, edit, and delete permissions for each module</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <DialogFooter>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setIsRoleModalOpen(false);
+                          setEditingRole(null);
+                          roleForm.reset();
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        type="submit" 
+                        disabled={createRoleMutation.isPending || updateRoleMutation.isPending}
+                      >
+                        {createRoleMutation.isPending || updateRoleMutation.isPending ? 
+                          "Saving..." : 
+                          (editingRole ? "Update Role" : "Create Role")
+                        }
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* Roles List */}
+            <Card>
+              <CardHeader>
+                <CardTitle>System Roles</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {rolesLoading ? (
+                  <div className="text-center py-8">Loading roles...</div>
+                ) : roles.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    No roles found. Create your first custom role to get started.
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {roles.map((role: Role) => (
+                      <div
+                        key={role.id}
+                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                      >
+                        <div className="flex items-center space-x-4">
+                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                            <Shield className="h-5 w-5 text-blue-600" />
+                          </div>
+                          <div>
+                            <h3 className="font-medium text-gray-900">
+                              {role.displayName}
+                            </h3>
+                            <p className="text-sm text-gray-500">{role.description}</p>
+                            <p className="text-xs text-gray-400">Role ID: {role.name}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-3">
+                          <Badge variant={role.isSystem ? "secondary" : "default"}>
+                            {role.isSystem ? "System Role" : "Custom Role"}
+                          </Badge>
+                          
+                          {!role.isSystem && (
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditRole(role)}
+                                className="text-blue-600 hover:text-blue-700"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Role</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete the "{role.displayName}" role? 
+                                      This action cannot be undone and will affect all users with this role.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDeleteRole(role.id)}
+                                      className="bg-red-600 hover:bg-red-700"
+                                    >
+                                      Delete Role
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
     </div>
   );

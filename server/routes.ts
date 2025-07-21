@@ -1166,6 +1166,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Role management routes
+  app.get("/api/roles", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const roles = await storage.getRolesByOrganization(req.tenant!.id);
+      res.json(roles);
+    } catch (error) {
+      console.error("Roles fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch roles" });
+    }
+  });
+
+  app.post("/api/roles", requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const roleData = z.object({
+        name: z.string().min(1).max(50),
+        displayName: z.string().min(1),
+        description: z.string().min(1),
+        permissions: z.object({
+          modules: z.record(z.object({
+            view: z.boolean(),
+            create: z.boolean(),
+            edit: z.boolean(),
+            delete: z.boolean(),
+          })),
+          fields: z.record(z.object({
+            view: z.boolean(),
+            edit: z.boolean(),
+          }))
+        }),
+        isSystem: z.boolean().optional().default(false)
+      }).parse(req.body);
+
+      const role = await storage.createRole({
+        ...roleData,
+        organizationId: req.tenant!.id
+      });
+
+      res.status(201).json(role);
+    } catch (error) {
+      console.error("Role creation error:", error);
+      res.status(500).json({ error: "Failed to create role" });
+    }
+  });
+
+  app.patch("/api/roles/:id", requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const roleId = parseInt(req.params.id);
+      const updateData = z.object({
+        displayName: z.string().optional(),
+        description: z.string().optional(),
+        permissions: z.object({
+          modules: z.record(z.object({
+            view: z.boolean(),
+            create: z.boolean(),
+            edit: z.boolean(),
+            delete: z.boolean(),
+          })),
+          fields: z.record(z.object({
+            view: z.boolean(),
+            edit: z.boolean(),
+          }))
+        }).optional()
+      }).parse(req.body);
+
+      const role = await storage.updateRole(roleId, req.tenant!.id, updateData);
+      
+      if (!role) {
+        return res.status(404).json({ error: "Role not found" });
+      }
+
+      res.json(role);
+    } catch (error) {
+      console.error("Role update error:", error);
+      res.status(500).json({ error: "Failed to update role" });
+    }
+  });
+
+  app.delete("/api/roles/:id", requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const roleId = parseInt(req.params.id);
+      
+      // Check if this is a system role
+      const role = await storage.getRole(roleId, req.tenant!.id);
+      if (!role) {
+        return res.status(404).json({ error: "Role not found" });
+      }
+      
+      if (role.isSystem) {
+        return res.status(400).json({ error: "Cannot delete system roles" });
+      }
+
+      const success = await storage.deleteRole(roleId, req.tenant!.id);
+      
+      if (!success) {
+        return res.status(404).json({ error: "Role not found" });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Role deletion error:", error);
+      res.status(500).json({ error: "Failed to delete role" });
+    }
+  });
+
   // Subscription management routes
   app.get("/api/subscription", requireRole(["admin"]), async (req: TenantRequest, res) => {
     try {

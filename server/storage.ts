@@ -1,7 +1,8 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase,
+  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
+  type Role, type InsertRole,
   type Patient, type InsertPatient,
   type MedicalRecord, type InsertMedicalRecord,
   type Appointment, type InsertAppointment,
@@ -38,6 +39,13 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, organizationId: number, updates: Partial<InsertUser>): Promise<User | undefined>;
   deleteUser(id: number, organizationId: number): Promise<boolean>;
+
+  // Roles
+  getRole(id: number, organizationId: number): Promise<Role | undefined>;
+  getRolesByOrganization(organizationId: number): Promise<Role[]>;
+  createRole(role: InsertRole): Promise<Role>;
+  updateRole(id: number, organizationId: number, updates: Partial<InsertRole>): Promise<Role | undefined>;
+  deleteRole(id: number, organizationId: number): Promise<boolean>;
 
   // Patients
   getPatient(id: number, organizationId: number): Promise<Patient | undefined>;
@@ -314,6 +322,38 @@ export class DatabaseStorage implements IStorage {
     console.log(`Storage: DELETE result - deleted rows: ${result.length}, success: ${success}`);
     
     return success;
+  }
+
+  // Roles
+  async getRole(id: number, organizationId: number): Promise<Role | undefined> {
+    const [role] = await db.select().from(roles).where(and(eq(roles.id, id), eq(roles.organizationId, organizationId)));
+    return role || undefined;
+  }
+
+  async getRolesByOrganization(organizationId: number): Promise<Role[]> {
+    return await db.select().from(roles)
+      .where(eq(roles.organizationId, organizationId))
+      .orderBy(desc(roles.createdAt));
+  }
+
+  async createRole(role: InsertRole): Promise<Role> {
+    const [created] = await db.insert(roles).values([role]).returning();
+    return created;
+  }
+
+  async updateRole(id: number, organizationId: number, updates: Partial<InsertRole>): Promise<Role | undefined> {
+    const [updated] = await db.update(roles)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(eq(roles.id, id), eq(roles.organizationId, organizationId)))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteRole(id: number, organizationId: number): Promise<boolean> {
+    const result = await db.delete(roles)
+      .where(and(eq(roles.id, id), eq(roles.organizationId, organizationId)))
+      .returning();
+    return result.length > 0;
   }
 
   // Patients

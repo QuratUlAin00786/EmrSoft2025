@@ -70,6 +70,34 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Roles
+export const roles = pgTable("roles", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  name: varchar("name", { length: 50 }).notNull(),
+  displayName: text("display_name").notNull(),
+  description: text("description").notNull(),
+  permissions: jsonb("permissions").$type<{
+    modules: {
+      [key: string]: {
+        view: boolean;
+        create: boolean;
+        edit: boolean;
+        delete: boolean;
+      };
+    };
+    fields: {
+      [key: string]: {
+        view: boolean;
+        edit: boolean;
+      };
+    };
+  }>().notNull(),
+  isSystem: boolean("is_system").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Patients
 export const patients = pgTable("patients", {
   id: serial("id").primaryKey(),
@@ -534,6 +562,13 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   appointments: many(appointments),
 }));
 
+export const rolesRelations = relations(roles, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [roles.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
 export const patientsRelations = relations(patients, ({ one, many }) => ({
   organization: one(organizations, {
     fields: [patients.organizationId],
@@ -757,6 +792,12 @@ export const insertUserSchema = createInsertSchema(users).omit({
   lastLoginAt: true,
 });
 
+export const insertRoleSchema = createInsertSchema(roles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertPatientSchema = createInsertSchema(patients).omit({
   id: true,
   createdAt: true,
@@ -856,6 +897,9 @@ export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+
+export type Role = typeof roles.$inferSelect;
+export type InsertRole = z.infer<typeof insertRoleSchema>;
 
 export type Patient = typeof patients.$inferSelect;
 export type InsertPatient = z.infer<typeof insertPatientSchema>;

@@ -1,5 +1,5 @@
 import { db } from "./db.js";
-import { organizations, users, patients, appointments, medicalRecords, notifications, prescriptions, subscriptions, aiInsights } from "@shared/schema.js";
+import { organizations, users, patients, appointments, medicalRecords, notifications, prescriptions, subscriptions, aiInsights, roles } from "@shared/schema.js";
 import { authService } from "./services/auth.js";
 import { storage } from "./storage.js";
 import { eq } from "drizzle-orm";
@@ -584,6 +584,84 @@ export async function seedDatabase() {
     // Seed lab results data
     await storage.seedLabResults(org.id);
     console.log("Created sample lab results");
+
+    // Create system roles if they don't exist
+    const existingRoles = await db.select().from(roles).where(eq(roles.organizationId, org.id));
+    
+    if (existingRoles.length === 0) {
+      const systemRoles = [
+        {
+          organizationId: org.id,
+          name: "administrator",
+          displayName: "Administrator",
+          description: "Full system access with all permissions",
+          permissions: {
+            modules: {
+              patients: { view: true, create: true, edit: true, delete: true },
+              appointments: { view: true, create: true, edit: true, delete: true },
+              medicalRecords: { view: true, create: true, edit: true, delete: true },
+              prescriptions: { view: true, create: true, edit: true, delete: true },
+              billing: { view: true, create: true, edit: true, delete: true },
+              analytics: { view: true, create: true, edit: true, delete: true },
+              userManagement: { view: true, create: true, edit: true, delete: true },
+              settings: { view: true, create: true, edit: true, delete: true }
+            },
+            fields: {
+              patientSensitiveInfo: { view: true, edit: true },
+              financialData: { view: true, edit: true },
+              medicalHistory: { view: true, edit: true }
+            }
+          },
+          isSystem: true
+        },
+        {
+          organizationId: org.id,
+          name: "physician",
+          displayName: "Physician",
+          description: "Medical professional with clinical access",
+          permissions: {
+            modules: {
+              patients: { view: true, create: true, edit: true, delete: false },
+              appointments: { view: true, create: true, edit: true, delete: false },
+              medicalRecords: { view: true, create: true, edit: true, delete: false },
+              prescriptions: { view: true, create: true, edit: true, delete: false },
+              billing: { view: true, create: false, edit: false, delete: false },
+              analytics: { view: true, create: false, edit: false, delete: false }
+            },
+            fields: {
+              patientSensitiveInfo: { view: true, edit: true },
+              medicalHistory: { view: true, edit: true },
+              financialData: { view: true, edit: false }
+            }
+          },
+          isSystem: true
+        },
+        {
+          organizationId: org.id,
+          name: "nurse",
+          displayName: "Nurse",
+          description: "Nursing staff with patient care access",
+          permissions: {
+            modules: {
+              patients: { view: true, create: false, edit: true, delete: false },
+              appointments: { view: true, create: true, edit: true, delete: false },
+              medicalRecords: { view: true, create: true, edit: false, delete: false },
+              prescriptions: { view: true, create: false, edit: false, delete: false }
+            },
+            fields: {
+              patientSensitiveInfo: { view: true, edit: false },
+              medicalHistory: { view: true, edit: false }
+            }
+          },
+          isSystem: true
+        }
+      ];
+
+      await db.insert(roles).values(systemRoles);
+      console.log(`Created ${systemRoles.length} system roles`);
+    } else {
+      console.log("System roles already exist for this organization");
+    }
 
     console.log("Database seeding completed successfully!");
     
