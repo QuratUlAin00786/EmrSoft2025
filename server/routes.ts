@@ -2878,6 +2878,219 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Lab Results API endpoints (Database-driven)
+  app.get("/api/lab-results", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const results = await storage.getLabResultsByOrganization(req.tenant!.id);
+      res.json(results);
+    } catch (error) {
+      console.error("Error fetching lab results:", error);
+      res.status(500).json({ error: "Failed to fetch lab results" });
+    }
+  });
+
+  app.post("/api/lab-results", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const labResultData = z.object({
+        patientId: z.number(),
+        testName: z.string(),
+        category: z.string(),
+        value: z.string(),
+        unit: z.string().optional(),
+        referenceRange: z.string().optional(),
+        status: z.enum(["pending", "completed", "reviewed"]).default("completed"),
+        orderedBy: z.number(),
+        notes: z.string().optional()
+      }).parse(req.body);
+
+      const result = await storage.createLabResult({
+        ...labResultData,
+        organizationId: req.tenant!.id
+      });
+
+      res.status(201).json(result);
+    } catch (error) {
+      console.error("Error creating lab result:", error);
+      res.status(500).json({ error: "Failed to create lab result" });
+    }
+  });
+
+  // Claims API endpoints (Database-driven)
+  app.get("/api/claims", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const claims = await storage.getClaimsByOrganization(req.tenant!.id);
+      res.json(claims);
+    } catch (error) {
+      console.error("Error fetching claims:", error);
+      res.status(500).json({ error: "Failed to fetch claims" });
+    }
+  });
+
+  app.post("/api/claims", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const claimData = z.object({
+        patientId: z.number(),
+        claimNumber: z.string(),
+        insuranceProvider: z.string(),
+        amount: z.number(),
+        status: z.enum(["submitted", "pending", "approved", "denied", "paid"]).default("submitted"),
+        submissionDate: z.string().optional(),
+        description: z.string().optional()
+      }).parse(req.body);
+
+      const claim = await storage.createClaim({
+        ...claimData,
+        organizationId: req.tenant!.id
+      });
+
+      res.status(201).json(claim);
+    } catch (error) {
+      console.error("Error creating claim:", error);
+      res.status(500).json({ error: "Failed to create claim" });
+    }
+  });
+
+  // Revenue Records API endpoints (Database-driven)
+  app.get("/api/revenue-records", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const records = await storage.getRevenueRecordsByOrganization(req.tenant!.id);
+      res.json(records);
+    } catch (error) {
+      console.error("Error fetching revenue records:", error);
+      res.status(500).json({ error: "Failed to fetch revenue records" });
+    }
+  });
+
+  app.post("/api/revenue-records", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const revenueData = z.object({
+        source: z.string(),
+        amount: z.number(),
+        category: z.string(),
+        description: z.string().optional(),
+        date: z.string().optional()
+      }).parse(req.body);
+
+      const record = await storage.createRevenueRecord({
+        ...revenueData,
+        organizationId: req.tenant!.id
+      });
+
+      res.status(201).json(record);
+    } catch (error) {
+      console.error("Error creating revenue record:", error);
+      res.status(500).json({ error: "Failed to create revenue record" });
+    }
+  });
+
+  // Clinical Procedures API endpoints (Database-driven)
+  app.get("/api/clinical-procedures", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const procedures = await storage.getClinicalProceduresByOrganization(req.tenant!.id);
+      res.json(procedures);
+    } catch (error) {
+      console.error("Error fetching clinical procedures:", error);
+      res.status(500).json({ error: "Failed to fetch clinical procedures" });
+    }
+  });
+
+  app.post("/api/clinical-procedures", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const procedureData = z.object({
+        name: z.string(),
+        category: z.string(),
+        description: z.string(),
+        duration: z.number().optional(),
+        requirements: z.string().optional(),
+        riskLevel: z.enum(["low", "medium", "high"]).default("medium"),
+        cost: z.number().optional()
+      }).parse(req.body);
+
+      const procedure = await storage.createClinicalProcedure({
+        ...procedureData,
+        organizationId: req.tenant!.id
+      });
+
+      res.status(201).json(procedure);
+    } catch (error) {
+      console.error("Error creating clinical procedure:", error);
+      res.status(500).json({ error: "Failed to create clinical procedure" });
+    }
+  });
+
+  // Emergency Protocols API endpoints (Database-driven)
+  app.get("/api/emergency-protocols", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const protocols = await storage.getEmergencyProtocolsByOrganization(req.tenant!.id);
+      res.json(protocols);
+    } catch (error) {
+      console.error("Error fetching emergency protocols:", error);
+      res.status(500).json({ error: "Failed to fetch emergency protocols" });
+    }
+  });
+
+  app.post("/api/emergency-protocols", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const protocolData = z.object({
+        title: z.string(),
+        category: z.string(),
+        description: z.string(),
+        steps: z.string(),
+        priority: z.enum(["low", "medium", "high", "critical"]).default("medium"),
+        requiredPersonnel: z.string().optional(),
+        equipment: z.string().optional()
+      }).parse(req.body);
+
+      const protocol = await storage.createEmergencyProtocol({
+        ...protocolData,
+        organizationId: req.tenant!.id
+      });
+
+      res.status(201).json(protocol);
+    } catch (error) {
+      console.error("Error creating emergency protocol:", error);
+      res.status(500).json({ error: "Failed to create emergency protocol" });
+    }
+  });
+
+  // Medications Database API endpoints (Database-driven)
+  app.get("/api/medications-database", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const medications = await storage.getMedicationsByOrganization(req.tenant!.id);
+      res.json(medications);
+    } catch (error) {
+      console.error("Error fetching medications:", error);
+      res.status(500).json({ error: "Failed to fetch medications" });
+    }
+  });
+
+  app.post("/api/medications-database", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const medicationData = z.object({
+        name: z.string(),
+        genericName: z.string().optional(),
+        category: z.string(),
+        dosageForm: z.string(),
+        strength: z.string(),
+        manufacturer: z.string().optional(),
+        description: z.string().optional(),
+        sideEffects: z.string().optional(),
+        contraindications: z.string().optional(),
+        interactions: z.string().optional()
+      }).parse(req.body);
+
+      const medication = await storage.createMedication({
+        ...medicationData,
+        organizationId: req.tenant!.id
+      });
+
+      res.status(201).json(medication);
+    } catch (error) {
+      console.error("Error creating medication:", error);
+      res.status(500).json({ error: "Failed to create medication" });
+    }
+  });
+
   // BigBlueButton Video Conference Integration
   app.post("/api/video-conference/create", authMiddleware, async (req: TenantRequest, res) => {
     try {

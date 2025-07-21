@@ -418,6 +418,106 @@ export const notifications = pgTable("notifications", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Lab Results
+export const labResults = pgTable("lab_results", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  patientId: integer("patient_id").notNull().references(() => patients.id),
+  testId: varchar("test_id", { length: 50 }).notNull(),
+  testType: text("test_type").notNull(),
+  orderedBy: integer("ordered_by").notNull().references(() => users.id),
+  orderedAt: timestamp("ordered_at").notNull(),
+  collectedAt: timestamp("collected_at"),
+  completedAt: timestamp("completed_at"),
+  status: varchar("status", { length: 20 }).notNull().default("pending"), // pending, processing, completed, cancelled
+  results: jsonb("results").$type<Array<{
+    name: string;
+    value: string;
+    unit: string;
+    referenceRange: string;
+    status: "normal" | "abnormal_high" | "abnormal_low" | "critical";
+    flag?: string;
+  }>>().default([]),
+  criticalValues: boolean("critical_values").notNull().default(false),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Financial Claims
+export const claims = pgTable("claims", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  patientId: integer("patient_id").notNull().references(() => patients.id),
+  claimNumber: varchar("claim_number", { length: 50 }).notNull().unique(),
+  serviceDate: timestamp("service_date").notNull(),
+  submissionDate: timestamp("submission_date").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  status: varchar("status", { length: 20 }).notNull().default("pending"), // pending, approved, denied, paid
+  paymentAmount: decimal("payment_amount", { precision: 10, scale: 2 }),
+  paymentDate: timestamp("payment_date"),
+  denialReason: text("denial_reason"),
+  insuranceProvider: text("insurance_provider").notNull(),
+  procedures: jsonb("procedures").$type<Array<{
+    code: string;
+    description: string;
+    amount: number;
+  }>>().default([]),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Revenue Data
+export const revenueRecords = pgTable("revenue_records", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  month: varchar("month", { length: 7 }).notNull(), // YYYY-MM format
+  revenue: decimal("revenue", { precision: 12, scale: 2 }).notNull(),
+  expenses: decimal("expenses", { precision: 12, scale: 2 }).notNull(),
+  profit: decimal("profit", { precision: 12, scale: 2 }).notNull(),
+  collections: decimal("collections", { precision: 12, scale: 2 }).notNull(),
+  target: decimal("target", { precision: 12, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Clinical Procedures
+export const clinicalProcedures = pgTable("clinical_procedures", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  name: text("name").notNull(),
+  category: varchar("category", { length: 50 }).notNull(),
+  duration: text("duration").notNull(),
+  complexity: varchar("complexity", { length: 20 }).notNull(), // low, medium, high
+  prerequisites: jsonb("prerequisites").$type<string[]>().default([]),
+  steps: jsonb("steps").$type<string[]>().default([]),
+  complications: jsonb("complications").$type<string[]>().default([]),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Emergency Protocols
+export const emergencyProtocols = pgTable("emergency_protocols", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  title: text("title").notNull(),
+  priority: varchar("priority", { length: 20 }).notNull(), // low, medium, high, critical
+  steps: jsonb("steps").$type<string[]>().default([]),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Medications Database
+export const medicationsDatabase = pgTable("medications_database", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  name: text("name").notNull(),
+  category: text("category").notNull(),
+  dosage: text("dosage").notNull(),
+  interactions: jsonb("interactions").$type<string[]>().default([]),
+  warnings: jsonb("warnings").$type<string[]>().default([]),
+  severity: varchar("severity", { length: 20 }).notNull(), // low, medium, high
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Relations
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   users: many(users),
@@ -585,6 +685,66 @@ export const medicalImagesRelations = relations(medicalImages, ({ one }) => ({
   }),
 }));
 
+// Lab Results Relations
+export const labResultsRelations = relations(labResults, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [labResults.organizationId],
+    references: [organizations.id],
+  }),
+  patient: one(patients, {
+    fields: [labResults.patientId],
+    references: [patients.id],
+  }),
+  orderedByUser: one(users, {
+    fields: [labResults.orderedBy],
+    references: [users.id],
+  }),
+}));
+
+// Claims Relations
+export const claimsRelations = relations(claims, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [claims.organizationId],
+    references: [organizations.id],
+  }),
+  patient: one(patients, {
+    fields: [claims.patientId],
+    references: [patients.id],
+  }),
+}));
+
+// Revenue Records Relations
+export const revenueRecordsRelations = relations(revenueRecords, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [revenueRecords.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+// Clinical Procedures Relations
+export const clinicalProceduresRelations = relations(clinicalProcedures, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [clinicalProcedures.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+// Emergency Protocols Relations
+export const emergencyProtocolsRelations = relations(emergencyProtocols, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [emergencyProtocols.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+// Medications Database Relations
+export const medicationsDatabaseRelations = relations(medicationsDatabase, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [medicationsDatabase.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
 // Insert schemas
 export const insertOrganizationSchema = createInsertSchema(organizations).omit({
   id: true,
@@ -660,6 +820,36 @@ export const insertMedicalImageSchema = createInsertSchema(medicalImages).omit({
   updatedAt: true,
 });
 
+export const insertLabResultSchema = createInsertSchema(labResults).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertClaimSchema = createInsertSchema(claims).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertRevenueRecordSchema = createInsertSchema(revenueRecords).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertClinicalProcedureSchema = createInsertSchema(clinicalProcedures).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertEmergencyProtocolSchema = createInsertSchema(emergencyProtocols).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMedicationsDatabaseSchema = createInsertSchema(medicationsDatabase).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type Organization = typeof organizations.$inferSelect;
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
@@ -699,5 +889,23 @@ export type InsertPrescription = z.infer<typeof insertPrescriptionSchema>;
 
 export type MedicalImage = typeof medicalImages.$inferSelect;
 export type InsertMedicalImage = z.infer<typeof insertMedicalImageSchema>;
+
+export type LabResult = typeof labResults.$inferSelect;
+export type InsertLabResult = z.infer<typeof insertLabResultSchema>;
+
+export type Claim = typeof claims.$inferSelect;
+export type InsertClaim = z.infer<typeof insertClaimSchema>;
+
+export type RevenueRecord = typeof revenueRecords.$inferSelect;
+export type InsertRevenueRecord = z.infer<typeof insertRevenueRecordSchema>;
+
+export type ClinicalProcedure = typeof clinicalProcedures.$inferSelect;
+export type InsertClinicalProcedure = z.infer<typeof insertClinicalProcedureSchema>;
+
+export type EmergencyProtocol = typeof emergencyProtocols.$inferSelect;
+export type InsertEmergencyProtocol = z.infer<typeof insertEmergencyProtocolSchema>;
+
+export type MedicationsDatabase = typeof medicationsDatabase.$inferSelect;
+export type InsertMedicationsDatabase = z.infer<typeof insertMedicationsDatabaseSchema>;
 
 

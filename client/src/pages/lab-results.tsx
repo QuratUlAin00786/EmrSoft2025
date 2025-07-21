@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { Header } from "@/components/layout/header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -26,115 +27,23 @@ import {
   Minus
 } from "lucide-react";
 
-interface LabResult {
-  id: string;
-  patientId: string;
-  patientName: string;
-  testType: string;
-  orderedBy: string;
-  orderedAt: string;
-  collectedAt?: string;
-  completedAt?: string;
-  status: 'pending' | 'collected' | 'processing' | 'completed' | 'cancelled';
-  results: Array<{
-    name: string;
-    value: string;
-    unit: string;
-    referenceRange: string;
-    status: 'normal' | 'abnormal_high' | 'abnormal_low' | 'critical';
-    flag?: string;
-  }>;
+interface DatabaseLabResult {
+  id: number;
+  organizationId: number;
+  patientId: number;
+  testName: string;
+  category: string;
+  value: string;
+  unit?: string;
+  referenceRange?: string;
+  status: 'pending' | 'completed' | 'reviewed';
+  orderedBy: number;
   notes?: string;
-  criticalValues?: boolean;
+  createdAt: string;
+  updatedAt?: string;
 }
 
-const mockLabResults: LabResult[] = [
-  {
-    id: "lab_001",
-    patientId: "p_001",
-    patientName: "Sarah Johnson",
-    testType: "Complete Blood Count (CBC)",
-    orderedBy: "Dr. Sarah Smith",
-    orderedAt: "2024-01-15T09:00:00Z",
-    collectedAt: "2024-01-15T10:30:00Z",
-    completedAt: "2024-01-15T14:45:00Z",
-    status: "completed",
-    results: [
-      {
-        name: "White Blood Cells",
-        value: "7.2",
-        unit: "×10³/µL",
-        referenceRange: "4.0-11.0",
-        status: "normal"
-      },
-      {
-        name: "Hemoglobin",
-        value: "13.5",
-        unit: "g/dL",
-        referenceRange: "12.0-15.5",
-        status: "normal"
-      },
-      {
-        name: "Platelets",
-        value: "350",
-        unit: "×10³/µL",
-        referenceRange: "150-450",
-        status: "normal"
-      }
-    ],
-    criticalValues: false,
-    notes: "All values within normal limits"
-  },
-  {
-    id: "lab_002",
-    patientId: "p_002",
-    patientName: "Michael Chen",
-    testType: "Basic Metabolic Panel",
-    orderedBy: "Dr. James Wilson",
-    orderedAt: "2024-01-14T08:30:00Z",
-    collectedAt: "2024-01-14T09:15:00Z",
-    completedAt: "2024-01-14T16:20:00Z",
-    status: "completed",
-    results: [
-      {
-        name: "Glucose",
-        value: "245",
-        unit: "mg/dL",
-        referenceRange: "70-99",
-        status: "abnormal_high",
-        flag: "H"
-      },
-      {
-        name: "Creatinine",
-        value: "1.1",
-        unit: "mg/dL",
-        referenceRange: "0.7-1.3",
-        status: "normal"
-      },
-      {
-        name: "Sodium",
-        value: "142",
-        unit: "mEq/L",
-        referenceRange: "136-145",
-        status: "normal"
-      }
-    ],
-    criticalValues: true,
-    notes: "High glucose levels - follow up required"
-  },
-  {
-    id: "lab_003",
-    patientId: "p_003",
-    patientName: "Emily Davis",
-    testType: "Lipid Panel",
-    orderedBy: "Dr. Sarah Smith",
-    orderedAt: "2024-01-13T07:45:00Z",
-    collectedAt: "2024-01-13T08:30:00Z",
-    status: "processing",
-    results: [],
-    criticalValues: false
-  }
-];
+// Database-driven lab results - no more mock data
 
 export default function LabResultsPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -143,7 +52,7 @@ export default function LabResultsPage() {
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
-  const [selectedResult, setSelectedResult] = useState<LabResult | null>(null);
+  const [selectedResult, setSelectedResult] = useState<DatabaseLabResult | null>(null);
   const [shareFormData, setShareFormData] = useState({
     method: "",
     email: "",
@@ -159,28 +68,24 @@ export default function LabResultsPage() {
   });
 
   const { data: labResults = [], isLoading } = useQuery({
-    queryKey: ["/api/lab-results", statusFilter],
+    queryKey: ["/api/lab-results"],
     queryFn: async () => {
-      const token = localStorage.getItem('auth_token');
-      const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': 'demo'
-      };
-      
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      
-      const response = await fetch("/api/lab-results", {
-        headers,
-        credentials: "include",
-      });
-      if (!response.ok) {
-        throw new Error(`Failed to fetch lab results: ${response.status}`);
-      }
-      const data = await response.json();
-      return data;
-    },
-    enabled: true,
+      return await apiRequest("GET", "/api/lab-results");
+    }
+  });
+
+  const { data: patients = [] } = useQuery({
+    queryKey: ["/api/patients"],
+    queryFn: async () => {
+      return await apiRequest("GET", "/api/patients");
+    }
+  });
+
+  const { data: users = [] } = useQuery({
+    queryKey: ["/api/users"],
+    queryFn: async () => {
+      return await apiRequest("GET", "/api/users");
+    }
   });
 
   const { toast } = useToast();
@@ -188,24 +93,7 @@ export default function LabResultsPage() {
 
   const createLabOrderMutation = useMutation({
     mutationFn: async (labOrderData: any) => {
-      const token = localStorage.getItem('auth_token');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'X-Tenant-Subdomain': 'demo'
-      };
-      
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      
-      const response = await fetch("/api/lab-results", {
-        method: "POST",
-        headers,
-        body: JSON.stringify(labOrderData),
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error('Failed to create lab order');
-      return response.json();
+      return await apiRequest("POST", "/api/lab-results", labOrderData);
     },
     onSuccess: () => {
       toast({
@@ -281,10 +169,24 @@ export default function LabResultsPage() {
     }
   };
 
-  const filteredResults = Array.isArray(labResults) ? labResults.filter((result: any) => {
+  // Helper function to get patient name from patient ID
+  const getPatientName = (patientId: number) => {
+    const patient = patients.find((p: any) => p.id === patientId);
+    return patient ? `${patient.firstName} ${patient.lastName}` : `Patient #${patientId}`;
+  };
+
+  // Helper function to get user name from user ID  
+  const getUserName = (userId: number) => {
+    const user = users.find((u: any) => u.id === userId);
+    return user ? `${user.firstName} ${user.lastName}` : `User #${userId}`;
+  };
+
+  const filteredResults = Array.isArray(labResults) ? labResults.filter((result: DatabaseLabResult) => {
+    const patientName = getPatientName(result.patientId);
     const matchesSearch = !searchQuery || 
-      result.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      result.testType.toLowerCase().includes(searchQuery.toLowerCase());
+      patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      result.testName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      result.category.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || result.status === statusFilter;
     
@@ -363,7 +265,7 @@ export default function LabResultsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Critical Values</p>
-                    <p className="text-2xl font-bold">{filteredResults.filter(r => r.criticalValues).length}</p>
+                    <p className="text-2xl font-bold">{filteredResults.filter(r => r.notes?.toLowerCase().includes('critical') || r.value?.toLowerCase().includes('high')).length}</p>
                   </div>
                   <AlertTriangle className="h-8 w-8 text-red-600" />
                 </div>
@@ -377,7 +279,7 @@ export default function LabResultsPage() {
                     <p className="text-sm font-medium text-gray-600">Completed Today</p>
                     <p className="text-2xl font-bold">
                       {filteredResults.filter(r => r.status === 'completed' && 
-                        new Date(r.completedAt || '').toDateString() === new Date().toDateString()).length}
+                        new Date(r.createdAt || '').toDateString() === new Date().toDateString()).length}
                     </p>
                   </div>
                   <Check className="h-8 w-8 text-green-600" />
@@ -451,11 +353,11 @@ export default function LabResultsPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-3">
-                          <h3 className="text-lg font-semibold">{result.patientName}</h3>
+                          <h3 className="text-lg font-semibold">{getPatientName(result.patientId)}</h3>
                           <Badge className={getStatusColor(result.status)}>
                             {result.status}
                           </Badge>
-                          {result.criticalValues && (
+                          {(result.notes?.toLowerCase().includes('critical') || result.value?.toLowerCase().includes('high')) && (
                             <Badge variant="destructive" className="flex items-center gap-1">
                               <AlertTriangle className="h-3 w-3" />
                               Critical
@@ -465,48 +367,40 @@ export default function LabResultsPage() {
                         
                         <div className="space-y-2 mb-4">
                           <p className="text-sm text-gray-600">
-                            <strong>Test:</strong> {result.testType}
+                            <strong>Test:</strong> {result.testName}
                           </p>
                           <p className="text-sm text-gray-600">
-                            <strong>Ordered by:</strong> {result.orderedBy}
+                            <strong>Category:</strong> {result.category}
                           </p>
                           <p className="text-sm text-gray-600">
-                            <strong>Ordered:</strong> {format(new Date(result.orderedAt), 'MMM dd, yyyy HH:mm')}
+                            <strong>Ordered by:</strong> {getUserName(result.orderedBy)}
                           </p>
-                          {result.collectedAt && (
+                          <p className="text-sm text-gray-600">
+                            <strong>Created:</strong> {format(new Date(result.createdAt), 'MMM dd, yyyy HH:mm')}
+                          </p>
+                          {result.updatedAt && (
                             <p className="text-sm text-gray-600">
-                              <strong>Collected:</strong> {format(new Date(result.collectedAt), 'MMM dd, yyyy HH:mm')}
-                            </p>
-                          )}
-                          {result.completedAt && (
-                            <p className="text-sm text-gray-600">
-                              <strong>Completed:</strong> {format(new Date(result.completedAt), 'MMM dd, yyyy HH:mm')}
+                              <strong>Updated:</strong> {format(new Date(result.updatedAt), 'MMM dd, yyyy HH:mm')}
                             </p>
                           )}
                         </div>
                         
-                        {result.results && result.results.length > 0 && (
+                        {result.value && (
                           <div className="mt-4">
-                            <h4 className="font-medium mb-2">Results:</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                              {result.results.map((res: any, index: number) => (
-                                <div key={index} className={`p-3 rounded-lg border ${
-                                  res.status === 'normal' ? 'bg-green-50 border-green-200' :
-                                  res.status === 'critical' ? 'bg-red-50 border-red-200' :
-                                  'bg-yellow-50 border-yellow-200'
-                                }`}>
-                                  <div className="flex items-center justify-between">
-                                    <span className="font-medium">{res.name}</span>
-                                    <Badge className={getResultStatusColor(res.status)}>
-                                      {res.status.replace('_', ' ')}
-                                    </Badge>
-                                  </div>
-                                  <div className="text-sm text-gray-600 mt-1">
-                                    <span className="font-medium">{res.value} {res.unit}</span>
-                                    <span className="ml-2">Ref: {res.referenceRange}</span>
-                                  </div>
-                                </div>
-                              ))}
+                            <h4 className="font-medium mb-2">Test Result:</h4>
+                            <div className="p-3 rounded-lg border bg-blue-50 border-blue-200">
+                              <div className="flex items-center justify-between">
+                                <span className="font-medium">{result.testName}</span>
+                                <Badge className={getStatusColor(result.status)}>
+                                  {result.status}
+                                </Badge>
+                              </div>
+                              <div className="text-sm text-gray-600 mt-1">
+                                <span className="font-medium">{result.value} {result.unit || ''}</span>
+                                {result.referenceRange && (
+                                  <span className="ml-2">Ref: {result.referenceRange}</span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         )}

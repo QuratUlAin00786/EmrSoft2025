@@ -1,5 +1,5 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages,
+  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Patient, type InsertPatient,
@@ -12,7 +12,13 @@ import {
   type Notification, type InsertNotification,
   type Prescription, type InsertPrescription,
   type Document, type InsertDocument,
-  type MedicalImage, type InsertMedicalImage
+  type MedicalImage, type InsertMedicalImage,
+  type LabResult, type InsertLabResult,
+  type Claim, type InsertClaim,
+  type RevenueRecord, type InsertRevenueRecord,
+  type ClinicalProcedure, type InsertClinicalProcedure,
+  type EmergencyProtocol, type InsertEmergencyProtocol,
+  type MedicationsDatabase, type InsertMedicationsDatabase
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, not, sql } from "drizzle-orm";
@@ -157,6 +163,39 @@ export interface IStorage {
   createDocument(document: InsertDocument): Promise<Document>;
   updateDocument(id: number, organizationId: number, updates: Partial<InsertDocument>): Promise<Document | undefined>;
   deleteDocument(id: number, organizationId: number): Promise<boolean>;
+
+  // Lab Results (Database-driven)
+  getLabResult(id: number, organizationId: number): Promise<LabResult | undefined>;
+  getLabResultsByOrganization(organizationId: number, limit?: number): Promise<LabResult[]>;
+  getLabResultsByPatient(patientId: number, organizationId: number): Promise<LabResult[]>;
+  createLabResult(labResult: InsertLabResult): Promise<LabResult>;
+  updateLabResult(id: number, organizationId: number, updates: Partial<InsertLabResult>): Promise<LabResult | undefined>;
+
+  // Claims (Database-driven)
+  getClaim(id: number, organizationId: number): Promise<Claim | undefined>;
+  getClaimsByOrganization(organizationId: number, limit?: number): Promise<Claim[]>;
+  getClaimsByPatient(patientId: number, organizationId: number): Promise<Claim[]>;
+  createClaim(claim: InsertClaim): Promise<Claim>;
+  updateClaim(id: number, organizationId: number, updates: Partial<InsertClaim>): Promise<Claim | undefined>;
+
+  // Revenue Records (Database-driven)
+  getRevenueRecordsByOrganization(organizationId: number, limit?: number): Promise<RevenueRecord[]>;
+  createRevenueRecord(revenueRecord: InsertRevenueRecord): Promise<RevenueRecord>;
+
+  // Clinical Procedures (Database-driven)
+  getClinicalProceduresByOrganization(organizationId: number, limit?: number): Promise<ClinicalProcedure[]>;
+  createClinicalProcedure(procedure: InsertClinicalProcedure): Promise<ClinicalProcedure>;
+  updateClinicalProcedure(id: number, organizationId: number, updates: Partial<InsertClinicalProcedure>): Promise<ClinicalProcedure | undefined>;
+
+  // Emergency Protocols (Database-driven)
+  getEmergencyProtocolsByOrganization(organizationId: number, limit?: number): Promise<EmergencyProtocol[]>;
+  createEmergencyProtocol(protocol: InsertEmergencyProtocol): Promise<EmergencyProtocol>;
+  updateEmergencyProtocol(id: number, organizationId: number, updates: Partial<InsertEmergencyProtocol>): Promise<EmergencyProtocol | undefined>;
+
+  // Medications Database (Database-driven)
+  getMedicationsByOrganization(organizationId: number, limit?: number): Promise<MedicationsDatabase[]>;
+  createMedication(medication: InsertMedicationsDatabase): Promise<MedicationsDatabase>;
+  updateMedication(id: number, organizationId: number, updates: Partial<InsertMedicationsDatabase>): Promise<MedicationsDatabase | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1203,43 +1242,160 @@ export class DatabaseStorage implements IStorage {
   private static labResultsStore: any[] = [];
 
   async getLabResults(organizationId: number): Promise<any[]> {
-    // Return lab results from storage (for now using stored data)
-    // In a real implementation, this would query a lab_results table
-    const mockResults = [
+    const results = await db
+      .select()
+      .from(labResults)
+      .where(eq(labResults.organizationId, organizationId))
+      .orderBy(desc(labResults.createdAt));
+    
+    return results;
+  }
+
+  async createLabResult(labResult: InsertLabResult): Promise<LabResult> {
+    const [result] = await db
+      .insert(labResults)
+      .values(labResult)
+      .returning();
+    
+    return result;
+  }
+
+  async seedLabResults(organizationId: number): Promise<void> {
+    // Check if we already have lab results
+    const existingResults = await db
+      .select()
+      .from(labResults)
+      .where(eq(labResults.organizationId, organizationId))
+      .limit(1);
+    
+    if (existingResults.length > 0) {
+      return; // Already seeded
+    }
+
+    // Get some patients for the lab results
+    const patientsList = await db
+      .select()
+      .from(patients)
+      .where(eq(patients.organizationId, organizationId))
+      .limit(3);
+    
+    // Get some users to be the ordering doctors  
+    const doctors = await db
+      .select()
+      .from(users)
+      .where(and(
+        eq(users.organizationId, organizationId),
+        eq(users.role, 'doctor')
+      ))
+      .limit(2);
+
+    if (patientsList.length === 0 || doctors.length === 0) {
+      return; // Need patients and doctors to create lab results
+    }
+
+    const sampleLabResults: InsertLabResult[] = [
       {
-        id: "lab_001",
-        patientId: "p_001",
-        patientName: "Sarah Johnson",
+        organizationId,
+        patientId: patientsList[0].id,
+        testId: "CBC001",
         testType: "Complete Blood Count (CBC)",
-        orderedBy: "Dr. Sarah Smith",
-        orderedAt: "2024-01-15T09:00:00Z",
-        collectedAt: "2024-01-15T10:30:00Z",
-        completedAt: "2024-01-15T14:45:00Z",
+        orderedBy: doctors[0].id,
+        orderedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+        collectedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000), // 2 hours after ordering
+        completedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
         status: "completed",
         results: [
           {
-            name: "White Blood Cells",
+            name: "White Blood Cell Count",
             value: "7.2",
             unit: "×10³/µL",
             referenceRange: "4.0-11.0",
             status: "normal"
           },
           {
+            name: "Red Blood Cell Count",
+            value: "4.5",
+            unit: "×10⁶/µL",
+            referenceRange: "4.2-5.4",
+            status: "normal"
+          },
+          {
             name: "Hemoglobin",
-            value: "13.5",
+            value: "14.2",
             unit: "g/dL",
-            referenceRange: "12.0-15.5",
+            referenceRange: "12.0-16.0",
             status: "normal"
           }
-        ]
+        ],
+        criticalValues: false,
+        notes: "All values within normal limits"
+      },
+      {
+        organizationId,
+        patientId: patientsList[1] ? patientsList[1].id : patientsList[0].id,
+        testId: "GLU002",
+        testType: "Blood Glucose",
+        orderedBy: doctors[0].id,
+        orderedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+        collectedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 + 1 * 60 * 60 * 1000), // 1 hour after ordering
+        completedAt: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12 hours ago
+        status: "completed",
+        results: [
+          {
+            name: "Glucose",
+            value: "245",
+            unit: "mg/dL",
+            referenceRange: "70-99",
+            status: "abnormal_high",
+            flag: "HIGH"
+          }
+        ],
+        criticalValues: true,
+        notes: "High glucose levels - follow up required, critical value"
+      },
+      {
+        organizationId,
+        patientId: patientsList[2] ? patientsList[2].id : patientsList[0].id,
+        testId: "LIP003",
+        testType: "Lipid Panel",
+        orderedBy: doctors.length > 1 ? doctors[1].id : doctors[0].id,
+        orderedAt: new Date(),
+        status: "pending",
+        results: [],
+        criticalValues: false,
+        notes: "Fasting required"
+      },
+      {
+        organizationId,
+        patientId: patientsList[0].id,
+        testId: "A1C004",
+        testType: "Hemoglobin A1C",
+        orderedBy: doctors[0].id,
+        orderedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+        collectedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000 + 30 * 60 * 1000), // 30 minutes after ordering
+        completedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+        status: "completed",
+        results: [
+          {
+            name: "Hemoglobin A1C",
+            value: "8.5",
+            unit: "%",
+            referenceRange: "< 7.0",
+            status: "abnormal_high",
+            flag: "HIGH"
+          }
+        ],
+        criticalValues: true,
+        notes: "Elevated A1C indicates poor diabetes control"
       }
     ];
 
-    // Include any newly created lab orders from this session
-    return [...mockResults, ...DatabaseStorage.labResultsStore.filter(result => result.organizationId === organizationId)];
+    for (const labResult of sampleLabResults) {
+      await this.createLabResult(labResult);
+    }
   }
 
-  async createLabResult(labResult: any): Promise<any> {
+  async oldCreateLabResult(labResult: any): Promise<any> {
     const newLabResult = {
       id: `lab_${Date.now()}`,
       ...labResult,
@@ -1602,6 +1758,158 @@ export class DatabaseStorage implements IStorage {
       .delete(medicalImages)
       .where(and(eq(medicalImages.id, id), eq(medicalImages.organizationId, organizationId)));
     return result.rowCount > 0;
+  }
+
+  // Lab Results (Database-driven)
+  async getLabResult(id: number, organizationId: number): Promise<LabResult | undefined> {
+    const [result] = await db.select()
+      .from(labResults)
+      .where(and(eq(labResults.id, id), eq(labResults.organizationId, organizationId)));
+    return result || undefined;
+  }
+
+  async getLabResultsByOrganization(organizationId: number, limit: number = 50): Promise<LabResult[]> {
+    return await db.select()
+      .from(labResults)
+      .where(eq(labResults.organizationId, organizationId))
+      .orderBy(desc(labResults.createdAt))
+      .limit(limit);
+  }
+
+  async getLabResultsByPatient(patientId: number, organizationId: number): Promise<LabResult[]> {
+    return await db.select()
+      .from(labResults)
+      .where(and(eq(labResults.patientId, patientId), eq(labResults.organizationId, organizationId)))
+      .orderBy(desc(labResults.createdAt));
+  }
+
+  async createLabResult(labResult: InsertLabResult): Promise<LabResult> {
+    const [result] = await db.insert(labResults).values(labResult).returning();
+    return result;
+  }
+
+  async updateLabResult(id: number, organizationId: number, updates: Partial<InsertLabResult>): Promise<LabResult | undefined> {
+    const [result] = await db.update(labResults)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(eq(labResults.id, id), eq(labResults.organizationId, organizationId)))
+      .returning();
+    return result || undefined;
+  }
+
+  // Claims (Database-driven)
+  async getClaim(id: number, organizationId: number): Promise<Claim | undefined> {
+    const [claim] = await db.select()
+      .from(claims)
+      .where(and(eq(claims.id, id), eq(claims.organizationId, organizationId)));
+    return claim || undefined;
+  }
+
+  async getClaimsByOrganization(organizationId: number, limit: number = 50): Promise<Claim[]> {
+    return await db.select()
+      .from(claims)
+      .where(eq(claims.organizationId, organizationId))
+      .orderBy(desc(claims.createdAt))
+      .limit(limit);
+  }
+
+  async getClaimsByPatient(patientId: number, organizationId: number): Promise<Claim[]> {
+    return await db.select()
+      .from(claims)
+      .where(and(eq(claims.patientId, patientId), eq(claims.organizationId, organizationId)))
+      .orderBy(desc(claims.createdAt));
+  }
+
+  async createClaim(claim: InsertClaim): Promise<Claim> {
+    const [result] = await db.insert(claims).values(claim).returning();
+    return result;
+  }
+
+  async updateClaim(id: number, organizationId: number, updates: Partial<InsertClaim>): Promise<Claim | undefined> {
+    const [claim] = await db.update(claims)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(eq(claims.id, id), eq(claims.organizationId, organizationId)))
+      .returning();
+    return claim || undefined;
+  }
+
+  // Revenue Records (Database-driven)
+  async getRevenueRecordsByOrganization(organizationId: number, limit: number = 50): Promise<RevenueRecord[]> {
+    return await db.select()
+      .from(revenueRecords)
+      .where(eq(revenueRecords.organizationId, organizationId))
+      .orderBy(desc(revenueRecords.createdAt))
+      .limit(limit);
+  }
+
+  async createRevenueRecord(revenueRecord: InsertRevenueRecord): Promise<RevenueRecord> {
+    const [result] = await db.insert(revenueRecords).values(revenueRecord).returning();
+    return result;
+  }
+
+  // Clinical Procedures (Database-driven)
+  async getClinicalProceduresByOrganization(organizationId: number, limit: number = 50): Promise<ClinicalProcedure[]> {
+    return await db.select()
+      .from(clinicalProcedures)
+      .where(eq(clinicalProcedures.organizationId, organizationId))
+      .orderBy(desc(clinicalProcedures.createdAt))
+      .limit(limit);
+  }
+
+  async createClinicalProcedure(procedure: InsertClinicalProcedure): Promise<ClinicalProcedure> {
+    const [result] = await db.insert(clinicalProcedures).values(procedure).returning();
+    return result;
+  }
+
+  async updateClinicalProcedure(id: number, organizationId: number, updates: Partial<InsertClinicalProcedure>): Promise<ClinicalProcedure | undefined> {
+    const [procedure] = await db.update(clinicalProcedures)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(eq(clinicalProcedures.id, id), eq(clinicalProcedures.organizationId, organizationId)))
+      .returning();
+    return procedure || undefined;
+  }
+
+  // Emergency Protocols (Database-driven)
+  async getEmergencyProtocolsByOrganization(organizationId: number, limit: number = 50): Promise<EmergencyProtocol[]> {
+    return await db.select()
+      .from(emergencyProtocols)
+      .where(eq(emergencyProtocols.organizationId, organizationId))
+      .orderBy(desc(emergencyProtocols.createdAt))
+      .limit(limit);
+  }
+
+  async createEmergencyProtocol(protocol: InsertEmergencyProtocol): Promise<EmergencyProtocol> {
+    const [result] = await db.insert(emergencyProtocols).values(protocol).returning();
+    return result;
+  }
+
+  async updateEmergencyProtocol(id: number, organizationId: number, updates: Partial<InsertEmergencyProtocol>): Promise<EmergencyProtocol | undefined> {
+    const [protocol] = await db.update(emergencyProtocols)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(eq(emergencyProtocols.id, id), eq(emergencyProtocols.organizationId, organizationId)))
+      .returning();
+    return protocol || undefined;
+  }
+
+  // Medications Database (Database-driven)
+  async getMedicationsByOrganization(organizationId: number, limit: number = 50): Promise<MedicationsDatabase[]> {
+    return await db.select()
+      .from(medicationsDatabase)
+      .where(eq(medicationsDatabase.organizationId, organizationId))
+      .orderBy(desc(medicationsDatabase.createdAt))
+      .limit(limit);
+  }
+
+  async createMedication(medication: InsertMedicationsDatabase): Promise<MedicationsDatabase> {
+    const [result] = await db.insert(medicationsDatabase).values(medication).returning();
+    return result;
+  }
+
+  async updateMedication(id: number, organizationId: number, updates: Partial<InsertMedicationsDatabase>): Promise<MedicationsDatabase | undefined> {
+    const [medication] = await db.update(medicationsDatabase)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(eq(medicationsDatabase.id, id), eq(medicationsDatabase.organizationId, organizationId)))
+      .returning();
+    return medication || undefined;
   }
 }
 

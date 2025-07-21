@@ -1,6 +1,7 @@
 import { db } from "./db.js";
 import { organizations, users, patients, appointments, medicalRecords, notifications, prescriptions, subscriptions, aiInsights } from "@shared/schema.js";
 import { authService } from "./services/auth.js";
+import { storage } from "./storage.js";
 import { eq } from "drizzle-orm";
 
 export async function seedDatabase() {
@@ -581,6 +582,10 @@ export async function seedDatabase() {
     } else {
       console.log("Subscription already exists for this organization");
     }
+
+    // Seed lab results data
+    await storage.seedLabResults(org.id);
+    console.log("Created sample lab results");
 
     console.log("Database seeding completed successfully!");
     
