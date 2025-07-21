@@ -998,16 +998,19 @@ export default function UserManagement() {
                             {role.isSystem ? "System Role" : "Custom Role"}
                           </Badge>
                           
-                          {!role.isSystem && (
-                            <div className="flex items-center space-x-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditRole(role)}
-                                className="text-blue-600 hover:text-blue-700"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
+                          <div className="flex items-center space-x-2">
+                            {/* Edit button available for all roles */}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditRole(role)}
+                              className="text-blue-600 hover:text-blue-700"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            
+                            {/* Delete button only for custom roles */}
+                            {!role.isSystem && (
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
@@ -1033,8 +1036,8 @@ export default function UserManagement() {
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
                               </AlertDialog>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}
