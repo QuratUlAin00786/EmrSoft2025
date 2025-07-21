@@ -7,6 +7,7 @@ import { Calendar, Clock, MapPin, User, Video, Stethoscope, FileText } from "luc
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { FullConsultationInterface } from "@/components/consultation/full-consultation-interface";
 import type { Appointment } from "@/types";
 import { NewAppointmentModal } from "./new-appointment-modal";
@@ -498,26 +499,7 @@ export default function AppointmentCalendar() {
                   variant="destructive"
                   onClick={async () => {
                     try {
-                      const token = localStorage.getItem('auth_token');
-                      const headers: Record<string, string> = {
-                        'X-Tenant-Subdomain': 'demo'
-                      };
-                      
-                      if (token) {
-                        headers['Authorization'] = `Bearer ${token}`;
-                      }
-
-                      const response = await fetch(`/api/appointments/${selectedAppointment.id}`, {
-                        method: 'DELETE',
-                        headers,
-                        credentials: 'include'
-                      });
-
-                      const result = await response.json();
-                      
-                      if (!response.ok) {
-                        throw new Error(result.error || `HTTP ${response.status}`);
-                      }
+                      await apiRequest('DELETE', `/api/appointments/${selectedAppointment.id}`);
 
                       // Close dialog first
                       setShowAppointmentDetails(false);
