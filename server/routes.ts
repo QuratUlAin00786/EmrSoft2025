@@ -842,9 +842,238 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Function to get default permissions based on role
+  function getDefaultPermissionsByRole(role: string) {
+    const basePermissions = {
+      modules: {},
+      fields: {}
+    };
+
+    switch (role) {
+      case "admin":
+        return {
+          modules: {
+            patients: { view: true, create: true, edit: true, delete: true },
+            appointments: { view: true, create: true, edit: true, delete: true },
+            medicalRecords: { view: true, create: true, edit: true, delete: true },
+            prescriptions: { view: true, create: true, edit: true, delete: true },
+            billing: { view: true, create: true, edit: true, delete: true },
+            analytics: { view: true, create: true, edit: true, delete: true },
+            userManagement: { view: true, create: true, edit: true, delete: true },
+            settings: { view: true, create: true, edit: true, delete: true },
+            aiInsights: { view: true, create: true, edit: true, delete: true },
+            messaging: { view: true, create: true, edit: true, delete: true },
+            telemedicine: { view: true, create: true, edit: true, delete: true },
+            populationHealth: { view: true, create: true, edit: true, delete: true },
+            clinicalDecision: { view: true, create: true, edit: true, delete: true },
+            labResults: { view: true, create: true, edit: true, delete: true },
+            medicalImaging: { view: true, create: true, edit: true, delete: true },
+            voiceDocumentation: { view: true, create: true, edit: true, delete: true },
+            forms: { view: true, create: true, edit: true, delete: true },
+            integrations: { view: true, create: true, edit: true, delete: true },
+            automation: { view: true, create: true, edit: true, delete: true },
+            mobileHealth: { view: true, create: true, edit: true, delete: true }
+          },
+          fields: {
+            patientSensitiveInfo: true,
+            financialData: true,
+            medicalHistory: true,
+            prescriptionDetails: true,
+            labResults: true,
+            imagingResults: true,
+            billingInformation: true,
+            insuranceDetails: true
+          }
+        };
+
+      case "doctor":
+        return {
+          modules: {
+            patients: { view: true, create: true, edit: true, delete: false },
+            appointments: { view: true, create: true, edit: true, delete: true },
+            medicalRecords: { view: true, create: true, edit: true, delete: false },
+            prescriptions: { view: true, create: true, edit: true, delete: true },
+            billing: { view: true, create: false, edit: false, delete: false },
+            analytics: { view: true, create: false, edit: false, delete: false },
+            userManagement: { view: false, create: false, edit: false, delete: false },
+            settings: { view: false, create: false, edit: false, delete: false },
+            aiInsights: { view: true, create: true, edit: true, delete: false },
+            messaging: { view: true, create: true, edit: true, delete: false },
+            telemedicine: { view: true, create: true, edit: true, delete: false },
+            populationHealth: { view: true, create: false, edit: false, delete: false },
+            clinicalDecision: { view: true, create: true, edit: true, delete: false },
+            labResults: { view: true, create: true, edit: true, delete: false },
+            medicalImaging: { view: true, create: true, edit: true, delete: false },
+            voiceDocumentation: { view: true, create: true, edit: true, delete: true },
+            forms: { view: true, create: true, edit: true, delete: false },
+            integrations: { view: false, create: false, edit: false, delete: false },
+            automation: { view: true, create: false, edit: false, delete: false },
+            mobileHealth: { view: true, create: false, edit: false, delete: false }
+          },
+          fields: {
+            patientSensitiveInfo: true,
+            financialData: false,
+            medicalHistory: true,
+            prescriptionDetails: true,
+            labResults: true,
+            imagingResults: true,
+            billingInformation: false,
+            insuranceDetails: false
+          }
+        };
+
+      case "nurse":
+        return {
+          modules: {
+            patients: { view: true, create: true, edit: true, delete: false },
+            appointments: { view: true, create: true, edit: true, delete: false },
+            medicalRecords: { view: true, create: true, edit: true, delete: false },
+            prescriptions: { view: true, create: false, edit: false, delete: false },
+            billing: { view: false, create: false, edit: false, delete: false },
+            analytics: { view: false, create: false, edit: false, delete: false },
+            userManagement: { view: false, create: false, edit: false, delete: false },
+            settings: { view: false, create: false, edit: false, delete: false },
+            aiInsights: { view: true, create: false, edit: false, delete: false },
+            messaging: { view: true, create: true, edit: true, delete: false },
+            telemedicine: { view: true, create: true, edit: true, delete: false },
+            populationHealth: { view: false, create: false, edit: false, delete: false },
+            clinicalDecision: { view: true, create: false, edit: false, delete: false },
+            labResults: { view: true, create: true, edit: true, delete: false },
+            medicalImaging: { view: true, create: false, edit: false, delete: false },
+            voiceDocumentation: { view: true, create: true, edit: true, delete: true },
+            forms: { view: true, create: true, edit: true, delete: false },
+            integrations: { view: false, create: false, edit: false, delete: false },
+            automation: { view: false, create: false, edit: false, delete: false },
+            mobileHealth: { view: true, create: false, edit: false, delete: false }
+          },
+          fields: {
+            patientSensitiveInfo: true,
+            financialData: false,
+            medicalHistory: true,
+            prescriptionDetails: true,
+            labResults: true,
+            imagingResults: true,
+            billingInformation: false,
+            insuranceDetails: false
+          }
+        };
+
+      case "receptionist":
+        return {
+          modules: {
+            patients: { view: true, create: true, edit: true, delete: false },
+            appointments: { view: true, create: true, edit: true, delete: false },
+            medicalRecords: { view: false, create: false, edit: false, delete: false },
+            prescriptions: { view: false, create: false, edit: false, delete: false },
+            billing: { view: true, create: true, edit: true, delete: false },
+            analytics: { view: false, create: false, edit: false, delete: false },
+            userManagement: { view: false, create: false, edit: false, delete: false },
+            settings: { view: false, create: false, edit: false, delete: false },
+            aiInsights: { view: false, create: false, edit: false, delete: false },
+            messaging: { view: true, create: true, edit: false, delete: false },
+            telemedicine: { view: false, create: false, edit: false, delete: false },
+            populationHealth: { view: false, create: false, edit: false, delete: false },
+            clinicalDecision: { view: false, create: false, edit: false, delete: false },
+            labResults: { view: false, create: false, edit: false, delete: false },
+            medicalImaging: { view: false, create: false, edit: false, delete: false },
+            voiceDocumentation: { view: false, create: false, edit: false, delete: false },
+            forms: { view: true, create: true, edit: true, delete: false },
+            integrations: { view: false, create: false, edit: false, delete: false },
+            automation: { view: false, create: false, edit: false, delete: false },
+            mobileHealth: { view: false, create: false, edit: false, delete: false }
+          },
+          fields: {
+            patientSensitiveInfo: false,
+            financialData: true,
+            medicalHistory: false,
+            prescriptionDetails: false,
+            labResults: false,
+            imagingResults: false,
+            billingInformation: true,
+            insuranceDetails: true
+          }
+        };
+
+      case "patient":
+        return {
+          modules: {
+            patients: { view: true, create: false, edit: true, delete: false },
+            appointments: { view: true, create: true, edit: true, delete: false },
+            medicalRecords: { view: true, create: false, edit: false, delete: false },
+            prescriptions: { view: true, create: false, edit: false, delete: false },
+            billing: { view: true, create: false, edit: false, delete: false },
+            analytics: { view: false, create: false, edit: false, delete: false },
+            userManagement: { view: false, create: false, edit: false, delete: false },
+            settings: { view: false, create: false, edit: false, delete: false },
+            aiInsights: { view: false, create: false, edit: false, delete: false },
+            messaging: { view: true, create: true, edit: false, delete: false },
+            telemedicine: { view: true, create: false, edit: false, delete: false },
+            populationHealth: { view: false, create: false, edit: false, delete: false },
+            clinicalDecision: { view: false, create: false, edit: false, delete: false },
+            labResults: { view: true, create: false, edit: false, delete: false },
+            medicalImaging: { view: true, create: false, edit: false, delete: false },
+            voiceDocumentation: { view: true, create: true, edit: true, delete: true },
+            forms: { view: true, create: true, edit: true, delete: false },
+            integrations: { view: false, create: false, edit: false, delete: false },
+            automation: { view: false, create: false, edit: false, delete: false },
+            mobileHealth: { view: true, create: false, edit: false, delete: false }
+          },
+          fields: {
+            patientSensitiveInfo: true,
+            financialData: false,
+            medicalHistory: true,
+            prescriptionDetails: true,
+            labResults: true,
+            imagingResults: true,
+            billingInformation: true,
+            insuranceDetails: true
+          }
+        };
+
+      case "sample_taker":
+        return {
+          modules: {
+            patients: { view: true, create: false, edit: false, delete: false },
+            appointments: { view: true, create: false, edit: false, delete: false },
+            medicalRecords: { view: false, create: false, edit: false, delete: false },
+            prescriptions: { view: false, create: false, edit: false, delete: false },
+            billing: { view: false, create: false, edit: false, delete: false },
+            analytics: { view: false, create: false, edit: false, delete: false },
+            userManagement: { view: false, create: false, edit: false, delete: false },
+            settings: { view: false, create: false, edit: false, delete: false },
+            aiInsights: { view: false, create: false, edit: false, delete: false },
+            messaging: { view: false, create: false, edit: false, delete: false },
+            telemedicine: { view: false, create: false, edit: false, delete: false },
+            populationHealth: { view: false, create: false, edit: false, delete: false },
+            clinicalDecision: { view: false, create: false, edit: false, delete: false },
+            labResults: { view: true, create: true, edit: true, delete: false },
+            medicalImaging: { view: false, create: false, edit: false, delete: false },
+            voiceDocumentation: { view: false, create: false, edit: false, delete: false },
+            forms: { view: false, create: false, edit: false, delete: false },
+            integrations: { view: false, create: false, edit: false, delete: false },
+            automation: { view: false, create: false, edit: false, delete: false },
+            mobileHealth: { view: false, create: false, edit: false, delete: false }
+          },
+          fields: {
+            patientSensitiveInfo: false,
+            financialData: false,
+            medicalHistory: false,
+            prescriptionDetails: false,
+            labResults: true,
+            imagingResults: false,
+            billingInformation: false,
+            insuranceDetails: false
+          }
+        };
+
+      default:
+        return basePermissions;
+    }
+  }
+
   app.post("/api/users", authMiddleware, async (req: TenantRequest, res) => {
     try {
-      console.log("FORCE-USER-CREATION - bypassing duplicate check for production cache fix");
+      console.log("Creating user with role-based permissions");
       console.log("Request body:", req.body);
       
       const userData = z.object({
@@ -853,15 +1082,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         password: z.string().min(6),
         firstName: z.string().min(1),
         lastName: z.string().min(1),
-        role: z.enum(["admin", "doctor", "nurse", "receptionist"]),
+        role: z.enum(["admin", "doctor", "nurse", "receptionist", "patient", "sample_taker"]),
         department: z.string().optional()
       }).parse(req.body);
 
-      // Skip duplicate check completely for production cache fix  
-      // if (false) { // DISABLED: const existingUser = await storage.getUserByEmail(userData.email, req.tenant!.id);
-
       // Hash password
       const hashedPassword = await authService.hashPassword(userData.password);
+
+      // Generate default permissions based on role
+      const defaultPermissions = getDefaultPermissionsByRole(userData.role);
 
       // Force create user with unique email suffix for production fix
       const uniqueEmail = userData.email.includes('+') ? userData.email : userData.email.replace('@', `+${Date.now()}@`);
@@ -870,8 +1099,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...userData,
         email: uniqueEmail,
         organizationId: req.tenant!.id,
-        password: hashedPassword
+        password: hashedPassword,
+        permissions: defaultPermissions
       });
+
+      console.log(`Created user with role: ${userData.role} and permissions:`, defaultPermissions);
 
       // Remove password from response
       const { password, ...safeUser } = user;
