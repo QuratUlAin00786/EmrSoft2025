@@ -463,7 +463,7 @@ export default function AppointmentCalendar() {
                       <Badge className="ml-2 bg-blue-100 text-blue-800">
                         {(() => {
                           const parts = selectedAppointment.location.split(', ');
-                          return parts.find(part => part.includes('Department')) || 
+                          return parts.find((part: string) => part.includes('Department')) || 
                                  parts[parts.length - 1];
                         })()}
                       </Badge>
@@ -523,7 +523,7 @@ export default function AppointmentCalendar() {
                       setShowAppointmentDetails(false);
                       
                       // Refresh appointments list immediately
-                      fetchAppointments();
+                      refetch();
                       
                       toast({
                         title: "Appointment Deleted",
@@ -533,9 +533,9 @@ export default function AppointmentCalendar() {
                       console.error("Error deleting appointment:", error);
                       
                       // Check if it's already deleted (404 error)
-                      if (error?.message?.includes('404') || error?.message?.includes('not found')) {
+                      if ((error as any)?.message?.includes('404') || (error as any)?.message?.includes('not found')) {
                         setShowAppointmentDetails(false);
-                        fetchAppointments();
+                        refetch();
                         toast({
                           title: "Appointment Deleted",
                           description: "The appointment has been successfully deleted",
