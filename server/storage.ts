@@ -22,7 +22,7 @@ import {
   type MedicationsDatabase, type InsertMedicationsDatabase
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, count, not, sql, gte, lt } from "drizzle-orm";
+import { eq, and, desc, asc, count, not, sql, gte, lt } from "drizzle-orm";
 
 export interface IStorage {
   // Organizations
@@ -490,7 +490,7 @@ export class DatabaseStorage implements IStorage {
       endOfDay.setHours(23, 59, 59, 999);
     }
     
-    return await query.orderBy(appointments.scheduledAt);
+    return await query.orderBy(asc(appointments.scheduledAt));
   }
 
   async getAppointmentsByProvider(providerId: number, organizationId: number, date?: Date): Promise<Appointment[]> {
@@ -499,7 +499,7 @@ export class DatabaseStorage implements IStorage {
         eq(appointments.providerId, providerId),
         eq(appointments.organizationId, organizationId)
       ))
-      .orderBy(appointments.scheduledAt);
+      .orderBy(asc(appointments.scheduledAt));
   }
 
   async createAppointment(appointment: InsertAppointment): Promise<Appointment> {
