@@ -82,9 +82,19 @@ export default function CalendarPage() {
       return;
     }
 
+    // Handle both numeric and string patient IDs
+    let patientId: string | number = bookingForm.patientId;
+    
+    // If it's a pure number, convert to integer
+    if (/^\d+$/.test(bookingForm.patientId)) {
+      patientId = parseInt(bookingForm.patientId);
+    }
+    // If it's a patient ID format (like P000004), keep as string
+    // The server will handle the lookup
+
     const appointmentData = {
       ...bookingForm,
-      patientId: parseInt(bookingForm.patientId),
+      patientId: patientId,
       providerId: selectedDoctor.id,
       title: bookingForm.title || `${bookingForm.type} with ${selectedDoctor.firstName} ${selectedDoctor.lastName}`,
       location: bookingForm.location || `${selectedDoctor.department} Department`,
@@ -168,10 +178,13 @@ export default function CalendarPage() {
                     <Label htmlFor="patientId">Patient ID *</Label>
                     <Input
                       id="patientId"
-                      placeholder="Enter patient ID (e.g., 1, 2)"
+                      placeholder="Enter patient ID (e.g., 165, P000004, P000158)"
                       value={bookingForm.patientId}
                       onChange={(e) => setBookingForm(prev => ({ ...prev, patientId: e.target.value }))}
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Use numeric ID (165) or patient ID (P000004)
+                    </p>
                   </div>
                   
                   <div>
