@@ -103,6 +103,22 @@ export const roles = pgTable("roles", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Staff Shifts and Availability
+export const staffShifts = pgTable("staff_shifts", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  staffId: integer("staff_id").notNull(),
+  date: timestamp("date").notNull(),
+  shiftType: varchar("shift_type", { length: 20 }).notNull().default("regular"), // regular, overtime, on_call, absent
+  startTime: varchar("start_time", { length: 5 }).notNull(), // "09:00"
+  endTime: varchar("end_time", { length: 5 }).notNull(), // "17:00"
+  status: varchar("status", { length: 20 }).notNull().default("scheduled"), // scheduled, completed, cancelled, absent
+  notes: text("notes"),
+  isAvailable: boolean("is_available").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Patients
 export const patients = pgTable("patients", {
   id: serial("id").primaryKey(),
@@ -565,6 +581,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   }),
   medicalRecords: many(medicalRecords),
   appointments: many(appointments),
+  shifts: many(staffShifts),
 }));
 
 export const rolesRelations = relations(roles, ({ one }) => ({
@@ -785,6 +802,18 @@ export const medicationsDatabaseRelations = relations(medicationsDatabase, ({ on
   }),
 }));
 
+// Staff Shifts Relations
+export const staffShiftsRelations = relations(staffShifts, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [staffShifts.organizationId],
+    references: [organizations.id],
+  }),
+  staff: one(users, {
+    fields: [staffShifts.staffId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertOrganizationSchema = createInsertSchema(organizations).omit({
   id: true,
@@ -896,6 +925,12 @@ export const insertMedicationsDatabaseSchema = createInsertSchema(medicationsDat
   createdAt: true,
 });
 
+export const insertStaffShiftSchema = createInsertSchema(staffShifts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type Organization = typeof organizations.$inferSelect;
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
@@ -956,5 +991,8 @@ export type InsertEmergencyProtocol = z.infer<typeof insertEmergencyProtocolSche
 
 export type MedicationsDatabase = typeof medicationsDatabase.$inferSelect;
 export type InsertMedicationsDatabase = z.infer<typeof insertMedicationsDatabaseSchema>;
+
+export type StaffShift = typeof staffShifts.$inferSelect;
+export type InsertStaffShift = z.infer<typeof insertStaffShiftSchema>;
 
 

@@ -3576,6 +3576,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Shift Management API endpoints
+  app.get("/api/shifts", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const { date } = req.query as { date?: string };
+      const shifts = await storage.getStaffShiftsByOrganization(req.tenant!.id, date);
+      res.json(shifts);
+    } catch (error) {
+      console.error("Error fetching shifts:", error);
+      res.status(500).json({ error: "Failed to fetch shifts" });
+    }
+  });
+
+  app.get("/api/shifts/:id", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const shiftId = parseInt(req.params.id);
+      const shift = await storage.getStaffShift(shiftId, req.tenant!.id);
+      
+      if (!shift) {
+        return res.status(404).json({ error: "Shift not found" });
+      }
+      
+      res.json(shift);
+    } catch (error) {
+      console.error("Error fetching shift:", error);
+      res.status(500).json({ error: "Failed to fetch shift" });
+    }
+  });
+
+  app.post("/api/shifts", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const shiftData = z.object({
+        staffId: z.number(),
+        date: z.string(),
+        shiftType: z.enum(["regular", "overtime", "on_call", "absent"]),
+        startTime: z.string(),
+        endTime: z.string(),
+        status: z.enum(["scheduled", "completed", "cancelled", "absent"]).default("scheduled"),
+        notes: z.string().optional(),
+        isAvailable: z.boolean().default(true)
+      }).parse(req.body);
+
+      const shift = await storage.createStaffShift({
+        ...shiftData,
+        organizationId: req.tenant!.id,
+        date: new Date(shiftData.date)
+      });
+
+      res.status(201).json(shift);
+    } catch (error) {
+      console.error("Error creating shift:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+        });
+      }
+      res.status(500).json({ error: "Failed to create shift" });
+    }
+  });
+
+  app.put("/api/shifts/:id", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const shiftId = parseInt(req.params.id);
+      const updateData = z.object({
+        staffId: z.number().optional(),
+        date: z.string().optional(),
+        shiftType: z.enum(["regular", "overtime", "on_call", "absent"]).optional(),
+        startTime: z.string().optional(),
+        endTime: z.string().optional(),
+        status: z.enum(["scheduled", "completed", "cancelled", "absent"]).optional(),
+        notes: z.string().optional(),
+        isAvailable: z.boolean().optional()
+      }).parse(req.body);
+
+      const processedData: any = { ...updateData };
+      if (updateData.date) {
+        processedData.date = new Date(updateData.date);
+      }
+
+      const shift = await storage.updateStaffShift(shiftId, req.tenant!.id, processedData);
+      
+      if (!shift) {
+        return res.status(404).json({ error: "Shift not found" });
+      }
+      
+      res.json(shift);
+    } catch (error) {
+      console.error("Error updating shift:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+        });
+      }
+      res.status(500).json({ error: "Failed to update shift" });
+    }
+  });
+
+  app.delete("/api/shifts/:id", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const shiftId = parseInt(req.params.id);
+      const deleted = await storage.deleteStaffShift(shiftId, req.tenant!.id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Shift not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting shift:", error);
+      res.status(500).json({ error: "Failed to delete shift" });
+    }
+  });
+
+  app.get("/api/shifts/staff/:staffId", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const staffId = parseInt(req.params.staffId);
+      const { date } = req.query as { date?: string };
+      const shifts = await storage.getStaffShiftsByStaff(staffId, req.tenant!.id, date);
+      res.json(shifts);
+    } catch (error) {
+      console.error("Error fetching staff shifts:", error);
+      res.status(500).json({ error: "Failed to fetch staff shifts" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

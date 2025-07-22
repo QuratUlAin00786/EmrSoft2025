@@ -20,6 +20,7 @@ import PermissionsReference from "@/pages/permissions-reference";
 import StaffProfile from "@/pages/staff-profile";
 import Subscription from "@/pages/subscription";
 import Settings from "@/pages/settings";
+import ShiftsPage from "@/pages/shifts";
 import CalendarPage from "@/pages/calendar";
 import FormsPage from "@/pages/forms";
 import MessagingPage from "@/pages/messaging";
@@ -127,6 +128,7 @@ function ProtectedApp() {
           <Route path="/clinical-procedures" component={ClinicalProcedures} />
           <Route path="/users" component={UserManagement} />
           <Route path="/user-management" component={UserManagement} />
+          <Route path="/shifts" component={ShiftsPage} />
           <Route path="/permissions-reference" component={PermissionsReference} />
           <Route path="/staff/:id" component={StaffProfile} />
           <Route path="/subscription" component={Subscription} />

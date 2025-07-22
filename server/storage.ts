@@ -1,5 +1,5 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles,
+  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Role, type InsertRole,
@@ -19,7 +19,8 @@ import {
   type RevenueRecord, type InsertRevenueRecord,
   type ClinicalProcedure, type InsertClinicalProcedure,
   type EmergencyProtocol, type InsertEmergencyProtocol,
-  type MedicationsDatabase, type InsertMedicationsDatabase
+  type MedicationsDatabase, type InsertMedicationsDatabase,
+  type StaffShift, type InsertStaffShift
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, count, not, sql, gte, lt } from "drizzle-orm";
@@ -204,6 +205,14 @@ export interface IStorage {
   getMedicationsByOrganization(organizationId: number, limit?: number): Promise<MedicationsDatabase[]>;
   createMedication(medication: InsertMedicationsDatabase): Promise<MedicationsDatabase>;
   updateMedication(id: number, organizationId: number, updates: Partial<InsertMedicationsDatabase>): Promise<MedicationsDatabase | undefined>;
+
+  // Staff Shifts (Database-driven)
+  getStaffShift(id: number, organizationId: number): Promise<StaffShift | undefined>;
+  getStaffShiftsByOrganization(organizationId: number, date?: string): Promise<StaffShift[]>;
+  getStaffShiftsByStaff(staffId: number, organizationId: number, date?: string): Promise<StaffShift[]>;
+  createStaffShift(shift: InsertStaffShift): Promise<StaffShift>;
+  updateStaffShift(id: number, organizationId: number, updates: Partial<InsertStaffShift>): Promise<StaffShift | undefined>;
+  deleteStaffShift(id: number, organizationId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1956,6 +1965,70 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(medicationsDatabase.id, id), eq(medicationsDatabase.organizationId, organizationId)))
       .returning();
     return medication || undefined;
+  }
+
+  // Staff Shifts (Database-driven)
+  async getStaffShift(id: number, organizationId: number): Promise<StaffShift | undefined> {
+    const [shift] = await db.select()
+      .from(staffShifts)
+      .where(and(eq(staffShifts.id, id), eq(staffShifts.organizationId, organizationId)));
+    return shift || undefined;
+  }
+
+  async getStaffShiftsByOrganization(organizationId: number, date?: string): Promise<StaffShift[]> {
+    let query = db.select()
+      .from(staffShifts)
+      .where(eq(staffShifts.organizationId, organizationId));
+
+    if (date) {
+      query = query.where(
+        and(
+          eq(staffShifts.organizationId, organizationId),
+          gte(staffShifts.date, new Date(date)),
+          lt(staffShifts.date, new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000))
+        )
+      );
+    }
+
+    return await query.orderBy(asc(staffShifts.date), asc(staffShifts.startTime));
+  }
+
+  async getStaffShiftsByStaff(staffId: number, organizationId: number, date?: string): Promise<StaffShift[]> {
+    let query = db.select()
+      .from(staffShifts)
+      .where(and(eq(staffShifts.staffId, staffId), eq(staffShifts.organizationId, organizationId)));
+
+    if (date) {
+      query = query.where(
+        and(
+          eq(staffShifts.staffId, staffId),
+          eq(staffShifts.organizationId, organizationId),
+          gte(staffShifts.date, new Date(date)),
+          lt(staffShifts.date, new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000))
+        )
+      );
+    }
+
+    return await query.orderBy(asc(staffShifts.date), asc(staffShifts.startTime));
+  }
+
+  async createStaffShift(shift: InsertStaffShift): Promise<StaffShift> {
+    const [result] = await db.insert(staffShifts).values(shift).returning();
+    return result;
+  }
+
+  async updateStaffShift(id: number, organizationId: number, updates: Partial<InsertStaffShift>): Promise<StaffShift | undefined> {
+    const [shift] = await db.update(staffShifts)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(eq(staffShifts.id, id), eq(staffShifts.organizationId, organizationId)))
+      .returning();
+    return shift || undefined;
+  }
+
+  async deleteStaffShift(id: number, organizationId: number): Promise<boolean> {
+    const result = await db.delete(staffShifts)
+      .where(and(eq(staffShifts.id, id), eq(staffShifts.organizationId, organizationId)));
+    return result.rowCount > 0;
   }
 }
 
