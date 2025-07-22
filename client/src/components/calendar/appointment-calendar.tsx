@@ -321,6 +321,69 @@ export default function AppointmentCalendar() {
         </CardContent>
       </Card>
 
+      {/* Today's Appointments (July 22nd) */}
+      {(() => {
+        const today = new Date('2025-07-22');
+        const todaysAppointments = appointments.filter((apt: Appointment) => {
+          const aptDate = new Date(apt.scheduledAt);
+          return aptDate.toDateString() === today.toDateString();
+        });
+        
+        if (todaysAppointments.length > 0) {
+          return (
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  Today's Appointments - July 22nd ({todaysAppointments.length} total)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {todaysAppointments.map((appointment: Appointment) => (
+                    <div
+                      key={appointment.id}
+                      className="border rounded-lg p-4 hover:bg-gray-50 transition-colors bg-blue-50 border-blue-200"
+                    >
+                      <div className="flex flex-col space-y-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="font-semibold">{appointment.title}</h4>
+                          <Badge className={statusColors[appointment.status]}>
+                            {appointment.status}
+                          </Badge>
+                          <Badge className={typeColors[appointment.type]}>
+                            {appointment.type}
+                          </Badge>
+                          <Badge className="bg-blue-100 text-blue-800">
+                            TODAY
+                          </Badge>
+                        </div>
+                        
+                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-4 w-4" />
+                            {format(new Date(appointment.scheduledAt), "h:mm a")} 
+                            ({appointment.duration} min)
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <MapPin className="h-4 w-4" />
+                            {appointment.location || "In-person"}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <User className="h-4 w-4" />
+                            Patient ID: {appointment.patientId}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        }
+        return null;
+      })()}
+
       {/* All Upcoming Appointments */}
       <Card>
         <CardHeader>
