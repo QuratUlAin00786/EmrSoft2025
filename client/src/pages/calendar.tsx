@@ -50,7 +50,13 @@ export default function CalendarPage() {
         title: "Appointment Created",
         description: "The appointment has been successfully booked.",
       });
+      // Aggressive cache invalidation to ensure calendar updates
+      queryClient.removeQueries({ queryKey: ["/api/appointments"] });
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+      // Force immediate refresh
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ["/api/appointments"] });
+      }, 50);
       setSelectedDoctor(null);
       setBookingForm({
         patientId: "",
