@@ -26,9 +26,21 @@ export default function ShiftsPage() {
     isAvailable: true
   });
 
-  // Fetch medical staff - using standard React Query approach
+  // Fetch medical staff with explicit query function
   const { data: staff = [], isLoading: staffLoading, error: staffError } = useQuery({
     queryKey: ["/api/medical-staff"],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest("GET", "/api/medical-staff");
+        const data = await response.json();
+        console.log("✅ Medical staff API response:", data);
+        console.log("✅ Response type:", typeof data, "Array?", Array.isArray(data));
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error("❌ Medical staff fetch error:", error);
+        throw error;
+      }
+    },
   });
 
   // Debug logging
