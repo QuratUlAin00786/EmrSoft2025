@@ -172,7 +172,13 @@ export default function ShiftsPage() {
 
   const getStaffName = (staffId: number) => {
     const staffMember = staff.find((s: any) => s.id === staffId);
-    return staffMember ? `Dr. ${staffMember.firstName} ${staffMember.lastName}` : 'Unknown';
+    if (!staffMember) return 'Unknown';
+    
+    const prefix = staffMember.role === 'doctor' ? 'Dr.' : 
+                   staffMember.role === 'nurse' ? 'Nurse' : 
+                   staffMember.role === 'lab_technician' ? 'Lab Tech' : '';
+    
+    return `${prefix} ${staffMember.firstName} ${staffMember.lastName}`;
   };
 
   const getShiftTypeColor = (type: string) => {
@@ -225,11 +231,17 @@ export default function ShiftsPage() {
                   onChange={(e) => setFormData(prev => ({ ...prev, staffId: e.target.value }))}
                 >
                   <option value="">Select staff member...</option>
-                  {staff.map((member: any) => (
-                    <option key={member.id} value={member.id}>
-                      Dr. {member.firstName} {member.lastName} - {member.department}
-                    </option>
-                  ))}
+                  {staff.map((member: any) => {
+                    const prefix = member.role === 'doctor' ? 'Dr.' : 
+                                   member.role === 'nurse' ? 'Nurse' : 
+                                   member.role === 'lab_technician' ? 'Lab Tech' : '';
+                    const department = member.department || member.role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    return (
+                      <option key={member.id} value={member.id}>
+                        {prefix} {member.firstName} {member.lastName} - {department}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
               
@@ -497,11 +509,17 @@ export default function ShiftsPage() {
                 onChange={(e) => setFormData(prev => ({ ...prev, staffId: e.target.value }))}
               >
                 <option value="">Select staff member...</option>
-                {staff.map((member: any) => (
-                  <option key={member.id} value={member.id}>
-                    Dr. {member.firstName} {member.lastName} - {member.department}
-                  </option>
-                ))}
+                {staff.map((member: any) => {
+                  const prefix = member.role === 'doctor' ? 'Dr.' : 
+                                 member.role === 'nurse' ? 'Nurse' : 
+                                 member.role === 'lab_technician' ? 'Lab Tech' : '';
+                  const department = member.department || member.role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                  return (
+                    <option key={member.id} value={member.id}>
+                      {prefix} {member.firstName} {member.lastName} - {department}
+                    </option>
+                  );
+                })}
               </select>
             </div>
             

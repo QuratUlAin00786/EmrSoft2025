@@ -810,7 +810,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Filter for medical staff only and remove password from response
       const medicalStaff = users
-        .filter(user => ['doctor', 'nurse'].includes(user.role) && user.isActive)
+        .filter(user => ['doctor', 'nurse', 'lab_technician'].includes(user.role) && user.isActive)
         .map(user => {
           const { password, ...safeUser } = user;
           return safeUser;
