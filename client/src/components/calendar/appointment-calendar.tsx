@@ -321,6 +321,62 @@ export default function AppointmentCalendar() {
         </CardContent>
       </Card>
 
+      {/* All Upcoming Appointments */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            All Upcoming Appointments ({appointments.length} total)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {appointments.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">
+              No appointments scheduled
+            </p>
+          ) : (
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {appointments.slice(0, 20).map((appointment: Appointment) => (
+                <div
+                  key={appointment.id}
+                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex flex-col space-y-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="font-semibold">{appointment.title}</h4>
+                      <Badge className={statusColors[appointment.status]}>
+                        {appointment.status}
+                      </Badge>
+                      <Badge className={typeColors[appointment.type]}>
+                        {appointment.type}
+                      </Badge>
+                      <Badge className="bg-gray-100 text-gray-800">
+                        {format(new Date(appointment.scheduledAt), "MMM d, yyyy")}
+                      </Badge>
+                    </div>
+                    
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-4 w-4" />
+                        {format(new Date(appointment.scheduledAt), "h:mm a")} 
+                        ({appointment.duration} min)
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-4 w-4" />
+                        {appointment.location || "In-person"}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <User className="h-4 w-4" />
+                        Patient ID: {appointment.patientId}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Selected Date Appointments */}
       <Card>
         <CardHeader>
