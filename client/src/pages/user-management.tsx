@@ -48,6 +48,11 @@ const userSchema = z.object({
   lastName: z.string().min(1, "Last name is required"),
   role: z.enum(["admin", "doctor", "nurse", "receptionist", "patient", "sample_taker"]),
   department: z.string().optional(),
+  workingDays: z.array(z.string()).optional(),
+  workingHours: z.object({
+    start: z.string(),
+    end: z.string(),
+  }).optional(),
   password: z.string().min(1, "Password is required"),
 });
 
@@ -79,6 +84,11 @@ interface User {
   lastName: string;
   role: string;
   department?: string;
+  workingDays?: string[];
+  workingHours?: {
+    start: string;
+    end: string;
+  };
   permissions?: {
     modules?: any;
     fields?: any;
@@ -159,6 +169,8 @@ export default function UserManagement() {
       lastName: "",
       role: "doctor",
       department: "",
+      workingDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      workingHours: { start: "09:00", end: "17:00" },
       password: "",
     },
   });
@@ -408,8 +420,11 @@ export default function UserManagement() {
       lastName: user.lastName,
       role: user.role as any,
       department: user.department || "",
+      workingDays: user.workingDays || [],
+      workingHours: user.workingHours || { start: "09:00", end: "17:00" },
       password: "", // Don't pre-fill password for security
     });
+    setIsCreateModalOpen(true);
   };
 
   const handleDelete = (userId: number) => {
@@ -693,6 +708,63 @@ export default function UserManagement() {
                     placeholder="e.g., Cardiology, Emergency, etc."
                   />
                 </div>
+
+                {/* Working Days */}
+                <div className="space-y-2">
+                  <Label>Working Days</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
+                      <div key={day} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id={day}
+                          key={`${day}-${editingUser?.id || 'new'}`}
+                          defaultChecked={form.getValues("workingDays")?.includes(day)}
+                          onChange={(e) => {
+                            const currentDays = form.getValues("workingDays") || [];
+                            if (e.target.checked) {
+                              form.setValue("workingDays", [...currentDays, day]);
+                            } else {
+                              form.setValue("workingDays", currentDays.filter(d => d !== day));
+                            }
+                          }}
+                          className="rounded border-gray-300"
+                        />
+                        <Label htmlFor={day} className="text-sm font-normal">{day}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Working Hours */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="startTime">Start Time</Label>
+                    <Input
+                      id="startTime"
+                      type="time"
+                      key={`start-${editingUser?.id || 'new'}`}
+                      defaultValue={form.getValues("workingHours")?.start || "09:00"}
+                      onChange={(e) => {
+                        const current = form.getValues("workingHours") || { start: "09:00", end: "17:00" };
+                        form.setValue("workingHours", { ...current, start: e.target.value });
+                      }}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="endTime">End Time</Label>
+                    <Input
+                      id="endTime"
+                      type="time"
+                      key={`end-${editingUser?.id || 'new'}`}
+                      defaultValue={form.getValues("workingHours")?.end || "17:00"}
+                      onChange={(e) => {
+                        const current = form.getValues("workingHours") || { start: "09:00", end: "17:00" };
+                        form.setValue("workingHours", { ...current, end: e.target.value });
+                      }}
+                    />
+                  </div>
+                </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="password">
@@ -784,6 +856,11 @@ export default function UserManagement() {
                         <p className="text-sm text-gray-500">{user.email}</p>
                         {user.department && (
                           <p className="text-xs text-gray-400">{user.department}</p>
+                        )}
+                        {user.workingDays && user.workingDays.length > 0 && (
+                          <p className="text-xs text-blue-600">
+                            Working: {user.workingDays.join(", ")} ({user.workingHours?.start} - {user.workingHours?.end})
+                          </p>
                         )}
                       </div>
                     </div>

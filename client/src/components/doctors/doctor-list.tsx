@@ -6,7 +6,7 @@ import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
 import { Stethoscope, User, Calendar, Clock, MapPin } from "lucide-react";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
-import type { User as Doctor } from "@/types";
+import type { User as Doctor } from "@shared/schema";
 
 interface DoctorListProps {
   onSelectDoctor?: (doctor: Doctor) => void;
@@ -134,6 +134,18 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                       >
                         {doctor.department}
                       </Badge>
+                    </div>
+                  )}
+
+                  {/* Working Hours Display */}
+                  {doctor.workingDays && doctor.workingDays.length > 0 && doctor.workingHours && (
+                    <div className="flex items-center gap-1 mb-2">
+                      <Clock className="h-3 w-3 text-blue-500" />
+                      <span className="text-sm text-blue-700 font-medium">
+                        {doctor.workingDays.slice(0, 3).join(", ")}
+                        {doctor.workingDays.length > 3 && ` +${doctor.workingDays.length - 3} more`} 
+                        {" · "}{doctor.workingHours.start} - {doctor.workingHours.end}
+                      </span>
                     </div>
                   )}
                   

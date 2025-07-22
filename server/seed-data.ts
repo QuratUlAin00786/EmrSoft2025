@@ -54,6 +54,8 @@ export async function seedDatabase() {
           lastName: "Administrator",
           role: "admin",
           department: "Administration",
+          workingDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          workingHours: { start: "09:00", end: "17:00" },
           isActive: true
         },
         {
@@ -65,6 +67,8 @@ export async function seedDatabase() {
           lastName: "Smith",
           role: "doctor",
           department: "Cardiology",
+          workingDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          workingHours: { start: "08:00", end: "17:00" },
           isActive: true
         },
         {
@@ -76,6 +80,8 @@ export async function seedDatabase() {
           lastName: "Johnson",
           role: "nurse",
           department: "General Medicine",
+          workingDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+          workingHours: { start: "07:00", end: "19:00" },
           isActive: true
         },
         {
@@ -98,6 +104,8 @@ export async function seedDatabase() {
           lastName: "Rodriguez",
           role: "sample_taker",
           department: "Laboratory",
+          workingDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          workingHours: { start: "06:00", end: "14:00" },
           isActive: true
         },
         {
@@ -109,6 +117,8 @@ export async function seedDatabase() {
           lastName: "Johnson",
           role: "doctor",
           department: "Neurology",
+          workingDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          workingHours: { start: "09:00", end: "18:00" },
           isActive: true
         },
         {
@@ -120,6 +130,8 @@ export async function seedDatabase() {
           lastName: "Wilson",
           role: "doctor",
           department: "Orthopedics",
+          workingDays: ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+          workingHours: { start: "08:30", end: "16:30" },
           isActive: true
         },
         {
@@ -131,6 +143,8 @@ export async function seedDatabase() {
           lastName: "Anderson",
           role: "doctor",
           department: "Pediatrics",
+          workingDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          workingHours: { start: "08:00", end: "16:00" },
           isActive: true
         },
         {
@@ -142,6 +156,8 @@ export async function seedDatabase() {
           lastName: "Brown",
           role: "doctor",
           department: "Dermatology",
+          workingDays: ["Monday", "Wednesday", "Friday"],
+          workingHours: { start: "10:00", end: "18:00" },
           isActive: true
         }
       ];

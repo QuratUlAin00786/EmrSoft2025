@@ -31,6 +31,11 @@ export const users = pgTable("users", {
   lastName: text("last_name").notNull(),
   role: varchar("role", { length: 20 }).notNull().default("doctor"), // admin, doctor, nurse, receptionist, patient, sample_taker
   department: text("department"),
+  workingDays: jsonb("working_days").$type<string[]>().default([]),
+  workingHours: jsonb("working_hours").$type<{
+    start: string;
+    end: string;
+  }>().default({}),
   permissions: jsonb("permissions").$type<{
     modules?: {
       patients?: { view?: boolean; create?: boolean; edit?: boolean; delete?: boolean };
