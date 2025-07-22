@@ -33,8 +33,6 @@ export default function ShiftsPage() {
       try {
         const response = await apiRequest("GET", "/api/medical-staff");
         const data = await response.json();
-        console.log("✅ Medical staff API response:", data);
-        console.log("✅ Response type:", typeof data, "Array?", Array.isArray(data));
         return Array.isArray(data) ? data : [];
       } catch (error) {
         console.error("❌ Medical staff fetch error:", error);
@@ -42,11 +40,6 @@ export default function ShiftsPage() {
       }
     },
   });
-
-  // Debug logging
-  console.log("Staff data:", staff);
-  console.log("Staff loading:", staffLoading);
-  console.log("Staff error:", staffError);
 
   // Fetch shifts for selected date
   const { data: shifts = [], isLoading: shiftsLoading, refetch: refetchShifts } = useQuery({
@@ -134,7 +127,13 @@ export default function ShiftsPage() {
       return;
     }
 
-    createShiftMutation.mutate(formData);
+    // Convert staffId from string to number for backend validation
+    const shiftData = {
+      ...formData,
+      staffId: parseInt(formData.staffId)
+    };
+
+    createShiftMutation.mutate(shiftData);
   };
 
   const handleEditShift = (shift: any) => {
@@ -162,9 +161,15 @@ export default function ShiftsPage() {
       return;
     }
 
+    // Convert staffId from string to number for backend validation
+    const shiftData = {
+      ...formData,
+      staffId: parseInt(formData.staffId)
+    };
+
     updateShiftMutation.mutate({
       id: editingShift.id,
-      ...formData
+      ...shiftData
     });
   };
 

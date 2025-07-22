@@ -807,22 +807,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/medical-staff", authMiddleware, async (req: TenantRequest, res) => {
     try {
       const users = await storage.getUsersByOrganization(req.tenant!.id);
-      console.log(`🔍 Total users found: ${users.length}`);
       
       // Filter for medical staff only and remove password from response
       const medicalStaff = users
-        .filter(user => {
-          const isValidRole = ['doctor', 'nurse', 'sample_taker'].includes(user.role);
-          console.log(`👤 User ${user.email} - Role: ${user.role} - Valid: ${isValidRole} - Active: ${user.isActive}`);
-          return isValidRole && user.isActive;
-        })
+        .filter(user => ['doctor', 'nurse', 'sample_taker'].includes(user.role) && user.isActive)
         .map(user => {
           const { password, ...safeUser } = user;
           return safeUser;
         });
-
-      console.log(`✅ Filtered medical staff count: ${medicalStaff.length}`);
-      console.log(`📋 Medical staff data:`, medicalStaff.map(s => ({ id: s.id, email: s.email, role: s.role, firstName: s.firstName, lastName: s.lastName })));
       
       res.json(medicalStaff);
     } catch (error) {
