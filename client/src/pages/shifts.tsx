@@ -26,10 +26,15 @@ export default function ShiftsPage() {
     isAvailable: true
   });
 
-  // Fetch medical staff
-  const { data: staff = [], isLoading: staffLoading } = useQuery({
+  // Fetch medical staff - using standard React Query approach
+  const { data: staff = [], isLoading: staffLoading, error: staffError } = useQuery({
     queryKey: ["/api/medical-staff"],
   });
+
+  // Debug logging
+  console.log("Staff data:", staff);
+  console.log("Staff loading:", staffLoading);
+  console.log("Staff error:", staffError);
 
   // Fetch shifts for selected date
   const { data: shifts = [], isLoading: shiftsLoading, refetch: refetchShifts } = useQuery({

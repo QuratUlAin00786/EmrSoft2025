@@ -803,8 +803,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User management routes (admin only)
-  // Medical staff endpoint for appointment booking - accessible to all users
-  app.get("/api/medical-staff", tenantMiddleware, async (req: TenantRequest, res) => {
+  // Medical staff endpoint for appointment booking - accessible to authenticated users
+  app.get("/api/medical-staff", authMiddleware, async (req: TenantRequest, res) => {
     try {
       const users = await storage.getUsersByOrganization(req.tenant!.id);
       
