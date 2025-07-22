@@ -58,7 +58,9 @@ export default function ShiftsPage() {
         description: "Shift created successfully",
       });
       setIsCreateDialogOpen(false);
+      resetForm();
       refetchShifts();
+      queryClient.invalidateQueries({ queryKey: ["/api/shifts", selectedDate] });
       queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
     },
     onError: (error: any) => {
@@ -84,6 +86,7 @@ export default function ShiftsPage() {
       setIsEditDialogOpen(false);
       setEditingShift(null);
       refetchShifts();
+      queryClient.invalidateQueries({ queryKey: ["/api/shifts", selectedDate] });
       queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
     },
     onError: (error: any) => {
@@ -106,6 +109,7 @@ export default function ShiftsPage() {
         description: "Shift deleted successfully",
       });
       refetchShifts();
+      queryClient.invalidateQueries({ queryKey: ["/api/shifts", selectedDate] });
       queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
     },
     onError: (error: any) => {
