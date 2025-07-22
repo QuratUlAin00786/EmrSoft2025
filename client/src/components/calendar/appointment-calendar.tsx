@@ -335,7 +335,10 @@ export default function AppointmentCalendar() {
             </p>
           ) : (
             <div className="space-y-4 max-h-96 overflow-y-auto">
-              {appointments.slice(0, 20).map((appointment: Appointment) => (
+              {appointments
+                .sort((a: any, b: any) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
+                .slice(0, 20)
+                .map((appointment: Appointment) => (
                 <div
                   key={appointment.id}
                   className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
