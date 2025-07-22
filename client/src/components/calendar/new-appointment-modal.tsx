@@ -165,6 +165,8 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
     }
 
     const selectedProvider = providers.find(p => p.id === parseInt(formData.providerId));
+    console.log("🔍 Checking availability for provider:", selectedProvider);
+    
     if (!selectedProvider) {
       setAvailabilityWarning("");
       return;
@@ -172,11 +174,16 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
 
     const appointmentDate = new Date(formData.date);
     const dayOfWeek = appointmentDate.toLocaleDateString('en-US', { weekday: 'long' });
+    console.log("📅 Appointment day:", dayOfWeek);
+    console.log("🕒 Working days:", selectedProvider.workingDays);
+    console.log("⏰ Working hours:", selectedProvider.workingHours);
     
     // Check working days
     if (selectedProvider.workingDays && selectedProvider.workingDays.length > 0) {
       if (!selectedProvider.workingDays.includes(dayOfWeek)) {
-        setAvailabilityWarning(`⚠️ Dr. ${selectedProvider.firstName} ${selectedProvider.lastName} is not available on ${dayOfWeek}s`);
+        const warning = `⚠️ Dr. ${selectedProvider.firstName} ${selectedProvider.lastName} is not available on ${dayOfWeek}s`;
+        console.log("❌ Day availability check failed:", warning);
+        setAvailabilityWarning(warning);
         return;
       }
     }
@@ -188,12 +195,15 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
       const endTime = selectedProvider.workingHours.end;
 
       if (appointmentTime < startTime || appointmentTime > endTime) {
-        setAvailabilityWarning(`⚠️ Dr. ${selectedProvider.firstName} ${selectedProvider.lastName} is only available from ${startTime} to ${endTime}`);
+        const warning = `⚠️ Dr. ${selectedProvider.firstName} ${selectedProvider.lastName} is only available from ${startTime} to ${endTime}`;
+        console.log("❌ Time availability check failed:", warning);
+        setAvailabilityWarning(warning);
         return;
       }
     }
 
     // All checks passed
+    console.log("✅ Availability check passed");
     setAvailabilityWarning("");
   };
 
