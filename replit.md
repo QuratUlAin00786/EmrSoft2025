@@ -111,6 +111,7 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system des
 ## Changelog
 
 **July 22, 2025:**
+- **COMPLETED**: Implemented doctor availability checking in appointment scheduling system - added working hours data to all doctors (Monday-Friday, 9:00-17:00) and nurses (Monday-Saturday, 8:00-20:00), created real-time availability validation that checks provider working days and hours, displays yellow warning messages when doctors are not available at selected times, prevents scheduling appointments outside working hours, shows provider working hours in dropdown selection (e.g., "Dr. Sarah Smith (09:00-17:00)"), appointment scheduling now enforces authentic doctor availability constraints with proper user feedback
 - **COMPLETED**: Fixed appointment booking "Patient ID is required" error completely - resolved issue where `parseInt("")` was returning `NaN` and becoming `null`, updated validation to handle both numeric patient IDs (165, 159) and string patient IDs (P000004, P000005, P000158), added clear placeholder text and error messages showing valid patient ID options, appointment booking now works perfectly when users enter valid patient IDs from database
 
 **July 21, 2025:**

@@ -16,6 +16,7 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
   const { toast } = useToast();
   const [patients, setPatients] = useState<any[]>([]);
   const [providers, setProviders] = useState<any[]>([]);
+  const [availabilityWarning, setAvailabilityWarning] = useState<string>("");
 
   const createAppointmentMutation = useMutation({
     mutationFn: async (appointmentData: any) => {
@@ -152,11 +153,64 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
     }
   }, [isOpen]);
 
+  // Check provider availability when provider, date, or time changes
+  useEffect(() => {
+    checkAvailability();
+  }, [formData.providerId, formData.date, formData.time, providers]);
+
+  const checkAvailability = () => {
+    if (!formData.providerId || !formData.date || !formData.time || providers.length === 0) {
+      setAvailabilityWarning("");
+      return;
+    }
+
+    const selectedProvider = providers.find(p => p.id === parseInt(formData.providerId));
+    if (!selectedProvider) {
+      setAvailabilityWarning("");
+      return;
+    }
+
+    const appointmentDate = new Date(formData.date);
+    const dayOfWeek = appointmentDate.toLocaleDateString('en-US', { weekday: 'long' });
+    
+    // Check working days
+    if (selectedProvider.workingDays && selectedProvider.workingDays.length > 0) {
+      if (!selectedProvider.workingDays.includes(dayOfWeek)) {
+        setAvailabilityWarning(`⚠️ Dr. ${selectedProvider.firstName} ${selectedProvider.lastName} is not available on ${dayOfWeek}s`);
+        return;
+      }
+    }
+
+    // Check working hours
+    if (selectedProvider.workingHours && selectedProvider.workingHours.start && selectedProvider.workingHours.end) {
+      const appointmentTime = formData.time;
+      const startTime = selectedProvider.workingHours.start;
+      const endTime = selectedProvider.workingHours.end;
+
+      if (appointmentTime < startTime || appointmentTime > endTime) {
+        setAvailabilityWarning(`⚠️ Dr. ${selectedProvider.firstName} ${selectedProvider.lastName} is only available from ${startTime} to ${endTime}`);
+        return;
+      }
+    }
+
+    // All checks passed
+    setAvailabilityWarning("");
+  };
+
   const createAppointment = () => {
     if (!formData.patientId || !formData.providerId) {
       toast({
         title: "Missing Information", 
         description: "Please select both patient and provider",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (availabilityWarning) {
+      toast({
+        title: "Provider Not Available", 
+        description: "Please select a different time when the provider is available",
         variant: "destructive"
       });
       return;
@@ -244,6 +298,9 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
                 {providers.map((provider: any) => (
                   <option key={provider.id} value={provider.id}>
                     Dr. {provider.firstName} {provider.lastName}
+                    {provider.workingHours?.start && provider.workingHours?.end 
+                      ? ` (${provider.workingHours.start}-${provider.workingHours.end})`
+                      : ''}
                   </option>
                 ))}
               </select>
@@ -290,6 +347,12 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
               />
             </div>
           </div>
+
+          {availabilityWarning && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
+              {availabilityWarning}
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div>
