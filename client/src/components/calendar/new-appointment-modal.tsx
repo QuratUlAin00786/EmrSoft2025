@@ -15,8 +15,8 @@ interface NewAppointmentModalProps {
 export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: NewAppointmentModalProps) {
   const { toast } = useToast();
   const [patients, setPatients] = useState<any[]>([]);
-  const [providers, setProviders] = useState<any[]>([]);
-  const [availabilityWarning, setAvailabilityWarning] = useState<string>("");
+  const [allProviders, setAllProviders] = useState<any[]>([]);
+  const [availableProviders, setAvailableProviders] = useState<any[]>([]);
 
   const createAppointmentMutation = useMutation({
     mutationFn: async (appointmentData: any) => {
@@ -139,10 +139,54 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
       const uniqueProviders = data ? data.filter((provider: any, index: number, self: any[]) => 
         index === self.findIndex((p: any) => `${p.firstName} ${p.lastName}` === `${provider.firstName} ${provider.lastName}`)
       ) : [];
-      setProviders(uniqueProviders);
+      setAllProviders(uniqueProviders);
     } catch (err) {
       console.error("Error fetching providers:", err);
-      setProviders([]);
+      setAllProviders([]);
+    }
+  };
+
+  const filterAvailableProviders = () => {
+    if (!formData.date || !formData.time || allProviders.length === 0) {
+      setAvailableProviders(allProviders);
+      return;
+    }
+
+    const appointmentDate = new Date(formData.date);
+    const dayOfWeek = appointmentDate.toLocaleDateString('en-US', { weekday: 'long' });
+    console.log("📅 Filtering providers for:", dayOfWeek, "at", formData.time);
+    
+    const availableOnThisDateTime = allProviders.filter(provider => {
+      // Check working days
+      if (provider.workingDays && provider.workingDays.length > 0) {
+        if (!provider.workingDays.includes(dayOfWeek)) {
+          console.log(`❌ ${provider.firstName} ${provider.lastName} not available on ${dayOfWeek}`);
+          return false;
+        }
+      }
+
+      // Check working hours
+      if (provider.workingHours && provider.workingHours.start && provider.workingHours.end) {
+        const appointmentTime = formData.time;
+        const startTime = provider.workingHours.start;
+        const endTime = provider.workingHours.end;
+
+        if (appointmentTime < startTime || appointmentTime > endTime) {
+          console.log(`❌ ${provider.firstName} ${provider.lastName} not available at ${appointmentTime} (works ${startTime}-${endTime})`);
+          return false;
+        }
+      }
+
+      console.log(`✅ ${provider.firstName} ${provider.lastName} is available`);
+      return true;
+    });
+
+    console.log(`🔍 Found ${availableOnThisDateTime.length} available providers out of ${allProviders.length}`);
+    setAvailableProviders(availableOnThisDateTime);
+    
+    // Clear selected provider if they're no longer available
+    if (formData.providerId && !availableOnThisDateTime.find(p => p.id === parseInt(formData.providerId))) {
+      setFormData(prev => ({ ...prev, providerId: "" }));
     }
   };
 
@@ -153,59 +197,10 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
     }
   }, [isOpen]);
 
-  // Check provider availability when provider, date, or time changes
+  // Filter available providers when date or time changes
   useEffect(() => {
-    checkAvailability();
-  }, [formData.providerId, formData.date, formData.time, providers]);
-
-  const checkAvailability = () => {
-    if (!formData.providerId || !formData.date || !formData.time || providers.length === 0) {
-      setAvailabilityWarning("");
-      return;
-    }
-
-    const selectedProvider = providers.find(p => p.id === parseInt(formData.providerId));
-    console.log("🔍 Checking availability for provider:", selectedProvider);
-    
-    if (!selectedProvider) {
-      setAvailabilityWarning("");
-      return;
-    }
-
-    const appointmentDate = new Date(formData.date);
-    const dayOfWeek = appointmentDate.toLocaleDateString('en-US', { weekday: 'long' });
-    console.log("📅 Appointment day:", dayOfWeek);
-    console.log("🕒 Working days:", selectedProvider.workingDays);
-    console.log("⏰ Working hours:", selectedProvider.workingHours);
-    
-    // Check working days
-    if (selectedProvider.workingDays && selectedProvider.workingDays.length > 0) {
-      if (!selectedProvider.workingDays.includes(dayOfWeek)) {
-        const warning = `⚠️ Dr. ${selectedProvider.firstName} ${selectedProvider.lastName} is not available on ${dayOfWeek}s`;
-        console.log("❌ Day availability check failed:", warning);
-        setAvailabilityWarning(warning);
-        return;
-      }
-    }
-
-    // Check working hours
-    if (selectedProvider.workingHours && selectedProvider.workingHours.start && selectedProvider.workingHours.end) {
-      const appointmentTime = formData.time;
-      const startTime = selectedProvider.workingHours.start;
-      const endTime = selectedProvider.workingHours.end;
-
-      if (appointmentTime < startTime || appointmentTime > endTime) {
-        const warning = `⚠️ Dr. ${selectedProvider.firstName} ${selectedProvider.lastName} is only available from ${startTime} to ${endTime}`;
-        console.log("❌ Time availability check failed:", warning);
-        setAvailabilityWarning(warning);
-        return;
-      }
-    }
-
-    // All checks passed
-    console.log("✅ Availability check passed");
-    setAvailabilityWarning("");
-  };
+    filterAvailableProviders();
+  }, [formData.date, formData.time, allProviders]);
 
   const createAppointment = () => {
     if (!formData.patientId || !formData.providerId) {
@@ -217,10 +212,11 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
       return;
     }
 
-    if (availabilityWarning) {
+    // Check if selected provider is in available list
+    if (formData.providerId && !availableProviders.find(p => p.id === parseInt(formData.providerId))) {
       toast({
         title: "Provider Not Available", 
-        description: "Please select a different time when the provider is available",
+        description: "Selected provider is not available at this time",
         variant: "destructive"
       });
       return;
@@ -304,8 +300,8 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
                 value={formData.providerId}
                 onChange={(e) => setFormData(prev => ({ ...prev, providerId: e.target.value }))}
               >
-                <option value="">Select provider...</option>
-                {providers.map((provider: any) => (
+                <option value="">Select available provider...</option>
+                {availableProviders.map((provider: any) => (
                   <option key={provider.id} value={provider.id}>
                     Dr. {provider.firstName} {provider.lastName}
                     {provider.workingHours?.start && provider.workingHours?.end 
@@ -313,6 +309,9 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
                       : ''}
                   </option>
                 ))}
+                {availableProviders.length === 0 && formData.date && formData.time && (
+                  <option value="" disabled>No providers available at this time</option>
+                )}
               </select>
             </div>
           </div>
@@ -358,9 +357,9 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
             </div>
           </div>
 
-          {availabilityWarning && (
+          {availableProviders.length === 0 && formData.date && formData.time && allProviders.length > 0 && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
-              {availabilityWarning}
+              ⚠️ No providers are available at the selected date and time. Please choose a different time.
             </div>
           )}
 
