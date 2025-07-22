@@ -342,7 +342,11 @@ export default function AppointmentCalendar() {
                   {todaysAppointments.map((appointment: Appointment) => (
                     <div
                       key={appointment.id}
-                      className="border rounded-lg p-4 hover:bg-gray-50 transition-colors bg-blue-50 border-blue-200"
+                      className="border rounded-lg p-4 hover:bg-gray-50 transition-colors bg-blue-50 border-blue-200 cursor-pointer"
+                      onClick={() => {
+                        setSelectedAppointment(appointment);
+                        setShowAppointmentDetails(true);
+                      }}
                     >
                       <div className="flex flex-col space-y-3">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -401,7 +405,11 @@ export default function AppointmentCalendar() {
               {appointments.slice(0, 20).map((appointment: Appointment) => (
                 <div
                   key={appointment.id}
-                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                  onClick={() => {
+                    setSelectedAppointment(appointment);
+                    setShowAppointmentDetails(true);
+                  }}
                 >
                   <div className="flex flex-col space-y-3">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -457,7 +465,11 @@ export default function AppointmentCalendar() {
               {selectedDateAppointments.map((appointment: Appointment) => (
                 <div
                   key={appointment.id}
-                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                  onClick={() => {
+                    setSelectedAppointment(appointment);
+                    setShowAppointmentDetails(true);
+                  }}
                 >
                   <div className="flex flex-col space-y-3">
                     <div className="flex items-center gap-2 flex-wrap">
