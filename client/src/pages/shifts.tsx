@@ -44,6 +44,16 @@ export default function ShiftsPage() {
   // Fetch shifts for selected date
   const { data: shifts = [], isLoading: shiftsLoading, refetch: refetchShifts } = useQuery({
     queryKey: ["/api/shifts", selectedDate],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest("GET", `/api/shifts?date=${selectedDate}`);
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error("❌ Shifts fetch error:", error);
+        throw error;
+      }
+    },
   });
 
   // Create shift mutation
