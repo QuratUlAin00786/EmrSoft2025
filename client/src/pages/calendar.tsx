@@ -67,6 +67,7 @@ export default function CalendarPage() {
       console.error("Appointment creation error:", error);
       let errorMessage = "Failed to create appointment. Please try again.";
       
+      // Check if the error message contains patient not found (server returns 400: {"error":"Patient not found"})
       if (error.message && error.message.includes("Patient not found")) {
         errorMessage = "Patient not found. Please use a valid patient ID like: 165, 159, P000004, P000005, or P000158.";
       }
