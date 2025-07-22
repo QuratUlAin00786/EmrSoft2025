@@ -64,9 +64,16 @@ export default function CalendarPage() {
       });
     },
     onError: (error) => {
+      console.error("Appointment creation error:", error);
+      let errorMessage = "Failed to create appointment. Please try again.";
+      
+      if (error.message && error.message.includes("Patient not found")) {
+        errorMessage = "Patient not found. Please use a valid patient ID like: 165, 159, P000004, P000005, or P000158.";
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to create appointment. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -178,12 +185,12 @@ export default function CalendarPage() {
                     <Label htmlFor="patientId">Patient ID *</Label>
                     <Input
                       id="patientId"
-                      placeholder="Enter patient ID (e.g., 165, P000004, P000158)"
+                      placeholder="Enter: 165, 159, P000004, P000005, or P000158"
                       value={bookingForm.patientId}
                       onChange={(e) => setBookingForm(prev => ({ ...prev, patientId: e.target.value }))}
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Use numeric ID (165) or patient ID (P000004)
+                      Valid IDs: 165, 159, P000004, P000005, P000158
                     </p>
                   </div>
                   

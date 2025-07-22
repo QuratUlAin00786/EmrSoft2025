@@ -110,6 +110,9 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system des
 
 ## Changelog
 
+**July 22, 2025:**
+- **COMPLETED**: Fixed appointment booking "Patient ID is required" error completely - resolved issue where `parseInt("")` was returning `NaN` and becoming `null`, updated validation to handle both numeric patient IDs (165, 159) and string patient IDs (P000004, P000005, P000158), added clear placeholder text and error messages showing valid patient ID options, appointment booking now works perfectly when users enter valid patient IDs from database
+
 **July 21, 2025:**
 - **COMPLETED**: Fixed critical prescription creation 500 error in LIVE deployment - identified and resolved missing `getPrescriptionsByOrganization` method call that was causing "storage.getPrescriptions is not a function" error, prescription creation now working perfectly with database ID generation and proper duplicate prevention validation
 - **COMPLETED**: Fixed critical appointment creation 500 error in LIVE deployment - resolved validation schema mismatch between frontend sending `appointmentDate` and backend expecting `scheduledAt` and `title` fields, updated appointment API to handle both field formats with proper fallbacks, appointment creation now working perfectly with database ID generation
