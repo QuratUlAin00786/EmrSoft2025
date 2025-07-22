@@ -3702,6 +3702,746 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Mobile API endpoints for Doctor and Patient apps
+  
+  // Doctor Mobile API endpoints
+  app.get("/api/mobile/doctor/dashboard", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+      // Get doctor's dashboard data
+      const todayAppointments = await storage.getAppointmentsByProvider(userId, req.tenant!.id);
+      const totalPatients = await storage.getPatientsByOrganization(req.tenant!.id);
+      const pendingPrescriptions = await storage.getPrescriptionsByProvider(userId, req.tenant!.id);
+      
+      res.json({
+        todayAppointments: todayAppointments.filter(apt => {
+          const aptDate = new Date(apt.scheduledAt);
+          const today = new Date();
+          return aptDate.toDateString() === today.toDateString();
+        }).length,
+        totalPatients: totalPatients.length,
+        pendingPrescriptions: pendingPrescriptions.filter(p => p.status === 'pending').length,
+        upcomingAppointments: todayAppointments.slice(0, 5).map(apt => ({
+          id: apt.id,
+          patientName: `Patient ${apt.patientId}`,
+          time: apt.scheduledAt,
+          type: apt.type,
+          status: apt.status
+        }))
+      });
+    } catch (error) {
+      console.error("Error fetching doctor dashboard:", error);
+      res.status(500).json({ error: "Failed to fetch dashboard data" });
+    }
+  });
+
+  app.get("/api/mobile/doctor/patients", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const patients = await storage.getPatientsByOrganization(req.tenant!.id);
+      
+      const mobilePatients = patients.map(patient => ({
+        id: patient.id,
+        patientId: patient.patientId,
+        name: `${patient.firstName} ${patient.lastName}`,
+        email: patient.email,
+        phone: patient.phone,
+        dateOfBirth: patient.dateOfBirth,
+        gender: patient.gender,
+        emergencyContact: patient.emergencyContact,
+        lastVisit: patient.updatedAt,
+        riskLevel: patient.riskLevel || 'low'
+      }));
+      
+      res.json(mobilePatients);
+    } catch (error) {
+      console.error("Error fetching patients for mobile:", error);
+      res.status(500).json({ error: "Failed to fetch patients" });
+    }
+  });
+
+  app.get("/api/mobile/doctor/appointments", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      const { date } = req.query as { date?: string };
+      
+      let appointments = await storage.getAppointmentsByProvider(userId, req.tenant!.id);
+      
+      if (date) {
+        appointments = appointments.filter(apt => {
+          const aptDate = new Date(apt.scheduledAt);
+          return aptDate.toDateString() === new Date(date).toDateString();
+        });
+      }
+      
+      const patients = await storage.getPatientsByOrganization(req.tenant!.id);
+      
+      const mobileAppointments = appointments.map(apt => {
+        const patient = patients.find(p => p.id === apt.patientId);
+        return {
+          id: apt.id,
+          patientId: apt.patientId,
+          patientName: patient ? `${patient.firstName} ${patient.lastName}` : `Patient ${apt.patientId}`,
+          patientPhone: patient?.phone || '',
+          title: apt.title,
+          description: apt.description,
+          scheduledAt: apt.scheduledAt,
+          duration: apt.duration,
+          status: apt.status,
+          type: apt.type,
+          location: apt.location,
+          isVirtual: apt.isVirtual
+        };
+      });
+      
+      res.json(mobileAppointments);
+    } catch (error) {
+      console.error("Error fetching appointments for mobile:", error);
+      res.status(500).json({ error: "Failed to fetch appointments" });
+    }
+  });
+
+  app.post("/api/mobile/doctor/appointments/:id/accept", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const appointmentId = parseInt(req.params.id);
+      const appointment = await storage.updateAppointment(appointmentId, req.tenant!.id, {
+        status: 'confirmed'
+      });
+      
+      if (!appointment) {
+        return res.status(404).json({ error: "Appointment not found" });
+      }
+      
+      res.json({ message: "Appointment accepted successfully", appointment });
+    } catch (error) {
+      console.error("Error accepting appointment:", error);
+      res.status(500).json({ error: "Failed to accept appointment" });
+    }
+  });
+
+  app.post("/api/mobile/doctor/appointments/:id/reject", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const appointmentId = parseInt(req.params.id);
+      const { reason } = req.body;
+      
+      const appointment = await storage.updateAppointment(appointmentId, req.tenant!.id, {
+        status: 'cancelled',
+        description: reason ? `Cancelled: ${reason}` : 'Cancelled by doctor'
+      });
+      
+      if (!appointment) {
+        return res.status(404).json({ error: "Appointment not found" });
+      }
+      
+      res.json({ message: "Appointment rejected successfully", appointment });
+    } catch (error) {
+      console.error("Error rejecting appointment:", error);
+      res.status(500).json({ error: "Failed to reject appointment" });
+    }
+  });
+
+  app.get("/api/mobile/doctor/prescriptions", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      const prescriptions = await storage.getPrescriptionsByProvider(userId, req.tenant!.id);
+      const patients = await storage.getPatientsByOrganization(req.tenant!.id);
+      
+      const mobilePrescriptions = prescriptions.map(prescription => {
+        const patient = patients.find(p => p.id === prescription.patientId);
+        return {
+          id: prescription.id,
+          patientId: prescription.patientId,
+          patientName: patient ? `${patient.firstName} ${patient.lastName}` : `Patient ${prescription.patientId}`,
+          medication: prescription.medication,
+          dosage: prescription.dosage,
+          frequency: prescription.frequency,
+          duration: prescription.duration,
+          instructions: prescription.instructions,
+          status: prescription.status,
+          createdAt: prescription.createdAt
+        };
+      });
+      
+      res.json(mobilePrescriptions);
+    } catch (error) {
+      console.error("Error fetching prescriptions for mobile:", error);
+      res.status(500).json({ error: "Failed to fetch prescriptions" });
+    }
+  });
+
+  app.post("/api/mobile/doctor/prescriptions", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      const prescriptionData = {
+        ...req.body,
+        providerId: userId,
+        organizationId: req.tenant!.id,
+        status: 'active'
+      };
+      
+      const prescription = await storage.createPrescription(prescriptionData);
+      res.status(201).json(prescription);
+    } catch (error) {
+      console.error("Error creating prescription:", error);
+      res.status(500).json({ error: "Failed to create prescription" });
+    }
+  });
+
+  // Patient Mobile API endpoints
+  app.get("/api/mobile/patient/dashboard", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+      const patient = await storage.getPatientByUserId(userId, req.tenant!.id);
+      if (!patient) return res.status(404).json({ error: "Patient not found" });
+
+      const appointments = await storage.getAppointmentsByPatient(patient.id, req.tenant!.id);
+      const prescriptions = await storage.getPrescriptionsByPatient(patient.id, req.tenant!.id);
+      const medicalRecords = await storage.getMedicalRecordsByPatient(patient.id, req.tenant!.id);
+      
+      const todayAppointments = appointments.filter(apt => {
+        const aptDate = new Date(apt.scheduledAt);
+        const today = new Date();
+        return aptDate.toDateString() === today.toDateString() && apt.status === 'scheduled';
+      });
+
+      res.json({
+        patientInfo: {
+          name: `${patient.firstName} ${patient.lastName}`,
+          email: patient.email,
+          phone: patient.phone,
+          patientId: patient.patientId
+        },
+        upcomingAppointments: todayAppointments.length,
+        activePrescriptions: prescriptions.filter(p => p.status === 'active').length,
+        totalRecords: medicalRecords.length,
+        recentAppointments: appointments.slice(0, 3).map(apt => ({
+          id: apt.id,
+          title: apt.title,
+          scheduledAt: apt.scheduledAt,
+          status: apt.status,
+          type: apt.type
+        }))
+      });
+    } catch (error) {
+      console.error("Error fetching patient dashboard:", error);
+      res.status(500).json({ error: "Failed to fetch dashboard data" });
+    }
+  });
+
+  app.get("/api/mobile/patient/appointments", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      const patient = await storage.getPatientByUserId(userId, req.tenant!.id);
+      if (!patient) return res.status(404).json({ error: "Patient not found" });
+
+      const appointments = await storage.getAppointmentsByPatient(patient.id, req.tenant!.id);
+      const users = await storage.getUsersByOrganization(req.tenant!.id);
+      
+      const mobileAppointments = appointments.map(apt => {
+        const provider = users.find(u => u.id === apt.providerId);
+        return {
+          id: apt.id,
+          title: apt.title,
+          description: apt.description,
+          scheduledAt: apt.scheduledAt,
+          duration: apt.duration,
+          status: apt.status,
+          type: apt.type,
+          location: apt.location,
+          isVirtual: apt.isVirtual,
+          providerName: provider ? `Dr. ${provider.firstName} ${provider.lastName}` : 'Unknown Provider'
+        };
+      });
+      
+      res.json(mobileAppointments);
+    } catch (error) {
+      console.error("Error fetching patient appointments:", error);
+      res.status(500).json({ error: "Failed to fetch appointments" });
+    }
+  });
+
+  app.post("/api/mobile/patient/appointments", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      const patient = await storage.getPatientByUserId(userId, req.tenant!.id);
+      if (!patient) return res.status(404).json({ error: "Patient not found" });
+
+      const appointmentData = {
+        ...req.body,
+        patientId: patient.id,
+        organizationId: req.tenant!.id,
+        status: 'scheduled'
+      };
+      
+      const appointment = await storage.createAppointment(appointmentData);
+      res.status(201).json(appointment);
+    } catch (error) {
+      console.error("Error creating appointment:", error);
+      res.status(500).json({ error: "Failed to create appointment" });
+    }
+  });
+
+  app.get("/api/mobile/patient/prescriptions", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      const patient = await storage.getPatientByUserId(userId, req.tenant!.id);
+      if (!patient) return res.status(404).json({ error: "Patient not found" });
+
+      const prescriptions = await storage.getPrescriptionsByPatient(patient.id, req.tenant!.id);
+      const users = await storage.getUsersByOrganization(req.tenant!.id);
+      
+      const mobilePrescriptions = prescriptions.map(prescription => {
+        const provider = users.find(u => u.id === prescription.providerId);
+        return {
+          id: prescription.id,
+          medication: prescription.medication,
+          dosage: prescription.dosage,
+          frequency: prescription.frequency,
+          duration: prescription.duration,
+          instructions: prescription.instructions,
+          status: prescription.status,
+          createdAt: prescription.createdAt,
+          providerName: provider ? `Dr. ${provider.firstName} ${provider.lastName}` : 'Unknown Provider'
+        };
+      });
+      
+      res.json(mobilePrescriptions);
+    } catch (error) {
+      console.error("Error fetching patient prescriptions:", error);
+      res.status(500).json({ error: "Failed to fetch prescriptions" });
+    }
+  });
+
+  app.get("/api/mobile/patient/medical-records", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      const patient = await storage.getPatientByUserId(userId, req.tenant!.id);
+      if (!patient) return res.status(404).json({ error: "Patient not found" });
+
+      const records = await storage.getMedicalRecordsByPatient(patient.id, req.tenant!.id);
+      const users = await storage.getUsersByOrganization(req.tenant!.id);
+      
+      const mobileRecords = records.map(record => {
+        const provider = users.find(u => u.id === record.providerId);
+        return {
+          id: record.id,
+          type: record.type,
+          title: record.title,
+          notes: record.notes,
+          diagnosis: record.diagnosis,
+          treatment: record.treatment,
+          createdAt: record.createdAt,
+          providerName: provider ? `Dr. ${provider.firstName} ${provider.lastName}` : 'Unknown Provider'
+        };
+      });
+      
+      res.json(mobileRecords);
+    } catch (error) {
+      console.error("Error fetching patient medical records:", error);
+      res.status(500).json({ error: "Failed to fetch medical records" });
+    }
+  });
+
+  app.get("/api/mobile/doctors", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const users = await storage.getUsersByOrganization(req.tenant!.id);
+      
+      const doctors = users
+        .filter(user => user.role === 'doctor' && user.isActive)
+        .map(doctor => ({
+          id: doctor.id,
+          name: `Dr. ${doctor.firstName} ${doctor.lastName}`,
+          email: doctor.email,
+          department: doctor.department || 'General Medicine',
+          specialization: doctor.department || 'General Practice',
+          workingHours: doctor.workingHours || { start: '09:00', end: '17:00' },
+          workingDays: doctor.workingDays || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+        }));
+      
+      res.json(doctors);
+    } catch (error) {
+      console.error("Error fetching doctors:", error);
+      res.status(500).json({ error: "Failed to fetch doctors" });
+    }
+  });
+
+  // Video consultation endpoints
+  app.post("/api/mobile/video/start-consultation", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const { appointmentId } = req.body;
+      
+      // Generate a unique room ID for the consultation
+      const roomId = `consultation_${appointmentId}_${Date.now()}`;
+      
+      res.json({
+        roomId,
+        message: "Video consultation started",
+        joinUrl: `https://meet.jit.si/${roomId}`
+      });
+    } catch (error) {
+      console.error("Error starting video consultation:", error);
+      res.status(500).json({ error: "Failed to start consultation" });
+    }
+  });
+
+  // Mobile API Endpoints for Flutter Apps
+  
+  // Doctor Mobile App Endpoints
+  app.get("/api/mobile/doctor/dashboard", authMiddleware, requireRole(["doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const todayAppointments = await storage.getAppointmentsByOrganization(req.tenant!.id, new Date());
+      const totalPatients = await storage.getPatientsByOrganization(req.tenant!.id);
+      const pendingPrescriptions = await storage.getPrescriptionsByOrganization(req.tenant!.id);
+      
+      const dashboardData = {
+        todayAppointments: todayAppointments.length,
+        totalPatients: totalPatients.length,
+        pendingPrescriptions: pendingPrescriptions.filter(p => p.status === 'pending').length,
+        upcomingAppointments: todayAppointments
+          .filter(apt => new Date(apt.scheduledAt) > new Date())
+          .slice(0, 5)
+          .map(apt => ({
+            id: apt.id,
+            patientName: apt.patientName,
+            time: apt.scheduledAt,
+            type: apt.type,
+            status: apt.status
+          }))
+      };
+      
+      res.json(dashboardData);
+    } catch (error) {
+      console.error("Error fetching doctor dashboard:", error);
+      res.status(500).json({ error: "Failed to load dashboard data" });
+    }
+  });
+
+  app.get("/api/mobile/doctor/patients", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const patients = await storage.getPatientsByOrganization(req.tenant!.id);
+      const formattedPatients = patients.map(patient => ({
+        id: patient.id,
+        name: `${patient.firstName} ${patient.lastName}`,
+        patientId: patient.patientId,
+        email: patient.email,
+        phone: patient.phone,
+        dateOfBirth: patient.dateOfBirth,
+        gender: patient.gender,
+        lastVisit: patient.lastVisit,
+        riskLevel: patient.riskLevel || 'low'
+      }));
+      
+      res.json(formattedPatients);
+    } catch (error) {
+      console.error("Error fetching patients for doctor mobile:", error);
+      res.status(500).json({ error: "Failed to load patients" });
+    }
+  });
+
+  app.get("/api/mobile/doctor/appointments", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const date = req.query.date ? new Date(req.query.date as string) : new Date();
+      const appointments = await storage.getAppointmentsByOrganization(req.tenant!.id, date);
+      
+      res.json(appointments);
+    } catch (error) {
+      console.error("Error fetching doctor appointments:", error);
+      res.status(500).json({ error: "Failed to load appointments" });
+    }
+  });
+
+  app.post("/api/mobile/doctor/appointments/:id/accept", authMiddleware, requireRole(["doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const appointmentId = parseInt(req.params.id);
+      const updatedAppointment = await storage.updateAppointment(appointmentId, req.tenant!.id, { status: 'confirmed' });
+      
+      if (!updatedAppointment) {
+        return res.status(404).json({ error: "Appointment not found" });
+      }
+      
+      res.json(updatedAppointment);
+    } catch (error) {
+      console.error("Error accepting appointment:", error);
+      res.status(500).json({ error: "Failed to accept appointment" });
+    }
+  });
+
+  app.post("/api/mobile/doctor/appointments/:id/reject", authMiddleware, requireRole(["doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const appointmentId = parseInt(req.params.id);
+      const { reason } = req.body;
+      
+      const updatedAppointment = await storage.updateAppointment(appointmentId, req.tenant!.id, { 
+        status: 'cancelled',
+        description: `Cancelled: ${reason}`
+      });
+      
+      if (!updatedAppointment) {
+        return res.status(404).json({ error: "Appointment not found" });
+      }
+      
+      res.json(updatedAppointment);
+    } catch (error) {
+      console.error("Error rejecting appointment:", error);
+      res.status(500).json({ error: "Failed to reject appointment" });
+    }
+  });
+
+  app.get("/api/mobile/doctor/prescriptions", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const prescriptions = await storage.getPrescriptionsByOrganization(req.tenant!.id);
+      res.json(prescriptions);
+    } catch (error) {
+      console.error("Error fetching doctor prescriptions:", error);
+      res.status(500).json({ error: "Failed to load prescriptions" });
+    }
+  });
+
+  app.post("/api/mobile/doctor/prescriptions", authMiddleware, requireRole(["doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const prescriptionData = {
+        ...req.body,
+        organizationId: req.tenant!.id,
+        providerId: req.user!.id,
+        prescriptionNumber: `RX-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+        status: 'active'
+      };
+      
+      const newPrescription = await storage.createPrescription(prescriptionData);
+      res.status(201).json(newPrescription);
+    } catch (error) {
+      console.error("Error creating prescription:", error);
+      res.status(500).json({ error: "Failed to create prescription" });
+    }
+  });
+
+  // Patient Mobile App Endpoints
+  app.get("/api/mobile/patient/dashboard", authMiddleware, requireRole(["patient"]), async (req: TenantRequest, res) => {
+    try {
+      const patientId = req.user!.id;
+      const appointments = await storage.getAppointmentsByPatient(patientId, req.tenant!.id);
+      const prescriptions = await storage.getPrescriptionsByPatient(patientId, req.tenant!.id);
+      const medicalRecords = await storage.getMedicalRecordsByPatient(patientId, req.tenant!.id);
+      
+      const dashboardData = {
+        upcomingAppointments: appointments.filter(apt => 
+          new Date(apt.scheduledAt) > new Date() && apt.status !== 'cancelled'
+        ).length,
+        activePrescriptions: prescriptions.filter(p => p.status === 'active').length,
+        medicalRecords: medicalRecords.length,
+        nextAppointment: appointments
+          .filter(apt => new Date(apt.scheduledAt) > new Date() && apt.status !== 'cancelled')
+          .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())[0] || null
+      };
+      
+      res.json(dashboardData);
+    } catch (error) {
+      console.error("Error fetching patient dashboard:", error);
+      res.status(500).json({ error: "Failed to load dashboard data" });
+    }
+  });
+
+  app.get("/api/mobile/patient/appointments", authMiddleware, requireRole(["patient"]), async (req: TenantRequest, res) => {
+    try {
+      const patientId = req.user!.id;
+      const appointments = await storage.getAppointmentsByPatient(patientId, req.tenant!.id);
+      res.json(appointments);
+    } catch (error) {
+      console.error("Error fetching patient appointments:", error);
+      res.status(500).json({ error: "Failed to load appointments" });
+    }
+  });
+
+  app.post("/api/mobile/patient/appointments", authMiddleware, requireRole(["patient"]), async (req: TenantRequest, res) => {
+    try {
+      const appointmentData = {
+        ...req.body,
+        patientId: req.user!.id,
+        organizationId: req.tenant!.id,
+        status: 'scheduled'
+      };
+      
+      const newAppointment = await storage.createAppointment(appointmentData);
+      res.status(201).json(newAppointment);
+    } catch (error) {
+      console.error("Error booking appointment:", error);
+      res.status(500).json({ error: "Failed to book appointment" });
+    }
+  });
+
+  app.delete("/api/mobile/patient/appointments/:id", authMiddleware, requireRole(["patient"]), async (req: TenantRequest, res) => {
+    try {
+      const appointmentId = parseInt(req.params.id);
+      const patientId = req.user!.id;
+      
+      // Verify the appointment belongs to the patient
+      const appointment = await storage.getAppointment(appointmentId, req.tenant!.id);
+      if (!appointment || appointment.patientId !== patientId) {
+        return res.status(404).json({ error: "Appointment not found" });
+      }
+      
+      const updatedAppointment = await storage.updateAppointment(appointmentId, req.tenant!.id, { 
+        status: 'cancelled'
+      });
+      
+      res.json(updatedAppointment);
+    } catch (error) {
+      console.error("Error cancelling appointment:", error);
+      res.status(500).json({ error: "Failed to cancel appointment" });
+    }
+  });
+
+  app.get("/api/mobile/patient/prescriptions", authMiddleware, requireRole(["patient"]), async (req: TenantRequest, res) => {
+    try {
+      const patientId = req.user!.id;
+      const prescriptions = await storage.getPrescriptionsByPatient(patientId, req.tenant!.id);
+      res.json(prescriptions);
+    } catch (error) {
+      console.error("Error fetching patient prescriptions:", error);
+      res.status(500).json({ error: "Failed to load prescriptions" });
+    }
+  });
+
+  app.get("/api/mobile/patient/medical-records", authMiddleware, requireRole(["patient"]), async (req: TenantRequest, res) => {
+    try {
+      const patientId = req.user!.id;
+      const medicalRecords = await storage.getMedicalRecordsByPatient(patientId, req.tenant!.id);
+      res.json(medicalRecords);
+    } catch (error) {
+      console.error("Error fetching patient medical records:", error);
+      res.status(500).json({ error: "Failed to load medical records" });
+    }
+  });
+
+  app.get("/api/mobile/patient/doctors", authMiddleware, requireRole(["patient"]), async (req: TenantRequest, res) => {
+    try {
+      const doctors = await storage.getUsersByRole('doctor', req.tenant!.id);
+      const formattedDoctors = doctors.map(doctor => ({
+        id: doctor.id,
+        name: `Dr. ${doctor.firstName} ${doctor.lastName}`,
+        department: doctor.department || 'General Medicine',
+        specialization: doctor.specialization || 'General Practice',
+        email: doctor.email,
+        workingHours: doctor.workingHours || 'Monday-Friday, 09:00-17:00'
+      }));
+      
+      res.json(formattedDoctors);
+    } catch (error) {
+      console.error("Error fetching doctors:", error);
+      res.status(500).json({ error: "Failed to load doctors" });
+    }
+  });
+
+  app.get("/api/mobile/patient/available-slots", authMiddleware, requireRole(["patient"]), async (req: TenantRequest, res) => {
+    try {
+      const { doctorId, date } = req.query;
+      
+      // Generate sample available slots (in a real app, this would check actual availability)
+      const slots = [
+        { time: '09:00', available: true },
+        { time: '09:30', available: true },
+        { time: '10:00', available: false },
+        { time: '10:30', available: true },
+        { time: '11:00', available: true },
+        { time: '11:30', available: false },
+        { time: '14:00', available: true },
+        { time: '14:30', available: true },
+        { time: '15:00', available: true },
+        { time: '15:30', available: false },
+        { time: '16:00', available: true },
+        { time: '16:30', available: true }
+      ].filter(slot => slot.available);
+      
+      res.json(slots);
+    } catch (error) {
+      console.error("Error fetching available slots:", error);
+      res.status(500).json({ error: "Failed to load available slots" });
+    }
+  });
+
+  app.get("/api/mobile/patient/profile", authMiddleware, requireRole(["patient"]), async (req: TenantRequest, res) => {
+    try {
+      const patientId = req.user!.id;
+      const patient = await storage.getPatient(patientId, req.tenant!.id);
+      
+      if (!patient) {
+        return res.status(404).json({ error: "Patient profile not found" });
+      }
+      
+      res.json(patient);
+    } catch (error) {
+      console.error("Error fetching patient profile:", error);
+      res.status(500).json({ error: "Failed to load profile" });
+    }
+  });
+
+  app.put("/api/mobile/patient/profile", authMiddleware, requireRole(["patient"]), async (req: TenantRequest, res) => {
+    try {
+      const patientId = req.user!.id;
+      const updatedPatient = await storage.updatePatient(patientId, req.tenant!.id, req.body);
+      
+      if (!updatedPatient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+      
+      res.json(updatedPatient);
+    } catch (error) {
+      console.error("Error updating patient profile:", error);
+      res.status(500).json({ error: "Failed to update profile" });
+    }
+  });
+
+  app.get("/api/mobile/patient/lab-results", authMiddleware, requireRole(["patient"]), async (req: TenantRequest, res) => {
+    try {
+      const patientId = req.user!.id;
+      const labResults = await storage.getLabResultsByPatient(patientId, req.tenant!.id);
+      res.json(labResults);
+    } catch (error) {
+      console.error("Error fetching patient lab results:", error);
+      res.status(500).json({ error: "Failed to load lab results" });
+    }
+  });
+
+  // Video consultation endpoints
+  app.post("/api/mobile/video/start-consultation", authMiddleware, requireRole(["doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const { appointmentId } = req.body;
+      
+      // Generate BigBlueButton meeting URL (simplified)
+      const meetingData = {
+        meetingId: `consultation-${appointmentId}-${Date.now()}`,
+        meetingUrl: `https://vid2.averox.com/join?meeting=consultation-${appointmentId}`,
+        moderatorPassword: `mod-${appointmentId}`,
+        attendeePassword: `att-${appointmentId}`
+      };
+      
+      res.json(meetingData);
+    } catch (error) {
+      console.error("Error starting video consultation:", error);
+      res.status(500).json({ error: "Failed to start video consultation" });
+    }
+  });
+
+  app.post("/api/mobile/video/join-consultation", authMiddleware, requireRole(["patient"]), async (req: TenantRequest, res) => {
+    try {
+      const { appointmentId } = req.body;
+      
+      // Generate BigBlueButton join URL for patient
+      const joinData = {
+        meetingUrl: `https://vid2.averox.com/join?meeting=consultation-${appointmentId}&role=attendee`,
+        patientPassword: `att-${appointmentId}`
+      };
+      
+      res.json(joinData);
+    } catch (error) {
+      console.error("Error joining video consultation:", error);
+      res.status(500).json({ error: "Failed to join video consultation" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
