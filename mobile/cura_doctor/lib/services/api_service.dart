@@ -91,6 +91,40 @@ class ApiService {
   }
   
   static Future<Map<String, dynamic>> getPatient(int patientId) async {
+    final response = await _makeRequest('GET', '/mobile/doctor/patients/$patientId');
+    
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load patient details');
+    }
+  }
+  
+  // Get patients list for doctor (alternative endpoint)
+  static Future<List<Map<String, dynamic>>> getDoctorPatients() async {
+    final response = await _makeRequest('GET', '/mobile/doctor/patients');
+    
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.cast<Map<String, dynamic>>();
+    } else {
+      throw Exception('Failed to load doctor patients');
+    }
+  }
+  
+  // Get detailed patient information
+  static Future<Map<String, dynamic>> getPatientDetail(int patientId) async {
+    final response = await _makeRequest('GET', '/mobile/doctor/patients/$patientId');
+    
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load patient detail');
+    }
+  }
+  
+  // Alternative patient detail endpoint (using regular patients API)
+  static Future<Map<String, dynamic>> getPatientDetails(int patientId) async {
     final response = await _makeRequest('GET', '/patients/$patientId');
     
     if (response.statusCode == 200) {
@@ -146,6 +180,18 @@ class ApiService {
   
   // Prescription Management
   static Future<List<Map<String, dynamic>>> getDoctorPrescriptions() async {
+    final response = await _makeRequest('GET', '/mobile/doctor/prescriptions');
+    
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.cast<Map<String, dynamic>>();
+    } else {
+      throw Exception('Failed to load prescriptions');
+    }
+  }
+  
+  // Alternative prescription endpoint
+  static Future<List<Map<String, dynamic>>> getPrescriptions() async {
     final response = await _makeRequest('GET', '/mobile/doctor/prescriptions');
     
     if (response.statusCode == 200) {
