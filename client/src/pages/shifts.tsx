@@ -106,7 +106,7 @@ export default function ShiftsPage() {
     );
   };
 
-  // Handle time slot selection and booking
+  // Handle time slot selection and booking/unbooking
   const handleTimeSlotClick = async (timeSlot: string) => {
     if (!selectedRole) {
       toast({
@@ -126,41 +126,96 @@ export default function ShiftsPage() {
       return;
     }
 
-    if (isTimeSlotBooked(timeSlot)) {
+    const dateString = selectedDate.toISOString().split('T')[0];
+    const existingShift = shifts.find((shift: any) => 
+      shift.staffId === parseInt(selectedStaffId) &&
+      shift.date === dateString &&
+      shift.startTime === timeSlot &&
+      shift.status !== 'cancelled'
+    );
+
+    try {
+      if (existingShift) {
+        // Cancel/Remove the existing shift (turn green to gray)
+        const response = await apiRequest("DELETE", `/api/shifts/${existingShift.id}`);
+        if (response.ok) {
+          toast({
+            title: "Shift Cancelled",
+            description: `Cancelled ${timeSlot} shift for selected staff member`,
+          });
+        }
+      } else {
+        // Book the time slot (turn gray to green)
+        const shiftData = {
+          staffId: parseInt(selectedStaffId),
+          date: dateString,
+          startTime: timeSlot,
+          endTime: (parseInt(timeSlot.split(':')[0]) + 1).toString().padStart(2, '0') + ':00',
+          shiftType: "regular",
+          status: "scheduled",
+          isAvailable: true,
+          notes: `Scheduled via shift management calendar`
+        };
+
+        const response = await apiRequest("POST", "/api/shifts", shiftData);
+        if (response.ok) {
+          toast({
+            title: "Shift Scheduled",
+            description: `Successfully scheduled ${timeSlot} for selected staff member`,
+          });
+        }
+      }
+      
+      refetchShifts();
+      queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
+    } catch (error) {
       toast({
-        title: "Time Slot Unavailable",
-        description: "This time slot is already booked for the selected staff member",
+        title: "Operation Failed",
+        description: "Failed to update the shift. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle marking staff as absent for the entire day
+  const handleMarkAbsent = async () => {
+    if (!selectedStaffId) {
+      toast({
+        title: "Select Staff Member",
+        description: "Please select a staff member before marking absent",
         variant: "destructive",
       });
       return;
     }
 
-    // Book the time slot
-    const shiftData = {
-      staffId: parseInt(selectedStaffId),
-      date: selectedDate.toISOString().split('T')[0],
-      startTime: timeSlot,
-      endTime: (parseInt(timeSlot.split(':')[0]) + 1).toString().padStart(2, '0') + ':00',
-      shiftType: "regular",
-      status: "scheduled",
-      isAvailable: true,
-      notes: `Scheduled via shift management calendar`
-    };
-
+    const dateString = selectedDate.toISOString().split('T')[0];
+    
     try {
-      const response = await apiRequest("POST", "/api/shifts", shiftData);
+      // Create an absence record for the entire day
+      const absenceData = {
+        staffId: parseInt(selectedStaffId),
+        date: dateString,
+        startTime: "00:00",
+        endTime: "23:59",
+        shiftType: "absent",
+        status: "absent",
+        isAvailable: false,
+        notes: `Marked absent for entire day via shift management`
+      };
+
+      const response = await apiRequest("POST", "/api/shifts", absenceData);
       if (response.ok) {
         toast({
-          title: "Shift Scheduled",
-          description: `Successfully scheduled ${timeSlot} for selected staff member`,
+          title: "Staff Marked Absent",
+          description: `Successfully marked staff member as absent for ${selectedDate.toLocaleDateString()}`,
         });
         refetchShifts();
         queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
       }
     } catch (error) {
       toast({
-        title: "Booking Failed",
-        description: "Failed to schedule the shift. Please try again.",
+        title: "Operation Failed", 
+        description: "Failed to mark staff as absent. Please try again.",
         variant: "destructive",
       });
     }
@@ -322,7 +377,19 @@ export default function ShiftsPage() {
               <p className="text-sm text-gray-400">Choose role and name from the dropdowns above</p>
             </div>
           ) : (
-            <div className="space-y-2 max-h-96 overflow-y-auto">
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {/* Mark Absent Button */}
+              <div className="flex justify-center">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleMarkAbsent}
+                  className="w-full"
+                >
+                  Mark Staff as Absent for Entire Day
+                </Button>
+              </div>
+              
               <div className="grid grid-cols-2 gap-2">
                 {timeSlots.map((slot) => {
                   const isBooked = isTimeSlotBooked(slot.value);
@@ -331,14 +398,13 @@ export default function ShiftsPage() {
                       key={slot.value}
                       variant="outline"
                       className={`
-                        h-12 justify-center font-medium
+                        h-12 justify-center font-medium transition-all cursor-pointer
                         ${isBooked 
-                          ? 'bg-gray-300 text-gray-600 border-gray-300 cursor-not-allowed' 
+                          ? 'bg-gray-300 text-gray-600 border-gray-300 hover:bg-gray-400' 
                           : 'bg-green-50 hover:bg-green-100 text-green-700 border-green-200 hover:border-green-300'
                         }
                       `}
                       onClick={() => handleTimeSlotClick(slot.value)}
-                      disabled={isBooked}
                     >
                       {slot.display}
                     </Button>
@@ -350,11 +416,11 @@ export default function ShiftsPage() {
               <div className="mt-4 pt-4 border-t flex items-center justify-center gap-6 text-sm">
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 bg-green-100 border border-green-200 rounded"></div>
-                  <span className="text-gray-600">Available</span>
+                  <span className="text-gray-600">Available (Click to book)</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 bg-gray-300 border border-gray-300 rounded"></div>
-                  <span className="text-gray-600">Booked</span>
+                  <span className="text-gray-600">Booked (Click to cancel)</span>
                 </div>
               </div>
             </div>
