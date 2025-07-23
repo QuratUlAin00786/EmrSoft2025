@@ -82,6 +82,21 @@ class AuthService {
     }
   }
   
+  // Get current user from API
+  static Future<Map<String, dynamic>?> getUser() async {
+    try {
+      final response = await ApiService.validateToken();
+      if (response['user'] != null) {
+        await storeUserData(response['user']);
+        return response['user'];
+      }
+      return null;
+    } catch (e) {
+      await logout();
+      return null;
+    }
+  }
+  
   // Logout
   static Future<void> logout() async {
     await _secureStorage.delete(key: _tokenKey);

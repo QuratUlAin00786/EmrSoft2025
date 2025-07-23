@@ -92,6 +92,11 @@ class AuthProvider extends ChangeNotifier {
     }
   }
   
+  // Sign out alias for logout
+  Future<void> signOut() async {
+    await logout();
+  }
+  
   Future<void> refreshUser() async {
     try {
       await AuthService.refreshUserData();

@@ -168,6 +168,17 @@ class ApiService {
     }
   }
   
+  // Get specific doctor details
+  static Future<Map<String, dynamic>> getDoctor(int doctorId) async {
+    final response = await _makeRequest('GET', '/mobile/patient/doctors/$doctorId');
+    
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load doctor details');
+    }
+  }
+  
   // Available Time Slots
   static Future<List<Map<String, dynamic>>> getAvailableTimeSlots(int doctorId, String date) async {
     final queryParams = {'doctorId': doctorId.toString(), 'date': date};
