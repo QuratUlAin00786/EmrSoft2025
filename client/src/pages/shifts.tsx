@@ -17,7 +17,16 @@ export default function ShiftsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Generate time slots (24 hours in 1-hour intervals)
+  // Role options exactly as requested
+  const roleOptions = [
+    { value: 'doctor', label: 'Doctor' },
+    { value: 'nurse', label: 'Nurse' },
+    { value: 'lab_technician', label: 'Lab Technician' },
+    { value: 'admin', label: 'Admin' },
+    { value: 'receptionist', label: 'Receptionist' }
+  ];
+
+  // Generate 24-hour time slots
   const timeSlots = useMemo(() => {
     const slots = [];
     for (let hour = 0; hour < 24; hour++) {
@@ -31,12 +40,11 @@ export default function ShiftsPage() {
     return slots;
   }, []);
 
-  // Generate calendar days for current month
+  // Generate calendar days
   const calendarDays = useMemo(() => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
     const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
     const startDate = new Date(firstDay);
     startDate.setDate(startDate.getDate() - firstDay.getDay());
     
@@ -51,16 +59,7 @@ export default function ShiftsPage() {
     return days;
   }, [currentMonth]);
 
-  // Role options
-  const roleOptions = [
-    { value: 'doctor', label: 'Doctor' },
-    { value: 'nurse', label: 'Nurse' },
-    { value: 'lab_technician', label: 'Lab Technician' },
-    { value: 'admin', label: 'Admin' },
-    { value: 'receptionist', label: 'Receptionist' }
-  ];
-
-  // Fetch medical staff with explicit query function
+  // Fetch medical staff
   const { data: staff = [], isLoading: staffLoading } = useQuery({
     queryKey: ["/api/medical-staff"],
     queryFn: async () => {
@@ -69,7 +68,7 @@ export default function ShiftsPage() {
         const data = await response.json();
         return Array.isArray(data) ? data : [];
       } catch (error) {
-        console.error("❌ Medical staff fetch error:", error);
+        console.error("Medical staff fetch error:", error);
         throw error;
       }
     },
@@ -84,7 +83,7 @@ export default function ShiftsPage() {
         const data = await response.json();
         return Array.isArray(data) ? data : [];
       } catch (error) {
-        console.error("❌ Shifts fetch error:", error);
+        console.error("Shifts fetch error:", error);
         throw error;
       }
     },
@@ -96,7 +95,7 @@ export default function ShiftsPage() {
     return staff.filter((member: any) => member.role === selectedRole);
   }, [staff, selectedRole]);
 
-  // Check if time slot is booked for selected staff member and date
+  // Check if time slot is booked
   const isTimeSlotBooked = (timeSlot: string) => {
     if (!selectedStaffId || !selectedDate) return false;
     
@@ -123,7 +122,6 @@ export default function ShiftsPage() {
       resetForm();
       refetchShifts();
       queryClient.invalidateQueries({ queryKey: ["/api/shifts", selectedDate] });
-      queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
     },
     onError: (error: any) => {
       toast({
@@ -139,7 +137,6 @@ export default function ShiftsPage() {
     setSelectedRole("");
     setSelectedStaffId("");
     setSelectedTimeSlot("");
-    setSelectedDate(new Date().toISOString().split('T')[0]);
   };
 
   // Handle time slot selection
@@ -190,7 +187,7 @@ export default function ShiftsPage() {
     createShiftMutation.mutate(shiftData);
   };
 
-  // Navigation functions
+  // Calendar navigation
   const goToPreviousMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
   };
@@ -199,15 +196,12 @@ export default function ShiftsPage() {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
   };
 
-  // Format month display
   const monthNames = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
   const currentMonthName = monthNames[currentMonth.getMonth()];
   const currentYear = currentMonth.getFullYear();
-
-  // Day names
   const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
   return (
@@ -271,7 +265,7 @@ export default function ShiftsPage() {
         </div>
       </div>
 
-      {/* Schedule Shift Button */}
+      {/* Enhanced Schedule Shift Dialog */}
       <div className="mb-6">
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
@@ -280,19 +274,21 @@ export default function ShiftsPage() {
               Schedule Shift
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-5xl max-h-[95vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-xl font-semibold text-gray-900">Select a Date & Time</DialogTitle>
+              <DialogTitle className="text-xl font-semibold text-gray-900">
+                Select Role, Name, Date & Time
+              </DialogTitle>
             </DialogHeader>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Left Side - Role/Name Selection & Calendar */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
+              {/* LEFT SIDE: Role/Name Selection & Calendar */}
               <div className="space-y-6">
-                {/* Role Selection */}
+                {/* Role Dropdown */}
                 <div>
                   <label className="text-sm font-medium text-gray-700 mb-2 block">Role</label>
                   <Select value={selectedRole} onValueChange={setSelectedRole}>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full h-12">
                       <SelectValue placeholder="Select role..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -305,11 +301,11 @@ export default function ShiftsPage() {
                   </Select>
                 </div>
 
-                {/* Name Selection */}
+                {/* Name Dropdown */}
                 <div>
                   <label className="text-sm font-medium text-gray-700 mb-2 block">Name</label>
                   <Select value={selectedStaffId} onValueChange={setSelectedStaffId}>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full h-12">
                       <SelectValue placeholder="Select staff member..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -327,7 +323,7 @@ export default function ShiftsPage() {
                   </Select>
                 </div>
 
-                {/* Calendar */}
+                {/* Interactive Calendar */}
                 <div className="bg-gray-50 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-4">
                     <Button
@@ -391,10 +387,10 @@ export default function ShiftsPage() {
                 </div>
               </div>
 
-              {/* Right Side - Time Slots */}
+              {/* RIGHT SIDE: Time Slots (GREEN = Available, GRAY = Booked) */}
               <div>
                 <h4 className="text-sm font-medium text-gray-700 mb-4">
-                  {selectedDate ? new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : 'Select a date'}
+                  Available Times for {selectedDate ? new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : 'Select a date'}
                 </h4>
                 
                 <div className="grid grid-cols-2 gap-2 max-h-96 overflow-y-auto">
@@ -413,7 +409,7 @@ export default function ShiftsPage() {
                             ? 'bg-blue-600 text-white border-blue-600'
                             : isBooked
                               ? 'bg-gray-300 text-gray-500 border-gray-300 cursor-not-allowed'
-                              : 'bg-green-50 text-green-800 border-green-200 hover:bg-green-100 hover:border-green-300'
+                              : 'bg-green-100 text-green-800 border-green-300 hover:bg-green-200'
                           }
                         `}
                       >
@@ -429,9 +425,9 @@ export default function ShiftsPage() {
                     <Button
                       onClick={handleCreateShift}
                       disabled={createShiftMutation.isPending}
-                      className="w-full bg-blue-600 hover:bg-blue-700"
+                      className="w-full bg-blue-600 hover:bg-blue-700 h-12"
                     >
-                      {createShiftMutation.isPending ? 'Scheduling...' : 'Confirm'}
+                      {createShiftMutation.isPending ? 'Scheduling...' : 'Confirm Schedule'}
                     </Button>
                   </div>
                 )}
@@ -488,23 +484,13 @@ export default function ShiftsPage() {
                       }`}>
                         {shift.status.toUpperCase()}
                       </span>
-                      {shift.isAvailable && (
-                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          AVAILABLE
-                        </span>
-                      )}
                     </div>
                     <div className="flex items-center gap-4 text-sm text-gray-600">
                       <div className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
                         {shift.startTime} - {shift.endTime}
                       </div>
-                      {shift.notes && (
-                        <div className="flex items-center gap-1">
-                          <span>•</span>
-                          <span>{shift.notes}</span>
-                        </div>
-                      )}
+                      {shift.notes && <span>• {shift.notes}</span>}
                     </div>
                   </div>
                 </div>
