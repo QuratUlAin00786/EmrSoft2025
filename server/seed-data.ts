@@ -102,7 +102,7 @@ export async function seedDatabase() {
           password: hashedLabTechPassword,
           firstName: "Maria",
           lastName: "Rodriguez",
-          role: "sample_taker",
+          role: "lab_technician",
           department: "Laboratory",
           workingDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
           workingHours: { start: "06:00", end: "14:00" },
@@ -158,6 +158,19 @@ export async function seedDatabase() {
           department: "Dermatology",
           workingDays: ["Monday", "Wednesday", "Friday"],
           workingHours: { start: "10:00", end: "18:00" },
+          isActive: true
+        },
+        {
+          organizationId: org.id,
+          email: "receptionist@cura.com",
+          username: "receptionist",
+          password: hashedAdminPassword,
+          firstName: "Jane",
+          lastName: "Thompson",
+          role: "receptionist",
+          department: "Front Desk",
+          workingDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          workingHours: { start: "08:00", end: "17:00" },
           isActive: true
         }
       ];

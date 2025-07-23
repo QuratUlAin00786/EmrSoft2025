@@ -808,9 +808,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const users = await storage.getUsersByOrganization(req.tenant!.id);
       
-      // Filter for medical staff only and remove password from response
+      // Filter for all staff roles needed for shift management and appointments
       const medicalStaff = users
-        .filter(user => ['doctor', 'nurse', 'sample_taker'].includes(user.role) && user.isActive)
+        .filter(user => ['doctor', 'nurse', 'sample_taker', 'lab_technician', 'admin', 'receptionist'].includes(user.role) && user.isActive)
         .map(user => {
           const { password, ...safeUser } = user;
           return safeUser;
