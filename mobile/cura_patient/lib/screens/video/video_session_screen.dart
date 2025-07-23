@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import '../../services/api_service.dart';
+import 'dart:async';
 import '../../theme/app_theme.dart';
 import '../../utils/app_colors.dart';
 
 class VideoSessionScreen extends StatefulWidget {
-  final int? appointmentId;
+  final Map<String, dynamic>? appointment;
   final String? doctorName;
 
   const VideoSessionScreen({
     super.key,
-    this.appointmentId,
+    this.appointment,
     this.doctorName,
   });
 
@@ -20,270 +20,538 @@ class VideoSessionScreen extends StatefulWidget {
 class _VideoSessionScreenState extends State<VideoSessionScreen> {
   bool _isVideoEnabled = true;
   bool _isAudioEnabled = true;
-  bool _isCallActive = false;
-  bool _isConnecting = false;
-  String _callDuration = '00:00';
-  String _connectionStatus = 'Ready to connect';
+  bool _isSpeakerOn = true;
+  bool _isRecording = false;
+  bool _isConnected = false;
+  bool _isConnecting = true;
+  bool _showControls = true;
+  Timer? _hideControlsTimer;
+  Timer? _connectionTimer;
+  int _sessionDuration = 0;
+  Timer? _durationTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _simulateConnection();
+    _startHideControlsTimer();
+  }
+
+  void _simulateConnection() {
+    _connectionTimer = Timer(const Duration(seconds: 3), () {
+      setState(() {
+        _isConnecting = false;
+        _isConnected = true;
+      });
+      _startDurationTimer();
+    });
+  }
+
+  void _startDurationTimer() {
+    _durationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        _sessionDuration++;
+      });
+    });
+  }
+
+  void _startHideControlsTimer() {
+    _hideControlsTimer?.cancel();
+    _hideControlsTimer = Timer(const Duration(seconds: 5), () {
+      setState(() {
+        _showControls = false;
+      });
+    });
+  }
+
+  void _showControlsTemporarily() {
+    setState(() {
+      _showControls = true;
+    });
+    _startHideControlsTimer();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black.withOpacity(0.5),
-        foregroundColor: Colors.white,
-        elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.doctorName ?? 'Video Session',
-              style: const TextStyle(fontSize: 16),
-            ),
-            Text(
-              _connectionStatus,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
-            ),
-          ],
-        ),
-        actions: [
-          if (_isCallActive)
-            Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: Center(
-                child: Text(
-                  _callDuration,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
+      body: SafeArea(
+        child: GestureDetector(
+          onTap: _showControlsTemporarily,
+          child: Stack(
+            children: [
+              // Main video area
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black,
+                  child: _buildVideoContent(),
                 ),
               ),
-            ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          // Main video view
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            color: Colors.black,
-            child: _isCallActive
-                ? _buildActiveCallView()
-                : _buildWaitingView(),
-          ),
 
-          // Self video preview (when call is active)
-          if (_isCallActive && _isVideoEnabled)
-            Positioned(
-              top: 80,
-              right: 16,
-              child: _buildSelfVideoPreview(),
-            ),
-
-          // Control buttons
-          Positioned(
-            bottom: 60,
-            left: 0,
-            right: 0,
-            child: _buildControlButtons(),
-          ),
-
-          // Call status overlay
-          if (_isConnecting)
-            Container(
-              color: Colors.black.withOpacity(0.7),
-              child: const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: Colors.white),
-                    SizedBox(height: 16),
-                    Text(
-                      'Connecting...',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
+              // Top controls
+              if (_showControls)
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.7),
+                          Colors.transparent,
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActiveCallView() {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Colors.grey[900]!,
-            Colors.black,
-          ],
-        ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Doctor video placeholder
-          Container(
-            width: 200,
-            height: 200,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(100),
-              border: Border.all(color: AppColors.primary, width: 3),
-            ),
-            child: const Icon(
-              Icons.person,
-              size: 80,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            widget.doctorName ?? 'Doctor',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Video consultation in progress',
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.7),
-              fontSize: 16,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWaitingView() {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            AppColors.primary.withOpacity(0.8),
-            Colors.black,
-          ],
-        ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.video_call,
-            size: 120,
-            color: Colors.white.withOpacity(0.8),
-          ),
-          const SizedBox(height: 32),
-          const Text(
-            'Ready to start video consultation',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            widget.doctorName != null
-                ? 'Tap the call button to connect with ${widget.doctorName}'
-                : 'Tap the call button to start the consultation',
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.7),
-              fontSize: 16,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 48),
-          // Pre-call setup
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 32),
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              children: [
-                const Text(
-                  'Pre-call Setup',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    child: _buildTopControls(),
                   ),
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildPreCallOption(
-                      'Camera',
-                      _isVideoEnabled ? Icons.videocam : Icons.videocam_off,
-                      _isVideoEnabled,
-                      () => setState(() => _isVideoEnabled = !_isVideoEnabled),
+
+              // Bottom controls
+              if (_showControls)
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.8),
+                          Colors.transparent,
+                        ],
+                      ),
                     ),
-                    _buildPreCallOption(
-                      'Microphone',
-                      _isAudioEnabled ? Icons.mic : Icons.mic_off,
-                      _isAudioEnabled,
-                      () => setState(() => _isAudioEnabled = !_isAudioEnabled),
-                    ),
-                  ],
+                    child: _buildBottomControls(),
+                  ),
                 ),
-              ],
-            ),
+
+              // Connection status overlay
+              if (_isConnecting)
+                Positioned.fill(
+                  child: Container(
+                    color: Colors.black.withOpacity(0.8),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Connecting to Dr. ${widget.doctorName ?? 'Healthcare Provider'}...',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+              // Recording indicator
+              if (_isRecording)
+                Positioned(
+                  top: 60,
+                  right: 16,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Text(
+                          'REC',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildPreCallOption(String label, IconData icon, bool isEnabled, VoidCallback onTap) {
+  Widget _buildVideoContent() {
+    if (_isConnecting) {
+      return Container();
+    }
+
+    return Stack(
+      children: [
+        // Doctor's video (main view)
+        Positioned.fill(
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppColors.primary.withOpacity(0.3),
+                  Colors.blue.withOpacity(0.2),
+                  Colors.purple.withOpacity(0.3),
+                ],
+              ),
+            ),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(60),
+                      border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
+                    ),
+                    child: Icon(
+                      Icons.person,
+                      size: 60,
+                      color: Colors.white.withOpacity(0.8),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Dr. ${widget.doctorName ?? 'Healthcare Provider'}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  if (_isConnected)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.success.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.success.withOpacity(0.5)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: AppColors.success,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Text(
+                            'Connected',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+
+        // Patient's video (picture-in-picture)
+        Positioned(
+          top: 20,
+          right: 16,
+          child: Container(
+            width: 120,
+            height: 160,
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withOpacity(0.3)),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Stack(
+                children: [
+                  if (_isVideoEnabled)
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            AppColors.success.withOpacity(0.3),
+                            Colors.green.withOpacity(0.2),
+                          ],
+                        ),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.person,
+                          size: 40,
+                          color: Colors.white,
+                        ),
+                      ),
+                    )
+                  else
+                    Container(
+                      color: Colors.black,
+                      child: const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.videocam_off,
+                              size: 30,
+                              color: Colors.white,
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Camera Off',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  if (!_isAudioEnabled)
+                    Positioned(
+                      bottom: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.mic_off,
+                          size: 12,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTopControls() {
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Icon(
+              Icons.arrow_back,
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
+        ),
+        const Spacer(),
+        if (_isConnected)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Text(
+              _formatDuration(_sessionDuration),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        const Spacer(),
+        GestureDetector(
+          onTap: _toggleRecording,
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: _isRecording ? Colors.red : Colors.black.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(
+              _isRecording ? Icons.stop : Icons.fiber_manual_record,
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBottomControls() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Main control buttons
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildControlButton(
+              icon: _isAudioEnabled ? Icons.mic : Icons.mic_off,
+              isActive: _isAudioEnabled,
+              onTap: _toggleAudio,
+              backgroundColor: _isAudioEnabled ? null : Colors.red,
+            ),
+            _buildControlButton(
+              icon: _isVideoEnabled ? Icons.videocam : Icons.videocam_off,
+              isActive: _isVideoEnabled,
+              onTap: _toggleVideo,
+              backgroundColor: _isVideoEnabled ? null : Colors.red,
+            ),
+            _buildControlButton(
+              icon: Icons.call_end,
+              isActive: false,
+              onTap: _endCall,
+              backgroundColor: Colors.red,
+              size: 60,
+            ),
+            _buildControlButton(
+              icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_down,
+              isActive: _isSpeakerOn,
+              onTap: _toggleSpeaker,
+            ),
+            _buildControlButton(
+              icon: Icons.more_vert,
+              isActive: false,
+              onTap: _showMoreOptions,
+            ),
+          ],
+        ),
+        
+        const SizedBox(height: 16),
+        
+        // Additional controls
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildSecondaryButton(
+              icon: Icons.chat,
+              label: 'Chat',
+              onTap: _openChat,
+            ),
+            _buildSecondaryButton(
+              icon: Icons.screen_share,
+              label: 'Share',
+              onTap: _shareScreen,
+            ),
+            _buildSecondaryButton(
+              icon: Icons.note_add,
+              label: 'Notes',
+              onTap: _takeNotes,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildControlButton({
+    required IconData icon,
+    required bool isActive,
+    required VoidCallback onTap,
+    Color? backgroundColor,
+    double size = 50,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: backgroundColor ?? (isActive 
+              ? Colors.white.withOpacity(0.2) 
+              : Colors.black.withOpacity(0.5)),
+          borderRadius: BorderRadius.circular(size / 2),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.3),
+            width: 1,
+          ),
+        ),
+        child: Icon(
+          icon,
+          color: Colors.white,
+          size: size * 0.4,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSecondaryButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
         children: [
           Container(
-            width: 60,
-            height: 60,
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isEnabled
-                  ? AppColors.success.withOpacity(0.2)
-                  : AppColors.error.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(30),
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(25),
               border: Border.all(
-                color: isEnabled ? AppColors.success : AppColors.error,
-                width: 2,
+                color: Colors.white.withOpacity(0.3),
+                width: 1,
               ),
             ),
             child: Icon(
               icon,
-              color: isEnabled ? AppColors.success : AppColors.error,
-              size: 28,
+              color: Colors.white,
+              size: 20,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           Text(
             label,
             style: const TextStyle(
@@ -296,241 +564,78 @@ class _VideoSessionScreenState extends State<VideoSessionScreen> {
     );
   }
 
-  Widget _buildSelfVideoPreview() {
-    return Container(
-      width: 120,
-      height: 160,
-      decoration: BoxDecoration(
-        color: Colors.grey[800],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white, width: 2),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
-        child: Stack(
-          children: [
-            Container(
-              width: double.infinity,
-              height: double.infinity,
-              color: Colors.grey[800],
-              child: const Icon(
-                Icons.person,
-                color: Colors.white,
-                size: 40,
-              ),
-            ),
-            if (!_isVideoEnabled)
-              Container(
-                width: double.infinity,
-                height: double.infinity,
-                color: Colors.black.withOpacity(0.8),
-                child: const Center(
-                  child: Icon(
-                    Icons.videocam_off,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildControlButtons() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          // Video toggle
-          _buildControlButton(
-            _isVideoEnabled ? Icons.videocam : Icons.videocam_off,
-            _isVideoEnabled ? Colors.white : AppColors.error,
-            () => setState(() => _isVideoEnabled = !_isVideoEnabled),
-          ),
-
-          // Audio toggle
-          _buildControlButton(
-            _isAudioEnabled ? Icons.mic : Icons.mic_off,
-            _isAudioEnabled ? Colors.white : AppColors.error,
-            () => setState(() => _isAudioEnabled = !_isAudioEnabled),
-          ),
-
-          // Call/End call button
-          _buildCallButton(),
-
-          // Chat
-          _buildControlButton(
-            Icons.chat,
-            Colors.white,
-            _showChatDialog,
-          ),
-
-          // More options
-          _buildControlButton(
-            Icons.more_vert,
-            Colors.white,
-            _showMoreOptions,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildControlButton(IconData icon, Color color, VoidCallback onPressed) {
-    return Container(
-      width: 56,
-      height: 56,
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: IconButton(
-        onPressed: onPressed,
-        icon: Icon(icon, color: color, size: 28),
-      ),
-    );
-  }
-
-  Widget _buildCallButton() {
-    return Container(
-      width: 70,
-      height: 70,
-      decoration: BoxDecoration(
-        color: _isCallActive ? AppColors.error : AppColors.success,
-        borderRadius: BorderRadius.circular(35),
-        boxShadow: [
-          BoxShadow(
-            color: (_isCallActive ? AppColors.error : AppColors.success).withOpacity(0.3),
-            blurRadius: 10,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: IconButton(
-        onPressed: _toggleCall,
-        icon: Icon(
-          _isCallActive ? Icons.call_end : Icons.call,
-          color: Colors.white,
-          size: 32,
-        ),
-      ),
-    );
-  }
-
-  void _toggleCall() async {
-    if (_isCallActive) {
-      // End call
-      setState(() {
-        _isCallActive = false;
-        _connectionStatus = 'Call ended';
-        _callDuration = '00:00';
-      });
-      
-      // Show call summary
-      _showCallSummaryDialog();
-    } else {
-      // Start call
-      setState(() {
-        _isConnecting = true;
-        _connectionStatus = 'Connecting...';
-      });
-
-      // Simulate connection delay
-      await Future.delayed(const Duration(seconds: 2));
-
-      setState(() {
-        _isConnecting = false;
-        _isCallActive = true;
-        _connectionStatus = 'Connected';
-      });
-
-      // Start call timer
-      _startCallTimer();
-    }
-  }
-
-  void _startCallTimer() {
-    // Simulate call timer
-    int seconds = 0;
-    Future.doWhile(() async {
-      if (!_isCallActive) return false;
-      
-      await Future.delayed(const Duration(seconds: 1));
-      if (mounted && _isCallActive) {
-        seconds++;
-        final minutes = seconds ~/ 60;
-        final remainingSeconds = seconds % 60;
-        setState(() {
-          _callDuration = '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
-        });
-      }
-      return _isCallActive;
+  void _toggleVideo() {
+    setState(() {
+      _isVideoEnabled = !_isVideoEnabled;
     });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_isVideoEnabled ? 'Camera enabled' : 'Camera disabled'),
+        duration: const Duration(seconds: 2),
+        backgroundColor: _isVideoEnabled ? AppColors.success : Colors.orange,
+      ),
+    );
   }
 
-  void _showChatDialog() {
+  void _toggleAudio() {
+    setState(() {
+      _isAudioEnabled = !_isAudioEnabled;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_isAudioEnabled ? 'Microphone enabled' : 'Microphone disabled'),
+        duration: const Duration(seconds: 2),
+        backgroundColor: _isAudioEnabled ? AppColors.success : Colors.orange,
+      ),
+    );
+  }
+
+  void _toggleSpeaker() {
+    setState(() {
+      _isSpeakerOn = !_isSpeakerOn;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_isSpeakerOn ? 'Speaker on' : 'Speaker off'),
+        duration: const Duration(seconds: 2),
+        backgroundColor: AppColors.primary,
+      ),
+    );
+  }
+
+  void _toggleRecording() {
+    setState(() {
+      _isRecording = !_isRecording;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_isRecording ? 'Recording started' : 'Recording stopped'),
+        duration: const Duration(seconds: 2),
+        backgroundColor: _isRecording ? Colors.red : AppColors.success,
+      ),
+    );
+  }
+
+  void _endCall() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Chat'),
-        content: SizedBox(
-          width: double.maxFinite,
-          height: 300,
-          child: Column(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey[300]!),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'Chat messages will appear here',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Type a message...',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Message sent')),
-                      );
-                    },
-                    icon: Icon(Icons.send, color: AppColors.primary),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
+        title: const Text('End Video Session'),
+        content: const Text('Are you sure you want to end this video consultation?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Close dialog
+              Navigator.pop(context); // Go back to previous screen
+            },
+            child: Text(
+              'End Call',
+              style: TextStyle(color: AppColors.error),
+            ),
           ),
         ],
       ),
@@ -542,7 +647,6 @@ class _VideoSessionScreenState extends State<VideoSessionScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -550,156 +654,100 @@ class _VideoSessionScreenState extends State<VideoSessionScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'More Options',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             ListTile(
-              leading: const Icon(Icons.speaker_phone),
-              title: const Text('Switch to Speaker'),
+              leading: const Icon(Icons.flip_camera_ios),
+              title: const Text('Switch Camera'),
               onTap: () {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Switched to speaker')),
+                  SnackBar(
+                    content: const Text('Camera switched'),
+                    backgroundColor: AppColors.primary,
+                  ),
                 );
               },
             ),
             ListTile(
-              leading: const Icon(Icons.record_voice_over),
-              title: const Text('Record Session'),
+              leading: const Icon(Icons.settings),
+              title: const Text('Video Settings'),
               onTap: () {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Recording started')),
+                  SnackBar(
+                    content: const Text('Opening video settings...'),
+                    backgroundColor: AppColors.primary,
+                  ),
                 );
               },
             ),
             ListTile(
-              leading: const Icon(Icons.picture_in_picture),
-              title: const Text('Picture in Picture'),
+              leading: const Icon(Icons.report),
+              title: const Text('Report Issue'),
               onTap: () {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('PiP mode activated')),
+                  SnackBar(
+                    content: const Text('Opening issue report...'),
+                    backgroundColor: AppColors.primary,
+                  ),
                 );
               },
             ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
     );
   }
 
-  void _showCallSummaryDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text('Call Summary'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Doctor: ${widget.doctorName ?? 'Unknown Doctor'}'),
-            Text('Duration: $_callDuration'),
-            const SizedBox(height: 16),
-            const Text(
-              'How was your consultation?',
-              style: TextStyle(fontWeight: FontWeight.w500),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context); // Go back to previous screen
-            },
-            child: const Text('Done'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _showFeedbackDialog();
-            },
-            child: const Text('Rate Consultation'),
-          ),
-        ],
+  void _openChat() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Opening chat...'),
+        backgroundColor: AppColors.primary,
       ),
     );
   }
 
-  void _showFeedbackDialog() {
-    int rating = 5;
-    final feedbackController = TextEditingController();
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Rate Your Consultation'),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('How would you rate your consultation?'),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(5, (index) {
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        rating = index + 1;
-                      });
-                    },
-                    child: Icon(
-                      Icons.star,
-                      color: index < rating ? Colors.amber : Colors.grey[300],
-                      size: 32,
-                    ),
-                  );
-                }),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: feedbackController,
-                maxLines: 3,
-                decoration: const InputDecoration(
-                  hintText: 'Optional feedback...',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context); // Go back to previous screen
-            },
-            child: const Text('Skip'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context); // Go back to previous screen
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Thank you for your ${rating}-star rating!'),
-                  backgroundColor: AppColors.success,
-                ),
-              );
-            },
-            child: const Text('Submit'),
-          ),
-        ],
+  void _shareScreen() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Screen sharing feature coming soon'),
+        backgroundColor: AppColors.primary,
       ),
     );
+  }
+
+  void _takeNotes() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Opening notes...'),
+        backgroundColor: AppColors.primary,
+      ),
+    );
+  }
+
+  String _formatDuration(int seconds) {
+    final minutes = seconds ~/ 60;
+    final remainingSeconds = seconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  void dispose() {
+    _hideControlsTimer?.cancel();
+    _connectionTimer?.cancel();
+    _durationTimer?.cancel();
+    super.dispose();
   }
 }

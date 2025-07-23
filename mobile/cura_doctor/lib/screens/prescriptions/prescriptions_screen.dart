@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../providers/prescription_provider.dart';
-import '../../services/api_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/app_colors.dart';
+import '../../services/api_service.dart';
 
 class PrescriptionsScreen extends StatefulWidget {
   const PrescriptionsScreen({super.key});
@@ -12,67 +10,65 @@ class PrescriptionsScreen extends StatefulWidget {
   State<PrescriptionsScreen> createState() => _PrescriptionsScreenState();
 }
 
-class _PrescriptionsScreenState extends State<PrescriptionsScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _PrescriptionsScreenState extends State<PrescriptionsScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
-  bool _isLoading = true;
   List<Map<String, dynamic>> _prescriptions = [];
+  List<Map<String, dynamic>> _filteredPrescriptions = [];
+  bool _isLoading = true;
+  String _selectedFilter = 'all';
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
     _loadPrescriptions();
   }
 
   Future<void> _loadPrescriptions() async {
     try {
-      final prescriptions = await ApiService.getDoctorPrescriptions();
-      setState(() {
-        _prescriptions = List<Map<String, dynamic>>.from(prescriptions);
-        _isLoading = false;
-      });
+      final response = await ApiService.get('/api/mobile/doctor/prescriptions');
+      if (response['success']) {
+        setState(() {
+          _prescriptions = List<Map<String, dynamic>>.from(response['prescriptions']);
+          _filteredPrescriptions = _prescriptions;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       setState(() {
         _isLoading = false;
       });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to load prescriptions: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error loading prescriptions: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
     }
   }
 
-  List<Map<String, dynamic>> get _activePrescriptions =>
-      _prescriptions.where((p) => p['status'] == 'active').toList();
-  
-  List<Map<String, dynamic>> get _pendingPrescriptions =>
-      _prescriptions.where((p) => p['status'] == 'pending').toList();
-  
-  List<Map<String, dynamic>> get _expiredPrescriptions =>
-      _prescriptions.where((p) => p['status'] == 'expired' || p['status'] == 'completed').toList();
+  void _filterPrescriptions() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredPrescriptions = _prescriptions.where((prescription) {
+        final matchesSearch = prescription['medicationName']?.toLowerCase().contains(query) ?? false ||
+                             prescription['patientName']?.toLowerCase().contains(query) ?? false ||
+                             prescription['patientId']?.toLowerCase().contains(query) ?? false;
+        
+        final matchesFilter = _selectedFilter == 'all' ||
+                             (_selectedFilter == 'active' && prescription['status'] == 'active') ||
+                             (_selectedFilter == 'expired' && prescription['status'] == 'expired') ||
+                             (_selectedFilter == 'recent' && _isRecentPrescription(prescription));
+        
+        return matchesSearch && matchesFilter;
+      }).toList();
+    });
+  }
 
-  List<Map<String, dynamic>> get _filteredPrescriptions {
-    final prescriptions = _tabController.index == 0
-        ? _activePrescriptions
-        : _tabController.index == 1
-            ? _pendingPrescriptions
-            : _expiredPrescriptions;
-
-    if (_searchQuery.isEmpty) return prescriptions;
-
-    return prescriptions.where((p) {
-      final patientName = p['patientName']?.toLowerCase() ?? '';
-      final medicationName = p['medicationName']?.toLowerCase() ?? '';
-      final query = _searchQuery.toLowerCase();
-      return patientName.contains(query) || medicationName.contains(query);
-    }).toList();
+  bool _isRecentPrescription(Map<String, dynamic> prescription) {
+    if (prescription['createdAt'] == null) return false;
+    final createdAt = DateTime.parse(prescription['createdAt']);
+    final now = DateTime.now();
+    return now.difference(createdAt).inDays <= 7;
   }
 
   @override
@@ -87,121 +83,149 @@ class _PrescriptionsScreenState extends State<PrescriptionsScreen>
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: _showCreatePrescriptionDialog,
+            onPressed: _createNewPrescription,
+          ),
+          PopupMenuButton<String>(
+            onSelected: _handleMenuAction,
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'refresh',
+                child: Row(
+                  children: [
+                    Icon(Icons.refresh, size: 16),
+                    SizedBox(width: 8),
+                    Text('Refresh'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'export',
+                child: Row(
+                  children: [
+                    Icon(Icons.download, size: 16),
+                    SizedBox(width: 8),
+                    Text('Export List'),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(98),
-          child: Container(
+      ),
+      body: Column(
+        children: [
+          // Search and Filter Section
+          Container(
+            padding: const EdgeInsets.all(16),
             color: Colors.white,
             child: Column(
               children: [
                 // Search Bar
-                Padding(
-                  padding: const EdgeInsets.all(16),
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(25),
+                    border: Border.all(color: AppColors.border),
+                  ),
                   child: TextField(
                     controller: _searchController,
                     decoration: InputDecoration(
                       hintText: 'Search prescriptions...',
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: AppColors.border),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: AppColors.border),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: AppColors.primary),
+                      prefixIcon: Icon(Icons.search, color: AppColors.textSecondary),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
                       ),
                     ),
-                    onChanged: (value) {
-                      setState(() {
-                        _searchQuery = value;
-                      });
-                    },
+                    onChanged: (_) => _filterPrescriptions(),
                   ),
                 ),
-                // Tabs
-                TabBar(
-                  controller: _tabController,
-                  labelColor: AppColors.primary,
-                  unselectedLabelColor: AppColors.textSecondary,
-                  indicatorColor: AppColors.primary,
-                  tabs: [
-                    Tab(text: 'Active (${_activePrescriptions.length})'),
-                    Tab(text: 'Pending (${_pendingPrescriptions.length})'),
-                    Tab(text: 'History (${_expiredPrescriptions.length})'),
-                  ],
+                
+                const SizedBox(height: 12),
+                
+                // Filter Pills
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildFilterPill('All', 'all'),
+                      const SizedBox(width: 8),
+                      _buildFilterPill('Active', 'active'),
+                      const SizedBox(width: 8),
+                      _buildFilterPill('Expired', 'expired'),
+                      const SizedBox(width: 8),
+                      _buildFilterPill('Recent', 'recent'),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
-        ),
+
+          // Prescriptions List
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _filteredPrescriptions.isEmpty
+                    ? _buildEmptyState()
+                    : RefreshIndicator(
+                        onRefresh: _loadPrescriptions,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _filteredPrescriptions.length,
+                          itemBuilder: (context, index) {
+                            final prescription = _filteredPrescriptions[index];
+                            return _buildPrescriptionCard(prescription, index);
+                          },
+                        ),
+                      ),
+          ),
+        ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : TabBarView(
-              controller: _tabController,
-              children: [
-                _buildPrescriptionsList('No active prescriptions'),
-                _buildPrescriptionsList('No pending prescriptions'),
-                _buildPrescriptionsList('No prescription history'),
-              ],
-            ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showCreatePrescriptionDialog,
+        onPressed: _createNewPrescription,
         backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
 
-  Widget _buildPrescriptionsList(String emptyMessage) {
-    final prescriptions = _filteredPrescriptions;
-
-    if (prescriptions.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.medication_outlined,
-              size: 64,
-              color: AppColors.textSecondary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              emptyMessage,
-              style: TextStyle(
-                fontSize: 16,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ],
+  Widget _buildFilterPill(String label, String value) {
+    final isSelected = _selectedFilter == value;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedFilter = value;
+        });
+        _filterPrescriptions();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : AppColors.border,
+          ),
         ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: _loadPrescriptions,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: prescriptions.length,
-        itemBuilder: (context, index) {
-          final prescription = prescriptions[index];
-          return _buildPrescriptionCard(prescription);
-        },
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : AppColors.textSecondary,
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildPrescriptionCard(Map<String, dynamic> prescription) {
+  Widget _buildPrescriptionCard(Map<String, dynamic> prescription, int index) {
     final status = prescription['status'] ?? 'active';
-    final statusColor = _getStatusColor(status);
-    final createdDate = DateTime.parse(prescription['createdAt']);
+    final createdAt = prescription['createdAt'] != null 
+        ? DateTime.parse(prescription['createdAt'])
+        : DateTime.now();
     final expiryDate = prescription['expiryDate'] != null
         ? DateTime.parse(prescription['expiryDate'])
         : null;
@@ -220,174 +244,232 @@ class _PrescriptionsScreenState extends State<PrescriptionsScreen>
         ],
       ),
       child: InkWell(
-        onTap: () => _showPrescriptionDetails(prescription),
+        onTap: () => _viewPrescriptionDetails(prescription),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
               Row(
                 children: [
+                  // Medication Icon
                   Container(
-                    width: 40,
-                    height: 40,
+                    width: 50,
+                    height: 50,
                     decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
+                      color: _getStatusColor(status).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(25),
                     ),
                     child: Icon(
                       Icons.medication,
-                      color: statusColor,
-                      size: 20,
+                      color: _getStatusColor(status),
+                      size: 24,
                     ),
                   ),
+                  
                   const SizedBox(width: 12),
+                  
+                  // Prescription Info
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          prescription['medicationName'] ?? 'Unknown Medication',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                prescription['medicationName'] ?? 'Unknown Medication',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: _getStatusColor(status).withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                status.toUpperCase(),
+                                style: TextStyle(
+                                  color: _getStatusColor(status),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
+                        
+                        const SizedBox(height: 4),
+                        
                         Text(
-                          prescription['patientName'] ?? 'Unknown Patient',
+                          'Patient: ${prescription['patientName'] ?? 'Unknown'}',
                           style: TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 14,
+                            fontWeight: FontWeight.w500,
                           ),
+                        ),
+                        
+                        const SizedBox(height: 2),
+                        
+                        Row(
+                          children: [
+                            Text(
+                              'Dosage: ${prescription['dosage'] ?? 'N/A'}',
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 12,
+                              ),
+                            ),
+                            if (prescription['frequency'] != null) ...[
+                              Text(
+                                ' • ${prescription['frequency']}',
+                                style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ],
                     ),
                   ),
+                  
+                  // Action Menu
+                  PopupMenuButton<String>(
+                    onSelected: (value) => _handlePrescriptionAction(value, prescription),
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'view',
+                        child: Row(
+                          children: [
+                            Icon(Icons.visibility, size: 16),
+                            SizedBox(width: 8),
+                            Text('View Details'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit, size: 16),
+                            SizedBox(width: 8),
+                            Text('Edit'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'renew',
+                        child: Row(
+                          children: [
+                            Icon(Icons.refresh, size: 16),
+                            SizedBox(width: 8),
+                            Text('Renew'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'stop',
+                        child: Row(
+                          children: [
+                            Icon(Icons.stop, size: 16),
+                            SizedBox(width: 8),
+                            Text('Stop Prescription'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: 12),
+              
+              // Additional Info Row
+              Row(
+                children: [
+                  Icon(Icons.calendar_today, size: 14, color: AppColors.textSecondary),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Prescribed: ${_formatDate(createdAt)}',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                  if (expiryDate != null) ...[
+                    const SizedBox(width: 16),
+                    Icon(Icons.access_time, size: 14, color: AppColors.textSecondary),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Expires: ${_formatDate(expiryDate)}',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              
+              // Duration and Instructions
+              if (prescription['duration'] != null || prescription['instructions'] != null) ...[
+                const SizedBox(height: 8),
+                if (prescription['duration'] != null)
+                  Text(
+                    'Duration: ${prescription['duration']}',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                if (prescription['instructions'] != null) ...[
+                  const SizedBox(height: 4),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      status.toUpperCase(),
+                      prescription['instructions'],
                       style: TextStyle(
-                        color: statusColor,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
-              ),
-
-              const SizedBox(height: 12),
-
-              // Prescription Details
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              ],
+              
+              // Refills Info
+              if (prescription['refillsRemaining'] != null) ...[
+                const SizedBox(height: 8),
+                Row(
                   children: [
-                    _buildDetailRow('Dosage', prescription['dosage'] ?? 'Not specified'),
-                    _buildDetailRow('Frequency', prescription['frequency'] ?? 'Not specified'),
-                    _buildDetailRow('Duration', prescription['duration'] ?? 'Not specified'),
-                    if (prescription['instructions'] != null)
-                      _buildDetailRow('Instructions', prescription['instructions']),
+                    Icon(Icons.repeat, size: 14, color: AppColors.textSecondary),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Refills remaining: ${prescription['refillsRemaining']}',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
                   ],
                 ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // Dates and Refills
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Prescribed: ${_formatDate(createdDate)}',
-                          style: TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 12,
-                          ),
-                        ),
-                        if (expiryDate != null)
-                          Text(
-                            'Expires: ${_formatDate(expiryDate)}',
-                            style: TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 12,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  if (prescription['refillsRemaining'] != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '${prescription['refillsRemaining']} refills left',
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              // Action Buttons
-              Row(
-                children: [
-                  if (status == 'active') ...[
-                    _buildActionButton(
-                      'Refill',
-                      Icons.refresh,
-                      AppColors.success,
-                      () => _refillPrescription(prescription),
-                    ),
-                    const SizedBox(width: 8),
-                    _buildActionButton(
-                      'Modify',
-                      Icons.edit,
-                      AppColors.primary,
-                      () => _modifyPrescription(prescription),
-                    ),
-                    const SizedBox(width: 8),
-                  ],
-                  if (status == 'pending') ...[
-                    _buildActionButton(
-                      'Approve',
-                      Icons.check,
-                      AppColors.success,
-                      () => _approvePrescription(prescription),
-                    ),
-                    const SizedBox(width: 8),
-                  ],
-                  _buildActionButton(
-                    'Details',
-                    Icons.info_outline,
-                    AppColors.textSecondary,
-                    () => _showPrescriptionDetails(prescription),
-                  ),
-                ],
-              ),
+              ],
             ],
           ),
         ),
@@ -395,30 +477,41 @@ class _PrescriptionsScreenState extends State<PrescriptionsScreen>
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SizedBox(
-            width: 80,
-            child: Text(
-              '$label:',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
+          Icon(
+            Icons.medication_outlined,
+            size: 64,
+            color: AppColors.textSecondary,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No prescriptions found',
+            style: TextStyle(
+              fontSize: 18,
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w500,
             ),
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
+          const SizedBox(height: 8),
+          Text(
+            'Create a new prescription or adjust your search filters',
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: _createNewPrescription,
+            icon: const Icon(Icons.add),
+            label: const Text('Create Prescription'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
             ),
           ),
         ],
@@ -426,218 +519,104 @@ class _PrescriptionsScreenState extends State<PrescriptionsScreen>
     );
   }
 
-  Widget _buildActionButton(String label, IconData icon, Color color, VoidCallback onPressed) {
-    return ElevatedButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon, size: 16),
-      label: Text(label),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color.withOpacity(0.1),
-        foregroundColor: color,
-        elevation: 0,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        minimumSize: Size.zero,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        textStyle: const TextStyle(fontSize: 12),
+  void _handleMenuAction(String action) {
+    switch (action) {
+      case 'refresh':
+        _loadPrescriptions();
+        break;
+      case 'export':
+        _exportPrescriptionList();
+        break;
+    }
+  }
+
+  void _handlePrescriptionAction(String action, Map<String, dynamic> prescription) {
+    switch (action) {
+      case 'view':
+        _viewPrescriptionDetails(prescription);
+        break;
+      case 'edit':
+        _editPrescription(prescription);
+        break;
+      case 'renew':
+        _renewPrescription(prescription);
+        break;
+      case 'stop':
+        _stopPrescription(prescription);
+        break;
+    }
+  }
+
+  void _viewPrescriptionDetails(Map<String, dynamic> prescription) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Opening details for ${prescription['medicationName']}'),
+        backgroundColor: AppColors.primary,
       ),
     );
   }
 
-  void _showCreatePrescriptionDialog() {
+  void _editPrescription(Map<String, dynamic> prescription) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Editing prescription for ${prescription['medicationName']}'),
+        backgroundColor: Colors.orange,
+      ),
+    );
+  }
+
+  void _renewPrescription(Map<String, dynamic> prescription) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Create Prescription'),
-        content: const Text('Prescription creation feature will be available soon.'),
+        title: const Text('Renew Prescription'),
+        content: Text('Renew prescription for ${prescription['medicationName']}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: const Text('Cancel'),
           ),
-        ],
-      ),
-    );
-  }
-
-  void _showPrescriptionDetails(Map<String, dynamic> prescription) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        maxChildSize: 0.9,
-        minChildSize: 0.5,
-        builder: (context, scrollController) => Container(
-          padding: const EdgeInsets.all(24),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      prescription['medicationName'] ?? 'Prescription',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
-                  ),
-                ],
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Details
-              Expanded(
-                child: SingleChildScrollView(
-                  controller: scrollController,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildDetailSection('Patient Information', [
-                        _buildDetailItem('Name', prescription['patientName']),
-                        _buildDetailItem('Age', prescription['patientAge']?.toString()),
-                        _buildDetailItem('Weight', prescription['patientWeight']),
-                      ]),
-                      
-                      const SizedBox(height: 16),
-                      
-                      _buildDetailSection('Medication Details', [
-                        _buildDetailItem('Medication', prescription['medicationName']),
-                        _buildDetailItem('Dosage', prescription['dosage']),
-                        _buildDetailItem('Frequency', prescription['frequency']),
-                        _buildDetailItem('Duration', prescription['duration']),
-                        _buildDetailItem('Route', prescription['route']),
-                      ]),
-                      
-                      const SizedBox(height: 16),
-                      
-                      if (prescription['instructions'] != null) ...[
-                        _buildDetailSection('Instructions', [
-                          Text(
-                            prescription['instructions'],
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                        ]),
-                        const SizedBox(height: 16),
-                      ],
-                      
-                      _buildDetailSection('Prescription Information', [
-                        _buildDetailItem('Status', prescription['status']),
-                        _buildDetailItem('Prescribed Date', _formatDate(DateTime.parse(prescription['createdAt']))),
-                        if (prescription['expiryDate'] != null)
-                          _buildDetailItem('Expiry Date', _formatDate(DateTime.parse(prescription['expiryDate']))),
-                        _buildDetailItem('Refills Remaining', prescription['refillsRemaining']?.toString()),
-                      ]),
-                    ],
-                  ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('Prescription renewed successfully'),
+                  backgroundColor: AppColors.success,
                 ),
-              ),
-              
-              // Action Buttons
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        _modifyPrescription(prescription);
-                      },
-                      icon: const Icon(Icons.edit),
-                      label: const Text('Modify'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        _printPrescription(prescription);
-                      },
-                      icon: const Icon(Icons.print),
-                      label: const Text('Print'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+              );
+            },
+            child: const Text('Renew'),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildDetailSection(String title, List<Widget> children) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
+  void _stopPrescription(Map<String, dynamic> prescription) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Stop Prescription'),
+        content: Text('Are you sure you want to stop ${prescription['medicationName']} for this patient?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
           ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AppColors.background,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: children,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDetailItem(String label, String? value) {
-    if (value == null) return const SizedBox.shrink();
-    
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 120,
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('Prescription stopped'),
+                  backgroundColor: AppColors.error,
+                ),
+              );
+            },
             child: Text(
-              '$label:',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
+              'Stop',
+              style: TextStyle(color: AppColors.error),
             ),
           ),
         ],
@@ -645,33 +624,21 @@ class _PrescriptionsScreenState extends State<PrescriptionsScreen>
     );
   }
 
-  void _refillPrescription(Map<String, dynamic> prescription) {
+  void _createNewPrescription() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Refill requested for ${prescription['medicationName']}'),
-        backgroundColor: AppColors.success,
+        content: const Text('Create new prescription feature coming soon'),
+        backgroundColor: AppColors.primary,
       ),
     );
   }
 
-  void _modifyPrescription(Map<String, dynamic> prescription) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Modify prescription feature coming soon')),
-    );
-  }
-
-  void _approvePrescription(Map<String, dynamic> prescription) {
+  void _exportPrescriptionList() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${prescription['medicationName']} prescription approved'),
+        content: const Text('Exporting prescription list...'),
         backgroundColor: AppColors.success,
       ),
-    );
-  }
-
-  void _printPrescription(Map<String, dynamic> prescription) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Print feature coming soon')),
     );
   }
 
@@ -679,25 +646,34 @@ class _PrescriptionsScreenState extends State<PrescriptionsScreen>
     switch (status.toLowerCase()) {
       case 'active':
         return AppColors.success;
-      case 'pending':
-        return Colors.orange;
       case 'expired':
-      case 'completed':
-        return AppColors.textSecondary;
-      case 'cancelled':
         return AppColors.error;
+      case 'completed':
+        return Colors.blue;
+      case 'cancelled':
+        return AppColors.textSecondary;
       default:
         return AppColors.primary;
     }
   }
 
   String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
+    final now = DateTime.now();
+    final difference = now.difference(date).inDays;
+
+    if (difference == 0) {
+      return 'Today';
+    } else if (difference == 1) {
+      return 'Yesterday';
+    } else if (difference < 7) {
+      return '$difference days ago';
+    } else {
+      return '${date.day}/${date.month}/${date.year}';
+    }
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
     _searchController.dispose();
     super.dispose();
   }

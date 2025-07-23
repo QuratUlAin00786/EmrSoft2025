@@ -15,12 +15,11 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   late TabController _tabController;
   bool _isLoading = true;
   List<Map<String, dynamic>> _notifications = [];
-  int _unreadCount = 0;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _loadNotifications();
   }
 
@@ -29,60 +28,27 @@ class _NotificationsScreenState extends State<NotificationsScreen>
       final notifications = await ApiService.getDoctorNotifications();
       setState(() {
         _notifications = List<Map<String, dynamic>>.from(notifications);
-        _unreadCount = _notifications.where((n) => !n['isRead']).length;
         _isLoading = false;
       });
     } catch (e) {
       setState(() {
         _isLoading = false;
       });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to load notifications: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
     }
   }
 
   List<Map<String, dynamic>> get _allNotifications => _notifications;
-  List<Map<String, dynamic>> get _unreadNotifications => 
+  List<Map<String, dynamic>> get _unreadNotifications =>
       _notifications.where((n) => !n['isRead']).toList();
-  List<Map<String, dynamic>> get _emergencyNotifications => 
-      _notifications.where((n) => n['priority'] == 'high' || n['type'] == 'emergency').toList();
-  List<Map<String, dynamic>> get _appointmentNotifications => 
-      _notifications.where((n) => n['type'] == 'appointment').toList();
+  List<Map<String, dynamic>> get _importantNotifications =>
+      _notifications.where((n) => n['priority'] == 'high' || n['priority'] == 'urgent').toList();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Row(
-          children: [
-            const Text('Notifications'),
-            if (_unreadCount > 0) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.error,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  _unreadCount.toString(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
+        title: const Text('Notifications'),
         backgroundColor: Colors.white,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
@@ -92,54 +58,20 @@ class _NotificationsScreenState extends State<NotificationsScreen>
             onPressed: _markAllAsRead,
             tooltip: 'Mark all as read',
           ),
-          PopupMenuButton(
-            icon: const Icon(Icons.more_vert),
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'settings',
-                child: Row(
-                  children: [
-                    Icon(Icons.settings),
-                    SizedBox(width: 8),
-                    Text('Notification Settings'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'clear',
-                child: Row(
-                  children: [
-                    Icon(Icons.clear_all),
-                    SizedBox(width: 8),
-                    Text('Clear All'),
-                  ],
-                ),
-              ),
-            ],
-            onSelected: (value) {
-              if (value == 'settings') {
-                _showNotificationSettings();
-              } else if (value == 'clear') {
-                _clearAllNotifications();
-              }
-            },
-          ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(49),
+          preferredSize: const Size.fromHeight(50),
           child: Container(
             color: Colors.white,
             child: TabBar(
               controller: _tabController,
-              isScrollable: true,
               labelColor: AppColors.primary,
               unselectedLabelColor: AppColors.textSecondary,
               indicatorColor: AppColors.primary,
               tabs: [
                 Tab(text: 'All (${_allNotifications.length})'),
                 Tab(text: 'Unread (${_unreadNotifications.length})'),
-                Tab(text: 'Emergency (${_emergencyNotifications.length})'),
-                Tab(text: 'Appointments (${_appointmentNotifications.length})'),
+                Tab(text: 'Important (${_importantNotifications.length})'),
               ],
             ),
           ),
@@ -152,8 +84,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
               children: [
                 _buildNotificationsList(_allNotifications, 'No notifications'),
                 _buildNotificationsList(_unreadNotifications, 'No unread notifications'),
-                _buildNotificationsList(_emergencyNotifications, 'No emergency notifications'),
-                _buildNotificationsList(_appointmentNotifications, 'No appointment notifications'),
+                _buildNotificationsList(_importantNotifications, 'No important notifications'),
               ],
             ),
     );
@@ -199,14 +130,18 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   Widget _buildNotificationCard(Map<String, dynamic> notification) {
     final isRead = notification['isRead'] ?? false;
     final priority = notification['priority'] ?? 'normal';
-    final type = notification['type'] ?? 'general';
+    final priorityColor = _getPriorityColor(priority);
     final createdAt = DateTime.parse(notification['createdAt']);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isRead ? Colors.white : AppColors.primary.withOpacity(0.05),
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isRead ? Colors.transparent : AppColors.primary.withOpacity(0.2),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -214,33 +149,32 @@ class _NotificationsScreenState extends State<NotificationsScreen>
             offset: const Offset(0, 2),
           ),
         ],
-        border: !isRead
-            ? Border.all(color: AppColors.primary.withOpacity(0.3), width: 1)
-            : null,
       ),
       child: InkWell(
-        onTap: () => _markAsRead(notification),
+        onTap: () => _handleNotificationTap(notification),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: 40,
-                    height: 40,
+                    width: 8,
+                    height: 8,
+                    margin: const EdgeInsets.only(top: 6),
                     decoration: BoxDecoration(
-                      color: _getTypeColor(type).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
+                      color: isRead ? Colors.transparent : AppColors.primary,
+                      borderRadius: BorderRadius.circular(4),
                     ),
-                    child: Icon(
-                      _getTypeIcon(type),
-                      color: _getTypeColor(type),
-                      size: 20,
-                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Icon(
+                    _getNotificationIcon(notification['type']),
+                    color: priorityColor,
+                    size: 24,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -258,17 +192,17 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                                 ),
                               ),
                             ),
-                            if (priority == 'high')
+                            if (priority != 'normal')
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: AppColors.error,
-                                  borderRadius: BorderRadius.circular(10),
+                                  color: priorityColor.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: const Text(
-                                  'URGENT',
+                                child: Text(
+                                  priority.toUpperCase(),
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: priorityColor,
                                     fontSize: 8,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -278,104 +212,101 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          _formatTimeAgo(createdAt),
+                          notification['message'] ?? 'No message',
                           style: TextStyle(
                             color: AppColors.textSecondary,
-                            fontSize: 12,
+                            fontSize: 14,
+                            fontWeight: isRead ? FontWeight.normal : FontWeight.w500,
                           ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.access_time,
+                              size: 14,
+                              color: AppColors.textSecondary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              _formatTimeAgo(createdAt),
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 12,
+                              ),
+                            ),
+                            if (notification['patientName'] != null) ...[
+                              const SizedBox(width: 16),
+                              Icon(
+                                Icons.person,
+                                size: 14,
+                                color: AppColors.textSecondary,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                notification['patientName'],
+                                style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ],
                     ),
                   ),
-                  if (!isRead)
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(4),
+                  PopupMenuButton<String>(
+                    onSelected: (value) => _handleNotificationAction(notification, value),
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: isRead ? 'mark_unread' : 'mark_read',
+                        child: Row(
+                          children: [
+                            Icon(
+                              isRead ? Icons.mark_email_unread : Icons.mark_email_read,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(isRead ? 'Mark as unread' : 'Mark as read'),
+                          ],
+                        ),
                       ),
-                    ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              // Message
-              Text(
-                notification['message'] ?? 'No message content',
-                style: TextStyle(
-                  color: isRead ? AppColors.textSecondary : AppColors.textPrimary,
-                  fontSize: 14,
-                  height: 1.4,
-                ),
-              ),
-
-              // Additional data
-              if (notification['patientName'] != null ||
-                  notification['appointmentTime'] != null ||
-                  notification['medicationName'] != null) ...[
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (notification['patientName'] != null)
-                        _buildInfoRow('Patient', notification['patientName']),
-                      if (notification['appointmentTime'] != null)
-                        _buildInfoRow('Time', notification['appointmentTime']),
-                      if (notification['medicationName'] != null)
-                        _buildInfoRow('Medication', notification['medicationName']),
-                      if (notification['labTestName'] != null)
-                        _buildInfoRow('Lab Test', notification['labTestName']),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete, size: 16, color: Colors.red),
+                            SizedBox(width: 8),
+                            Text('Delete', style: TextStyle(color: Colors.red)),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
-                ),
-              ],
-
-              // Action buttons
-              if (notification['actionRequired'] == true) ...[
+                ],
+              ),
+              if (notification['actionButton'] != null) ...[
                 const SizedBox(height: 12),
-                Row(
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: () => _handleNotificationAction(notification),
-                      icon: const Icon(Icons.check, size: 16),
-                      label: Text(_getActionLabel(type)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        textStyle: const TextStyle(fontSize: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => _handleNotificationAction(notification, 'action'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: priorityColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    OutlinedButton.icon(
-                      onPressed: () => _dismissNotification(notification),
-                      icon: const Icon(Icons.close, size: 16),
-                      label: const Text('Dismiss'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.textSecondary,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        textStyle: const TextStyle(fontSize: 12),
-                      ),
+                    child: Text(
+                      notification['actionButton'],
+                      style: const TextStyle(fontSize: 14),
                     ),
-                  ],
+                  ),
                 ),
               ],
             ],
@@ -385,24 +316,167 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
+  void _handleNotificationTap(Map<String, dynamic> notification) {
+    if (!notification['isRead']) {
+      _markAsRead(notification);
+    }
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        maxChildSize: 0.9,
+        minChildSize: 0.4,
+        builder: (context, scrollController) => Container(
+          padding: const EdgeInsets.all(24),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    _getNotificationIcon(notification['type']),
+                    color: _getPriorityColor(notification['priority']),
+                    size: 28,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      notification['title'] ?? 'Notification',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        notification['message'] ?? 'No detailed message available.',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          height: 1.5,
+                        ),
+                      ),
+                      if (notification['details'] != null) ...[
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Additional Details:',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          notification['details'],
+                          style: const TextStyle(
+                            fontSize: 14,
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 24),
+                      _buildNotificationMetadata(notification),
+                    ],
+                  ),
+                ),
+              ),
+              if (notification['actionButton'] != null) ...[
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _handleNotificationAction(notification, 'action');
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _getPriorityColor(notification['priority']),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: Text(notification['actionButton']),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNotificationMetadata(Map<String, dynamic> notification) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '$label: ',
+          const Text(
+            'Notification Details',
             style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
             ),
           ),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+          const SizedBox(height: 12),
+          _buildMetadataRow('Type', notification['type']),
+          _buildMetadataRow('Priority', notification['priority']),
+          _buildMetadataRow('Created', _formatDateTime(DateTime.parse(notification['createdAt']))),
+          if (notification['patientName'] != null)
+            _buildMetadataRow('Patient', notification['patientName']),
+          if (notification['source'] != null)
+            _buildMetadataRow('Source', notification['source']),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetadataRow(String label, String? value) {
+    if (value == null) return const SizedBox.shrink();
+    
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              '$label:',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],
@@ -410,54 +484,147 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     );
   }
 
-  Color _getTypeColor(String type) {
-    switch (type.toLowerCase()) {
-      case 'emergency':
-        return AppColors.error;
-      case 'appointment':
-        return AppColors.primary;
-      case 'medication':
-        return Colors.orange;
-      case 'lab_result':
-        return Colors.purple;
-      case 'system':
-        return Colors.grey;
-      default:
-        return AppColors.primary;
+  void _handleNotificationAction(Map<String, dynamic> notification, String action) {
+    switch (action) {
+      case 'mark_read':
+        _markAsRead(notification);
+        break;
+      case 'mark_unread':
+        _markAsUnread(notification);
+        break;
+      case 'delete':
+        _deleteNotification(notification);
+        break;
+      case 'action':
+        _performNotificationAction(notification);
+        break;
     }
   }
 
-  IconData _getTypeIcon(String type) {
-    switch (type.toLowerCase()) {
-      case 'emergency':
-        return Icons.emergency;
-      case 'appointment':
+  void _markAsRead(Map<String, dynamic> notification) {
+    setState(() {
+      notification['isRead'] = true;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Marked as read')),
+    );
+  }
+
+  void _markAsUnread(Map<String, dynamic> notification) {
+    setState(() {
+      notification['isRead'] = false;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Marked as unread')),
+    );
+  }
+
+  void _deleteNotification(Map<String, dynamic> notification) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Notification'),
+        content: const Text('Are you sure you want to delete this notification?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              setState(() {
+                _notifications.removeWhere((n) => n['id'] == notification['id']);
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Notification deleted')),
+              );
+            },
+            child: Text(
+              'Delete',
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _performNotificationAction(Map<String, dynamic> notification) {
+    final type = notification['type'];
+    switch (type) {
+      case 'appointment_reminder':
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Opening appointment details...')),
+        );
+        break;
+      case 'patient_message':
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Opening patient chat...')),
+        );
+        break;
+      case 'lab_result':
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Opening lab results...')),
+        );
+        break;
+      case 'prescription_alert':
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Opening prescription details...')),
+        );
+        break;
+      default:
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Action performed')),
+        );
+    }
+  }
+
+  void _markAllAsRead() {
+    setState(() {
+      for (var notification in _notifications) {
+        notification['isRead'] = true;
+      }
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('All notifications marked as read'),
+        backgroundColor: AppColors.success,
+      ),
+    );
+  }
+
+  IconData _getNotificationIcon(String? type) {
+    switch (type) {
+      case 'appointment_reminder':
         return Icons.calendar_today;
-      case 'medication':
-        return Icons.medication;
+      case 'patient_message':
+        return Icons.message;
       case 'lab_result':
         return Icons.science;
+      case 'prescription_alert':
+        return Icons.medication;
+      case 'emergency':
+        return Icons.emergency;
       case 'system':
         return Icons.settings;
-      case 'message':
-        return Icons.message;
       default:
         return Icons.notifications;
     }
   }
 
-  String _getActionLabel(String type) {
-    switch (type.toLowerCase()) {
-      case 'appointment':
-        return 'View Appointment';
-      case 'medication':
-        return 'Review Medication';
-      case 'lab_result':
-        return 'View Results';
-      case 'emergency':
-        return 'Respond';
+  Color _getPriorityColor(String? priority) {
+    switch (priority) {
+      case 'urgent':
+        return AppColors.error;
+      case 'high':
+        return Colors.orange;
+      case 'medium':
+        return AppColors.primary;
+      case 'low':
+        return AppColors.success;
       default:
-        return 'Take Action';
+        return AppColors.textSecondary;
     }
   }
 
@@ -467,9 +634,9 @@ class _NotificationsScreenState extends State<NotificationsScreen>
 
     if (difference.inMinutes < 1) {
       return 'Just now';
-    } else if (difference.inMinutes < 60) {
+    } else if (difference.inHours < 1) {
       return '${difference.inMinutes}m ago';
-    } else if (difference.inHours < 24) {
+    } else if (difference.inDays < 1) {
       return '${difference.inHours}h ago';
     } else if (difference.inDays < 7) {
       return '${difference.inDays}d ago';
@@ -478,208 +645,14 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     }
   }
 
-  void _markAsRead(Map<String, dynamic> notification) async {
-    if (notification['isRead'] == true) return;
-
-    try {
-      await ApiService.markNotificationAsRead(notification['id']);
-      setState(() {
-        notification['isRead'] = true;
-        _unreadCount = _notifications.where((n) => !n['isRead']).length;
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to mark as read: $e'),
-          backgroundColor: AppColors.error,
-        ),
-      );
-    }
+  String _formatDateTime(DateTime dateTime) {
+    return '${dateTime.day}/${dateTime.month}/${dateTime.year} at ${_formatTime(dateTime)}';
   }
 
-  void _markAllAsRead() async {
-    try {
-      await ApiService.markAllNotificationsAsRead();
-      setState(() {
-        for (var notification in _notifications) {
-          notification['isRead'] = true;
-        }
-        _unreadCount = 0;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('All notifications marked as read'),
-          backgroundColor: AppColors.success,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to mark all as read: $e'),
-          backgroundColor: AppColors.error,
-        ),
-      );
-    }
-  }
-
-  void _handleNotificationAction(Map<String, dynamic> notification) {
-    final type = notification['type'];
-    
-    switch (type) {
-      case 'appointment':
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Opening appointment details...')),
-        );
-        break;
-      case 'medication':
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Opening medication review...')),
-        );
-        break;
-      case 'lab_result':
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Opening lab results...')),
-        );
-        break;
-      case 'emergency':
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Opening emergency response...')),
-        );
-        break;
-      default:
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Action feature coming soon')),
-        );
-    }
-  }
-
-  void _dismissNotification(Map<String, dynamic> notification) async {
-    try {
-      await ApiService.dismissNotification(notification['id']);
-      setState(() {
-        _notifications.remove(notification);
-        _unreadCount = _notifications.where((n) => !n['isRead']).length;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Notification dismissed'),
-          backgroundColor: AppColors.success,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to dismiss notification: $e'),
-          backgroundColor: AppColors.error,
-        ),
-      );
-    }
-  }
-
-  void _showNotificationSettings() {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Notification Settings',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 24),
-            SwitchListTile(
-              title: const Text('Push Notifications'),
-              subtitle: const Text('Receive push notifications on your device'),
-              value: true,
-              onChanged: (value) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Settings saved')),
-                );
-              },
-            ),
-            SwitchListTile(
-              title: const Text('Email Notifications'),
-              subtitle: const Text('Receive notifications via email'),
-              value: false,
-              onChanged: (value) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Settings saved')),
-                );
-              },
-            ),
-            SwitchListTile(
-              title: const Text('Emergency Alerts'),
-              subtitle: const Text('High priority emergency notifications'),
-              value: true,
-              onChanged: (value) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Settings saved')),
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Done'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _clearAllNotifications() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Clear All Notifications'),
-        content: const Text('Are you sure you want to clear all notifications? This action cannot be undone.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              try {
-                await ApiService.clearAllNotifications();
-                setState(() {
-                  _notifications.clear();
-                  _unreadCount = 0;
-                });
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('All notifications cleared'),
-                    backgroundColor: AppColors.success,
-                  ),
-                );
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Failed to clear notifications: $e'),
-                    backgroundColor: AppColors.error,
-                  ),
-                );
-              }
-            },
-            child: Text(
-              'Clear All',
-              style: TextStyle(color: AppColors.error),
-            ),
-          ),
-        ],
-      ),
-    );
+  String _formatTime(DateTime dateTime) {
+    final hour = dateTime.hour > 12 ? dateTime.hour - 12 : (dateTime.hour == 0 ? 12 : dateTime.hour);
+    final period = dateTime.hour >= 12 ? 'PM' : 'AM';
+    return '${hour}:${dateTime.minute.toString().padLeft(2, '0')} $period';
   }
 
   @override
