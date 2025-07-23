@@ -437,7 +437,21 @@ export default function ShiftsPage() {
               
               <div className="grid grid-cols-2 gap-2">
                 {timeSlots.map((slot) => {
-                  const isBooked = isTimeSlotBooked(slot.value);
+                  const dateString = selectedDate.toISOString().split('T')[0];
+                  const isBookedByCurrentStaff = shifts.find((shift: any) => 
+                    shift.staffId === parseInt(selectedStaffId) &&
+                    shift.date === dateString &&
+                    slot.value >= shift.startTime &&
+                    slot.value <= shift.endTime &&
+                    shift.status !== 'cancelled'
+                  );
+                  const isBookedByOtherStaff = shifts.find((shift: any) => 
+                    shift.staffId !== parseInt(selectedStaffId) &&
+                    shift.date === dateString &&
+                    slot.value >= shift.startTime &&
+                    slot.value <= shift.endTime &&
+                    shift.status !== 'cancelled'
+                  );
                   const isInSelectedRange = selectedStartTime && selectedEndTime && 
                     slot.value >= selectedStartTime && slot.value <= selectedEndTime;
                   const isInPendingRange = selectedStartTime && !selectedEndTime && 
@@ -449,7 +463,9 @@ export default function ShiftsPage() {
                       variant="outline"
                       className={`
                         h-12 justify-center font-medium transition-all cursor-pointer
-                        ${isBooked 
+                        ${isBookedByCurrentStaff
+                          ? 'bg-green-500 text-white border-green-500 hover:bg-green-600'
+                          : isBookedByOtherStaff 
                           ? 'bg-gray-300 text-gray-600 border-gray-300 hover:bg-gray-400' 
                           : isInSelectedRange
                           ? 'bg-green-500 text-white border-green-500 hover:bg-green-600'
@@ -484,11 +500,11 @@ export default function ShiftsPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 bg-green-500 rounded"></div>
-                    <span className="text-gray-600">Selected Shift</span>
+                    <span className="text-gray-600">Current Staff Shifts</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 bg-gray-300 border border-gray-300 rounded"></div>
-                    <span className="text-gray-600">Booked</span>
+                    <span className="text-gray-600">Other Staff Shifts</span>
                   </div>
                 </div>
               </div>
