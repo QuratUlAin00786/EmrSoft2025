@@ -1,18 +1,15 @@
 import { useState, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Clock, Plus, Users, CalendarCheck, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, Clock, Users, CalendarCheck, ChevronLeft, ChevronRight, UserCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function ShiftsPage() {
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedRole, setSelectedRole] = useState("");
   const [selectedStaffId, setSelectedStaffId] = useState("");
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -26,15 +23,15 @@ export default function ShiftsPage() {
     { value: 'receptionist', label: 'Receptionist' }
   ];
 
-  // Generate 24-hour time slots
+  // Generate 24-hour time slots (00:00 to 23:00)
   const timeSlots = useMemo(() => {
     const slots = [];
     for (let hour = 0; hour < 24; hour++) {
       const timeString = hour.toString().padStart(2, '0') + ':00';
-      const displayTime = hour === 0 ? '12:00am' : 
-                         hour < 12 ? `${hour}:00am` : 
-                         hour === 12 ? '12:00pm' : 
-                         `${hour - 12}:00pm`;
+      const displayTime = hour === 0 ? '12:00 AM' : 
+                         hour < 12 ? `${hour}:00 AM` : 
+                         hour === 12 ? '12:00 PM' : 
+                         `${hour - 12}:00 PM`;
       slots.push({ value: timeString, display: displayTime, hour });
     }
     return slots;
@@ -76,10 +73,11 @@ export default function ShiftsPage() {
 
   // Fetch shifts for selected date
   const { data: shifts = [], isLoading: shiftsLoading, refetch: refetchShifts } = useQuery({
-    queryKey: ["/api/shifts", selectedDate],
+    queryKey: ["/api/shifts", selectedDate.toISOString().split('T')[0]],
     queryFn: async () => {
       try {
-        const response = await apiRequest("GET", `/api/shifts?date=${selectedDate}`);
+        const dateString = selectedDate.toISOString().split('T')[0];
+        const response = await apiRequest("GET", `/api/shifts?date=${dateString}`);
         const data = await response.json();
         return Array.isArray(data) ? data : [];
       } catch (error) {
@@ -95,61 +93,39 @@ export default function ShiftsPage() {
     return staff.filter((member: any) => member.role === selectedRole);
   }, [staff, selectedRole]);
 
-  // Check if time slot is booked
+  // Check if time slot is booked for selected staff member
   const isTimeSlotBooked = (timeSlot: string) => {
     if (!selectedStaffId || !selectedDate) return false;
     
+    const dateString = selectedDate.toISOString().split('T')[0];
     return shifts.some((shift: any) => 
       shift.staffId === parseInt(selectedStaffId) &&
-      shift.date === selectedDate &&
+      shift.date === dateString &&
       shift.startTime === timeSlot &&
       shift.status !== 'cancelled'
     );
   };
 
-  // Create shift mutation
-  const createShiftMutation = useMutation({
-    mutationFn: async (shiftData: any) => {
-      const response = await apiRequest("POST", "/api/shifts", shiftData);
-      return response;
-    },
-    onSuccess: () => {
+  // Handle time slot selection and booking
+  const handleTimeSlotClick = async (timeSlot: string) => {
+    if (!selectedRole) {
       toast({
-        title: "Success",
-        description: "Shift scheduled successfully",
-      });
-      setIsCreateDialogOpen(false);
-      resetForm();
-      refetchShifts();
-      queryClient.invalidateQueries({ queryKey: ["/api/shifts", selectedDate] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to schedule shift",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Reset form function
-  const resetForm = () => {
-    setSelectedRole("");
-    setSelectedStaffId("");
-    setSelectedTimeSlot("");
-  };
-
-  // Handle time slot selection
-  const handleTimeSlotSelect = (timeSlot: string) => {
-    if (!selectedStaffId) {
-      toast({
-        title: "Select Staff Member",
-        description: "Please select a role and staff member first",
+        title: "Select Role First",
+        description: "Please select a role before choosing time slots",
         variant: "destructive",
       });
       return;
     }
-    
+
+    if (!selectedStaffId) {
+      toast({
+        title: "Select Staff Member",
+        description: "Please select a staff member before choosing time slots",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (isTimeSlotBooked(timeSlot)) {
       toast({
         title: "Time Slot Unavailable",
@@ -158,36 +134,39 @@ export default function ShiftsPage() {
       });
       return;
     }
-    
-    setSelectedTimeSlot(timeSlot);
-  };
 
-  // Handle create shift
-  const handleCreateShift = () => {
-    if (!selectedStaffId || !selectedTimeSlot || !selectedDate) {
-      toast({
-        title: "Missing Information",
-        description: "Please select role, staff member, date, and time slot",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    // Book the time slot
     const shiftData = {
       staffId: parseInt(selectedStaffId),
-      date: selectedDate,
-      startTime: selectedTimeSlot,
-      endTime: (parseInt(selectedTimeSlot.split(':')[0]) + 1).toString().padStart(2, '0') + ':00',
+      date: selectedDate.toISOString().split('T')[0],
+      startTime: timeSlot,
+      endTime: (parseInt(timeSlot.split(':')[0]) + 1).toString().padStart(2, '0') + ':00',
       shiftType: "regular",
       status: "scheduled",
       isAvailable: true,
-      notes: `Scheduled via calendar interface`
+      notes: `Scheduled via shift management calendar`
     };
 
-    createShiftMutation.mutate(shiftData);
+    try {
+      const response = await apiRequest("POST", "/api/shifts", shiftData);
+      if (response.ok) {
+        toast({
+          title: "Shift Scheduled",
+          description: `Successfully scheduled ${timeSlot} for selected staff member`,
+        });
+        refetchShifts();
+        queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
+      }
+    } catch (error) {
+      toast({
+        title: "Booking Failed",
+        description: "Failed to schedule the shift. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  // Calendar navigation
+  // Navigation functions for calendar
   const goToPreviousMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
   };
@@ -202,7 +181,6 @@ export default function ShiftsPage() {
   ];
   const currentMonthName = monthNames[currentMonth.getMonth()];
   const currentYear = currentMonth.getFullYear();
-  const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -215,7 +193,172 @@ export default function ShiftsPage() {
           </div>
         </div>
         <div className="text-sm text-gray-500">
-          View shifts for: <span className="font-medium">{new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+          View shifts for: <span className="font-medium">{selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+        </div>
+      </div>
+
+      {/* Role and Name Selection */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <UserCheck className="h-6 w-6 text-blue-600" />
+            <h2 className="text-lg font-semibold text-gray-900">Select Role</h2>
+          </div>
+          <Select value={selectedRole} onValueChange={setSelectedRole}>
+            <SelectTrigger className="w-full h-12">
+              <SelectValue placeholder="Choose a role..." />
+            </SelectTrigger>
+            <SelectContent>
+              {roleOptions.map((role) => (
+                <SelectItem key={role.value} value={role.value}>
+                  {role.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <Users className="h-6 w-6 text-blue-600" />
+            <h2 className="text-lg font-semibold text-gray-900">Select Name</h2>
+          </div>
+          <Select 
+            value={selectedStaffId} 
+            onValueChange={setSelectedStaffId}
+            disabled={!selectedRole}
+          >
+            <SelectTrigger className="w-full h-12">
+              <SelectValue placeholder={!selectedRole ? "Select a role first" : "Choose a staff member..."} />
+            </SelectTrigger>
+            <SelectContent>
+              {filteredStaff.map((member: any) => (
+                <SelectItem key={member.id} value={member.id.toString()}>
+                  {member.role === 'doctor' ? 'Dr.' : ''} {member.firstName} {member.lastName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Calendar and Time Selection */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Date Calendar */}
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">Select a Date & Time</h2>
+          </div>
+          
+          {/* Calendar Header */}
+          <div className="flex items-center justify-between mb-4">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={goToPreviousMonth}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <h3 className="font-medium text-gray-900">
+              {currentMonthName} {currentYear}
+            </h3>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={goToNextMonth}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Calendar Grid */}
+          <div className="grid grid-cols-7 gap-1 mb-2">
+            {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((day) => (
+              <div key={day} className="p-2 text-center text-xs font-medium text-gray-500">
+                {day}
+              </div>
+            ))}
+          </div>
+          
+          <div className="grid grid-cols-7 gap-1">
+            {calendarDays.map((day, index) => {
+              const isCurrentMonth = day.getMonth() === currentMonth.getMonth();
+              const isSelected = selectedDate.toDateString() === day.toDateString();
+              const isToday = day.toDateString() === new Date().toDateString();
+              
+              return (
+                <Button
+                  key={index}
+                  variant="ghost"
+                  size="sm"
+                  className={`
+                    h-10 p-0 font-normal
+                    ${!isCurrentMonth ? 'text-gray-300' : 'text-gray-900'}
+                    ${isSelected ? 'bg-blue-600 text-white hover:bg-blue-700' : ''}
+                    ${isToday && !isSelected ? 'bg-blue-100 text-blue-600' : ''}
+                  `}
+                  onClick={() => setSelectedDate(day)}
+                >
+                  {day.getDate()}
+                </Button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Time Slots */}
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <Clock className="h-6 w-6 text-blue-600" />
+            <h2 className="text-lg font-semibold text-gray-900">
+              {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            </h2>
+          </div>
+          
+          {!selectedStaffId ? (
+            <div className="text-center py-8">
+              <Clock className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500 mb-2">Select a staff member to view time slots</p>
+              <p className="text-sm text-gray-400">Choose role and name from the dropdowns above</p>
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              <div className="grid grid-cols-2 gap-2">
+                {timeSlots.map((slot) => {
+                  const isBooked = isTimeSlotBooked(slot.value);
+                  return (
+                    <Button
+                      key={slot.value}
+                      variant="outline"
+                      className={`
+                        h-12 justify-center font-medium
+                        ${isBooked 
+                          ? 'bg-gray-300 text-gray-600 border-gray-300 cursor-not-allowed' 
+                          : 'bg-green-50 hover:bg-green-100 text-green-700 border-green-200 hover:border-green-300'
+                        }
+                      `}
+                      onClick={() => handleTimeSlotClick(slot.value)}
+                      disabled={isBooked}
+                    >
+                      {slot.display}
+                    </Button>
+                  );
+                })}
+              </div>
+              
+              {/* Legend */}
+              <div className="mt-4 pt-4 border-t flex items-center justify-center gap-6 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-green-100 border border-green-200 rounded"></div>
+                  <span className="text-gray-600">Available</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-gray-300 border border-gray-300 rounded"></div>
+                  <span className="text-gray-600">Booked</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -265,183 +408,11 @@ export default function ShiftsPage() {
         </div>
       </div>
 
-      {/* Enhanced Schedule Shift Dialog */}
-      <div className="mb-6">
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-green-600 hover:bg-green-700">
-              <Plus className="h-4 w-4 mr-2" />
-              Schedule Shift
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-5xl max-h-[95vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-semibold text-gray-900">
-                Select Role, Name, Date & Time
-              </DialogTitle>
-            </DialogHeader>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
-              {/* LEFT SIDE: Role/Name Selection & Calendar */}
-              <div className="space-y-6">
-                {/* Role Dropdown */}
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Role</label>
-                  <Select value={selectedRole} onValueChange={setSelectedRole}>
-                    <SelectTrigger className="w-full h-12">
-                      <SelectValue placeholder="Select role..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {roleOptions.map((role) => (
-                        <SelectItem key={role.value} value={role.value}>
-                          {role.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Name Dropdown */}
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Name</label>
-                  <Select value={selectedStaffId} onValueChange={setSelectedStaffId}>
-                    <SelectTrigger className="w-full h-12">
-                      <SelectValue placeholder="Select staff member..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {filteredStaff.map((member: any) => {
-                        const prefix = member.role === 'doctor' ? 'Dr.' : 
-                                     member.role === 'nurse' ? 'Nurse' : 
-                                     member.role === 'lab_technician' ? 'Lab Tech' : '';
-                        return (
-                          <SelectItem key={member.id} value={member.id.toString()}>
-                            {prefix} {member.firstName} {member.lastName}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Interactive Calendar */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={goToPreviousMonth}
-                      className="p-2"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {currentMonthName} {currentYear}
-                    </h3>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={goToNextMonth}
-                      className="p-2"
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-
-                  {/* Day headers */}
-                  <div className="grid grid-cols-7 gap-1 mb-2">
-                    {dayNames.map((day) => (
-                      <div key={day} className="text-center text-xs font-medium text-gray-500 py-2">
-                        {day}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Calendar days */}
-                  <div className="grid grid-cols-7 gap-1">
-                    {calendarDays.map((day, index) => {
-                      const isCurrentMonth = day.getMonth() === currentMonth.getMonth();
-                      const isSelected = selectedDate === day.toISOString().split('T')[0];
-                      const isToday = day.toDateString() === new Date().toDateString();
-                      
-                      return (
-                        <button
-                          key={index}
-                          onClick={() => setSelectedDate(day.toISOString().split('T')[0])}
-                          className={`
-                            h-10 w-10 text-sm rounded-lg transition-colors duration-150
-                            ${isSelected 
-                              ? 'bg-blue-600 text-white' 
-                              : isToday 
-                                ? 'bg-blue-100 text-blue-800 font-medium'
-                                : isCurrentMonth 
-                                  ? 'text-gray-900 hover:bg-gray-100' 
-                                  : 'text-gray-400'
-                            }
-                          `}
-                        >
-                          {day.getDate()}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* RIGHT SIDE: Time Slots (GREEN = Available, GRAY = Booked) */}
-              <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-4">
-                  Available Times for {selectedDate ? new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : 'Select a date'}
-                </h4>
-                
-                <div className="grid grid-cols-2 gap-2 max-h-96 overflow-y-auto">
-                  {timeSlots.map((slot) => {
-                    const isBooked = isTimeSlotBooked(slot.value);
-                    const isSelected = selectedTimeSlot === slot.value;
-                    
-                    return (
-                      <button
-                        key={slot.value}
-                        onClick={() => handleTimeSlotSelect(slot.value)}
-                        disabled={isBooked}
-                        className={`
-                          p-3 rounded-lg border-2 text-sm font-medium transition-all duration-150
-                          ${isSelected
-                            ? 'bg-blue-600 text-white border-blue-600'
-                            : isBooked
-                              ? 'bg-gray-300 text-gray-500 border-gray-300 cursor-not-allowed'
-                              : 'bg-green-100 text-green-800 border-green-300 hover:bg-green-200'
-                          }
-                        `}
-                      >
-                        {slot.display}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Confirm Button */}
-                {selectedTimeSlot && (
-                  <div className="mt-6 pt-4 border-t">
-                    <Button
-                      onClick={handleCreateShift}
-                      disabled={createShiftMutation.isPending}
-                      className="w-full bg-blue-600 hover:bg-blue-700 h-12"
-                    >
-                      {createShiftMutation.isPending ? 'Scheduling...' : 'Confirm Schedule'}
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-
       {/* Shifts List */}
       <div className="bg-white rounded-lg shadow-sm border">
         <div className="p-6 border-b">
           <h2 className="text-lg font-semibold text-gray-900">
-            Shifts for {new Date(selectedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+            Shifts for {selectedDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
           </h2>
         </div>
         
@@ -454,7 +425,7 @@ export default function ShiftsPage() {
           <div className="p-12 text-center">
             <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No shifts scheduled for this date</h3>
-            <p className="text-gray-600 mb-4">Click "Schedule Shift" to add a new shift</p>
+            <p className="text-gray-600 mb-4">Use the calendar above to schedule new shifts</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-200">
