@@ -1,696 +1,214 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import '../services/api_service.dart';
-import '../theme/app_theme.dart';
 import '../utils/app_colors.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
-}
-
-class _ProfileScreenState extends State<ProfileScreen> {
-  Map<String, dynamic>? _profileData;
-  bool _isLoading = true;
-  bool _notificationsEnabled = true;
-  bool _biometricEnabled = false;
-  String _selectedLanguage = 'English';
-
-  @override
-  void initState() {
-    super.initState();
-    _loadProfileData();
-  }
-
-  Future<void> _loadProfileData() async {
-    try {
-      final data = await ApiService.getDoctorProfile();
-      setState(() {
-        _profileData = data;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Profile'),
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.textPrimary,
-        elevation: 0,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(
-            height: 1,
-            color: AppColors.border,
-          ),
-        ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Column(
-                children: [
-                  // Profile Header
-                  Container(
-                    color: Colors.white,
-                    padding: const EdgeInsets.all(24),
+      body: Consumer<AuthProvider>(
+        builder: (context, authProvider, _) {
+          final user = authProvider.user;
+          
+          if (user == null) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                // Profile Picture and Name
+                CircleAvatar(
+                  radius: 60,
+                  backgroundColor: AppColors.primary,
+                  child: Text(
+                    user.firstName.substring(0, 1).toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 48,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                
+                const SizedBox(height: 24),
+                
+                Text(
+                  user.displayName,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                
+                const SizedBox(height: 8),
+                
+                Text(
+                  user.email,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                
+                const SizedBox(height: 32),
+                
+                // Profile Information
+                _buildProfileSection('Personal Information', [
+                  _buildInfoRow('First Name', user.firstName),
+                  _buildInfoRow('Last Name', user.lastName),
+                  _buildInfoRow('Email', user.email),
+                  _buildInfoRow('Role', user.roleDisplay),
+                ]),
+                
+                const SizedBox(height: 24),
+                
+                _buildProfileSection('Professional Details', [
+                  _buildInfoRow('Department', user.department ?? 'Not specified'),
+                  _buildInfoRow('Specialization', user.specialization ?? 'General Medicine'),
+                  _buildInfoRow('License Number', user.licenseNumber ?? 'Not provided'),
+                  _buildInfoRow('Years of Experience', '${user.yearsOfExperience ?? 0} years'),
+                ]),
+                
+                const SizedBox(height: 32),
+                
+                // App Information
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CircleAvatar(
-                          radius: 50,
-                          backgroundColor: AppColors.primary.withOpacity(0.1),
-                          child: Text(
-                            authProvider.userName.isNotEmpty
-                                ? authProvider.userName[0].toUpperCase()
-                                : 'D',
-                            style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
-                            ),
+                        Text(
+                          'About Cura Doctor',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
                         Text(
-                          'Dr. ${_profileData?['firstName'] ?? 'Doctor'}',
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          _profileData?['lastName'] ?? 'Professional',
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                          'Professional healthcare management platform designed for medical practitioners.',
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          _profileData?['specialization'] ?? 'General Medicine',
+                          'Version 1.0.0',
                           style: TextStyle(
-                            fontSize: 16,
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          _profileData?['email'] ?? authProvider.userEmail,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'License: ${_profileData?['licenseNumber'] ?? 'N/A'}',
-                          style: TextStyle(
+                            color: AppColors.textLight,
                             fontSize: 12,
-                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'by Halo Group',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
                     ),
                   ),
-
-                  const SizedBox(height: 16),
-
-                  // Professional Information
-                  _buildSectionCard(
-                    'Professional Information',
-                    [
-                      _buildInfoRow('Specialization', _profileData?['specialization'] ?? 'General Medicine'),
-                      _buildInfoRow('Department', _profileData?['department'] ?? 'General Medicine'),
-                      _buildInfoRow('License Number', _profileData?['licenseNumber'] ?? 'Not provided'),
-                      _buildInfoRow('Years of Experience', _profileData?['experience']?.toString() ?? 'Not specified'),
-                      _buildInfoRow('Consultation Fee', _profileData?['consultationFee'] != null ? '£${_profileData!['consultationFee']}' : 'Not set'),
-                    ],
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Contact Information
-                  _buildSectionCard(
-                    'Contact Information',
-                    [
-                      _buildInfoRow('Phone', _profileData?['phone'] ?? 'Not provided'),
-                      _buildInfoRow('Clinic Address', _profileData?['clinicAddress'] ?? 'Not provided'),
-                      _buildInfoRow('Working Hours', _profileData?['workingHours'] ?? '9:00 AM - 5:00 PM'),
-                      _buildInfoRow('Emergency Contact', _profileData?['emergencyContact'] ?? 'Not specified'),
-                    ],
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Professional Stats
-                  _buildSectionCard(
-                    'Professional Statistics',
-                    [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildStatItem('Total Patients', _profileData?['totalPatients']?.toString() ?? '0'),
-                          ),
-                          Expanded(
-                            child: _buildStatItem('This Month', _profileData?['monthlyPatients']?.toString() ?? '0'),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildStatItem('Rating', _profileData?['rating']?.toString() ?? '5.0'),
-                          ),
-                          Expanded(
-                            child: _buildStatItem('Reviews', _profileData?['totalReviews']?.toString() ?? '0'),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // App Settings
-                  _buildSectionCard(
-                    'App Settings',
-                    [
-                      _buildSwitchRow(
-                        'Push Notifications',
-                        _notificationsEnabled,
-                        (value) => setState(() => _notificationsEnabled = value),
-                      ),
-                      _buildSwitchRow(
-                        'Biometric Login',
-                        _biometricEnabled,
-                        (value) => setState(() => _biometricEnabled = value),
-                      ),
-                      _buildDropdownRow(
-                        'Language',
-                        _selectedLanguage,
-                        ['English', 'Spanish', 'French'],
-                        (value) => setState(() => _selectedLanguage = value!),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Qualifications
-                  if (_profileData?['qualifications'] != null && _profileData!['qualifications'].isNotEmpty)
-                    _buildQualificationsCard(),
-
-                  const SizedBox(height: 16),
-
-                  // Quick Actions
-                  _buildSectionCard(
-                    'Account Management',
-                    [
-                      _buildActionRow('Edit Profile', Icons.edit, () {
-                        _showEditProfileDialog();
-                      }),
-                      _buildActionRow('Change Password', Icons.lock, () {
-                        _showChangePasswordDialog();
-                      }),
-                      _buildActionRow('Availability Settings', Icons.schedule, () {
-                        _showAvailabilitySettings();
-                      }),
-                      _buildActionRow('Notification Preferences', Icons.notifications, () {
-                        _showNotificationSettings();
-                      }),
-                      _buildActionRow('Help & Support', Icons.help, () {
-                        _showHelpDialog();
-                      }),
-                      _buildActionRow('Export Patient Data', Icons.download, () {
-                        _exportPatientData();
-                      }),
-                    ],
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Sign Out Button
-                  Container(
-                    margin: const EdgeInsets.all(16),
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => _showSignOutDialog(),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.error,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Sign Out',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // Sign Out Button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _showSignOutDialog(context, authProvider);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.error,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: const Text(
+                      'Sign Out',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
-
-                  const SizedBox(height: 32),
-                ],
-              ),
+                ),
+              ],
             ),
-    );
-  }
-
-  Widget _buildSectionCard(String title, List<Widget> children) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          const Divider(height: 1),
-          ...children,
-        ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildQualificationsCard() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+  Widget _buildProfileSection(String title, List<Widget> children) {
+    return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Qualifications & Certifications',
+            Text(
+              title,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 16),
-            ...List<String>.from(_profileData!['qualifications']).map((qualification) {
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.school,
-                      color: AppColors.primary,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        qualification,
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
+            const SizedBox(height: 12),
+            ...children,
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildStatItem(String label, String value) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 12,
-            ),
-          ),
-        ],
       ),
     );
   }
 
   Widget _buildInfoRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
             width: 120,
             child: Text(
-              label,
+              '$label:',
               style: TextStyle(
                 color: AppColors.textSecondary,
-                fontSize: 14,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSwitchRow(String label, bool value, ValueChanged<bool> onChanged) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 14),
-          ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeColor: AppColors.primary,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDropdownRow(String label, String value, List<String> options, ValueChanged<String?> onChanged) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 14),
-          ),
-          DropdownButton<String>(
-            value: value,
-            onChanged: onChanged,
-            items: options.map((String option) {
-              return DropdownMenuItem<String>(
-                value: option,
-                child: Text(option),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionRow(String label, IconData icon, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        child: Row(
-          children: [
-            Icon(icon, color: AppColors.primary, size: 20),
-            const SizedBox(width: 16),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 14),
-            ),
-            const Spacer(),
-            Icon(Icons.chevron_right, color: AppColors.textSecondary),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showEditProfileDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Profile'),
-        content: const Text('Profile editing feature will be available soon.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showChangePasswordDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Change Password'),
-        content: const Text('Password change feature will be available soon.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showAvailabilitySettings() {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Availability Settings',
               style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 24),
-            ListTile(
-              leading: const Icon(Icons.schedule),
-              title: const Text('Working Hours'),
-              subtitle: const Text('Monday - Friday, 9:00 AM - 5:00 PM'),
-              trailing: const Icon(Icons.edit),
-              onTap: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Working hours feature coming soon')),
-                );
-              },
-            ),
-            SwitchListTile(
-              title: const Text('Accept Emergency Calls'),
-              subtitle: const Text('Receive urgent patient calls after hours'),
-              value: true,
-              onChanged: (value) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Emergency settings updated')),
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Done'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showNotificationSettings() {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Notification Preferences',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 24),
-            SwitchListTile(
-              title: const Text('Appointment Reminders'),
-              subtitle: const Text('Get notified about upcoming appointments'),
-              value: true,
-              onChanged: (value) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Settings updated')),
-                );
-              },
-            ),
-            SwitchListTile(
-              title: const Text('Patient Messages'),
-              subtitle: const Text('Receive notifications for patient messages'),
-              value: true,
-              onChanged: (value) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Settings updated')),
-                );
-              },
-            ),
-            SwitchListTile(
-              title: const Text('Emergency Alerts'),
-              subtitle: const Text('Critical patient notifications'),
-              value: true,
-              onChanged: (value) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Settings updated')),
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Done'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showHelpDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Help & Support'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Need help? Contact our support team:'),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Icon(Icons.email, color: AppColors.primary),
-                const SizedBox(width: 8),
-                const Text('support@cura.com'),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(Icons.phone, color: AppColors.primary),
-                const SizedBox(width: 8),
-                const Text('+1 (555) 123-4567'),
-              ],
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
           ),
         ],
       ),
     );
   }
 
-  void _exportPatientData() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Exporting patient data...'),
-        backgroundColor: AppColors.success,
-      ),
-    );
-  }
-
-  void _showSignOutDialog() {
+  void _showSignOutDialog(BuildContext context, AuthProvider authProvider) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -701,15 +219,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              Provider.of<AuthProvider>(context, listen: false).signOut();
+              authProvider.signOut();
             },
-            child: Text(
-              'Sign Out',
-              style: TextStyle(color: AppColors.error),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
             ),
+            child: const Text('Sign Out'),
           ),
         ],
       ),

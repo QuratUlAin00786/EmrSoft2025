@@ -1,50 +1,55 @@
 name: cura_doctor
-description: Cura Doctor Mobile App by Halo Group - Comprehensive Healthcare Management Platform
-
+description: "Cura Doctor - Professional healthcare management mobile application for medical practitioners"
 publish_to: 'none'
 
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: '>=3.2.6 <4.0.0'
+  flutter: ">=3.16.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.2
+
+  # State Management
+  provider: ^6.1.1
+
+  # HTTP Client
   http: ^1.1.0
+
+  # Secure Storage
   flutter_secure_storage: ^9.0.0
-  shared_preferences: ^2.2.0
-  provider: ^6.0.5
-  intl: ^0.18.1
-  flutter_local_notifications: ^15.1.1
-  permission_handler: ^11.0.1
-  webview_flutter: ^4.4.1
-  url_launcher: ^6.1.12
-  image_picker: ^1.0.4
-  file_picker: ^5.5.0
-  cached_network_image: ^3.3.0
-  flutter_svg: ^2.0.7
-  video_player: ^2.7.2
-  agora_rtc_engine: ^6.3.2
-  path_provider: ^2.1.1
-  flutter_pdfview: ^1.3.2
-  connectivity_plus: ^5.0.1
-  device_info_plus: ^9.1.0
-  package_info_plus: ^4.2.0
+
+  # Date Formatting
+  intl: ^0.19.0
+
+  # UI Icons
+  cupertino_icons: ^1.0.6
+
+  # JSON Annotation
+  json_annotation: ^4.8.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.1
+
+  # Linting
+  flutter_lints: ^3.0.0
+
+  # JSON Serialization
+  json_serializable: ^6.7.1
+  build_runner: ^2.4.7
 
 flutter:
   uses-material-design: true
-  
+
+  # App Icons
   assets:
     - assets/images/
     - assets/icons/
-    
+
+  # Custom Fonts
   fonts:
     - family: Inter
       fonts:

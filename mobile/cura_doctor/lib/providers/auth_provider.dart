@@ -1,129 +1,83 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../models/user.dart';
 
-class AuthProvider extends ChangeNotifier {
-  bool _isAuthenticated = false;
-  bool _isLoading = true;
-  Map<String, dynamic>? _user;
-  String? _errorMessage;
+class AuthProvider with ChangeNotifier {
+  final AuthService _authService = AuthService();
   
-  bool get isAuthenticated => _isAuthenticated;
+  User? _user;
+  bool _isLoading = false;
+  String? _error;
+
+  User? get user => _user;
+  bool get isAuthenticated => _user != null;
   bool get isLoading => _isLoading;
-  Map<String, dynamic>? get user => _user;
-  String? get errorMessage => _errorMessage;
-  
+  String? get error => _error;
+
   AuthProvider() {
     _initializeAuth();
   }
-  
+
   Future<void> _initializeAuth() async {
+    _isLoading = true;
+    notifyListeners();
+
     try {
-      _isLoading = true;
-      notifyListeners();
-      
-      final isLoggedIn = await AuthService.isLoggedIn();
-      if (isLoggedIn) {
-        final isValid = await AuthService.validateToken();
-        if (isValid) {
-          _user = await AuthService.getUserData();
-          _isAuthenticated = true;
-        } else {
-          await AuthService.logout();
-          _isAuthenticated = false;
-        }
-      } else {
-        _isAuthenticated = false;
+      final token = await _authService.getStoredToken();
+      if (token != null) {
+        _user = await _authService.validateToken();
       }
     } catch (e) {
-      _isAuthenticated = false;
-      _errorMessage = 'Failed to validate authentication';
+      _error = e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
-  
-  Future<bool> login(String email, String password) async {
+
+  Future<bool> signIn(String email, String password) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
     try {
-      _isLoading = true;
-      _errorMessage = null;
-      notifyListeners();
-      
-      final result = await AuthService.login(email, password);
-      
-      if (result['success'] == true) {
+      final result = await _authService.signIn(email, password);
+      if (result['success']) {
         _user = result['user'];
-        _isAuthenticated = true;
-        _errorMessage = null;
+        _isLoading = false;
         notifyListeners();
         return true;
       } else {
-        _errorMessage = result['message'] ?? 'Login failed';
-        _isAuthenticated = false;
+        _error = result['error'] ?? 'Login failed';
+        _isLoading = false;
         notifyListeners();
         return false;
       }
     } catch (e) {
-      _errorMessage = 'Login failed: ${e.toString()}';
-      _isAuthenticated = false;
+      _error = e.toString();
+      _isLoading = false;
       notifyListeners();
       return false;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
     }
   }
-  
-  Future<void> logout() async {
+
+  Future<void> signOut() async {
+    _isLoading = true;
+    notifyListeners();
+
     try {
-      _isLoading = true;
-      notifyListeners();
-      
-      await AuthService.logout();
-      
-      _isAuthenticated = false;
+      await _authService.signOut();
       _user = null;
-      _errorMessage = null;
     } catch (e) {
-      _errorMessage = 'Logout failed';
+      _error = e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
-  
-  Future<void> refreshUser() async {
-    try {
-      await AuthService.refreshUserData();
-      _user = await AuthService.getUserData();
-      notifyListeners();
-    } catch (e) {
-      _errorMessage = 'Failed to refresh user data';
-      await logout();
-    }
-  }
-  
+
   void clearError() {
-    _errorMessage = null;
+    _error = null;
     notifyListeners();
   }
-  
-  String get userName {
-    if (_user != null) {
-      final firstName = _user!['firstName'];
-      final lastName = _user!['lastName'];
-      if (firstName != null && lastName != null) {
-        return 'Dr. $firstName $lastName';
-      }
-    }
-    return _user?['email'] ?? 'Doctor';
-  }
-  
-  String get userRole => _user?['role'] ?? 'doctor';
-  
-  int? get userId => _user?['id'];
-  
-  String? get userEmail => _user?['email'];
-  
-  String? get userDepartment => _user?['department'];
 }
