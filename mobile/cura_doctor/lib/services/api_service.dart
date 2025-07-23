@@ -78,6 +78,17 @@ class ApiService {
     }
   }
   
+  // Doctor Profile
+  static Future<Map<String, dynamic>> getDoctorProfile() async {
+    final response = await _makeRequest('GET', '/mobile/doctor/profile');
+    
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load doctor profile');
+    }
+  }
+  
   // Patient Management
   static Future<List<Map<String, dynamic>>> getPatients() async {
     final response = await _makeRequest('GET', '/mobile/doctor/patients');
@@ -228,6 +239,101 @@ class ApiService {
       return jsonDecode(response.body);
     } else {
       throw Exception('Failed to start video consultation');
+    }
+  }
+  
+  // Voice Documentation
+  static Future<List<Map<String, dynamic>>> getVoiceNotes() async {
+    final response = await _makeRequest('GET', '/mobile/doctor/voice-notes');
+    
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.cast<Map<String, dynamic>>();
+    } else {
+      throw Exception('Failed to load voice notes');
+    }
+  }
+  
+  static Future<Map<String, dynamic>> createVoiceNote(Map<String, dynamic> voiceData) async {
+    final response = await _makeRequest(
+      'POST', 
+      '/mobile/doctor/voice-notes',
+      body: voiceData,
+    );
+    
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to create voice note');
+    }
+  }
+  
+  static Future<Map<String, dynamic>> deleteVoiceNote(int noteId) async {
+    final response = await _makeRequest('DELETE', '/mobile/doctor/voice-notes/$noteId');
+    
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to delete voice note');
+    }
+  }
+  
+  // AI Insights
+  static Future<List<Map<String, dynamic>>> getAIInsights() async {
+    final response = await _makeRequest('GET', '/mobile/doctor/ai-insights');
+    
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.cast<Map<String, dynamic>>();
+    } else {
+      throw Exception('Failed to load AI insights');
+    }
+  }
+  
+  static Future<Map<String, dynamic>> getPatientAIInsights(int patientId) async {
+    final response = await _makeRequest('GET', '/mobile/doctor/ai-insights/patient/$patientId');
+    
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load patient AI insights');
+    }
+  }
+  
+  // Messaging
+  static Future<List<Map<String, dynamic>>> getConversations() async {
+    final response = await _makeRequest('GET', '/mobile/doctor/conversations');
+    
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.cast<Map<String, dynamic>>();
+    } else {
+      throw Exception('Failed to load conversations');
+    }
+  }
+  
+  static Future<List<Map<String, dynamic>>> getMessages(int conversationId) async {
+    final response = await _makeRequest('GET', '/mobile/doctor/conversations/$conversationId/messages');
+    
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.cast<Map<String, dynamic>>();
+    } else {
+      throw Exception('Failed to load messages');
+    }
+  }
+  
+  static Future<Map<String, dynamic>> sendMessage(int conversationId, String message) async {
+    final response = await _makeRequest(
+      'POST', 
+      '/mobile/doctor/conversations/$conversationId/messages',
+      body: {'message': message},
+    );
+    
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to send message');
     }
   }
   
