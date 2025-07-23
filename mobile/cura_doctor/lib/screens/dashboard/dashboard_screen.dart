@@ -7,6 +7,7 @@ import '../appointments/appointments_screen.dart';
 import '../prescriptions/prescriptions_screen.dart';
 import '../video/video_consultation_screen.dart';
 import '../notifications/notifications_screen.dart';
+import '../profile_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
