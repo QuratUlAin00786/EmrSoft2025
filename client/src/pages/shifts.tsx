@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Clock, Users, CalendarCheck, ChevronLeft, ChevronRight, UserCheck } from "lucide-react";
+import { Calendar, Clock, Users, CalendarCheck, ChevronLeft, ChevronRight, UserCheck, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function ShiftsPage() {
@@ -216,6 +216,27 @@ export default function ShiftsPage() {
       toast({
         title: "Operation Failed", 
         description: "Failed to mark staff as absent. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle deleting individual shifts
+  const handleDeleteShift = async (shiftId: number) => {
+    try {
+      const response = await apiRequest("DELETE", `/api/shifts/${shiftId}`);
+      if (response.ok) {
+        toast({
+          title: "Shift Deleted",
+          description: "Successfully deleted the shift",
+        });
+        refetchShifts();
+        queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
+      }
+    } catch (error) {
+      toast({
+        title: "Delete Failed",
+        description: "Failed to delete the shift. Please try again.",
         variant: "destructive",
       });
     }
@@ -530,6 +551,16 @@ export default function ShiftsPage() {
                       {shift.notes && <span>• {shift.notes}</span>}
                     </div>
                   </div>
+                  
+                  {/* Delete Button */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDeleteShift(shift.id)}
+                    className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               );
             })}
