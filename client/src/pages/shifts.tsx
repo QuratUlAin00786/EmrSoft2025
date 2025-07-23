@@ -11,6 +11,9 @@ export default function ShiftsPage() {
   const [selectedRole, setSelectedRole] = useState("");
   const [selectedStaffId, setSelectedStaffId] = useState("");
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedStartTime, setSelectedStartTime] = useState("");
+  const [selectedEndTime, setSelectedEndTime] = useState("");
+  const [isSelectingRange, setIsSelectingRange] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -106,8 +109,8 @@ export default function ShiftsPage() {
     );
   };
 
-  // Handle time slot selection and booking/unbooking
-  const handleTimeSlotClick = async (timeSlot: string) => {
+  // Handle time slot selection for start/end time range
+  const handleTimeSlotClick = (timeSlot: string) => {
     if (!selectedRole) {
       toast({
         title: "Select Role First",
@@ -126,52 +129,73 @@ export default function ShiftsPage() {
       return;
     }
 
-    const dateString = selectedDate.toISOString().split('T')[0];
-    const existingShift = shifts.find((shift: any) => 
-      shift.staffId === parseInt(selectedStaffId) &&
-      shift.date === dateString &&
-      shift.startTime === timeSlot &&
-      shift.status !== 'cancelled'
-    );
-
-    try {
-      if (existingShift) {
-        // Cancel/Remove the existing shift (turn green to gray)
-        const response = await apiRequest("DELETE", `/api/shifts/${existingShift.id}`);
-        if (response.ok) {
-          toast({
-            title: "Shift Cancelled",
-            description: `Cancelled ${timeSlot} shift for selected staff member`,
-          });
-        }
-      } else {
-        // Book the time slot (turn gray to green)
-        const shiftData = {
-          staffId: parseInt(selectedStaffId),
-          date: dateString,
-          startTime: timeSlot,
-          endTime: (parseInt(timeSlot.split(':')[0]) + 1).toString().padStart(2, '0') + ':00',
-          shiftType: "regular",
-          status: "scheduled",
-          isAvailable: true,
-          notes: `Scheduled via shift management calendar`
-        };
-
-        const response = await apiRequest("POST", "/api/shifts", shiftData);
-        if (response.ok) {
-          toast({
-            title: "Shift Scheduled",
-            description: `Successfully scheduled ${timeSlot} for selected staff member`,
-          });
-        }
+    if (!selectedStartTime) {
+      // First click - set start time
+      setSelectedStartTime(timeSlot);
+      setIsSelectingRange(true);
+      toast({
+        title: "Start Time Selected",
+        description: `Start time set to ${timeSlot}. Now select end time.`,
+      });
+    } else if (!selectedEndTime) {
+      // Second click - set end time and create shift
+      if (timeSlot <= selectedStartTime) {
+        toast({
+          title: "Invalid End Time",
+          description: "End time must be after start time. Please select a later time.",
+          variant: "destructive",
+        });
+        return;
       }
-      
-      refetchShifts();
-      queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
+      setSelectedEndTime(timeSlot);
+      handleCreateShift(selectedStartTime, timeSlot);
+    } else {
+      // Reset and start new selection
+      setSelectedStartTime(timeSlot);
+      setSelectedEndTime("");
+      setIsSelectingRange(true);
+      toast({
+        title: "Start Time Selected",
+        description: `Start time set to ${timeSlot}. Now select end time.`,
+      });
+    }
+  };
+
+  // Create shift with selected start and end times
+  const handleCreateShift = async (startTime: string, endTime: string) => {
+    const dateString = selectedDate.toISOString().split('T')[0];
+    
+    try {
+      const shiftData = {
+        staffId: parseInt(selectedStaffId),
+        date: dateString,
+        startTime: startTime,
+        endTime: endTime,
+        shiftType: "regular",
+        status: "scheduled",
+        isAvailable: true,
+        notes: `Scheduled ${startTime} - ${endTime} via shift management calendar`
+      };
+
+      const response = await apiRequest("POST", "/api/shifts", shiftData);
+      if (response.ok) {
+        toast({
+          title: "Shift Scheduled",
+          description: `Successfully scheduled ${startTime} - ${endTime} for selected staff member`,
+        });
+        
+        // Reset selection
+        setSelectedStartTime("");
+        setSelectedEndTime("");
+        setIsSelectingRange(false);
+        
+        refetchShifts();
+        queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
+      }
     } catch (error) {
       toast({
-        title: "Operation Failed",
-        description: "Failed to update the shift. Please try again.",
+        title: "Scheduling Failed",
+        description: "Failed to schedule the shift. Please try again.",
         variant: "destructive",
       });
     }
@@ -414,6 +438,10 @@ export default function ShiftsPage() {
               <div className="grid grid-cols-2 gap-2">
                 {timeSlots.map((slot) => {
                   const isBooked = isTimeSlotBooked(slot.value);
+                  const isStartTime = selectedStartTime === slot.value;
+                  const isEndTime = selectedEndTime === slot.value;
+                  const isInRange = selectedStartTime && !selectedEndTime && slot.value > selectedStartTime;
+                  
                   return (
                     <Button
                       key={slot.value}
@@ -422,6 +450,12 @@ export default function ShiftsPage() {
                         h-12 justify-center font-medium transition-all cursor-pointer
                         ${isBooked 
                           ? 'bg-gray-300 text-gray-600 border-gray-300 hover:bg-gray-400' 
+                          : isStartTime
+                          ? 'bg-blue-500 text-white border-blue-500 hover:bg-blue-600'
+                          : isEndTime
+                          ? 'bg-purple-500 text-white border-purple-500 hover:bg-purple-600'
+                          : isInRange
+                          ? 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200'
                           : 'bg-green-50 hover:bg-green-100 text-green-700 border-green-200 hover:border-green-300'
                         }
                       `}
@@ -434,14 +468,29 @@ export default function ShiftsPage() {
               </div>
               
               {/* Legend */}
-              <div className="mt-4 pt-4 border-t flex items-center justify-center gap-6 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-green-100 border border-green-200 rounded"></div>
-                  <span className="text-gray-600">Available (Click to book)</span>
+              <div className="mt-4 pt-4 border-t space-y-2 text-sm">
+                <div className="text-center text-gray-700 font-medium mb-3">
+                  {!selectedStartTime && "Click a time slot to set start time"}
+                  {selectedStartTime && !selectedEndTime && "Now select end time to complete shift"}
+                  {selectedStartTime && selectedEndTime && "Shift scheduled! Click another slot to create new shift"}
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-gray-300 border border-gray-300 rounded"></div>
-                  <span className="text-gray-600">Booked (Click to cancel)</span>
+                <div className="flex items-center justify-center gap-4 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-green-100 border border-green-200 rounded"></div>
+                    <span className="text-gray-600">Available</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-blue-500 rounded"></div>
+                    <span className="text-gray-600">Start Time</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-blue-100 border border-blue-300 rounded"></div>
+                    <span className="text-gray-600">Potential Range</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-gray-300 border border-gray-300 rounded"></div>
+                    <span className="text-gray-600">Booked</span>
+                  </div>
                 </div>
               </div>
             </div>
