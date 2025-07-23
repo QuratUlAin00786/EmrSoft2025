@@ -1,33 +1,67 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Calendar, Clock, Plus, Edit2, Trash2, Users, CalendarCheck } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar, Clock, Plus, Users, CalendarCheck, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function ShiftsPage() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingShift, setEditingShift] = useState<any>(null);
+  const [selectedRole, setSelectedRole] = useState("");
+  const [selectedStaffId, setSelectedStaffId] = useState("");
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
+  const [currentMonth, setCurrentMonth] = useState(new Date());
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Form state for creating/editing shifts
-  const [formData, setFormData] = useState({
-    staffId: "",
-    date: selectedDate,
-    shiftType: "regular",
-    startTime: "09:00",
-    endTime: "17:00",
-    status: "scheduled",
-    notes: "",
-    isAvailable: true
-  });
+  // Generate time slots (24 hours in 1-hour intervals)
+  const timeSlots = useMemo(() => {
+    const slots = [];
+    for (let hour = 0; hour < 24; hour++) {
+      const timeString = hour.toString().padStart(2, '0') + ':00';
+      const displayTime = hour === 0 ? '12:00am' : 
+                         hour < 12 ? `${hour}:00am` : 
+                         hour === 12 ? '12:00pm' : 
+                         `${hour - 12}:00pm`;
+      slots.push({ value: timeString, display: displayTime, hour });
+    }
+    return slots;
+  }, []);
+
+  // Generate calendar days for current month
+  const calendarDays = useMemo(() => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
+    
+    const days = [];
+    const currentDate = new Date(startDate);
+    
+    for (let i = 0; i < 42; i++) {
+      days.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    return days;
+  }, [currentMonth]);
+
+  // Role options
+  const roleOptions = [
+    { value: 'doctor', label: 'Doctor' },
+    { value: 'nurse', label: 'Nurse' },
+    { value: 'lab_technician', label: 'Lab Technician' },
+    { value: 'admin', label: 'Admin' },
+    { value: 'receptionist', label: 'Receptionist' }
+  ];
 
   // Fetch medical staff with explicit query function
-  const { data: staff = [], isLoading: staffLoading, error: staffError } = useQuery({
+  const { data: staff = [], isLoading: staffLoading } = useQuery({
     queryKey: ["/api/medical-staff"],
     queryFn: async () => {
       try {
@@ -56,6 +90,24 @@ export default function ShiftsPage() {
     },
   });
 
+  // Filter staff by selected role
+  const filteredStaff = useMemo(() => {
+    if (!selectedRole) return staff;
+    return staff.filter((member: any) => member.role === selectedRole);
+  }, [staff, selectedRole]);
+
+  // Check if time slot is booked for selected staff member and date
+  const isTimeSlotBooked = (timeSlot: string) => {
+    if (!selectedStaffId || !selectedDate) return false;
+    
+    return shifts.some((shift: any) => 
+      shift.staffId === parseInt(selectedStaffId) &&
+      shift.date === selectedDate &&
+      shift.startTime === timeSlot &&
+      shift.status !== 'cancelled'
+    );
+  };
+
   // Create shift mutation
   const createShiftMutation = useMutation({
     mutationFn: async (shiftData: any) => {
@@ -65,7 +117,7 @@ export default function ShiftsPage() {
     onSuccess: () => {
       toast({
         title: "Success",
-        description: "Shift created successfully",
+        description: "Shift scheduled successfully",
       });
       setIsCreateDialogOpen(false);
       resetForm();
@@ -76,166 +128,87 @@ export default function ShiftsPage() {
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to create shift",
+        description: error.message || "Failed to schedule shift",
         variant: "destructive",
       });
     },
   });
 
-  // Update shift mutation
-  const updateShiftMutation = useMutation({
-    mutationFn: async ({ id, ...shiftData }: any) => {
-      const response = await apiRequest("PUT", `/api/shifts/${id}`, shiftData);
-      return response;
-    },
-    onSuccess: () => {
+  // Reset form function
+  const resetForm = () => {
+    setSelectedRole("");
+    setSelectedStaffId("");
+    setSelectedTimeSlot("");
+    setSelectedDate(new Date().toISOString().split('T')[0]);
+  };
+
+  // Handle time slot selection
+  const handleTimeSlotSelect = (timeSlot: string) => {
+    if (!selectedStaffId) {
       toast({
-        title: "Success",
-        description: "Shift updated successfully",
-      });
-      setIsEditDialogOpen(false);
-      setEditingShift(null);
-      refetchShifts();
-      queryClient.invalidateQueries({ queryKey: ["/api/shifts", selectedDate] });
-      queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update shift",
+        title: "Select Staff Member",
+        description: "Please select a role and staff member first",
         variant: "destructive",
       });
-    },
-  });
-
-  // Delete shift mutation
-  const deleteShiftMutation = useMutation({
-    mutationFn: async (shiftId: number) => {
-      await apiRequest("DELETE", `/api/shifts/${shiftId}`);
-    },
-    onSuccess: () => {
+      return;
+    }
+    
+    if (isTimeSlotBooked(timeSlot)) {
       toast({
-        title: "Success",
-        description: "Shift deleted successfully",
-      });
-      refetchShifts();
-      queryClient.invalidateQueries({ queryKey: ["/api/shifts", selectedDate] });
-      queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete shift",
+        title: "Time Slot Unavailable",
+        description: "This time slot is already booked for the selected staff member",
         variant: "destructive",
       });
-    },
-  });
+      return;
+    }
+    
+    setSelectedTimeSlot(timeSlot);
+  };
 
+  // Handle create shift
   const handleCreateShift = () => {
-    if (!formData.staffId || !formData.date || !formData.startTime || !formData.endTime) {
+    if (!selectedStaffId || !selectedTimeSlot || !selectedDate) {
       toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields",
+        title: "Missing Information",
+        description: "Please select role, staff member, date, and time slot",
         variant: "destructive",
       });
       return;
     }
 
-    // Convert staffId from string to number for backend validation
     const shiftData = {
-      ...formData,
-      staffId: parseInt(formData.staffId)
+      staffId: parseInt(selectedStaffId),
+      date: selectedDate,
+      startTime: selectedTimeSlot,
+      endTime: (parseInt(selectedTimeSlot.split(':')[0]) + 1).toString().padStart(2, '0') + ':00',
+      shiftType: "regular",
+      status: "scheduled",
+      isAvailable: true,
+      notes: `Scheduled via calendar interface`
     };
 
     createShiftMutation.mutate(shiftData);
   };
 
-  const handleEditShift = (shift: any) => {
-    setEditingShift(shift);
-    setFormData({
-      staffId: shift.staffId.toString(),
-      date: shift.date.split('T')[0],
-      shiftType: shift.shiftType,
-      startTime: shift.startTime,
-      endTime: shift.endTime,
-      status: shift.status,
-      notes: shift.notes || "",
-      isAvailable: shift.isAvailable
-    });
-    setIsEditDialogOpen(true);
+  // Navigation functions
+  const goToPreviousMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
   };
 
-  const handleUpdateShift = () => {
-    if (!formData.staffId || !formData.date || !formData.startTime || !formData.endTime) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Convert staffId from string to number for backend validation
-    const shiftData = {
-      ...formData,
-      staffId: parseInt(formData.staffId)
-    };
-
-    updateShiftMutation.mutate({
-      id: editingShift.id,
-      ...shiftData
-    });
+  const goToNextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
   };
 
-  const handleDeleteShift = (shiftId: number) => {
-    if (confirm("Are you sure you want to delete this shift?")) {
-      deleteShiftMutation.mutate(shiftId);
-    }
-  };
+  // Format month display
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+  const currentMonthName = monthNames[currentMonth.getMonth()];
+  const currentYear = currentMonth.getFullYear();
 
-  const resetForm = () => {
-    setFormData({
-      staffId: "",
-      date: selectedDate,
-      shiftType: "regular",
-      startTime: "09:00",
-      endTime: "17:00",
-      status: "scheduled",
-      notes: "",
-      isAvailable: true
-    });
-  };
-
-  const getStaffName = (staffId: number) => {
-    const staffMember = staff.find((s: any) => s.id === staffId);
-    if (!staffMember) return 'Unknown';
-    
-    const prefix = staffMember.role === 'doctor' ? 'Dr.' : 
-                   staffMember.role === 'nurse' ? 'Nurse' : 
-                   staffMember.role === 'lab_technician' ? 'Lab Tech' : '';
-    
-    return `${prefix} ${staffMember.firstName} ${staffMember.lastName}`;
-  };
-
-  const getShiftTypeColor = (type: string) => {
-    switch (type) {
-      case 'regular': return 'bg-blue-100 text-blue-800';
-      case 'overtime': return 'bg-orange-100 text-orange-800';
-      case 'on_call': return 'bg-purple-100 text-purple-800';
-      case 'absent': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'scheduled': return 'bg-blue-100 text-blue-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      case 'absent': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
+  // Day names
+  const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -247,161 +220,8 @@ export default function ShiftsPage() {
             <p className="text-gray-600">Manage doctor and staff schedules, availability, and absences</p>
           </div>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={resetForm}>
-              <Plus className="h-4 w-4 mr-2" />
-              Schedule Shift
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Schedule New Shift</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Staff Member *</label>
-                <select
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                  value={formData.staffId}
-                  onChange={(e) => setFormData(prev => ({ ...prev, staffId: e.target.value }))}
-                >
-                  <option value="">Select staff member...</option>
-                  {staff.map((member: any) => {
-                    const prefix = member.role === 'doctor' ? 'Dr.' : 
-                                   member.role === 'nurse' ? 'Nurse' : 
-                                   member.role === 'lab_technician' ? 'Lab Tech' : '';
-                    const department = member.department || member.role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
-                    return (
-                      <option key={member.id} value={member.id}>
-                        {prefix} {member.firstName} {member.lastName} - {department}
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Date *</label>
-                  <input
-                    type="date"
-                    className="w-full p-2 border border-gray-300 rounded-md"
-                    value={formData.date}
-                    onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Shift Type</label>
-                  <select
-                    className="w-full p-2 border border-gray-300 rounded-md"
-                    value={formData.shiftType}
-                    onChange={(e) => setFormData(prev => ({ ...prev, shiftType: e.target.value }))}
-                  >
-                    <option value="regular">Regular</option>
-                    <option value="overtime">Overtime</option>
-                    <option value="on_call">On Call</option>
-                    <option value="absent">Absent</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Start Time *</label>
-                  <input
-                    type="time"
-                    className="w-full p-2 border border-gray-300 rounded-md"
-                    value={formData.startTime}
-                    onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">End Time *</label>
-                  <input
-                    type="time"
-                    className="w-full p-2 border border-gray-300 rounded-md"
-                    value={formData.endTime}
-                    onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Status</label>
-                <select
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                  value={formData.status}
-                  onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
-                >
-                  <option value="scheduled">Scheduled</option>
-                  <option value="completed">Completed</option>
-                  <option value="cancelled">Cancelled</option>
-                  <option value="absent">Absent</option>
-                </select>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="isAvailable"
-                  checked={formData.isAvailable}
-                  onChange={(e) => setFormData(prev => ({ ...prev, isAvailable: e.target.checked }))}
-                  className="rounded"
-                />
-                <label htmlFor="isAvailable" className="text-sm font-medium text-gray-700">
-                  Available for appointments
-                </label>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Notes</label>
-                <textarea
-                  className="w-full p-2 border border-gray-300 rounded-md h-20"
-                  placeholder="Additional notes..."
-                  value={formData.notes}
-                  onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                />
-              </div>
-
-              <div className="flex gap-2 pt-4">
-                <Button
-                  onClick={handleCreateShift}
-                  disabled={createShiftMutation.isPending}
-                >
-                  {createShiftMutation.isPending ? "Creating..." : "Create Shift"}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsCreateDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Date Selector */}
-      <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
-        <div className="flex items-center gap-4">
-          <label className="text-sm font-medium text-gray-700">View shifts for:</label>
-          <input
-            type="date"
-            className="p-2 border border-gray-300 rounded-md"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-          />
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <CalendarCheck className="h-4 w-4" />
-            {new Date(selectedDate).toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}
-          </div>
+        <div className="text-sm text-gray-500">
+          View shifts for: <span className="font-medium">{new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
         </div>
       </div>
 
@@ -451,39 +271,221 @@ export default function ShiftsPage() {
         </div>
       </div>
 
+      {/* Schedule Shift Button */}
+      <div className="mb-6">
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-green-600 hover:bg-green-700">
+              <Plus className="h-4 w-4 mr-2" />
+              Schedule Shift
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-semibold text-gray-900">Select a Date & Time</DialogTitle>
+            </DialogHeader>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Left Side - Role/Name Selection & Calendar */}
+              <div className="space-y-6">
+                {/* Role Selection */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Role</label>
+                  <Select value={selectedRole} onValueChange={setSelectedRole}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select role..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {roleOptions.map((role) => (
+                        <SelectItem key={role.value} value={role.value}>
+                          {role.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Name Selection */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Name</label>
+                  <Select value={selectedStaffId} onValueChange={setSelectedStaffId}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select staff member..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredStaff.map((member: any) => {
+                        const prefix = member.role === 'doctor' ? 'Dr.' : 
+                                     member.role === 'nurse' ? 'Nurse' : 
+                                     member.role === 'lab_technician' ? 'Lab Tech' : '';
+                        return (
+                          <SelectItem key={member.id} value={member.id.toString()}>
+                            {prefix} {member.firstName} {member.lastName}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Calendar */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={goToPreviousMonth}
+                      className="p-2"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {currentMonthName} {currentYear}
+                    </h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={goToNextMonth}
+                      className="p-2"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {/* Day headers */}
+                  <div className="grid grid-cols-7 gap-1 mb-2">
+                    {dayNames.map((day) => (
+                      <div key={day} className="text-center text-xs font-medium text-gray-500 py-2">
+                        {day}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Calendar days */}
+                  <div className="grid grid-cols-7 gap-1">
+                    {calendarDays.map((day, index) => {
+                      const isCurrentMonth = day.getMonth() === currentMonth.getMonth();
+                      const isSelected = selectedDate === day.toISOString().split('T')[0];
+                      const isToday = day.toDateString() === new Date().toDateString();
+                      
+                      return (
+                        <button
+                          key={index}
+                          onClick={() => setSelectedDate(day.toISOString().split('T')[0])}
+                          className={`
+                            h-10 w-10 text-sm rounded-lg transition-colors duration-150
+                            ${isSelected 
+                              ? 'bg-blue-600 text-white' 
+                              : isToday 
+                                ? 'bg-blue-100 text-blue-800 font-medium'
+                                : isCurrentMonth 
+                                  ? 'text-gray-900 hover:bg-gray-100' 
+                                  : 'text-gray-400'
+                            }
+                          `}
+                        >
+                          {day.getDate()}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Side - Time Slots */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-4">
+                  {selectedDate ? new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : 'Select a date'}
+                </h4>
+                
+                <div className="grid grid-cols-2 gap-2 max-h-96 overflow-y-auto">
+                  {timeSlots.map((slot) => {
+                    const isBooked = isTimeSlotBooked(slot.value);
+                    const isSelected = selectedTimeSlot === slot.value;
+                    
+                    return (
+                      <button
+                        key={slot.value}
+                        onClick={() => handleTimeSlotSelect(slot.value)}
+                        disabled={isBooked}
+                        className={`
+                          p-3 rounded-lg border-2 text-sm font-medium transition-all duration-150
+                          ${isSelected
+                            ? 'bg-blue-600 text-white border-blue-600'
+                            : isBooked
+                              ? 'bg-gray-300 text-gray-500 border-gray-300 cursor-not-allowed'
+                              : 'bg-green-50 text-green-800 border-green-200 hover:bg-green-100 hover:border-green-300'
+                          }
+                        `}
+                      >
+                        {slot.display}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Confirm Button */}
+                {selectedTimeSlot && (
+                  <div className="mt-6 pt-4 border-t">
+                    <Button
+                      onClick={handleCreateShift}
+                      disabled={createShiftMutation.isPending}
+                      className="w-full bg-blue-600 hover:bg-blue-700"
+                    >
+                      {createShiftMutation.isPending ? 'Scheduling...' : 'Confirm'}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
       {/* Shifts List */}
       <div className="bg-white rounded-lg shadow-sm border">
-        <div className="px-6 py-4 border-b">
+        <div className="p-6 border-b">
           <h2 className="text-lg font-semibold text-gray-900">
-            Shifts for {new Date(selectedDate).toLocaleDateString()}
+            Shifts for {new Date(selectedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
           </h2>
         </div>
         
         {shiftsLoading ? (
-          <div className="p-8 text-center">
-            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
-            <p className="text-gray-600 mt-2">Loading shifts...</p>
+          <div className="p-6 text-center">
+            <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />
+            <p className="text-gray-600">Loading shifts...</p>
           </div>
         ) : shifts.length === 0 ? (
-          <div className="p-8 text-center">
+          <div className="p-12 text-center">
             <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">No shifts scheduled for this date</p>
-            <p className="text-sm text-gray-500 mt-1">Click "Schedule Shift" to add a new shift</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No shifts scheduled for this date</h3>
+            <p className="text-gray-600 mb-4">Click "Schedule Shift" to add a new shift</p>
           </div>
         ) : (
-          <div className="divide-y">
-            {shifts.map((shift: any) => (
-              <div key={shift.id} className="p-6 hover:bg-gray-50">
-                <div className="flex items-center justify-between">
+          <div className="divide-y divide-gray-200">
+            {shifts.map((shift: any) => {
+              const staffMember = staff.find((s: any) => s.id === shift.staffId);
+              const staffName = staffMember 
+                ? `${staffMember.role === 'doctor' ? 'Dr.' : ''} ${staffMember.firstName} ${staffMember.lastName}`
+                : 'Unknown Staff';
+              
+              return (
+                <div key={shift.id} className="p-6 flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-medium text-gray-900">
-                        {getStaffName(shift.staffId)}
-                      </h3>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getShiftTypeColor(shift.shiftType)}`}>
+                      <h3 className="text-lg font-medium text-gray-900">{staffName}</h3>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        shift.shiftType === 'regular' ? 'bg-blue-100 text-blue-800' :
+                        shift.shiftType === 'overtime' ? 'bg-purple-100 text-purple-800' :
+                        shift.shiftType === 'on_call' ? 'bg-orange-100 text-orange-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
                         {shift.shiftType.replace('_', ' ').toUpperCase()}
                       </span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(shift.status)}`}>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        shift.status === 'scheduled' ? 'bg-green-100 text-green-800' :
+                        shift.status === 'completed' ? 'bg-gray-100 text-gray-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
                         {shift.status.toUpperCase()}
                       </span>
                       {shift.isAvailable && (
@@ -505,160 +507,12 @@ export default function ShiftsPage() {
                       )}
                     </div>
                   </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditShift(shift)}
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteShift(shift.id)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
-
-      {/* Edit Shift Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Edit Shift</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Staff Member *</label>
-              <select
-                className="w-full p-2 border border-gray-300 rounded-md"
-                value={formData.staffId}
-                onChange={(e) => setFormData(prev => ({ ...prev, staffId: e.target.value }))}
-              >
-                <option value="">Select staff member...</option>
-                {staff.map((member: any) => {
-                  const prefix = member.role === 'doctor' ? 'Dr.' : 
-                                 member.role === 'nurse' ? 'Nurse' : 
-                                 member.role === 'lab_technician' ? 'Lab Tech' : '';
-                  const department = member.department || member.role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
-                  return (
-                    <option key={member.id} value={member.id}>
-                      {prefix} {member.firstName} {member.lastName} - {department}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Date *</label>
-                <input
-                  type="date"
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                  value={formData.date}
-                  onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Shift Type</label>
-                <select
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                  value={formData.shiftType}
-                  onChange={(e) => setFormData(prev => ({ ...prev, shiftType: e.target.value }))}
-                >
-                  <option value="regular">Regular</option>
-                  <option value="overtime">Overtime</option>
-                  <option value="on_call">On Call</option>
-                  <option value="absent">Absent</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Start Time *</label>
-                <input
-                  type="time"
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                  value={formData.startTime}
-                  onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">End Time *</label>
-                <input
-                  type="time"
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                  value={formData.endTime}
-                  onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Status</label>
-              <select
-                className="w-full p-2 border border-gray-300 rounded-md"
-                value={formData.status}
-                onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
-              >
-                <option value="scheduled">Scheduled</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
-                <option value="absent">Absent</option>
-              </select>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="editIsAvailable"
-                checked={formData.isAvailable}
-                onChange={(e) => setFormData(prev => ({ ...prev, isAvailable: e.target.checked }))}
-                className="rounded"
-              />
-              <label htmlFor="editIsAvailable" className="text-sm font-medium text-gray-700">
-                Available for appointments
-              </label>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Notes</label>
-              <textarea
-                className="w-full p-2 border border-gray-300 rounded-md h-20"
-                placeholder="Additional notes..."
-                value={formData.notes}
-                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-              />
-            </div>
-
-            <div className="flex gap-2 pt-4">
-              <Button
-                onClick={handleUpdateShift}
-                disabled={updateShiftMutation.isPending}
-              >
-                {updateShiftMutation.isPending ? "Updating..." : "Update Shift"}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setIsEditDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
