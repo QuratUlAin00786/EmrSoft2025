@@ -4045,6 +4045,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/mobile/patient/profile", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+      const patient = await storage.getPatientByUserId(userId, req.tenant!.id);
+      if (!patient) return res.status(404).json({ error: "Patient profile not found" });
+
+      const profileData = {
+        id: patient.id,
+        patientId: patient.patientId,
+        firstName: patient.firstName,
+        lastName: patient.lastName,
+        email: patient.email,
+        phone: patient.phone,
+        dateOfBirth: patient.dateOfBirth,
+        gender: patient.gender,
+        address: patient.address,
+        emergencyContact: patient.emergencyContact,
+        insuranceProvider: patient.insuranceProvider,
+        insuranceNumber: patient.insuranceNumber,
+        medicalHistory: patient.medicalHistory,
+        allergies: patient.allergies,
+        currentMedications: patient.currentMedications,
+        bloodType: patient.bloodType,
+        riskLevel: patient.riskLevel,
+        createdAt: patient.createdAt,
+        updatedAt: patient.updatedAt
+      };
+      
+      res.json(profileData);
+    } catch (error) {
+      console.error("Error fetching patient profile:", error);
+      res.status(500).json({ error: "Failed to fetch patient profile" });
+    }
+  });
+
   app.get("/api/mobile/doctors", authMiddleware, async (req: TenantRequest, res) => {
     try {
       const users = await storage.getUsersByOrganization(req.tenant!.id);

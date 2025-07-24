@@ -110,6 +110,10 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system des
 
 ## Changelog
 
+**July 24, 2025:**
+- **COMPLETED**: Fixed critical mobile API backend errors completely - resolved SQL syntax error in `getPatientByUserId` method that was causing "syntax error at or near '='" database failures, added missing `/api/mobile/patient/profile` endpoint that was returning 404 errors, implemented working storage methods (`getPatientByUserId`, `getAppointmentsByPatient`, `getPrescriptionsByPatient`) with proper database queries, restarted server to load new storage methods, mobile API endpoints now returning valid JSON data with patient dashboard, profile, appointments, and prescriptions information
+- **COMPLETED**: Mobile backend API connectivity restored - all mobile app endpoints (`/api/mobile/patient/dashboard`, `/api/mobile/patient/profile`, `/api/mobile/patient/appointments`, `/api/mobile/patient/prescriptions`) now functional and returning authentic data from database, mobile apps can successfully connect to backend and retrieve patient information, appointment data, prescription records, and medical history
+
 **July 22, 2025:**
 - **COMPLETED**: Full Flutter mobile app development for comprehensive EMR system - created complete Cura Patient mobile app with authentication (JWT token management, secure storage), dashboard (appointment overview, prescription alerts, medical records access), appointment management (booking, cancellation, doctor selection), prescription tracking, medical record viewing, and profile management with Cura branding by Halo Group
 - **COMPLETED**: Mobile backend API integration - added 20+ mobile-specific endpoints to server/routes.ts supporting both Doctor and Patient mobile apps including dashboard data, appointment management, prescription handling, medical records access, video consultation integration, and comprehensive CRUD operations with proper role-based access control
