@@ -464,14 +464,14 @@ export default function ShiftsPage() {
                       className={`
                         h-12 justify-center font-medium transition-all cursor-pointer
                         ${isBookedByCurrentStaff
-                          ? 'bg-green-500 text-white border-green-500 hover:bg-green-600'
+                          ? 'bg-blue-500 text-white border-blue-500 hover:bg-blue-600'
                           : isBookedByOtherStaff 
-                          ? 'bg-gray-300 text-gray-600 border-gray-300 hover:bg-gray-400' 
+                          ? 'bg-gray-300 text-gray-600 border-gray-300 hover:bg-gray-400 cursor-not-allowed' 
                           : isInSelectedRange
-                          ? 'bg-green-500 text-white border-green-500 hover:bg-green-600'
+                          ? 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200'
                           : isInPendingRange
-                          ? 'bg-green-500 text-white border-green-500 hover:bg-green-600'
-                          : 'bg-green-500 text-white border-green-500 hover:bg-green-600'
+                          ? 'bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100'
+                          : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
                         }
                       `}
                       onClick={() => handleTimeSlotClick(slot.value)}
@@ -491,15 +491,15 @@ export default function ShiftsPage() {
                 </div>
                 <div className="flex items-center justify-center gap-4 flex-wrap">
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-green-50 border border-green-200 rounded"></div>
+                    <div className="w-4 h-4 bg-white border border-gray-200 rounded"></div>
                     <span className="text-gray-600">Available</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-green-200 border border-green-300 rounded"></div>
+                    <div className="w-4 h-4 bg-blue-100 border border-blue-300 rounded"></div>
                     <span className="text-gray-600">Selecting Range</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-green-500 rounded"></div>
+                    <div className="w-4 h-4 bg-blue-500 rounded"></div>
                     <span className="text-gray-600">Current Staff Shifts</span>
                   </div>
                   <div className="flex items-center gap-2">
