@@ -470,8 +470,8 @@ export default function ShiftsPage() {
                           : isInSelectedRange
                           ? 'bg-green-500 text-white border-green-500 hover:bg-green-600'
                           : isInPendingRange
-                          ? 'bg-green-200 text-green-800 border-green-300 hover:bg-green-300'
-                          : 'bg-green-50 hover:bg-green-100 text-green-700 border-green-200 hover:border-green-300'
+                          ? 'bg-green-500 text-white border-green-500 hover:bg-green-600'
+                          : 'bg-green-500 text-white border-green-500 hover:bg-green-600'
                         }
                       `}
                       onClick={() => handleTimeSlotClick(slot.value)}
