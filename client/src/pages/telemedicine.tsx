@@ -83,6 +83,142 @@ interface WaitingRoom {
   status: 'waiting' | 'ready' | 'in_call';
 }
 
+// Patient List Component for selecting patients for telemedicine consultations
+function PatientList() {
+  const { toast } = useToast();
+
+  // Fetch patients from API
+  const { data: patients, isLoading: patientsLoading } = useQuery({
+    queryKey: ["/api/patients"],
+    enabled: true
+  });
+
+  // Create consultation mutation
+  const createConsultationMutation = useMutation({
+    mutationFn: async (patientId: string) => {
+      const response = await fetch("/api/telemedicine/consultations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patientId,
+          type: "video",
+          scheduledTime: new Date().toISOString(),
+          duration: 30
+        }),
+        credentials: "include"
+      });
+      if (!response.ok) throw new Error("Failed to create consultation");
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/telemedicine/consultations"] });
+      toast({
+        title: "Consultation Created",
+        description: "Video consultation has been scheduled successfully."
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create consultation. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  if (patientsLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="p-4 border rounded-lg animate-pulse">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+              <div className="flex-1">
+                <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (!patients || !Array.isArray(patients) || patients.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+        <p className="text-gray-600">No patients available for consultation</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {patients.map((patient: any) => (
+        <Card key={patient.id} className="hover:shadow-md transition-shadow cursor-pointer">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <Avatar className="w-12 h-12">
+                <AvatarFallback>
+                  {patient.firstName?.[0]}{patient.lastName?.[0]}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <h3 className="font-medium text-lg">
+                  {patient.firstName} {patient.lastName}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  ID: {patient.patientId || patient.id}
+                </p>
+              </div>
+            </div>
+            
+            <div className="space-y-2 text-sm text-gray-600 mb-4">
+              <div className="flex justify-between">
+                <span>Age:</span>
+                <span>{patient.age || 'N/A'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Phone:</span>
+                <span>{patient.phone || 'N/A'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Email:</span>
+                <span className="truncate">{patient.email || 'N/A'}</span>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                onClick={() => createConsultationMutation.mutate(patient.id)}
+                disabled={createConsultationMutation.isPending}
+                className="flex-1"
+                size="sm"
+              >
+                <Video className="w-4 h-4 mr-2" />
+                Start Video Call
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  toast({
+                    title: "Audio Call",
+                    description: "Audio consultation feature will be available soon."
+                  });
+                }}
+              >
+                <Phone className="w-4 h-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
 export default function Telemedicine() {
   const [location, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("consultations");
@@ -672,6 +808,20 @@ export default function Telemedicine() {
         </TabsList>
 
         <TabsContent value="consultations" className="space-y-4">
+          {/* Patient Selection for New Consultation */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Select Patient for Consultation
+              </CardTitle>
+              <p className="text-sm text-gray-600">Choose a patient to start a new telemedicine consultation</p>
+            </CardHeader>
+            <CardContent>
+              <PatientList />
+            </CardContent>
+          </Card>
+
           <div className="grid gap-4">
             {mockConsultations.map((consultation) => (
               <Card key={consultation.id}>
