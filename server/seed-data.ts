@@ -36,13 +36,54 @@ export async function seedDatabase() {
     
     let createdUsers = existingUsers;
     
+    // Update existing user passwords to standardized ones
+    if (existingUsers.length > 0) {
+      console.log("Updating existing user passwords to standardized credentials...");
+      
+      const hashedAdminPassword = await authService.hashPassword("admin123");
+      const hashedDoctorPassword = await authService.hashPassword("doctor123");
+      const hashedNursePassword = await authService.hashPassword("nurse123");
+      const hashedPatientPassword = await authService.hashPassword("patient123");
+      const hashedLabTechPassword = await authService.hashPassword("labtech123");
+      
+      // Update passwords for existing users
+      for (const user of existingUsers) {
+        let newPassword = hashedAdminPassword; // default
+        
+        switch (user.role) {
+          case 'admin':
+            newPassword = hashedAdminPassword;
+            break;
+          case 'doctor':
+            newPassword = hashedDoctorPassword;
+            break;
+          case 'nurse':
+            newPassword = hashedNursePassword;
+            break;
+          case 'patient':
+            newPassword = hashedPatientPassword;
+            break;
+          case 'lab_technician':
+          case 'receptionist':
+            newPassword = hashedLabTechPassword;
+            break;
+        }
+        
+        await db.update(users)
+          .set({ password: newPassword })
+          .where(eq(users.id, user.id));
+      }
+      
+      console.log("Updated passwords for all existing users to standardized credentials");
+    }
+    
     // Only create default users if no users exist
     if (existingUsers.length === 0) {
       const hashedAdminPassword = await authService.hashPassword("admin123");
-      const hashedDoctorPassword = await authService.hashPassword("medical456");
-      const hashedNursePassword = await authService.hashPassword("nursing789");
-      const hashedPatientPassword = await authService.hashPassword("patient000");
-      const hashedLabTechPassword = await authService.hashPassword("labtech555");
+      const hashedDoctorPassword = await authService.hashPassword("doctor123");
+      const hashedNursePassword = await authService.hashPassword("nurse123");
+      const hashedPatientPassword = await authService.hashPassword("patient123");
+      const hashedLabTechPassword = await authService.hashPassword("labtech123");
       
       const sampleUsers = [
         {

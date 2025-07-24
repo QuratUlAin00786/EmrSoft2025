@@ -19,6 +19,7 @@
   "password": "patient123"
 }
 ```
+**Note:** You can use either email OR username in the email field
 **Response:**
 ```json
 {
@@ -507,19 +508,37 @@ For production deployment, ensure these environment variables are set:
 
 ---
 
-## 🧪 Test Credentials
+## 🧪 Updated Test Credentials (ALL WORKING)
 
-**Patient Account:**
-- Email: `patient@cura.com`
-- Password: `patient123`
-
-**Doctor Account:**
-- Email: `doctor@cura.com`
-- Password: `doctor123`
-
-**Admin Account:**
-- Email: `admin@cura.com`
+**✅ Admin Account:**
+- Email: `admin@cura.com` OR Username: `admin`  
 - Password: `admin123`
+- Role: Administrator
+
+**✅ Doctor Account:**
+- Email: `doctor@cura.com` OR Username: `doctor`
+- Password: `doctor123`
+- Role: Doctor
+
+**✅ Patient Account:**
+- Email: `patient@cura.com` OR Username: `patient`
+- Password: `patient123`
+- Role: Patient
+
+**✅ Nurse Account:**
+- Email: `nurse@cura.com` OR Username: `nurse`
+- Password: `nurse123`
+- Role: Nurse
+
+**✅ Lab Technician:**
+- Email: `labtech@cura.com` OR Username: `labtech`
+- Password: `labtech123`
+- Role: Lab Technician
+
+**✅ Receptionist:**
+- Email: `receptionist@cura.com` OR Username: `receptionist`
+- Password: `labtech123`
+- Role: Receptionist
 
 ---
 

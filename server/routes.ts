@@ -37,17 +37,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email, password } = z.object({
         email: z.string(),
-        password: z.string().min(6)
+        password: z.string().min(3) // Allow shorter passwords for demo
       }).parse(req.body);
 
-      // Try to find user by username (email field contains username now)
-      const user = await storage.getUserByUsername(email, req.tenant!.id);
+      console.log(`Login attempt for: ${email} with organization: ${req.tenant!.id}`);
+
+      // Try to find user by email first, then by username
+      let user = await storage.getUserByEmail(email, req.tenant!.id);
+      if (!user) {
+        user = await storage.getUserByUsername(email, req.tenant!.id);
+      }
+      
       if (!user || !user.isActive) {
+        console.log(`User not found or inactive: ${email}`);
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
+      console.log(`Found user: ${user.email} (${user.username}) - Role: ${user.role}`);
+
       const isValidPassword = await authService.comparePassword(password, user.password);
       if (!isValidPassword) {
+        console.log(`Invalid password for user: ${email}`);
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
