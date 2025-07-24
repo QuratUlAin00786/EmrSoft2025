@@ -447,21 +447,21 @@ export default function ShiftsPage() {
                   const isBookedByCurrentStaff = shifts.find((shift: any) => 
                     shift.staffId === parseInt(selectedStaffId) &&
                     shift.date === dateString &&
-                    slot.value >= shift.startTime &&
-                    slot.value <= shift.endTime &&
+                    slot.value >= parseInt(shift.startTime) &&
+                    slot.value <= parseInt(shift.endTime) &&
                     shift.status !== 'cancelled'
                   );
                   const isBookedByOtherStaff = shifts.find((shift: any) => 
                     shift.staffId !== parseInt(selectedStaffId) &&
                     shift.date === dateString &&
-                    slot.value >= shift.startTime &&
-                    slot.value <= shift.endTime &&
+                    slot.value >= parseInt(shift.startTime) &&
+                    slot.value <= parseInt(shift.endTime) &&
                     shift.status !== 'cancelled'
                   );
                   const isInSelectedRange = selectedStartTime && selectedEndTime && 
-                    slot.value >= selectedStartTime && slot.value <= selectedEndTime;
+                    slot.value >= parseInt(selectedStartTime) && slot.value <= parseInt(selectedEndTime);
                   const isInPendingRange = selectedStartTime && !selectedEndTime && 
-                    slot.value === selectedStartTime;
+                    slot.value === parseInt(selectedStartTime);
                   
                   return (
                     <Button
@@ -476,7 +476,7 @@ export default function ShiftsPage() {
                           : 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200'
                         }
                       `}
-                      onClick={() => handleTimeSlotClick(slot.value)}
+                      onClick={() => handleTimeSlotClick(Math.floor(slot.value / 100).toString().padStart(2, '0') + ':' + (slot.value % 100).toString().padStart(2, '0'))}
                     >
                       {slot.display}
                     </Button>
