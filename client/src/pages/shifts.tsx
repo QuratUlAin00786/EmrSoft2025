@@ -455,7 +455,7 @@ export default function ShiftsPage() {
                   const isInSelectedRange = selectedStartTime && selectedEndTime && 
                     slot.value >= selectedStartTime && slot.value <= selectedEndTime;
                   const isInPendingRange = selectedStartTime && !selectedEndTime && 
-                    slot.value >= selectedStartTime;
+                    slot.value === selectedStartTime;
                   
                   return (
                     <Button
