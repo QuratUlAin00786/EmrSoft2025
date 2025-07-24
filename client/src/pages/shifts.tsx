@@ -463,9 +463,9 @@ export default function ShiftsPage() {
                       variant="outline"
                       className={`
                         h-12 justify-center font-medium transition-all cursor-pointer
-                        ${(isInSelectedRange || isInPendingRange || isBookedByCurrentStaff)
+                        ${(isInSelectedRange || isInPendingRange)
                           ? 'bg-green-600 text-white border-green-600 hover:bg-green-700'
-                          : isBookedByOtherStaff 
+                          : (isBookedByCurrentStaff || isBookedByOtherStaff)
                           ? 'bg-gray-300 text-gray-600 border-gray-300 hover:bg-gray-400 cursor-not-allowed' 
                           : 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200'
                         }
