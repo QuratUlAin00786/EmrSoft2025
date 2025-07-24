@@ -617,17 +617,7 @@ export default function ShiftsPage() {
                     <div className="flex items-center gap-4 text-sm text-gray-600">
                       <div className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
-                        {(() => {
-                          // Convert 24-hour format to 12-hour format like in calendar
-                          const formatTime = (time: string) => {
-                            const [hours, minutes] = time.split(':');
-                            const hour = parseInt(hours);
-                            const ampm = hour >= 12 ? 'PM' : 'AM';
-                            const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-                            return `${displayHour}:${minutes} ${ampm}`;
-                          };
-                          return `${formatTime(shift.startTime)} - ${formatTime(shift.endTime)}`;
-                        })()}
+{shift.startTime}-{shift.endTime}
                       </div>
                       {shift.notes && <span>• {shift.notes}</span>}
                     </div>
