@@ -68,24 +68,58 @@ export default function Login() {
           </div>
         </div>
 
+        {/* Demo Credentials */}
+        <Card className="bg-blue-50 border-blue-200">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm text-blue-800">Demo Credentials</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="space-y-1">
+                <div className="font-medium text-blue-700">Admin:</div>
+                <div className="text-blue-600">admin@cura.com</div>
+                <div className="text-blue-600">admin123</div>
+              </div>
+              <div className="space-y-1">
+                <div className="font-medium text-blue-700">Doctor:</div>
+                <div className="text-blue-600">doctor@cura.com</div>
+                <div className="text-blue-600">doctor123</div>
+              </div>
+              <div className="space-y-1">
+                <div className="font-medium text-blue-700">Patient:</div>
+                <div className="text-blue-600">patient@cura.com</div>
+                <div className="text-blue-600">patient123</div>
+              </div>
+              <div className="space-y-1">
+                <div className="font-medium text-blue-700">Nurse:</div>
+                <div className="text-blue-600">nurse@cura.com</div>
+                <div className="text-blue-600">nurse123</div>
+              </div>
+            </div>
+            <div className="mt-2 text-xs text-blue-600">
+              Use email OR username (e.g., "admin" instead of "admin@cura.com")
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Login Form */}
         <Card>
           <CardHeader>
             <CardTitle>Sign In</CardTitle>
             <CardDescription>
-              Enter your credentials to access the EMR system
+              Enter your email or username to access the EMR system
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="username">Email or Username</Label>
                 <Input
                   id="username"
                   type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your username"
+                  placeholder="admin@cura.com or admin"
                   required
                   disabled={isLoading}
                 />
