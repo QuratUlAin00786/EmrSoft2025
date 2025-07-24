@@ -740,33 +740,113 @@ export default function ShiftsPage() {
                               return isJuly24 && slot.value >= shift.startTime && slot.value <= shift.endTime;
                             });
                             
+                            const handleSlotClick = async () => {
+                              try {
+                                const july24Date = new Date(2025, 6, 24); // July 24, 2025
+                                const dateString = july24Date.toISOString().split('T')[0];
+                                
+                                if (hasShift) {
+                                  // Remove shift - find and delete the shift that contains this time slot
+                                  const shiftToRemove = doctorShifts.find((shift: any) => {
+                                    const shiftDate = new Date(shift.date);
+                                    const isJuly24 = shiftDate.getDate() === 24 && shiftDate.getMonth() === 6;
+                                    return isJuly24 && slot.value >= shift.startTime && slot.value <= shift.endTime;
+                                  });
+                                  
+                                  if (shiftToRemove) {
+                                    const response = await fetch(`/api/shifts/${shiftToRemove.id}`, {
+                                      method: 'DELETE',
+                                      headers: {
+                                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                                        'Content-Type': 'application/json',
+                                      },
+                                    });
+                                    
+                                    if (response.ok) {
+                                      // Refresh shifts data
+                                      const shiftsResponse = await fetch('/api/shifts', {
+                                        headers: {
+                                          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                                        },
+                                      });
+                                      const updatedShifts = await shiftsResponse.json();
+                                      setShifts(updatedShifts);
+                                    }
+                                  }
+                                } else {
+                                  // Add new shift for this time slot (1 hour duration)
+                                  const endTime = slot.value + 100; // Add 1 hour (100 in HHMM format)
+                                  const shiftData = {
+                                    staffId: parseInt(selectedDoctor.id),
+                                    date: dateString,
+                                    startTime: slot.value.toString().padStart(4, '0'),
+                                    endTime: endTime.toString().padStart(4, '0'),
+                                    shiftType: 'regular',
+                                    status: 'scheduled',
+                                    isAvailable: true,
+                                    notes: 'Added from Doctor Availability modal'
+                                  };
+                                  
+                                  const response = await fetch('/api/shifts', {
+                                    method: 'POST',
+                                    headers: {
+                                      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                                      'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify(shiftData),
+                                  });
+                                  
+                                  if (response.ok) {
+                                    // Refresh shifts data
+                                    const shiftsResponse = await fetch('/api/shifts', {
+                                      headers: {
+                                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                                      },
+                                    });
+                                    const updatedShifts = await shiftsResponse.json();
+                                    setShifts(updatedShifts);
+                                  }
+                                }
+                              } catch (error) {
+                                console.error('Error updating shift:', error);
+                              }
+                            };
+                            
                             return (
-                              <div
+                              <button
                                 key={slot.value}
+                                onClick={handleSlotClick}
                                 className={`
-                                  h-12 flex items-center justify-center font-medium rounded-lg border text-sm
+                                  h-12 flex items-center justify-center font-medium rounded-lg border text-sm transition-all cursor-pointer hover:opacity-80
                                   ${hasShift 
-                                    ? 'bg-green-600 text-white border-green-600' 
-                                    : 'bg-green-100 text-green-700 border-green-200'
+                                    ? 'bg-green-600 text-white border-green-600 hover:bg-green-700' 
+                                    : 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200'
                                   }
                                 `}
                               >
                                 {slot.display}
-                              </div>
+                              </button>
                             );
                           })}
                         </div>
                         
+                        {/* Instructions */}
+                        <div className="mt-4 pt-4 border-t text-center">
+                          <p className="text-sm text-gray-600 mb-3">
+                            Click time slots to add/remove shifts for this doctor on Thursday, July 24
+                          </p>
+                        </div>
+                        
                         {/* Legend */}
-                        <div className="mt-4 pt-4 border-t">
+                        <div className="mt-2">
                           <div className="flex items-center justify-center gap-4 text-sm">
                             <div className="flex items-center gap-2">
                               <div className="w-4 h-4 bg-green-100 border border-green-200 rounded"></div>
-                              <span className="text-gray-600">Available Time Slot</span>
+                              <span className="text-gray-600">Available (Click to Schedule)</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <div className="w-4 h-4 bg-green-600 rounded"></div>
-                              <span className="text-gray-600">Scheduled Shift</span>
+                              <span className="text-gray-600">Scheduled (Click to Remove)</span>
                             </div>
                           </div>
                         </div>
