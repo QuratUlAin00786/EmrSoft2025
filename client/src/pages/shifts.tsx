@@ -14,6 +14,8 @@ export default function ShiftsPage() {
   const [selectedStartTime, setSelectedStartTime] = useState("");
   const [selectedEndTime, setSelectedEndTime] = useState("");
   const [isSelectingRange, setIsSelectingRange] = useState(false);
+  const [showAvailability, setShowAvailability] = useState(false);
+  const [selectedDoctorId, setSelectedDoctorId] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -197,6 +199,12 @@ export default function ShiftsPage() {
         variant: "destructive",
       });
     }
+  };
+
+  // Handle clicking on doctor name to show availability
+  const handleDoctorClick = (staffId: number) => {
+    setSelectedDoctorId(staffId.toString());
+    setShowAvailability(true);
   };
 
   // Handle marking staff as absent for the entire day
@@ -584,7 +592,12 @@ export default function ShiftsPage() {
                 <div key={shift.id} className="p-6 flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-medium text-gray-900">{staffName}</h3>
+                      <h3 
+                        className="text-lg font-medium text-blue-600 cursor-pointer hover:text-blue-800 hover:underline transition-colors"
+                        onClick={() => handleDoctorClick(shift.staffId)}
+                      >
+                        {staffName}
+                      </h3>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                         shift.shiftType === 'regular' ? 'bg-blue-100 text-blue-800' :
                         shift.shiftType === 'overtime' ? 'bg-purple-100 text-purple-800' :
@@ -625,6 +638,144 @@ export default function ShiftsPage() {
           </div>
         )}
       </div>
+
+      {/* Doctor Availability Modal */}
+      {showAvailability && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-gray-900">Doctor Availability</h2>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAvailability(false)}
+                  className="text-gray-600 hover:text-gray-800"
+                >
+                  ✕
+                </Button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              {(() => {
+                const selectedDoctor = staff.find((s: any) => s.id.toString() === selectedDoctorId);
+                if (!selectedDoctor) return <p className="text-gray-600">Doctor not found</p>;
+                
+                const doctorShifts = shifts.filter((s: any) => s.staffId.toString() === selectedDoctorId);
+                
+                return (
+                  <div className="space-y-6">
+                    {/* Doctor Info */}
+                    <div className="bg-blue-50 rounded-lg p-4">
+                      <h3 className="text-lg font-semibold text-blue-900">
+                        {selectedDoctor.role === 'doctor' ? 'Dr.' : ''} {selectedDoctor.firstName} {selectedDoctor.lastName}
+                      </h3>
+                      <p className="text-blue-700">{selectedDoctor.email}</p>
+                      <p className="text-blue-600 capitalize">{selectedDoctor.role}</p>
+                    </div>
+
+                    {/* Availability Overview */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-green-50 rounded-lg p-4 text-center">
+                        <h4 className="text-lg font-semibold text-green-800">Available Hours</h4>
+                        <p className="text-2xl font-bold text-green-600">
+                          {doctorShifts.filter((s: any) => s.isAvailable && s.status === 'scheduled').length * 8}h
+                        </p>
+                        <p className="text-sm text-green-600">This week</p>
+                      </div>
+                      <div className="bg-orange-50 rounded-lg p-4 text-center">
+                        <h4 className="text-lg font-semibold text-orange-800">On Call</h4>
+                        <p className="text-2xl font-bold text-orange-600">
+                          {doctorShifts.filter((s: any) => s.shiftType === 'on_call').length}
+                        </p>
+                        <p className="text-sm text-orange-600">Shifts</p>
+                      </div>
+                      <div className="bg-blue-50 rounded-lg p-4 text-center">
+                        <h4 className="text-lg font-semibold text-blue-800">Total Shifts</h4>
+                        <p className="text-2xl font-bold text-blue-600">{doctorShifts.length}</p>
+                        <p className="text-sm text-blue-600">This period</p>
+                      </div>
+                    </div>
+
+                    {/* Weekly Schedule */}
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-4">Weekly Schedule</h4>
+                      <div className="grid grid-cols-7 gap-2">
+                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => (
+                          <div key={day} className="bg-gray-50 rounded-lg p-3 text-center">
+                            <h5 className="font-medium text-gray-700 mb-2">{day}</h5>
+                            <div className="space-y-1">
+                              {doctorShifts
+                                .filter((s: any) => new Date(s.date).getDay() === (index + 1) % 7)
+                                .map((shift: any) => (
+                                  <div
+                                    key={shift.id}
+                                    className={`text-xs px-2 py-1 rounded ${
+                                      shift.isAvailable
+                                        ? 'bg-green-100 text-green-800'
+                                        : 'bg-red-100 text-red-800'
+                                    }`}
+                                  >
+                                    {shift.startTime}-{shift.endTime}
+                                  </div>
+                                ))
+                              }
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Detailed Shifts */}
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-4">Detailed Schedule</h4>
+                      <div className="space-y-3">
+                        {doctorShifts.map((shift: any) => (
+                          <div key={shift.id} className="border rounded-lg p-4">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-medium text-gray-900">
+                                  {new Date(shift.date).toLocaleDateString()} - {shift.startTime} to {shift.endTime}
+                                </p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                    shift.shiftType === 'regular' ? 'bg-blue-100 text-blue-800' :
+                                    shift.shiftType === 'overtime' ? 'bg-purple-100 text-purple-800' :
+                                    shift.shiftType === 'on_call' ? 'bg-orange-100 text-orange-800' :
+                                    'bg-red-100 text-red-800'
+                                  }`}>
+                                    {shift.shiftType.replace('_', ' ').toUpperCase()}
+                                  </span>
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                    shift.status === 'scheduled' ? 'bg-green-100 text-green-800' :
+                                    shift.status === 'completed' ? 'bg-gray-100 text-gray-800' :
+                                    'bg-red-100 text-red-800'
+                                  }`}>
+                                    {shift.status.toUpperCase()}
+                                  </span>
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                    shift.isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                  }`}>
+                                    {shift.isAvailable ? 'AVAILABLE' : 'UNAVAILABLE'}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            {shift.notes && (
+                              <p className="text-sm text-gray-600 mt-2">{shift.notes}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
