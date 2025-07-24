@@ -93,38 +93,63 @@ function PatientList() {
     enabled: true
   });
 
-  // Create consultation mutation
-  const createConsultationMutation = useMutation({
-    mutationFn: async (patientId: string) => {
-      const response = await fetch("/api/telemedicine/consultations", {
+  // BigBlueButton video call function
+  const startBigBlueButtonCall = async (patient: any) => {
+    try {
+      const response = await fetch("/api/video-conference/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          patientId,
-          type: "video",
-          scheduledTime: new Date().toISOString(),
-          duration: 30
+          meetingName: `Consultation with ${patient.firstName} ${patient.lastName}`,
+          participantName: `${patient.firstName} ${patient.lastName}`,
+          duration: 30,
+          maxParticipants: 10
         }),
         credentials: "include"
       });
-      if (!response.ok) throw new Error("Failed to create consultation");
-      return response.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/telemedicine/consultations"] });
+      
+      if (!response.ok) throw new Error("Failed to create meeting");
+      
+      const meetingData = await response.json();
+      
+      // Open BigBlueButton meeting in new window - use moderator URL for doctor
+      const meetingWindow = window.open(
+        meetingData.moderatorJoinUrl,
+        '_blank',
+        'width=1200,height=800,scrollbars=yes,resizable=yes'
+      );
+      
+      if (!meetingWindow) {
+        throw new Error("Popup blocked. Please allow popups for this site.");
+      }
+      
       toast({
-        title: "Consultation Created",
-        description: "Video consultation has been scheduled successfully."
+        title: "Video Call Started",
+        description: `Opening BigBlueButton meeting with ${patient.firstName} ${patient.lastName}`
       });
-    },
-    onError: () => {
+      
+      // Create consultation record
+      await fetch("/api/telemedicine/consultations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patientId: patient.id,
+          type: "video",
+          scheduledTime: new Date().toISOString(),
+          duration: 30,
+          meetingId: meetingData.meetingID
+        }),
+        credentials: "include"
+      });
+      
+    } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to create consultation. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to start video call. Please try again.",
         variant: "destructive"
       });
     }
-  });
+  };
 
   if (patientsLoading) {
     return (
@@ -191,8 +216,7 @@ function PatientList() {
 
             <div className="flex gap-2">
               <Button
-                onClick={() => createConsultationMutation.mutate(patient.id)}
-                disabled={createConsultationMutation.isPending}
+                onClick={() => startBigBlueButtonCall(patient)}
                 className="flex-1"
                 size="sm"
               >
