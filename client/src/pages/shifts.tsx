@@ -32,12 +32,12 @@ export default function ShiftsPage() {
   const timeSlots = useMemo(() => {
     const slots = [];
     for (let hour = 0; hour < 24; hour++) {
-      const timeString = hour.toString().padStart(2, '0') + ':00';
+      const timeValue = hour * 100; // Convert to HHMM format (0, 100, 200, etc.)
       const displayTime = hour === 0 ? '12:00 AM' : 
                          hour < 12 ? `${hour}:00 AM` : 
                          hour === 12 ? '12:00 PM' : 
                          `${hour - 12}:00 PM`;
-      slots.push({ value: timeString, display: displayTime, hour });
+      slots.push({ value: timeValue, display: displayTime, hour });
     }
     return slots;
   }, []);
@@ -763,14 +763,12 @@ export default function ShiftsPage() {
                                     });
                                     
                                     if (response.ok) {
-                                      // Refresh shifts data
-                                      const shiftsResponse = await fetch('/api/shifts', {
-                                        headers: {
-                                          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                                        },
+                                      // Refresh shifts data using React Query
+                                      queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
+                                      toast({
+                                        title: "Success",
+                                        description: "Shift removed successfully",
                                       });
-                                      const updatedShifts = await shiftsResponse.json();
-                                      setShifts(updatedShifts);
                                     }
                                   }
                                 } else {
@@ -797,14 +795,12 @@ export default function ShiftsPage() {
                                   });
                                   
                                   if (response.ok) {
-                                    // Refresh shifts data
-                                    const shiftsResponse = await fetch('/api/shifts', {
-                                      headers: {
-                                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                                      },
+                                    // Refresh shifts data using React Query
+                                    queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
+                                    toast({
+                                      title: "Success",
+                                      description: "Shift added successfully",
                                     });
-                                    const updatedShifts = await shiftsResponse.json();
-                                    setShifts(updatedShifts);
                                   }
                                 }
                               } catch (error) {
