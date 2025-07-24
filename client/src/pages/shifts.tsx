@@ -184,10 +184,8 @@ export default function ShiftsPage() {
           description: `Successfully scheduled ${startTime} - ${endTime} for selected staff member`,
         });
         
-        // Reset selection
-        setSelectedStartTime("");
-        setSelectedEndTime("");
-        setIsSelectingRange(false);
+        // Keep selection to maintain dark green color
+        // Selection will be reset when user clicks a new time slot
         
         refetchShifts();
         queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
