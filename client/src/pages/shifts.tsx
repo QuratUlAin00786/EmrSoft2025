@@ -470,10 +470,10 @@ export default function ShiftsPage() {
                       className={`
                         h-12 justify-center font-medium transition-all cursor-pointer
                         ${(isInSelectedRange || isInPendingRange || isBookedByCurrentStaff)
-                          ? 'bg-green-600 text-white border-green-600 hover:bg-green-700'
+                          ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
                           : isBookedByOtherStaff
                           ? 'bg-gray-300 text-gray-600 border-gray-300 hover:bg-gray-400 cursor-not-allowed' 
-                          : 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200'
+                          : 'bg-white text-gray-700 border-gray-300 hover:bg-blue-50'
                         }
                       `}
                       onClick={() => handleTimeSlotClick(Math.floor(slot.value / 100).toString().padStart(2, '0') + ':' + (slot.value % 100).toString().padStart(2, '0'))}
@@ -493,15 +493,15 @@ export default function ShiftsPage() {
                 </div>
                 <div className="flex items-center justify-center gap-4 flex-wrap">
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-green-100 border border-green-200 rounded"></div>
+                    <div className="w-4 h-4 bg-white border border-gray-300 rounded"></div>
                     <span className="text-gray-600">Available</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-green-400 rounded"></div>
+                    <div className="w-4 h-4 bg-blue-400 rounded"></div>
                     <span className="text-gray-600">Selecting Range</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-green-600 rounded"></div>
+                    <div className="w-4 h-4 bg-blue-600 rounded"></div>
                     <span className="text-gray-600">Current Staff Shifts</span>
                   </div>
                   <div className="flex items-center gap-2">
