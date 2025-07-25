@@ -283,7 +283,7 @@ Cura is a comprehensive Electronic Medical Records (EMR) system designed for UK 
 ## Deployment & Infrastructure
 
 ### Development Environment
-- Replit-based development platform
+- Averox-based development platform
 - Hot reload with Vite development server
 - PostgreSQL database with Neon provider
 - Environment-based configuration

@@ -113,7 +113,7 @@ The mobile apps integrate with the following Cura API endpoints:
 
 4. **Update API URL** in `lib/services/auth_service.dart`:
    ```dart
-   static const String _baseUrl = 'https://your-cura-api.replit.app/api';
+   static const String _baseUrl = 'https://halo.averox.com/api';
    ```
 
 5. **Run the application:**

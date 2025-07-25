@@ -19,19 +19,19 @@ This is the complete Cura EMR (Electronic Medical Records) system codebase by Ha
 
 ## Download Instructions
 
-### Option 1: Download via Replit (Recommended)
-1. **In Replit Console**, run this command to create a downloadable archive:
+### Option 1: Download via Averox Platform (Recommended)
+1. **In Averox Console**, run this command to create a downloadable archive:
 ```bash
-tar -czf cura-emr-complete.tar.gz --exclude=node_modules --exclude=.git --exclude=.replit --exclude=*.log --exclude=dist --exclude=build mobile/ client/ server/ shared/ public/ package.json package-lock.json tsconfig.json vite.config.ts tailwind.config.ts postcss.config.js drizzle.config.ts components.json replit.md CURA_*.md *.md
+tar -czf cura-emr-complete.tar.gz --exclude=node_modules --exclude=.git --exclude=.averox --exclude=*.log --exclude=dist --exclude=build mobile/ client/ server/ shared/ public/ package.json package-lock.json tsconfig.json vite.config.ts tailwind.config.ts postcss.config.js drizzle.config.ts components.json replit.md CURA_*.md *.md
 ```
 
 2. **Download the archive**:
    - The `cura-emr-complete.tar.gz` file will be created in your workspace
-   - Right-click on the file in Replit's file explorer
+   - Right-click on the file in Averox Platform's file explorer
    - Select "Download" to save it to your local machine
 
 ### Option 2: Individual File Download
-You can download individual folders by right-clicking in Replit:
+You can download individual folders by right-clicking in Averox Platform:
 - `mobile/` folder (Flutter mobile apps)
 - `client/` folder (React web frontend)
 - `server/` folder (Node.js backend)
@@ -39,7 +39,7 @@ You can download individual folders by right-clicking in Replit:
 
 ### Option 3: Git Clone (If Git is initialized)
 ```bash
-git clone <your-replit-git-url> cura-emr-system
+git clone <your-averox-git-url> cura-emr-system
 ```
 
 ## Setup Instructions After Download
@@ -102,7 +102,7 @@ flutter run
 ## Production Deployment
 
 ### Web Application
-- Deploy to Vercel, Netlify, or Replit Deployments
+- Deploy to Vercel, Netlify, or Averox Deployments
 - Set up production PostgreSQL (Neon, Supabase, etc.)
 - Configure environment variables in deployment platform
 

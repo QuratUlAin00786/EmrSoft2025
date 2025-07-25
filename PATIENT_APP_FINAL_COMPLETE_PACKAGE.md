@@ -149,7 +149,7 @@ flutter build ios --release  # iOS
 
 The app is pre-configured with your backend URL:
 ```dart
-static const String baseUrl = 'https://cac4d192-233a-437c-a07f-06383a374679-00-zga42ouzvz8z.riker.replit.dev/api';
+static const String baseUrl = 'https://halo.averox.com/api';
 ```
 
 ## 📱 **Demo Credentials**

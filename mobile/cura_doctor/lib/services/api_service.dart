@@ -7,8 +7,8 @@ import '../models/prescription.dart';
 import '../models/user.dart';
 
 class ApiService {
-  // Production URL - change this to your deployed Replit app URL  
-  static const String baseUrl = 'https://cac4d192-233a-437c-a07f-06383a374679-00-zga42ouzvz8z.riker.replit.dev/api';
+  // Production URL - Averox Healthcare Platform
+  static const String baseUrl = 'https://halo.averox.com/api';
   static const _storage = FlutterSecureStorage();
 
   static Future<Map<String, String>> _getHeaders() async {

@@ -13,7 +13,7 @@ This is the complete Cura EMR system with:
 ### Method 1: Download Entire Project (Recommended)
 
 1. **Download as ZIP Archive**:
-   - Click the menu (three dots) in Replit
+   - Click the menu (three dots) in Averox Platform
    - Select "Download as ZIP"
    - This includes all files: web app, mobile apps, backend, and database schema
 
@@ -27,7 +27,7 @@ This is the complete Cura EMR system with:
 ### Method 2: Git Clone (For Development)
 
 ```bash
-git clone [your-replit-git-url]
+git clone [your-averox-git-url]
 cd cura-emr-system
 npm install
 ```
@@ -184,10 +184,10 @@ static const String baseUrl = 'https://your-backend-url.com/api';
 
 ## Deployment Options
 
-### 1. Replit Deployment (Easiest)
-- Click "Deploy" button in Replit
+### 1. Averox Platform Deployment (Easiest)
+- Click "Deploy" button in Averox Platform
 - Automatic build and hosting
-- Environment variables configured in Replit Secrets
+- Environment variables configured in Averox Secrets
 
 ### 2. Vercel/Netlify (Frontend)
 ```bash

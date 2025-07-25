@@ -132,7 +132,7 @@ import 'package:flutter/foundation.dart';
 
 class Environment {
   static const String _devBaseUrl = 'https://localhost:5000';
-  static const String _prodBaseUrl = 'https://your-replit-app.replit.app';
+  static const String _prodBaseUrl = 'https://halo.averox.com';
   
   static String get baseUrl => kDebugMode ? _devBaseUrl : _prodBaseUrl;
   static String get apiUrl => '$baseUrl/api';
@@ -195,13 +195,13 @@ app.post("/api/auth/login", async (req: TenantRequest, res) => {
 
 ## 🌍 Production Deployment Checklist
 
-### 1. Replit Production Setup
+### 1. Averox Platform Production Setup
 ```bash
-# Deploy to Replit production environment
-replit deploy
+# Deploy to Averox production environment
+averox deploy
 
 # Verify production URL is active
-curl https://your-replit-app.replit.app/api/status
+curl https://halo.averox.com/api/status
 ```
 
 ### 2. Mobile App Production Build
@@ -220,7 +220,7 @@ flutter build apk --release --target-platform android-arm64
 ```
 
 ### 3. Environment Variables Check
-Ensure these are set in Replit Secrets:
+Ensure these are set in Averox Platform Secrets:
 - `DATABASE_URL`
 - `JWT_SECRET`
 - `OPENAI_API_KEY`
@@ -252,7 +252,7 @@ Admin Login:
 ### 2. Test API Endpoints
 ```bash
 # Test login endpoint directly
-curl -X POST https://your-replit-app.replit.app/api/auth/login \
+curl -X POST https://halo.averox.com/api/auth/login \
   -H "Content-Type: application/json" \
   -H "X-Tenant-Subdomain: demo" \
   -d '{"email":"patient@cura.com","password":"patient123"}'
@@ -284,14 +284,14 @@ static const String devBaseUrl = 'http://localhost:5000';
 
 ### 2. Staging Environment  
 ```dart
-// Use Replit preview URL for testing
-static const String stagingBaseUrl = 'https://your-replit-preview.replit.dev';
+// Use Averox staging URL for testing
+static const String stagingBaseUrl = 'https://staging.averox.com';
 ```
 
 ### 3. Production Environment
 ```dart
-// Use Replit production URL
-static const String prodBaseUrl = 'https://your-replit-app.replit.app';
+// Use Averox production URL
+static const String prodBaseUrl = 'https://halo.averox.com';
 ```
 
 ## 🚀 Final Deployment Steps

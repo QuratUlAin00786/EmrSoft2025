@@ -22,7 +22,7 @@ I've created production-configured mobile apps in: `mobile/cura_mobile_apps_PROD
 ### Patient App (`cura_patient`)
 ```dart
 // Production API URL
-static const String baseUrl = 'https://cac4d192-233a-437c-a07f-06383a374679-00-zga42ouzvz8z.riker.replit.dev';
+static const String baseUrl = 'https://halo.averox.com';
 
 // Headers with tenant support
 static Future<Map<String, String>> _getHeaders() async {
@@ -39,7 +39,7 @@ static Future<Map<String, String>> _getHeaders() async {
 ### Doctor App (`cura_doctor`)  
 ```dart
 // Production API URL
-static const String baseUrl = 'https://cac4d192-233a-437c-a07f-06383a374679-00-zga42ouzvz8z.riker.replit.dev/api';
+static const String baseUrl = 'https://halo.averox.com/api';
 
 // Headers with tenant support
 static Future<Map<String, String>> _getHeaders() async {
@@ -76,7 +76,7 @@ tar -xzf mobile/cura_mobile_apps_PRODUCTION.tar.gz
 ```
 
 ### 2. Update Your Production URL (if different)
-If your Replit app has a different production URL, update these files:
+If your Averox app has a different production URL, update these files:
 - `cura_patient/lib/services/api_service.dart` (line 11)
 - `cura_doctor/lib/services/api_service.dart` (line 14)
 
@@ -92,7 +92,7 @@ flutter build apk --release
 ```
 
 ### 4. Test Production Connectivity
-The apps will now connect to your production Replit deployment with:
+The apps will now connect to your production Averox deployment with:
 - ✅ Proper authentication headers
 - ✅ Tenant isolation support
 - ✅ Production API endpoints
@@ -113,9 +113,9 @@ The apps will now connect to your production Replit deployment with:
 - `sendMessage(String recipientId, String message)` - Send message
 
 ## 🌐 Production Environment
-- **Server**: Replit Production Environment
+- **Server**: Averox Production Environment
 - **Database**: PostgreSQL with multi-tenant support
 - **Authentication**: JWT tokens with 7-day expiration
 - **Multi-tenancy**: Subdomain-based tenant isolation (demo org)
 
-The mobile apps are now production-ready and will work with your live Replit deployment!
+The mobile apps are now production-ready and will work with your live Averox deployment!

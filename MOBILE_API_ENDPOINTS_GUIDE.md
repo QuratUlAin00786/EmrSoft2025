@@ -545,6 +545,6 @@ For production deployment, ensure these environment variables are set:
 ## 🚀 Production URLs
 
 **Development:** `http://localhost:5000`
-**Production:** `https://your-replit-app.replit.app`
+**Production:** `https://halo.averox.com`
 
 Make sure to update the base URL in your mobile apps when deploying to production.

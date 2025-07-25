@@ -4,8 +4,8 @@ import 'package:http/http.dart' as http;
 import 'auth_service.dart';
 
 class ApiService {
-  // Production URL - change this to your deployed Replit app URL
-  static const String baseUrl = 'https://cac4d192-233a-437c-a07f-06383a374679-00-zga42ouzvz8z.riker.replit.dev';
+  // Production URL - Averox Healthcare Platform
+  static const String baseUrl = 'https://halo.averox.com';
   static const String apiVersion = 'api';
   
   static String get apiUrl => '$baseUrl/$apiVersion';

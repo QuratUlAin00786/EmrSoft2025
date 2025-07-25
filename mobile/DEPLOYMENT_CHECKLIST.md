@@ -6,8 +6,8 @@
 
 1. **Update API Base URLs** in both mobile apps:
    ```dart
-   // Replace development URL with your Replit production URL
-   static const String baseUrl = 'https://YOUR-REPLIT-APP.replit.app';
+   // Replace development URL with your Averox production URL
+   static const String baseUrl = 'https://halo.averox.com';
    ```
 
 2. **Add Tenant Headers** to all API requests:
@@ -26,7 +26,7 @@
 ## 📋 Pre-Deployment Checklist
 
 ### ✅ Server Configuration
-- [ ] Replit app deployed to production environment
+- [ ] Averox app deployed to production environment
 - [ ] Environment variables configured (DATABASE_URL, JWT_SECRET, etc.)
 - [ ] API endpoints responding (test with `/api/status`)
 - [ ] CORS headers configured for mobile apps
@@ -80,10 +80,10 @@ flutter build apk --release
 ### 1. Server Testing
 ```bash
 # Test API status
-curl https://your-replit-app.replit.app/api/status
+curl https://halo.averox.com/api/status
 
 # Test login endpoint
-curl -X POST https://your-replit-app.replit.app/api/auth/login \
+curl -X POST https://halo.averox.com/api/auth/login \
   -H "Content-Type: application/json" \
   -H "X-Tenant-Subdomain: demo" \
   -d '{"email":"patient@cura.com","password":"patient123"}'
@@ -146,7 +146,7 @@ If production deployment fails:
 ## 👥 Team Coordination
 
 ### Deployment Roles:
-- **Backend Dev:** Deploy server to Replit production
+- **Backend Dev:** Deploy server to Averox production
 - **Mobile Dev:** Update mobile app configurations and build APKs  
 - **QA:** Test production deployment with demo credentials
 - **DevOps:** Monitor server logs and performance

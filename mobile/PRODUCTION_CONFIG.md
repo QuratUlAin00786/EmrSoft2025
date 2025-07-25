@@ -12,12 +12,12 @@ Replace development URLs with production URLs in both apps:
 
 **Patient App** (`mobile/cura_patient/lib/services/api_service.dart`):
 ```dart
-static const String baseUrl = 'https://your-production-domain.replit.app';
+static const String baseUrl = 'https://halo.averox.com';
 ```
 
 **Doctor App** (`mobile/cura_doctor/lib/services/api_service.dart`):
 ```dart
-static const String baseUrl = 'https://your-production-domain.replit.app/api';
+static const String baseUrl = 'https://halo.averox.com/api';
 ```
 
 ### 2. Add Tenant Headers
@@ -65,8 +65,8 @@ static Future<Map<String, dynamic>> login(String email, String password) async {
 - **Admin**: admin@cura.com / admin123
 
 ## Production Deployment URLs
-- **Web App**: https://your-replit-app.replit.app
-- **API Base**: https://your-replit-app.replit.app/api
+- **Web App**: https://halo.averox.com
+- **API Base**: https://halo.averox.com/api
 
 ## Testing Production
 1. Update baseUrl in both mobile apps

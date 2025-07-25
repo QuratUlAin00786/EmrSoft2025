@@ -110,6 +110,9 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system des
 
 ## Changelog
 
+**July 25, 2025:**
+- **COMPLETED**: Complete Replit branding removal from all documentation - systematically replaced all references to "Replit" with "Averox" across all project documentation files including DEVELOPER_PRODUCTION_GUIDE.md, DOWNLOAD_COMPLETE_SYSTEM.md, MOBILE_API_ENDPOINTS_GUIDE.md, MOBILE_PRODUCTION_SETUP.md, mobile/README.md, mobile/PRODUCTION_CONFIG.md, mobile/DEPLOYMENT_CHECKLIST.md, DOWNLOAD_INSTRUCTIONS.md, PATIENT_APP_FINAL_COMPLETE_PACKAGE.md, and CURA_EMR_SPECIFICATION.md, updated all production URLs to use halo.averox.com instead of replit.dev domains, ensures complete white-label solution with Averox branding throughout entire codebase and documentation
+
 **July 24, 2025:**
 - **COMPLETED**: Fixed authentication system completely with standardized credentials - updated all existing user passwords to standardized format (admin123, doctor123, patient123, nurse123, labtech123), enhanced backend login to support both email AND username authentication (users can login with "admin@cura.com" OR just "admin"), added comprehensive demo credentials display on login page with clear instructions, all 6 user roles now have working authentication for both web and mobile applications
 - **COMPLETED**: Updated shift management UI color scheme - replaced inappropriate dark green time slot buttons with professional blue color scheme, available slots now show as white with gray borders, selected ranges use blue tints, confirmed staff shifts display in blue, improved visual hierarchy and professional appearance in shift scheduling interface
