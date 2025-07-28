@@ -464,7 +464,7 @@ export default function ShiftsPage() {
               <p className="text-sm text-gray-400">Choose role and name from the dropdowns above</p>
             </div>
           ) : (
-            <div className="space-y-4 max-h-96 overflow-y-auto">
+            <div className="space-y-4">
               {/* Mark Absent Button */}
               <div className="flex justify-center">
                 <Button
@@ -477,10 +477,16 @@ export default function ShiftsPage() {
                 </Button>
               </div>
               
-              <div className="grid grid-cols-2 gap-2">
-                {Array.from({ length: 24 }, (_, hour) => ({ value: hour * 100, display: hour === 0 ? '12:00 AM' : hour < 12 ? `${hour}:00 AM` : hour === 12 ? '12:00 PM' : `${hour - 12}:00 PM`, hour })).map((slot) => {
+              <div className="grid grid-cols-4 gap-2 max-h-96 overflow-y-auto">
+                {Array.from({ length: 24 }, (_, hour) => ({ 
+                  value: hour * 100, 
+                  display: hour === 0 ? '12:00 AM' : hour < 12 ? `${hour}:00 AM` : hour === 12 ? '12:00 PM' : `${hour - 12}:00 PM`, 
+                  hour 
+                })).map((slot) => {
                   const dateString = selectedDate.toISOString().split('T')[0];
-                  const isBookedByCurrentStaff = shifts.find((shift: any) => {
+                  
+                  // Check if this hour slot has a scheduled shift for the selected staff member
+                  const hasShift = shifts.some((shift: any) => {
                     if (shift.staffId !== parseInt(selectedStaffId) || shift.date !== dateString || shift.status === 'cancelled') {
                       return false;
                     }
@@ -491,48 +497,17 @@ export default function ShiftsPage() {
                     const shiftEnd = typeof shift.endTime === 'string' && shift.endTime.includes(':')
                       ? parseInt(shift.endTime.replace(':', ''))
                       : parseInt(shift.endTime);
-                    return slot.value >= shiftStart && slot.value <= shiftEnd;
+                    return slot.value >= shiftStart && slot.value < shiftEnd;
                   });
-                  const isBookedByOtherStaff = shifts.find((shift: any) => {
-                    if (shift.staffId === parseInt(selectedStaffId) || shift.date !== dateString || shift.status === 'cancelled') {
-                      return false;
-                    }
-                    // Convert time formats for comparison
-                    const shiftStart = typeof shift.startTime === 'string' && shift.startTime.includes(':') 
-                      ? parseInt(shift.startTime.replace(':', ''))
-                      : parseInt(shift.startTime);
-                    const shiftEnd = typeof shift.endTime === 'string' && shift.endTime.includes(':')
-                      ? parseInt(shift.endTime.replace(':', ''))
-                      : parseInt(shift.endTime);
-                    return slot.value >= shiftStart && slot.value <= shiftEnd;
-                  });
-                  // Convert time format to slot value for comparison
-                  const startTimeValue = selectedStartTime ? parseInt(selectedStartTime.replace(':', '')) : null;
-                  const endTimeValue = selectedEndTime ? parseInt(selectedEndTime.replace(':', '')) : null;
-                  
-                  const isInSelectedRange = startTimeValue && endTimeValue && 
-                    slot.value >= startTimeValue && slot.value <= endTimeValue;
-                  const isInPendingRange = startTimeValue && !endTimeValue && 
-                    slot.value >= startTimeValue;
-                  const isCurrentlySelecting = isSelectingRange && startTimeValue && !endTimeValue &&
-                    slot.value >= startTimeValue;
                   
                   return (
                     <Button
                       key={slot.value}
                       variant="outline"
                       className={`
-                        h-12 justify-center font-medium transition-all cursor-pointer
-                        ${isBookedByCurrentStaff
+                        h-12 justify-center font-medium transition-all cursor-pointer text-sm
+                        ${hasShift
                           ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
-                          : isInSelectedRange
-                          ? 'bg-blue-500 text-white border-blue-500 hover:bg-blue-600'
-                          : isCurrentlySelecting
-                          ? 'bg-blue-400 text-white border-blue-400 hover:bg-blue-500'
-                          : isInPendingRange
-                          ? 'bg-blue-300 text-white border-blue-300 hover:bg-blue-400'
-                          : isBookedByOtherStaff
-                          ? 'bg-gray-300 text-gray-600 border-gray-300 hover:bg-gray-400 cursor-not-allowed'
                           : 'bg-white text-gray-700 border-gray-300 hover:bg-blue-50'
                         }
                       `}
