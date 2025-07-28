@@ -345,7 +345,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                   </TabsList>
 
                   <TabsContent value="basic" className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-3 gap-4">
                       <div>
                         <Label htmlFor="type">Record Type</Label>
                         <Select
