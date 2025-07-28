@@ -1022,12 +1022,32 @@ export default function ShiftsPage() {
                         {selectedDoctor.firstName}'s Available Time Slots - {selectedAvailabilityDay.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
                       </h4>
                       <div className="bg-white rounded-lg border p-4">
-                        {generateTimeSlots(doctorShifts).length === 0 ? (
-                          <div className="text-center py-8 text-gray-500">
-                            <p>No shifts scheduled for this doctor.</p>
-                            <p className="text-sm mt-2">Schedule a shift to see available time slots.</p>
-                          </div>
-                        ) : (
+                        {(() => {
+                          const hasRegularShifts = generateTimeSlots(doctorShifts).length > 0;
+                          const hasAbsentShifts = doctorShifts.some((s: any) => s.shiftType === 'absent' || s.status === 'absent');
+                          
+                          if (!hasRegularShifts && !hasAbsentShifts) {
+                            return (
+                              <div className="text-center py-8 text-gray-500">
+                                <p>No shifts scheduled for this doctor.</p>
+                                <p className="text-sm mt-2">Schedule a shift to see available time slots.</p>
+                              </div>
+                            );
+                          }
+                          
+                          if (!hasRegularShifts && hasAbsentShifts) {
+                            return (
+                              <div className="text-center py-8 text-red-500">
+                                <div className="bg-red-50 rounded-lg p-6 border border-red-200">
+                                  <div className="text-red-600 text-lg font-semibold mb-2">Staff Member Absent</div>
+                                  <p className="text-red-700 text-sm">This staff member is marked as absent for this day.</p>
+                                  <p className="text-red-600 text-sm font-medium mt-2">No available time slots.</p>
+                                </div>
+                              </div>
+                            );
+                          }
+                          
+                          return (
                           <>
                             <div className="grid grid-cols-2 gap-2 max-h-96 overflow-y-auto">
                             {generateTimeSlots(doctorShifts).map((slot) => {
@@ -1175,7 +1195,8 @@ export default function ShiftsPage() {
                           </div>
                             </div>
                           </>
-                        )}
+                          );
+                        })()}
                       </div>
                     </div>
 
