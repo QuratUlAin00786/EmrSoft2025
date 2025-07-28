@@ -75,7 +75,7 @@ export default function ShiftsPage() {
     { value: 'receptionist', label: 'Receptionist' }
   ];
 
-  // Generate dynamic time slots based on shift data
+  // Generate dynamic time slots based on shift data (excluding absent shifts)
   const generateTimeSlots = (doctorShifts: any[]): { value: number; display: string; hour: number; shiftId: any }[] => {
     if (!doctorShifts || doctorShifts.length === 0) {
       // Return empty array if no shifts
@@ -84,8 +84,12 @@ export default function ShiftsPage() {
 
     const slots: { value: number; display: string; hour: number; shiftId: any }[] = [];
     
-    // For each shift, generate hourly slots within the shift duration
+    // For each shift, generate hourly slots within the shift duration (skip absent shifts)
     doctorShifts.forEach((shift: any) => {
+      // Skip absent shifts - they should not generate time slots
+      if (shift.shiftType === 'absent' || shift.status === 'absent') {
+        return;
+      }
       let startHour, endHour;
       
       // Parse start time
@@ -914,7 +918,7 @@ export default function ShiftsPage() {
                         <p className="text-2xl font-bold text-green-600">
                           {(() => {
                             const totalHours = doctorShifts
-                              .filter((s: any) => s.isAvailable && s.status === 'scheduled')
+                              .filter((s: any) => s.isAvailable && s.status === 'scheduled' && s.shiftType !== 'absent')
                               .reduce((total: number, shift: any) => {
                                 let startHour, endHour;
                                 
@@ -946,10 +950,35 @@ export default function ShiftsPage() {
                         </p>
                         <p className="text-sm text-orange-600">Shifts</p>
                       </div>
-                      <div className="bg-blue-50 rounded-lg p-4 text-center">
-                        <h4 className="text-lg font-semibold text-blue-800">Total Shifts</h4>
-                        <p className="text-2xl font-bold text-blue-600">{doctorShifts.length}</p>
-                        <p className="text-sm text-blue-600">This period</p>
+                      <div className="bg-red-50 rounded-lg p-4 text-center">
+                        <h4 className="text-lg font-semibold text-red-800">Absent Hours</h4>
+                        <p className="text-2xl font-bold text-red-600">
+                          {(() => {
+                            const absentHours = doctorShifts
+                              .filter((s: any) => s.shiftType === 'absent' || s.status === 'absent')
+                              .reduce((total: number, shift: any) => {
+                                let startHour, endHour;
+                                
+                                // Parse start time
+                                if (typeof shift.startTime === 'string' && shift.startTime.includes(':')) {
+                                  startHour = parseInt(shift.startTime.split(':')[0]);
+                                } else {
+                                  startHour = Math.floor(parseInt(shift.startTime) / 100);
+                                }
+                                
+                                // Parse end time  
+                                if (typeof shift.endTime === 'string' && shift.endTime.includes(':')) {
+                                  endHour = parseInt(shift.endTime.split(':')[0]);
+                                } else {
+                                  endHour = Math.floor(parseInt(shift.endTime) / 100);
+                                }
+                                
+                                return total + (endHour - startHour);
+                              }, 0);
+                            return absentHours;
+                          })()}h
+                        </p>
+                        <p className="text-sm text-red-600">Unavailable</p>
                       </div>
                     </div>
 
@@ -1002,8 +1031,12 @@ export default function ShiftsPage() {
                           <>
                             <div className="grid grid-cols-2 gap-2 max-h-96 overflow-y-auto">
                             {generateTimeSlots(doctorShifts).map((slot) => {
-                            // Check if this doctor has a shift at this time
+                            // Check if this doctor has a NON-ABSENT shift at this time (exclude absent shifts)
                             const hasShift = doctorShifts.some((shift: any) => {
+                              // Skip absent shifts - they should not show as green available slots
+                              if (shift.shiftType === 'absent' || shift.status === 'absent') {
+                                return false;
+                              }
                               
                               // Convert time formats for comparison - handle both "HHMM" and "HH:MM" formats
                               let shiftStart, shiftEnd;
