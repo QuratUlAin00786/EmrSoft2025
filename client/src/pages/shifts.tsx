@@ -772,7 +772,17 @@ export default function ShiftsPage() {
                             const hasShift = doctorShifts.some((shift: any) => {
                               const shiftDate = new Date(shift.date);
                               const isJuly24 = shiftDate.getDate() === 24 && shiftDate.getMonth() === 6; // July is month 6
-                              return isJuly24 && slot.value >= shift.startTime && slot.value <= shift.endTime;
+                              if (!isJuly24) return false;
+                              
+                              // Convert time formats for comparison
+                              const shiftStart = typeof shift.startTime === 'string' && shift.startTime.includes(':') 
+                                ? parseInt(shift.startTime.replace(':', ''))
+                                : parseInt(shift.startTime);
+                              const shiftEnd = typeof shift.endTime === 'string' && shift.endTime.includes(':')
+                                ? parseInt(shift.endTime.replace(':', ''))
+                                : parseInt(shift.endTime);
+                              
+                              return slot.value >= shiftStart && slot.value <= shiftEnd;
                             });
                             
                             const handleSlotClick = async () => {
@@ -785,7 +795,17 @@ export default function ShiftsPage() {
                                   const shiftToRemove = doctorShifts.find((shift: any) => {
                                     const shiftDate = new Date(shift.date);
                                     const isJuly24 = shiftDate.getDate() === 24 && shiftDate.getMonth() === 6;
-                                    return isJuly24 && slot.value >= shift.startTime && slot.value <= shift.endTime;
+                                    if (!isJuly24) return false;
+                                    
+                                    // Convert time formats for comparison
+                                    const shiftStart = typeof shift.startTime === 'string' && shift.startTime.includes(':') 
+                                      ? parseInt(shift.startTime.replace(':', ''))
+                                      : parseInt(shift.startTime);
+                                    const shiftEnd = typeof shift.endTime === 'string' && shift.endTime.includes(':')
+                                      ? parseInt(shift.endTime.replace(':', ''))
+                                      : parseInt(shift.endTime);
+                                    
+                                    return slot.value >= shiftStart && slot.value <= shiftEnd;
                                   });
                                   
                                   if (shiftToRemove) {
