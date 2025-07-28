@@ -717,7 +717,24 @@ export default function ShiftsPage() {
           </div>
         ) : (
           <div className="divide-y divide-gray-200">
-            {shifts.map((shift: any) => {
+            {shifts
+              .sort((a: any, b: any) => {
+                // Sort by creation date (newest first), then by start time
+                const dateA = new Date(a.createdAt || a.date);
+                const dateB = new Date(b.createdAt || b.date);
+                if (dateA.getTime() !== dateB.getTime()) {
+                  return dateB.getTime() - dateA.getTime(); // Newest first
+                }
+                // If same creation date, sort by start time
+                const timeA = typeof a.startTime === 'string' && a.startTime.includes(':') 
+                  ? parseInt(a.startTime.replace(':', ''))
+                  : parseInt(a.startTime);
+                const timeB = typeof b.startTime === 'string' && b.startTime.includes(':')
+                  ? parseInt(b.startTime.replace(':', ''))
+                  : parseInt(b.startTime);
+                return timeA - timeB;
+              })
+              .map((shift: any) => {
               const staffMember = staff.find((s: any) => s.id === shift.staffId);
               const staffName = staffMember 
                 ? `${staffMember.role === 'doctor' ? 'Dr.' : ''} ${staffMember.firstName} ${staffMember.lastName}`
