@@ -459,7 +459,7 @@ export default function LabResultsPage() {
               <Select 
                 value={orderFormData.patientId} 
                 onValueChange={(value) => {
-                  const selectedPatient = patients.find((p: any) => p.id.toString() === value);
+                  const selectedPatient = Array.isArray(patients) ? patients.find((p: any) => p.id.toString() === value) : null;
                   setOrderFormData(prev => ({ 
                     ...prev, 
                     patientId: value,
@@ -471,7 +471,7 @@ export default function LabResultsPage() {
                   <SelectValue placeholder="Select a patient" />
                 </SelectTrigger>
                 <SelectContent>
-                  {patients.map((patient: any) => (
+                  {Array.isArray(patients) && patients.map((patient: any) => (
                     <SelectItem key={patient.id} value={patient.id.toString()}>
                       {`${patient.firstName} ${patient.lastName} (${patient.patientId})`}
                     </SelectItem>
