@@ -32,6 +32,16 @@ export default function ShiftsPage() {
     }
   }, [hasInitialized]);
 
+  // Clear pre-selected time slots when staff member is selected
+  useEffect(() => {
+    if (selectedStaffId) {
+      setSelectedTimeSlots([]);
+      setSelectedStartTime("");
+      setSelectedEndTime("");
+      setIsSelectingRange(false);
+    }
+  }, [selectedStaffId]);
+
 
 
   // Role options exactly as requested
