@@ -838,7 +838,7 @@ export default function ShiftsPage() {
                                 className={`
                                   h-12 flex items-center justify-center font-medium rounded-lg border text-sm transition-all cursor-pointer hover:opacity-80
                                   ${hasShift 
-                                    ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700' 
+                                    ? 'bg-green-600 text-white border-green-600 hover:bg-green-700' 
                                     : 'bg-white text-gray-700 border-gray-300 hover:bg-blue-50'
                                   }
                                 `}
@@ -864,7 +864,7 @@ export default function ShiftsPage() {
                               <span className="text-gray-600">Available (Click to Schedule)</span>
                             </div>
                             <div className="flex items-center gap-2">
-                              <div className="w-4 h-4 bg-blue-600 rounded"></div>
+                              <div className="w-4 h-4 bg-green-600 rounded"></div>
                               <span className="text-gray-600">Scheduled (Click to Remove)</span>
                             </div>
                           </div>
