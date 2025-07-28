@@ -28,19 +28,51 @@ export default function ShiftsPage() {
     { value: 'receptionist', label: 'Receptionist' }
   ];
 
-  // Generate 24-hour time slots (00:00 to 23:00)
-  const timeSlots = useMemo(() => {
-    const slots = [];
-    for (let hour = 0; hour < 24; hour++) {
-      const timeValue = hour * 100; // Convert to HHMM format (0, 100, 200, etc.)
-      const displayTime = hour === 0 ? '12:00 AM' : 
-                         hour < 12 ? `${hour}:00 AM` : 
-                         hour === 12 ? '12:00 PM' : 
-                         `${hour - 12}:00 PM`;
-      slots.push({ value: timeValue, display: displayTime, hour });
+  // Generate dynamic time slots based on shift data
+  const generateTimeSlots = (doctorShifts: any[]): { value: number; display: string; hour: number; shiftId: any }[] => {
+    if (!doctorShifts || doctorShifts.length === 0) {
+      // Return empty array if no shifts
+      return [];
     }
-    return slots;
-  }, []);
+
+    const slots: { value: number; display: string; hour: number; shiftId: any }[] = [];
+    
+    // For each shift, generate hourly slots within the shift duration
+    doctorShifts.forEach((shift: any) => {
+      let startHour, endHour;
+      
+      // Parse start time
+      if (typeof shift.startTime === 'string' && shift.startTime.includes(':')) {
+        startHour = parseInt(shift.startTime.split(':')[0]);
+      } else {
+        startHour = Math.floor(parseInt(shift.startTime) / 100);
+      }
+      
+      // Parse end time
+      if (typeof shift.endTime === 'string' && shift.endTime.includes(':')) {
+        endHour = parseInt(shift.endTime.split(':')[0]);
+      } else {
+        endHour = Math.floor(parseInt(shift.endTime) / 100);
+      }
+      
+      // Generate hourly slots for this shift
+      for (let hour = startHour; hour < endHour; hour++) {
+        const timeValue = hour * 100;
+        const displayTime = hour === 0 ? '12:00 AM' : 
+                           hour < 12 ? `${hour}:00 AM` : 
+                           hour === 12 ? '12:00 PM' : 
+                           `${hour - 12}:00 PM`;
+        
+        // Avoid duplicates
+        if (!slots.find(s => s.value === timeValue)) {
+          slots.push({ value: timeValue, display: displayTime, hour, shiftId: shift.id });
+        }
+      }
+    });
+    
+    // Sort slots by time value
+    return slots.sort((a, b) => a.value - b.value);
+  };
 
   // Generate calendar days
   const calendarDays = useMemo(() => {
@@ -445,7 +477,7 @@ export default function ShiftsPage() {
               </div>
               
               <div className="grid grid-cols-2 gap-2">
-                {timeSlots.map((slot) => {
+                {Array.from({ length: 24 }, (_, hour) => ({ value: hour * 100, display: hour === 0 ? '12:00 AM' : hour < 12 ? `${hour}:00 AM` : hour === 12 ? '12:00 PM' : `${hour - 12}:00 PM`, hour })).map((slot) => {
                   const dateString = selectedDate.toISOString().split('T')[0];
                   const isBookedByCurrentStaff = shifts.find((shift: any) => {
                     if (shift.staffId !== parseInt(selectedStaffId) || shift.date !== dateString || shift.status === 'cancelled') {
@@ -715,9 +747,32 @@ export default function ShiftsPage() {
                       <div className="bg-green-50 rounded-lg p-4 text-center">
                         <h4 className="text-lg font-semibold text-green-800">Available Hours</h4>
                         <p className="text-2xl font-bold text-green-600">
-                          {doctorShifts.filter((s: any) => s.isAvailable && s.status === 'scheduled').length * 8}h
+                          {(() => {
+                            const totalHours = doctorShifts
+                              .filter((s: any) => s.isAvailable && s.status === 'scheduled')
+                              .reduce((total: number, shift: any) => {
+                                let startHour, endHour;
+                                
+                                // Parse start time
+                                if (typeof shift.startTime === 'string' && shift.startTime.includes(':')) {
+                                  startHour = parseInt(shift.startTime.split(':')[0]);
+                                } else {
+                                  startHour = Math.floor(parseInt(shift.startTime) / 100);
+                                }
+                                
+                                // Parse end time
+                                if (typeof shift.endTime === 'string' && shift.endTime.includes(':')) {
+                                  endHour = parseInt(shift.endTime.split(':')[0]);
+                                } else {
+                                  endHour = Math.floor(parseInt(shift.endTime) / 100);
+                                }
+                                
+                                return total + (endHour - startHour);
+                              }, 0);
+                            return totalHours;
+                          })()}h
                         </p>
-                        <p className="text-sm text-green-600">This week</p>
+                        <p className="text-sm text-green-600">This period</p>
                       </div>
                       <div className="bg-orange-50 rounded-lg p-4 text-center">
                         <h4 className="text-lg font-semibold text-orange-800">On Call</h4>
@@ -762,12 +817,21 @@ export default function ShiftsPage() {
                       </div>
                     </div>
 
-                    {/* Time Table for Thursday, July 24 */}
+                    {/* Dynamic Time Table based on Doctor's Shifts */}
                     <div>
-                      <h4 className="text-lg font-semibold text-gray-900 mb-4">Thursday, July 24 - Time Slots</h4>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                        {selectedDoctor.firstName}'s Available Time Slots
+                      </h4>
                       <div className="bg-white rounded-lg border p-4">
-                        <div className="grid grid-cols-2 gap-2 max-h-96 overflow-y-auto">
-                          {timeSlots.map((slot) => {
+                        {generateTimeSlots(doctorShifts).length === 0 ? (
+                          <div className="text-center py-8 text-gray-500">
+                            <p>No shifts scheduled for this doctor.</p>
+                            <p className="text-sm mt-2">Schedule a shift to see available time slots.</p>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="grid grid-cols-2 gap-2 max-h-96 overflow-y-auto">
+                            {generateTimeSlots(doctorShifts).map((slot) => {
                             // Check if this doctor has a shift at this time
                             const hasShift = doctorShifts.some((shift: any) => {
                               
@@ -894,26 +958,22 @@ export default function ShiftsPage() {
                           })}
                         </div>
                         
-                        {/* Instructions */}
                         <div className="mt-4 pt-4 border-t text-center">
                           <p className="text-sm text-gray-600 mb-3">
-                            Click time slots to add/remove shifts for this doctor on Thursday, July 24
+                            Time slots from scheduled shifts (Click to remove shift)
                           </p>
                         </div>
                         
-                        {/* Legend */}
                         <div className="mt-2">
                           <div className="flex items-center justify-center gap-4 text-sm">
                             <div className="flex items-center gap-2">
-                              <div className="w-4 h-4 bg-white border border-gray-300 rounded"></div>
-                              <span className="text-gray-600">Available (Click to Schedule)</span>
-                            </div>
-                            <div className="flex items-center gap-2">
                               <div className="w-4 h-4 bg-green-600 rounded"></div>
-                              <span className="text-gray-600">Scheduled (Click to Remove)</span>
+                              <span className="text-gray-600">Scheduled Hours (Click to Remove)</span>
                             </div>
                           </div>
-                        </div>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
 
