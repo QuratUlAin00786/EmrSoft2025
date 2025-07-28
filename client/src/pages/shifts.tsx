@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -17,10 +17,19 @@ export default function ShiftsPage() {
   const [showAvailability, setShowAvailability] = useState(false);
   const [selectedDoctorId, setSelectedDoctorId] = useState("");
   const [selectedAvailabilityDay, setSelectedAvailabilityDay] = useState(new Date());
-  // Pre-select time slots from 10:00 AM to 3:00 PM (10, 11, 12, 13, 14, 15 hours)
-  const [selectedTimeSlots, setSelectedTimeSlots] = useState<number[]>([1000, 1100, 1200, 1300, 1400, 1500]);
+  // Initialize time slot selection state
+  const [selectedTimeSlots, setSelectedTimeSlots] = useState<number[]>([]);
+  const [hasInitialized, setHasInitialized] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Pre-select time slots from 10:00 AM to 3:00 PM only once on initial load
+  useEffect(() => {
+    if (!hasInitialized) {
+      setSelectedTimeSlots([1000, 1100, 1200, 1300, 1400, 1500]);
+      setHasInitialized(true);
+    }
+  }, [hasInitialized]);
 
   // Role options exactly as requested
   const roleOptions = [
