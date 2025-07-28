@@ -447,12 +447,46 @@ export default function ShiftsPage() {
           </div>
         </div>
 
+        {/* Day Selection */}
+        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Day</h3>
+          <div className="grid grid-cols-7 gap-2">
+            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((dayName, index) => {
+              // Calculate the date for this day of the week
+              const startOfWeek = new Date(selectedDate);
+              const day = startOfWeek.getDay();
+              const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is Sunday
+              startOfWeek.setDate(diff);
+              
+              const dayDate = new Date(startOfWeek);
+              dayDate.setDate(startOfWeek.getDate() + index);
+              
+              const isSelected = selectedDate.toDateString() === dayDate.toDateString();
+              
+              return (
+                <button
+                  key={dayName}
+                  onClick={() => setSelectedDate(dayDate)}
+                  className={`p-3 rounded-lg border text-center font-medium transition-colors ${
+                    isSelected 
+                      ? 'bg-blue-600 text-white border-blue-600' 
+                      : 'bg-white text-gray-700 border-gray-300 hover:bg-blue-50'
+                  }`}
+                >
+                  <div className="text-sm">{dayName}</div>
+                  <div className="text-xs mt-1">{dayDate.getDate()}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Time Slots */}
         <div className="bg-white rounded-lg shadow-sm border p-6">
           <div className="flex items-center gap-3 mb-4">
             <Clock className="h-6 w-6 text-blue-600" />
             <h2 className="text-lg font-semibold text-gray-900">
-              {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              Shift Hours for {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             </h2>
           </div>
           
@@ -820,7 +854,7 @@ export default function ShiftsPage() {
                     {/* Dynamic Time Table based on Doctor's Shifts */}
                     <div>
                       <h4 className="text-lg font-semibold text-gray-900 mb-4">
-                        {selectedDoctor.firstName}'s Available Time Slots
+                        {selectedDoctor.firstName}'s Available Time Slots - {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
                       </h4>
                       <div className="bg-white rounded-lg border p-4">
                         {generateTimeSlots(doctorShifts).length === 0 ? (
@@ -960,7 +994,7 @@ export default function ShiftsPage() {
                         
                         <div className="mt-4 pt-4 border-t text-center">
                           <p className="text-sm text-gray-600 mb-3">
-                            Time slots from scheduled shifts (Click to remove shift)
+                            Time slots from scheduled shifts for {selectedDate.toLocaleDateString('en-US', { weekday: 'long' })} (Click to remove shift)
                           </p>
                         </div>
                         
