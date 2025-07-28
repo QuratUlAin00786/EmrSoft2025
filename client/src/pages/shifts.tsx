@@ -44,6 +44,7 @@ export default function ShiftsPage() {
 
   // Clear time slot selections when date changes to prevent cross-date confusion
   useEffect(() => {
+    console.log("Selected date changed to:", selectedDate.toDateString(), selectedDate);
     setSelectedTimeSlots([]);
     setSelectedStartTime("");
     setSelectedEndTime("");
@@ -235,6 +236,7 @@ export default function ShiftsPage() {
   // Create shift with selected start and end times
   const handleCreateShift = async (startTime: string, endTime: string) => {
     const dateString = selectedDate.toISOString().split('T')[0];
+    console.log("Creating shift for date:", dateString, "Selected date object:", selectedDate);
     
     try {
       const shiftData = {
@@ -545,7 +547,10 @@ export default function ShiftsPage() {
                     ${isSelected ? 'bg-blue-600 text-white hover:bg-blue-700' : ''}
                     ${isToday && !isSelected ? 'bg-blue-100 text-blue-600' : ''}
                   `}
-                  onClick={() => setSelectedDate(day)}
+                  onClick={() => {
+                    console.log("Calendar day clicked:", day.toDateString(), day);
+                    setSelectedDate(day);
+                  }}
                 >
                   {day.getDate()}
                 </Button>
