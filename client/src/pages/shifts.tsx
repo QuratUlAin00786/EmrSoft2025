@@ -447,20 +447,32 @@ export default function ShiftsPage() {
               <div className="grid grid-cols-2 gap-2">
                 {timeSlots.map((slot) => {
                   const dateString = selectedDate.toISOString().split('T')[0];
-                  const isBookedByCurrentStaff = shifts.find((shift: any) => 
-                    shift.staffId === parseInt(selectedStaffId) &&
-                    shift.date === dateString &&
-                    slot.value >= parseInt(shift.startTime) &&
-                    slot.value <= parseInt(shift.endTime) &&
-                    shift.status !== 'cancelled'
-                  );
-                  const isBookedByOtherStaff = shifts.find((shift: any) => 
-                    shift.staffId !== parseInt(selectedStaffId) &&
-                    shift.date === dateString &&
-                    slot.value >= parseInt(shift.startTime) &&
-                    slot.value <= parseInt(shift.endTime) &&
-                    shift.status !== 'cancelled'
-                  );
+                  const isBookedByCurrentStaff = shifts.find((shift: any) => {
+                    if (shift.staffId !== parseInt(selectedStaffId) || shift.date !== dateString || shift.status === 'cancelled') {
+                      return false;
+                    }
+                    // Convert time formats for comparison
+                    const shiftStart = typeof shift.startTime === 'string' && shift.startTime.includes(':') 
+                      ? parseInt(shift.startTime.replace(':', ''))
+                      : parseInt(shift.startTime);
+                    const shiftEnd = typeof shift.endTime === 'string' && shift.endTime.includes(':')
+                      ? parseInt(shift.endTime.replace(':', ''))
+                      : parseInt(shift.endTime);
+                    return slot.value >= shiftStart && slot.value <= shiftEnd;
+                  });
+                  const isBookedByOtherStaff = shifts.find((shift: any) => {
+                    if (shift.staffId === parseInt(selectedStaffId) || shift.date !== dateString || shift.status === 'cancelled') {
+                      return false;
+                    }
+                    // Convert time formats for comparison
+                    const shiftStart = typeof shift.startTime === 'string' && shift.startTime.includes(':') 
+                      ? parseInt(shift.startTime.replace(':', ''))
+                      : parseInt(shift.startTime);
+                    const shiftEnd = typeof shift.endTime === 'string' && shift.endTime.includes(':')
+                      ? parseInt(shift.endTime.replace(':', ''))
+                      : parseInt(shift.endTime);
+                    return slot.value >= shiftStart && slot.value <= shiftEnd;
+                  });
                   // Convert time format to slot value for comparison
                   const startTimeValue = selectedStartTime ? parseInt(selectedStartTime.replace(':', '')) : null;
                   const endTimeValue = selectedEndTime ? parseInt(selectedEndTime.replace(':', '')) : null;
