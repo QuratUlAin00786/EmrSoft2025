@@ -235,7 +235,11 @@ export default function ShiftsPage() {
 
   // Create shift with selected start and end times
   const handleCreateShift = async (startTime: string, endTime: string) => {
-    const dateString = selectedDate.toISOString().split('T')[0];
+    // Use local date formatting to avoid timezone issues
+    const year = selectedDate.getFullYear();
+    const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+    const day = String(selectedDate.getDate()).padStart(2, '0');
+    const dateString = `${year}-${month}-${day}`;
     console.log("Creating shift for date:", dateString, "Selected date object:", selectedDate);
     
     try {
