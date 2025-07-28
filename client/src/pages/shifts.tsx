@@ -55,7 +55,11 @@ export default function ShiftsPage() {
   useEffect(() => {
     if (showAvailability && selectedAvailabilityDay) {
       console.log("Availability modal date changed to:", selectedAvailabilityDay.toDateString(), "Refetching shifts...");
+      // Invalidate queries for both the old and new date to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
+      // Also invalidate the specific query key pattern
+      const newDateString = selectedAvailabilityDay.toISOString().split('T')[0];
+      queryClient.invalidateQueries({ queryKey: ["/api/shifts", newDateString] });
       refetchShifts();
     }
   }, [selectedAvailabilityDay, showAvailability]);
@@ -155,10 +159,13 @@ export default function ShiftsPage() {
   // Fetch shifts for selected date (use availability modal date when modal is open)
   const dateForQuery = showAvailability ? selectedAvailabilityDay : selectedDate;
   const { data: shifts = [], isLoading: shiftsLoading, refetch: refetchShifts } = useQuery({
-    queryKey: ["/api/shifts", dateForQuery.toISOString().split('T')[0]],
+    queryKey: ["/api/shifts", dateForQuery.toISOString().split('T')[0], showAvailability],
     queryFn: async () => {
       try {
-        const dateString = dateForQuery.toISOString().split('T')[0];
+        // Always use the current state values when the query runs
+        const currentDate = showAvailability ? selectedAvailabilityDay : selectedDate;
+        const dateString = currentDate.toISOString().split('T')[0];
+        console.log("Query executing: fetching shifts for date:", dateString, "Modal open:", showAvailability);
         const response = await apiRequest("GET", `/api/shifts?date=${dateString}`);
         const data = await response.json();
         return Array.isArray(data) ? data : [];
