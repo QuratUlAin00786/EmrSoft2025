@@ -17,6 +17,7 @@ export default function ShiftsPage() {
   const [showAvailability, setShowAvailability] = useState(false);
   const [selectedDoctorId, setSelectedDoctorId] = useState("");
   const [selectedAvailabilityDay, setSelectedAvailabilityDay] = useState(new Date());
+  const [selectedTimeSlots, setSelectedTimeSlots] = useState<number[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -236,6 +237,19 @@ export default function ShiftsPage() {
         variant: "destructive",
       });
     }
+  };
+
+  // Handle time slot selection for color change
+  const handleTimeSlotSelection = (slotValue: number) => {
+    setSelectedTimeSlots(prev => {
+      if (prev.includes(slotValue)) {
+        // Deselect if already selected
+        return prev.filter(slot => slot !== slotValue);
+      } else {
+        // Select if not already selected
+        return [...prev, slotValue];
+      }
+    });
   };
 
   // Handle clicking on doctor name to show availability
@@ -501,18 +515,23 @@ export default function ShiftsPage() {
                     return slot.value >= shiftStart && slot.value < shiftEnd;
                   });
                   
+                  // Check if this time slot is selected
+                  const isSelected = selectedTimeSlots.includes(slot.value);
+                  
                   return (
                     <Button
                       key={slot.value}
                       variant="outline"
                       className={`
                         h-12 justify-center font-medium transition-all cursor-pointer text-sm
-                        ${hasShift
+                        ${isSelected
+                          ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white border-green-400 hover:from-green-500 hover:to-emerald-600'
+                          : hasShift
                           ? 'bg-gradient-to-r from-purple-400 to-violet-500 text-white border-purple-400 hover:from-purple-500 hover:to-violet-600'
                           : 'bg-gradient-to-r from-blue-400 to-cyan-400 text-white border-blue-400 hover:from-blue-500 hover:to-cyan-500'
                         }
                       `}
-                      onClick={() => handleTimeSlotClick(Math.floor(slot.value / 100).toString().padStart(2, '0') + ':' + (slot.value % 100).toString().padStart(2, '0'))}
+                      onClick={() => handleTimeSlotSelection(slot.value)}
                     >
                       {slot.display}
                     </Button>
@@ -529,28 +548,16 @@ export default function ShiftsPage() {
                 </div>
                 <div className="flex items-center justify-center gap-4 flex-wrap">
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-white border border-gray-300 rounded"></div>
+                    <div className="w-4 h-4 bg-gradient-to-r from-blue-400 to-cyan-400 rounded"></div>
                     <span className="text-gray-600">Available</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-blue-300 rounded"></div>
-                    <span className="text-gray-600">Start Time Selected</span>
+                    <div className="w-4 h-4 bg-gradient-to-r from-purple-400 to-violet-500 rounded"></div>
+                    <span className="text-gray-600">Scheduled Shifts</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-blue-400 rounded"></div>
-                    <span className="text-gray-600">Range Preview</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-blue-500 rounded"></div>
-                    <span className="text-gray-600">Selected Range</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-blue-600 rounded"></div>
-                    <span className="text-gray-600">Current Staff Shifts</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-gray-300 border border-gray-300 rounded"></div>
-                    <span className="text-gray-600">Other Staff Shifts</span>
+                    <div className="w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-500 rounded"></div>
+                    <span className="text-gray-600">Selected</span>
                   </div>
                 </div>
               </div>
