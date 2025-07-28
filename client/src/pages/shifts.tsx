@@ -51,6 +51,15 @@ export default function ShiftsPage() {
     setIsSelectingRange(false);
   }, [selectedDate]);
 
+  // Refetch shifts when availability modal date changes
+  useEffect(() => {
+    if (showAvailability && selectedAvailabilityDay) {
+      console.log("Availability modal date changed to:", selectedAvailabilityDay.toDateString(), "Refetching shifts...");
+      queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
+      refetchShifts();
+    }
+  }, [selectedAvailabilityDay, showAvailability]);
+
 
 
   // Role options exactly as requested
