@@ -141,7 +141,10 @@ export default function ShiftsPage() {
       });
     } else if (!selectedEndTime) {
       // Second click - set end time and create shift
-      if (timeSlot <= selectedStartTime) {
+      const startTimeValue = parseInt(selectedStartTime.replace(':', ''));
+      const endTimeValue = parseInt(timeSlot.replace(':', ''));
+      
+      if (endTimeValue <= startTimeValue) {
         toast({
           title: "Invalid End Time",
           description: "End time must be after start time. Please select a later time.",
