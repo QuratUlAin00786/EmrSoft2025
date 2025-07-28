@@ -477,7 +477,7 @@ export default function ShiftsPage() {
                 </Button>
               </div>
               
-              <div className="grid grid-cols-4 gap-2 max-h-96 overflow-y-auto">
+              <div className="grid grid-cols-2 gap-2 max-h-96 overflow-y-auto">
                 {Array.from({ length: 24 }, (_, hour) => ({ 
                   value: hour * 100, 
                   display: hour === 0 ? '12:00 AM' : hour < 12 ? `${hour}:00 AM` : hour === 12 ? '12:00 PM' : `${hour - 12}:00 PM`, 
@@ -508,7 +508,7 @@ export default function ShiftsPage() {
                         h-12 justify-center font-medium transition-all cursor-pointer text-sm
                         ${hasShift
                           ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
-                          : 'bg-white text-gray-700 border-gray-300 hover:bg-blue-50'
+                          : 'bg-blue-500 text-white border-blue-500 hover:bg-blue-600'
                         }
                       `}
                       onClick={() => handleTimeSlotClick(Math.floor(slot.value / 100).toString().padStart(2, '0') + ':' + (slot.value % 100).toString().padStart(2, '0'))}
