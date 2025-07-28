@@ -350,6 +350,7 @@ export default function ShiftsPage() {
 
   // Handle clicking on doctor name to show availability
   const handleDoctorClick = (staffId: number) => {
+    console.log("Doctor clicked - Staff ID:", staffId, "Main calendar date:", selectedDate.toDateString(), selectedDate);
     setSelectedDoctorId(staffId.toString());
     setSelectedAvailabilityDay(selectedDate); // Sync modal date with main calendar date
     setShowAvailability(true);
@@ -832,6 +833,9 @@ export default function ShiftsPage() {
                 const selectedDoctor = staff.find((s: any) => s.id.toString() === selectedDoctorId);
                 if (!selectedDoctor) return <p className="text-gray-600">Doctor not found</p>;
                 
+                console.log("All shifts data:", shifts);
+                console.log("Looking for doctor ID:", selectedDoctorId, "on date:", selectedAvailabilityDay.toDateString());
+                
                 const doctorShifts = shifts.filter((s: any) => {
                   // Use timezone-safe date comparison
                   const shiftDate = new Date(s.date);
@@ -842,9 +846,11 @@ export default function ShiftsPage() {
                   const selectedDay = String(selectedAvailabilityDay.getDate()).padStart(2, '0');
                   const selectedDateString = `${selectedYear}-${selectedMonth}-${selectedDay}`;
                   
-                  console.log("Filtering shifts - Shift date:", shiftDateString, "Selected date:", selectedDateString, "Match:", shiftDateString === selectedDateString);
+                  console.log("Checking shift:", s.id, "Staff ID:", s.staffId, "Date:", s.date, "Shift date string:", shiftDateString, "Selected date string:", selectedDateString, "Staff match:", s.staffId.toString() === selectedDoctorId, "Date match:", shiftDateString === selectedDateString);
                   return s.staffId.toString() === selectedDoctorId && shiftDateString === selectedDateString;
                 });
+                
+                console.log("Filtered doctor shifts:", doctorShifts);
                 
                 return (
                   <div className="space-y-6">
