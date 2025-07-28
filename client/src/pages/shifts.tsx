@@ -393,6 +393,8 @@ export default function ShiftsPage() {
 
   // Handle marking staff as absent for the entire day
   const handleMarkAbsent = async () => {
+    console.log("Mark Absent button clicked - Staff ID:", selectedStaffId, "Date:", selectedDate.toDateString());
+    
     if (!selectedStaffId) {
       toast({
         title: "Select Staff Member",
@@ -402,7 +404,8 @@ export default function ShiftsPage() {
       return;
     }
 
-    const dateString = selectedDate.toISOString().split('T')[0];
+    const dateString = getLocalDateString(selectedDate);
+    console.log("Marking staff absent for date:", dateString);
     
     try {
       // Create an absence record for the entire day
@@ -419,12 +422,18 @@ export default function ShiftsPage() {
 
       const response = await apiRequest("POST", "/api/shifts", absenceData);
       if (response.ok) {
+        console.log("Successfully marked staff as absent, refreshing data...");
         toast({
           title: "Staff Marked Absent",
           description: `Successfully marked staff member as absent for ${selectedDate.toLocaleDateString()}`,
         });
-        refetchShifts();
-        queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
+        
+        // Force complete data refresh
+        await queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
+        await refetchShifts();
+      } else {
+        console.error("Failed to mark staff absent - HTTP", response.status);
+        throw new Error(`HTTP ${response.status}`);
       }
     } catch (error) {
       toast({
