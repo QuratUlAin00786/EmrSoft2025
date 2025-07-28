@@ -27,16 +27,12 @@ export default function ShiftsPage() {
   useEffect(() => {
     if (!hasInitialized) {
       console.log("Initial pre-selection: setting time slots 1000-1500");
-      // Temporarily disabled pre-selection to test clicking
-      // setSelectedTimeSlots([1000, 1100, 1200, 1300, 1400, 1500]);
+      setSelectedTimeSlots([1000, 1100, 1200, 1300, 1400, 1500]);
       setHasInitialized(true);
     }
   }, [hasInitialized]);
 
-  // Debug logging for selectedTimeSlots changes
-  useEffect(() => {
-    console.log("selectedTimeSlots updated:", selectedTimeSlots);
-  }, [selectedTimeSlots]);
+
 
   // Role options exactly as requested
   const roleOptions = [
@@ -256,19 +252,76 @@ export default function ShiftsPage() {
     }
   };
 
-  // Handle time slot selection for color change
+  // Handle time slot selection for shift range creation
   const handleTimeSlotSelection = (slotValue: number) => {
-    console.log(`Clicking time slot: ${slotValue}`);
-    console.log(`Current selectedTimeSlots:`, selectedTimeSlots);
+    if (!selectedRole) {
+      toast({
+        title: "Select Role First",
+        description: "Please select a role before choosing time slots",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!selectedStaffId) {
+      toast({
+        title: "Select Staff Member",
+        description: "Please select a staff member before choosing time slots",
+        variant: "destructive",
+      });
+      return;
+    }
+
+
     
-    setSelectedTimeSlots(prev => {
-      const newSelection = prev.includes(slotValue) 
-        ? prev.filter(slot => slot !== slotValue)
-        : [...prev, slotValue];
+    if (!selectedStartTime) {
+      // First click - set start time and show only this slot as selected
+      const timeSlot = `${Math.floor(slotValue / 100).toString().padStart(2, '0')}:00`;
+      setSelectedStartTime(timeSlot);
+      setSelectedTimeSlots([slotValue]);
+      setIsSelectingRange(true);
+      toast({
+        title: "Start Time Selected",
+        description: `Start time set to ${timeSlot}. Now select end time.`,
+      });
+    } else if (!selectedEndTime) {
+      // Second click - set end time and create range  
+      const startValue = parseInt(selectedStartTime.replace(':', ''));
+      const endValue = slotValue;
       
-      console.log(`New selectedTimeSlots:`, newSelection);
-      return newSelection;
-    });
+      if (endValue <= startValue) {
+        toast({
+          title: "Invalid End Time",
+          description: "End time must be after start time. Please select a later time.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Create range of all slots between start and end
+      const range = [];
+      for (let i = startValue; i <= endValue; i += 100) {
+        range.push(i);
+      }
+      
+      const endTimeSlot = `${Math.floor(slotValue / 100).toString().padStart(2, '0')}:00`;
+      setSelectedEndTime(endTimeSlot);
+      setSelectedTimeSlots(range);
+      
+      // Create the shift
+      handleCreateShift(selectedStartTime, endTimeSlot);
+    } else {
+      // Reset and start new selection
+      const timeSlot = `${Math.floor(slotValue / 100).toString().padStart(2, '0')}:00`;
+      setSelectedStartTime(timeSlot);
+      setSelectedEndTime("");
+      setSelectedTimeSlots([slotValue]);
+      setIsSelectingRange(true);
+      toast({
+        title: "Start Time Selected", 
+        description: `Start time set to ${timeSlot}. Now select end time.`,
+      });
+    }
   };
 
   // Handle clicking on doctor name to show availability
