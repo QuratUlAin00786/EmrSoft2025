@@ -768,17 +768,8 @@ export default function ShiftsPage() {
                       <div className="bg-white rounded-lg border p-4">
                         <div className="grid grid-cols-2 gap-2 max-h-96 overflow-y-auto">
                           {timeSlots.map((slot) => {
-                            // Debug: Log all doctor shifts when rendering the first slot
-                            if (slot.value === 400) {
-                              console.log('All doctor shifts:', doctorShifts);
-                              console.log('Selected doctor ID:', selectedDoctor?.id);
-                            }
-                            
-                            // Check if this doctor has a shift at this time on July 24
+                            // Check if this doctor has a shift at this time
                             const hasShift = doctorShifts.some((shift: any) => {
-                              const shiftDate = new Date(shift.date);
-                              const isJuly24 = shiftDate.getDate() === 24 && shiftDate.getMonth() === 6; // July is month 6
-                              if (!isJuly24) return false;
                               
                               // Convert time formats for comparison - handle both "HHMM" and "HH:MM" formats
                               let shiftStart, shiftEnd;
@@ -807,18 +798,6 @@ export default function ShiftsPage() {
                                 shiftEnd = parseInt(shift.endTime);
                               }
                               
-                              // Debug logging
-                              if (slot.value === 400) {
-                                console.log('Debug slot 400:', {
-                                  slotValue: slot.value,
-                                  shiftStart: shiftStart,
-                                  shiftEnd: shiftEnd,
-                                  originalStartTime: shift.startTime,
-                                  originalEndTime: shift.endTime,
-                                  isInRange: slot.value >= shiftStart && slot.value <= shiftEnd
-                                });
-                              }
-                              
                               return slot.value >= shiftStart && slot.value <= shiftEnd;
                             });
                             
@@ -830,9 +809,6 @@ export default function ShiftsPage() {
                                 if (hasShift) {
                                   // Remove shift - find and delete the shift that contains this time slot
                                   const shiftToRemove = doctorShifts.find((shift: any) => {
-                                    const shiftDate = new Date(shift.date);
-                                    const isJuly24 = shiftDate.getDate() === 24 && shiftDate.getMonth() === 6;
-                                    if (!isJuly24) return false;
                                     
                                     // Convert time formats for comparison
                                     const shiftStart = typeof shift.startTime === 'string' && shift.startTime.includes(':') 
