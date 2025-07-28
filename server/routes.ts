@@ -3590,7 +3590,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/shifts", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
     try {
       const { date } = req.query as { date?: string };
+      console.log("GET /api/shifts - Fetching shifts for organization:", req.tenant!.id, "date filter:", date);
       const shifts = await storage.getStaffShiftsByOrganization(req.tenant!.id, date);
+      console.log("GET /api/shifts - Found shifts count:", shifts.length);
+      console.log("GET /api/shifts - Shifts data:", shifts.map(s => ({ id: s.id, staffId: s.staffId, date: s.date, startTime: s.startTime, endTime: s.endTime })));
       res.json(shifts);
     } catch (error) {
       console.error("Error fetching shifts:", error);

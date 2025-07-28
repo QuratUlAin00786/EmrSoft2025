@@ -355,9 +355,9 @@ export default function ShiftsPage() {
     setSelectedDoctorId(staffId.toString());
     setSelectedAvailabilityDay(selectedDate); // Sync modal date with main calendar date
     
-    // Force refetch shifts data to ensure we have the latest data
+    // Force complete refresh of shifts data with new key
     await queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
-    await refetchShifts();
+    await queryClient.refetchQueries({ queryKey: ["/api/shifts"] });
     
     setShowAvailability(true);
   };
