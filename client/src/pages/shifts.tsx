@@ -17,8 +17,8 @@ export default function ShiftsPage() {
   const [showAvailability, setShowAvailability] = useState(false);
   const [selectedDoctorId, setSelectedDoctorId] = useState("");
   const [selectedAvailabilityDay, setSelectedAvailabilityDay] = useState(new Date());
-  // Pre-select time slots from 10:00 AM to 3:00 PM (10, 11, 12, 13, 14 hours)
-  const [selectedTimeSlots, setSelectedTimeSlots] = useState<number[]>([1000, 1100, 1200, 1300, 1400]);
+  // Pre-select time slots from 10:00 AM to 3:00 PM (10, 11, 12, 13, 14, 15 hours)
+  const [selectedTimeSlots, setSelectedTimeSlots] = useState<number[]>([1000, 1100, 1200, 1300, 1400, 1500]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
