@@ -636,173 +636,199 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
           </DialogHeader>
           <div className="flex gap-6">
             {/* Left Panel - Facial Features Options */}
-            <div className="w-64 space-y-4">
+            <div className="w-80 space-y-4">
               <div>
-                <h4 className="font-medium mb-3">Facial Features</h4>
-                <div className="space-y-2">
-                  {[
-                    { id: 'forehead', label: 'Forehead', color: 'bg-yellow-200' },
-                    { id: 'eyes', label: 'Eyes', color: 'bg-blue-200' },
-                    { id: 'nose', label: 'Nose', color: 'bg-green-200' },
-                    { id: 'mouth', label: 'Mouth', color: 'bg-red-200' },
-                    { id: 'cheeks', label: 'Cheeks', color: 'bg-pink-200' },
-                    { id: 'chin', label: 'Chin', color: 'bg-purple-200' },
-                    { id: 'ears', label: 'Ears', color: 'bg-orange-200' },
-                    { id: 'neck', label: 'Neck', color: 'bg-indigo-200' }
-                  ].map((feature) => (
-                    <div key={feature.id} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id={feature.id}
-                        checked={selectedFacialFeatures.includes(feature.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedFacialFeatures([...selectedFacialFeatures, feature.id]);
-                          } else {
-                            setSelectedFacialFeatures(selectedFacialFeatures.filter(f => f !== feature.id));
-                          }
-                        }}
-                        className="rounded border-gray-300"
-                      />
-                      <div className={`w-4 h-4 rounded ${feature.color}`}></div>
-                      <label htmlFor={feature.id} className="text-sm font-medium cursor-pointer">
-                        {feature.label}
-                      </label>
-                    </div>
-                  ))}
+                <h4 className="font-medium mb-3 text-blue-600">Face</h4>
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="space-y-3">
+                    {[
+                      { id: 'frontalis', label: 'Frontalis', desc: 'Forehead muscle' },
+                      { id: 'temporalis', label: 'Temporalis', desc: 'Temple area' },
+                      { id: 'orbicularis_oculi', label: 'Orbicularis Oculi', desc: 'Eye muscles' },
+                      { id: 'levator_labii_superioris', label: 'Levator Labii Superioris', desc: 'Upper lip elevator' },
+                      { id: 'zygomaticus_major', label: 'Zygomaticus Major', desc: 'Cheek muscle' },
+                      { id: 'zygomaticus_minor', label: 'Zygomaticus Minor', desc: 'Small cheek muscle' },
+                      { id: 'masseter', label: 'Masseter', desc: 'Jaw muscle' },
+                      { id: 'buccinator', label: 'Buccinator', desc: 'Cheek muscle' },
+                      { id: 'orbicularis_oris', label: 'Orbicularis Oris', desc: 'Mouth muscle' },
+                      { id: 'mentalis', label: 'Mentalis', desc: 'Chin muscle' },
+                      { id: 'depressor_labii_inferioris', label: 'Depressor Labii Inferioris', desc: 'Lower lip depressor' },
+                      { id: 'depressor_anguli_oris', label: 'Depressor Anguli Oris', desc: 'Mouth corner depressor' },
+                      { id: 'platysma', label: 'Platysma', desc: 'Neck muscle' }
+                    ].map((feature) => (
+                      <div key={feature.id} className="flex items-start space-x-3 p-2 hover:bg-blue-100 rounded cursor-pointer"
+                           onClick={() => {
+                             if (selectedFacialFeatures.includes(feature.id)) {
+                               setSelectedFacialFeatures(selectedFacialFeatures.filter(f => f !== feature.id));
+                             } else {
+                               setSelectedFacialFeatures([...selectedFacialFeatures, feature.id]);
+                             }
+                           }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedFacialFeatures.includes(feature.id)}
+                          onChange={() => {}}
+                          className="mt-1 rounded border-gray-300"
+                        />
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-gray-800">{feature.label}</div>
+                          <div className="text-xs text-gray-500">{feature.desc}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
               
               <div>
-                <h4 className="font-medium mb-3">Selected Features</h4>
-                <div className="space-y-1">
-                  {selectedFacialFeatures.map((featureId) => {
-                    const feature = [
-                      { id: 'forehead', label: 'Forehead' },
-                      { id: 'eyes', label: 'Eyes' },
-                      { id: 'nose', label: 'Nose' },
-                      { id: 'mouth', label: 'Mouth' },
-                      { id: 'cheeks', label: 'Cheeks' },
-                      { id: 'chin', label: 'Chin' },
-                      { id: 'ears', label: 'Ears' },
-                      { id: 'neck', label: 'Neck' }
-                    ].find(f => f.id === featureId);
-                    return feature ? (
-                      <div key={featureId} className="text-sm text-gray-600">
-                        • {feature.label}
-                      </div>
-                    ) : null;
-                  })}
-                  {selectedFacialFeatures.length === 0 && (
-                    <div className="text-sm text-gray-400">No features selected</div>
-                  )}
+                <h4 className="font-medium mb-3">Add Photos - Before Treatment</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="aspect-square bg-gray-100 border-2 border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer hover:bg-gray-50">
+                      <div className="text-gray-400 text-2xl">+</div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
 
-            {/* Right Panel - Human Anatomy Sketch */}
+            {/* Right Panel - Detailed Facial Anatomy Sketch */}
             <div className="flex-1">
-              <div className="bg-white border-2 border-gray-200 rounded-lg p-6 flex items-center justify-center" style={{ minHeight: '500px' }}>
-                <svg width="300" height="450" viewBox="0 0 300 450" className="border rounded">
-                  {/* Head outline */}
-                  <ellipse cx="150" cy="80" rx="60" ry="75" fill="none" stroke="#333" strokeWidth="2"/>
+              <div className="bg-white border-2 border-gray-200 rounded-lg p-6 flex items-center justify-center" style={{ minHeight: '600px' }}>
+                <svg width="400" height="500" viewBox="0 0 400 500" className="border rounded">
+                  {/* Head outline - more realistic shape */}
+                  <path d="M 200 50 
+                           C 250 50, 280 80, 285 130
+                           C 290 180, 285 220, 275 250
+                           C 270 270, 260 285, 245 295
+                           C 225 310, 200 315, 200 315
+                           C 200 315, 175 310, 155 295
+                           C 140 285, 130 270, 125 250
+                           C 115 220, 110 180, 115 130
+                           C 120 80, 150 50, 200 50 Z" 
+                        fill="none" stroke="#333" strokeWidth="2"/>
                   
-                  {/* Forehead */}
-                  <path 
-                    d="M 90 50 Q 150 20 210 50 Q 190 40 150 40 Q 110 40 90 50" 
-                    fill={selectedFacialFeatures.includes('forehead') ? '#fef3c7' : 'none'} 
-                    stroke="#333" 
-                    strokeWidth="1"
-                  />
+                  {/* Frontalis - Forehead */}
+                  <path d="M 130 80 Q 200 65 270 80 Q 250 90 200 85 Q 150 90 130 80" 
+                        fill={selectedFacialFeatures.includes('frontalis') ? 'rgba(220, 38, 38, 0.3)' : 'none'} 
+                        stroke="#dc2626" strokeWidth="1" opacity="0.8"/>
                   
-                  {/* Eyes */}
-                  <ellipse 
-                    cx="125" cy="70" rx="12" ry="8" 
-                    fill={selectedFacialFeatures.includes('eyes') ? '#bfdbfe' : 'none'} 
-                    stroke="#333" 
-                    strokeWidth="1"
-                  />
-                  <ellipse 
-                    cx="175" cy="70" rx="12" ry="8" 
-                    fill={selectedFacialFeatures.includes('eyes') ? '#bfdbfe' : 'none'} 
-                    stroke="#333" 
-                    strokeWidth="1"
-                  />
-                  <circle cx="125" cy="70" r="4" fill="#333"/>
-                  <circle cx="175" cy="70" r="4" fill="#333"/>
+                  {/* Temporalis - Temple areas */}
+                  <ellipse cx="125" cy="95" rx="15" ry="25" 
+                           fill={selectedFacialFeatures.includes('temporalis') ? 'rgba(220, 38, 38, 0.3)' : 'none'} 
+                           stroke="#dc2626" strokeWidth="1" opacity="0.8"/>
+                  <ellipse cx="275" cy="95" rx="15" ry="25" 
+                           fill={selectedFacialFeatures.includes('temporalis') ? 'rgba(220, 38, 38, 0.3)' : 'none'} 
+                           stroke="#dc2626" strokeWidth="1" opacity="0.8"/>
                   
-                  {/* Nose */}
-                  <path 
-                    d="M 150 75 L 145 95 L 150 100 L 155 95 Z" 
-                    fill={selectedFacialFeatures.includes('nose') ? '#bbf7d0' : 'none'} 
-                    stroke="#333" 
-                    strokeWidth="1"
-                  />
+                  {/* Orbicularis Oculi - Eye muscles */}
+                  <ellipse cx="170" cy="120" rx="20" ry="12" 
+                           fill={selectedFacialFeatures.includes('orbicularis_oculi') ? 'rgba(220, 38, 38, 0.3)' : 'none'} 
+                           stroke="#dc2626" strokeWidth="1" opacity="0.8"/>
+                  <ellipse cx="230" cy="120" rx="20" ry="12" 
+                           fill={selectedFacialFeatures.includes('orbicularis_oculi') ? 'rgba(220, 38, 38, 0.3)' : 'none'} 
+                           stroke="#dc2626" strokeWidth="1" opacity="0.8"/>
                   
-                  {/* Mouth */}
-                  <ellipse 
-                    cx="150" cy="115" rx="15" ry="6" 
-                    fill={selectedFacialFeatures.includes('mouth') ? '#fecaca' : 'none'} 
-                    stroke="#333" 
-                    strokeWidth="1"
-                  />
+                  {/* Eyes - detailed */}
+                  <ellipse cx="170" cy="120" rx="12" ry="8" fill="#fff" stroke="#333" strokeWidth="1"/>
+                  <ellipse cx="230" cy="120" rx="12" ry="8" fill="#fff" stroke="#333" strokeWidth="1"/>
+                  <circle cx="170" cy="120" r="5" fill="#4a90e2"/>
+                  <circle cx="230" cy="120" r="5" fill="#4a90e2"/>
+                  <circle cx="170" cy="120" r="2" fill="#000"/>
+                  <circle cx="230" cy="120" r="2" fill="#000"/>
                   
-                  {/* Cheeks */}
-                  <circle 
-                    cx="105" cy="90" r="20" 
-                    fill={selectedFacialFeatures.includes('cheeks') ? '#fbcfe8' : 'none'} 
-                    stroke="#333" 
-                    strokeWidth="1" 
-                    opacity="0.5"
-                  />
-                  <circle 
-                    cx="195" cy="90" r="20" 
-                    fill={selectedFacialFeatures.includes('cheeks') ? '#fbcfe8' : 'none'} 
-                    stroke="#333" 
-                    strokeWidth="1" 
-                    opacity="0.5"
-                  />
+                  {/* Levator Labii Superioris - Upper lip elevator */}
+                  <path d="M 185 140 Q 200 145 215 140 Q 210 155 200 160 Q 190 155 185 140" 
+                        fill={selectedFacialFeatures.includes('levator_labii_superioris') ? 'rgba(220, 38, 38, 0.3)' : 'none'} 
+                        stroke="#dc2626" strokeWidth="1" opacity="0.8"/>
                   
-                  {/* Chin */}
-                  <ellipse 
-                    cx="150" cy="140" rx="25" ry="15" 
-                    fill={selectedFacialFeatures.includes('chin') ? '#e9d5ff' : 'none'} 
-                    stroke="#333" 
-                    strokeWidth="1"
-                  />
+                  {/* Zygomaticus Major - Large cheek muscle */}
+                  <path d="M 140 140 Q 165 165 180 180 Q 170 185 155 175 Q 135 155 140 140" 
+                        fill={selectedFacialFeatures.includes('zygomaticus_major') ? 'rgba(220, 38, 38, 0.3)' : 'none'} 
+                        stroke="#dc2626" strokeWidth="1" opacity="0.8"/>
+                  <path d="M 260 140 Q 235 165 220 180 Q 230 185 245 175 Q 265 155 260 140" 
+                        fill={selectedFacialFeatures.includes('zygomaticus_major') ? 'rgba(220, 38, 38, 0.3)' : 'none'} 
+                        stroke="#dc2626" strokeWidth="1" opacity="0.8"/>
+                  
+                  {/* Zygomaticus Minor - Small cheek muscle */}
+                  <path d="M 150 125 Q 175 145 185 155 Q 175 160 160 150 Q 145 135 150 125" 
+                        fill={selectedFacialFeatures.includes('zygomaticus_minor') ? 'rgba(220, 38, 38, 0.3)' : 'none'} 
+                        stroke="#dc2626" strokeWidth="1" opacity="0.8"/>
+                  <path d="M 250 125 Q 225 145 215 155 Q 225 160 240 150 Q 255 135 250 125" 
+                        fill={selectedFacialFeatures.includes('zygomaticus_minor') ? 'rgba(220, 38, 38, 0.3)' : 'none'} 
+                        stroke="#dc2626" strokeWidth="1" opacity="0.8"/>
+                  
+                  {/* Nose - detailed */}
+                  <path d="M 200 130 L 195 155 Q 200 165 205 155 L 200 130" fill="none" stroke="#333" strokeWidth="1"/>
+                  <ellipse cx="195" cy="160" rx="3" ry="2" fill="none" stroke="#333" strokeWidth="1"/>
+                  <ellipse cx="205" cy="160" rx="3" ry="2" fill="none" stroke="#333" strokeWidth="1"/>
+                  
+                  {/* Masseter - Jaw muscle */}
+                  <path d="M 145 180 Q 160 195 170 210 Q 160 220 145 205 Q 130 190 145 180" 
+                        fill={selectedFacialFeatures.includes('masseter') ? 'rgba(220, 38, 38, 0.3)' : 'none'} 
+                        stroke="#dc2626" strokeWidth="1" opacity="0.8"/>
+                  <path d="M 255 180 Q 240 195 230 210 Q 240 220 255 205 Q 270 190 255 180" 
+                        fill={selectedFacialFeatures.includes('masseter') ? 'rgba(220, 38, 38, 0.3)' : 'none'} 
+                        stroke="#dc2626" strokeWidth="1" opacity="0.8"/>
+                  
+                  {/* Buccinator - Cheek muscle */}
+                  <ellipse cx="150" cy="175" rx="18" ry="25" 
+                           fill={selectedFacialFeatures.includes('buccinator') ? 'rgba(220, 38, 38, 0.3)' : 'none'} 
+                           stroke="#dc2626" strokeWidth="1" opacity="0.8"/>
+                  <ellipse cx="250" cy="175" rx="18" ry="25" 
+                           fill={selectedFacialFeatures.includes('buccinator') ? 'rgba(220, 38, 38, 0.3)' : 'none'} 
+                           stroke="#dc2626" strokeWidth="1" opacity="0.8"/>
+                  
+                  {/* Orbicularis Oris - Mouth muscle */}
+                  <ellipse cx="200" cy="185" rx="25" ry="12" 
+                           fill={selectedFacialFeatures.includes('orbicularis_oris') ? 'rgba(220, 38, 38, 0.3)' : 'none'} 
+                           stroke="#dc2626" strokeWidth="1" opacity="0.8"/>
+                  
+                  {/* Mouth - detailed */}
+                  <path d="M 180 185 Q 200 195 220 185" fill="none" stroke="#dc143c" strokeWidth="2"/>
+                  <path d="M 180 185 Q 200 180 220 185" fill="none" stroke="#dc143c" strokeWidth="1"/>
+                  
+                  {/* Mentalis - Chin muscle */}
+                  <ellipse cx="200" cy="220" rx="20" ry="15" 
+                           fill={selectedFacialFeatures.includes('mentalis') ? 'rgba(220, 38, 38, 0.3)' : 'none'} 
+                           stroke="#dc2626" strokeWidth="1" opacity="0.8"/>
+                  
+                  {/* Depressor Labii Inferioris - Lower lip depressor */}
+                  <path d="M 185 200 Q 200 205 215 200 Q 210 215 200 220 Q 190 215 185 200" 
+                        fill={selectedFacialFeatures.includes('depressor_labii_inferioris') ? 'rgba(220, 38, 38, 0.3)' : 'none'} 
+                        stroke="#dc2626" strokeWidth="1" opacity="0.8"/>
+                  
+                  {/* Depressor Anguli Oris - Mouth corner depressor */}
+                  <path d="M 175 195 Q 185 205 190 215 Q 180 220 170 210 Q 165 200 175 195" 
+                        fill={selectedFacialFeatures.includes('depressor_anguli_oris') ? 'rgba(220, 38, 38, 0.3)' : 'none'} 
+                        stroke="#dc2626" strokeWidth="1" opacity="0.8"/>
+                  <path d="M 225 195 Q 215 205 210 215 Q 220 220 230 210 Q 235 200 225 195" 
+                        fill={selectedFacialFeatures.includes('depressor_anguli_oris') ? 'rgba(220, 38, 38, 0.3)' : 'none'} 
+                        stroke="#dc2626" strokeWidth="1" opacity="0.8"/>
+                  
+                  {/* Platysma - Neck muscle */}
+                  <path d="M 160 240 Q 200 250 240 240 Q 235 280 200 290 Q 165 280 160 240" 
+                        fill={selectedFacialFeatures.includes('platysma') ? 'rgba(220, 38, 38, 0.3)' : 'none'} 
+                        stroke="#dc2626" strokeWidth="1" opacity="0.8"/>
                   
                   {/* Ears */}
-                  <ellipse 
-                    cx="85" cy="80" rx="8" ry="20" 
-                    fill={selectedFacialFeatures.includes('ears') ? '#fed7aa' : 'none'} 
-                    stroke="#333" 
-                    strokeWidth="1"
-                  />
-                  <ellipse 
-                    cx="215" cy="80" rx="8" ry="20" 
-                    fill={selectedFacialFeatures.includes('ears') ? '#fed7aa' : 'none'} 
-                    stroke="#333" 
-                    strokeWidth="1"
-                  />
+                  <ellipse cx="115" cy="135" rx="8" ry="25" fill="none" stroke="#333" strokeWidth="2"/>
+                  <ellipse cx="285" cy="135" rx="8" ry="25" fill="none" stroke="#333" strokeWidth="2"/>
                   
-                  {/* Neck */}
-                  <rect 
-                    x="135" y="155" width="30" height="60" 
-                    fill={selectedFacialFeatures.includes('neck') ? '#c7d2fe' : 'none'} 
-                    stroke="#333" 
-                    strokeWidth="1"
-                  />
+                  {/* Neck outline */}
+                  <path d="M 160 250 Q 200 260 240 250 L 235 320 Q 200 325 165 320 Z" 
+                        fill="none" stroke="#333" strokeWidth="2"/>
                   
-                  {/* Body outline (simple) */}
-                  <rect x="120" y="215" width="60" height="150" fill="none" stroke="#333" strokeWidth="2" rx="10"/>
-                  
-                  {/* Arms */}
-                  <rect x="80" y="230" width="40" height="80" fill="none" stroke="#333" strokeWidth="2" rx="20"/>
-                  <rect x="180" y="230" width="40" height="80" fill="none" stroke="#333" strokeWidth="2" rx="20"/>
-                  
-                  {/* Legs */}
-                  <rect x="130" y="365" width="15" height="70" fill="none" stroke="#333" strokeWidth="2" rx="7"/>
-                  <rect x="155" y="365" width="15" height="70" fill="none" stroke="#333" strokeWidth="2" rx="7"/>
+                  {/* Muscle fiber lines for texture */}
+                  {selectedFacialFeatures.length > 0 && (
+                    <g>
+                      <defs>
+                        <pattern id="muscleLines" patternUnits="userSpaceOnUse" width="4" height="4">
+                          <path d="M 0,2 L 4,2" stroke="rgba(220, 38, 38, 0.2)" strokeWidth="0.5"/>
+                        </pattern>
+                      </defs>
+                    </g>
+                  )}
                 </svg>
               </div>
             </div>
