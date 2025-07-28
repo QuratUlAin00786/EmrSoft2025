@@ -331,7 +331,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                 Add Record
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" id="medical-record-dialog">
+            <DialogContent className="max-w-5xl h-[80vh] overflow-y-auto" id="medical-record-dialog">
               <DialogHeader>
                 <DialogTitle>{editingRecord ? 'Edit Medical Record' : 'Add Medical Record'}</DialogTitle>
               </DialogHeader>
@@ -344,8 +344,8 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     <TabsTrigger value="followup">Follow-up</TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="basic" className="space-y-4">
-                    <div className="grid grid-cols-3 gap-4">
+                  <TabsContent value="basic" className="space-y-6 p-4">
+                    <div className="grid grid-cols-3 gap-6">
                       <div>
                         <Label htmlFor="type">Record Type</Label>
                         <Select
@@ -376,8 +376,8 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                           </p>
                         )}
                       </div>
-                      <div>
-                        <Label htmlFor="examination">Examination</Label>
+                      <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                        <Label htmlFor="examination" className="text-blue-800 font-semibold">Examination</Label>
                         <Select
                           onValueChange={(value) => {
                             if (value === "anatomical") {
@@ -385,7 +385,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                             }
                           }}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger className="mt-2 border-blue-300">
                             <SelectValue placeholder="Select examination type" />
                           </SelectTrigger>
                           <SelectContent>
@@ -393,7 +393,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                             <SelectItem value="cardiovascular">Cardiovascular</SelectItem>
                             <SelectItem value="respiratory">Respiratory</SelectItem>
                             <SelectItem value="neurological">Neurological</SelectItem>
-                            <SelectItem value="anatomical">Anatomical</SelectItem>
+                            <SelectItem value="anatomical">🔬 Anatomical (View Muscles)</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
