@@ -345,6 +345,7 @@ export default function ShiftsPage() {
   // Handle clicking on doctor name to show availability
   const handleDoctorClick = (staffId: number) => {
     setSelectedDoctorId(staffId.toString());
+    setSelectedAvailabilityDay(selectedDate); // Sync modal date with main calendar date
     setShowAvailability(true);
   };
 
