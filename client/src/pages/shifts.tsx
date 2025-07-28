@@ -42,6 +42,14 @@ export default function ShiftsPage() {
     }
   }, [selectedStaffId]);
 
+  // Clear time slot selections when date changes to prevent cross-date confusion
+  useEffect(() => {
+    setSelectedTimeSlots([]);
+    setSelectedStartTime("");
+    setSelectedEndTime("");
+    setIsSelectingRange(false);
+  }, [selectedDate]);
+
 
 
   // Role options exactly as requested
