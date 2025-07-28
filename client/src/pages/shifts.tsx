@@ -264,8 +264,9 @@ export default function ShiftsPage() {
         // Keep selection to maintain dark green color
         // Selection will be reset when user clicks a new time slot
         
-        refetchShifts();
-        queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
+        // Force a fresh fetch by invalidating all shift-related queries
+        await queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
+        await refetchShifts();
       }
     } catch (error) {
       toast({
@@ -349,10 +350,15 @@ export default function ShiftsPage() {
   };
 
   // Handle clicking on doctor name to show availability
-  const handleDoctorClick = (staffId: number) => {
+  const handleDoctorClick = async (staffId: number) => {
     console.log("Doctor clicked - Staff ID:", staffId, "Main calendar date:", selectedDate.toDateString(), selectedDate);
     setSelectedDoctorId(staffId.toString());
     setSelectedAvailabilityDay(selectedDate); // Sync modal date with main calendar date
+    
+    // Force refetch shifts data to ensure we have the latest data
+    await queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
+    await refetchShifts();
+    
     setShowAvailability(true);
   };
 
