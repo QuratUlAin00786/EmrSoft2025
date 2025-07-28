@@ -101,6 +101,7 @@ export default function ShiftsPage() {
       try {
         const response = await apiRequest("GET", "/api/medical-staff");
         const data = await response.json();
+        console.log("Medical staff data loaded:", data);
         return Array.isArray(data) ? data : [];
       } catch (error) {
         console.error("Medical staff fetch error:", error);
@@ -127,8 +128,12 @@ export default function ShiftsPage() {
 
   // Filter staff by selected role
   const filteredStaff = useMemo(() => {
+    console.log("Staff data:", staff);
+    console.log("Selected role:", selectedRole);
     if (!selectedRole) return staff;
-    return staff.filter((member: any) => member.role === selectedRole);
+    const filtered = staff.filter((member: any) => member.role === selectedRole);
+    console.log("Filtered staff:", filtered);
+    return filtered;
   }, [staff, selectedRole]);
 
   // Check if time slot is booked for selected staff member
