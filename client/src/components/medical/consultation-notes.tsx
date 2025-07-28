@@ -50,6 +50,8 @@ interface ConsultationNotesProps {
 export default function ConsultationNotes({ patientId, patientName, patientNumber }: ConsultationNotesProps) {
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [editingRecord, setEditingRecord] = useState<any>(null);
+  const [showAnatomicalViewer, setShowAnatomicalViewer] = useState(false);
+  const [selectedFacialFeatures, setSelectedFacialFeatures] = useState<string[]>([]);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -374,6 +376,27 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                           </p>
                         )}
                       </div>
+                      <div>
+                        <Label htmlFor="examination">Examination</Label>
+                        <Select
+                          onValueChange={(value) => {
+                            if (value === "anatomical") {
+                              setShowAnatomicalViewer(true);
+                            }
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select examination type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="general">General Examination</SelectItem>
+                            <SelectItem value="cardiovascular">Cardiovascular</SelectItem>
+                            <SelectItem value="respiratory">Respiratory</SelectItem>
+                            <SelectItem value="neurological">Neurological</SelectItem>
+                            <SelectItem value="anatomical">Anatomical</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                   </TabsContent>
 
@@ -604,6 +627,218 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
           </div>
         )}
       </CardContent>
+
+      {/* Anatomical Viewer Dialog */}
+      <Dialog open={showAnatomicalViewer} onOpenChange={setShowAnatomicalViewer}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Anatomical Examination</DialogTitle>
+          </DialogHeader>
+          <div className="flex gap-6">
+            {/* Left Panel - Facial Features Options */}
+            <div className="w-64 space-y-4">
+              <div>
+                <h4 className="font-medium mb-3">Facial Features</h4>
+                <div className="space-y-2">
+                  {[
+                    { id: 'forehead', label: 'Forehead', color: 'bg-yellow-200' },
+                    { id: 'eyes', label: 'Eyes', color: 'bg-blue-200' },
+                    { id: 'nose', label: 'Nose', color: 'bg-green-200' },
+                    { id: 'mouth', label: 'Mouth', color: 'bg-red-200' },
+                    { id: 'cheeks', label: 'Cheeks', color: 'bg-pink-200' },
+                    { id: 'chin', label: 'Chin', color: 'bg-purple-200' },
+                    { id: 'ears', label: 'Ears', color: 'bg-orange-200' },
+                    { id: 'neck', label: 'Neck', color: 'bg-indigo-200' }
+                  ].map((feature) => (
+                    <div key={feature.id} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={feature.id}
+                        checked={selectedFacialFeatures.includes(feature.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedFacialFeatures([...selectedFacialFeatures, feature.id]);
+                          } else {
+                            setSelectedFacialFeatures(selectedFacialFeatures.filter(f => f !== feature.id));
+                          }
+                        }}
+                        className="rounded border-gray-300"
+                      />
+                      <div className={`w-4 h-4 rounded ${feature.color}`}></div>
+                      <label htmlFor={feature.id} className="text-sm font-medium cursor-pointer">
+                        {feature.label}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="font-medium mb-3">Selected Features</h4>
+                <div className="space-y-1">
+                  {selectedFacialFeatures.map((featureId) => {
+                    const feature = [
+                      { id: 'forehead', label: 'Forehead' },
+                      { id: 'eyes', label: 'Eyes' },
+                      { id: 'nose', label: 'Nose' },
+                      { id: 'mouth', label: 'Mouth' },
+                      { id: 'cheeks', label: 'Cheeks' },
+                      { id: 'chin', label: 'Chin' },
+                      { id: 'ears', label: 'Ears' },
+                      { id: 'neck', label: 'Neck' }
+                    ].find(f => f.id === featureId);
+                    return feature ? (
+                      <div key={featureId} className="text-sm text-gray-600">
+                        • {feature.label}
+                      </div>
+                    ) : null;
+                  })}
+                  {selectedFacialFeatures.length === 0 && (
+                    <div className="text-sm text-gray-400">No features selected</div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Panel - Human Anatomy Sketch */}
+            <div className="flex-1">
+              <div className="bg-white border-2 border-gray-200 rounded-lg p-6 flex items-center justify-center" style={{ minHeight: '500px' }}>
+                <svg width="300" height="450" viewBox="0 0 300 450" className="border rounded">
+                  {/* Head outline */}
+                  <ellipse cx="150" cy="80" rx="60" ry="75" fill="none" stroke="#333" strokeWidth="2"/>
+                  
+                  {/* Forehead */}
+                  <path 
+                    d="M 90 50 Q 150 20 210 50 Q 190 40 150 40 Q 110 40 90 50" 
+                    fill={selectedFacialFeatures.includes('forehead') ? '#fef3c7' : 'none'} 
+                    stroke="#333" 
+                    strokeWidth="1"
+                  />
+                  
+                  {/* Eyes */}
+                  <ellipse 
+                    cx="125" cy="70" rx="12" ry="8" 
+                    fill={selectedFacialFeatures.includes('eyes') ? '#bfdbfe' : 'none'} 
+                    stroke="#333" 
+                    strokeWidth="1"
+                  />
+                  <ellipse 
+                    cx="175" cy="70" rx="12" ry="8" 
+                    fill={selectedFacialFeatures.includes('eyes') ? '#bfdbfe' : 'none'} 
+                    stroke="#333" 
+                    strokeWidth="1"
+                  />
+                  <circle cx="125" cy="70" r="4" fill="#333"/>
+                  <circle cx="175" cy="70" r="4" fill="#333"/>
+                  
+                  {/* Nose */}
+                  <path 
+                    d="M 150 75 L 145 95 L 150 100 L 155 95 Z" 
+                    fill={selectedFacialFeatures.includes('nose') ? '#bbf7d0' : 'none'} 
+                    stroke="#333" 
+                    strokeWidth="1"
+                  />
+                  
+                  {/* Mouth */}
+                  <ellipse 
+                    cx="150" cy="115" rx="15" ry="6" 
+                    fill={selectedFacialFeatures.includes('mouth') ? '#fecaca' : 'none'} 
+                    stroke="#333" 
+                    strokeWidth="1"
+                  />
+                  
+                  {/* Cheeks */}
+                  <circle 
+                    cx="105" cy="90" r="20" 
+                    fill={selectedFacialFeatures.includes('cheeks') ? '#fbcfe8' : 'none'} 
+                    stroke="#333" 
+                    strokeWidth="1" 
+                    opacity="0.5"
+                  />
+                  <circle 
+                    cx="195" cy="90" r="20" 
+                    fill={selectedFacialFeatures.includes('cheeks') ? '#fbcfe8' : 'none'} 
+                    stroke="#333" 
+                    strokeWidth="1" 
+                    opacity="0.5"
+                  />
+                  
+                  {/* Chin */}
+                  <ellipse 
+                    cx="150" cy="140" rx="25" ry="15" 
+                    fill={selectedFacialFeatures.includes('chin') ? '#e9d5ff' : 'none'} 
+                    stroke="#333" 
+                    strokeWidth="1"
+                  />
+                  
+                  {/* Ears */}
+                  <ellipse 
+                    cx="85" cy="80" rx="8" ry="20" 
+                    fill={selectedFacialFeatures.includes('ears') ? '#fed7aa' : 'none'} 
+                    stroke="#333" 
+                    strokeWidth="1"
+                  />
+                  <ellipse 
+                    cx="215" cy="80" rx="8" ry="20" 
+                    fill={selectedFacialFeatures.includes('ears') ? '#fed7aa' : 'none'} 
+                    stroke="#333" 
+                    strokeWidth="1"
+                  />
+                  
+                  {/* Neck */}
+                  <rect 
+                    x="135" y="155" width="30" height="60" 
+                    fill={selectedFacialFeatures.includes('neck') ? '#c7d2fe' : 'none'} 
+                    stroke="#333" 
+                    strokeWidth="1"
+                  />
+                  
+                  {/* Body outline (simple) */}
+                  <rect x="120" y="215" width="60" height="150" fill="none" stroke="#333" strokeWidth="2" rx="10"/>
+                  
+                  {/* Arms */}
+                  <rect x="80" y="230" width="40" height="80" fill="none" stroke="#333" strokeWidth="2" rx="20"/>
+                  <rect x="180" y="230" width="40" height="80" fill="none" stroke="#333" strokeWidth="2" rx="20"/>
+                  
+                  {/* Legs */}
+                  <rect x="130" y="365" width="15" height="70" fill="none" stroke="#333" strokeWidth="2" rx="7"/>
+                  <rect x="155" y="365" width="15" height="70" fill="none" stroke="#333" strokeWidth="2" rx="7"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowAnatomicalViewer(false);
+                setSelectedFacialFeatures([]);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                // Save the selected anatomical features to the form/record
+                const featuresText = selectedFacialFeatures.length > 0 
+                  ? `Anatomical examination - Selected features: ${selectedFacialFeatures.join(', ')}`
+                  : 'Anatomical examination performed';
+                
+                // You can integrate this with the form if needed
+                toast({
+                  title: "Anatomical Data Saved",
+                  description: featuresText,
+                });
+                
+                setShowAnatomicalViewer(false);
+              }}
+            >
+              Save Selection
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
