@@ -512,8 +512,8 @@ export default function ShiftsPage() {
                       className={`
                         h-12 justify-center font-medium transition-all cursor-pointer text-sm
                         ${hasShift
-                          ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
-                          : 'bg-blue-500 text-white border-blue-500 hover:bg-blue-600'
+                          ? 'bg-purple-400 text-white border-purple-400 hover:bg-purple-500'
+                          : 'bg-blue-400 text-white border-blue-400 hover:bg-blue-500'
                         }
                       `}
                       onClick={() => handleTimeSlotClick(Math.floor(slot.value / 100).toString().padStart(2, '0') + ':' + (slot.value % 100).toString().padStart(2, '0'))}
