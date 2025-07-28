@@ -768,19 +768,56 @@ export default function ShiftsPage() {
                       <div className="bg-white rounded-lg border p-4">
                         <div className="grid grid-cols-2 gap-2 max-h-96 overflow-y-auto">
                           {timeSlots.map((slot) => {
+                            // Debug: Log all doctor shifts when rendering the first slot
+                            if (slot.value === 400) {
+                              console.log('All doctor shifts:', doctorShifts);
+                              console.log('Selected doctor ID:', selectedDoctor?.id);
+                            }
+                            
                             // Check if this doctor has a shift at this time on July 24
                             const hasShift = doctorShifts.some((shift: any) => {
                               const shiftDate = new Date(shift.date);
                               const isJuly24 = shiftDate.getDate() === 24 && shiftDate.getMonth() === 6; // July is month 6
                               if (!isJuly24) return false;
                               
-                              // Convert time formats for comparison
-                              const shiftStart = typeof shift.startTime === 'string' && shift.startTime.includes(':') 
-                                ? parseInt(shift.startTime.replace(':', ''))
-                                : parseInt(shift.startTime);
-                              const shiftEnd = typeof shift.endTime === 'string' && shift.endTime.includes(':')
-                                ? parseInt(shift.endTime.replace(':', ''))
-                                : parseInt(shift.endTime);
+                              // Convert time formats for comparison - handle both "HHMM" and "HH:MM" formats
+                              let shiftStart, shiftEnd;
+                              
+                              if (typeof shift.startTime === 'string') {
+                                if (shift.startTime.includes(':')) {
+                                  shiftStart = parseInt(shift.startTime.replace(':', ''));
+                                } else if (shift.startTime.length === 4) {
+                                  shiftStart = parseInt(shift.startTime);
+                                } else {
+                                  shiftStart = parseInt(shift.startTime.padStart(4, '0'));
+                                }
+                              } else {
+                                shiftStart = parseInt(shift.startTime);
+                              }
+                              
+                              if (typeof shift.endTime === 'string') {
+                                if (shift.endTime.includes(':')) {
+                                  shiftEnd = parseInt(shift.endTime.replace(':', ''));
+                                } else if (shift.endTime.length === 4) {
+                                  shiftEnd = parseInt(shift.endTime);
+                                } else {
+                                  shiftEnd = parseInt(shift.endTime.padStart(4, '0'));
+                                }
+                              } else {
+                                shiftEnd = parseInt(shift.endTime);
+                              }
+                              
+                              // Debug logging
+                              if (slot.value === 400) {
+                                console.log('Debug slot 400:', {
+                                  slotValue: slot.value,
+                                  shiftStart: shiftStart,
+                                  shiftEnd: shiftEnd,
+                                  originalStartTime: shift.startTime,
+                                  originalEndTime: shift.endTime,
+                                  isInRange: slot.value >= shiftStart && slot.value <= shiftEnd
+                                });
+                              }
                               
                               return slot.value >= shiftStart && slot.value <= shiftEnd;
                             });
