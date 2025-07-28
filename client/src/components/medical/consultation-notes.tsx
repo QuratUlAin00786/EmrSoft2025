@@ -336,9 +336,9 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                 <DialogTitle>{editingRecord ? 'Edit Medical Record' : 'Add Medical Record'}</DialogTitle>
               </DialogHeader>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <Tabs defaultValue="basic" className="w-full">
-                  <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="basic">Basic Info</TabsTrigger>
+                <Tabs value="basic" className="w-full">
+                  <TabsList className="grid w-full grid-cols-4 mb-6">
+                    <TabsTrigger value="basic" className="bg-blue-100 font-semibold">Basic Info ⭐</TabsTrigger>
                     <TabsTrigger value="clinical">Clinical Notes</TabsTrigger>
                     <TabsTrigger value="medications">Medications</TabsTrigger>
                     <TabsTrigger value="followup">Follow-up</TabsTrigger>
