@@ -101,7 +101,7 @@ export default function ShiftsPage() {
       try {
         const response = await apiRequest("GET", "/api/medical-staff");
         const data = await response.json();
-        console.log("Medical staff data loaded:", data);
+
         return Array.isArray(data) ? data : [];
       } catch (error) {
         console.error("Medical staff fetch error:", error);
@@ -128,12 +128,8 @@ export default function ShiftsPage() {
 
   // Filter staff by selected role
   const filteredStaff = useMemo(() => {
-    console.log("Staff data:", staff);
-    console.log("Selected role:", selectedRole);
     if (!selectedRole) return staff;
-    const filtered = staff.filter((member: any) => member.role === selectedRole);
-    console.log("Filtered staff:", filtered);
-    return filtered;
+    return staff.filter((member: any) => member.role === selectedRole);
   }, [staff, selectedRole]);
 
   // Check if time slot is booked for selected staff member
@@ -512,8 +508,8 @@ export default function ShiftsPage() {
                       className={`
                         h-12 justify-center font-medium transition-all cursor-pointer text-sm
                         ${hasShift
-                          ? 'bg-purple-400 text-white border-purple-400 hover:bg-purple-500'
-                          : 'bg-blue-400 text-white border-blue-400 hover:bg-blue-500'
+                          ? 'bg-gradient-to-r from-purple-400 to-violet-500 text-white border-purple-400 hover:from-purple-500 hover:to-violet-600'
+                          : 'bg-gradient-to-r from-blue-400 to-cyan-400 text-white border-blue-400 hover:from-blue-500 hover:to-cyan-500'
                         }
                       `}
                       onClick={() => handleTimeSlotClick(Math.floor(slot.value / 100).toString().padStart(2, '0') + ':' + (slot.value % 100).toString().padStart(2, '0'))}
