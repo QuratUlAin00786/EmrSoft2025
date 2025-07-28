@@ -458,10 +458,16 @@ export default function ShiftsPage() {
                     slot.value <= parseInt(shift.endTime) &&
                     shift.status !== 'cancelled'
                   );
-                  const isInSelectedRange = selectedStartTime && selectedEndTime && 
-                    slot.value >= parseInt(selectedStartTime) && slot.value <= parseInt(selectedEndTime);
-                  const isInPendingRange = selectedStartTime && !selectedEndTime && 
-                    slot.value === parseInt(selectedStartTime);
+                  // Convert time format to slot value for comparison
+                  const startTimeValue = selectedStartTime ? parseInt(selectedStartTime.replace(':', '')) : null;
+                  const endTimeValue = selectedEndTime ? parseInt(selectedEndTime.replace(':', '')) : null;
+                  
+                  const isInSelectedRange = startTimeValue && endTimeValue && 
+                    slot.value >= startTimeValue && slot.value <= endTimeValue;
+                  const isInPendingRange = startTimeValue && !endTimeValue && 
+                    slot.value >= startTimeValue;
+                  const isCurrentlySelecting = isSelectingRange && startTimeValue && !endTimeValue &&
+                    slot.value >= startTimeValue;
                   
                   return (
                     <Button
@@ -469,10 +475,16 @@ export default function ShiftsPage() {
                       variant="outline"
                       className={`
                         h-12 justify-center font-medium transition-all cursor-pointer
-                        ${(isInSelectedRange || isInPendingRange || isBookedByCurrentStaff)
+                        ${isBookedByCurrentStaff
                           ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
+                          : isInSelectedRange
+                          ? 'bg-blue-500 text-white border-blue-500 hover:bg-blue-600'
+                          : isCurrentlySelecting
+                          ? 'bg-blue-400 text-white border-blue-400 hover:bg-blue-500'
+                          : isInPendingRange
+                          ? 'bg-blue-300 text-white border-blue-300 hover:bg-blue-400'
                           : isBookedByOtherStaff
-                          ? 'bg-gray-300 text-gray-600 border-gray-300 hover:bg-gray-400 cursor-not-allowed' 
+                          ? 'bg-gray-300 text-gray-600 border-gray-300 hover:bg-gray-400 cursor-not-allowed'
                           : 'bg-white text-gray-700 border-gray-300 hover:bg-blue-50'
                         }
                       `}
@@ -497,8 +509,16 @@ export default function ShiftsPage() {
                     <span className="text-gray-600">Available</span>
                   </div>
                   <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-blue-300 rounded"></div>
+                    <span className="text-gray-600">Start Time Selected</span>
+                  </div>
+                  <div className="flex items-center gap-2">
                     <div className="w-4 h-4 bg-blue-400 rounded"></div>
-                    <span className="text-gray-600">Selecting Range</span>
+                    <span className="text-gray-600">Range Preview</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-blue-500 rounded"></div>
+                    <span className="text-gray-600">Selected Range</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 bg-blue-600 rounded"></div>
