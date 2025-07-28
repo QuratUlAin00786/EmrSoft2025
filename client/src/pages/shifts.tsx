@@ -143,12 +143,13 @@ export default function ShiftsPage() {
     },
   });
 
-  // Fetch shifts for selected date
+  // Fetch shifts for selected date (use availability modal date when modal is open)
+  const dateForQuery = showAvailability ? selectedAvailabilityDay : selectedDate;
   const { data: shifts = [], isLoading: shiftsLoading, refetch: refetchShifts } = useQuery({
-    queryKey: ["/api/shifts", selectedDate.toISOString().split('T')[0]],
+    queryKey: ["/api/shifts", dateForQuery.toISOString().split('T')[0]],
     queryFn: async () => {
       try {
-        const dateString = selectedDate.toISOString().split('T')[0];
+        const dateString = dateForQuery.toISOString().split('T')[0];
         const response = await apiRequest("GET", `/api/shifts?date=${dateString}`);
         const data = await response.json();
         return Array.isArray(data) ? data : [];
@@ -354,6 +355,8 @@ export default function ShiftsPage() {
     console.log("Doctor clicked - Staff ID:", staffId, "Main calendar date:", selectedDate.toDateString(), selectedDate);
     setSelectedDoctorId(staffId.toString());
     setSelectedAvailabilityDay(selectedDate); // Sync modal date with main calendar date
+    
+    console.log("Setting modal date to:", selectedDate.toDateString(), "Will query for date:", selectedDate.toISOString().split('T')[0]);
     
     // Force complete refresh of shifts data with new key
     await queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
