@@ -833,9 +833,17 @@ export default function ShiftsPage() {
                 if (!selectedDoctor) return <p className="text-gray-600">Doctor not found</p>;
                 
                 const doctorShifts = shifts.filter((s: any) => {
-                  const shiftDate = new Date(s.date).toDateString();
-                  const selectedDay = selectedAvailabilityDay.toDateString();
-                  return s.staffId.toString() === selectedDoctorId && shiftDate === selectedDay;
+                  // Use timezone-safe date comparison
+                  const shiftDate = new Date(s.date);
+                  const shiftDateString = `${shiftDate.getFullYear()}-${String(shiftDate.getMonth() + 1).padStart(2, '0')}-${String(shiftDate.getDate()).padStart(2, '0')}`;
+                  
+                  const selectedYear = selectedAvailabilityDay.getFullYear();
+                  const selectedMonth = String(selectedAvailabilityDay.getMonth() + 1).padStart(2, '0');
+                  const selectedDay = String(selectedAvailabilityDay.getDate()).padStart(2, '0');
+                  const selectedDateString = `${selectedYear}-${selectedMonth}-${selectedDay}`;
+                  
+                  console.log("Filtering shifts - Shift date:", shiftDateString, "Selected date:", selectedDateString, "Match:", shiftDateString === selectedDateString);
+                  return s.staffId.toString() === selectedDoctorId && shiftDateString === selectedDateString;
                 });
                 
                 return (
