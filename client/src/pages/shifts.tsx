@@ -26,10 +26,17 @@ export default function ShiftsPage() {
   // Pre-select time slots from 10:00 AM to 3:00 PM only once on initial load
   useEffect(() => {
     if (!hasInitialized) {
-      setSelectedTimeSlots([1000, 1100, 1200, 1300, 1400, 1500]);
+      console.log("Initial pre-selection: setting time slots 1000-1500");
+      // Temporarily disabled pre-selection to test clicking
+      // setSelectedTimeSlots([1000, 1100, 1200, 1300, 1400, 1500]);
       setHasInitialized(true);
     }
   }, [hasInitialized]);
+
+  // Debug logging for selectedTimeSlots changes
+  useEffect(() => {
+    console.log("selectedTimeSlots updated:", selectedTimeSlots);
+  }, [selectedTimeSlots]);
 
   // Role options exactly as requested
   const roleOptions = [
@@ -251,14 +258,16 @@ export default function ShiftsPage() {
 
   // Handle time slot selection for color change
   const handleTimeSlotSelection = (slotValue: number) => {
+    console.log(`Clicking time slot: ${slotValue}`);
+    console.log(`Current selectedTimeSlots:`, selectedTimeSlots);
+    
     setSelectedTimeSlots(prev => {
-      if (prev.includes(slotValue)) {
-        // Deselect if already selected
-        return prev.filter(slot => slot !== slotValue);
-      } else {
-        // Select if not already selected
-        return [...prev, slotValue];
-      }
+      const newSelection = prev.includes(slotValue) 
+        ? prev.filter(slot => slot !== slotValue)
+        : [...prev, slotValue];
+      
+      console.log(`New selectedTimeSlots:`, newSelection);
+      return newSelection;
     });
   };
 
@@ -527,6 +536,8 @@ export default function ShiftsPage() {
                   
                   // Check if this time slot is selected
                   const isSelected = selectedTimeSlots.includes(slot.value);
+                  
+
                   
                   return (
                     <Button
