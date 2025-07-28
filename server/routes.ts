@@ -3614,7 +3614,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/shifts", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+  app.post("/api/shifts", authMiddleware, requireRole(["admin", "doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
       const shiftData = z.object({
         staffId: z.number(),
