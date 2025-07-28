@@ -156,15 +156,25 @@ export default function ShiftsPage() {
     },
   });
 
+  // Helper function to get local date string (avoids timezone issues)
+  const getLocalDateString = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // Fetch shifts for selected date (use availability modal date when modal is open)
   const dateForQuery = showAvailability ? selectedAvailabilityDay : selectedDate;
+  const queryDateString = getLocalDateString(dateForQuery);
+  
   const { data: shifts = [], isLoading: shiftsLoading, refetch: refetchShifts } = useQuery({
-    queryKey: ["/api/shifts", dateForQuery.toISOString().split('T')[0], showAvailability],
+    queryKey: ["/api/shifts", queryDateString, showAvailability],
     queryFn: async () => {
       try {
         // Always use the current state values when the query runs
         const currentDate = showAvailability ? selectedAvailabilityDay : selectedDate;
-        const dateString = currentDate.toISOString().split('T')[0];
+        const dateString = getLocalDateString(currentDate);
         console.log("Query executing: fetching shifts for date:", dateString, "Modal open:", showAvailability);
         const response = await apiRequest("GET", `/api/shifts?date=${dateString}`);
         const data = await response.json();
