@@ -722,23 +722,22 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     
                     {/* RIGHT HALF - MASSIVE RED MUSCLE ANATOMY EXACTLY FROM REFERENCE */}
                     
-                    {/* FRONTALIS - HUGE vertical red block covering ENTIRE forehead with horizontal stripes */}
+                    {/* FRONTALIS - MASSIVE vertical red block covering ENTIRE forehead with VERTICAL stripes like reference */}
                     <g>
-                      {/* Main massive frontalis muscle block - MUCH LARGER */}
+                      {/* Main massive frontalis muscle block covering entire forehead */}
                       <rect x="200" y="115" width="85" height="75" 
                             fill={selectedFacialFeatures.includes('frontalis') ? "#dc2626" : "#b91c1c"} 
                             stroke="none"/>
                       
-                      {/* Multiple horizontal muscle fiber stripes within the block */}
-                      <rect x="200" y="120" width="85" height="6" fill="#dc2626" stroke="none"/>
-                      <rect x="200" y="128" width="85" height="6" fill="#dc2626" stroke="none"/>
-                      <rect x="200" y="136" width="85" height="6" fill="#dc2626" stroke="none"/>
-                      <rect x="200" y="144" width="85" height="6" fill="#dc2626" stroke="none"/>
-                      <rect x="200" y="152" width="85" height="6" fill="#dc2626" stroke="none"/>
-                      <rect x="200" y="160" width="85" height="6" fill="#dc2626" stroke="none"/>
-                      <rect x="200" y="168" width="85" height="6" fill="#dc2626" stroke="none"/>
-                      <rect x="200" y="176" width="85" height="6" fill="#dc2626" stroke="none"/>
-                      <rect x="200" y="184" width="85" height="6" fill="#dc2626" stroke="none"/>
+                      {/* VERTICAL muscle fiber stripes exactly like reference image */}
+                      <rect x="205" y="115" width="8" height="75" fill="#dc2626" stroke="none"/>
+                      <rect x="215" y="115" width="8" height="75" fill="#dc2626" stroke="none"/>
+                      <rect x="225" y="115" width="8" height="75" fill="#dc2626" stroke="none"/>
+                      <rect x="235" y="115" width="8" height="75" fill="#dc2626" stroke="none"/>
+                      <rect x="245" y="115" width="8" height="75" fill="#dc2626" stroke="none"/>
+                      <rect x="255" y="115" width="8" height="75" fill="#dc2626" stroke="none"/>
+                      <rect x="265" y="115" width="8" height="75" fill="#dc2626" stroke="none"/>
+                      <rect x="275" y="115" width="8" height="75" fill="#dc2626" stroke="none"/>
                     </g>
                     
                     {/* TEMPORALIS - Large temple muscle extending outward */}
@@ -751,20 +750,19 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                             fill={selectedFacialFeatures.includes('orbicularis_oculi') ? "#dc2626" : "#b91c1c"} 
                             stroke="none"/>
                     
-                    {/* ZYGOMATICUS MAJOR - Large red cheek area with PROMINENT WHITE DIAGONAL STRIPES */}
+                    {/* ZYGOMATICUS MAJOR - Large red cheek area with MASSIVE WHITE DIAGONAL STRIPES */}
                     <g>
                       {/* Large red base muscle area covering entire cheek */}
                       <polygon points="205,190 280,180 290,240 210,250" 
                                fill={selectedFacialFeatures.includes('zygomaticus_major') ? "#dc2626" : "#b91c1c"} 
                                stroke="none"/>
                       
-                      {/* PROMINENT WHITE DIAGONAL STRIPES cutting through - EXACTLY like reference */}
-                      <line x1="215" y1="200" x2="270" y2="230" stroke="#ffffff" strokeWidth="12" strokeLinecap="round"/>
-                      <line x1="220" y1="205" x2="275" y2="235" stroke="#ffffff" strokeWidth="12" strokeLinecap="round"/>
-                      <line x1="225" y1="210" x2="280" y2="240" stroke="#ffffff" strokeWidth="12" strokeLinecap="round"/>
-                      <line x1="230" y1="195" x2="285" y2="225" stroke="#ffffff" strokeWidth="12" strokeLinecap="round"/>
-                      <line x1="235" y1="200" x2="290" y2="230" stroke="#ffffff" strokeWidth="12" strokeLinecap="round"/>
-                      <line x1="240" y1="205" x2="285" y2="235" stroke="#ffffff" strokeWidth="12" strokeLinecap="round"/>
+                      {/* MASSIVE WHITE DIAGONAL STRIPES cutting through - EXACTLY like reference */}
+                      <line x1="210" y1="195" x2="275" y2="235" stroke="#ffffff" strokeWidth="20" strokeLinecap="round"/>
+                      <line x1="215" y1="200" x2="280" y2="240" stroke="#ffffff" strokeWidth="20" strokeLinecap="round"/>
+                      <line x1="220" y1="205" x2="285" y2="245" stroke="#ffffff" strokeWidth="20" strokeLinecap="round"/>
+                      <line x1="225" y1="190" x2="290" y2="230" stroke="#ffffff" strokeWidth="20" strokeLinecap="round"/>
+                      <line x1="230" y1="195" x2="285" y2="235" stroke="#ffffff" strokeWidth="20" strokeLinecap="round"/>
                     </g>
                     
                     {/* MASSETER - Strong jaw muscle */}
