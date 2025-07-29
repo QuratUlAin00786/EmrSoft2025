@@ -722,47 +722,51 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     
                     {/* RIGHT HALF - EXACT RED MUSCLE ANATOMY FROM YOUR IMAGE */}
                     
-                    {/* FRONTALIS - MASSIVE red block with vertical stripes exactly like your image */}
+                    {/* FRONTALIS - MASSIVE red block exactly like reference with vertical stripes */}
                     <g>
-                      {/* Base red block covering entire forehead */}
-                      <rect x="200" y="115" width="85" height="90" fill="#b91c1c" stroke="none"/>
+                      {/* Base massive red block covering entire forehead - MUCH BIGGER */}
+                      <rect x="200" y="115" width="85" height="100" fill="#b91c1c" stroke="none"/>
                       
-                      {/* Vertical muscle fiber stripes - EXACT pattern from your image */}
-                      <rect x="205" y="115" width="5" height="90" fill="#dc2626" stroke="none"/>
-                      <rect x="212" y="115" width="5" height="90" fill="#dc2626" stroke="none"/>
-                      <rect x="219" y="115" width="5" height="90" fill="#dc2626" stroke="none"/>
-                      <rect x="226" y="115" width="5" height="90" fill="#dc2626" stroke="none"/>
-                      <rect x="233" y="115" width="5" height="90" fill="#dc2626" stroke="none"/>
-                      <rect x="240" y="115" width="5" height="90" fill="#dc2626" stroke="none"/>
-                      <rect x="247" y="115" width="5" height="90" fill="#dc2626" stroke="none"/>
-                      <rect x="254" y="115" width="5" height="90" fill="#dc2626" stroke="none"/>
-                      <rect x="261" y="115" width="5" height="90" fill="#dc2626" stroke="none"/>
-                      <rect x="268" y="115" width="5" height="90" fill="#dc2626" stroke="none"/>
-                      <rect x="275" y="115" width="5" height="90" fill="#dc2626" stroke="none"/>
+                      {/* Dense vertical muscle fiber stripes - matching reference pattern */}
+                      <rect x="203" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
+                      <rect x="209" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
+                      <rect x="215" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
+                      <rect x="221" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
+                      <rect x="227" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
+                      <rect x="233" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
+                      <rect x="239" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
+                      <rect x="245" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
+                      <rect x="251" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
+                      <rect x="257" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
+                      <rect x="263" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
+                      <rect x="269" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
+                      <rect x="275" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
+                      <rect x="281" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
                     </g>
                     
                     {/* TEMPORALIS - Temple muscle */}
                     <path d="M 275 145 Q 290 140 295 155 Q 290 175 275 180 Q 270 165 275 145" fill="#b91c1c" stroke="none"/>
                     
                     {/* ORBICULARIS OCULI - Large red circle around right eye */}
-                    <circle cx="240" cy="180" r="32" fill="#b91c1c" stroke="none"/>
+                    <circle cx="245" cy="180" r="35" fill="#b91c1c" stroke="none"/>
                     
                     {/* WHITE EYE in the red circle - EXACTLY like your image */}
-                    <circle cx="240" cy="180" r="12" fill="#ffffff" stroke="none"/>
-                    <circle cx="240" cy="180" r="8" fill="#4a90e2"/>
-                    <circle cx="240" cy="180" r="3" fill="#000"/>
+                    <circle cx="245" cy="180" r="12" fill="#ffffff" stroke="none"/>
+                    <circle cx="245" cy="180" r="8" fill="#4a90e2"/>
+                    <circle cx="245" cy="180" r="3" fill="#000"/>
                     
-                    {/* ZYGOMATICUS MAJOR - Red cheek with WHITE DIAGONAL STRIPES */}
+                    {/* ZYGOMATICUS MAJOR - Red cheek with ULTRA PROMINENT WHITE DIAGONAL STRIPES */}
                     <g>
-                      {/* Red cheek base */}
-                      <polygon points="210,210 275,200 285,250 215,260" fill="#b91c1c" stroke="none"/>
+                      {/* Red cheek base - larger area */}
+                      <polygon points="215,210 280,200 290,260 220,270" fill="#b91c1c" stroke="none"/>
                       
-                      {/* WHITE DIAGONAL STRIPES - EXACTLY like your image */}
-                      <line x1="220" y1="220" x2="270" y2="245" stroke="#ffffff" strokeWidth="8" strokeLinecap="round"/>
-                      <line x1="225" y1="225" x2="275" y2="250" stroke="#ffffff" strokeWidth="8" strokeLinecap="round"/>
-                      <line x1="230" y1="215" x2="280" y2="240" stroke="#ffffff" strokeWidth="8" strokeLinecap="round"/>
-                      <line x1="235" y1="220" x2="285" y2="245" stroke="#ffffff" strokeWidth="8" strokeLinecap="round"/>
-                      <line x1="240" y1="225" x2="275" y2="250" stroke="#ffffff" strokeWidth="8" strokeLinecap="round"/>
+                      {/* ULTRA PROMINENT WHITE DIAGONAL STRIPES - EXACTLY like your image */}
+                      <line x1="225" y1="220" x2="275" y2="250" stroke="#ffffff" strokeWidth="12" strokeLinecap="round"/>
+                      <line x1="230" y1="225" x2="280" y2="255" stroke="#ffffff" strokeWidth="12" strokeLinecap="round"/>
+                      <line x1="235" y1="215" x2="285" y2="245" stroke="#ffffff" strokeWidth="12" strokeLinecap="round"/>
+                      <line x1="240" y1="220" x2="290" y2="250" stroke="#ffffff" strokeWidth="12" strokeLinecap="round"/>
+                      <line x1="245" y1="225" x2="285" y2="255" stroke="#ffffff" strokeWidth="12" strokeLinecap="round"/>
+                      <line x1="250" y1="215" x2="290" y2="245" stroke="#ffffff" strokeWidth="12" strokeLinecap="round"/>
                     </g>
                     
                     {/* MASSETER - Jaw muscle */}
