@@ -710,13 +710,14 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
               <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg">
                 <div className="bg-gradient-to-b from-blue-50 to-white rounded-lg p-4 min-h-[600px] flex items-center justify-center">
                   <div 
-                    className="w-full max-w-lg mx-auto rounded-lg shadow-md overflow-hidden bg-white"
+                    className="w-full max-w-lg mx-auto rounded-lg shadow-md overflow-hidden"
                     style={{
                       height: '500px',
                       backgroundImage: `url(${anatomicalDiagramImage})`,
-                      backgroundPosition: '50% 35%',
-                      backgroundSize: '85%',
-                      backgroundRepeat: 'no-repeat'
+                      backgroundPosition: 'center center',
+                      backgroundSize: '120%',
+                      backgroundRepeat: 'no-repeat',
+                      clipPath: 'inset(75px 15px 60px 15px)'
                     }}
                   ></div>
                 </div>
