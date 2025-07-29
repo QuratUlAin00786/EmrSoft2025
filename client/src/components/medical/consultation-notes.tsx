@@ -54,6 +54,8 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
   const [editingRecord, setEditingRecord] = useState<any>(null);
   const [showAnatomicalViewer, setShowAnatomicalViewer] = useState(false);
   const [selectedFacialFeatures, setSelectedFacialFeatures] = useState<string[]>([]);
+  const [procedureMarkers, setProcedureMarkers] = useState<Array<{id: string, x: number, y: number, type: 'botox' | 'uplift' | 'nosejob', label: string}>>([]);
+  const [selectedProcedureType, setSelectedProcedureType] = useState<'botox' | 'uplift' | 'nosejob'>('botox');
   const [activeTab, setActiveTab] = useState("basic");
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -709,34 +711,146 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                   Click muscles to highlight on diagram
                 </div>
               </div>
-            </div>
 
-            {/* Center Panel - Professional Medical Diagram (Realistic Head Sketch with Labels) */}
-            <div className="xl:col-span-2 relative">
-              <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg">
-                <div className="bg-gradient-to-b from-blue-50 to-white rounded-lg p-4 min-h-[600px] flex items-center justify-center">
-                  <img 
-                    src={anatomicalDiagramImage}
-                    alt="Facial muscle anatomy diagram"
-                    className="w-full max-w-lg mx-auto rounded-lg shadow-md"
-                    style={{
-                      height: '500px',
-                      objectFit: 'cover',
-                      objectPosition: 'center 40%',
-                      clipPath: 'inset(13% 19% 22% 19%)',
-                      transform: 'scale(1.5)',
-                      transformOrigin: 'center',
-                      filter: 'contrast(1.1) brightness(1.05) saturate(1.1)',
-                      imageRendering: 'crisp-edges'
-                    }}
-                  />
+              {/* Cosmetic Procedure Selection */}
+              <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border-2 border-purple-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-3 h-3 bg-purple-600 rounded-full"></div>
+                  <h4 className="text-sm font-semibold text-purple-800">Cosmetic Procedure Planning</h4>
                 </div>
                 
-                {/* Professional Medical Diagram Label */}
+                <div className="space-y-3">
+                  <Label className="text-xs font-medium text-purple-700">Select Procedure Type:</Label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {[
+                      { id: 'botox', label: 'Botox Injection', color: 'bg-blue-500', desc: 'Muscle relaxation' },
+                      { id: 'uplift', label: 'Face Uplift', color: 'bg-green-500', desc: 'Tissue elevation' },
+                      { id: 'nosejob', label: 'Nose Job', color: 'bg-orange-500', desc: 'Rhinoplasty procedure' }
+                    ].map((procedure) => (
+                      <div key={procedure.id} 
+                           className={`flex items-center space-x-2 p-2 rounded cursor-pointer transition-all ${
+                             selectedProcedureType === procedure.id 
+                               ? 'bg-white border-2 border-purple-400 shadow-md' 
+                               : 'hover:bg-white/50 border border-purple-200'
+                           }`}
+                           onClick={() => setSelectedProcedureType(procedure.id as any)}>
+                        <div className={`w-3 h-3 ${procedure.color} rounded-full`}></div>
+                        <div className="flex-1">
+                          <div className="text-xs font-medium text-gray-800">{procedure.label}</div>
+                          <div className="text-[10px] text-gray-600">{procedure.desc}</div>
+                        </div>
+                        <input 
+                          type="radio" 
+                          checked={selectedProcedureType === procedure.id}
+                          readOnly
+                          className="w-3 h-3"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="text-[10px] text-purple-600 mt-2 p-2 bg-purple-100 rounded">
+                    Click on the face diagram to mark procedure locations
+                  </div>
+                  
+                  <div className="text-[10px] text-gray-600">
+                    Markers: {procedureMarkers.length} placed
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Center Panel - Interactive Medical Diagram */}
+            <div className="xl:col-span-2 relative">
+              <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg">
+                <div className="bg-gradient-to-b from-blue-50 to-white rounded-lg p-4 min-h-[600px] flex items-center justify-center relative">
+                  {/* Clickable Image Container */}
+                  <div className="relative inline-block cursor-crosshair" 
+                       onClick={(e) => {
+                         const rect = e.currentTarget.getBoundingClientRect();
+                         const x = ((e.clientX - rect.left) / rect.width) * 100;
+                         const y = ((e.clientY - rect.top) / rect.height) * 100;
+                         
+                         const newMarker = {
+                           id: `marker-${Date.now()}`,
+                           x,
+                           y,
+                           type: selectedProcedureType,
+                           label: selectedProcedureType === 'botox' ? 'Botox' : 
+                                  selectedProcedureType === 'uplift' ? 'Uplift' : 'Nose Job'
+                         };
+                         
+                         setProcedureMarkers([...procedureMarkers, newMarker]);
+                         
+                         toast({
+                           title: "Procedure Marker Added",
+                           description: `${newMarker.label} location marked on diagram`,
+                         });
+                       }}>
+                    <img 
+                      src={anatomicalDiagramImage}
+                      alt="Interactive facial anatomy diagram - Click to mark procedure locations"
+                      className="w-full max-w-lg mx-auto rounded-lg shadow-md select-none"
+                      style={{
+                        height: '500px',
+                        objectFit: 'cover',
+                        objectPosition: 'center 40%',
+                        clipPath: 'inset(13% 19% 22% 19%)',
+                        transform: 'scale(1.5)',
+                        transformOrigin: 'center',
+                        filter: 'contrast(1.1) brightness(1.05) saturate(1.1)',
+                        imageRendering: 'crisp-edges'
+                      }}
+                    />
+                    
+                    {/* Procedure Markers Overlay */}
+                    {procedureMarkers.map((marker) => (
+                      <div
+                        key={marker.id}
+                        className="absolute transform -translate-x-1/2 -translate-y-1/2 animate-pulse"
+                        style={{
+                          left: `${marker.x}%`,
+                          top: `${marker.y}%`,
+                        }}
+                      >
+                        {/* Marker Pin */}
+                        <div className={`relative flex items-center justify-center w-6 h-6 rounded-full border-2 border-white shadow-lg cursor-pointer ${
+                          marker.type === 'botox' ? 'bg-blue-500' :
+                          marker.type === 'uplift' ? 'bg-green-500' : 'bg-orange-500'
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setProcedureMarkers(procedureMarkers.filter(m => m.id !== marker.id));
+                          toast({
+                            title: "Marker Removed",
+                            description: `${marker.label} marker removed`,
+                          });
+                        }}>
+                          <span className="text-white text-xs font-bold">
+                            {marker.type === 'botox' ? 'B' : marker.type === 'uplift' ? 'U' : 'N'}
+                          </span>
+                        </div>
+                        
+                        {/* Marker Label */}
+                        <div className={`absolute top-7 left-1/2 transform -translate-x-1/2 px-2 py-1 rounded text-[10px] font-medium text-white shadow-md whitespace-nowrap ${
+                          marker.type === 'botox' ? 'bg-blue-600' :
+                          marker.type === 'uplift' ? 'bg-green-600' : 'bg-orange-600'
+                        }`}>
+                          {marker.label}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Interactive Instructions */}
                 <div className="mt-4 text-center">
                   <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-600 text-white text-sm font-semibold shadow-lg">
                     <div className="w-3 h-3 bg-white rounded-full mr-2 animate-pulse"></div>
-                    Professional Medical Anatomical Diagram
+                    Interactive Cosmetic Procedure Planning
+                  </div>
+                  <div className="mt-2 text-xs text-gray-600">
+                    Click on face to mark procedure locations • Click markers to remove
                   </div>
                 </div>
               </div>
@@ -787,17 +901,43 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
               <div className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full font-medium">
                 Selected: <span className="font-bold text-red-600">{selectedFacialFeatures.length}</span> muscle{selectedFacialFeatures.length !== 1 ? 's' : ''}
               </div>
+              <div className="text-sm text-gray-600 bg-purple-100 px-3 py-1 rounded-full font-medium">
+                Markers: <span className="font-bold text-purple-600">{procedureMarkers.length}</span> placed
+              </div>
               {selectedFacialFeatures.length > 0 && (
                 <div className="text-xs text-gray-500 bg-red-50 px-2 py-1 rounded border border-red-200">
                   Muscles highlighted in red on diagram
                 </div>
               )}
+              {procedureMarkers.length > 0 && (
+                <div className="text-xs text-gray-500 bg-purple-50 px-2 py-1 rounded border border-purple-200">
+                  Procedure locations marked
+                </div>
+              )}
             </div>
             
             <div className="flex space-x-4">
+              {procedureMarkers.length > 0 && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setProcedureMarkers([]);
+                    toast({
+                      title: "Markers Cleared",
+                      description: "All procedure markers removed",
+                    });
+                  }}
+                  className="border-2 border-purple-300 hover:bg-purple-50 text-purple-700"
+                >
+                  Clear Markers
+                </Button>
+              )}
               <Button 
                 variant="outline" 
-                onClick={() => setSelectedFacialFeatures([])}
+                onClick={() => {
+                  setSelectedFacialFeatures([]);
+                  setProcedureMarkers([]);
+                }}
                 className="border-2 border-gray-300 hover:bg-gray-50"
               >
                 Clear All
@@ -812,12 +952,17 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
               <Button 
                 onClick={() => {
                   const featuresText = selectedFacialFeatures.length > 0 
-                    ? `Professional anatomical examination completed - Selected muscles: ${selectedFacialFeatures.join(', ')}`
-                    : 'Professional anatomical examination completed';
+                    ? `Selected muscles: ${selectedFacialFeatures.join(', ')}`
+                    : '';
+                  const markersText = procedureMarkers.length > 0 
+                    ? `Procedure markers: ${procedureMarkers.map(m => `${m.label} (${m.x.toFixed(1)}%, ${m.y.toFixed(1)}%)`).join(', ')}`
+                    : '';
+                  
+                  const combinedText = [featuresText, markersText].filter(Boolean).join(' | ');
                   
                   toast({
-                    title: "Professional Analysis Saved",
-                    description: featuresText,
+                    title: "Cosmetic Procedure Plan Saved",
+                    description: combinedText || 'Anatomical examination completed',
                   });
                   
                   setShowAnatomicalViewer(false);
