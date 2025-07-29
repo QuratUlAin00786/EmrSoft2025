@@ -744,37 +744,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                 <div className="text-yellow-700 text-xs">Baseline documentation required</div>
               </div>
               
-              {/* Professional Photo Grid */}
-              <div className="grid grid-cols-2 gap-3 mb-6">
-                {[
-                  { id: 1, label: "Frontal", angle: "0°", color: "bg-blue-100 border-blue-300" },
-                  { id: 2, label: "Left Profile", angle: "90°L", color: "bg-green-100 border-green-300" },
-                  { id: 3, label: "Right Profile", angle: "90°R", color: "bg-purple-100 border-purple-300" },
-                  { id: 4, label: "Detail/Custom", angle: "Var", color: "bg-orange-100 border-orange-300" }
-                ].map((photo) => (
-                  <div key={photo.id} className={`${photo.color} border-2 border-dashed rounded-lg p-3 text-center hover:bg-opacity-75 transition-all cursor-pointer`}>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      id={`clinical-photo-${photo.id}`}
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          console.log(`Clinical photo ${photo.id} uploaded:`, file.name);
-                        }
-                      }}
-                    />
-                    <label htmlFor={`clinical-photo-${photo.id}`} className="cursor-pointer">
-                      <div className="text-gray-500 mb-2">
-                        <Plus className="h-8 w-8 mx-auto" />
-                      </div>
-                      <div className="text-xs text-gray-800 font-semibold">{photo.label}</div>
-                      <div className="text-xs text-gray-600">{photo.angle}</div>
-                    </label>
-                  </div>
-                ))}
-              </div>
+
               
               {/* Clinical Notes */}
               <div className="space-y-3">
