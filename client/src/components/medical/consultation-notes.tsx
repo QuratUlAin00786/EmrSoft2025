@@ -712,178 +712,151 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     {/* White background */}
                     <rect width="400" height="500" fill="#ffffff"/>
                     
-                    {/* RECREATING EXACT REFERENCE IMAGE - ANATOMICAL HALF-FACE DIAGRAM */}
+                    {/* EXACT RECREATION OF YOUR REFERENCE IMAGE */}
                     
-                    {/* Head circle outline */}
-                    <circle cx="200" cy="200" r="85" fill="none" stroke="#2c2c2c" strokeWidth="2"/>
+                    {/* Head circle outline - gray */}
+                    <circle cx="200" cy="200" r="85" fill="none" stroke="#999" strokeWidth="1"/>
                     
                     {/* LEFT HALF - Normal skin tone */}
-                    <path d="M 200 115 A 85 85 0 0 0 200 285 Z" fill="#f5d7a3"/>
+                    <path d="M 200 115 A 85 85 0 0 0 200 285 Z" fill="#f5deb3"/>
                     
-                    {/* RIGHT HALF - MASSIVE RED MUSCLE ANATOMY EXACTLY FROM REFERENCE */}
+                    {/* RIGHT HALF - EXACT RED MUSCLE ANATOMY FROM YOUR IMAGE */}
                     
-                    {/* FRONTALIS - MASSIVE vertical red block exactly like reference image */}
+                    {/* FRONTALIS - MASSIVE red block with vertical stripes exactly like your image */}
                     <g>
-                      {/* Main massive frontalis muscle block covering entire forehead - MUCH BIGGER */}
-                      <rect x="200" y="115" width="85" height="90" 
-                            fill={selectedFacialFeatures.includes('frontalis') ? "#dc2626" : "#b91c1c"} 
-                            stroke="none"/>
+                      {/* Base red block covering entire forehead */}
+                      <rect x="200" y="115" width="85" height="90" fill="#b91c1c" stroke="none"/>
                       
-                      {/* DENSE VERTICAL muscle fiber stripes exactly like reference image */}
-                      <rect x="202" y="115" width="6" height="90" fill="#dc2626" stroke="none"/>
-                      <rect x="210" y="115" width="6" height="90" fill="#dc2626" stroke="none"/>
-                      <rect x="218" y="115" width="6" height="90" fill="#dc2626" stroke="none"/>
-                      <rect x="226" y="115" width="6" height="90" fill="#dc2626" stroke="none"/>
-                      <rect x="234" y="115" width="6" height="90" fill="#dc2626" stroke="none"/>
-                      <rect x="242" y="115" width="6" height="90" fill="#dc2626" stroke="none"/>
-                      <rect x="250" y="115" width="6" height="90" fill="#dc2626" stroke="none"/>
-                      <rect x="258" y="115" width="6" height="90" fill="#dc2626" stroke="none"/>
-                      <rect x="266" y="115" width="6" height="90" fill="#dc2626" stroke="none"/>
-                      <rect x="274" y="115" width="6" height="90" fill="#dc2626" stroke="none"/>
-                      <rect x="282" y="115" width="3" height="90" fill="#dc2626" stroke="none"/>
+                      {/* Vertical muscle fiber stripes - EXACT pattern from your image */}
+                      <rect x="205" y="115" width="5" height="90" fill="#dc2626" stroke="none"/>
+                      <rect x="212" y="115" width="5" height="90" fill="#dc2626" stroke="none"/>
+                      <rect x="219" y="115" width="5" height="90" fill="#dc2626" stroke="none"/>
+                      <rect x="226" y="115" width="5" height="90" fill="#dc2626" stroke="none"/>
+                      <rect x="233" y="115" width="5" height="90" fill="#dc2626" stroke="none"/>
+                      <rect x="240" y="115" width="5" height="90" fill="#dc2626" stroke="none"/>
+                      <rect x="247" y="115" width="5" height="90" fill="#dc2626" stroke="none"/>
+                      <rect x="254" y="115" width="5" height="90" fill="#dc2626" stroke="none"/>
+                      <rect x="261" y="115" width="5" height="90" fill="#dc2626" stroke="none"/>
+                      <rect x="268" y="115" width="5" height="90" fill="#dc2626" stroke="none"/>
+                      <rect x="275" y="115" width="5" height="90" fill="#dc2626" stroke="none"/>
                     </g>
                     
-                    {/* TEMPORALIS - Large temple muscle extending outward */}
-                    <ellipse cx="275" cy="160" rx="20" ry="35" 
-                             fill={selectedFacialFeatures.includes('temporalis') ? "#dc2626" : "#b91c1c"} 
-                             stroke="none"/>
+                    {/* TEMPORALIS - Temple muscle */}
+                    <path d="M 275 145 Q 290 140 295 155 Q 290 175 275 180 Q 270 165 275 145" fill="#b91c1c" stroke="none"/>
                     
-                    {/* ORBICULARIS OCULI - LARGE red circle around right eye */}
-                    <circle cx="240" cy="180" r="35" 
-                            fill={selectedFacialFeatures.includes('orbicularis_oculi') ? "#dc2626" : "#b91c1c"} 
-                            stroke="none"/>
+                    {/* ORBICULARIS OCULI - Large red circle around right eye */}
+                    <circle cx="240" cy="180" r="32" fill="#b91c1c" stroke="none"/>
                     
-                    {/* ZYGOMATICUS MAJOR - Large red cheek area with ULTRA PROMINENT WHITE DIAGONAL STRIPES */}
+                    {/* WHITE EYE in the red circle - EXACTLY like your image */}
+                    <circle cx="240" cy="180" r="12" fill="#ffffff" stroke="none"/>
+                    <circle cx="240" cy="180" r="8" fill="#4a90e2"/>
+                    <circle cx="240" cy="180" r="3" fill="#000"/>
+                    
+                    {/* ZYGOMATICUS MAJOR - Red cheek with WHITE DIAGONAL STRIPES */}
                     <g>
-                      {/* Large red base muscle area covering entire cheek */}
-                      <polygon points="205,190 280,180 290,250 210,260" 
-                               fill={selectedFacialFeatures.includes('zygomaticus_major') ? "#dc2626" : "#b91c1c"} 
-                               stroke="none"/>
+                      {/* Red cheek base */}
+                      <polygon points="210,210 275,200 285,250 215,260" fill="#b91c1c" stroke="none"/>
                       
-                      {/* ULTRA PROMINENT WHITE DIAGONAL STRIPES cutting through - EXACTLY like reference */}
-                      <line x1="210" y1="195" x2="275" y2="240" stroke="#ffffff" strokeWidth="25" strokeLinecap="round"/>
-                      <line x1="215" y1="200" x2="280" y2="245" stroke="#ffffff" strokeWidth="25" strokeLinecap="round"/>
-                      <line x1="220" y1="205" x2="285" y2="250" stroke="#ffffff" strokeWidth="25" strokeLinecap="round"/>
-                      <line x1="225" y1="190" x2="290" y2="235" stroke="#ffffff" strokeWidth="25" strokeLinecap="round"/>
-                      <line x1="230" y1="185" x2="285" y2="230" stroke="#ffffff" strokeWidth="25" strokeLinecap="round"/>
-                      <line x1="235" y1="195" x2="290" y2="240" stroke="#ffffff" strokeWidth="25" strokeLinecap="round"/>
+                      {/* WHITE DIAGONAL STRIPES - EXACTLY like your image */}
+                      <line x1="220" y1="220" x2="270" y2="245" stroke="#ffffff" strokeWidth="8" strokeLinecap="round"/>
+                      <line x1="225" y1="225" x2="275" y2="250" stroke="#ffffff" strokeWidth="8" strokeLinecap="round"/>
+                      <line x1="230" y1="215" x2="280" y2="240" stroke="#ffffff" strokeWidth="8" strokeLinecap="round"/>
+                      <line x1="235" y1="220" x2="285" y2="245" stroke="#ffffff" strokeWidth="8" strokeLinecap="round"/>
+                      <line x1="240" y1="225" x2="275" y2="250" stroke="#ffffff" strokeWidth="8" strokeLinecap="round"/>
                     </g>
                     
-                    {/* MASSETER - Strong jaw muscle */}
-                    <rect x="255" y="225" width="30" height="50" 
-                          fill={selectedFacialFeatures.includes('masseter') ? "#dc2626" : "#b91c1c"} 
-                          stroke="none"/>
+                    {/* MASSETER - Jaw muscle */}
+                    <rect x="260" y="230" width="25" height="40" fill="#b91c1c" stroke="none"/>
                     
-                    {/* BUCCINATOR - Cheek muscle */}
-                    <ellipse cx="220" cy="215" rx="15" ry="25" 
-                             fill={selectedFacialFeatures.includes('buccinator') ? "#dc2626" : "#b91c1c"} 
-                             stroke="none"/>
+                    {/* BUCCINATOR - Small cheek muscle */}
+                    <ellipse cx="225" cy="220" rx="12" ry="18" fill="#b91c1c" stroke="none"/>
                     
-                    {/* ORBICULARIS ORIS - Mouth muscle spanning both sides */}
-                    <ellipse cx="200" cy="245" rx="35" ry="15" 
-                             fill={selectedFacialFeatures.includes('orbicularis_oris') ? "#dc2626" : "#b91c1c"} 
-                             stroke="none"/>
+                    {/* ORBICULARIS ORIS - Mouth muscle */}
+                    <ellipse cx="200" cy="245" rx="30" ry="12" fill="#b91c1c" stroke="none"/>
                     
                     {/* MENTALIS - Chin muscle */}
-                    <ellipse cx="220" cy="270" rx="20" ry="15" 
-                             fill={selectedFacialFeatures.includes('mentalis') ? "#dc2626" : "#b91c1c"} 
-                             stroke="none"/>
+                    <ellipse cx="215" cy="265" rx="18" ry="12" fill="#b91c1c" stroke="none"/>
                     
                     {/* Neck outline */}
                     <path d="M 160 285 Q 180 295 200 295 Q 220 295 240 285 L 245 380 Q 220 390 200 390 Q 180 390 155 380 Z" 
-                          fill="none" stroke="#2c2c2c" strokeWidth="2"/>
+                          fill="none" stroke="#999" strokeWidth="1"/>
                     
-                    {/* PLATYSMA - ULTRA WIDE vertical red neck stripes EXACTLY like reference */}
+                    {/* PLATYSMA - Wide vertical red neck stripes EXACTLY like your image */}
                     <g>
-                      <rect x="160" y="295" width="15" height="85" 
-                            fill={selectedFacialFeatures.includes('platysma') ? "#dc2626" : "#b91c1c"} 
-                            stroke="none"/>
-                      <rect x="177" y="295" width="15" height="85" 
-                            fill={selectedFacialFeatures.includes('platysma') ? "#dc2626" : "#b91c1c"} 
-                            stroke="none"/>
-                      <rect x="194" y="295" width="15" height="85" 
-                            fill={selectedFacialFeatures.includes('platysma') ? "#dc2626" : "#b91c1c"} 
-                            stroke="none"/>
-                      <rect x="211" y="295" width="15" height="85" 
-                            fill={selectedFacialFeatures.includes('platysma') ? "#dc2626" : "#b91c1c"} 
-                            stroke="none"/>
-                      <rect x="228" y="295" width="15" height="80" 
-                            fill={selectedFacialFeatures.includes('platysma') ? "#dc2626" : "#b91c1c"} 
-                            stroke="none"/>
+                      <rect x="165" y="295" width="12" height="85" fill="#b91c1c" stroke="none"/>
+                      <rect x="179" y="295" width="12" height="85" fill="#b91c1c" stroke="none"/>
+                      <rect x="193" y="295" width="12" height="85" fill="#b91c1c" stroke="none"/>
+                      <rect x="207" y="295" width="12" height="85" fill="#b91c1c" stroke="none"/>
+                      <rect x="221" y="295" width="12" height="85" fill="#b91c1c" stroke="none"/>
+                      <rect x="235" y="295" width="12" height="80" fill="#b91c1c" stroke="none"/>
                     </g>
                     
-                    {/* EARS positioned on head outline */}
-                    <ellipse cx="115" cy="185" rx="8" ry="22" fill="none" stroke="#2c2c2c" strokeWidth="2"/>
-                    <ellipse cx="285" cy="185" rx="8" ry="22" fill="none" stroke="#2c2c2c" strokeWidth="2"/>
+                    {/* LEFT EYE (normal side) */}
+                    <circle cx="160" cy="180" r="8" fill="#ffffff" stroke="#999" strokeWidth="1"/>
+                    <circle cx="160" cy="180" r="6" fill="#4a90e2"/>
+                    <circle cx="160" cy="180" r="2" fill="#000"/>
                     
-                    {/* EYES - white circles with blue iris and black pupil */}
-                    {/* Left eye (normal side) */}
-                    <circle cx="170" cy="180" r="8" fill="#ffffff" stroke="#2c2c2c" strokeWidth="1"/>
-                    <circle cx="170" cy="180" r="6" fill="#4a90e2"/>
-                    <circle cx="170" cy="180" r="2" fill="#000"/>
+                    {/* NOSE */}
+                    <path d="M 200 190 L 195 210 Q 200 215 205 210 L 200 190" fill="none" stroke="#999" strokeWidth="1"/>
+                    <circle cx="197" cy="212" r="1" fill="#999"/>
+                    <circle cx="203" cy="212" r="1" fill="#999"/>
                     
-                    {/* Right eye (muscle side - positioned over red orbicularis oculi) */}
-                    <circle cx="240" cy="180" r="8" fill="#ffffff" stroke="#2c2c2c" strokeWidth="1"/>
-                    <circle cx="240" cy="180" r="6" fill="#4a90e2"/>
-                    <circle cx="240" cy="180" r="2" fill="#000"/>
+                    {/* MOUTH */}
+                    <path d="M 180 245 Q 200 250 220 245" fill="none" stroke="#999" strokeWidth="1"/>
                     
-                    {/* NOSE - triangular shape */}
-                    <path d="M 200 190 L 195 210 Q 200 215 205 210 L 200 190" fill="none" stroke="#2c2c2c" strokeWidth="2"/>
-                    <ellipse cx="197" cy="212" rx="1.5" ry="1.5" fill="none" stroke="#2c2c2c" strokeWidth="1"/>
-                    <ellipse cx="203" cy="212" rx="1.5" ry="1.5" fill="none" stroke="#2c2c2c" strokeWidth="1"/>
+                    {/* EARS */}
+                    <ellipse cx="115" cy="185" rx="6" ry="20" fill="none" stroke="#999" strokeWidth="1"/>
+                    <ellipse cx="285" cy="185" rx="6" ry="20" fill="none" stroke="#999" strokeWidth="1"/>
                     
-                    {/* MOUTH - curved lips */}
-                    <path d="M 175 245 Q 200 255 225 245" fill="none" stroke="#2c2c2c" strokeWidth="2"/>
+                    {/* ANATOMICAL LABELS WITH DOTTED LINES */}
                     
-                    {/* ANATOMICAL LABELS WITH DOTTED LINES - EXACT positioning from reference */}
+                    {/* Frontalis */}
+                    <line x1="242" y1="150" x2="320" y2="120" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
+                    <text x="325" y="118" className="text-xs fill-gray-600">Frontalis</text>
                     
-                    {/* Frontalis - top right */}
-                    <line x1="242" y1="150" x2="320" y2="110" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
-                    <text x="325" y="108" className="text-xs font-medium fill-gray-700">Frontalis</text>
+                    {/* Temporalis */}
+                    <line x1="285" y1="160" x2="340" y2="140" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
+                    <text x="345" y="138" className="text-xs fill-gray-600">Temporalis</text>
                     
-                    {/* Temporalis - right side */}
-                    <line x1="275" y1="160" x2="340" y2="135" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
-                    <text x="345" y="133" className="text-xs font-medium fill-gray-700">Temporalis</text>
+                    {/* Orbicularis Oculi */}
+                    <line x1="210" y1="170" x2="90" y2="150" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
+                    <text x="10" y="148" className="text-xs fill-gray-600">Orbicularis Oculi</text>
                     
-                    {/* Orbicularis Oculi - left side */}
-                    <line x1="240" y1="180" x2="90" y2="155" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
-                    <text x="20" y="153" className="text-xs font-medium fill-gray-700">Orbicularis Oculi</text>
+                    {/* Levator Labii Superioris */}
+                    <line x1="250" y1="200" x2="330" y2="185" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
+                    <text x="335" y="183" className="text-xs fill-gray-600">Levator Labii Superioris</text>
                     
-                    {/* Levator Labii Superioris - right side */}
-                    <line x1="255" y1="195" x2="320" y2="180" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
-                    <text x="325" y="178" className="text-xs font-medium fill-gray-700">Levator Labii Superioris</text>
+                    {/* Zygomaticus Major */}
+                    <line x1="250" y1="230" x2="330" y2="215" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
+                    <text x="335" y="213" className="text-xs fill-gray-600">Zygomaticus Major</text>
                     
-                    {/* Zygomaticus Major - right side */}
-                    <line x1="250" y1="215" x2="320" y2="230" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
-                    <text x="325" y="228" className="text-xs font-medium fill-gray-700">Zygomaticus Major</text>
+                    {/* Masseter */}
+                    <line x1="272" y1="250" x2="340" y2="270" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
+                    <text x="345" y="268" className="text-xs fill-gray-600">Masseter</text>
                     
-                    {/* Masseter - right side */}
-                    <line x1="270" y1="250" x2="330" y2="270" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
-                    <text x="335" y="268" className="text-xs font-medium fill-gray-700">Masseter</text>
+                    {/* Buccinator */}
+                    <line x1="225" y1="220" x2="320" y2="250" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
+                    <text x="325" y="248" className="text-xs fill-gray-600">Buccinator</text>
                     
-                    {/* Buccinator - right side */}
-                    <line x1="220" y1="215" x2="310" y2="250" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
-                    <text x="315" y="248" className="text-xs font-medium fill-gray-700">Buccinator</text>
+                    {/* Orbicularis Oris */}
+                    <line x1="170" y1="245" x2="80" y2="290" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
+                    <text x="10" y="288" className="text-xs fill-gray-600">Orbicularis Oris</text>
                     
-                    {/* Orbicularis Oris - left side */}
-                    <line x1="200" y1="245" x2="80" y2="290" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
-                    <text x="20" y="288" className="text-xs font-medium fill-gray-700">Orbicularis Oris</text>
+                    {/* Depressor Labii Inferioris */}
+                    <line x1="185" y1="260" x2="70" y2="320" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
+                    <text x="10" y="318" className="text-xs fill-gray-600">Depressor Labii Inferioris</text>
                     
-                    {/* Depressor Labii Inferioris - left side */}
-                    <line x1="175" y1="260" x2="70" y2="320" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
-                    <text x="20" y="318" className="text-xs font-medium fill-gray-700">Depressor Labii Inferioris</text>
+                    {/* Depressor Anguli Oris */}
+                    <line x1="215" y1="265" x2="310" y2="310" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
+                    <text x="315" y="308" className="text-xs fill-gray-600">Depressor Anguli Oris</text>
                     
-                    {/* Depressor Anguli Oris - right side */}
-                    <line x1="220" y1="260" x2="300" y2="310" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
-                    <text x="305" y="308" className="text-xs font-medium fill-gray-700">Depressor Anguli Oris</text>
+                    {/* Mentalis */}
+                    <line x1="215" y1="265" x2="300" y2="340" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
+                    <text x="305" y="338" className="text-xs fill-gray-600">Mentalis</text>
                     
-                    {/* Mentalis - right side */}
-                    <line x1="220" y1="270" x2="290" y2="340" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
-                    <text x="295" y="338" className="text-xs font-medium fill-gray-700">Mentalis</text>
-                    
-                    {/* Platysma - bottom */}
-                    <line x1="200" y1="340" x2="250" y2="400" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
-                    <text x="255" y="398" className="text-xs font-medium fill-gray-700">Platysma</text>
+                    {/* Platysma */}
+                    <line x1="200" y1="340" x2="260" y2="400" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
+                    <text x="265" y="398" className="text-xs fill-gray-600">Platysma</text>
                   </svg>
                 </div>
                 
