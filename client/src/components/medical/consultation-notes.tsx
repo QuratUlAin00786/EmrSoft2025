@@ -710,14 +710,12 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
               <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg">
                 <div className="bg-gradient-to-b from-blue-50 to-white rounded-lg p-4 min-h-[600px] flex items-center justify-center">
                   <img 
-                    src={anatomicalDiagramImage} 
+                    src="/anatomical-diagram-clean.svg" 
                     alt="Professional anatomical diagram showing facial muscle structure with labeled parts including Frontalis, Temporalis, Orbicularis Oculi, Levator Labii Superioris, Zygomaticus Major, Masseter, Buccinator, Orbicularis Oris, Depressor Labii Inferioris, Depressor Anguli Oris, Mentalis, and Platysma muscles"
                     className="w-full h-auto max-w-lg object-contain rounded-lg shadow-md"
                     style={{
-                      transform: 'scale(1.8)',
-                      transformOrigin: 'center',
-                      clipPath: 'inset(15% 2% 10% 2%)',
-                      minHeight: '400px'
+                      minHeight: '400px',
+                      maxHeight: '500px'
                     }}
                   />
                 </div>
