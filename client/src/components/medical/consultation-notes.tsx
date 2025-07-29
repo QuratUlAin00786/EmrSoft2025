@@ -712,8 +712,8 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                   <div 
                     className="w-full h-full max-w-lg mx-auto rounded-lg shadow-md overflow-hidden"
                     style={{
-                      background: `url(${anatomicalDiagramImage}) center center / cover no-repeat`,
-                      clipPath: 'inset(78px 14px 58px 277px)',
+                      background: `url(${anatomicalDiagramImage}) center center / contain no-repeat`,
+                      clipPath: 'inset(78px 14px 58px 14px)',
                       minHeight: '500px',
                       aspectRatio: '4/3'
                     }}
