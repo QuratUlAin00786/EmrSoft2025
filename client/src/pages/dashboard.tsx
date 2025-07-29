@@ -15,7 +15,7 @@ export default function Dashboard() {
         />
         <div className="mr-6 mt-4">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-neutral-600">Theme:</span>
+            <span className="text-sm text-neutral-600 dark:text-neutral-400">Theme:</span>
             <ThemeToggle />
           </div>
         </div>

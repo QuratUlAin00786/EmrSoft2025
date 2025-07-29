@@ -342,7 +342,7 @@ export default function AppointmentCalendar() {
                   {todaysAppointments.map((appointment: Appointment) => (
                     <div
                       key={appointment.id}
-                      className="border rounded-lg p-4 hover:bg-gray-50 transition-colors bg-blue-50 border-blue-200 cursor-pointer"
+                      className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors bg-blue-50 dark:bg-blue-900 border-blue-200 dark:border-blue-700 cursor-pointer"
                       onClick={() => {
                         setSelectedAppointment(appointment);
                         setShowAppointmentDetails(true);
@@ -350,19 +350,19 @@ export default function AppointmentCalendar() {
                     >
                       <div className="flex flex-col space-y-3">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="font-semibold">{appointment.title}</h4>
+                          <h4 className="font-semibold dark:text-foreground">{appointment.title}</h4>
                           <Badge className={statusColors[appointment.status]}>
                             {appointment.status}
                           </Badge>
                           <Badge className={typeColors[appointment.type]}>
                             {appointment.type}
                           </Badge>
-                          <Badge className="bg-blue-100 text-blue-800">
+                          <Badge className="bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200">
                             TODAY
                           </Badge>
                         </div>
                         
-                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                        <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-300">
                           <div className="flex items-center gap-1">
                             <Clock className="h-4 w-4" />
                             {format(new Date(appointment.scheduledAt), "h:mm a")} 
@@ -397,7 +397,7 @@ export default function AppointmentCalendar() {
         </CardHeader>
         <CardContent>
           {appointments.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">
+            <p className="text-gray-500 dark:text-gray-400 text-center py-8">
               No appointments scheduled
             </p>
           ) : (
@@ -405,7 +405,7 @@ export default function AppointmentCalendar() {
               {appointments.slice(0, 20).map((appointment: Appointment) => (
                 <div
                   key={appointment.id}
-                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                  className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors cursor-pointer dark:border-border"
                   onClick={() => {
                     setSelectedAppointment(appointment);
                     setShowAppointmentDetails(true);
@@ -413,19 +413,19 @@ export default function AppointmentCalendar() {
                 >
                   <div className="flex flex-col space-y-3">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="font-semibold">{appointment.title}</h4>
+                      <h4 className="font-semibold dark:text-foreground">{appointment.title}</h4>
                       <Badge className={statusColors[appointment.status]}>
                         {appointment.status}
                       </Badge>
                       <Badge className={typeColors[appointment.type]}>
                         {appointment.type}
                       </Badge>
-                      <Badge className="bg-gray-100 text-gray-800">
+                      <Badge className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
                         {format(new Date(appointment.scheduledAt), "MMM d, yyyy")}
                       </Badge>
                     </div>
                     
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-300">
                       <div className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
                         {format(new Date(appointment.scheduledAt), "h:mm a")} 
