@@ -717,7 +717,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                       height: '500px',
                       objectFit: 'cover',
                       objectPosition: 'center 40%',
-                      clipPath: 'inset(13% 19% 15% 19%)',
+                      clipPath: 'inset(13% 19% 22% 19%)',
                       transform: 'scale(1.5)',
                       transformOrigin: 'center',
                       filter: 'contrast(1.1) brightness(1.05) saturate(1.1)',
