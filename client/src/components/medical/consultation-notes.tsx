@@ -53,6 +53,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
   const [editingRecord, setEditingRecord] = useState<any>(null);
   const [showAnatomicalViewer, setShowAnatomicalViewer] = useState(false);
   const [selectedFacialFeatures, setSelectedFacialFeatures] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState("basic");
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -324,6 +325,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
             if (!open) {
               console.log("🔥 CLEARING EDITING RECORD");
               setEditingRecord(null);
+              setActiveTab("basic");
             }
           }} modal={true}>
             <DialogTrigger asChild>
@@ -337,7 +339,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                 <DialogTitle>{editingRecord ? 'Edit Medical Record' : 'Add Medical Record'}</DialogTitle>
               </DialogHeader>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <Tabs value="basic" className="w-full">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                   <TabsList className="grid w-full grid-cols-4 mb-6">
                     <TabsTrigger value="basic" className="bg-blue-100 font-semibold">Basic Info ⭐</TabsTrigger>
                     <TabsTrigger value="clinical">Clinical Notes</TabsTrigger>
@@ -502,6 +504,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     onClick={() => {
                       setIsAddingNote(false);
                       setEditingRecord(null);
+                      setActiveTab("basic");
                     }}
                   >
                     Cancel
