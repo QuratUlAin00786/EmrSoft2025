@@ -709,131 +709,107 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     {/* White background */}
                     <rect width="400" height="500" fill="#ffffff"/>
                     
-                    {/* Head outline - EXACT circle from reference */}
-                    <circle cx="200" cy="200" r="90" fill="none" stroke="#333" strokeWidth="2"/>
+                    {/* Head outline - EXACT oval shape from reference medical diagram */}
+                    <ellipse cx="200" cy="200" rx="85" ry="100" fill="none" stroke="#333" strokeWidth="2"/>
                     
-                    {/* Neck outline - rectangular as in reference */}
-                    <rect x="180" y="290" width="40" height="80" fill="none" stroke="#333" strokeWidth="2"/>
+                    {/* Neck outline - wider columnar structure matching reference */}
+                    <rect x="175" y="300" width="50" height="100" fill="none" stroke="#333" strokeWidth="2"/>
                     
-                    {/* LEFT EYE - blue iris with black pupil */}
-                    <circle cx="175" cy="180" r="15" fill="#ffffff" stroke="#333" strokeWidth="2"/>
-                    <circle cx="175" cy="180" r="10" fill="#4a90e2"/>
-                    <circle cx="175" cy="180" r="4" fill="#000"/>
+                    {/* Ears - positioned on oval outline */}
+                    <ellipse cx="125" cy="190" rx="8" ry="20" fill="none" stroke="#333" strokeWidth="2"/>
+                    <ellipse cx="275" cy="190" rx="8" ry="20" fill="none" stroke="#333" strokeWidth="2"/>
                     
-                    {/* RIGHT EYE - blue iris with black pupil */}
-                    <circle cx="225" cy="180" r="15" fill="#ffffff" stroke="#333" strokeWidth="2"/>
-                    <circle cx="225" cy="180" r="10" fill="#4a90e2"/>
-                    <circle cx="225" cy="180" r="4" fill="#000"/>
+                    {/* EXACT RED MUSCLE ANATOMY FROM SECOND REFERENCE IMAGE */}
                     
-                    {/* Nose - small triangular outline */}
-                    <path d="M 200 190 L 195 210 Q 200 215 205 210 L 200 190" fill="none" stroke="#333" strokeWidth="2"/>
-                    <ellipse cx="197" cy="212" rx="1.5" ry="1" fill="none" stroke="#333" strokeWidth="1"/>
-                    <ellipse cx="203" cy="212" rx="1.5" ry="1" fill="none" stroke="#333" strokeWidth="1"/>
-                    
-                    {/* Mouth - curved line */}
-                    <path d="M 185 230 Q 200 240 215 230" fill="none" stroke="#333" strokeWidth="2"/>
-                    
-                    {/* Ears */}
-                    <ellipse cx="125" cy="185" rx="10" ry="20" fill="none" stroke="#333" strokeWidth="2"/>
-                    <ellipse cx="275" cy="185" rx="10" ry="20" fill="none" stroke="#333" strokeWidth="2"/>
-                    
-                    {/* EXACT MUSCLE ANATOMY FROM SECOND REFERENCE IMAGE */}
-                    
-                    {/* LARGE FOREHEAD AREA - FRONTALIS (massive red block covering entire upper forehead) */}
+                    {/* LARGE VERTICAL FOREHEAD STRIP - FRONTALIS (exactly like reference) */}
                     <g>
-                      <path d="M 140 120 Q 170 105 200 100 Q 230 105 260 120 Q 265 140 260 160 Q 240 165 200 160 Q 160 165 140 160 Q 135 140 140 120" 
+                      <rect x="175" y="110" width="50" height="70" 
                             fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.9"/>
-                      {selectedFacialFeatures.includes('frontalis') && <text x="200" y="90" textAnchor="middle" className="text-xs font-bold fill-red-900">FRONTALIS</text>}
+                      {selectedFacialFeatures.includes('frontalis') && <text x="200" y="100" textAnchor="middle" className="text-xs font-bold fill-red-900">FRONTALIS</text>}
                     </g>
                     
-                    {/* SIDE TEMPLE AREAS - TEMPORALIS (two side red blocks) */}
+                    {/* SIDE TEMPLE AREAS - TEMPORALIS (side red blocks) */}
                     <g>
-                      <path d="M 115 150 Q 130 140 145 145 Q 155 155 150 175 Q 145 195 130 190 Q 115 185 115 165 Q 110 155 115 150" 
-                            fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.9"/>
-                      <path d="M 285 150 Q 270 140 255 145 Q 245 155 250 175 Q 255 195 270 190 Q 285 185 285 165 Q 290 155 285 150" 
-                            fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.9"/>
+                      <ellipse cx="140" cy="160" rx="20" ry="35" 
+                               fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.9"/>
+                      <ellipse cx="260" cy="160" rx="20" ry="35" 
+                               fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.9"/>
                       {selectedFacialFeatures.includes('temporalis') && <text x="80" y="170" className="text-xs font-bold fill-red-900">TEMPORALIS</text>}
                     </g>
                     
-                    {/* EYE SOCKET AREAS - ORBICULARIS OCULI (red circles around eyes) */}
+                    {/* LARGE EYE SOCKET AREAS - ORBICULARIS OCULI (big red circles around eyes) */}
                     <g>
-                      <circle cx="175" cy="180" r="25" fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.8"/>
-                      <circle cx="225" cy="180" r="25" fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.8"/>
-                      {selectedFacialFeatures.includes('orbicularis_oculi') && <text x="200" y="150" textAnchor="middle" className="text-xs font-bold fill-red-900">ORBICULARIS OCULI</text>}
+                      <circle cx="175" cy="180" r="35" fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.8"/>
+                      <circle cx="225" cy="180" r="35" fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.8"/>
+                      {selectedFacialFeatures.includes('orbicularis_oculi') && <text x="200" y="140" textAnchor="middle" className="text-xs font-bold fill-red-900">ORBICULARIS OCULI</text>}
                     </g>
                     
-                    {/* DIAGONAL CHEEK STRIPES - ZYGOMATICUS MAJOR (thick diagonal red lines) */}
+                    {/* MULTIPLE DIAGONAL CHEEK STRIPES - ZYGOMATICUS (multiple lines like reference) */}
                     <g>
-                      <path d="M 150 195 Q 165 210 175 235" stroke="#b91c1c" strokeWidth="15" fill="none" opacity="0.9"/>
-                      <path d="M 250 195 Q 235 210 225 235" stroke="#b91c1c" strokeWidth="15" fill="none" opacity="0.9"/>
-                      {selectedFacialFeatures.includes('zygomaticus_major') && <text x="110" y="250" className="text-xs font-bold fill-red-900">ZYGOMATICUS MAJOR</text>}
+                      {/* Left side diagonal stripes */}
+                      <path d="M 155 200 L 175 240" stroke="#b91c1c" strokeWidth="8" fill="none" opacity="0.9"/>
+                      <path d="M 145 210 L 165 250" stroke="#b91c1c" strokeWidth="6" fill="none" opacity="0.9"/>
+                      <path d="M 135 220 L 155 260" stroke="#b91c1c" strokeWidth="6" fill="none" opacity="0.9"/>
+                      
+                      {/* Right side diagonal stripes */}
+                      <path d="M 245 200 L 225 240" stroke="#b91c1c" strokeWidth="8" fill="none" opacity="0.9"/>
+                      <path d="M 255 210 L 235 250" stroke="#b91c1c" strokeWidth="6" fill="none" opacity="0.9"/>
+                      <path d="M 265 220 L 245 260" stroke="#b91c1c" strokeWidth="6" fill="none" opacity="0.9"/>
+                      
+                      {selectedFacialFeatures.includes('zygomaticus_major') && <text x="110" y="280" className="text-xs font-bold fill-red-900">ZYGOMATICUS</text>}
                     </g>
                     
-                    {/* JAW AREAS - MASSETER (rectangular red blocks on sides) */}
+                    {/* JAW AREAS - MASSETER (side jaw blocks) */}
                     <g>
-                      <path d="M 140 210 Q 150 225 155 250 Q 150 270 140 265 Q 130 260 125 240 Q 130 220 140 210" 
+                      <rect x="125" y="230" width="25" height="40" 
                             fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.9"/>
-                      <path d="M 260 210 Q 250 225 245 250 Q 250 270 260 265 Q 270 260 275 240 Q 270 220 260 210" 
+                      <rect x="250" y="230" width="25" height="40" 
                             fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.9"/>
-                      {selectedFacialFeatures.includes('masseter') && <text x="95" y="285" className="text-xs font-bold fill-red-900">MASSETER</text>}
+                      {selectedFacialFeatures.includes('masseter') && <text x="95" y="295" className="text-xs font-bold fill-red-900">MASSETER</text>}
                     </g>
                     
-                    {/* SIDE CHEEK AREAS - BUCCINATOR (oval red blocks beside mouth) */}
+                    {/* SIDE CHEEK AREAS - BUCCINATOR */}
                     <g>
-                      <ellipse cx="160" cy="220" rx="12" ry="20" fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.9"/>
-                      <ellipse cx="240" cy="220" rx="12" ry="20" fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.9"/>
-                      {selectedFacialFeatures.includes('buccinator') && <text x="280" y="285" className="text-xs font-bold fill-red-900">BUCCINATOR</text>}
+                      <ellipse cx="160" cy="220" rx="12" ry="18" fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.9"/>
+                      <ellipse cx="240" cy="220" rx="12" ry="18" fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.9"/>
+                      {selectedFacialFeatures.includes('buccinator') && <text x="280" y="295" className="text-xs font-bold fill-red-900">BUCCINATOR</text>}
                     </g>
                     
-                    {/* MOUTH AREA - ORBICULARIS ORIS (red oval around mouth) */}
+                    {/* MOUTH AREA - ORBICULARIS ORIS */}
                     <g>
-                      <ellipse cx="200" cy="230" rx="20" ry="10" fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.9"/>
-                      {selectedFacialFeatures.includes('orbicularis_oris') && <text x="140" y="270" className="text-xs font-bold fill-red-900">ORBICULARIS ORIS</text>}
+                      <ellipse cx="200" cy="240" rx="25" ry="12" fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.9"/>
+                      {selectedFacialFeatures.includes('orbicularis_oris') && <text x="140" y="280" className="text-xs font-bold fill-red-900">ORBICULARIS ORIS</text>}
                     </g>
                     
-                    {/* CHIN AREA - MENTALIS (small red area below mouth) */}
+                    {/* CHIN AREA - MENTALIS */}
                     <g>
-                      <ellipse cx="200" cy="255" rx="15" ry="8" fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.9"/>
-                      {selectedFacialFeatures.includes('mentalis') && <text x="225" y="275" className="text-xs font-bold fill-red-900">MENTALIS</text>}
+                      <ellipse cx="200" cy="270" rx="18" ry="12" fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.9"/>
+                      {selectedFacialFeatures.includes('mentalis') && <text x="230" y="285" className="text-xs font-bold fill-red-900">MENTALIS</text>}
                     </g>
                     
-                    {/* NECK AREA - PLATYSMA (large red rectangle in neck) */}
+                    {/* NECK VERTICAL STRIPES - PLATYSMA (multiple vertical columns like reference) */}
                     <g>
-                      <path d="M 170 300 Q 200 310 230 300 Q 225 350 200 360 Q 175 350 170 300" 
-                            fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.9"/>
-                      {selectedFacialFeatures.includes('platysma') && <text x="160" y="390" className="text-xs font-bold fill-red-900">PLATYSMA</text>}
+                      <rect x="180" y="305" width="10" height="80" fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.9"/>
+                      <rect x="195" y="305" width="10" height="85" fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.9"/>
+                      <rect x="210" y="305" width="10" height="80" fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.9"/>
+                      {selectedFacialFeatures.includes('platysma') && <text x="160" y="420" className="text-xs font-bold fill-red-900">PLATYSMA</text>}
                     </g>
                     
-                    {/* UPPER LIP - LEVATOR LABII SUPERIORIS (small red strip above mouth) */}
-                    <g>
-                      <path d="M 185 215 Q 200 220 215 215 Q 210 225 200 230 Q 190 225 185 215" 
-                            fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.9"/>
-                      {selectedFacialFeatures.includes('levator_labii_superioris') && <text x="110" y="310" className="text-xs font-bold fill-red-900">LEVATOR LABII</text>}
-                    </g>
-                    
-                    {/* LOWER LIP - DEPRESSOR LABII INFERIORIS (small red strip below mouth) */}
-                    <g>
-                      <path d="M 185 240 Q 200 245 215 240 Q 210 250 200 255 Q 190 250 185 240" 
-                            fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.9"/>
-                      {selectedFacialFeatures.includes('depressor_labii_inferioris') && <text x="240" y="310" className="text-xs font-bold fill-red-900">DEPRESSOR LABII</text>}
-                    </g>
-                    
-                    {/* MOUTH CORNERS - DEPRESSOR ANGULI ORIS (small red triangles at mouth corners) */}
-                    <g>
-                      <path d="M 170 235 Q 180 240 185 250 Q 175 255 165 250 Q 160 240 170 235" 
-                            fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.9"/>
-                      <path d="M 230 235 Q 220 240 215 250 Q 225 255 235 250 Q 240 240 230 235" 
-                            fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" opacity="0.9"/>
-                      {selectedFacialFeatures.includes('depressor_anguli_oris') && <text x="270" y="330" className="text-xs font-bold fill-red-900">DEPRESSOR ANGULI</text>}
-                    </g>
-                    
-                    {/* White overlay for eyes to show through red areas */}
+                    {/* Eyes - WHITE with BLUE irises positioned over red areas */}
                     <circle cx="175" cy="180" r="15" fill="#ffffff" stroke="#333" strokeWidth="2"/>
                     <circle cx="225" cy="180" r="15" fill="#ffffff" stroke="#333" strokeWidth="2"/>
                     <circle cx="175" cy="180" r="10" fill="#4a90e2"/>
                     <circle cx="225" cy="180" r="10" fill="#4a90e2"/>
                     <circle cx="175" cy="180" r="4" fill="#000"/>
                     <circle cx="225" cy="180" r="4" fill="#000"/>
+                    
+                    {/* Nose - clean triangular outline */}
+                    <path d="M 200 200 L 195 220 Q 200 225 205 220 L 200 200" fill="none" stroke="#333" strokeWidth="2"/>
+                    <ellipse cx="197" cy="222" rx="1.5" ry="1" fill="none" stroke="#333" strokeWidth="1"/>
+                    <ellipse cx="203" cy="222" rx="1.5" ry="1" fill="none" stroke="#333" strokeWidth="1"/>
+                    
+                    {/* Mouth - curved line over red mouth area */}
+                    <path d="M 185 240 Q 200 250 215 240" fill="none" stroke="#333" strokeWidth="2"/>
                   </svg>
                 </div>
                 
