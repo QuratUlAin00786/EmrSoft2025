@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { FileText, Plus, Calendar, User, Stethoscope, Pill, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import type { MedicalRecord } from "@/types";
+import anatomicalDiagramImage from "@assets/image_1753771147521.png";
 
 const consultationSchema = z.object({
   type: z.enum(["consultation", "prescription", "lab_result", "imaging", "procedure"]),
@@ -709,7 +710,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
               <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg">
                 <div className="bg-gradient-to-b from-blue-50 to-white rounded-lg p-4 min-h-[600px] flex items-center justify-center">
                   <img 
-                    src="/attached_assets/image_1753771147521.png" 
+                    src={anatomicalDiagramImage} 
                     alt="Professional anatomical diagram showing facial muscle structure with labeled parts including Frontalis, Temporalis, Orbicularis Oculi, Levator Labii Superioris, Zygomaticus Major, Masseter, Buccinator, Orbicularis Oris, Depressor Labii Inferioris, Depressor Anguli Oris, Mentalis, and Platysma muscles"
                     className="w-full h-full max-w-lg object-contain rounded-lg shadow-md"
                   />
