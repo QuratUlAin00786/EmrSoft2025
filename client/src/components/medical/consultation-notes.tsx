@@ -348,7 +348,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                   </TabsList>
 
                   <TabsContent value="basic" className="space-y-6 p-4">
-                    <div className="grid grid-cols-3 gap-6">
+                    <div className="grid grid-cols-2 gap-6">
                       <div>
                         <Label htmlFor="type">Record Type</Label>
                         <Select
@@ -379,31 +379,31 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                           </p>
                         )}
                       </div>
-                      <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                        <Label htmlFor="examination" className="text-blue-800 font-semibold">Examination</Label>
-                        <Select
-                          onValueChange={(value) => {
-                            if (value === "anatomical") {
-                              setShowAnatomicalViewer(true);
-                            }
-                          }}
-                        >
-                          <SelectTrigger className="mt-2 border-blue-300">
-                            <SelectValue placeholder="Select examination type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="general">General Examination</SelectItem>
-                            <SelectItem value="cardiovascular">Cardiovascular</SelectItem>
-                            <SelectItem value="respiratory">Respiratory</SelectItem>
-                            <SelectItem value="neurological">Neurological</SelectItem>
-                            <SelectItem value="anatomical">🔬 Anatomical (View Muscles)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
                     </div>
                   </TabsContent>
 
                   <TabsContent value="clinical" className="space-y-4">
+                    <div className="bg-blue-50 p-3 rounded-lg border border-blue-200 mb-4">
+                      <Label htmlFor="examination" className="text-blue-800 font-semibold">Examination</Label>
+                      <Select
+                        onValueChange={(value) => {
+                          if (value === "anatomical") {
+                            setShowAnatomicalViewer(true);
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="mt-2 border-blue-300">
+                          <SelectValue placeholder="Select examination type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="general">General Examination</SelectItem>
+                          <SelectItem value="cardiovascular">Cardiovascular</SelectItem>
+                          <SelectItem value="respiratory">Respiratory</SelectItem>
+                          <SelectItem value="neurological">Neurological</SelectItem>
+                          <SelectItem value="anatomical">🔬 Anatomical (View Muscles)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <div>
                       <Label htmlFor="notes">Clinical Notes</Label>
                       <Textarea
