@@ -342,7 +342,7 @@ export default function AppointmentCalendar() {
                   {todaysAppointments.map((appointment: Appointment) => (
                     <div
                       key={appointment.id}
-                      className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors bg-blue-50 dark:bg-blue-900 border-blue-200 dark:border-blue-700 cursor-pointer"
+                      className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-900 border-blue-200 dark:border-blue-700 cursor-pointer"
                       onClick={() => {
                         setSelectedAppointment(appointment);
                         setShowAppointmentDetails(true);
