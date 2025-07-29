@@ -19,7 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { FileText, Plus, Calendar, User, Stethoscope, Pill, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import type { MedicalRecord } from "@/types";
-import anatomicalDiagramImage from "@assets/image_1753772726594.png";
+import anatomicalDiagramImage from "@assets/image_1753773374054.png";
 
 const consultationSchema = z.object({
   type: z.enum(["consultation", "prescription", "lab_result", "imaging", "procedure"]),
