@@ -335,7 +335,12 @@ export default function AppointmentCalendar() {
             </p>
           ) : (
             <div className="space-y-4 max-h-96 overflow-y-auto">
-              {appointments.slice(0, 20).map((appointment: Appointment) => (
+              {appointments
+                .filter((appointment: Appointment, index: number, self: Appointment[]) => 
+                  index === self.findIndex((a: Appointment) => a.id === appointment.id)
+                )
+                .slice(0, 20)
+                .map((appointment: Appointment) => (
                 <div
                   key={appointment.id}
                   className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors cursor-pointer dark:border-border"
