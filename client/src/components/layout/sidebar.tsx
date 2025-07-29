@@ -140,7 +140,7 @@ export function Sidebar() {
 
       {/* Sidebar */}
       <aside className={cn(
-        "bg-white shadow-lg flex flex-col h-screen transition-transform duration-300 ease-in-out z-40",
+        "bg-white dark:bg-card shadow-lg flex flex-col h-screen transition-transform duration-300 ease-in-out z-40",
         // Desktop
         "lg:w-64 lg:relative lg:translate-x-0",
         // Mobile
@@ -149,7 +149,7 @@ export function Sidebar() {
         isMobile && isMobileMenuOpen && "translate-x-0"
       )}>
       {/* Logo Section */}
-      <div className="p-6 border-b border-neutral-100">
+      <div className="p-6 border-b border-neutral-100 dark:border-border">
         <div className="flex flex-col items-center text-center">
           <img 
             src={curaIconPath} 
@@ -157,8 +157,8 @@ export function Sidebar() {
             className="h-20 w-auto mb-2"
           />
           <div>
-            <h2 className="text-lg font-bold text-[hsl(235,45%,25%)]">Cura</h2>
-            <p className="text-xs text-[hsl(225,16%,65%)] mt-1">by halo group</p>
+            <h2 className="text-lg font-bold text-[hsl(235,45%,25%)] dark:text-foreground">Cura</h2>
+            <p className="text-xs text-[hsl(225,16%,65%)] dark:text-muted-foreground mt-1">by halo group</p>
           </div>
         </div>
       </div>
@@ -220,14 +220,14 @@ export function Sidebar() {
       </nav>
 
       {/* User Profile */}
-      <div className="p-4 border-t border-neutral-100">
+      <div className="p-4 border-t border-neutral-100 dark:border-border">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-xs text-neutral-500 uppercase tracking-wide">Theme</span>
+          <span className="text-xs text-neutral-500 dark:text-muted-foreground uppercase tracking-wide">Theme</span>
           <ThemeToggle />
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <div className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors">
+            <div className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg p-2 -m-2 transition-colors">
               <Avatar>
                 <AvatarContent className="text-white font-semibold" style={{ backgroundColor: 'var(--primary)' }}>
                   {user ? getInitials(user.firstName, user.lastName) : "U"}
@@ -237,10 +237,10 @@ export function Sidebar() {
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
+                <p className="text-sm font-medium text-gray-900 dark:text-foreground truncate">
                   {user ? `${user.firstName} ${user.lastName}` : "Unknown User"}
                 </p>
-                <p className="text-xs text-neutral-600 truncate">
+                <p className="text-xs text-neutral-600 dark:text-muted-foreground truncate">
                   {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "User"}
                 </p>
               </div>
