@@ -342,7 +342,7 @@ export default function AppointmentCalendar() {
                   {todaysAppointments.map((appointment: Appointment) => (
                     <div
                       key={appointment.id}
-                      className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-900 border-blue-200 dark:border-blue-700 cursor-pointer"
+                      className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-900 border-blue-200 dark:border-blue-700 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors"
                       onClick={() => {
                         setSelectedAppointment(appointment);
                         setShowAppointmentDetails(true);
@@ -465,7 +465,7 @@ export default function AppointmentCalendar() {
               {selectedDateAppointments.map((appointment: Appointment) => (
                 <div
                   key={appointment.id}
-                  className="border rounded-lg p-4 cursor-pointer"
+                  className="border rounded-lg p-4 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors"
                   onClick={() => {
                     setSelectedAppointment(appointment);
                     setShowAppointmentDetails(true);
