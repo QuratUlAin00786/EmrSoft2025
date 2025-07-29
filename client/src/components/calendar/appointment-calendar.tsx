@@ -525,7 +525,9 @@ export default function AppointmentCalendar() {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => {
+                        className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100"
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setSelectedAppointment(appointment);
                           setShowAppointmentDetails(true);
                           toast({
@@ -540,7 +542,9 @@ export default function AppointmentCalendar() {
                       {appointment.status === "scheduled" && (
                         <Button 
                           size="sm"
-                          onClick={() => {
+                          className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setSelectedAppointment(appointment);
                             setShowConsultation(true);
                             toast({
