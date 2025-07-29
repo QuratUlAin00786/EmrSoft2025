@@ -712,87 +712,91 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     {/* White background */}
                     <rect width="400" height="500" fill="#ffffff"/>
                     
-                    {/* EXACT RECREATION OF YOUR REFERENCE IMAGE */}
+                    {/* COMPLETE RECREATION TO MATCH YOUR REFERENCE EXACTLY */}
                     
-                    {/* Head circle outline - gray */}
-                    <circle cx="200" cy="200" r="85" fill="none" stroke="#999" strokeWidth="1"/>
+                    {/* Head circle outline */}
+                    <circle cx="200" cy="200" r="85" fill="none" stroke="#999" strokeWidth="2"/>
                     
                     {/* LEFT HALF - Normal skin tone */}
                     <path d="M 200 115 A 85 85 0 0 0 200 285 Z" fill="#f5deb3"/>
                     
-                    {/* RIGHT HALF - EXACT RED MUSCLE ANATOMY FROM YOUR IMAGE */}
+                    {/* RIGHT HALF - MASSIVE RED MUSCLE ANATOMY EXACTLY LIKE YOUR REFERENCE */}
                     
-                    {/* FRONTALIS - MASSIVE red block exactly like reference with vertical stripes */}
+                    {/* FRONTALIS - ENORMOUS red forehead block covering entire top like your reference */}
                     <g>
-                      {/* Base massive red block covering entire forehead - MUCH BIGGER */}
-                      <rect x="200" y="115" width="85" height="100" fill="#b91c1c" stroke="none"/>
+                      {/* Massive base red block - MUCH LARGER than before */}
+                      <rect x="200" y="115" width="85" height="120" fill="#b91c1c" stroke="none"/>
                       
-                      {/* Dense vertical muscle fiber stripes - matching reference pattern */}
-                      <rect x="203" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
-                      <rect x="209" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
-                      <rect x="215" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
-                      <rect x="221" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
-                      <rect x="227" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
-                      <rect x="233" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
-                      <rect x="239" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
-                      <rect x="245" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
-                      <rect x="251" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
-                      <rect x="257" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
-                      <rect x="263" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
-                      <rect x="269" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
-                      <rect x="275" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
-                      <rect x="281" y="115" width="4" height="100" fill="#dc2626" stroke="none"/>
+                      {/* ULTRA DENSE vertical muscle fiber stripes - exactly like your reference */}
+                      <rect x="202" y="115" width="3" height="120" fill="#dc2626" stroke="none"/>
+                      <rect x="207" y="115" width="3" height="120" fill="#dc2626" stroke="none"/>
+                      <rect x="212" y="115" width="3" height="120" fill="#dc2626" stroke="none"/>
+                      <rect x="217" y="115" width="3" height="120" fill="#dc2626" stroke="none"/>
+                      <rect x="222" y="115" width="3" height="120" fill="#dc2626" stroke="none"/>
+                      <rect x="227" y="115" width="3" height="120" fill="#dc2626" stroke="none"/>
+                      <rect x="232" y="115" width="3" height="120" fill="#dc2626" stroke="none"/>
+                      <rect x="237" y="115" width="3" height="120" fill="#dc2626" stroke="none"/>
+                      <rect x="242" y="115" width="3" height="120" fill="#dc2626" stroke="none"/>
+                      <rect x="247" y="115" width="3" height="120" fill="#dc2626" stroke="none"/>
+                      <rect x="252" y="115" width="3" height="120" fill="#dc2626" stroke="none"/>
+                      <rect x="257" y="115" width="3" height="120" fill="#dc2626" stroke="none"/>
+                      <rect x="262" y="115" width="3" height="120" fill="#dc2626" stroke="none"/>
+                      <rect x="267" y="115" width="3" height="120" fill="#dc2626" stroke="none"/>
+                      <rect x="272" y="115" width="3" height="120" fill="#dc2626" stroke="none"/>
+                      <rect x="277" y="115" width="3" height="120" fill="#dc2626" stroke="none"/>
+                      <rect x="282" y="115" width="3" height="120" fill="#dc2626" stroke="none"/>
                     </g>
                     
-                    {/* TEMPORALIS - Temple muscle */}
-                    <path d="M 275 145 Q 290 140 295 155 Q 290 175 275 180 Q 270 165 275 145" fill="#b91c1c" stroke="none"/>
+                    {/* TEMPORALIS - Temple muscle extending out */}
+                    <path d="M 285 150 Q 305 145 310 165 Q 305 185 285 190 Q 275 170 285 150" fill="#b91c1c" stroke="none"/>
                     
-                    {/* ORBICULARIS OCULI - Large red circle around right eye */}
-                    <circle cx="245" cy="180" r="35" fill="#b91c1c" stroke="none"/>
+                    {/* ORBICULARIS OCULI - HUGE red circle around right eye exactly like reference */}
+                    <circle cx="240" cy="180" r="40" fill="#b91c1c" stroke="none"/>
                     
-                    {/* WHITE EYE in the red circle - EXACTLY like your image */}
-                    <circle cx="245" cy="180" r="12" fill="#ffffff" stroke="none"/>
-                    <circle cx="245" cy="180" r="8" fill="#4a90e2"/>
-                    <circle cx="245" cy="180" r="3" fill="#000"/>
+                    {/* WHITE EYE in the red circle - PERFECTLY positioned like your reference */}
+                    <circle cx="240" cy="180" r="15" fill="#ffffff" stroke="none"/>
+                    <circle cx="240" cy="180" r="10" fill="#4a90e2"/>
+                    <circle cx="240" cy="180" r="4" fill="#000"/>
                     
-                    {/* ZYGOMATICUS MAJOR - Red cheek with ULTRA PROMINENT WHITE DIAGONAL STRIPES */}
+                    {/* ZYGOMATICUS MAJOR - MASSIVE red cheek with HUGE WHITE DIAGONAL STRIPES */}
                     <g>
-                      {/* Red cheek base - larger area */}
-                      <polygon points="215,210 280,200 290,260 220,270" fill="#b91c1c" stroke="none"/>
+                      {/* Enormous red cheek base */}
+                      <polygon points="205,215 290,205 300,270 215,280" fill="#b91c1c" stroke="none"/>
                       
-                      {/* ULTRA PROMINENT WHITE DIAGONAL STRIPES - EXACTLY like your image */}
-                      <line x1="225" y1="220" x2="275" y2="250" stroke="#ffffff" strokeWidth="12" strokeLinecap="round"/>
-                      <line x1="230" y1="225" x2="280" y2="255" stroke="#ffffff" strokeWidth="12" strokeLinecap="round"/>
-                      <line x1="235" y1="215" x2="285" y2="245" stroke="#ffffff" strokeWidth="12" strokeLinecap="round"/>
-                      <line x1="240" y1="220" x2="290" y2="250" stroke="#ffffff" strokeWidth="12" strokeLinecap="round"/>
-                      <line x1="245" y1="225" x2="285" y2="255" stroke="#ffffff" strokeWidth="12" strokeLinecap="round"/>
-                      <line x1="250" y1="215" x2="290" y2="245" stroke="#ffffff" strokeWidth="12" strokeLinecap="round"/>
+                      {/* MASSIVE WHITE DIAGONAL STRIPES - exactly like your reference */}
+                      <line x1="220" y1="225" x2="285" y2="260" stroke="#ffffff" strokeWidth="16" strokeLinecap="round"/>
+                      <line x1="225" y1="230" x2="290" y2="265" stroke="#ffffff" strokeWidth="16" strokeLinecap="round"/>
+                      <line x1="230" y1="220" x2="295" y2="255" stroke="#ffffff" strokeWidth="16" strokeLinecap="round"/>
+                      <line x1="235" y1="225" x2="300" y2="260" stroke="#ffffff" strokeWidth="16" strokeLinecap="round"/>
+                      <line x1="240" y1="230" x2="295" y2="265" stroke="#ffffff" strokeWidth="16" strokeLinecap="round"/>
+                      <line x1="245" y1="220" x2="300" y2="255" stroke="#ffffff" strokeWidth="16" strokeLinecap="round"/>
+                      <line x1="250" y1="225" x2="295" y2="260" stroke="#ffffff" strokeWidth="16" strokeLinecap="round"/>
                     </g>
                     
-                    {/* MASSETER - Jaw muscle */}
-                    <rect x="260" y="230" width="25" height="40" fill="#b91c1c" stroke="none"/>
+                    {/* MASSETER - Strong jaw muscle */}
+                    <rect x="265" y="240" width="30" height="45" fill="#b91c1c" stroke="none"/>
                     
-                    {/* BUCCINATOR - Small cheek muscle */}
-                    <ellipse cx="225" cy="220" rx="12" ry="18" fill="#b91c1c" stroke="none"/>
+                    {/* BUCCINATOR - Cheek muscle */}
+                    <ellipse cx="220" cy="230" rx="15" ry="20" fill="#b91c1c" stroke="none"/>
                     
                     {/* ORBICULARIS ORIS - Mouth muscle */}
-                    <ellipse cx="200" cy="245" rx="30" ry="12" fill="#b91c1c" stroke="none"/>
+                    <ellipse cx="200" cy="250" rx="35" ry="15" fill="#b91c1c" stroke="none"/>
                     
                     {/* MENTALIS - Chin muscle */}
-                    <ellipse cx="215" cy="265" rx="18" ry="12" fill="#b91c1c" stroke="none"/>
+                    <ellipse cx="220" cy="275" rx="20" ry="15" fill="#b91c1c" stroke="none"/>
                     
                     {/* Neck outline */}
-                    <path d="M 160 285 Q 180 295 200 295 Q 220 295 240 285 L 245 380 Q 220 390 200 390 Q 180 390 155 380 Z" 
-                          fill="none" stroke="#999" strokeWidth="1"/>
+                    <path d="M 160 285 Q 180 295 200 295 Q 220 295 240 285 L 250 380 Q 225 390 200 390 Q 175 390 150 380 Z" 
+                          fill="none" stroke="#999" strokeWidth="2"/>
                     
-                    {/* PLATYSMA - Wide vertical red neck stripes EXACTLY like your image */}
+                    {/* PLATYSMA - HUGE vertical red neck stripes exactly like your reference */}
                     <g>
-                      <rect x="165" y="295" width="12" height="85" fill="#b91c1c" stroke="none"/>
-                      <rect x="179" y="295" width="12" height="85" fill="#b91c1c" stroke="none"/>
-                      <rect x="193" y="295" width="12" height="85" fill="#b91c1c" stroke="none"/>
-                      <rect x="207" y="295" width="12" height="85" fill="#b91c1c" stroke="none"/>
-                      <rect x="221" y="295" width="12" height="85" fill="#b91c1c" stroke="none"/>
-                      <rect x="235" y="295" width="12" height="80" fill="#b91c1c" stroke="none"/>
+                      <rect x="160" y="295" width="15" height="85" fill="#b91c1c" stroke="none"/>
+                      <rect x="177" y="295" width="15" height="85" fill="#b91c1c" stroke="none"/>
+                      <rect x="194" y="295" width="15" height="85" fill="#b91c1c" stroke="none"/>
+                      <rect x="211" y="295" width="15" height="85" fill="#b91c1c" stroke="none"/>
+                      <rect x="228" y="295" width="15" height="85" fill="#b91c1c" stroke="none"/>
+                      <rect x="245" y="295" width="15" height="80" fill="#b91c1c" stroke="none"/>
                     </g>
                     
                     {/* LEFT EYE (normal side) */}
@@ -806,7 +810,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     <circle cx="203" cy="212" r="1" fill="#999"/>
                     
                     {/* MOUTH */}
-                    <path d="M 180 245 Q 200 250 220 245" fill="none" stroke="#999" strokeWidth="1"/>
+                    <path d="M 175 250 Q 200 255 225 250" fill="none" stroke="#999" strokeWidth="1"/>
                     
                     {/* EARS */}
                     <ellipse cx="115" cy="185" rx="6" ry="20" fill="none" stroke="#999" strokeWidth="1"/>
@@ -815,52 +819,52 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     {/* ANATOMICAL LABELS WITH DOTTED LINES */}
                     
                     {/* Frontalis */}
-                    <line x1="242" y1="150" x2="320" y2="120" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
+                    <line x1="242" y1="160" x2="320" y2="120" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
                     <text x="325" y="118" className="text-xs fill-gray-600">Frontalis</text>
                     
                     {/* Temporalis */}
-                    <line x1="285" y1="160" x2="340" y2="140" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
+                    <line x1="290" y1="165" x2="340" y2="140" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
                     <text x="345" y="138" className="text-xs fill-gray-600">Temporalis</text>
                     
                     {/* Orbicularis Oculi */}
-                    <line x1="210" y1="170" x2="90" y2="150" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
+                    <line x1="205" y1="170" x2="90" y2="150" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
                     <text x="10" y="148" className="text-xs fill-gray-600">Orbicularis Oculi</text>
                     
                     {/* Levator Labii Superioris */}
-                    <line x1="250" y1="200" x2="330" y2="185" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
-                    <text x="335" y="183" className="text-xs fill-gray-600">Levator Labii Superioris</text>
+                    <line x1="255" y1="210" x2="330" y2="190" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
+                    <text x="335" y="188" className="text-xs fill-gray-600">Levator Labii Superioris</text>
                     
                     {/* Zygomaticus Major */}
-                    <line x1="250" y1="230" x2="330" y2="215" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
-                    <text x="335" y="213" className="text-xs fill-gray-600">Zygomaticus Major</text>
+                    <line x1="255" y1="240" x2="330" y2="220" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
+                    <text x="335" y="218" className="text-xs fill-gray-600">Zygomaticus Major</text>
                     
                     {/* Masseter */}
-                    <line x1="272" y1="250" x2="340" y2="270" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
-                    <text x="345" y="268" className="text-xs fill-gray-600">Masseter</text>
+                    <line x1="280" y1="260" x2="340" y2="275" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
+                    <text x="345" y="273" className="text-xs fill-gray-600">Masseter</text>
                     
                     {/* Buccinator */}
-                    <line x1="225" y1="220" x2="320" y2="250" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
-                    <text x="325" y="248" className="text-xs fill-gray-600">Buccinator</text>
+                    <line x1="220" y1="230" x2="320" y2="255" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
+                    <text x="325" y="253" className="text-xs fill-gray-600">Buccinator</text>
                     
                     {/* Orbicularis Oris */}
-                    <line x1="170" y1="245" x2="80" y2="290" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
-                    <text x="10" y="288" className="text-xs fill-gray-600">Orbicularis Oris</text>
+                    <line x1="165" y1="250" x2="80" y2="295" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
+                    <text x="10" y="293" className="text-xs fill-gray-600">Orbicularis Oris</text>
                     
                     {/* Depressor Labii Inferioris */}
-                    <line x1="185" y1="260" x2="70" y2="320" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
-                    <text x="10" y="318" className="text-xs fill-gray-600">Depressor Labii Inferioris</text>
+                    <line x1="180" y1="270" x2="70" y2="325" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
+                    <text x="10" y="323" className="text-xs fill-gray-600">Depressor Labii Inferioris</text>
                     
                     {/* Depressor Anguli Oris */}
-                    <line x1="215" y1="265" x2="310" y2="310" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
-                    <text x="315" y="308" className="text-xs fill-gray-600">Depressor Anguli Oris</text>
+                    <line x1="220" y1="275" x2="310" y2="315" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
+                    <text x="315" y="313" className="text-xs fill-gray-600">Depressor Anguli Oris</text>
                     
                     {/* Mentalis */}
-                    <line x1="215" y1="265" x2="300" y2="340" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
-                    <text x="305" y="338" className="text-xs fill-gray-600">Mentalis</text>
+                    <line x1="220" y1="275" x2="300" y2="345" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
+                    <text x="305" y="343" className="text-xs fill-gray-600">Mentalis</text>
                     
                     {/* Platysma */}
-                    <line x1="200" y1="340" x2="260" y2="400" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
-                    <text x="265" y="398" className="text-xs fill-gray-600">Platysma</text>
+                    <line x1="205" y1="340" x2="260" y2="405" stroke="#666" strokeWidth="1" strokeDasharray="2,2"/>
+                    <text x="265" y="403" className="text-xs fill-gray-600">Platysma</text>
                   </svg>
                 </div>
                 
