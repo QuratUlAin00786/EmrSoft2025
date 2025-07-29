@@ -709,17 +709,19 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
             <div className="xl:col-span-2 relative">
               <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg">
                 <div className="bg-gradient-to-b from-blue-50 to-white rounded-lg p-4 min-h-[600px] flex items-center justify-center">
-                  <div 
-                    className="w-full max-w-lg mx-auto rounded-lg shadow-md overflow-hidden"
+                  <img 
+                    src={anatomicalDiagramImage}
+                    alt="Facial muscle anatomy diagram"
+                    className="w-full max-w-lg mx-auto rounded-lg shadow-md"
                     style={{
                       height: '500px',
-                      backgroundImage: `url(${anatomicalDiagramImage})`,
-                      backgroundPosition: 'center center',
-                      backgroundSize: '120%',
-                      backgroundRepeat: 'no-repeat',
-                      clipPath: 'inset(75px 15px 60px 15px)'
+                      objectFit: 'cover',
+                      objectPosition: 'center 45%',
+                      clipPath: 'inset(13% 19% 10% 19%)',
+                      transform: 'scale(1.4)',
+                      transformOrigin: 'center'
                     }}
-                  ></div>
+                  />
                 </div>
                 
                 {/* Professional Medical Diagram Label */}
