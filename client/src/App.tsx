@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { TenantProvider } from "@/hooks/use-tenant";
 import { AuthProvider } from "@/hooks/use-auth";
 import { LocaleProvider } from "@/hooks/use-locale";
+import { ThemeProvider } from "@/hooks/use-theme";
 import { Sidebar } from "@/components/layout/sidebar";
 import { LoadingPage } from "@/components/common/loading-spinner";
 import { useAuth } from "@/hooks/use-auth";
@@ -181,16 +182,18 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <TenantProvider>
-          <AuthProvider>
-            <LocaleProvider>
-              <div className="min-h-screen">
-                <AppRouter />
-              </div>
-              <Toaster />
-            </LocaleProvider>
-          </AuthProvider>
-        </TenantProvider>
+        <ThemeProvider>
+          <TenantProvider>
+            <AuthProvider>
+              <LocaleProvider>
+                <div className="min-h-screen">
+                  <AppRouter />
+                </div>
+                <Toaster />
+              </LocaleProvider>
+            </AuthProvider>
+          </TenantProvider>
+        </ThemeProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
