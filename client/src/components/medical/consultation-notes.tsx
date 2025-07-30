@@ -717,91 +717,22 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
             {/* Center Panel - Professional Medical Diagram (Realistic Head Sketch with Labels) */}
             <div className="xl:col-span-2 relative">
               <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg">
-                <div className="bg-gradient-to-b from-blue-50 to-white rounded-lg p-4 min-h-[600px] flex relative">
-                  {/* Main Facial Muscle Diagram */}
-                  <div className="flex-1 flex items-center justify-center">
-                    <img 
-                      src={anatomicalDiagramImage}
-                      alt="Facial muscle anatomy diagram"
-                      className="w-full max-w-lg mx-auto rounded-lg shadow-md"
-                      style={{
-                        height: '500px',
-                        objectFit: 'cover',
-                        objectPosition: 'center 40%',
-                        clipPath: 'inset(13% 19% 22% 19%)',
-                        transform: 'scale(1.5)',
-                        transformOrigin: 'center',
-                        filter: 'contrast(1.1) brightness(1.05) saturate(1.1)',
-                        imageRendering: 'crisp-edges'
-                      }}
-                    />
-                  </div>
-                  
-                  {/* Right Side - Skull Diagram with Focus Images */}
-                  <div className="absolute right-4 top-4 w-48 bg-white rounded-lg border-2 border-gray-300 p-3 shadow-lg">
-                    {/* Skull Outline */}
-                    <div className="flex items-center justify-center mb-3">
-                      <svg
-                        width="120"
-                        height="140"
-                        viewBox="0 0 200 280"
-                        className="border rounded-lg bg-gray-50"
-                      >
-                        {/* Clean skull outline matching your reference */}
-                        <path
-                          d="M100 40
-                             C130 40, 150 60, 150 100
-                             C150 115, 148 130, 145 145
-                             L145 160
-                             C145 175, 140 190, 130 200
-                             L130 210
-                             C130 220, 125 230, 100 230
-                             C75 230, 70 220, 70 210
-                             L70 200
-                             C60 190, 55 175, 55 160
-                             L55 145
-                             C52 130, 50 115, 50 100
-                             C50 60, 70 40, 100 40 Z"
-                          fill="none"
-                          stroke="#333"
-                          strokeWidth="1.5"
-                        />
-                        
-                        {/* Simple eye sockets */}
-                        <ellipse cx="80" cy="100" rx="8" ry="12" fill="none" stroke="#333" strokeWidth="1"/>
-                        <ellipse cx="120" cy="100" rx="8" ry="12" fill="none" stroke="#333" strokeWidth="1"/>
-                        
-                        {/* Simple nose */}
-                        <path
-                          d="M100 115
-                             L98 130
-                             L100 135
-                             L102 130
-                             Z"
-                          fill="none"
-                          stroke="#333"
-                          strokeWidth="1"
-                        />
-                        
-                        {/* Simple mouth */}
-                        <ellipse cx="100" cy="160" rx="15" ry="8" fill="none" stroke="#333" strokeWidth="1"/>
-                      </svg>
-                    </div>
-                    
-                    {/* Focus Reference Images */}
-                    <div className="bg-blue-50 p-2 rounded border border-blue-200">
-                      <h4 className="text-xs font-semibold text-blue-800 mb-2">Focus</h4>
-                      <div className="grid grid-cols-5 gap-1">
-                        {[1, 2, 3, 4, 5].map((num) => (
-                          <div key={num} className="bg-white rounded border border-gray-300 p-1">
-                            <div className="w-6 h-6 bg-gradient-to-br from-orange-100 to-orange-200 rounded flex items-center justify-center text-xs font-semibold text-orange-800">
-                              {num}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+                <div className="bg-gradient-to-b from-blue-50 to-white rounded-lg p-4 min-h-[600px] flex items-center justify-center">
+                  <img 
+                    src={anatomicalDiagramImage}
+                    alt="Facial muscle anatomy diagram"
+                    className="w-full max-w-lg mx-auto rounded-lg shadow-md"
+                    style={{
+                      height: '500px',
+                      objectFit: 'cover',
+                      objectPosition: 'center 40%',
+                      clipPath: 'inset(13% 19% 22% 19%)',
+                      transform: 'scale(1.5)',
+                      transformOrigin: 'center',
+                      filter: 'contrast(1.1) brightness(1.05) saturate(1.1)',
+                      imageRendering: 'crisp-edges'
+                    }}
+                  />
                 </div>
                 
                 {/* Professional Medical Diagram Label */}
