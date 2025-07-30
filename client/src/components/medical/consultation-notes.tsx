@@ -896,10 +896,14 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                 
                 {/* Facial Diagram ABOVE the Anatomical Reference Window Header */}
                 <div className="flex justify-center mb-6">
-                  <img 
-                    src="/facial-diagram.png" 
-                    alt="Facial Diagram" 
-                    className="w-64 h-80 object-contain"
+                  <div 
+                    className="w-64 h-80 bg-contain bg-center bg-no-repeat"
+                    style={{
+                      backgroundImage: 'url(/facial-diagram.png)',
+                      filter: 'contrast(1.2) brightness(1.1)',
+                      backgroundColor: 'transparent',
+                      backgroundBlendMode: 'multiply'
+                    }}
                   />
                 </div>
 
