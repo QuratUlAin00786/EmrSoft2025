@@ -777,21 +777,144 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
             <div className={`xl:col-span-2 relative transition-transform duration-500 ${showRightPanel ? '-translate-x-full' : 'translate-x-0'}`}>
               <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg">
                 <div className="bg-gradient-to-b from-blue-50 to-white rounded-lg p-4 min-h-[600px] flex items-center justify-center relative">
-                  <img 
-                    src={anatomicalDiagramImage}
-                    alt="Facial muscle anatomy diagram"
-                    className="w-full max-w-lg mx-auto rounded-lg shadow-md"
-                    style={{
-                      height: '500px',
-                      objectFit: 'cover',
-                      objectPosition: 'center 40%',
-                      clipPath: 'inset(13% 19% 22% 19%)',
-                      transform: 'scale(1.5)',
-                      transformOrigin: 'center',
-                      filter: 'contrast(1.1) brightness(1.05) saturate(1.1)',
-                      imageRendering: 'crisp-edges'
-                    }}
-                  />
+                  
+                  {/* Professional Anatomical SVG Diagram */}
+                  <svg 
+                    width="500" 
+                    height="600" 
+                    viewBox="0 0 500 600" 
+                    className="w-full max-w-lg mx-auto"
+                  >
+                    {/* Head outline */}
+                    <ellipse cx="250" cy="280" rx="120" ry="160" fill="#F5E6D3" stroke="#8B4513" strokeWidth="2"/>
+                    
+                    {/* Neck */}
+                    <rect x="230" y="420" width="40" height="80" fill="#F5E6D3" stroke="#8B4513" strokeWidth="2" rx="10"/>
+                    
+                    {/* Frontalis muscle (forehead) */}
+                    <path d="M 180 200 Q 250 180 320 200 Q 320 230 250 240 Q 180 230 180 200" 
+                          fill="#CD5C5C" opacity="0.7" stroke="#8B0000" strokeWidth="1"/>
+                    
+                    {/* Temporalis muscle (temples) */}
+                    <ellipse cx="160" cy="240" rx="25" ry="40" fill="#CD5C5C" opacity="0.7" stroke="#8B0000" strokeWidth="1"/>
+                    <ellipse cx="340" cy="240" rx="25" ry="40" fill="#CD5C5C" opacity="0.7" stroke="#8B0000" strokeWidth="1"/>
+                    
+                    {/* Orbicularis Oculi (eye muscles) */}
+                    <ellipse cx="200" cy="260" rx="20" ry="15" fill="#DC143C" opacity="0.8" stroke="#8B0000" strokeWidth="1"/>
+                    <ellipse cx="300" cy="260" rx="20" ry="15" fill="#DC143C" opacity="0.8" stroke="#8B0000" strokeWidth="1"/>
+                    
+                    {/* Procerus (nose bridge) */}
+                    <rect x="240" y="270" width="20" height="30" fill="#CD5C5C" opacity="0.7" stroke="#8B0000" strokeWidth="1" rx="5"/>
+                    
+                    {/* Nasalis (nose) */}
+                    <ellipse cx="250" cy="310" rx="15" ry="20" fill="#CD5C5C" opacity="0.7" stroke="#8B0000" strokeWidth="1"/>
+                    
+                    {/* Zygomaticus Major & Minor (cheek muscles) */}
+                    <path d="M 180 300 Q 200 320 220 340" fill="none" stroke="#CD5C5C" strokeWidth="8" opacity="0.7"/>
+                    <path d="M 320 300 Q 300 320 280 340" fill="none" stroke="#CD5C5C" strokeWidth="8" opacity="0.7"/>
+                    
+                    {/* Masseter (jaw muscle) */}
+                    <path d="M 160 340 Q 180 360 200 380 Q 180 390 160 380 Z" fill="#CD5C5C" opacity="0.7" stroke="#8B0000" strokeWidth="1"/>
+                    <path d="M 340 340 Q 320 360 300 380 Q 320 390 340 380 Z" fill="#CD5C5C" opacity="0.7" stroke="#8B0000" strokeWidth="1"/>
+                    
+                    {/* Orbicularis Oris (mouth muscle) */}
+                    <ellipse cx="250" cy="350" rx="30" ry="15" fill="#DC143C" opacity="0.8" stroke="#8B0000" strokeWidth="1"/>
+                    
+                    {/* Risorius (smile muscle) */}
+                    <path d="M 210 350 Q 190 360 170 350" fill="none" stroke="#CD5C5C" strokeWidth="6" opacity="0.7"/>
+                    <path d="M 290 350 Q 310 360 330 350" fill="none" stroke="#CD5C5C" strokeWidth="6" opacity="0.7"/>
+                    
+                    {/* Buccinator (cheek muscle) */}
+                    <ellipse cx="190" cy="320" rx="20" ry="25" fill="#CD5C5C" opacity="0.6" stroke="#8B0000" strokeWidth="1"/>
+                    <ellipse cx="310" cy="320" rx="20" ry="25" fill="#CD5C5C" opacity="0.6" stroke="#8B0000" strokeWidth="1"/>
+                    
+                    {/* Depressor Anguli Oris (mouth corner) */}
+                    <path d="M 220 360 Q 210 380 200 400" fill="none" stroke="#CD5C5C" strokeWidth="6" opacity="0.7"/>
+                    <path d="M 280 360 Q 290 380 300 400" fill="none" stroke="#CD5C5C" strokeWidth="6" opacity="0.7"/>
+                    
+                    {/* Mentalis (chin) */}
+                    <ellipse cx="250" cy="390" rx="20" ry="15" fill="#CD5C5C" opacity="0.7" stroke="#8B0000" strokeWidth="1"/>
+                    
+                    {/* Platysma (neck) */}
+                    <rect x="220" y="420" width="60" height="60" fill="#CD5C5C" opacity="0.5" stroke="#8B0000" strokeWidth="1" rx="10"/>
+                    
+                    {/* Labels with leader lines */}
+                    
+                    {/* Frontalis label */}
+                    <line x1="200" y1="210" x2="120" y2="150" stroke="#333" strokeWidth="1"/>
+                    <text x="50" y="145" fontSize="11" fill="#333" fontFamily="Arial">Frontalis</text>
+                    
+                    {/* Temporalis label */}
+                    <line x1="160" y1="220" x2="80" y2="180" stroke="#333" strokeWidth="1"/>
+                    <text x="20" y="175" fontSize="11" fill="#333" fontFamily="Arial">Temporalis</text>
+                    
+                    {/* Orbicularis Oculi label */}
+                    <line x1="180" y1="260" x2="100" y2="220" stroke="#333" strokeWidth="1"/>
+                    <text x="30" y="215" fontSize="11" fill="#333" fontFamily="Arial">Orbicularis Oculi</text>
+                    
+                    {/* Procerus label */}
+                    <line x1="240" y1="280" x2="160" y1="240" stroke="#333" strokeWidth="1"/>
+                    <text x="100" y="235" fontSize="11" fill="#333" fontFamily="Arial">Procerus</text>
+                    
+                    {/* Nasalis label */}
+                    <line x1="235" y1="310" x2="150" y1="270" stroke="#333" strokeWidth="1"/>
+                    <text x="90" y="265" fontSize="11" fill="#333" fontFamily="Arial">Nasalis</text>
+                    
+                    {/* Zygomaticus Major label */}
+                    <line x1="190" y1="310" x2="100" y1="300" stroke="#333" strokeWidth="1"/>
+                    <text x="20" y="295" fontSize="11" fill="#333" fontFamily="Arial">Zygomaticus Major</text>
+                    
+                    {/* Masseter label */}
+                    <line x1="160" y1="360" x2="70" y1="350" stroke="#333" strokeWidth="1"/>
+                    <text x="10" y="345" fontSize="11" fill="#333" fontFamily="Arial">Masseter</text>
+                    
+                    {/* Risorius label */}
+                    <line x1="170" y1="350" x2="90" y1="380" stroke="#333" strokeWidth="1"/>
+                    <text x="30" y="375" fontSize="11" fill="#333" fontFamily="Arial">Risorius</text>
+                    
+                    {/* Buccinator label */}
+                    <line x1="190" y1="330" x2="410" y1="180" stroke="#333" strokeWidth="1"/>
+                    <text x="420" y="175" fontSize="11" fill="#333" fontFamily="Arial">Buccinator</text>
+                    
+                    {/* Corrugator Supercilii label */}
+                    <line x1="320" y1="240" x2="420" y1="160" stroke="#333" strokeWidth="1"/>
+                    <text x="380" y="155" fontSize="11" fill="#333" fontFamily="Arial">Corrugator Supercilii</text>
+                    
+                    {/* Levator Palpebrae Superioris label */}
+                    <line x1="300" y1="260" x2="430" y1="200" stroke="#333" strokeWidth="1"/>
+                    <text x="360" y="195" fontSize="11" fill="#333" fontFamily="Arial">Levator Palpebrae</text>
+                    <text x="360" y="207" fontSize="11" fill="#333" fontFamily="Arial">Superioris</text>
+                    
+                    {/* Levator Labii Superioris Alaeque Nasi label */}
+                    <line x1="280" y1="300" x2="420" y1="240" stroke="#333" strokeWidth="1"/>
+                    <text x="350" y="235" fontSize="11" fill="#333" fontFamily="Arial">Levator Labii Superior</text>
+                    <text x="350" y="247" fontSize="11" fill="#333" fontFamily="Arial">Alaeque Nasi</text>
+                    
+                    {/* Depressor Septi Nasi label */}
+                    <line x1="260" y1="320" x2="420" y1="280" stroke="#333" strokeWidth="1"/>
+                    <text x="350" y="275" fontSize="11" fill="#333" fontFamily="Arial">Depressor Septi Nasi</text>
+                    
+                    {/* Orbicularis Oris label */}
+                    <line x1="280" y1="350" x2="420" y1="320" stroke="#333" strokeWidth="1"/>
+                    <text x="350" y="315" fontSize="11" fill="#333" fontFamily="Arial">Orbicularis Oris</text>
+                    
+                    {/* Depressor Anguli Oris label */}
+                    <line x1="300" y1="380" x2="420" y1="360" stroke="#333" strokeWidth="1"/>
+                    <text x="350" y="355" fontSize="11" fill="#333" fontFamily="Arial">Depressor Anguli Oris</text>
+                    
+                    {/* Depressor Labii Inferioris label */}
+                    <line x1="270" y1="370" x2="420" y1="400" stroke="#333" strokeWidth="1"/>
+                    <text x="350" y="395" fontSize="11" fill="#333" fontFamily="Arial">Depressor Labii</text>
+                    <text x="350" y="407" fontSize="11" fill="#333" fontFamily="Arial">Inferioris</text>
+                    
+                    {/* Mentalis label */}
+                    <line x1="250" y1="400" x2="150" y1="450" stroke="#333" strokeWidth="1"/>
+                    <text x="90" y="445" fontSize="11" fill="#333" fontFamily="Arial">Mentalis</text>
+                    
+                    {/* Platysma label */}
+                    <line x1="220" y1="460" x2="120" y1="500" stroke="#333" strokeWidth="1"/>
+                    <text x="60" y="495" fontSize="11" fill="#333" fontFamily="Arial">Platysma</text>
+                  </svg>
                   
                   {/* Right Arrow Button - Slide to Right Panel */}
                   <button
