@@ -792,6 +792,25 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                       imageRendering: 'crisp-edges'
                     }}
                   />
+                  
+                  {/* Right Arrow Button - Slide to Right Panel */}
+                  <button
+                    onClick={() => setShowRightPanel(!showRightPanel)}
+                    className="absolute right-2 top-2 bg-white border border-gray-300 rounded-full p-2 shadow-md hover:bg-gray-50 hover:shadow-lg transition-all duration-200"
+                    title="Slide to anatomical reference panel"
+                  >
+                    <svg 
+                      width="16" 
+                      height="16" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2"
+                      className={`text-gray-600 transition-transform duration-300 ${showRightPanel ? 'rotate-180' : ''}`}
+                    >
+                      <path d="M9 18l6-6-6-6" />
+                    </svg>
+                  </button>
                 </div>
                 
                 {/* Professional Medical Diagram Label */}
