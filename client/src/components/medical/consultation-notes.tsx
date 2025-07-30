@@ -55,6 +55,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
   const [editingRecord, setEditingRecord] = useState<any>(null);
   const [showAnatomicalViewer, setShowAnatomicalViewer] = useState(false);
   const [selectedFacialFeatures, setSelectedFacialFeatures] = useState<string[]>([]);
+  const [showRightPanel, setShowRightPanel] = useState(false);
 
   const [activeTab, setActiveTab] = useState("basic");
   const queryClient = useQueryClient();
@@ -650,7 +651,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
           
           <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
             {/* Left Panel - Professional Muscle Selection */}
-            <div className="xl:col-span-1 bg-gradient-to-br from-gray-50 to-blue-50 p-5 rounded-xl border-2 border-blue-100">
+            <div className={`xl:col-span-1 bg-gradient-to-br from-gray-50 to-blue-50 p-5 rounded-xl border-2 border-blue-100 transition-transform duration-500 ${showRightPanel ? '-translate-x-full opacity-0' : 'translate-x-0 opacity-100'}`}>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-3 h-3 bg-red-600 rounded-full"></div>
                 <h3 className="text-lg font-semibold text-gray-800">Facial Muscle Analysis</h3>
@@ -753,7 +754,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
             </div>
 
             {/* Center Panel - Professional Medical Diagram (Realistic Head Sketch with Labels) */}
-            <div className="xl:col-span-2 relative">
+            <div className={`xl:col-span-2 relative transition-transform duration-500 ${showRightPanel ? '-translate-x-full' : 'translate-x-0'}`}>
               <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg">
                 <div className="bg-gradient-to-b from-blue-50 to-white rounded-lg p-4 min-h-[600px] flex items-center justify-center relative">
                   <img 
@@ -772,47 +773,11 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     }}
                   />
                   
-                  {/* Right Arrow Button - Swipe to New Window */}
+                  {/* Right Arrow Button - Slide to Right Panel */}
                   <button
-                    onClick={() => {
-                      // Calculate position to open window to the right of current window
-                      const currentWidth = window.outerWidth || 1200;
-                      const currentLeft = window.screenX ?? window.screenLeft ?? 0;
-                      const currentTop = window.screenY ?? window.screenTop ?? 0;
-                      const newLeft = currentLeft + currentWidth + 20; // 20px gap for better separation
-                      const newTop = currentTop; // Same vertical position
-                      
-                      // Open new window positioned to the right with explicit positioning
-                      const windowFeatures = `width=800,height=600,left=${newLeft},top=${newTop},scrollbars=yes,resizable=yes,location=no,menubar=no,toolbar=no,status=no`;
-                      const newWindow = window.open('', '_blank', windowFeatures);
-                      if (newWindow) {
-                        newWindow.document.write(`
-                          <html>
-                            <head>
-                              <title>Anatomical Reference - Cura EMR</title>
-                              <style>
-                                body { font-family: Arial, sans-serif; margin: 20px; background: #f8f9fa; }
-                                .container { max-width: 700px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-                                h1 { color: #2563eb; text-align: center; }
-                                .content { text-align: center; padding: 20px; }
-                              </style>
-                            </head>
-                            <body>
-                              <div class="container">
-                                <h1>Anatomical Reference Window</h1>
-                                <div class="content">
-                                  <p>Additional anatomical reference content would be displayed here.</p>
-                                  <p>This window can contain detailed medical diagrams, reference images, or supplementary anatomical information.</p>
-                                </div>
-                              </div>
-                            </body>
-                          </html>
-                        `);
-                        newWindow.document.close();
-                      }
-                    }}
+                    onClick={() => setShowRightPanel(!showRightPanel)}
                     className="absolute right-2 top-2 bg-white border border-gray-300 rounded-full p-2 shadow-md hover:bg-gray-50 hover:shadow-lg transition-all duration-200"
-                    title="Swipe right to open anatomical reference window"
+                    title="Slide to anatomical reference panel"
                   >
                     <svg 
                       width="16" 
@@ -821,7 +786,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                       fill="none" 
                       stroke="currentColor" 
                       strokeWidth="2"
-                      className="text-gray-600"
+                      className={`text-gray-600 transition-transform duration-300 ${showRightPanel ? 'rotate-180' : ''}`}
                     >
                       <path d="M9 18l6-6-6-6" />
                     </svg>
@@ -839,7 +804,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
             </div>
 
             {/* Right Panel - Clinical Documentation */}
-            <div className="xl:col-span-1 bg-gradient-to-br from-yellow-50 to-orange-50 p-5 rounded-xl border-2 border-yellow-200">
+            <div className={`xl:col-span-1 bg-gradient-to-br from-yellow-50 to-orange-50 p-5 rounded-xl border-2 border-yellow-200 transition-transform duration-500 ${showRightPanel ? '-translate-x-full' : 'translate-x-0'}`}>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-3 h-3 bg-yellow-600 rounded-full"></div>
                 <h3 className="text-lg font-semibold text-gray-800">Clinical Documentation</h3>
@@ -875,6 +840,44 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                 />
               </div>
             </div>
+
+            {/* Anatomical Reference Panel - Slides in from right */}
+            {showRightPanel && (
+              <div className="xl:col-span-4 bg-gradient-to-br from-green-50 to-blue-50 p-5 rounded-xl border-2 border-green-200 transition-all duration-500 transform animate-in slide-in-from-right">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-green-600 rounded-full"></div>
+                    <h3 className="text-lg font-semibold text-gray-800">Anatomical Reference Window</h3>
+                  </div>
+                  <button
+                    onClick={() => setShowRightPanel(false)}
+                    className="text-gray-500 hover:text-gray-700 font-bold text-xl"
+                  >
+                    ×
+                  </button>
+                </div>
+                
+                <div className="bg-white rounded-lg p-6 shadow-md">
+                  <h4 className="text-xl font-bold text-blue-800 mb-4 text-center">
+                    Additional Anatomical Reference Content
+                  </h4>
+                  <div className="text-center space-y-4">
+                    <p className="text-gray-700">
+                      This window can contain detailed medical diagrams, reference images, or supplementary anatomical information.
+                    </p>
+                    <p className="text-gray-700">
+                      Perfect for displaying additional anatomical views, cross-references, or educational materials during clinical examination.
+                    </p>
+                    <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-blue-800 font-semibold">Professional Reference Tools</p>
+                      <p className="text-sm text-blue-600 mt-1">
+                        Access detailed muscle diagrams, nerve pathways, and vascular structures
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
           
           {/* Professional Action Bar */}
