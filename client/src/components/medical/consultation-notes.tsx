@@ -897,9 +897,9 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                 {/* Facial Diagram ABOVE the Anatomical Reference Window Header */}
                 <div className="flex justify-center mb-6">
                   <img 
-                    src="@assets/image_1753862379495.png" 
-                    alt="Digital Facial Assessment Interface" 
-                    className="w-64 h-80 object-contain bg-white border border-gray-300 rounded-lg shadow-sm"
+                    src="@assets/image_1753874479898.png" 
+                    alt="Facial Diagram" 
+                    className="w-64 h-80 object-contain"
                   />
                 </div>
 
