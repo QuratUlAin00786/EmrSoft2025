@@ -865,9 +865,27 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
             {showRightPanel && (
               <div className="xl:col-span-4 bg-gradient-to-br from-green-50 to-blue-50 p-5 rounded-xl border-2 border-green-200 transition-all duration-500 transform animate-in slide-in-from-right">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-green-600 rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-gray-800">Anatomical Reference Window</h3>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setShowRightPanel(false)}
+                      className="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-blue-500"
+                    >
+                      <svg 
+                        width="20" 
+                        height="20" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="3"
+                        className="text-white"
+                      >
+                        <path d="M15 18l-6-6 6-6" />
+                      </svg>
+                    </button>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-green-600 rounded-full"></div>
+                      <h3 className="text-lg font-semibold text-gray-800">Anatomical Reference Window</h3>
+                    </div>
                   </div>
                   <button
                     onClick={() => setShowRightPanel(false)}
