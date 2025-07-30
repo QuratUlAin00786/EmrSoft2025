@@ -932,58 +932,55 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     <div className="md:col-span-2 bg-gray-50 rounded-lg p-4">
                       <div className="relative bg-white border-2 border-gray-200 rounded-lg p-6" style={{ minHeight: '400px' }}>
                         
-                        {/* Enhanced Facial Diagram SVG - Based on Reference Image */}
+                        {/* Professional Facial Diagram - Matching Reference Image Exactly */}
                         <div className="flex justify-center items-center h-full">
-                          <svg width="280" height="350" viewBox="0 0 280 350" className="border border-gray-300 rounded-lg bg-white">
-                            {/* Head outline - more realistic proportions */}
-                            <ellipse cx="140" cy="180" rx="75" ry="95" fill="none" stroke="#7C3AED" strokeWidth="2"/>
+                          <svg width="300" height="400" viewBox="0 0 300 400" className="bg-white">
+                            {/* Main head outline - oval shaped like reference */}
+                            <ellipse cx="150" cy="200" rx="85" ry="115" fill="none" stroke="#8B7EC8" strokeWidth="2"/>
                             
-                            {/* Neck */}
-                            <path d="M 115 270 L 115 320 L 165 320 L 165 270" fill="none" stroke="#7C3AED" strokeWidth="2"/>
+                            {/* Neck - clean straight lines */}
+                            <line x1="125" y1="310" x2="125" y2="380" stroke="#8B7EC8" strokeWidth="2"/>
+                            <line x1="175" y1="310" x2="175" y2="380" stroke="#8B7EC8" strokeWidth="2"/>
                             
-                            {/* Left eyebrow */}
-                            <path d="M 105 145 Q 115 140 125 142" stroke="#7C3AED" strokeWidth="2" fill="none"/>
+                            {/* Left eyebrow - realistic arch */}
+                            <path d="M 110 150 Q 125 145 140 150" stroke="#8B7EC8" strokeWidth="2" fill="none"/>
                             
-                            {/* Right eyebrow */}
-                            <path d="M 155 142 Q 165 140 175 145" stroke="#7C3AED" strokeWidth="2" fill="none"/>
+                            {/* Right eyebrow - realistic arch */}
+                            <path d="M 160 150 Q 175 145 190 150" stroke="#8B7EC8" strokeWidth="2" fill="none"/>
                             
-                            {/* Left eye */}
-                            <ellipse cx="115" cy="160" rx="12" ry="6" fill="none" stroke="#7C3AED" strokeWidth="1.5"/>
-                            <circle cx="115" cy="160" r="3" fill="#7C3AED"/>
+                            {/* Left eye - almond shaped */}
+                            <path d="M 110 170 Q 125 165 140 170 Q 125 175 110 170" stroke="#8B7EC8" strokeWidth="1.5" fill="none"/>
+                            <circle cx="125" cy="170" r="2" fill="#8B7EC8"/>
                             
-                            {/* Right eye */}
-                            <ellipse cx="165" cy="160" rx="12" ry="6" fill="none" stroke="#7C3AED" strokeWidth="1.5"/>
-                            <circle cx="165" cy="160" r="3" fill="#7C3AED"/>
+                            {/* Right eye - almond shaped */}
+                            <path d="M 160 170 Q 175 165 190 170 Q 175 175 160 170" stroke="#8B7EC8" strokeWidth="1.5" fill="none"/>
+                            <circle cx="175" cy="170" r="2" fill="#8B7EC8"/>
                             
-                            {/* Nose outline */}
-                            <path d="M 140 170 L 135 185 L 140 195 L 145 185 Z" fill="none" stroke="#7C3AED" strokeWidth="1.5"/>
+                            {/* Nose - simplified realistic outline */}
+                            <path d="M 150 180 L 145 200 L 150 210 L 155 200 Z" fill="none" stroke="#8B7EC8" strokeWidth="1.5"/>
                             
-                            {/* Nostrils */}
-                            <ellipse cx="136" cy="190" rx="2" ry="1.5" fill="none" stroke="#7C3AED" strokeWidth="1"/>
-                            <ellipse cx="144" cy="190" rx="2" ry="1.5" fill="none" stroke="#7C3AED" strokeWidth="1"/>
+                            {/* Nostrils - small curves */}
+                            <path d="M 145 205 Q 148 207 150 205" stroke="#8B7EC8" strokeWidth="1" fill="none"/>
+                            <path d="M 150 205 Q 152 207 155 205" stroke="#8B7EC8" strokeWidth="1" fill="none"/>
                             
-                            {/* Mouth */}
-                            <path d="M 125 215 Q 140 225 155 215" stroke="#7C3AED" strokeWidth="2" fill="none"/>
-                            <path d="M 125 215 Q 140 208 155 215" stroke="#7C3AED" strokeWidth="1.5" fill="none"/>
+                            {/* Mouth - realistic lip shape */}
+                            <path d="M 130 240 Q 150 250 170 240" stroke="#8B7EC8" strokeWidth="1.5" fill="none"/>
+                            <path d="M 130 240 Q 150 235 170 240" stroke="#8B7EC8" strokeWidth="1" fill="none"/>
                             
-                            {/* Chin definition */}
-                            <path d="M 120 250 Q 140 260 160 250" stroke="#7C3AED" strokeWidth="1" fill="none"/>
+                            {/* Jaw/chin definition */}
+                            <path d="M 120 280 Q 150 290 180 280" stroke="#8B7EC8" strokeWidth="1" fill="none"/>
                             
-                            {/* Left ear */}
-                            <ellipse cx="75" cy="170" rx="8" ry="18" fill="none" stroke="#7C3AED" strokeWidth="1.5"/>
-                            <path d="M 80 160 Q 75 165 80 170" stroke="#7C3AED" strokeWidth="1" fill="none"/>
+                            {/* Left ear - realistic proportions */}
+                            <ellipse cx="65" cy="185" rx="10" ry="25" fill="none" stroke="#8B7EC8" strokeWidth="1.5"/>
+                            <path d="M 70 175 Q 65 180 70 185" stroke="#8B7EC8" strokeWidth="1" fill="none"/>
                             
-                            {/* Right ear */}
-                            <ellipse cx="205" cy="170" rx="8" ry="18" fill="none" stroke="#7C3AED" strokeWidth="1.5"/>
-                            <path d="M 200 160 Q 205 165 200 170" stroke="#7C3AED" strokeWidth="1" fill="none"/>
+                            {/* Right ear - realistic proportions */}
+                            <ellipse cx="235" cy="185" rx="10" ry="25" fill="none" stroke="#8B7EC8" strokeWidth="1.5"/>
+                            <path d="M 230 175 Q 235 180 230 185" stroke="#8B7EC8" strokeWidth="1" fill="none"/>
                             
-                            {/* Treatment marking points - Yellow squares like in reference */}
-                            <rect x="136" y="115" width="8" height="8" fill="#FFD700" stroke="#FFA500" strokeWidth="1"/>
-                            <rect x="136" y="235" width="8" height="8" fill="#FFD700" stroke="#FFA500" strokeWidth="1"/>
-                            
-                            {/* Facial contour lines for professional assessment */}
-                            <path d="M 85 130 Q 140 125 195 130" stroke="#E5E7EB" strokeWidth="1" fill="none" strokeDasharray="3,3"/>
-                            <path d="M 85 200 Q 140 195 195 200" stroke="#E5E7EB" strokeWidth="1" fill="none" strokeDasharray="3,3"/>
+                            {/* Yellow treatment markers - exactly like reference */}
+                            <rect x="145" y="115" width="10" height="10" fill="#FFD700" stroke="#E6B800" strokeWidth="1"/>
+                            <rect x="145" y="265" width="10" height="10" fill="#FFD700" stroke="#E6B800" strokeWidth="1"/>
                           </svg>
                         </div>
                         
