@@ -739,13 +739,15 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                   <button
                     onClick={() => {
                       // Calculate position to open window to the right of current window
-                      const currentWidth = window.outerWidth;
-                      const currentLeft = window.screenX || window.screenLeft || 0;
-                      const newLeft = currentLeft + currentWidth + 10; // 10px gap
-                      const newTop = window.screenY || window.screenTop || 0;
+                      const currentWidth = window.outerWidth || 1200;
+                      const currentLeft = window.screenX ?? window.screenLeft ?? 0;
+                      const currentTop = window.screenY ?? window.screenTop ?? 0;
+                      const newLeft = currentLeft + currentWidth + 20; // 20px gap for better separation
+                      const newTop = currentTop; // Same vertical position
                       
-                      // Open new window positioned to the right
-                      const newWindow = window.open('', '_blank', `width=800,height=600,left=${newLeft},top=${newTop},scrollbars=yes,resizable=yes`);
+                      // Open new window positioned to the right with explicit positioning
+                      const windowFeatures = `width=800,height=600,left=${newLeft},top=${newTop},scrollbars=yes,resizable=yes,location=no,menubar=no,toolbar=no,status=no`;
+                      const newWindow = window.open('', '_blank', windowFeatures);
                       if (newWindow) {
                         newWindow.document.write(`
                           <html>
