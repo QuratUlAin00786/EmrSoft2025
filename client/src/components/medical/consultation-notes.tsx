@@ -896,34 +896,11 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                 
                 {/* Facial Diagram ABOVE the Anatomical Reference Window Header */}
                 <div className="flex justify-center mb-6">
-                  <svg width="256" height="320" viewBox="0 0 256 320" className="border border-gray-300 rounded-lg bg-white">
-                    {/* Face outline */}
-                    <ellipse cx="128" cy="160" rx="80" ry="120" fill="none" stroke="#333" strokeWidth="2"/>
-                    
-                    {/* Eyes */}
-                    <ellipse cx="108" cy="130" rx="12" ry="8" fill="none" stroke="#333" strokeWidth="1.5"/>
-                    <ellipse cx="148" cy="130" rx="12" ry="8" fill="none" stroke="#333" strokeWidth="1.5"/>
-                    
-                    {/* Nose */}
-                    <path d="M 128 140 L 125 155 L 128 160 L 131 155 Z" fill="none" stroke="#333" strokeWidth="1.5"/>
-                    
-                    {/* Mouth */}
-                    <path d="M 115 185 Q 128 195 141 185" fill="none" stroke="#333" strokeWidth="1.5"/>
-                    
-                    {/* Facial muscle reference points */}
-                    <circle cx="95" cy="120" r="2" fill="#666"/>
-                    <circle cx="161" cy="120" r="2" fill="#666"/>
-                    <circle cx="108" cy="110" r="2" fill="#666"/>
-                    <circle cx="148" cy="110" r="2" fill="#666"/>
-                    
-                    {/* Muscle labels */}
-                    <text x="95" y="115" fontSize="8" fill="#666" textAnchor="middle">Temporalis</text>
-                    <text x="161" y="115" fontSize="8" fill="#666" textAnchor="middle">Temporalis</text>
-                    <text x="128" y="100" fontSize="8" fill="#666" textAnchor="middle">Frontalis</text>
-                    <text x="85" y="175" fontSize="8" fill="#666" textAnchor="middle">Zygomaticus</text>
-                    <text x="171" y="175" fontSize="8" fill="#666" textAnchor="middle">Zygomaticus</text>
-                    <text x="128" y="210" fontSize="8" fill="#666" textAnchor="middle">Mentalis</text>
-                  </svg>
+                  <img 
+                    src="/facial-diagram.png" 
+                    alt="Facial Anatomy Diagram" 
+                    className="w-64 h-80 object-contain rounded-lg border border-gray-300"
+                  />
                 </div>
 
                 <div className="flex items-center justify-between mb-4">
