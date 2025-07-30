@@ -56,6 +56,10 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
   const [showAnatomicalViewer, setShowAnatomicalViewer] = useState(false);
   const [selectedFacialFeatures, setSelectedFacialFeatures] = useState<string[]>([]);
   const [showRightPanel, setShowRightPanel] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [symmetryRating, setSymmetryRating] = useState<number>(0);
+  const [patientSignature, setPatientSignature] = useState<string>('');
+  const [ratingType, setRatingType] = useState<string>('Face');
 
   const [activeTab, setActiveTab] = useState("basic");
   const queryClient = useQueryClient();
@@ -63,6 +67,31 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
 
   const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Image upload handler for sculp images
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const newImages: string[] = [];
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          if (e.target?.result) {
+            newImages.push(e.target.result as string);
+            if (newImages.length === files.length) {
+              setUploadedImages(prev => [...prev, ...newImages]);
+            }
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  };
+
+  // Remove uploaded image
+  const removeImage = (index: number) => {
+    setUploadedImages(prev => prev.filter((_, i) => i !== index));
+  };
 
   useEffect(() => {
     const fetchMedicalRecords = async () => {
@@ -895,22 +924,204 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                   </button>
                 </div>
                 
-                <div className="bg-white rounded-lg p-6 shadow-md">
-                  <h4 className="text-xl font-bold text-blue-800 mb-4 text-center">
-                    Additional Anatomical Reference Content
-                  </h4>
-                  <div className="text-center space-y-4">
-                    <p className="text-gray-700">
-                      This window can contain detailed medical diagrams, reference images, or supplementary anatomical information.
-                    </p>
-                    <p className="text-gray-700">
-                      Perfect for displaying additional anatomical views, cross-references, or educational materials during clinical examination.
-                    </p>
-                    <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="text-blue-800 font-semibold">Professional Reference Tools</p>
-                      <p className="text-sm text-blue-600 mt-1">
-                        Access detailed muscle diagrams, nerve pathways, and vascular structures
-                      </p>
+                {/* Digital Facial Assessment Interface - Slide 2 */}
+                <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
+                    
+                    {/* Left Section - Face Diagram */}
+                    <div className="md:col-span-2 bg-gray-50 rounded-lg p-4">
+                      <div className="relative bg-white border-2 border-gray-200 rounded-lg p-6" style={{ minHeight: '400px' }}>
+                        
+                        {/* Facial Diagram SVG */}
+                        <div className="flex justify-center items-center h-full">
+                          <svg width="250" height="300" viewBox="0 0 250 300" className="border border-gray-300 rounded-lg bg-white">
+                            {/* Head outline */}
+                            <ellipse cx="125" cy="150" rx="80" ry="100" fill="none" stroke="#8B5CF6" strokeWidth="2"/>
+                            
+                            {/* Forehead area */}
+                            <ellipse cx="125" cy="80" rx="60" ry="25" fill="none" stroke="#8B5CF6" strokeWidth="1"/>
+                            
+                            {/* Eyes */}
+                            <ellipse cx="105" cy="130" rx="15" ry="8" fill="none" stroke="#8B5CF6" strokeWidth="1"/>
+                            <ellipse cx="145" cy="130" rx="15" ry="8" fill="none" stroke="#8B5CF6" strokeWidth="1"/>
+                            <circle cx="105" cy="130" r="3" fill="#8B5CF6"/>
+                            <circle cx="145" cy="130" r="3" fill="#8B5CF6"/>
+                            
+                            {/* Eyebrows */}
+                            <path d="M 90 120 Q 105 115 120 120" stroke="#8B5CF6" strokeWidth="2" fill="none"/>
+                            <path d="M 130 120 Q 145 115 160 120" stroke="#8B5CF6" strokeWidth="2" fill="none"/>
+                            
+                            {/* Nose */}
+                            <path d="M 125 140 L 120 160 L 125 165 L 130 160 Z" fill="none" stroke="#8B5CF6" strokeWidth="1"/>
+                            <ellipse cx="120" cy="162" rx="2" ry="1" fill="#8B5CF6"/>
+                            <ellipse cx="130" cy="162" rx="2" ry="1" fill="#8B5CF6"/>
+                            
+                            {/* Mouth */}
+                            <path d="M 110 190 Q 125 200 140 190" stroke="#8B5CF6" strokeWidth="2" fill="none"/>
+                            
+                            {/* Chin */}
+                            <ellipse cx="125" cy="220" rx="25" ry="15" fill="none" stroke="#8B5CF6" strokeWidth="1"/>
+                            
+                            {/* Ears */}
+                            <ellipse cx="70" cy="140" rx="8" ry="20" fill="none" stroke="#8B5CF6" strokeWidth="1"/>
+                            <ellipse cx="180" cy="140" rx="8" ry="20" fill="none" stroke="#8B5CF6" strokeWidth="1"/>
+                            
+                            {/* Marking points for treatment areas */}
+                            <circle cx="125" cy="70" r="4" fill="#FFD700" stroke="#FFA500" strokeWidth="1"/>
+                            <circle cx="125" cy="200" r="4" fill="#FFD700" stroke="#FFA500" strokeWidth="1"/>
+                          </svg>
+                        </div>
+                        
+                        {/* Warning and consent text */}
+                        <div className="absolute bottom-4 left-4 right-4">
+                          <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-3">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                                <span className="text-white text-sm font-bold">!</span>
+                              </div>
+                              <span className="text-red-800 font-semibold text-sm">Are you sure you want proceed?</span>
+                            </div>
+                            <div className="text-xs text-red-700 mt-2 space-y-1">
+                              <p>⚠ You have confirmed No action that taking 3 may only carry in procedures.</p>
+                              <p>⚠ You haven't taken any Botox rather photos.</p>
+                              <p>⚠ You haven't edited any more tips to far age.</p>
+                              <p className="mt-2">Once you finish the consultation you won't be able to return to this section to make changes.</p>
+                            </div>
+                          </div>
+                          
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <div className="text-sm text-blue-800 mb-2">Please sign</div>
+                            <div className="text-xs text-blue-700 mb-3">
+                              I confirm I have read the details, I understand the procedure & risks and my practitioner 
+                              has explained in detail any medical risks.
+                            </div>
+                            
+                            {/* Signature area */}
+                            <div className="bg-white border border-gray-300 rounded p-3 min-h-[80px] relative">
+                              {patientSignature ? (
+                                <div className="font-cursive text-2xl text-blue-800">{patientSignature}</div>
+                              ) : (
+                                <div className="text-gray-400 text-sm">Signature area - click to sign</div>
+                              )}
+                              <input
+                                type="text"
+                                value={patientSignature}
+                                onChange={(e) => setPatientSignature(e.target.value)}
+                                placeholder="Patient signature..."
+                                className="absolute inset-0 opacity-0 cursor-pointer"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Section - Options and Upload */}
+                    <div className="space-y-4">
+                      
+                      {/* Rating Section */}
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <div className="text-center mb-3">
+                          <div className="bg-white rounded-full px-3 py-1 text-sm font-semibold text-gray-700 inline-block">
+                            RATINGS
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div className="text-center">
+                            <div className="bg-blue-100 rounded-lg px-3 py-2 mb-2">
+                              <span className="text-blue-800 font-medium text-sm">{ratingType}</span>
+                            </div>
+                          </div>
+                          
+                          <div className="text-center mb-3">
+                            <div className="text-xs text-gray-600 mb-2">SYMMETRY</div>
+                            <div className="flex justify-center space-x-2">
+                              {[0, 1, 2, 3, 4, 5].map((rating) => (
+                                <button
+                                  key={rating}
+                                  onClick={() => setSymmetryRating(rating)}
+                                  className={`w-8 h-8 rounded-full border-2 text-sm font-semibold transition-all ${
+                                    symmetryRating === rating
+                                      ? 'bg-blue-500 text-white border-blue-500'
+                                      : 'bg-white text-gray-600 border-gray-300 hover:border-blue-300'
+                                  }`}
+                                >
+                                  {rating}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Photo Upload Section */}
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <div className="text-center mb-3">
+                          <div className="text-xs text-gray-600 mb-2">PATIENT TREATMENT PHOTOS</div>
+                        </div>
+                        
+                        {/* Uploaded Images Grid */}
+                        <div className="grid grid-cols-2 gap-2 mb-3">
+                          {uploadedImages.map((image, index) => (
+                            <div key={index} className="relative">
+                              <img 
+                                src={image} 
+                                alt={`Uploaded ${index + 1}`}
+                                className="w-full h-16 object-cover rounded border border-gray-300"
+                              />
+                              <button
+                                onClick={() => removeImage(index)}
+                                className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                          
+                          {/* Add Photo Button */}
+                          <label className="flex items-center justify-center w-full h-16 border-2 border-dashed border-gray-300 rounded cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all">
+                            <div className="text-center">
+                              <div className="text-2xl text-gray-400 mb-1">+</div>
+                            </div>
+                            <input
+                              type="file"
+                              multiple
+                              accept="image/*"
+                              onChange={handleImageUpload}
+                              className="hidden"
+                            />
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="space-y-2">
+                        <Button 
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                          onClick={() => {
+                            toast({
+                              title: "Assessment Saved",
+                              description: "Digital facial assessment data has been saved to patient record."
+                            });
+                          }}
+                        >
+                          Save Assessment
+                        </Button>
+                        
+                        <Button 
+                          variant="outline" 
+                          className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
+                          onClick={() => {
+                            toast({
+                              title: "Assessment Complete",
+                              description: "Digital assessment finalized and ready for next steps."
+                            });
+                          }}
+                        >
+                          Next
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
