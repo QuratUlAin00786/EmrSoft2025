@@ -737,8 +737,14 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                   {/* Small Right Arrow Button */}
                   <button
                     onClick={() => {
-                      // Open new window with anatomical reference
-                      const newWindow = window.open('', '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+                      // Calculate position to open window to the right of current window
+                      const currentWidth = window.outerWidth;
+                      const currentLeft = window.screenX || window.screenLeft || 0;
+                      const newLeft = currentLeft + currentWidth + 10; // 10px gap
+                      const newTop = window.screenY || window.screenTop || 0;
+                      
+                      // Open new window positioned to the right
+                      const newWindow = window.open('', '_blank', `width=800,height=600,left=${newLeft},top=${newTop},scrollbars=yes,resizable=yes`);
                       if (newWindow) {
                         newWindow.document.write(`
                           <html>
