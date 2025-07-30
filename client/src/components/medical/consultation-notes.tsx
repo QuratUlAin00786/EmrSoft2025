@@ -896,54 +896,11 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                 
                 {/* Facial Diagram ABOVE the Anatomical Reference Window Header */}
                 <div className="flex justify-center mb-6">
-                  <svg width="200" height="260" viewBox="0 0 300 400" className="bg-white border border-gray-300 rounded-lg shadow-sm">
-                    {/* Main head outline - oval shaped like reference */}
-                    <ellipse cx="150" cy="200" rx="85" ry="115" fill="none" stroke="#8B7EC8" strokeWidth="2"/>
-                    
-                    {/* Neck - clean straight lines */}
-                    <line x1="125" y1="310" x2="125" y2="380" stroke="#8B7EC8" strokeWidth="2"/>
-                    <line x1="175" y1="310" x2="175" y2="380" stroke="#8B7EC8" strokeWidth="2"/>
-                    
-                    {/* Left eyebrow - realistic arch */}
-                    <path d="M 110 150 Q 125 145 140 150" stroke="#8B7EC8" strokeWidth="2" fill="none"/>
-                    
-                    {/* Right eyebrow - realistic arch */}
-                    <path d="M 160 150 Q 175 145 190 150" stroke="#8B7EC8" strokeWidth="2" fill="none"/>
-                    
-                    {/* Left eye - almond shaped */}
-                    <path d="M 110 170 Q 125 165 140 170 Q 125 175 110 170" stroke="#8B7EC8" strokeWidth="1.5" fill="none"/>
-                    <circle cx="125" cy="170" r="2" fill="#8B7EC8"/>
-                    
-                    {/* Right eye - almond shaped */}
-                    <path d="M 160 170 Q 175 165 190 170 Q 175 175 160 170" stroke="#8B7EC8" strokeWidth="1.5" fill="none"/>
-                    <circle cx="175" cy="170" r="2" fill="#8B7EC8"/>
-                    
-                    {/* Nose - simplified realistic outline */}
-                    <path d="M 150 180 L 145 200 L 150 210 L 155 200 Z" fill="none" stroke="#8B7EC8" strokeWidth="1.5"/>
-                    
-                    {/* Nostrils - small curves */}
-                    <path d="M 145 205 Q 148 207 150 205" stroke="#8B7EC8" strokeWidth="1" fill="none"/>
-                    <path d="M 150 205 Q 152 207 155 205" stroke="#8B7EC8" strokeWidth="1" fill="none"/>
-                    
-                    {/* Mouth - realistic lip shape */}
-                    <path d="M 130 240 Q 150 250 170 240" stroke="#8B7EC8" strokeWidth="1.5" fill="none"/>
-                    <path d="M 130 240 Q 150 235 170 240" stroke="#8B7EC8" strokeWidth="1" fill="none"/>
-                    
-                    {/* Jaw/chin definition */}
-                    <path d="M 120 280 Q 150 290 180 280" stroke="#8B7EC8" strokeWidth="1" fill="none"/>
-                    
-                    {/* Left ear - realistic proportions */}
-                    <ellipse cx="65" cy="185" rx="10" ry="25" fill="none" stroke="#8B7EC8" strokeWidth="1.5"/>
-                    <path d="M 70 175 Q 65 180 70 185" stroke="#8B7EC8" strokeWidth="1" fill="none"/>
-                    
-                    {/* Right ear - realistic proportions */}
-                    <ellipse cx="235" cy="185" rx="10" ry="25" fill="none" stroke="#8B7EC8" strokeWidth="1.5"/>
-                    <path d="M 230 175 Q 235 180 230 185" stroke="#8B7EC8" strokeWidth="1" fill="none"/>
-                    
-                    {/* Yellow treatment markers - exactly like reference */}
-                    <rect x="145" y="115" width="10" height="10" fill="#FFD700" stroke="#E6B800" strokeWidth="1"/>
-                    <rect x="145" y="265" width="10" height="10" fill="#FFD700" stroke="#E6B800" strokeWidth="1"/>
-                  </svg>
+                  <img 
+                    src="@assets/image_1753871558101.png" 
+                    alt="Professional Facial Anatomical Diagram" 
+                    className="w-48 h-64 object-contain bg-white border border-gray-300 rounded-lg shadow-sm"
+                  />
                 </div>
 
                 <div className="flex items-center justify-between mb-4">
