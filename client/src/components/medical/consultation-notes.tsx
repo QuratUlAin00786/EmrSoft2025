@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -735,86 +735,58 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     }}
                   />
                   
-                  {/* Anatomical Options Dropdown */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        className="absolute right-2 top-2 bg-white border border-gray-300 rounded-full p-2 shadow-md hover:bg-gray-50 hover:shadow-lg transition-all duration-200"
-                        title="Anatomical reference options"
-                      >
-                        <svg 
-                          width="16" 
-                          height="16" 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          strokeWidth="2"
-                          className="text-gray-600"
-                        >
-                          <path d="M9 18l6-6-6-6" />
-                        </svg>
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuItem 
-                        onClick={() => {
-                          // Calculate position to open window to the right of current window
-                          const currentWidth = window.outerWidth;
-                          const currentLeft = window.screenX || window.screenLeft || 0;
-                          const newLeft = currentLeft + currentWidth + 10; // 10px gap
-                          const newTop = window.screenY || window.screenTop || 0;
-                          
-                          // Open new window positioned to the right
-                          const newWindow = window.open('', '_blank', `width=800,height=600,left=${newLeft},top=${newTop},scrollbars=yes,resizable=yes`);
-                          if (newWindow) {
-                            newWindow.document.write(`
-                              <html>
-                                <head>
-                                  <title>Anatomical Reference - Cura EMR</title>
-                                  <style>
-                                    body { font-family: Arial, sans-serif; margin: 20px; background: #f8f9fa; }
-                                    .container { max-width: 700px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-                                    h1 { color: #2563eb; text-align: center; }
-                                    .content { text-align: center; padding: 20px; }
-                                  </style>
-                                </head>
-                                <body>
-                                  <div class="container">
-                                    <h1>Anatomical Reference Window</h1>
-                                    <div class="content">
-                                      <p>Additional anatomical reference content would be displayed here.</p>
-                                      <p>This window can contain detailed medical diagrams, reference images, or supplementary anatomical information.</p>
-                                    </div>
-                                  </div>
-                                </body>
-                              </html>
-                            `);
-                            newWindow.document.close();
-                          }
-                        }}
-                        className="cursor-pointer"
-                      >
-                        <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M12 2v20M2 12h20" />
-                        </svg>
-                        Open Reference Window
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => {
-                          toast({
-                            title: "Feature Coming Soon",
-                            description: "Additional anatomical tools will be available in future updates.",
-                          });
-                        }}
-                        className="cursor-pointer"
-                      >
-                        <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M9 12l2 2 4-4" />
-                        </svg>
-                        Anatomical Tools
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  {/* Right Arrow Button - Swipe to New Window */}
+                  <button
+                    onClick={() => {
+                      // Calculate position to open window to the right of current window
+                      const currentWidth = window.outerWidth;
+                      const currentLeft = window.screenX || window.screenLeft || 0;
+                      const newLeft = currentLeft + currentWidth + 10; // 10px gap
+                      const newTop = window.screenY || window.screenTop || 0;
+                      
+                      // Open new window positioned to the right
+                      const newWindow = window.open('', '_blank', `width=800,height=600,left=${newLeft},top=${newTop},scrollbars=yes,resizable=yes`);
+                      if (newWindow) {
+                        newWindow.document.write(`
+                          <html>
+                            <head>
+                              <title>Anatomical Reference - Cura EMR</title>
+                              <style>
+                                body { font-family: Arial, sans-serif; margin: 20px; background: #f8f9fa; }
+                                .container { max-width: 700px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+                                h1 { color: #2563eb; text-align: center; }
+                                .content { text-align: center; padding: 20px; }
+                              </style>
+                            </head>
+                            <body>
+                              <div class="container">
+                                <h1>Anatomical Reference Window</h1>
+                                <div class="content">
+                                  <p>Additional anatomical reference content would be displayed here.</p>
+                                  <p>This window can contain detailed medical diagrams, reference images, or supplementary anatomical information.</p>
+                                </div>
+                              </div>
+                            </body>
+                          </html>
+                        `);
+                        newWindow.document.close();
+                      }
+                    }}
+                    className="absolute right-2 top-2 bg-white border border-gray-300 rounded-full p-2 shadow-md hover:bg-gray-50 hover:shadow-lg transition-all duration-200"
+                    title="Swipe right to open anatomical reference window"
+                  >
+                    <svg 
+                      width="16" 
+                      height="16" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2"
+                      className="text-gray-600"
+                    >
+                      <path d="M9 18l6-6-6-6" />
+                    </svg>
+                  </button>
                 </div>
                 
                 {/* Professional Medical Diagram Label */}
