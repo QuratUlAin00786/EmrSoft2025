@@ -644,7 +644,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setShowAnatomicalViewer(false)}
-                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-full transition-all duration-200 font-semibold text-sm shadow-lg hover:shadow-xl border-2 border-blue-500"
+                  className="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-blue-500"
                 >
                   <svg 
                     width="20" 
@@ -657,7 +657,6 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                   >
                     <path d="M15 18l-6-6 6-6" />
                   </svg>
-                  Back
                 </button>
                 <DialogTitle className="text-2xl font-bold text-blue-800 flex items-center gap-2">
                   <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
