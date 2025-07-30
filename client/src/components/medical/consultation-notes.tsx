@@ -773,219 +773,25 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
 
             </div>
 
-            {/* Center Panel - Interactive Face Diagram */}
+            {/* Center Panel - Professional Medical Diagram (Realistic Head Sketch with Labels) */}
             <div className={`xl:col-span-2 relative transition-transform duration-500 ${showRightPanel ? '-translate-x-full' : 'translate-x-0'}`}>
               <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg">
                 <div className="bg-gradient-to-b from-blue-50 to-white rounded-lg p-4 min-h-[600px] flex items-center justify-center relative">
-                  
-                  {/* Interactive Face SVG Diagram */}
-                  <div className="relative w-full max-w-lg mx-auto">
-                    <svg 
-                      viewBox="0 0 300 400" 
-                      className="w-full h-auto max-h-[500px]"
-                      style={{ filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))' }}
-                    >
-                      {/* Face outline */}
-                      <ellipse cx="150" cy="200" rx="100" ry="130" fill="#f8f9fa" stroke="#6366f1" strokeWidth="3" />
-                      
-                      {/* Forehead - Frontalis */}
-                      <ellipse 
-                        cx="150" cy="120" rx="80" ry="25" 
-                        fill={selectedFacialFeatures.includes('frontalis') ? '#fef3c7' : 'transparent'}
-                        stroke={selectedFacialFeatures.includes('frontalis') ? '#f59e0b' : 'transparent'}
-                        strokeWidth="2"
-                        className="cursor-pointer hover:fill-yellow-100 transition-all duration-200"
-                        onClick={() => {
-                          if (selectedFacialFeatures.includes('frontalis')) {
-                            setSelectedFacialFeatures(selectedFacialFeatures.filter(f => f !== 'frontalis'));
-                          } else {
-                            setSelectedFacialFeatures([...selectedFacialFeatures, 'frontalis']);
-                          }
-                        }}
-                      />
-                      
-                      {/* Eyes - Orbicularis Oculi */}
-                      <ellipse 
-                        cx="125" cy="160" rx="20" ry="12" 
-                        fill={selectedFacialFeatures.includes('orbicularis_oculi') ? '#dcfce7' : 'white'}
-                        stroke={selectedFacialFeatures.includes('orbicularis_oculi') ? '#22c55e' : '#6b7280'}
-                        strokeWidth="2"
-                        className="cursor-pointer hover:fill-green-100 transition-all duration-200"
-                        onClick={() => {
-                          if (selectedFacialFeatures.includes('orbicularis_oculi')) {
-                            setSelectedFacialFeatures(selectedFacialFeatures.filter(f => f !== 'orbicularis_oculi'));
-                          } else {
-                            setSelectedFacialFeatures([...selectedFacialFeatures, 'orbicularis_oculi']);
-                          }
-                        }}
-                      />
-                      <ellipse 
-                        cx="175" cy="160" rx="20" ry="12" 
-                        fill={selectedFacialFeatures.includes('orbicularis_oculi') ? '#dcfce7' : 'white'}
-                        stroke={selectedFacialFeatures.includes('orbicularis_oculi') ? '#22c55e' : '#6b7280'}
-                        strokeWidth="2"
-                        className="cursor-pointer hover:fill-green-100 transition-all duration-200"
-                        onClick={() => {
-                          if (selectedFacialFeatures.includes('orbicularis_oculi')) {
-                            setSelectedFacialFeatures(selectedFacialFeatures.filter(f => f !== 'orbicularis_oculi'));
-                          } else {
-                            setSelectedFacialFeatures([...selectedFacialFeatures, 'orbicularis_oculi']);
-                          }
-                        }}
-                      />
-                      
-                      {/* Pupils */}
-                      <circle cx="125" cy="160" r="5" fill="#1f2937" />
-                      <circle cx="175" cy="160" r="5" fill="#1f2937" />
-                      
-                      {/* Nose - Nasalis */}
-                      <polygon 
-                        points="150,180 140,200 150,210 160,200" 
-                        fill={selectedFacialFeatures.includes('nasalis') ? '#fde68a' : '#f3f4f6'}
-                        stroke={selectedFacialFeatures.includes('nasalis') ? '#f59e0b' : '#9ca3af'}
-                        strokeWidth="2"
-                        className="cursor-pointer hover:fill-yellow-200 transition-all duration-200"
-                        onClick={() => {
-                          if (selectedFacialFeatures.includes('nasalis')) {
-                            setSelectedFacialFeatures(selectedFacialFeatures.filter(f => f !== 'nasalis'));
-                          } else {
-                            setSelectedFacialFeatures([...selectedFacialFeatures, 'nasalis']);
-                          }
-                        }}
-                      />
-                      
-                      {/* Cheeks - Zygomaticus Major */}
-                      <ellipse 
-                        cx="110" cy="200" rx="25" ry="20" 
-                        fill={selectedFacialFeatures.includes('zygomaticus_major') ? '#fecaca' : 'transparent'}
-                        stroke={selectedFacialFeatures.includes('zygomaticus_major') ? '#ef4444' : 'transparent'}
-                        strokeWidth="2"
-                        className="cursor-pointer hover:fill-red-100 transition-all duration-200"
-                        onClick={() => {
-                          if (selectedFacialFeatures.includes('zygomaticus_major')) {
-                            setSelectedFacialFeatures(selectedFacialFeatures.filter(f => f !== 'zygomaticus_major'));
-                          } else {
-                            setSelectedFacialFeatures([...selectedFacialFeatures, 'zygomaticus_major']);
-                          }
-                        }}
-                      />
-                      <ellipse 
-                        cx="190" cy="200" rx="25" ry="20" 
-                        fill={selectedFacialFeatures.includes('zygomaticus_major') ? '#fecaca' : 'transparent'}
-                        stroke={selectedFacialFeatures.includes('zygomaticus_major') ? '#ef4444' : 'transparent'}
-                        strokeWidth="2"
-                        className="cursor-pointer hover:fill-red-100 transition-all duration-200"
-                        onClick={() => {
-                          if (selectedFacialFeatures.includes('zygomaticus_major')) {
-                            setSelectedFacialFeatures(selectedFacialFeatures.filter(f => f !== 'zygomaticus_major'));
-                          } else {
-                            setSelectedFacialFeatures([...selectedFacialFeatures, 'zygomaticus_major']);
-                          }
-                        }}
-                      />
-                      
-                      {/* Mouth - Orbicularis Oris */}
-                      <ellipse 
-                        cx="150" cy="240" rx="30" ry="12" 
-                        fill={selectedFacialFeatures.includes('orbicularis_oris') ? '#e0e7ff' : '#fde68a'}
-                        stroke={selectedFacialFeatures.includes('orbicularis_oris') ? '#6366f1' : '#f59e0b'}
-                        strokeWidth="2"
-                        className="cursor-pointer hover:fill-indigo-100 transition-all duration-200"
-                        onClick={() => {
-                          if (selectedFacialFeatures.includes('orbicularis_oris')) {
-                            setSelectedFacialFeatures(selectedFacialFeatures.filter(f => f !== 'orbicularis_oris'));
-                          } else {
-                            setSelectedFacialFeatures([...selectedFacialFeatures, 'orbicularis_oris']);
-                          }
-                        }}
-                      />
-                      
-                      {/* Jaw - Masseter */}
-                      <ellipse 
-                        cx="100" cy="250" rx="20" ry="30" 
-                        fill={selectedFacialFeatures.includes('masseter') ? '#ddd6fe' : 'transparent'}
-                        stroke={selectedFacialFeatures.includes('masseter') ? '#8b5cf6' : 'transparent'}
-                        strokeWidth="2"
-                        className="cursor-pointer hover:fill-purple-100 transition-all duration-200"
-                        onClick={() => {
-                          if (selectedFacialFeatures.includes('masseter')) {
-                            setSelectedFacialFeatures(selectedFacialFeatures.filter(f => f !== 'masseter'));
-                          } else {
-                            setSelectedFacialFeatures([...selectedFacialFeatures, 'masseter']);
-                          }
-                        }}
-                      />
-                      <ellipse 
-                        cx="200" cy="250" rx="20" ry="30" 
-                        fill={selectedFacialFeatures.includes('masseter') ? '#ddd6fe' : 'transparent'}
-                        stroke={selectedFacialFeatures.includes('masseter') ? '#8b5cf6' : 'transparent'}
-                        strokeWidth="2"
-                        className="cursor-pointer hover:fill-purple-100 transition-all duration-200"
-                        onClick={() => {
-                          if (selectedFacialFeatures.includes('masseter')) {
-                            setSelectedFacialFeatures(selectedFacialFeatures.filter(f => f !== 'masseter'));
-                          } else {
-                            setSelectedFacialFeatures([...selectedFacialFeatures, 'masseter']);
-                          }
-                        }}
-                      />
-                      
-                      {/* Chin - Mentalis */}
-                      <ellipse 
-                        cx="150" cy="290" rx="25" ry="15" 
-                        fill={selectedFacialFeatures.includes('mentalis') ? '#fed7d7' : 'transparent'}
-                        stroke={selectedFacialFeatures.includes('mentalis') ? '#f56565' : 'transparent'}
-                        strokeWidth="2"
-                        className="cursor-pointer hover:fill-red-100 transition-all duration-200"
-                        onClick={() => {
-                          if (selectedFacialFeatures.includes('mentalis')) {
-                            setSelectedFacialFeatures(selectedFacialFeatures.filter(f => f !== 'mentalis'));
-                          } else {
-                            setSelectedFacialFeatures([...selectedFacialFeatures, 'mentalis']);
-                          }
-                        }}
-                      />
-                      
-                      {/* Temple areas - Temporalis */}
-                      <ellipse 
-                        cx="80" cy="140" rx="15" ry="25" 
-                        fill={selectedFacialFeatures.includes('temporalis') ? '#fef3c7' : 'transparent'}
-                        stroke={selectedFacialFeatures.includes('temporalis') ? '#f59e0b' : 'transparent'}
-                        strokeWidth="2"
-                        className="cursor-pointer hover:fill-yellow-100 transition-all duration-200"
-                        onClick={() => {
-                          if (selectedFacialFeatures.includes('temporalis')) {
-                            setSelectedFacialFeatures(selectedFacialFeatures.filter(f => f !== 'temporalis'));
-                          } else {
-                            setSelectedFacialFeatures([...selectedFacialFeatures, 'temporalis']);
-                          }
-                        }}
-                      />
-                      <ellipse 
-                        cx="220" cy="140" rx="15" ry="25" 
-                        fill={selectedFacialFeatures.includes('temporalis') ? '#fef3c7' : 'transparent'}
-                        stroke={selectedFacialFeatures.includes('temporalis') ? '#f59e0b' : 'transparent'}
-                        strokeWidth="2"
-                        className="cursor-pointer hover:fill-yellow-100 transition-all duration-200"
-                        onClick={() => {
-                          if (selectedFacialFeatures.includes('temporalis')) {
-                            setSelectedFacialFeatures(selectedFacialFeatures.filter(f => f !== 'temporalis'));
-                          } else {
-                            setSelectedFacialFeatures([...selectedFacialFeatures, 'temporalis']);
-                          }
-                        }}
-                      />
-                      
-                      {/* Eyebrows */}
-                      <path d="M 100 145 Q 125 140 145 145" stroke="#4b5563" strokeWidth="3" fill="none" strokeLinecap="round" />
-                      <path d="M 155 145 Q 175 140 200 145" stroke="#4b5563" strokeWidth="3" fill="none" strokeLinecap="round" />
-                    </svg>
-                    
-                    {/* Click instruction */}
-                    <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-medium">
-                      Click facial areas to select muscles
-                    </div>
-                  </div>
+                  <img 
+                    src={anatomicalDiagramImage}
+                    alt="Facial muscle anatomy diagram"
+                    className="w-full max-w-lg mx-auto rounded-lg shadow-md"
+                    style={{
+                      height: '500px',
+                      objectFit: 'cover',
+                      objectPosition: 'center 40%',
+                      clipPath: 'inset(13% 19% 22% 19%)',
+                      transform: 'scale(1.5)',
+                      transformOrigin: 'center',
+                      filter: 'contrast(1.1) brightness(1.05) saturate(1.1)',
+                      imageRendering: 'crisp-edges'
+                    }}
+                  />
                   
                   {/* Right Arrow Button - Slide to Right Panel */}
                   <button
@@ -1011,153 +817,48 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                 <div className="mt-4 text-center">
                   <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-600 text-white text-sm font-semibold shadow-lg">
                     <div className="w-3 h-3 bg-white rounded-full mr-2 animate-pulse"></div>
-                    Interactive Facial Muscle Anatomy
+                    Professional Medical Anatomical Diagram
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Right Panel - Facial Muscle Options */}
-            <div className={`xl:col-span-1 bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-xl border-2 border-blue-200 transition-transform duration-500 ${showRightPanel ? '-translate-x-full' : 'translate-x-0'}`}>
+            {/* Right Panel - Clinical Documentation */}
+            <div className={`xl:col-span-1 bg-gradient-to-br from-yellow-50 to-orange-50 p-5 rounded-xl border-2 border-yellow-200 transition-transform duration-500 ${showRightPanel ? '-translate-x-full' : 'translate-x-0'}`}>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-                <h3 className="text-lg font-semibold text-gray-800">Face</h3>
+                <div className="w-3 h-3 bg-yellow-600 rounded-full"></div>
+                <h3 className="text-lg font-semibold text-gray-800">Clinical Documentation</h3>
               </div>
               
-              {/* Anatomy Rating Scale */}
-              <div className="mb-6 p-4 bg-blue-100 border border-blue-300 rounded-lg">
-                <div className="text-sm font-semibold text-blue-800 mb-2">Anatomy</div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs text-gray-600">0</span>
-                  <div className="flex-1 bg-gray-200 h-2 rounded-full">
-                    <div className="bg-yellow-400 h-2 rounded-full" style={{ width: '60%' }}></div>
+              {/* Treatment Phase */}
+              <div className="mb-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded-r-lg">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">!</span>
                   </div>
-                  <span className="text-xs text-gray-600">5</span>
+                  <div className="text-yellow-800 font-semibold text-sm">Before Treatment Phase</div>
                 </div>
-                <div className="text-xs text-gray-600">Rating: 3/5</div>
+                <div className="text-yellow-700 text-xs">Baseline documentation required</div>
               </div>
               
-              {/* Facial Areas - Based on Second Image */}
-              <div className="space-y-3 mb-6">
-                <Label className="text-sm font-semibold text-gray-700">Add Facial Areas Before Treatment</Label>
-                
-                {/* Grid of facial area thumbnails */}
-                <div className="grid grid-cols-2 gap-2">
-                  {/* Eye Area */}
-                  <div 
-                    className={`border-2 p-3 rounded-lg cursor-pointer transition-all duration-200 ${
-                      selectedFacialFeatures.includes('orbicularis_oculi') 
-                        ? 'border-blue-500 bg-blue-100' 
-                        : 'border-gray-300 bg-white hover:border-blue-300'
-                    }`}
-                    onClick={() => {
-                      if (selectedFacialFeatures.includes('orbicularis_oculi')) {
-                        setSelectedFacialFeatures(selectedFacialFeatures.filter(f => f !== 'orbicularis_oculi'));
-                      } else {
-                        setSelectedFacialFeatures([...selectedFacialFeatures, 'orbicularis_oculi']);
-                      }
-                    }}
-                  >
-                    <div className="w-full h-12 bg-gradient-to-b from-blue-200 to-blue-300 rounded mb-2 flex items-center justify-center">
-                      <span className="text-xs font-medium">👁️ Eyes</span>
-                    </div>
-                    <div className="text-xs text-center text-gray-600">Orbicularis Oculi</div>
-                  </div>
-                  
-                  {/* Forehead Area */}
-                  <div 
-                    className={`border-2 p-3 rounded-lg cursor-pointer transition-all duration-200 ${
-                      selectedFacialFeatures.includes('frontalis') 
-                        ? 'border-yellow-500 bg-yellow-100' 
-                        : 'border-gray-300 bg-white hover:border-yellow-300'
-                    }`}
-                    onClick={() => {
-                      if (selectedFacialFeatures.includes('frontalis')) {
-                        setSelectedFacialFeatures(selectedFacialFeatures.filter(f => f !== 'frontalis'));
-                      } else {
-                        setSelectedFacialFeatures([...selectedFacialFeatures, 'frontalis']);
-                      }
-                    }}
-                  >
-                    <div className="w-full h-12 bg-gradient-to-b from-yellow-200 to-yellow-300 rounded mb-2 flex items-center justify-center">
-                      <span className="text-xs font-medium">Forehead</span>
-                    </div>
-                    <div className="text-xs text-center text-gray-600">Frontalis</div>
-                  </div>
-                  
-                  {/* Cheek Area */}
-                  <div 
-                    className={`border-2 p-3 rounded-lg cursor-pointer transition-all duration-200 ${
-                      selectedFacialFeatures.includes('zygomaticus_major') 
-                        ? 'border-red-500 bg-red-100' 
-                        : 'border-gray-300 bg-white hover:border-red-300'
-                    }`}
-                    onClick={() => {
-                      if (selectedFacialFeatures.includes('zygomaticus_major')) {
-                        setSelectedFacialFeatures(selectedFacialFeatures.filter(f => f !== 'zygomaticus_major'));
-                      } else {
-                        setSelectedFacialFeatures([...selectedFacialFeatures, 'zygomaticus_major']);
-                      }
-                    }}
-                  >
-                    <div className="w-full h-12 bg-gradient-to-b from-red-200 to-red-300 rounded mb-2 flex items-center justify-center">
-                      <span className="text-xs font-medium">Cheeks</span>
-                    </div>
-                    <div className="text-xs text-center text-gray-600">Zygomaticus</div>
-                  </div>
-                  
-                  {/* Jaw Area */}
-                  <div 
-                    className={`border-2 p-3 rounded-lg cursor-pointer transition-all duration-200 ${
-                      selectedFacialFeatures.includes('masseter') 
-                        ? 'border-purple-500 bg-purple-100' 
-                        : 'border-gray-300 bg-white hover:border-purple-300'
-                    }`}
-                    onClick={() => {
-                      if (selectedFacialFeatures.includes('masseter')) {
-                        setSelectedFacialFeatures(selectedFacialFeatures.filter(f => f !== 'masseter'));
-                      } else {
-                        setSelectedFacialFeatures([...selectedFacialFeatures, 'masseter']);
-                      }
-                    }}
-                  >
-                    <div className="w-full h-12 bg-gradient-to-b from-purple-200 to-purple-300 rounded mb-2 flex items-center justify-center">
-                      <span className="text-xs font-medium">Jaw</span>
-                    </div>
-                    <div className="text-xs text-center text-gray-600">Masseter</div>
-                  </div>
-                </div>
-                
-                {/* Add More Button */}
-                <button className="w-full border-2 border-dashed border-gray-300 hover:border-blue-400 rounded-lg p-4 flex items-center justify-center gap-2 transition-all duration-200 hover:bg-blue-50">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-500">
-                    <path d="M12 5v14M5 12h14" />
-                  </svg>
-                  <span className="text-sm text-gray-600 font-medium">Add More Areas</span>
-                </button>
-                
-              </div>
+
               
-              {/* Selected Areas Summary */}
-              {selectedFacialFeatures.length > 0 && (
-                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="text-sm font-semibold text-green-800 mb-1">
-                    Selected Areas ({selectedFacialFeatures.length})
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    {selectedFacialFeatures.slice(0, 3).map((feature, index) => (
-                      <span key={index} className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded">
-                        {feature.replace(/_/g, ' ')}
-                      </span>
-                    ))}
-                    {selectedFacialFeatures.length > 3 && (
-                      <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded">
-                        +{selectedFacialFeatures.length - 3} more
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
+              {/* Clinical Notes */}
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold text-gray-700">Clinical Examination Notes</Label>
+                <Textarea
+                  placeholder="Document muscle condition, asymmetries, treatment areas, contraindications..."
+                  className="text-sm border-2 border-gray-300 focus:border-blue-500"
+                  rows={4}
+                />
+                
+                <Label className="text-sm font-semibold text-gray-700">Treatment Recommendations</Label>
+                <Textarea
+                  placeholder="Recommended procedures, dosage, injection sites, follow-up schedule..."
+                  className="text-sm border-2 border-gray-300 focus:border-blue-500"
+                  rows={3}
+                />
+              </div>
             </div>
 
             {/* Anatomical Reference Panel - Slides in from right */}
