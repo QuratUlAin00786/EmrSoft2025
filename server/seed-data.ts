@@ -295,14 +295,17 @@ export async function seedDatabase() {
       console.log(`Using existing ${existingPatients.length} patients`);
     }
 
-    // Create sample appointments - some for today, some for future
-    const today = new Date();
-    today.setHours(10, 0, 0, 0);
+    // Create sample appointments only if none exist
+    const existingAppointments = await db.select().from(appointments).where(eq(appointments.organizationId, org.id));
     
-    const todayAfternoon = new Date();
-    todayAfternoon.setHours(14, 30, 0, 0);
+    if (existingAppointments.length === 0) {
+      const today = new Date();
+      today.setHours(10, 0, 0, 0);
+      
+      const todayAfternoon = new Date();
+      todayAfternoon.setHours(14, 30, 0, 0);
 
-    const sampleAppointments = [
+      const sampleAppointments = [
       {
         organizationId: org.id,
         patientId: createdPatients[0].id,
@@ -331,8 +334,11 @@ export async function seedDatabase() {
       }
     ];
 
-    const createdAppointments = await db.insert(appointments).values(sampleAppointments).returning();
-    console.log(`Created ${createdAppointments.length} appointments`);
+      const createdAppointments = await db.insert(appointments).values(sampleAppointments).returning();
+      console.log(`Created ${createdAppointments.length} appointments`);
+    } else {
+      console.log(`Using existing ${existingAppointments.length} appointments`);
+    }
 
     // Create sample medical records
     const sampleRecords = [
