@@ -335,16 +335,7 @@ export default function AppointmentCalendar() {
             </p>
           ) : (
             <div className="space-y-4 max-h-96 overflow-y-auto">
-              {appointments
-                .filter((appointment: Appointment, index: number, self: Appointment[]) => 
-                  index === self.findIndex((a: Appointment) => 
-                    a.patientId === appointment.patientId && 
-                    a.title === appointment.title && 
-                    a.scheduledAt === appointment.scheduledAt &&
-                    a.location === appointment.location
-                  )
-                )
-                .slice(0, 20)
+              {appointments.slice(0, 20)
                 .map((appointment: Appointment) => (
                 <div
                   key={appointment.id}
