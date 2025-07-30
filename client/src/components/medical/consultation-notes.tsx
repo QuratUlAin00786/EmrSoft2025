@@ -717,19 +717,19 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
             {/* Center Panel - Professional Medical Diagram (Realistic Head Sketch with Labels) */}
             <div className="xl:col-span-2 relative">
               <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg">
-                <div className="grid grid-cols-2 gap-4 min-h-[600px]">
-                  {/* Left Side - Facial Muscle Diagram */}
-                  <div className="bg-gradient-to-b from-blue-50 to-white rounded-lg p-4 flex items-center justify-center">
+                <div className="bg-gradient-to-b from-blue-50 to-white rounded-lg p-4 min-h-[600px] flex relative">
+                  {/* Main Facial Muscle Diagram */}
+                  <div className="flex-1 flex items-center justify-center">
                     <img 
                       src={anatomicalDiagramImage}
                       alt="Facial muscle anatomy diagram"
-                      className="w-full max-w-xs mx-auto rounded-lg shadow-md"
+                      className="w-full max-w-lg mx-auto rounded-lg shadow-md"
                       style={{
-                        height: '400px',
+                        height: '500px',
                         objectFit: 'cover',
                         objectPosition: 'center 40%',
                         clipPath: 'inset(13% 19% 22% 19%)',
-                        transform: 'scale(1.3)',
+                        transform: 'scale(1.5)',
                         transformOrigin: 'center',
                         filter: 'contrast(1.1) brightness(1.05) saturate(1.1)',
                         imageRendering: 'crisp-edges'
@@ -738,73 +738,63 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                   </div>
                   
                   {/* Right Side - Skull Diagram with Focus Images */}
-                  <div className="bg-gradient-to-b from-gray-50 to-white rounded-lg p-4 flex flex-col">
+                  <div className="absolute right-4 top-4 w-48 bg-white rounded-lg border-2 border-gray-300 p-3 shadow-lg">
                     {/* Skull Outline */}
-                    <div className="flex-1 flex items-center justify-center mb-4">
+                    <div className="flex items-center justify-center mb-3">
                       <svg
-                        width="200"
-                        height="280"
+                        width="120"
+                        height="140"
                         viewBox="0 0 200 280"
-                        className="border rounded-lg bg-white shadow-sm"
+                        className="border rounded-lg bg-gray-50"
                       >
-                        {/* Skull outline */}
+                        {/* Clean skull outline matching your reference */}
                         <path
-                          d="M100 20
-                             C140 20, 170 50, 170 100
-                             C170 120, 165 140, 160 160
-                             L160 180
-                             C160 200, 150 220, 130 235
-                             L130 250
-                             C130 260, 120 270, 100 270
-                             C80 270, 70 260, 70 250
-                             L70 235
-                             C50 220, 40 200, 40 180
-                             L40 160
-                             C35 140, 30 120, 30 100
-                             C30 50, 60 20, 100 20 Z"
+                          d="M100 40
+                             C130 40, 150 60, 150 100
+                             C150 115, 148 130, 145 145
+                             L145 160
+                             C145 175, 140 190, 130 200
+                             L130 210
+                             C130 220, 125 230, 100 230
+                             C75 230, 70 220, 70 210
+                             L70 200
+                             C60 190, 55 175, 55 160
+                             L55 145
+                             C52 130, 50 115, 50 100
+                             C50 60, 70 40, 100 40 Z"
                           fill="none"
                           stroke="#333"
-                          strokeWidth="2"
+                          strokeWidth="1.5"
                         />
                         
-                        {/* Eye sockets */}
-                        <ellipse cx="75" cy="110" rx="15" ry="20" fill="none" stroke="#333" strokeWidth="1.5"/>
-                        <ellipse cx="125" cy="110" rx="15" ry="20" fill="none" stroke="#333" strokeWidth="1.5"/>
+                        {/* Simple eye sockets */}
+                        <ellipse cx="80" cy="100" rx="8" ry="12" fill="none" stroke="#333" strokeWidth="1"/>
+                        <ellipse cx="120" cy="100" rx="8" ry="12" fill="none" stroke="#333" strokeWidth="1"/>
                         
-                        {/* Nasal cavity */}
+                        {/* Simple nose */}
                         <path
-                          d="M100 130
-                             L95 160
-                             L100 170
-                             L105 160
+                          d="M100 115
+                             L98 130
+                             L100 135
+                             L102 130
                              Z"
                           fill="none"
                           stroke="#333"
-                          strokeWidth="1.5"
+                          strokeWidth="1"
                         />
                         
-                        {/* Mouth area */}
-                        <ellipse cx="100" cy="200" rx="25" ry="15" fill="none" stroke="#333" strokeWidth="1.5"/>
-                        
-                        {/* Jaw line */}
-                        <path
-                          d="M70 235
-                             C80 245, 90 250, 100 250
-                             C110 250, 120 245, 130 235"
-                          fill="none"
-                          stroke="#333"
-                          strokeWidth="1.5"
-                        />
+                        {/* Simple mouth */}
+                        <ellipse cx="100" cy="160" rx="15" ry="8" fill="none" stroke="#333" strokeWidth="1"/>
                       </svg>
                     </div>
                     
                     {/* Focus Reference Images */}
-                    <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                      <h4 className="text-sm font-semibold text-blue-800 mb-2">Focus</h4>
-                      <div className="grid grid-cols-5 gap-2">
+                    <div className="bg-blue-50 p-2 rounded border border-blue-200">
+                      <h4 className="text-xs font-semibold text-blue-800 mb-2">Focus</h4>
+                      <div className="grid grid-cols-5 gap-1">
                         {[1, 2, 3, 4, 5].map((num) => (
-                          <div key={num} className="bg-white rounded border border-gray-300 p-1 shadow-sm">
-                            <div className="w-8 h-8 bg-gradient-to-br from-orange-100 to-orange-200 rounded flex items-center justify-center text-xs font-semibold text-orange-800">
+                          <div key={num} className="bg-white rounded border border-gray-300 p-1">
+                            <div className="w-6 h-6 bg-gradient-to-br from-orange-100 to-orange-200 rounded flex items-center justify-center text-xs font-semibold text-orange-800">
                               {num}
                             </div>
                           </div>
