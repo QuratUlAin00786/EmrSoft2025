@@ -717,7 +717,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
             {/* Center Panel - Professional Medical Diagram (Realistic Head Sketch with Labels) */}
             <div className="xl:col-span-2 relative">
               <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg">
-                <div className="bg-gradient-to-b from-blue-50 to-white rounded-lg p-4 min-h-[600px] flex items-center justify-center">
+                <div className="bg-gradient-to-b from-blue-50 to-white rounded-lg p-4 min-h-[600px] flex items-center justify-center relative">
                   <img 
                     src={anatomicalDiagramImage}
                     alt="Facial muscle anatomy diagram"
@@ -733,6 +733,53 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                       imageRendering: 'crisp-edges'
                     }}
                   />
+                  
+                  {/* Small Right Arrow Button */}
+                  <button
+                    onClick={() => {
+                      // Open new window with anatomical reference
+                      const newWindow = window.open('', '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+                      if (newWindow) {
+                        newWindow.document.write(`
+                          <html>
+                            <head>
+                              <title>Anatomical Reference - Cura EMR</title>
+                              <style>
+                                body { font-family: Arial, sans-serif; margin: 20px; background: #f8f9fa; }
+                                .container { max-width: 700px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+                                h1 { color: #2563eb; text-align: center; }
+                                .content { text-align: center; padding: 20px; }
+                              </style>
+                            </head>
+                            <body>
+                              <div class="container">
+                                <h1>Anatomical Reference Window</h1>
+                                <div class="content">
+                                  <p>Additional anatomical reference content would be displayed here.</p>
+                                  <p>This window can contain detailed medical diagrams, reference images, or supplementary anatomical information.</p>
+                                </div>
+                              </div>
+                            </body>
+                          </html>
+                        `);
+                        newWindow.document.close();
+                      }
+                    }}
+                    className="absolute right-2 top-2 bg-white border border-gray-300 rounded-full p-2 shadow-md hover:bg-gray-50 hover:shadow-lg transition-all duration-200"
+                    title="Open anatomical reference window"
+                  >
+                    <svg 
+                      width="16" 
+                      height="16" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2"
+                      className="text-gray-600"
+                    >
+                      <path d="M9 18l6-6-6-6" />
+                    </svg>
+                  </button>
                 </div>
                 
                 {/* Professional Medical Diagram Label */}
