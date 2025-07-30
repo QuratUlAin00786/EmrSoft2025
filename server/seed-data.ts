@@ -407,11 +407,11 @@ export async function seedDatabase() {
         isActionable: true,
         actionUrl: "/calendar",
         relatedEntityType: "appointment",
-        relatedEntityId: createdAppointments[0].id,
+        relatedEntityId: 912, // Use existing appointment ID
         metadata: {
           patientId: createdPatients[0].id,
           patientName: "Sarah Johnson",
-          appointmentId: createdAppointments[0].id,
+          appointmentId: 912, // Use existing appointment ID
           urgency: "high" as const,
           department: "Cardiology",
           icon: "Calendar",
