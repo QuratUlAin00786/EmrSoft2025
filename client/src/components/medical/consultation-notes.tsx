@@ -848,15 +848,15 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => setShowRightPanel(false)}
-                      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg transition-colors duration-200 font-medium text-sm"
+                      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-full transition-all duration-200 font-semibold text-sm shadow-lg hover:shadow-xl border-2 border-blue-500"
                     >
                       <svg 
-                        width="16" 
-                        height="16" 
+                        width="20" 
+                        height="20" 
                         viewBox="0 0 24 24" 
                         fill="none" 
                         stroke="currentColor" 
-                        strokeWidth="2"
+                        strokeWidth="3"
                         className="text-white"
                       >
                         <path d="M15 18l-6-6 6-6" />
