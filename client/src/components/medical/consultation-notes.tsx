@@ -656,51 +656,88 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                 <h3 className="text-lg font-semibold text-gray-800">Facial Muscle Analysis</h3>
               </div>
               
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {[
-                  { id: 'frontalis', label: 'Frontalis', desc: 'Forehead muscle' },
-                  { id: 'temporalis', label: 'Temporalis', desc: 'Temple area' },
-                  { id: 'orbicularis_oculi', label: 'Orbicularis Oculi', desc: 'Eye muscles' },
-                  { id: 'procerus', label: 'Procerus', desc: 'Nose bridge muscle' },
-                  { id: 'corrugator_supercilii', label: 'Corrugator Supercilii', desc: 'Eyebrow muscle' },
-                  { id: 'levator_palpebrae_superioris', label: 'Levator Palpebrae Superioris', desc: 'Upper eyelid' },
-                  { id: 'levator_labii_superioris_alaeque_nasi', label: 'Levator Labii Superioris Alaeque Nasi', desc: 'Nose and upper lip' },
-                  { id: 'nasalis', label: 'Nasalis', desc: 'Nose muscle' },
-                  { id: 'zygomaticus_major', label: 'Zygomaticus Major', desc: 'Main cheek muscle' },
-                  { id: 'zygomaticus_minor', label: 'Zygomaticus Minor', desc: 'Small cheek muscle' },
-                  { id: 'masseter', label: 'Masseter', desc: 'Jaw muscle' },
-                  { id: 'risorius', label: 'Risorius', desc: 'Smile muscle' },
-                  { id: 'buccinator', label: 'Buccinator', desc: 'Cheek muscle' },
-                  { id: 'orbicularis_oris', label: 'Orbicularis Oris', desc: 'Mouth muscle' },
-                  { id: 'depressor_septi_nasi', label: 'Depressor Septi Nasi', desc: 'Nose septum depressor' },
-                  { id: 'depressor_anguli_oris', label: 'Depressor Anguli Oris', desc: 'Mouth corner depressor' },
-                  { id: 'depressor_labii_inferioris', label: 'Depressor Labii Inferioris', desc: 'Lower lip depressor' },
-                  { id: 'mentalis', label: 'Mentalis', desc: 'Chin muscle' },
-                  { id: 'platysma', label: 'Platysma', desc: 'Neck muscle' }
-                ].map((muscle) => (
-                  <div key={muscle.id} 
-                       className={`flex items-start space-x-3 p-3 rounded-lg cursor-pointer transition-all ${
-                         selectedFacialFeatures.includes(muscle.id) 
-                           ? 'bg-red-100 border-2 border-red-300 shadow-md' 
-                           : 'bg-white hover:bg-blue-50 border border-gray-200'
-                       }`}
-                       onClick={() => {
-                         if (selectedFacialFeatures.includes(muscle.id)) {
-                           setSelectedFacialFeatures(selectedFacialFeatures.filter(f => f !== muscle.id));
-                         } else {
-                           setSelectedFacialFeatures([...selectedFacialFeatures, muscle.id]);
-                         }
-                       }}>
-                    <Checkbox
-                      checked={selectedFacialFeatures.includes(muscle.id)}
-                      className="mt-1 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600"
-                    />
-                    <div className="flex-1">
-                      <div className="text-sm font-semibold text-gray-800">{muscle.label}</div>
-                      <div className="text-xs text-gray-600">{muscle.desc}</div>
+              <div className="space-y-4">
+                {/* Muscle Selection Dropdown */}
+                <Select 
+                  onValueChange={(value) => {
+                    if (value && value !== "select-muscle" && !selectedFacialFeatures.includes(value)) {
+                      setSelectedFacialFeatures([...selectedFacialFeatures, value]);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full border-2 border-gray-300 focus:border-blue-500">
+                    <SelectValue placeholder="Select facial muscle..." />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    <SelectItem value="select-muscle" disabled>Select a muscle to analyze</SelectItem>
+                    <SelectItem value="frontalis">Frontalis - Forehead muscle</SelectItem>
+                    <SelectItem value="temporalis">Temporalis - Temple area</SelectItem>
+                    <SelectItem value="orbicularis_oculi">Orbicularis Oculi - Eye muscles</SelectItem>
+                    <SelectItem value="procerus">Procerus - Nose bridge muscle</SelectItem>
+                    <SelectItem value="corrugator_supercilii">Corrugator Supercilii - Eyebrow muscle</SelectItem>
+                    <SelectItem value="levator_palpebrae_superioris">Levator Palpebrae Superioris - Upper eyelid</SelectItem>
+                    <SelectItem value="levator_labii_superioris_alaeque_nasi">Levator Labii Superioris Alaeque Nasi - Nose and upper lip</SelectItem>
+                    <SelectItem value="nasalis">Nasalis - Nose muscle</SelectItem>
+                    <SelectItem value="zygomaticus_major">Zygomaticus Major - Main cheek muscle</SelectItem>
+                    <SelectItem value="zygomaticus_minor">Zygomaticus Minor - Small cheek muscle</SelectItem>
+                    <SelectItem value="masseter">Masseter - Jaw muscle</SelectItem>
+                    <SelectItem value="risorius">Risorius - Smile muscle</SelectItem>
+                    <SelectItem value="buccinator">Buccinator - Cheek muscle</SelectItem>
+                    <SelectItem value="orbicularis_oris">Orbicularis Oris - Mouth muscle</SelectItem>
+                    <SelectItem value="depressor_septi_nasi">Depressor Septi Nasi - Nose septum depressor</SelectItem>
+                    <SelectItem value="depressor_anguli_oris">Depressor Anguli Oris - Mouth corner depressor</SelectItem>
+                    <SelectItem value="depressor_labii_inferioris">Depressor Labii Inferioris - Lower lip depressor</SelectItem>
+                    <SelectItem value="mentalis">Mentalis - Chin muscle</SelectItem>
+                    <SelectItem value="platysma">Platysma - Neck muscle</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Selected Muscles Display */}
+                {selectedFacialFeatures.length > 0 && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold text-gray-700">Selected Muscles:</Label>
+                    <div className="space-y-1 max-h-40 overflow-y-auto">
+                      {selectedFacialFeatures.map((muscleId) => {
+                        const muscle = [
+                          { id: 'frontalis', label: 'Frontalis', desc: 'Forehead muscle' },
+                          { id: 'temporalis', label: 'Temporalis', desc: 'Temple area' },
+                          { id: 'orbicularis_oculi', label: 'Orbicularis Oculi', desc: 'Eye muscles' },
+                          { id: 'procerus', label: 'Procerus', desc: 'Nose bridge muscle' },
+                          { id: 'corrugator_supercilii', label: 'Corrugator Supercilii', desc: 'Eyebrow muscle' },
+                          { id: 'levator_palpebrae_superioris', label: 'Levator Palpebrae Superioris', desc: 'Upper eyelid' },
+                          { id: 'levator_labii_superioris_alaeque_nasi', label: 'Levator Labii Superioris Alaeque Nasi', desc: 'Nose and upper lip' },
+                          { id: 'nasalis', label: 'Nasalis', desc: 'Nose muscle' },
+                          { id: 'zygomaticus_major', label: 'Zygomaticus Major', desc: 'Main cheek muscle' },
+                          { id: 'zygomaticus_minor', label: 'Zygomaticus Minor', desc: 'Small cheek muscle' },
+                          { id: 'masseter', label: 'Masseter', desc: 'Jaw muscle' },
+                          { id: 'risorius', label: 'Risorius', desc: 'Smile muscle' },
+                          { id: 'buccinator', label: 'Buccinator', desc: 'Cheek muscle' },
+                          { id: 'orbicularis_oris', label: 'Orbicularis Oris', desc: 'Mouth muscle' },
+                          { id: 'depressor_septi_nasi', label: 'Depressor Septi Nasi', desc: 'Nose septum depressor' },
+                          { id: 'depressor_anguli_oris', label: 'Depressor Anguli Oris', desc: 'Mouth corner depressor' },
+                          { id: 'depressor_labii_inferioris', label: 'Depressor Labii Inferioris', desc: 'Lower lip depressor' },
+                          { id: 'mentalis', label: 'Mentalis', desc: 'Chin muscle' },
+                          { id: 'platysma', label: 'Platysma', desc: 'Neck muscle' }
+                        ].find(m => m.id === muscleId);
+                        
+                        return (
+                          <div key={muscleId} className="flex items-center justify-between bg-red-100 border border-red-300 rounded-lg p-2">
+                            <div className="flex-1">
+                              <div className="text-sm font-semibold text-gray-800">{muscle?.label}</div>
+                              <div className="text-xs text-gray-600">{muscle?.desc}</div>
+                            </div>
+                            <button
+                              onClick={() => setSelectedFacialFeatures(selectedFacialFeatures.filter(f => f !== muscleId))}
+                              className="ml-2 text-red-600 hover:text-red-800 font-bold text-sm"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
-                ))}
+                )}
               </div>
               
               <div className="mt-4 p-3 bg-blue-100 rounded-lg border border-blue-200">
