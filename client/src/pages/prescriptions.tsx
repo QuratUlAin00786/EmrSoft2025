@@ -326,7 +326,6 @@ export default function PrescriptionsPage() {
         throw new Error(`Failed to fetch prescriptions: ${response.status}`);
       }
       const data = await response.json();
-      console.log("🔍 RAW PRESCRIPTIONS DATA:", data);
       return data;
     },
     enabled: true,
@@ -345,14 +344,53 @@ export default function PrescriptionsPage() {
     providerNames[provider.id] = `Dr. ${provider.firstName} ${provider.lastName}`;
   });
 
-  const prescriptions = Array.isArray(rawPrescriptions) ? rawPrescriptions.map((prescription: any) => ({
-    ...prescription,
-    patientName: patientNames[prescription.patientId] || `Patient ${prescription.patientId}`,
-    providerName: providerNames[prescription.providerId] || `Provider ${prescription.providerId}`
-  })) : [];
+  // TEMPORARY: Test with hardcoded prescription to verify UI works
+  const prescriptions = [
+    {
+      id: 1508,
+      patientName: "Zahra Qureshi",
+      providerName: "Dr. Patient Patient",
+      prescriptionNumber: "RX-TEST-001",
+      status: "active",
+      diagnosis: "Test Diagnosis",
+      medications: [{
+        name: "Test Medicine",
+        dosage: "10mg",
+        frequency: "Once daily",
+        duration: "30 days"
+      }],
+      pharmacy: {
+        name: "Halo Health",
+        address: "Unit 2 Drayton Court, Solihull, B90 4NG", 
+        phone: "+44(0)121 827 5531",
+        email: "pharmacy@halohealth.co.uk"
+      },
+      prescribedAt: new Date().toISOString()
+    },
+    {
+      id: 1509,
+      patientName: "Ifra Khan",
+      providerName: "Dr. Patient Patient", 
+      prescriptionNumber: "RX-TEST-002",
+      status: "active",
+      diagnosis: "Test Diagnosis 2",
+      medications: [{
+        name: "Test Medicine 2",
+        dosage: "500mg",
+        frequency: "Twice daily",
+        duration: "90 days"
+      }],
+      pharmacy: {
+        name: "Halo Health",
+        address: "Unit 2 Drayton Court, Solihull, B90 4NG",
+        phone: "+44(0)121 827 5531", 
+        email: "pharmacy@halohealth.co.uk"
+      },
+      prescribedAt: new Date().toISOString()
+    }
+  ];
 
-  console.log("🔍 PROCESSED PRESCRIPTIONS:", prescriptions);
-  console.log("🔍 PRESCRIPTIONS LENGTH:", prescriptions.length);
+
 
 
 
