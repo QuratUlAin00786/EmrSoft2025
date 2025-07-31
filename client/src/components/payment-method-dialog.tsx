@@ -301,8 +301,15 @@ function RyftPaymentButton({ planId, planName, amount, onSuccess, onError }: Str
       // Simulate creating Ryft payment session
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Redirect to Ryft payment app
-      const ryftUrl = `https://app.ryft.com/checkout?amount=${amount * 100}&currency=GBP&plan=${planId}&customer_email=admin@cura.com`;
+      // Create realistic Ryft demo session
+      const sessionId = `ryft_${Math.random().toString(36).substr(2, 15)}`;
+      const ryftUrl = `https://checkout.ryft.com/pay?session_id=${sessionId}&amount=${amount * 100}&currency=GBP&merchant=cura-averox&return_url=https://app.cura.com/subscription`;
+      
+      toast({
+        title: "Redirecting to Ryft",
+        description: "Opening Ryft payment window...",
+      });
+      
       window.open(ryftUrl, '_blank', 'width=600,height=700,scrollbars=yes,resizable=yes');
       
       // Monitor for payment completion (in real implementation, would use webhooks)
@@ -358,8 +365,15 @@ function PayPalRedirectButton({ planId, planName, amount, onSuccess, onError }: 
       // Simulate creating PayPal payment session
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Redirect to PayPal payment app
-      const paypalUrl = `https://www.paypal.com/checkoutnow?token=EC-${Math.random().toString(36).substr(2, 9)}&amount=${amount}&currency=GBP&plan=${planId}`;
+      // Create realistic PayPal demo session
+      const sessionToken = `EC-${Math.random().toString(36).substr(2, 17).toUpperCase()}`;
+      const paypalUrl = `https://www.sandbox.paypal.com/checkoutnow?token=${sessionToken}&amount=${amount}&currency_code=GBP&business=cura-demo@averox.com`;
+      
+      toast({
+        title: "Redirecting to PayPal",
+        description: "Opening PayPal payment window...",
+      });
+      
       window.open(paypalUrl, '_blank', 'width=600,height=700,scrollbars=yes,resizable=yes');
       
       // Monitor for payment completion (in real implementation, would use webhooks)
