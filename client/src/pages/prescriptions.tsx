@@ -326,6 +326,7 @@ export default function PrescriptionsPage() {
         throw new Error(`Failed to fetch prescriptions: ${response.status}`);
       }
       const data = await response.json();
+      console.log("🔍 RAW PRESCRIPTIONS DATA:", data);
       return data;
     },
     enabled: true,
@@ -349,6 +350,9 @@ export default function PrescriptionsPage() {
     patientName: patientNames[prescription.patientId] || `Patient ${prescription.patientId}`,
     providerName: providerNames[prescription.providerId] || `Provider ${prescription.providerId}`
   })) : [];
+
+  console.log("🔍 PROCESSED PRESCRIPTIONS:", prescriptions);
+  console.log("🔍 PRESCRIPTIONS LENGTH:", prescriptions.length);
 
 
 
