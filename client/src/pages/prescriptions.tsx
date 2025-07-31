@@ -982,10 +982,10 @@ export default function PrescriptionsPage() {
                       </div>
                     </div>
 
-                    {/* Large Rx Symbol */}
+                    {/* Large HHC Symbol */}
                     <div className="flex justify-center py-4 bg-pink-50">
                       <div className="text-6xl font-bold text-pink-300 opacity-50">
-                        ℞
+                        HHC
                       </div>
                     </div>
 
