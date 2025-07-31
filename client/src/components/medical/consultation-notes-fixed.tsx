@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { format } from "date-fns";
@@ -31,7 +31,10 @@ import {
   Calendar,
   AlertTriangle,
   ClipboardList,
-  X
+  X,
+  Mic,
+  MicOff,
+  Square
 } from "lucide-react";
 
 interface ConsultationNotesProps {
@@ -63,6 +66,12 @@ export default function ConsultationNotes({ patientId }: ConsultationNotesProps)
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Audio transcription state
+  const [isRecording, setIsRecording] = useState(false);
+  const [transcript, setTranscript] = useState("");
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const [isTranscriptionSupported, setIsTranscriptionSupported] = useState(false);
 
   const { data: medicalRecords = [], isLoading } = useQuery({
     queryKey: [`/api/patients/${patientId}/records`],
@@ -82,6 +91,79 @@ export default function ConsultationNotes({ patientId }: ConsultationNotesProps)
       referrals: []
     }
   });
+
+  // Initialize speech recognition
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        setIsTranscriptionSupported(true);
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        recognition.onresult = (event) => {
+          let finalTranscript = '';
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            if (event.results[i].isFinal) {
+              finalTranscript += event.results[i][0].transcript + ' ';
+            }
+          }
+          if (finalTranscript) {
+            setTranscript(prev => prev + finalTranscript);
+            const currentNotes = form.getValues("notes");
+            form.setValue("notes", currentNotes + finalTranscript);
+          }
+        };
+
+        recognition.onerror = (event) => {
+          console.error('Speech recognition error:', event.error);
+          toast({
+            title: "Transcription Error",
+            description: "Unable to transcribe audio. Please try again.",
+            variant: "destructive",
+          });
+          setIsRecording(false);
+        };
+
+        recognition.onend = () => {
+          setIsRecording(false);
+        };
+
+        recognitionRef.current = recognition;
+      }
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, [form, toast]);
+
+  const startRecording = () => {
+    if (recognitionRef.current && !isRecording) {
+      setTranscript("");
+      recognitionRef.current.start();
+      setIsRecording(true);
+      toast({
+        title: "Recording Started",
+        description: "Speak clearly to transcribe your clinical notes",
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (recognitionRef.current && isRecording) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+      toast({
+        title: "Recording Stopped",
+        description: "Transcription has been added to your clinical notes",
+      });
+    }
+  };
 
   const createRecordMutation = useMutation({
     mutationFn: (data: any) => 
@@ -197,12 +279,49 @@ export default function ConsultationNotes({ patientId }: ConsultationNotesProps)
                   
                   <TabsContent value="details" className="space-y-4">
                     <div>
-                      <Label htmlFor="notes">Clinical Notes</Label>
+                      <div className="flex items-center justify-between mb-2">
+                        <Label htmlFor="notes">Clinical Notes</Label>
+                        {isTranscriptionSupported && (
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              type="button"
+                              variant={isRecording ? "destructive" : "outline"}
+                              size="sm"
+                              onClick={isRecording ? stopRecording : startRecording}
+                              className="flex items-center space-x-1"
+                            >
+                              {isRecording ? (
+                                <>
+                                  <Square className="h-3 w-3" />
+                                  <span>Stop Recording</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Mic className="h-3 w-3" />
+                                  <span>Transcribe Audio</span>
+                                </>
+                              )}
+                            </Button>
+                            {isRecording && (
+                              <div className="flex items-center space-x-1 text-red-600 text-xs animate-pulse">
+                                <div className="w-2 h-2 bg-red-600 rounded-full"></div>
+                                <span>Recording...</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                       <Textarea
                         {...form.register("notes")}
-                        placeholder="Patient presentation, examination findings, etc."
+                        placeholder="Patient presentation, examination findings, etc. Click 'Transcribe Audio' to dictate your notes."
                         rows={4}
                       />
+                      {transcript && (
+                        <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
+                          <span className="text-blue-700 font-medium">Live Transcription: </span>
+                          <span className="text-blue-800">{transcript}</span>
+                        </div>
+                      )}
                     </div>
                     <div>
                       <Label htmlFor="diagnosis">Diagnosis</Label>
