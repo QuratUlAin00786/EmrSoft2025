@@ -17,7 +17,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Plus, Calendar, User, Stethoscope, Pill, AlertTriangle } from "lucide-react";
+import { FileText, Plus, Calendar, User, Stethoscope, Pill, AlertTriangle, Mic, Square } from "lucide-react";
 import { format } from "date-fns";
 import type { MedicalRecord } from "@/types";
 import anatomicalDiagramImage from "@assets/image_1753778337429.png";
@@ -68,6 +68,12 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
 
   const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Audio transcription state
+  const [isRecording, setIsRecording] = useState(false);
+  const [transcript, setTranscript] = useState("");
+  const recognitionRef = React.useRef<SpeechRecognition | null>(null);
+  const [isTranscriptionSupported, setIsTranscriptionSupported] = useState(false);
 
   // Image upload handler for sculp images
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -145,6 +151,79 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
       referrals: []
     }
   });
+
+  // Initialize speech recognition
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        setIsTranscriptionSupported(true);
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        recognition.onresult = (event) => {
+          let finalTranscript = '';
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            if (event.results[i].isFinal) {
+              finalTranscript += event.results[i][0].transcript + ' ';
+            }
+          }
+          if (finalTranscript) {
+            setTranscript(prev => prev + finalTranscript);
+            const currentNotes = form.getValues("notes");
+            form.setValue("notes", currentNotes + finalTranscript);
+          }
+        };
+
+        recognition.onerror = (event) => {
+          console.error('Speech recognition error:', event.error);
+          toast({
+            title: "Transcription Error",
+            description: "Unable to transcribe audio. Please try again.",
+            variant: "destructive",
+          });
+          setIsRecording(false);
+        };
+
+        recognition.onend = () => {
+          setIsRecording(false);
+        };
+
+        recognitionRef.current = recognition;
+      }
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, [toast]);
+
+  const startRecording = () => {
+    if (recognitionRef.current && !isRecording) {
+      setTranscript("");
+      recognitionRef.current.start();
+      setIsRecording(true);
+      toast({
+        title: "Recording Started",
+        description: "Speak clearly to transcribe your clinical notes",
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (recognitionRef.current && isRecording) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+      toast({
+        title: "Recording Stopped",
+        description: "Transcription has been added to your clinical notes",
+      });
+    }
+  };
 
   // Reset form when editing a record
   useEffect(() => {
@@ -439,12 +518,54 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                       </Select>
                     </div>
                     <div>
-                      <Label htmlFor="notes">Clinical Notes</Label>
+                      <div className="flex items-center justify-between mb-2">
+                        <Label htmlFor="notes">Clinical Notes</Label>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            type="button"
+                            variant={isRecording ? "destructive" : "outline"}
+                            size="sm"
+                            onClick={isRecording ? stopRecording : startRecording}
+                            className="flex items-center space-x-1"
+                            disabled={!isTranscriptionSupported}
+                            title={isTranscriptionSupported ? "Click to start dictating your notes" : "Speech recognition not supported in this browser"}
+                          >
+                            {isRecording ? (
+                              <>
+                                <Square className="h-3 w-3" />
+                                <span>Stop Recording</span>
+                              </>
+                            ) : (
+                              <>
+                                <Mic className="h-3 w-3" />
+                                <span>Transcribe Audio</span>
+                              </>
+                            )}
+                          </Button>
+                          {isRecording && (
+                            <div className="flex items-center space-x-1 text-red-600 text-xs animate-pulse">
+                              <div className="w-2 h-2 bg-red-600 rounded-full"></div>
+                              <span>Recording...</span>
+                            </div>
+                          )}
+                          {!isTranscriptionSupported && (
+                            <span className="text-xs text-gray-500">
+                              (Try Chrome/Edge for audio transcription)
+                            </span>
+                          )}
+                        </div>
+                      </div>
                       <Textarea
                         {...form.register("notes")}
-                        placeholder="Detailed consultation notes, observations, and findings..."
+                        placeholder="Detailed consultation notes, observations, and findings. Click 'Transcribe Audio' to dictate your notes."
                         className="min-h-32"
                       />
+                      {transcript && (
+                        <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
+                          <span className="text-blue-700 font-medium">Live Transcription: </span>
+                          <span className="text-blue-800">{transcript}</span>
+                        </div>
+                      )}
                       {form.formState.errors.notes && (
                         <p className="text-sm text-red-600 mt-1">
                           {form.formState.errors.notes.message}
