@@ -21,6 +21,7 @@ import { FileText, Plus, Calendar, User, Stethoscope, Pill, AlertTriangle } from
 import { format } from "date-fns";
 import type { MedicalRecord } from "@/types";
 import anatomicalDiagramImage from "@assets/image_1753778337429.png";
+import facialDiagramImage from "@assets/image_1753935892587.png";
 
 const consultationSchema = z.object({
   type: z.enum(["consultation", "prescription", "lab_result", "imaging", "procedure"]),
@@ -897,9 +898,10 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                 {/* Facial Diagram ABOVE the Anatomical Reference Window Header */}
                 <div className="flex justify-center mb-6">
                   <img 
-                    src="/clean-facial-diagram.png" 
+                    src={facialDiagramImage} 
                     alt="Facial Anatomy Diagram" 
                     className="w-64 h-80 object-contain rounded-lg border border-gray-300 bg-white"
+                    onLoad={() => console.log('Facial diagram loaded successfully')}
                   />
                 </div>
 
