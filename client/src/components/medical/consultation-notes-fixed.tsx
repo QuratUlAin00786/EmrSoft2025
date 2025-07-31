@@ -96,6 +96,11 @@ export default function ConsultationNotes({ patientId }: ConsultationNotesProps)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      console.log('Speech Recognition API check:', {
+        SpeechRecognition: !!SpeechRecognition,
+        webkitSpeechRecognition: !!window.webkitSpeechRecognition,
+        isTranscriptionSupported
+      });
       if (SpeechRecognition) {
         setIsTranscriptionSupported(true);
         const recognition = new SpeechRecognition();
@@ -281,35 +286,40 @@ export default function ConsultationNotes({ patientId }: ConsultationNotesProps)
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <Label htmlFor="notes">Clinical Notes</Label>
-                        {isTranscriptionSupported && (
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              type="button"
-                              variant={isRecording ? "destructive" : "outline"}
-                              size="sm"
-                              onClick={isRecording ? stopRecording : startRecording}
-                              className="flex items-center space-x-1"
-                            >
-                              {isRecording ? (
-                                <>
-                                  <Square className="h-3 w-3" />
-                                  <span>Stop Recording</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Mic className="h-3 w-3" />
-                                  <span>Transcribe Audio</span>
-                                </>
-                              )}
-                            </Button>
-                            {isRecording && (
-                              <div className="flex items-center space-x-1 text-red-600 text-xs animate-pulse">
-                                <div className="w-2 h-2 bg-red-600 rounded-full"></div>
-                                <span>Recording...</span>
-                              </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            type="button"
+                            variant={isRecording ? "destructive" : "outline"}
+                            size="sm"
+                            onClick={isRecording ? stopRecording : startRecording}
+                            className="flex items-center space-x-1"
+                            disabled={!isTranscriptionSupported}
+                            title={isTranscriptionSupported ? "Click to start dictating your notes" : "Speech recognition not supported in this browser"}
+                          >
+                            {isRecording ? (
+                              <>
+                                <Square className="h-3 w-3" />
+                                <span>Stop Recording</span>
+                              </>
+                            ) : (
+                              <>
+                                <Mic className="h-3 w-3" />
+                                <span>Transcribe Audio</span>
+                              </>
                             )}
-                          </div>
-                        )}
+                          </Button>
+                          {isRecording && (
+                            <div className="flex items-center space-x-1 text-red-600 text-xs animate-pulse">
+                              <div className="w-2 h-2 bg-red-600 rounded-full"></div>
+                              <span>Recording...</span>
+                            </div>
+                          )}
+                          {!isTranscriptionSupported && (
+                            <span className="text-xs text-gray-500">
+                              (Try Chrome/Edge for audio transcription)
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <Textarea
                         {...form.register("notes")}
