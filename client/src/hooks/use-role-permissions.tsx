@@ -21,6 +21,7 @@ export const ROLE_PERMISSIONS = {
     automation: { view: true, create: true, edit: true, delete: true },
     population_health: { view: true, create: true, edit: true, delete: true },
     mobile_health: { view: true, create: true, edit: true, delete: true },
+    inventory: { view: true, create: true, edit: true, delete: true },
     user_management: { view: true, create: true, edit: true, delete: true },
     settings: { view: true, create: true, edit: true, delete: true },
     subscription: { view: true, create: true, edit: true, delete: true }
@@ -44,6 +45,7 @@ export const ROLE_PERMISSIONS = {
     automation: { view: true, create: false, edit: false, delete: false },
     population_health: { view: true, create: false, edit: false, delete: false },
     mobile_health: { view: true, create: true, edit: true, delete: false },
+    inventory: { view: true, create: true, edit: true, delete: false },
     user_management: { view: false, create: false, edit: false, delete: false },
     settings: { view: false, create: false, edit: false, delete: false },
     subscription: { view: false, create: false, edit: false, delete: false }
