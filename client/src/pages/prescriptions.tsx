@@ -306,11 +306,12 @@ export default function PrescriptionsPage() {
   }, []);
 
   const { data: rawPrescriptions = [], isLoading, error } = useQuery({
-    queryKey: ["/api/prescriptions"],
+    queryKey: ["/api/prescriptions", Date.now()], // Force fresh data
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
       const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': 'demo'
+        'X-Tenant-Subdomain': 'demo',
+        'Cache-Control': 'no-cache'
       };
       
       if (token) {
@@ -328,6 +329,8 @@ export default function PrescriptionsPage() {
       return data;
     },
     enabled: true,
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache
   });
 
   // Create patient and provider name mappings from fetched data
