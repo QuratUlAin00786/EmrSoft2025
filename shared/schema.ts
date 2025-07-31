@@ -33,8 +33,8 @@ export const users = pgTable("users", {
   department: text("department"),
   workingDays: jsonb("working_days").$type<string[]>().default([]),
   workingHours: jsonb("working_hours").$type<{
-    start: string;
-    end: string;
+    start?: string;
+    end?: string;
   }>().default({}),
   permissions: jsonb("permissions").$type<{
     modules?: {
