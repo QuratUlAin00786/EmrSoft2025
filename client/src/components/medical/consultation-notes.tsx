@@ -21,7 +21,7 @@ import { FileText, Plus, Calendar, User, Stethoscope, Pill, AlertTriangle } from
 import { format } from "date-fns";
 import type { MedicalRecord } from "@/types";
 import anatomicalDiagramImage from "@assets/image_1753778337429.png";
-import facialDiagramImage from "@assets/image_1753935892587.png";
+import facialDiagramImage from "@assets/image_1753939397565.png";
 
 const consultationSchema = z.object({
   type: z.enum(["consultation", "prescription", "lab_result", "imaging", "procedure"]),
@@ -900,13 +900,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                   <img 
                     src={facialDiagramImage} 
                     alt="Facial Anatomy Diagram" 
-                    className="w-64 h-80 object-contain"
-                    style={{
-                      filter: 'drop-shadow(0 0 0 white) brightness(1.2) contrast(1.5)',
-                      background: 'white',
-                      borderRadius: '8px',
-                      padding: '8px'
-                    }}
+                    className="w-64 h-80 object-contain rounded-lg"
                   />
                 </div>
 
