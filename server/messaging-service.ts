@@ -241,6 +241,9 @@ This is an urgent medical notification.`;
    */
   async getMessageStatus(messageId: string): Promise<any> {
     try {
+      if (!client) {
+        return null;
+      }
       const message = await client.messages(messageId).fetch();
       return {
         status: message.status,
@@ -261,6 +264,9 @@ This is an urgent medical notification.`;
    */
   async getAccountInfo(): Promise<any> {
     try {
+      if (!client || !process.env.TWILIO_ACCOUNT_SID) {
+        return null;
+      }
       const account = await client.api.accounts(process.env.TWILIO_ACCOUNT_SID).fetch();
       return {
         balance: account.balance,
