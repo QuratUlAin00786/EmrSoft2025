@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Header } from "@/components/layout/header";
@@ -26,7 +26,8 @@ import {
   Send,
   Eye,
   Edit,
-  Trash2
+  Trash2,
+  PenTool
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -59,6 +60,11 @@ interface Prescription {
     severity: 'minor' | 'moderate' | 'major';
     description: string;
   }>;
+  signature?: {
+    doctorSignature: string;
+    signedAt: string;
+    signedBy: string;
+  };
 }
 
 const mockPrescriptions: Prescription[] = [
@@ -180,6 +186,12 @@ export default function PrescriptionsPage() {
   const [patients, setPatients] = useState<any[]>([]);
   const [providers, setProviders] = useState<any[]>([]);
   const queryClient = useQueryClient();
+  
+  // E-signature state
+  const [showESignDialog, setShowESignDialog] = useState(false);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [signature, setSignature] = useState<string>("");
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
 
   // Form state for prescription editing
   const [formData, setFormData] = useState({
@@ -477,6 +489,73 @@ export default function PrescriptionsPage() {
   };
 
   const { toast } = useToast();
+
+  // E-signature functions
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    setIsDrawing(true);
+    draw(e);
+  };
+
+  const stopDrawing = () => {
+    setIsDrawing(false);
+  };
+
+  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDrawing || !canvasRef.current) return;
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#000000';
+    
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  };
+
+  const clearSignature = () => {
+    if (!canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setSignature("");
+  };
+
+  const saveSignature = () => {
+    if (!canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const signatureData = canvas.toDataURL();
+    setSignature(signatureData);
+    
+    // Apply signature to the selected prescription
+    if (selectedPrescription) {
+      const updatedPrescription = {
+        ...selectedPrescription,
+        signature: {
+          doctorSignature: signatureData,
+          signedAt: new Date().toISOString(),
+          signedBy: "Dr. John Administrator" // This should come from current user
+        }
+      };
+      setSelectedPrescription(updatedPrescription);
+      
+      toast({
+        title: "Signature Applied",
+        description: "E-signature has been successfully applied to the prescription",
+      });
+    }
+    
+    setShowESignDialog(false);
+  };
 
   const handlePrintPrescription = (prescriptionId: string) => {
     // Simulate printing functionality
@@ -1017,7 +1096,23 @@ export default function PrescriptionsPage() {
                         <div>
                           <p className="text-sm font-medium">Resident Physician</p>
                           <p className="text-xs text-gray-600">(Signature)</p>
-                          <div className="border-b border-gray-400 w-32 mt-2"></div>
+                          {prescription.signature ? (
+                            <div className="mt-2">
+                              <img 
+                                src={prescription.signature.doctorSignature} 
+                                alt="Doctor Signature" 
+                                className="h-12 w-32 border border-gray-300 bg-white rounded"
+                              />
+                              <p className="text-xs text-green-600 mt-1">
+                                ✓ E-Signed by {prescription.signature.signedBy}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {format(new Date(prescription.signature.signedAt), 'MMM dd, yyyy HH:mm')}
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="border-b border-gray-400 w-32 mt-2"></div>
+                          )}
                         </div>
                         <div className="text-right">
                           <p className="text-sm font-medium">May Substitute</p>
@@ -1072,6 +1167,19 @@ export default function PrescriptionsPage() {
                         <Send className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                         <span className="hidden lg:inline">Send to Pharmacy</span>
                         <span className="lg:hidden">Send</span>
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => {
+                          setSelectedPrescription(prescription);
+                          setShowESignDialog(true);
+                        }} 
+                        className="text-xs sm:text-sm px-2 sm:px-3"
+                      >
+                        <PenTool className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                        <span className="hidden lg:inline">E-Sign</span>
+                        <span className="lg:hidden">Sign</span>
                       </Button>
                       {prescription.status === 'active' && (
                         <Button variant="outline" size="sm" onClick={() => handleEditPrescription(prescription)} className="text-xs sm:text-sm px-2 sm:px-3">
@@ -1305,6 +1413,16 @@ export default function PrescriptionsPage() {
                   <Send className="h-4 w-4 mr-2" />
                   Send to Pharmacy
                 </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowViewDetails(false);
+                    setShowESignDialog(true);
+                  }}
+                >
+                  <PenTool className="h-4 w-4 mr-2" />
+                  E-Sign
+                </Button>
                 {selectedPrescription.status === 'active' && (
                   <Button 
                     onClick={() => {
@@ -1389,6 +1507,78 @@ export default function PrescriptionsPage() {
                 className="flex-1 bg-medical-blue hover:bg-blue-700"
               >
                 {sendToPharmacyMutation.isPending ? "Sending PDF..." : "Send PDF to Pharmacy"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* E-Signature Dialog */}
+      <Dialog open={showESignDialog} onOpenChange={setShowESignDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Electronic Signature</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedPrescription && (
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <h4 className="font-semibold text-blue-900 mb-2">Prescription Details</h4>
+                <div className="text-sm text-blue-800 space-y-1">
+                  <p><strong>Patient:</strong> {selectedPrescription.patientName}</p>
+                  <p><strong>Medication:</strong> {selectedPrescription.medications[0]?.name} {selectedPrescription.medications[0]?.dosage}</p>
+                  <p><strong>Date:</strong> {format(new Date(selectedPrescription.prescribedAt), 'MMM dd, yyyy')}</p>
+                </div>
+              </div>
+            )}
+            
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Draw your signature below:
+                </label>
+                <div className="border-2 border-gray-300 rounded-lg">
+                  <canvas
+                    ref={canvasRef}
+                    width={400}
+                    height={150}
+                    className="cursor-crosshair bg-white rounded-lg w-full"
+                    onMouseDown={startDrawing}
+                    onMouseMove={draw}
+                    onMouseUp={stopDrawing}
+                    onMouseLeave={stopDrawing}
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={clearSignature} className="flex-1">
+                  Clear Signature
+                </Button>
+              </div>
+              
+              <div className="text-xs text-gray-600 bg-gray-50 p-3 rounded">
+                <p><strong>Legal Notice:</strong> By applying your electronic signature, you confirm that:</p>
+                <ul className="list-disc list-inside mt-1 space-y-1">
+                  <li>You are the prescribing physician for this medication</li>
+                  <li>The prescription information is accurate and complete</li>
+                  <li>This signature has the same legal effect as a handwritten signature</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowESignDialog(false)} 
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={saveSignature}
+                className="flex-1 bg-medical-blue hover:bg-blue-700"
+              >
+                Apply Signature
               </Button>
             </div>
           </div>
