@@ -375,6 +375,12 @@ export const prescriptions = pgTable("prescriptions", {
     description: string;
     medications: string[];
   }>>().default([]),
+  signature: jsonb("signature").$type<{
+    doctorSignature?: string; // base64 encoded signature image
+    signedBy?: string; // doctor name
+    signedAt?: string; // ISO timestamp
+    signerId?: number; // user ID who signed
+  }>().default({}),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

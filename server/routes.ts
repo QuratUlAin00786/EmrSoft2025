@@ -1679,6 +1679,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // E-signature endpoint for prescriptions
+  app.post("/api/prescriptions/:id/e-sign", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const prescriptionId = parseInt(req.params.id);
+      const { signature } = req.body;
+      
+      if (!signature) {
+        return res.status(400).json({ error: "Signature data is required" });
+      }
+
+      // Get prescription to verify it exists
+      const prescription = await storage.getPrescription(prescriptionId, req.tenant!.id);
+      if (!prescription) {
+        return res.status(404).json({ error: "Prescription not found" });
+      }
+
+      // Create signature data
+      const signatureData = {
+        doctorSignature: signature,
+        signedBy: `${req.user.firstName} ${req.user.lastName}`,
+        signedAt: new Date().toISOString(),
+        signerId: req.user.id
+      };
+
+      // Update prescription with signature
+      const updatedPrescription = await storage.updatePrescription(prescriptionId, req.tenant!.id, {
+        signature: signatureData,
+        status: 'signed'
+      });
+      
+      if (!updatedPrescription) {
+        return res.status(404).json({ error: "Failed to update prescription with signature" });
+      }
+
+      res.json({ 
+        success: true,
+        message: "Prescription e-signed successfully",
+        signature: signatureData,
+        prescription: updatedPrescription
+      });
+    } catch (error) {
+      console.error("Error e-signing prescription:", error);
+      res.status(500).json({ error: "Failed to e-sign prescription" });
+    }
+  });
+
   // Lab Results Routes
   app.get("/api/lab-results", authMiddleware, async (req: TenantRequest, res) => {
     try {

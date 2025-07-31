@@ -530,31 +530,42 @@ export default function PrescriptionsPage() {
     setSignature("");
   };
 
-  const saveSignature = () => {
-    if (!canvasRef.current) return;
+  const saveSignature = async () => {
+    if (!canvasRef.current || !selectedPrescription) return;
+    
     const canvas = canvasRef.current;
     const signatureData = canvas.toDataURL();
-    setSignature(signatureData);
     
-    // Apply signature to the selected prescription
-    if (selectedPrescription) {
-      const updatedPrescription = {
-        ...selectedPrescription,
-        signature: {
-          doctorSignature: signatureData,
-          signedAt: new Date().toISOString(),
-          signedBy: "Dr. John Administrator" // This should come from current user
-        }
-      };
-      setSelectedPrescription(updatedPrescription);
-      
+    try {
+      const response = await apiRequest("POST", `/api/prescriptions/${selectedPrescription.id}/e-sign`, {
+        signature: signatureData
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        
+        // Update the prescription queries to refresh data
+        queryClient.invalidateQueries({ queryKey: ["/api/prescriptions"] });
+        
+        // Clear canvas and close dialog
+        clearSignature();
+        setShowESignDialog(false);
+        
+        toast({
+          title: "Success",
+          description: "Prescription has been electronically signed and saved to database",
+        });
+      } else {
+        throw new Error("Failed to save signature");
+      }
+    } catch (error) {
+      console.error("Error saving e-signature:", error);
       toast({
-        title: "Signature Applied",
-        description: "E-signature has been successfully applied to the prescription",
+        title: "Error", 
+        description: "Failed to save electronic signature. Please try again.",
+        variant: "destructive"
       });
     }
-    
-    setShowESignDialog(false);
   };
 
   const handlePrintPrescription = (prescriptionId: string) => {
