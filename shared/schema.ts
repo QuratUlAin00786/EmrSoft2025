@@ -362,6 +362,7 @@ export const prescriptions = pgTable("prescriptions", {
     name?: string;
     address?: string;
     phone?: string;
+    email?: string;
     fax?: string;
     npi?: string; // National Provider Identifier
   }>().default({}),

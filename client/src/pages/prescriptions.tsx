@@ -53,6 +53,7 @@ interface Prescription {
     name: string;
     address: string;
     phone: string;
+    email?: string;
   };
   interactions?: Array<{
     severity: 'minor' | 'moderate' | 'major';
