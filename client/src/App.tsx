@@ -44,6 +44,7 @@ import MedicationGuide from "@/pages/medication-guide";
 import PreventionGuidelines from "@/pages/prevention-guidelines";
 import ClinicalProcedures from "@/pages/clinical-procedures";
 import Inventory from "@/pages/inventory";
+import GDPRCompliance from "@/pages/gdpr-compliance";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 
@@ -129,6 +130,7 @@ function ProtectedApp() {
           <Route path="/prevention-guidelines" component={PreventionGuidelines} />
           <Route path="/clinical-procedures" component={ClinicalProcedures} />
           <Route path="/inventory" component={Inventory} />
+          <Route path="/gdpr-compliance" component={GDPRCompliance} />
           <Route path="/users" component={UserManagement} />
           <Route path="/user-management" component={UserManagement} />
           <Route path="/shifts" component={ShiftsPage} />

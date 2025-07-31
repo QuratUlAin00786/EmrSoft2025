@@ -9,6 +9,8 @@ import { aiService } from "./services/ai";
 import { tenantMiddleware, authMiddleware, requireRole, gdprComplianceMiddleware, type TenantRequest } from "./middleware/tenant";
 import { messagingService } from "./messaging-service";
 import { createPaypalOrder, capturePaypalOrder, loadPaypalDefault } from "./paypal";
+import { gdprComplianceService } from "./services/gdpr-compliance";
+import { insertGdprConsentSchema, insertGdprDataRequestSchema } from "../shared/schema";
 
 // In-memory storage for voice notes - persistent across server restarts
 let voiceNotes: any[] = [];
@@ -169,6 +171,121 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Protected routes (auth required)
   app.use("/api", authMiddleware);
+
+  // GDPR Compliance Routes
+  app.post("/api/gdpr/consent", requireRole(["admin", "patient"]), async (req: TenantRequest, res) => {
+    try {
+      const consentData = insertGdprConsentSchema.parse({
+        ...req.body,
+        organizationId: req.tenant!.id
+      });
+      
+      const consent = await gdprComplianceService.recordConsent(consentData);
+      res.json(consent);
+    } catch (error) {
+      console.error("GDPR consent creation error:", error);
+      res.status(500).json({ error: "Failed to record consent" });
+    }
+  });
+
+  app.patch("/api/gdpr/consent/:id/withdraw", requireRole(["admin", "patient"]), async (req: TenantRequest, res) => {
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+      
+      await gdprComplianceService.withdrawConsent(parseInt(id), req.tenant!.id, reason);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("GDPR consent withdrawal error:", error);
+      res.status(500).json({ error: "Failed to withdraw consent" });
+    }
+  });
+
+  app.post("/api/gdpr/data-request", requireRole(["admin", "patient"]), async (req: TenantRequest, res) => {
+    try {
+      const requestData = insertGdprDataRequestSchema.parse({
+        ...req.body,
+        organizationId: req.tenant!.id
+      });
+      
+      const dataRequest = await gdprComplianceService.submitDataRequest(requestData);
+      res.json(dataRequest);
+    } catch (error) {
+      console.error("GDPR data request error:", error);
+      res.status(500).json({ error: "Failed to submit data request" });
+    }
+  });
+
+  app.get("/api/gdpr/patient/:patientId/data-export", requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const { patientId } = req.params;
+      const { requestId } = req.query;
+      
+      const exportData = await gdprComplianceService.exportPatientData(
+        parseInt(patientId), 
+        req.tenant!.id, 
+        parseInt(requestId as string)
+      );
+      
+      res.json(exportData);
+    } catch (error) {
+      console.error("GDPR data export error:", error);
+      res.status(500).json({ error: "Failed to export patient data" });
+    }
+  });
+
+  app.post("/api/gdpr/patient/:patientId/erasure", requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const { patientId } = req.params;
+      const { requestId, reason } = req.body;
+      
+      await gdprComplianceService.processDataErasure(
+        parseInt(patientId), 
+        req.tenant!.id, 
+        requestId, 
+        reason
+      );
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("GDPR data erasure error:", error);
+      res.status(500).json({ error: "Failed to process data erasure" });
+    }
+  });
+
+  app.get("/api/gdpr/patient/:patientId/consent-status", requireRole(["admin", "doctor", "patient"]), async (req: TenantRequest, res) => {
+    try {
+      const { patientId } = req.params;
+      const { consentType } = req.query;
+      
+      const consentStatus = await gdprComplianceService.checkConsentStatus(
+        parseInt(patientId), 
+        req.tenant!.id, 
+        consentType as string
+      );
+      
+      res.json(consentStatus);
+    } catch (error) {
+      console.error("GDPR consent status error:", error);
+      res.status(500).json({ error: "Failed to check consent status" });
+    }
+  });
+
+  app.get("/api/gdpr/compliance-report", requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const { period = "monthly" } = req.query;
+      
+      const report = await gdprComplianceService.generateComplianceReport(
+        req.tenant!.id, 
+        period as "monthly" | "quarterly" | "annual"
+      );
+      
+      res.json(report);
+    } catch (error) {
+      console.error("GDPR compliance report error:", error);
+      res.status(500).json({ error: "Failed to generate compliance report" });
+    }
+  });
 
   // Dashboard routes
   app.get("/api/dashboard/stats", async (req: TenantRequest, res) => {

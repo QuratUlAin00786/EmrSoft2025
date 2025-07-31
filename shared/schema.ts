@@ -474,6 +474,120 @@ export const notifications = pgTable("notifications", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// GDPR Consent Management
+export const gdprConsents = pgTable("gdpr_consents", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  patientId: integer("patient_id").notNull().references(() => patients.id),
+  consentType: varchar("consent_type", { length: 50 }).notNull(), // data_processing, marketing, research, data_sharing
+  status: varchar("status", { length: 20 }).notNull().default("pending"), // pending, granted, withdrawn, expired
+  grantedAt: timestamp("granted_at"),
+  withdrawnAt: timestamp("withdrawn_at"),
+  expiresAt: timestamp("expires_at"),
+  purpose: text("purpose").notNull(), // specific purpose for data processing
+  legalBasis: varchar("legal_basis", { length: 50 }).notNull(), // legitimate_interest, consent, contract, legal_obligation
+  dataCategories: jsonb("data_categories").$type<string[]>().default([]), // personal_data, health_data, financial_data
+  retentionPeriod: integer("retention_period"), // in months
+  ipAddress: varchar("ip_address", { length: 45 }),
+  userAgent: text("user_agent"),
+  consentMethod: varchar("consent_method", { length: 30 }).notNull().default("digital"), // digital, written, verbal
+  metadata: jsonb("metadata").$type<{
+    version?: string;
+    language?: string;
+    consentDocument?: string;
+    witnesses?: string[];
+  }>().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// GDPR Data Requests (Right to Access, Portability, Erasure)
+export const gdprDataRequests = pgTable("gdpr_data_requests", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  patientId: integer("patient_id").notNull().references(() => patients.id),
+  requestType: varchar("request_type", { length: 30 }).notNull(), // access, portability, erasure, rectification
+  status: varchar("status", { length: 20 }).notNull().default("pending"), // pending, in_progress, completed, rejected
+  requestReason: text("request_reason"),
+  identityVerified: boolean("identity_verified").notNull().default(false),
+  processedBy: integer("processed_by").references(() => users.id),
+  requestedAt: timestamp("requested_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+  dueDate: timestamp("due_date").notNull(), // 30 days from request
+  responseData: jsonb("response_data").$type<{
+    exportedFiles?: string[];
+    dataCategories?: string[];
+    deletedRecords?: string[];
+    rectificationChanges?: any[];
+  }>().default({}),
+  rejectionReason: text("rejection_reason"),
+  communicationLog: jsonb("communication_log").$type<Array<{
+    timestamp: string;
+    type: string;
+    message: string;
+    sentBy: string;
+  }>>().default([]),
+  metadata: jsonb("metadata").$type<{
+    requestMethod?: string; // email, portal, written
+    documentsSent?: string[];
+    followUpRequired?: boolean;
+  }>().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// GDPR Audit Trail
+export const gdprAuditTrail = pgTable("gdpr_audit_trail", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  userId: integer("user_id").references(() => users.id),
+  patientId: integer("patient_id").references(() => patients.id),
+  action: varchar("action", { length: 50 }).notNull(), // data_access, data_export, data_deletion, consent_change
+  resourceType: varchar("resource_type", { length: 30 }).notNull(), // patient, medical_record, prescription, etc.
+  resourceId: integer("resource_id"),
+  dataCategories: jsonb("data_categories").$type<string[]>().default([]),
+  legalBasis: varchar("legal_basis", { length: 50 }),
+  purpose: text("purpose"),
+  changes: jsonb("changes").$type<Array<{
+    field: string;
+    oldValue: any;
+    newValue: any;
+  }>>().default([]),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  userAgent: text("user_agent"),
+  sessionId: varchar("session_id", { length: 100 }),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  metadata: jsonb("metadata").$type<{
+    riskLevel?: string;
+    complianceFlags?: string[];
+    retentionPeriod?: number;
+  }>().default({}),
+});
+
+// GDPR Data Processing Activities
+export const gdprProcessingActivities = pgTable("gdpr_processing_activities", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  activityName: text("activity_name").notNull(),
+  purpose: text("purpose").notNull(),
+  legalBasis: varchar("legal_basis", { length: 50 }).notNull(),
+  dataCategories: jsonb("data_categories").$type<string[]>().default([]),
+  dataSubjects: jsonb("data_subjects").$type<string[]>().default([]), // patients, employees, visitors
+  recipients: jsonb("recipients").$type<string[]>().default([]), // internal staff, third parties
+  internationalTransfers: jsonb("international_transfers").$type<Array<{
+    country: string;
+    safeguards: string;
+    adequacyDecision: boolean;
+  }>>().default([]),
+  retentionPeriod: integer("retention_period"), // in months
+  securityMeasures: jsonb("security_measures").$type<string[]>().default([]),
+  dataProtectionImpactAssessment: boolean("dpia_required").notNull().default(false),
+  status: varchar("status", { length: 20 }).notNull().default("active"), // active, suspended, terminated
+  reviewDate: timestamp("review_date"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Lab Results
 export const labResults = pgTable("lab_results", {
   id: serial("id").primaryKey(),
@@ -821,6 +935,55 @@ export const staffShiftsRelations = relations(staffShifts, ({ one }) => ({
   }),
 }));
 
+// GDPR Relations
+export const gdprConsentsRelations = relations(gdprConsents, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [gdprConsents.organizationId],
+    references: [organizations.id],
+  }),
+  patient: one(patients, {
+    fields: [gdprConsents.patientId],
+    references: [patients.id],
+  }),
+}));
+
+export const gdprDataRequestsRelations = relations(gdprDataRequests, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [gdprDataRequests.organizationId],
+    references: [organizations.id],
+  }),
+  patient: one(patients, {
+    fields: [gdprDataRequests.patientId],
+    references: [patients.id],
+  }),
+  processedByUser: one(users, {
+    fields: [gdprDataRequests.processedBy],
+    references: [users.id],
+  }),
+}));
+
+export const gdprAuditTrailRelations = relations(gdprAuditTrail, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [gdprAuditTrail.organizationId],
+    references: [organizations.id],
+  }),
+  user: one(users, {
+    fields: [gdprAuditTrail.userId],
+    references: [users.id],
+  }),
+  patient: one(patients, {
+    fields: [gdprAuditTrail.patientId],
+    references: [patients.id],
+  }),
+}));
+
+export const gdprProcessingActivitiesRelations = relations(gdprProcessingActivities, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [gdprProcessingActivities.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
 // Insert schemas
 export const insertOrganizationSchema = createInsertSchema(organizations).omit({
   id: true,
@@ -938,6 +1101,29 @@ export const insertStaffShiftSchema = createInsertSchema(staffShifts).omit({
   updatedAt: true,
 });
 
+// GDPR Insert Schemas
+export const insertGdprConsentSchema = createInsertSchema(gdprConsents).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertGdprDataRequestSchema = createInsertSchema(gdprDataRequests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertGdprAuditTrailSchema = createInsertSchema(gdprAuditTrail).omit({
+  id: true,
+});
+
+export const insertGdprProcessingActivitySchema = createInsertSchema(gdprProcessingActivities).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type Organization = typeof organizations.$inferSelect;
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
@@ -1001,5 +1187,18 @@ export type InsertMedicationsDatabase = z.infer<typeof insertMedicationsDatabase
 
 export type StaffShift = typeof staffShifts.$inferSelect;
 export type InsertStaffShift = z.infer<typeof insertStaffShiftSchema>;
+
+// GDPR Types
+export type GdprConsent = typeof gdprConsents.$inferSelect;
+export type InsertGdprConsent = z.infer<typeof insertGdprConsentSchema>;
+
+export type GdprDataRequest = typeof gdprDataRequests.$inferSelect;
+export type InsertGdprDataRequest = z.infer<typeof insertGdprDataRequestSchema>;
+
+export type GdprAuditTrail = typeof gdprAuditTrail.$inferSelect;
+export type InsertGdprAuditTrail = z.infer<typeof insertGdprAuditTrailSchema>;
+
+export type GdprProcessingActivity = typeof gdprProcessingActivities.$inferSelect;
+export type InsertGdprProcessingActivity = z.infer<typeof insertGdprProcessingActivitySchema>;
 
 

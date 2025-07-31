@@ -1,5 +1,5 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts,
+  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Role, type InsertRole,
@@ -20,7 +20,11 @@ import {
   type ClinicalProcedure, type InsertClinicalProcedure,
   type EmergencyProtocol, type InsertEmergencyProtocol,
   type MedicationsDatabase, type InsertMedicationsDatabase,
-  type StaffShift, type InsertStaffShift
+  type StaffShift, type InsertStaffShift,
+  type GdprConsent, type InsertGdprConsent,
+  type GdprDataRequest, type InsertGdprDataRequest,
+  type GdprAuditTrail, type InsertGdprAuditTrail,
+  type GdprProcessingActivity, type InsertGdprProcessingActivity
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, count, not, sql, gte, lt } from "drizzle-orm";
@@ -215,6 +219,20 @@ export interface IStorage {
   createStaffShift(shift: InsertStaffShift): Promise<StaffShift>;
   updateStaffShift(id: number, organizationId: number, updates: Partial<InsertStaffShift>): Promise<StaffShift | undefined>;
   deleteStaffShift(id: number, organizationId: number): Promise<boolean>;
+
+  // GDPR Compliance
+  createGdprConsent(consent: InsertGdprConsent): Promise<GdprConsent>;
+  updateGdprConsent(id: number, organizationId: number, updates: Partial<InsertGdprConsent>): Promise<GdprConsent | undefined>;
+  getGdprConsentsByPatient(patientId: number, organizationId: number): Promise<GdprConsent[]>;
+  getGdprConsentsByPeriod(organizationId: number, startDate: Date, endDate: Date): Promise<GdprConsent[]>;
+  
+  createGdprDataRequest(request: InsertGdprDataRequest): Promise<GdprDataRequest>;
+  updateGdprDataRequest(id: number, organizationId: number, updates: Partial<InsertGdprDataRequest>): Promise<GdprDataRequest | undefined>;
+  getGdprDataRequestsByPeriod(organizationId: number, startDate: Date, endDate: Date): Promise<GdprDataRequest[]>;
+  
+  createGdprAuditTrail(audit: InsertGdprAuditTrail): Promise<GdprAuditTrail>;
+  
+  getActiveAppointmentsByPatient(patientId: number, organizationId: number): Promise<Appointment[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2049,6 +2067,80 @@ export class DatabaseStorage implements IStorage {
     const result = await db.delete(staffShifts)
       .where(and(eq(staffShifts.id, id), eq(staffShifts.organizationId, organizationId)));
     return result.rowCount > 0;
+  }
+
+  // GDPR Compliance Methods
+  async createGdprConsent(consent: InsertGdprConsent): Promise<GdprConsent> {
+    const [result] = await db.insert(gdprConsents).values(consent).returning();
+    return result;
+  }
+
+  async updateGdprConsent(id: number, organizationId: number, updates: Partial<InsertGdprConsent>): Promise<GdprConsent | undefined> {
+    const [consent] = await db.update(gdprConsents)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(eq(gdprConsents.id, id), eq(gdprConsents.organizationId, organizationId)))
+      .returning();
+    return consent || undefined;
+  }
+
+  async getGdprConsentsByPatient(patientId: number, organizationId: number): Promise<GdprConsent[]> {
+    return await db.select()
+      .from(gdprConsents)
+      .where(and(eq(gdprConsents.patientId, patientId), eq(gdprConsents.organizationId, organizationId)))
+      .orderBy(desc(gdprConsents.createdAt));
+  }
+
+  async getGdprConsentsByPeriod(organizationId: number, startDate: Date, endDate: Date): Promise<GdprConsent[]> {
+    return await db.select()
+      .from(gdprConsents)
+      .where(and(
+        eq(gdprConsents.organizationId, organizationId),
+        gte(gdprConsents.createdAt, startDate),
+        lt(gdprConsents.createdAt, endDate)
+      ))
+      .orderBy(desc(gdprConsents.createdAt));
+  }
+
+  async createGdprDataRequest(request: InsertGdprDataRequest): Promise<GdprDataRequest> {
+    const [result] = await db.insert(gdprDataRequests).values(request).returning();
+    return result;
+  }
+
+  async updateGdprDataRequest(id: number, organizationId: number, updates: Partial<InsertGdprDataRequest>): Promise<GdprDataRequest | undefined> {
+    const [request] = await db.update(gdprDataRequests)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(eq(gdprDataRequests.id, id), eq(gdprDataRequests.organizationId, organizationId)))
+      .returning();
+    return request || undefined;
+  }
+
+  async getGdprDataRequestsByPeriod(organizationId: number, startDate: Date, endDate: Date): Promise<GdprDataRequest[]> {
+    return await db.select()
+      .from(gdprDataRequests)
+      .where(and(
+        eq(gdprDataRequests.organizationId, organizationId),
+        gte(gdprDataRequests.requestedAt, startDate),
+        lt(gdprDataRequests.requestedAt, endDate)
+      ))
+      .orderBy(desc(gdprDataRequests.requestedAt));
+  }
+
+  async createGdprAuditTrail(audit: InsertGdprAuditTrail): Promise<GdprAuditTrail> {
+    const [result] = await db.insert(gdprAuditTrail).values(audit).returning();
+    return result;
+  }
+
+  async getActiveAppointmentsByPatient(patientId: number, organizationId: number): Promise<Appointment[]> {
+    const today = new Date();
+    return await db.select()
+      .from(appointments)
+      .where(and(
+        eq(appointments.patientId, patientId),
+        eq(appointments.organizationId, organizationId),
+        gte(appointments.scheduledAt, today),
+        not(eq(appointments.status, "cancelled"))
+      ))
+      .orderBy(asc(appointments.scheduledAt));
   }
 }
 

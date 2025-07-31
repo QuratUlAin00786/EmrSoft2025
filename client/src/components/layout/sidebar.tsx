@@ -27,7 +27,8 @@ import {
   Calculator,
   Package,
   Menu,
-  X
+  X,
+  Shield
 } from "lucide-react";
 import { useTenant } from "@/hooks/use-tenant";
 import curaIconPath from "@assets/Cura Icon Main_1751893631980.png";
@@ -70,6 +71,7 @@ const ALL_NAVIGATION = [
   { name: "Financial Intelligence", href: "/financial-intelligence", icon: Calculator, module: "billing" },
   { name: "Billing", href: "/billing", icon: Receipt, module: "billing" },
   { name: "Inventory", href: "/inventory", icon: Package, module: "inventory" },
+  { name: "GDPR Compliance", href: "/gdpr-compliance", icon: Shield, module: "gdpr_compliance" },
 ];
 
 const ADMIN_NAVIGATION = [
