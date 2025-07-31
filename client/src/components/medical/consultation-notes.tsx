@@ -896,58 +896,11 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                 
                 {/* Facial Diagram ABOVE the Anatomical Reference Window Header */}
                 <div className="flex justify-center mb-6">
-                  <div className="w-64 h-80 bg-white rounded-lg border border-gray-300 p-4 flex items-center justify-center">
-                    <svg width="200" height="280" viewBox="0 0 200 280" className="w-full h-full">
-                      {/* Face outline */}
-                      <ellipse cx="100" cy="140" rx="70" ry="100" fill="none" stroke="#4a5568" strokeWidth="2"/>
-                      
-                      {/* Forehead area */}
-                      <path d="M 45 80 Q 100 60 155 80" fill="none" stroke="#4a5568" strokeWidth="1"/>
-                      
-                      {/* Eyebrows */}
-                      <path d="M 70 115 Q 85 110 100 115" fill="none" stroke="#4a5568" strokeWidth="1.5"/>
-                      <path d="M 100 115 Q 115 110 130 115" fill="none" stroke="#4a5568" strokeWidth="1.5"/>
-                      
-                      {/* Eyes */}
-                      <ellipse cx="85" cy="125" rx="12" ry="6" fill="none" stroke="#4a5568" strokeWidth="1.5"/>
-                      <ellipse cx="115" cy="125" rx="12" ry="6" fill="none" stroke="#4a5568" strokeWidth="1.5"/>
-                      <circle cx="85" cy="125" r="3" fill="#4a5568"/>
-                      <circle cx="115" cy="125" r="3" fill="#4a5568"/>
-                      
-                      {/* Nose */}
-                      <path d="M 100 135 L 98 150 L 100 155 L 102 150 Z" fill="none" stroke="#4a5568" strokeWidth="1.5"/>
-                      <ellipse cx="97" cy="155" rx="2" ry="1" fill="none" stroke="#4a5568" strokeWidth="1"/>
-                      <ellipse cx="103" cy="155" rx="2" ry="1" fill="none" stroke="#4a5568" strokeWidth="1"/>
-                      
-                      {/* Mouth */}
-                      <path d="M 85 175 Q 100 185 115 175" fill="none" stroke="#4a5568" strokeWidth="1.5"/>
-                      <path d="M 85 175 Q 100 170 115 175" fill="none" stroke="#4a5568" strokeWidth="1"/>
-                      
-                      {/* Chin */}
-                      <path d="M 70 210 Q 100 225 130 210" fill="none" stroke="#4a5568" strokeWidth="1"/>
-                      
-                      {/* Muscle reference points and labels */}
-                      <circle cx="65" cy="100" r="1.5" fill="#718096"/>
-                      <circle cx="135" cy="100" r="1.5" fill="#718096"/>
-                      <circle cx="100" cy="90" r="1.5" fill="#718096"/>
-                      <circle cx="75" cy="160" r="1.5" fill="#718096"/>
-                      <circle cx="125" cy="160" r="1.5" fill="#718096"/>
-                      <circle cx="100" cy="200" r="1.5" fill="#718096"/>
-                      
-                      {/* Labels */}
-                      <text x="65" y="95" fontSize="10" fill="#4a5568" textAnchor="middle" fontFamily="Arial">Temporalis</text>
-                      <text x="135" y="95" fontSize="10" fill="#4a5568" textAnchor="middle" fontFamily="Arial">Temporalis</text>
-                      <text x="100" y="85" fontSize="10" fill="#4a5568" textAnchor="middle" fontFamily="Arial">Frontalis</text>
-                      <text x="75" y="155" fontSize="10" fill="#4a5568" textAnchor="middle" fontFamily="Arial">Zygomaticus</text>
-                      <text x="125" y="155" fontSize="10" fill="#4a5568" textAnchor="middle" fontFamily="Arial">Zygomaticus</text>
-                      <text x="100" y="218" fontSize="10" fill="#4a5568" textAnchor="middle" fontFamily="Arial">Mentalis</text>
-                      
-                      {/* Additional anatomical markers */}
-                      <text x="55" y="130" fontSize="9" fill="#718096" textAnchor="middle" fontFamily="Arial">Orbicularis</text>
-                      <text x="145" y="130" fontSize="9" fill="#718096" textAnchor="middle" fontFamily="Arial">Orbicularis</text>
-                      <text x="100" y="195" fontSize="9" fill="#718096" textAnchor="middle" fontFamily="Arial">Orbicularis Oris</text>
-                    </svg>
-                  </div>
+                  <img 
+                    src="/clean-facial-diagram.png" 
+                    alt="Facial Anatomy Diagram" 
+                    className="w-64 h-80 object-contain rounded-lg border border-gray-300 bg-white"
+                  />
                 </div>
 
                 <div className="flex items-center justify-between mb-4">
