@@ -901,6 +901,12 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     src={facialDiagramImage} 
                     alt="Facial Anatomy Diagram" 
                     className="w-64 h-80 object-contain"
+                    style={{
+                      filter: 'brightness(0) invert(1)',
+                      backgroundColor: 'white',
+                      padding: '10px',
+                      borderRadius: '8px'
+                    }}
                     onLoad={() => console.log('Facial diagram loaded successfully')}
                   />
                 </div>
