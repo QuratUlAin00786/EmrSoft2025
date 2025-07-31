@@ -191,6 +191,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate new AI insights using OpenAI
+  app.post("/api/ai/generate-insights", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const { patientId } = req.body;
+      
+      if (!patientId) {
+        return res.status(400).json({ error: "Patient ID is required" });
+      }
+
+      // Get patient data
+      const patient = await storage.getPatient(parseInt(patientId), req.tenant!.id);
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+
+      // Get medical records
+      const medicalRecords = await storage.getMedicalRecordsByPatient(parseInt(patientId), req.tenant!.id);
+
+      // Generate AI insights using OpenAI
+      const aiInsightsData = await aiService.analyzePatientRisk(patient, medicalRecords);
+
+      // Store new insights in database
+      const savedInsights = [];
+      for (const insightData of aiInsightsData) {
+        const insight = await storage.createAiInsight({
+          organizationId: req.tenant!.id,
+          patientId: parseInt(patientId),
+          type: insightData.type,
+          title: insightData.title,
+          description: insightData.description,
+          severity: insightData.severity,
+          actionRequired: insightData.actionRequired,
+          confidence: insightData.confidence.toString(),
+          status: "active"
+        });
+        savedInsights.push(insight);
+      }
+
+      res.json({ 
+        success: true, 
+        insights: savedInsights,
+        generated: savedInsights.length,
+        patientName: `${patient.firstName} ${patient.lastName}`
+      });
+    } catch (error) {
+      console.error("AI insight generation error:", error);
+      res.status(500).json({ error: "Failed to generate AI insights" });
+    }
+  });
+
   // Patient routes
   app.get("/api/patients", async (req: TenantRequest, res) => {
     try {

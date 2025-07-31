@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { Header } from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { apiRequest } from "@/lib/queryClient";
-import { Lightbulb, CheckCircle, AlertTriangle, Sparkles, Clock, CheckCheck, X } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { Lightbulb, CheckCircle, AlertTriangle, Sparkles, Clock, CheckCheck, X, Brain, Zap } from "lucide-react";
 import type { AiInsight } from "@/types";
 
 const insightIcons = {
@@ -49,6 +53,9 @@ const severityColors = {
 export default function AiInsights() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const [selectedPatientId, setSelectedPatientId] = useState<string>("");
+  const [generateDialogOpen, setGenerateDialogOpen] = useState(false);
   
   const { data: insights, isLoading, error } = useQuery<AiInsight[]>({
     queryKey: ["/api/dashboard/ai-insights"],
@@ -70,6 +77,24 @@ export default function AiInsights() {
     refetchOnWindowFocus: false,
   });
 
+  // Fetch patients for the generate insights dialog
+  const { data: patients = [] } = useQuery({
+    queryKey: ["/api/patients"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/patients?limit=50', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch patients');
+      }
+      return response.json();
+    }
+  });
+
   const updateInsightMutation = useMutation({
     mutationFn: async ({ id, status }: { id: number; status: string }) => {
       return apiRequest('PATCH', `/api/ai/insights/${id}`, { status });
@@ -78,6 +103,40 @@ export default function AiInsights() {
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/ai-insights"] });
     }
   });
+
+  const generateInsightsMutation = useMutation({
+    mutationFn: async (patientId: string) => {
+      return apiRequest('POST', '/api/ai/generate-insights', { patientId });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "AI Insights Generated",
+        description: `Generated ${data.generated} new insights for ${data.patientName}`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/ai-insights"] });
+      setGenerateDialogOpen(false);
+      setSelectedPatientId("");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to generate AI insights",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleGenerateInsights = () => {
+    if (!selectedPatientId) {
+      toast({
+        title: "Error",
+        description: "Please select a patient first",
+        variant: "destructive",
+      });
+      return;
+    }
+    generateInsightsMutation.mutate(selectedPatientId);
+  };
 
   if (isLoading) {
     return (
@@ -134,6 +193,80 @@ export default function AiInsights() {
       <Header 
         title="AI Insights" 
         subtitle="AI-powered medical insights and recommendations."
+        actions={
+          <Dialog open={generateDialogOpen} onOpenChange={setGenerateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="ai-gradient">
+                <Brain className="w-4 h-4 mr-2" />
+                Generate New Insights
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle className="flex items-center">
+                  <Zap className="w-5 h-5 mr-2 text-blue-500" />
+                  Generate AI Insights
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Select Patient
+                  </label>
+                  <Select value={selectedPatientId} onValueChange={setSelectedPatientId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a patient for AI analysis..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {patients.map((patient: any) => (
+                        <SelectItem key={patient.id} value={patient.id.toString()}>
+                          {patient.firstName} {patient.lastName} - {patient.patientId}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="flex items-start space-x-3">
+                    <Sparkles className="w-5 h-5 text-blue-500 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-blue-900">AI Analysis</h4>
+                      <p className="text-sm text-blue-700 mt-1">
+                        Our AI will analyze the patient's medical history, current conditions, and generate personalized insights including risk assessments, drug interactions, and treatment recommendations.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setGenerateDialogOpen(false)}
+                    disabled={generateInsightsMutation.isPending}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleGenerateInsights}
+                    disabled={generateInsightsMutation.isPending || !selectedPatientId}
+                    className="ai-gradient"
+                  >
+                    {generateInsightsMutation.isPending ? (
+                      <>
+                        <LoadingSpinner size="sm" className="mr-2" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Brain className="w-4 h-4 mr-2" />
+                        Generate Insights
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        }
       />
       
       <div className="flex-1 overflow-auto p-6">
