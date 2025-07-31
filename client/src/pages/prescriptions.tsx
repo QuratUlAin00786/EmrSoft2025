@@ -1107,7 +1107,7 @@ export default function PrescriptionsPage() {
                         <div>
                           <p className="text-sm font-medium">Resident Physician</p>
                           <p className="text-xs text-gray-600">(Signature)</p>
-                          {prescription.signature ? (
+                          {prescription.signature && prescription.signature.doctorSignature ? (
                             <div className="mt-2">
                               <img 
                                 src={prescription.signature.doctorSignature} 
@@ -1115,10 +1115,13 @@ export default function PrescriptionsPage() {
                                 className="h-12 w-32 border border-gray-300 bg-white rounded"
                               />
                               <p className="text-xs text-green-600 mt-1">
-                                ✓ E-Signed by {prescription.signature.signedBy}
+                                ✓ E-Signed by {prescription.signature.signedBy || 'Unknown Provider'}
                               </p>
                               <p className="text-xs text-gray-500">
-                                {format(new Date(prescription.signature.signedAt), 'MMM dd, yyyy HH:mm')}
+                                {prescription.signature.signedAt && !isNaN(new Date(prescription.signature.signedAt).getTime()) 
+                                  ? format(new Date(prescription.signature.signedAt), 'MMM dd, yyyy HH:mm')
+                                  : 'Date not available'
+                                }
                               </p>
                             </div>
                           ) : (
