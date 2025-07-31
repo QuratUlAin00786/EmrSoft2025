@@ -931,117 +931,168 @@ export default function PrescriptionsPage() {
               </Card>
             ) : (
               filteredPrescriptions.map((prescription) => (
-                <Card key={prescription.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex flex-wrap items-center gap-2 mb-3">
-                          <h3 className="text-lg font-semibold">{prescription.patientName}</h3>
+                <Card key={prescription.id} className="hover:shadow-md transition-shadow bg-gradient-to-br from-pink-50 to-pink-100 border-2 border-pink-200">
+                  <CardContent className="p-0">
+                    {/* Professional Prescription Header */}
+                    <div className="bg-white border-b-2 border-pink-200 p-4">
+                      <div className="flex justify-between items-start">
+                        <div className="text-center">
+                          <h2 className="text-lg font-bold text-gray-800">CURA HEALTH EMR</h2>
+                          <p className="text-sm text-gray-600">License # 123456</p>
+                          <p className="text-sm text-gray-600">NPI # 1234567890</p>
+                        </div>
+                        <div>
                           <Badge className={getStatusColor(prescription.status)}>
                             {prescription.status}
                           </Badge>
                           {prescription.interactions && prescription.interactions.length > 0 && (
-                            <Badge variant="destructive" className="flex items-center gap-1">
+                            <Badge variant="destructive" className="flex items-center gap-1 ml-2">
                               <AlertTriangle className="h-3 w-3" />
                               Drug Interactions
                             </Badge>
                           )}
                         </div>
-                        
-                        <div className="space-y-2 mb-4">
-                          <p className="text-sm text-gray-600">
-                            <strong>Diagnosis:</strong> {prescription.diagnosis}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            <strong>Prescribed by:</strong> {prescription.providerName}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            <strong>Date:</strong> {format(new Date(prescription.prescribedAt), 'MMM dd, yyyy HH:mm')}
-                          </p>
-                          {prescription.pharmacy && (
-                            <p className="text-sm text-gray-600">
-                              <strong>Pharmacy:</strong> {prescription.pharmacy.name}
-                            </p>
-                          )}
+                      </div>
+                      
+                      <div className="text-center mt-2">
+                        <h3 className="text-md font-semibold text-gray-800">RESIDENT PHYSICIAN M.D</h3>
+                        <p className="text-sm text-gray-600">{prescription.providerName}</p>
+                        <p className="text-sm text-gray-600">Halo Health Clinic</p>
+                        <p className="text-sm text-gray-600">Unit 2 Drayton Court, Solihull</p>
+                        <p className="text-sm text-gray-600">B90 4NG, UK</p>
+                        <p className="text-sm text-gray-600">+44(0)121 827 5531</p>
+                      </div>
+                    </div>
+
+                    {/* Patient Information */}
+                    <div className="px-6 py-4 bg-pink-50">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="text-sm"><strong>Name:</strong> {prescription.patientName}</p>
+                          <p className="text-sm"><strong>Address:</strong> Patient Address</p>
+                          <p className="text-sm"><strong>Allergies:</strong> NKDA</p>
+                          <p className="text-sm"><strong>Weight:</strong> {prescription.patientWeight || '70 kg'}</p>
                         </div>
-                        
-                        <div className="space-y-3">
-                          <h4 className="font-medium">Medications:</h4>
-                          {prescription.medications.map((medication: any, index: number) => (
-                            <div key={index} className="bg-gray-50 rounded-lg p-3">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="font-medium">{medication.name}</span>
-                                <span className="text-sm text-gray-600">{medication.dosage}</span>
-                              </div>
-                              <div className="text-sm text-gray-600 space-y-1">
-                                <p><strong>Frequency:</strong> {medication.frequency}</p>
-                                <p><strong>Duration:</strong> {medication.duration}</p>
-                                <p><strong>Quantity:</strong> {medication.quantity} | <strong>Refills:</strong> {medication.refills}</p>
-                                {medication.instructions && (
-                                  <p><strong>Instructions:</strong> {medication.instructions}</p>
-                                )}
-                              </div>
+                        <div className="text-right">
+                          <p className="text-sm"><strong>DOB:</strong> {prescription.patientDob || '01/01/1985'}</p>
+                          <p className="text-sm"><strong>Age:</strong> {prescription.patientAge || '39'}</p>
+                          <p className="text-sm"><strong>Sex:</strong> {prescription.patientSex || 'M'}</p>
+                          <p className="text-sm"><strong>Date:</strong> {format(new Date(prescription.prescribedAt), 'MM/dd/yyyy')}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Large Rx Symbol */}
+                    <div className="flex justify-center py-4 bg-pink-50">
+                      <div className="text-6xl font-bold text-pink-300 opacity-50">
+                        ℞
+                      </div>
+                    </div>
+
+                    {/* Prescription Content */}
+                    <div className="px-6 py-4 bg-white min-h-[200px]">
+                      <div className="space-y-4">
+                        {prescription.medications.map((medication: any, index: number) => (
+                          <div key={index}>
+                            <p className="font-medium text-lg">{medication.name} {medication.dosage}</p>
+                            <p className="text-sm text-gray-700 ml-4">Sig: {medication.instructions || medication.frequency}</p>
+                            <p className="text-sm text-gray-700 ml-4">Disp: {medication.quantity} ({medication.duration})</p>
+                            <p className="text-sm text-gray-700 ml-4">Refills: {medication.refills}</p>
+                            {index < prescription.medications.length - 1 && (
+                              <hr className="my-3 border-gray-200" />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* Diagnosis */}
+                      <div className="mt-6 pt-4 border-t border-gray-200">
+                        <p className="text-sm"><strong>Diagnosis:</strong> {prescription.diagnosis}</p>
+                      </div>
+                    </div>
+
+                    {/* Prescription Footer */}
+                    <div className="px-6 py-4 bg-pink-50 border-t-2 border-pink-200">
+                      <div className="flex justify-between items-end">
+                        <div>
+                          <p className="text-sm font-medium">Resident Physician</p>
+                          <p className="text-xs text-gray-600">(Signature)</p>
+                          <div className="border-b border-gray-400 w-32 mt-2"></div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium">May Substitute</p>
+                          <div className="border-b border-gray-400 w-32 mt-2"></div>
+                        </div>
+                      </div>
+                      
+                      {prescription.pharmacy && (
+                        <div className="mt-4 text-center">
+                          <p className="text-xs text-gray-600">
+                            <strong>Pharmacy:</strong> {prescription.pharmacy.name} - {prescription.pharmacy.phone}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Drug Interactions Warning */}
+                    {prescription.interactions && prescription.interactions.length > 0 && (
+                      <div className="mx-4 mb-4 p-3 bg-red-50 border border-red-200 rounded">
+                        <h4 className="font-medium text-red-800 mb-2 flex items-center gap-2">
+                          <AlertTriangle className="h-4 w-4" />
+                          Drug Interactions Warning:
+                        </h4>
+                        <div className="space-y-1">
+                          {prescription.interactions.map((interaction: any, index: number) => (
+                            <div key={index} className="text-xs text-red-700">
+                              <Badge className={getSeverityColor(interaction.severity) + " mr-2"} style={{fontSize: '10px'}}>
+                                {interaction.severity}
+                              </Badge>
+                              {interaction.description}
                             </div>
                           ))}
                         </div>
-                        
-                        {prescription.interactions && prescription.interactions.length > 0 && (
-                          <div className="mt-4">
-                            <h4 className="font-medium text-red-800 mb-2">Drug Interactions:</h4>
-                            <div className="space-y-2">
-                              {prescription.interactions.map((interaction: any, index: number) => (
-                                <div key={index} className="flex items-start gap-2 p-2 bg-red-50 rounded-lg">
-                                  <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5" />
-                                  <div>
-                                    <Badge className={getSeverityColor(interaction.severity)}>
-                                      {interaction.severity}
-                                    </Badge>
-                                    <p className="text-sm text-red-800 mt-1">{interaction.description}</p>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
                       </div>
-                      
-                      <div className="flex flex-wrap gap-1 sm:gap-2 lg:ml-4">
-                        <Button variant="outline" size="sm" onClick={() => handleViewPrescription(prescription)} className="text-xs sm:text-sm px-2 sm:px-3">
-                          <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                          <span className="hidden sm:inline">View</span>
-                          <span className="sm:hidden">View</span>
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => handlePrintPrescription(prescription.id)} className="text-xs sm:text-sm px-2 sm:px-3">
-                          <Printer className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                          <span className="hidden sm:inline">Print</span>
-                          <span className="sm:hidden">Print</span>
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => handleSendToPharmacy(prescription.id)} className="text-xs sm:text-sm px-2 sm:px-3">
-                          <Send className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                          <span className="hidden lg:inline">Send to Pharmacy</span>
-                          <span className="lg:hidden">Send</span>
-                        </Button>
-                        {prescription.status === 'active' && (
-                          <Button variant="outline" size="sm" onClick={() => handleEditPrescription(prescription)} className="text-xs sm:text-sm px-2 sm:px-3">
-                            <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                            <span className="hidden sm:inline">Edit</span>
-                            <span className="sm:hidden">Edit</span>
-                          </Button>
-                        )}
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => handleDeletePrescription(prescription.id)}
-                          disabled={deletePrescriptionMutation.isPending}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs sm:text-sm px-2 sm:px-3 disabled:opacity-50"
-                        >
-                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                          <span className="hidden sm:inline">{deletePrescriptionMutation.isPending ? 'Deleting...' : 'Delete'}</span>
-                          <span className="sm:hidden">{deletePrescriptionMutation.isPending ? 'Deleting...' : 'Delete'}</span>
-                        </Button>
-                      </div>
-                    </div>
+                    )}
                   </CardContent>
+                  
+                  {/* Action Buttons */}
+                  <div className="px-4 pb-4">
+                    <div className="flex flex-wrap gap-1 sm:gap-2 justify-center">
+                      <Button variant="outline" size="sm" onClick={() => handleViewPrescription(prescription)} className="text-xs sm:text-sm px-2 sm:px-3">
+                        <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                        <span className="hidden sm:inline">View</span>
+                        <span className="sm:hidden">View</span>
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => handlePrintPrescription(prescription.id)} className="text-xs sm:text-sm px-2 sm:px-3">
+                        <Printer className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                        <span className="hidden sm:inline">Print</span>
+                        <span className="sm:hidden">Print</span>
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => handleSendToPharmacy(prescription.id)} className="text-xs sm:text-sm px-2 sm:px-3">
+                        <Send className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                        <span className="hidden lg:inline">Send to Pharmacy</span>
+                        <span className="lg:hidden">Send</span>
+                      </Button>
+                      {prescription.status === 'active' && (
+                        <Button variant="outline" size="sm" onClick={() => handleEditPrescription(prescription)} className="text-xs sm:text-sm px-2 sm:px-3">
+                          <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                          <span className="hidden sm:inline">Edit</span>
+                          <span className="sm:hidden">Edit</span>
+                        </Button>
+                      )}
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleDeletePrescription(prescription.id)}
+                        disabled={deletePrescriptionMutation.isPending}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs sm:text-sm px-2 sm:px-3 disabled:opacity-50"
+                      >
+                        <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                        <span className="hidden sm:inline">{deletePrescriptionMutation.isPending ? 'Deleting...' : 'Delete'}</span>
+                        <span className="sm:hidden">{deletePrescriptionMutation.isPending ? 'Deleting...' : 'Delete'}</span>
+                      </Button>
+                    </div>
+                  </div>
                 </Card>
               ))
             )}
