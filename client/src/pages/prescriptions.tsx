@@ -931,10 +931,10 @@ export default function PrescriptionsPage() {
               </Card>
             ) : (
               filteredPrescriptions.map((prescription) => (
-                <Card key={prescription.id} className="hover:shadow-md transition-shadow bg-gradient-to-br from-pink-50 to-pink-100 border-2 border-pink-200">
+                <Card key={prescription.id} className="hover:shadow-md transition-shadow bg-gradient-to-br from-blue-50 to-purple-100 border-2 border-blue-200">
                   <CardContent className="p-0">
                     {/* Professional Prescription Header */}
-                    <div className="bg-white border-b-2 border-pink-200 p-4">
+                    <div className="bg-white border-b-2 border-blue-200 p-4">
                       <div className="flex justify-between items-start">
                         <div className="text-center">
                           <h2 className="text-lg font-bold text-gray-800">CURA HEALTH EMR</h2>
@@ -965,7 +965,7 @@ export default function PrescriptionsPage() {
                     </div>
 
                     {/* Patient Information */}
-                    <div className="px-6 py-4 bg-pink-50">
+                    <div className="px-6 py-4 bg-blue-50">
                       <div className="flex justify-between items-start">
                         <div>
                           <p className="text-sm"><strong>Name:</strong> {prescription.patientName}</p>
@@ -983,8 +983,8 @@ export default function PrescriptionsPage() {
                     </div>
 
                     {/* Large HHC Symbol */}
-                    <div className="flex justify-center py-4 bg-pink-50">
-                      <div className="text-6xl font-bold text-pink-300 opacity-50">
+                    <div className="flex justify-center py-4 bg-blue-50">
+                      <div className="text-6xl font-bold text-blue-400 opacity-50">
                         HHC
                       </div>
                     </div>
@@ -1012,7 +1012,7 @@ export default function PrescriptionsPage() {
                     </div>
 
                     {/* Prescription Footer */}
-                    <div className="px-6 py-4 bg-pink-50 border-t-2 border-pink-200">
+                    <div className="px-6 py-4 bg-blue-50 border-t-2 border-blue-200">
                       <div className="flex justify-between items-end">
                         <div>
                           <p className="text-sm font-medium">Resident Physician</p>
