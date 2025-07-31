@@ -191,7 +191,11 @@ export default function PrescriptionsPage() {
     frequency: "",
     quantity: "",
     refills: "",
-    instructions: ""
+    instructions: "",
+    pharmacyName: "Halo Health",
+    pharmacyAddress: "Unit 2 Drayton Court, Solihull, B90 4NG",
+    pharmacyPhone: "+44(0)121 827 5531",
+    pharmacyEmail: "pharmacy@halohealth.co.uk"
   });
 
   // Update form data when selectedPrescription changes
@@ -208,7 +212,11 @@ export default function PrescriptionsPage() {
         frequency: firstMedication.frequency || "",
         quantity: firstMedication.quantity?.toString() || "",
         refills: firstMedication.refills?.toString() || "",
-        instructions: firstMedication.instructions || ""
+        instructions: firstMedication.instructions || "",
+        pharmacyName: selectedPrescription.pharmacy?.name || "Halo Health",
+        pharmacyAddress: selectedPrescription.pharmacy?.address || "Unit 2 Drayton Court, Solihull, B90 4NG",
+        pharmacyPhone: selectedPrescription.pharmacy?.phone || "+44(0)121 827 5531",
+        pharmacyEmail: selectedPrescription.pharmacy?.email || "pharmacy@halohealth.co.uk"
       });
     } else {
       setFormData({
@@ -221,7 +229,11 @@ export default function PrescriptionsPage() {
         frequency: "",
         quantity: "",
         refills: "",
-        instructions: ""
+        instructions: "",
+        pharmacyName: "Halo Health",
+        pharmacyAddress: "Unit 2 Drayton Court, Solihull, B90 4NG",
+        pharmacyPhone: "+44(0)121 827 5531",
+        pharmacyEmail: "pharmacy@halohealth.co.uk"
       });
     }
   }, [selectedPrescription]);
@@ -679,7 +691,11 @@ export default function PrescriptionsPage() {
                           frequency: "",
                           quantity: "",
                           refills: "",
-                          instructions: ""
+                          instructions: "",
+                          pharmacyName: "Halo Health",
+                          pharmacyAddress: "Unit 2 Drayton Court, Solihull, B90 4NG",
+                          pharmacyPhone: "+44(0)121 827 5531",
+                          pharmacyEmail: "pharmacy@halohealth.co.uk"
                         });
                       }}
                     >
@@ -800,6 +816,46 @@ export default function PrescriptionsPage() {
                         </div>
                       </div>
                       
+                      {/* Pharmacy Information Section */}
+                      <div className="space-y-3 border-t pt-4">
+                        <Label className="text-lg font-medium">Pharmacy Information</Label>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="pharmacyName">Pharmacy Name</Label>
+                            <Input 
+                              placeholder="Pharmacy name" 
+                              value={formData.pharmacyName}
+                              onChange={(e) => setFormData(prev => ({ ...prev, pharmacyName: e.target.value }))}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="pharmacyPhone">Phone Number</Label>
+                            <Input 
+                              placeholder="Phone number" 
+                              value={formData.pharmacyPhone}
+                              onChange={(e) => setFormData(prev => ({ ...prev, pharmacyPhone: e.target.value }))}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label htmlFor="pharmacyAddress">Address</Label>
+                          <Input 
+                            placeholder="Pharmacy address" 
+                            value={formData.pharmacyAddress}
+                            onChange={(e) => setFormData(prev => ({ ...prev, pharmacyAddress: e.target.value }))}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="pharmacyEmail">Email</Label>
+                          <Input 
+                            type="email"
+                            placeholder="pharmacy@example.com" 
+                            value={formData.pharmacyEmail}
+                            onChange={(e) => setFormData(prev => ({ ...prev, pharmacyEmail: e.target.value }))}
+                          />
+                        </div>
+                      </div>
+                      
                       <div className="flex justify-end gap-2">
                         <Button variant="outline" onClick={() => setShowNewPrescription(false)}>
                           Cancel
@@ -821,6 +877,12 @@ export default function PrescriptionsPage() {
                               patientId: parseInt(formData.patientId),
                               providerId: parseInt(formData.providerId),
                               diagnosis: formData.diagnosis,
+                              pharmacy: {
+                                name: formData.pharmacyName,
+                                address: formData.pharmacyAddress,
+                                phone: formData.pharmacyPhone,
+                                email: formData.pharmacyEmail
+                              },
                               medications: [{
                                 name: formData.medicationName,
                                 dosage: formData.dosage,
