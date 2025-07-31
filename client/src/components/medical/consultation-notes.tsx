@@ -897,12 +897,18 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                 
                 {/* Facial Diagram ABOVE the Anatomical Reference Window Header */}
                 <div className="flex justify-center mb-6">
-                  <img 
-                    src={facialDiagramImage} 
-                    alt="Facial Anatomy Diagram" 
-                    className="w-64 h-80 object-contain rounded-lg border border-gray-300 bg-white"
-                    onLoad={() => console.log('Facial diagram loaded successfully')}
-                  />
+                  <div className="w-64 h-80 rounded-lg border border-gray-300 bg-white p-4 flex items-center justify-center">
+                    <img 
+                      src={facialDiagramImage} 
+                      alt="Facial Anatomy Diagram" 
+                      className="max-w-full max-h-full object-contain"
+                      style={{
+                        filter: 'contrast(1000%) brightness(0) invert(1) contrast(100%) brightness(1)',
+                        mixBlendMode: 'multiply'
+                      }}
+                      onLoad={() => console.log('Facial diagram loaded successfully')}
+                    />
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between mb-4">
