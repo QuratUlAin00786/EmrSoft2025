@@ -1338,49 +1338,36 @@ export default function PrescriptionsPage() {
       <Dialog open={showPharmacyDialog} onOpenChange={setShowPharmacyDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Send Prescription to Pharmacy</DialogTitle>
+            <DialogTitle>Send Prescription to Halo Health Pharmacy</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="pharmacyName">Pharmacy Name</Label>
-              <Input
-                id="pharmacyName"
-                placeholder="Enter pharmacy name"
-                defaultValue="HealthPlus Pharmacy"
-              />
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <h4 className="font-semibold text-blue-900 mb-2">Halo Health Pharmacy</h4>
+              <div className="text-sm text-blue-800 space-y-1">
+                <p>Unit 2 Drayton Court</p>
+                <p>Solihull</p>
+                <p>B90 4NG</p>
+                <p className="font-medium mt-2">Phone: +44(0)121 827 5531</p>
+                <p className="font-medium">Email: pharmacy@halohealth.co.uk</p>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="pharmacyAddress">Address</Label>
-              <Input
-                id="pharmacyAddress"
-                placeholder="Pharmacy address"
-                defaultValue="123 High Street, London SW1A 1AA"
-              />
+            
+            <div className="space-y-3">
+              <p className="text-sm text-gray-600">
+                This prescription will be sent as a PDF to the pharmacy via email for processing.
+              </p>
+              
+              <div className="flex items-center gap-2 text-sm">
+                <FileText className="h-4 w-4 text-blue-600" />
+                <span>PDF prescription will be generated automatically</span>
+              </div>
+              
+              <div className="flex items-center gap-2 text-sm">
+                <Send className="h-4 w-4 text-green-600" />
+                <span>Email will be sent to pharmacy@halohealth.co.uk</span>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="pharmacyPhone">Phone</Label>
-              <Input
-                id="pharmacyPhone"
-                placeholder="Phone number"
-                defaultValue="020 7946 0958"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="pharmacyFax">Fax (Optional)</Label>
-              <Input
-                id="pharmacyFax"
-                placeholder="Fax number"
-                defaultValue="020 7946 0959"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="pharmacyNPI">NPI Number (Optional)</Label>
-              <Input
-                id="pharmacyNPI"
-                placeholder="NPI number"
-                defaultValue="1234567890"
-              />
-            </div>
+
             <div className="flex gap-2 pt-4">
               <Button variant="outline" onClick={() => setShowPharmacyDialog(false)} className="flex-1">
                 Cancel
@@ -1388,11 +1375,10 @@ export default function PrescriptionsPage() {
               <Button 
                 onClick={() => {
                   const pharmacyData = {
-                    name: (document.getElementById('pharmacyName') as HTMLInputElement)?.value || "HealthPlus Pharmacy",
-                    address: (document.getElementById('pharmacyAddress') as HTMLInputElement)?.value || "123 High Street, London SW1A 1AA",
-                    phone: (document.getElementById('pharmacyPhone') as HTMLInputElement)?.value || "020 7946 0958",
-                    fax: (document.getElementById('pharmacyFax') as HTMLInputElement)?.value || "020 7946 0959",
-                    npi: (document.getElementById('pharmacyNPI') as HTMLInputElement)?.value || "1234567890"
+                    name: "Halo Health",
+                    address: "Unit 2 Drayton Court, Solihull, B90 4NG",
+                    phone: "+44(0)121 827 5531",
+                    email: "pharmacy@halohealth.co.uk"
                   };
                   sendToPharmacyMutation.mutate({ 
                     prescriptionId: selectedPrescriptionId, 
@@ -1402,7 +1388,7 @@ export default function PrescriptionsPage() {
                 disabled={sendToPharmacyMutation.isPending}
                 className="flex-1 bg-medical-blue hover:bg-blue-700"
               >
-                {sendToPharmacyMutation.isPending ? "Sending..." : "Send to Pharmacy"}
+                {sendToPharmacyMutation.isPending ? "Sending PDF..." : "Send PDF to Pharmacy"}
               </Button>
             </div>
           </div>

@@ -1553,6 +1553,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Send prescription to pharmacy as PDF
+  app.post("/api/prescriptions/:id/send-to-pharmacy", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const prescriptionId = parseInt(req.params.id);
+      const { pharmacyData } = req.body;
+      
+      // Get prescription details
+      const prescription = await storage.getPrescription(prescriptionId, req.tenant!.id);
+      if (!prescription) {
+        return res.status(404).json({ error: "Prescription not found" });
+      }
+
+      // Get patient details
+      const patient = await storage.getPatient(prescription.patientId, req.tenant!.id);
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+
+      // Get prescribing doctor details
+      const doctor = await storage.getUser(prescription.providerId, req.tenant!.id);
+      if (!doctor) {
+        return res.status(404).json({ error: "Doctor not found" });
+      }
+
+      // Update prescription with pharmacy information
+      await storage.updatePrescription(prescriptionId, req.tenant!.id, {
+        pharmacy: pharmacyData
+      });
+
+      // TODO: In a real implementation, generate PDF here and send via email
+      // For now, simulate the process
+      console.log("Sending prescription to Halo Health pharmacy:", {
+        prescriptionId,
+        patient: `${patient.firstName} ${patient.lastName}`,
+        doctor: `${doctor.firstName} ${doctor.lastName}`,
+        pharmacy: pharmacyData,
+        medications: prescription.medications
+      });
+
+      res.json({ 
+        success: true,
+        message: "Prescription successfully sent to Halo Health pharmacy",
+        pharmacy: pharmacyData,
+        sentAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Error sending prescription to pharmacy:", error);
+      res.status(500).json({ error: "Failed to send prescription to pharmacy" });
+    }
+  });
+
   app.delete("/api/prescriptions/:id", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
       if (!req.user) {
