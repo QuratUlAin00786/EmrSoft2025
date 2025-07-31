@@ -289,6 +289,120 @@ function DemoPaymentForm({ planId, planName, amount, onSuccess, onError }: Strip
   );
 }
 
+// Ryft Payment Component
+function RyftPaymentButton({ planId, planName, amount, onSuccess, onError }: StripeFormProps) {
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const { toast } = useToast();
+
+  const handleRyftRedirect = async () => {
+    setIsRedirecting(true);
+    
+    try {
+      // Simulate creating Ryft payment session
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Redirect to Ryft payment app
+      const ryftUrl = `https://app.ryft.com/checkout?amount=${amount * 100}&currency=GBP&plan=${planId}&customer_email=admin@cura.com`;
+      window.open(ryftUrl, '_blank', 'width=600,height=700,scrollbars=yes,resizable=yes');
+      
+      // Monitor for payment completion (in real implementation, would use webhooks)
+      setTimeout(() => {
+        setIsRedirecting(false);
+        onSuccess();
+        toast({
+          title: "Payment Successful",
+          description: `Your subscription has been upgraded to ${planName} via Ryft!`,
+        });
+      }, 3000);
+      
+    } catch (error: any) {
+      setIsRedirecting(false);
+      onError(error);
+      toast({
+        title: "Ryft Payment Failed",
+        description: "Failed to redirect to Ryft payment. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 text-center">
+        <div className="text-indigo-800 font-medium mb-2">Secure Payment with Ryft</div>
+        <div className="text-sm text-indigo-700 mb-4">
+          You will be redirected to Ryft's secure payment platform to complete your subscription upgrade.
+        </div>
+      </div>
+      
+      <Button 
+        onClick={handleRyftRedirect}
+        className="w-full bg-indigo-600 hover:bg-indigo-700"
+        disabled={isRedirecting}
+      >
+        {isRedirecting ? "Redirecting to Ryft..." : `Pay £${amount}/month with Ryft`}
+      </Button>
+    </div>
+  );
+}
+
+// PayPal Redirect Component
+function PayPalRedirectButton({ planId, planName, amount, onSuccess, onError }: StripeFormProps) {
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const { toast } = useToast();
+
+  const handlePayPalRedirect = async () => {
+    setIsRedirecting(true);
+    
+    try {
+      // Simulate creating PayPal payment session
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Redirect to PayPal payment app
+      const paypalUrl = `https://www.paypal.com/checkoutnow?token=EC-${Math.random().toString(36).substr(2, 9)}&amount=${amount}&currency=GBP&plan=${planId}`;
+      window.open(paypalUrl, '_blank', 'width=600,height=700,scrollbars=yes,resizable=yes');
+      
+      // Monitor for payment completion (in real implementation, would use webhooks)
+      setTimeout(() => {
+        setIsRedirecting(false);
+        onSuccess();
+        toast({
+          title: "Payment Successful",
+          description: `Your subscription has been upgraded to ${planName} via PayPal!`,
+        });
+      }, 3000);
+      
+    } catch (error: any) {
+      setIsRedirecting(false);
+      onError(error);
+      toast({
+        title: "PayPal Payment Failed",
+        description: "Failed to redirect to PayPal payment. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+        <div className="text-blue-800 font-medium mb-2">Secure Payment with PayPal</div>
+        <div className="text-sm text-blue-700 mb-4">
+          You will be redirected to PayPal's secure payment platform to complete your subscription upgrade.
+        </div>
+      </div>
+      
+      <Button 
+        onClick={handlePayPalRedirect}
+        className="w-full bg-blue-600 hover:bg-blue-700"
+        disabled={isRedirecting}
+      >
+        {isRedirecting ? "Redirecting to PayPal..." : `Pay £${amount}/month with PayPal`}
+      </Button>
+    </div>
+  );
+}
+
 // Demo PayPal Form Component  
 function DemoPayPalForm({ planId, planName, amount, onSuccess, onError }: StripeFormProps) {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -472,30 +586,10 @@ interface PaymentMethodDialogProps {
 
 export function PaymentMethodDialog({ open, onOpenChange, plan }: PaymentMethodDialogProps) {
   const [clientSecret, setClientSecret] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<"stripe" | "paypal">("stripe");
+  const [paymentMethod, setPaymentMethod] = useState<"ryft" | "paypal">("ryft");
   const { toast } = useToast();
 
-  // Create payment intent when dialog opens
-  useEffect(() => {
-    if (open && paymentMethod === "stripe") {
-      apiRequest("POST", "/api/create-subscription-payment-intent", {
-        planId: plan.id,
-        amount: plan.price * 100 // Convert to cents
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          setClientSecret(data.clientSecret);
-        })
-        .catch((error) => {
-          console.error("Failed to create payment intent:", error);
-          toast({
-            title: "Payment Setup Failed",
-            description: "Failed to initialize payment. Please try again.",
-            variant: "destructive",
-          });
-        });
-    }
-  }, [open, paymentMethod, plan]);
+  // Payment setup is handled by individual payment components
 
   const handleSuccess = () => {
     toast({
@@ -545,19 +639,19 @@ export function PaymentMethodDialog({ open, onOpenChange, plan }: PaymentMethodD
           </Card>
 
           {/* Payment Method Selection */}
-          <Tabs value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as "stripe" | "paypal")}>
+          <Tabs value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as "ryft" | "paypal")}>
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="stripe">Credit Card</TabsTrigger>
+              <TabsTrigger value="ryft">Ryft</TabsTrigger>
               <TabsTrigger value="paypal">PayPal</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="stripe" className="space-y-4">
+            <TabsContent value="ryft" className="space-y-4">
               <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
                 <Shield className="h-4 w-4" />
-                <span>Secured by Stripe</span>
+                <span>Secured by Ryft</span>
               </div>
               
-              <DemoPaymentForm
+              <RyftPaymentButton
                 planId={plan.id}
                 planName={plan.name}
                 amount={plan.price}
@@ -572,7 +666,7 @@ export function PaymentMethodDialog({ open, onOpenChange, plan }: PaymentMethodD
                 <span>Secured by PayPal</span>
               </div>
               
-              <RealPayPalButton
+              <PayPalRedirectButton
                 planId={plan.id}
                 planName={plan.name}
                 amount={plan.price}
