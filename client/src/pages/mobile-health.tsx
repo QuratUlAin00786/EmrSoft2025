@@ -249,19 +249,23 @@ export default function MobileHealth() {
           'X-Tenant-Subdomain': 'demo',
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(consentData)
+        body: JSON.stringify(consentData),
+        credentials: 'include'
       });
       if (!response.ok) throw new Error("Failed to update consent");
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/mobile-health/patient-consent"] });
+    onSuccess: async () => {
+      // Force refetch the consent data
+      await queryClient.invalidateQueries({ queryKey: ["/api/mobile-health/patient-consent"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/mobile-health/patient-consent"] });
       toast({ 
         title: "Consent Updated Successfully",
         description: "Patient monitoring consent has been updated."
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Consent update error:", error);
       toast({
         title: "Update Failed",
         description: "Unable to update consent. Please try again.",
