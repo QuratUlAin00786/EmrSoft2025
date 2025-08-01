@@ -86,6 +86,27 @@ interface PushNotification {
   deliveryTime?: string;
 }
 
+interface PatientConsent {
+  id: string;
+  patientId: string;
+  patientName: string;
+  email: string;
+  consentStatus: 'pending' | 'consented' | 'declined' | 'revoked';
+  consentDate?: string;
+  revokedDate?: string;
+  monitoringTypes: {
+    heartRate: boolean;
+    bloodPressure: boolean;
+    glucose: boolean;
+    activity: boolean;
+    sleep: boolean;
+  };
+  deviceAccess: boolean;
+  dataSharing: boolean;
+  emergencyContact: boolean;
+  lastUpdated: string;
+}
+
 export default function MobileHealth() {
   const [location, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("devices");
@@ -152,6 +173,22 @@ export default function MobileHealth() {
     }
   });
 
+  // Fetch patient consent data
+  const { data: patientConsents, isLoading: consentsLoading } = useQuery({
+    queryKey: ["/api/mobile-health/patient-consent"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/mobile-health/patient-consent', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch patient consents');
+      return response.json() as PatientConsent[];
+    }
+  });
+
   // Sync device mutation
   const syncDeviceMutation = useMutation({
     mutationFn: async (deviceId: string) => {
@@ -198,6 +235,38 @@ export default function MobileHealth() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/mobile-health/notifications"] });
       toast({ title: "Notification sent successfully" });
+    }
+  });
+
+  // Update patient consent mutation
+  const updateConsentMutation = useMutation({
+    mutationFn: async ({ patientId, consentData }: { patientId: string; consentData: Partial<PatientConsent> }) => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/mobile-health/patient-consent/${patientId}`, {
+        method: "PUT",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(consentData)
+      });
+      if (!response.ok) throw new Error("Failed to update consent");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/mobile-health/patient-consent"] });
+      toast({ 
+        title: "Consent Updated Successfully",
+        description: "Patient monitoring consent has been updated."
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Update Failed",
+        description: "Unable to update consent. Please try again.",
+        variant: "destructive"
+      });
     }
   });
 
@@ -490,10 +559,11 @@ export default function MobileHealth() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="devices">Wearable Devices</TabsTrigger>
           <TabsTrigger value="apps">Mobile Apps</TabsTrigger>
           <TabsTrigger value="notifications">Push Notifications</TabsTrigger>
+          <TabsTrigger value="consent">Patient Consent</TabsTrigger>
           <TabsTrigger value="offline">Offline Mode</TabsTrigger>
         </TabsList>
 
@@ -785,6 +855,192 @@ export default function MobileHealth() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="consent" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="text-lg font-semibold">Patient Consent Management</h3>
+              <p className="text-gray-600">Manage patient consent for IoT cardiac monitoring and data sharing</p>
+            </div>
+          </div>
+
+          <div className="grid gap-4">
+            {consentsLoading ? (
+              <div className="text-center py-8">Loading patient consent data...</div>
+            ) : (patientConsents || []).map((consent) => (
+              <Card key={consent.id} className={consent.consentStatus === 'declined' || consent.consentStatus === 'revoked' ? 'border-red-200 bg-red-50/30' : consent.consentStatus === 'consented' ? 'border-green-200 bg-green-50/30' : 'border-yellow-200 bg-yellow-50/30'}>
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-3">
+                      <Heart className={`w-8 h-8 ${consent.consentStatus === 'consented' ? 'text-green-500' : consent.consentStatus === 'declined' || consent.consentStatus === 'revoked' ? 'text-red-500' : 'text-yellow-500'}`} />
+                      <div>
+                        <CardTitle className="text-lg">{consent.patientName}</CardTitle>
+                        <p className="text-sm text-gray-600">{consent.email}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className={
+                        consent.consentStatus === 'consented' ? 'bg-green-100 text-green-800' :
+                        consent.consentStatus === 'declined' || consent.consentStatus === 'revoked' ? 'bg-red-100 text-red-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }>
+                        {consent.consentStatus}
+                      </Badge>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                      <div className="text-sm text-gray-500">Consent Date</div>
+                      <div className="font-medium">
+                        {consent.consentDate ? format(new Date(consent.consentDate), 'MMM dd, yyyy') : 'Not provided'}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">Last Updated</div>
+                      <div className="font-medium">
+                        {format(new Date(consent.lastUpdated), 'MMM dd, HH:mm')}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">Device Access</div>
+                      <div className="font-medium">
+                        {consent.deviceAccess ? 'Enabled' : 'Disabled'}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">Data Sharing</div>
+                      <div className="font-medium">
+                        {consent.dataSharing ? 'Allowed' : 'Restricted'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-medium text-gray-700">Monitoring Permissions</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${consent.monitoringTypes.heartRate ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                        <span className="text-sm">Heart Rate</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${consent.monitoringTypes.bloodPressure ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                        <span className="text-sm">Blood Pressure</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${consent.monitoringTypes.glucose ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                        <span className="text-sm">Glucose</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${consent.monitoringTypes.activity ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                        <span className="text-sm">Activity</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${consent.monitoringTypes.sleep ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                        <span className="text-sm">Sleep</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center pt-4 border-t">
+                    <div className="flex items-center gap-2">
+                      {consent.consentStatus === 'consented' ? (
+                        <CheckCircle className="w-5 h-5 text-green-500" />
+                      ) : consent.consentStatus === 'declined' || consent.consentStatus === 'revoked' ? (
+                        <AlertTriangle className="w-5 h-5 text-red-500" />
+                      ) : (
+                        <Activity className="w-5 h-5 text-yellow-500" />
+                      )}
+                      <span className="text-sm text-gray-600">
+                        {consent.consentStatus === 'consented' ? 'Patient is being monitored' :
+                         consent.consentStatus === 'declined' || consent.consentStatus === 'revoked' ? 'No monitoring active' :
+                         'Awaiting patient response'}
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      {consent.consentStatus === 'pending' && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => updateConsentMutation.mutate({
+                              patientId: consent.patientId,
+                              consentData: {
+                                consentStatus: 'declined',
+                                lastUpdated: new Date().toISOString()
+                              }
+                            })}
+                            disabled={updateConsentMutation.isPending}
+                          >
+                            Decline
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => updateConsentMutation.mutate({
+                              patientId: consent.patientId,
+                              consentData: {
+                                consentStatus: 'consented',
+                                consentDate: new Date().toISOString(),
+                                lastUpdated: new Date().toISOString()
+                              }
+                            })}
+                            disabled={updateConsentMutation.isPending}
+                          >
+                            Grant Consent
+                          </Button>
+                        </>
+                      )}
+                      {consent.consentStatus === 'consented' && (
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => updateConsentMutation.mutate({
+                            patientId: consent.patientId,
+                            consentData: {
+                              consentStatus: 'revoked',
+                              revokedDate: new Date().toISOString(),
+                              lastUpdated: new Date().toISOString()
+                            }
+                          })}
+                          disabled={updateConsentMutation.isPending}
+                        >
+                          Revoke Consent
+                        </Button>
+                      )}
+                      {(consent.consentStatus === 'declined' || consent.consentStatus === 'revoked') && (
+                        <Button
+                          size="sm"
+                          onClick={() => updateConsentMutation.mutate({
+                            patientId: consent.patientId,
+                            consentData: {
+                              consentStatus: 'consented',
+                              consentDate: new Date().toISOString(),
+                              lastUpdated: new Date().toISOString()
+                            }
+                          })}
+                          disabled={updateConsentMutation.isPending}
+                        >
+                          Request New Consent
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            
+            {(!patientConsents || patientConsents.length === 0) && !consentsLoading && (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <Heart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-600">No Patient Consent Records</h3>
+                  <p className="text-gray-500 mt-2">Patient consent data will appear here once patients are enrolled for monitoring.</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </TabsContent>
 
