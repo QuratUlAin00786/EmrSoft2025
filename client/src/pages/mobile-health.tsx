@@ -255,10 +255,14 @@ export default function MobileHealth() {
       if (!response.ok) throw new Error("Failed to update consent");
       return response.json();
     },
-    onSuccess: async () => {
-      // Force refetch the consent data
+    onSuccess: async (response) => {
+      console.log("Consent update response:", response);
+      // Force refetch the consent data immediately
       await queryClient.invalidateQueries({ queryKey: ["/api/mobile-health/patient-consent"] });
       await queryClient.refetchQueries({ queryKey: ["/api/mobile-health/patient-consent"] });
+      // Also clear any cached data and force a fresh fetch
+      queryClient.removeQueries({ queryKey: ["/api/mobile-health/patient-consent"] });
+      console.log("Cache cleared, triggering fresh fetch");
       toast({ 
         title: "Consent Updated Successfully",
         description: "Patient monitoring consent has been updated."
