@@ -3858,6 +3858,151 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Telemedicine API endpoints
+  app.get("/api/telemedicine/consultations", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      // Mock consultation data for now - in production this would come from database
+      const consultations = [
+        {
+          id: "1",
+          patientId: "1",
+          patientName: "Sarah Johnson",
+          providerId: "1", 
+          providerName: "Dr. Smith",
+          type: "video",
+          status: "completed",
+          scheduledTime: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+          duration: 30,
+          notes: "Follow-up consultation for hypertension management. Patient reports improved blood pressure readings.",
+          vitalSigns: {
+            heartRate: 72,
+            bloodPressure: "128/82",
+            temperature: 98.6,
+            oxygenSaturation: 98
+          },
+          prescriptions: [
+            {
+              medication: "Lisinopril",
+              dosage: "10mg",
+              instructions: "Take once daily in the morning"
+            }
+          ]
+        },
+        {
+          id: "2", 
+          patientId: "2",
+          patientName: "Michael Chen",
+          providerId: "1",
+          providerName: "Dr. Smith", 
+          type: "video",
+          status: "scheduled",
+          scheduledTime: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // 30 minutes from now
+          duration: 15,
+          notes: "Diabetes follow-up and medication review",
+          vitalSigns: {
+            heartRate: 78,
+            bloodPressure: "135/85", 
+            temperature: 98.6,
+            oxygenSaturation: 97
+          }
+        }
+      ];
+      
+      res.json(consultations);
+    } catch (error) {
+      console.error("Error fetching consultations:", error);
+      res.status(500).json({ error: "Failed to fetch consultations" });
+    }
+  });
+
+  app.get("/api/telemedicine/waiting-room", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      // Mock waiting room data
+      const waitingRoom = [
+        {
+          patientId: "1",
+          patientName: "Sarah Johnson", 
+          appointmentTime: new Date(Date.now() - 5 * 60 * 1000).toISOString(), // 5 minutes ago
+          waitTime: 5,
+          priority: "normal"
+        },
+        {
+          patientId: "3",
+          patientName: "Emma Davis",
+          appointmentTime: new Date(Date.now() - 15 * 60 * 1000).toISOString(), // 15 minutes ago  
+          waitTime: 15,
+          priority: "urgent"
+        }
+      ];
+      
+      res.json(waitingRoom);
+    } catch (error) {
+      console.error("Error fetching waiting room:", error);
+      res.status(500).json({ error: "Failed to fetch waiting room data" });
+    }
+  });
+
+  app.post("/api/telemedicine/consultations/:id/start", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const { id } = req.params;
+      
+      // In production, this would update the consultation status in database
+      res.json({
+        success: true,
+        message: "Consultation started successfully",
+        consultationId: id,
+        meetingUrl: `https://vid2.averox.com/join/${id}`
+      });
+    } catch (error) {
+      console.error("Error starting consultation:", error);
+      res.status(500).json({ error: "Failed to start consultation" });
+    }
+  });
+
+  app.post("/api/telemedicine/consultations/:id/end", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const { id } = req.params;
+      const { notes, duration } = req.body;
+      
+      // In production, this would update the consultation in database
+      res.json({
+        success: true,
+        message: "Consultation ended successfully",
+        consultationId: id,
+        duration: duration || 30,
+        notes: notes || "Consultation completed"
+      });
+    } catch (error) {
+      console.error("Error ending consultation:", error);
+      res.status(500).json({ error: "Failed to end consultation" });
+    }
+  });
+
+  app.post("/api/telemedicine/consultations", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const { patientId, scheduledTime, notes } = req.body;
+      
+      // In production, this would create a new consultation in database
+      const newConsultation = {
+        id: Date.now().toString(),
+        patientId,
+        patientName: "Patient", // Would be fetched from database
+        providerId: req.user.id,
+        providerName: req.user.firstName + " " + req.user.lastName,
+        type: "video",
+        status: "scheduled", 
+        scheduledTime,
+        notes: notes || "",
+        organizationId: req.tenant!.id
+      };
+      
+      res.status(201).json(newConsultation);
+    } catch (error) {
+      console.error("Error creating consultation:", error);
+      res.status(500).json({ error: "Failed to create consultation" });
+    }
+  });
+
   // Shift Management API endpoints
   app.get("/api/shifts", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
     try {
