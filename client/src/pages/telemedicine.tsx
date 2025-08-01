@@ -38,7 +38,9 @@ import {
   Share2,
   MessageSquare,
   MonitorSpeaker,
-  ArrowLeft
+  ArrowLeft,
+  AlertTriangle,
+  CheckCircle
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
