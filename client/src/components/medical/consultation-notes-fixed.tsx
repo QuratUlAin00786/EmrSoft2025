@@ -99,26 +99,98 @@ export default function ConsultationNotes({ patientId }: ConsultationNotesProps)
       console.log('Speech Recognition API check:', {
         SpeechRecognition: !!SpeechRecognition,
         webkitSpeechRecognition: !!window.webkitSpeechRecognition,
-        isTranscriptionSupported
+        isTranscriptionSupported,
+        userAgent: navigator.userAgent
       });
+      
       if (SpeechRecognition) {
         setIsTranscriptionSupported(true);
+        console.log('Speech recognition is supported, setting up...');
+        
+        // Don't create the recognition instance here, create it when needed
+        // This prevents issues with stale references
+      } else {
+        console.log('Speech recognition is not supported in this browser');
+        setIsTranscriptionSupported(false);
+      }
+    }
+
+    return () => {
+      // Clean up any active recognition
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+          recognitionRef.current = null;
+        } catch (error) {
+          console.error('Error cleaning up recognition:', error);
+        }
+      }
+    };
+  }, []); // Remove form and toast dependencies to prevent recreation
+
+  const startRecording = async () => {
+    if (!isTranscriptionSupported) {
+      toast({
+        title: "Transcription Not Supported",
+        description: "Please use Chrome or Edge browser for audio transcription.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isRecording) {
+      return; // Already recording
+    }
+
+    try {
+      // Request microphone permission first
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Always create a fresh recognition instance to avoid state issues
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        // Clean up any existing recognition
+        if (recognitionRef.current) {
+          try {
+            recognitionRef.current.stop();
+          } catch (error) {
+            console.log('Previous recognition already stopped');
+          }
+        }
+
         const recognition = new SpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
         recognition.lang = 'en-US';
 
+        recognition.onstart = () => {
+          console.log('Speech recognition started successfully');
+        };
+
         recognition.onresult = (event) => {
+          console.log('Speech recognition result received');
           let finalTranscript = '';
+          let interimTranscript = '';
+          
           for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
             if (event.results[i].isFinal) {
-              finalTranscript += event.results[i][0].transcript + ' ';
+              finalTranscript += transcript + ' ';
+            } else {
+              interimTranscript += transcript;
             }
           }
+          
+          // Update live transcript display
+          setTranscript(prev => prev + interimTranscript);
+          
           if (finalTranscript) {
-            setTranscript(prev => prev + finalTranscript);
+            console.log('Final transcript received:', finalTranscript);
             const currentNotes = form.getValues("notes");
-            form.setValue("notes", currentNotes + finalTranscript);
+            const newNotes = currentNotes + finalTranscript;
+            form.setValue("notes", newNotes);
+            // Clear interim transcript and add final transcript
+            setTranscript(finalTranscript);
           }
         };
 
@@ -126,42 +198,50 @@ export default function ConsultationNotes({ patientId }: ConsultationNotesProps)
           console.error('Speech recognition error:', event.error);
           toast({
             title: "Transcription Error",
-            description: "Unable to transcribe audio. Please try again.",
+            description: `Unable to transcribe audio: ${event.error}. Please try again.`,
             variant: "destructive",
           });
           setIsRecording(false);
         };
 
         recognition.onend = () => {
+          console.log('Speech recognition ended');
           setIsRecording(false);
         };
 
         recognitionRef.current = recognition;
       }
-    }
 
-    return () => {
       if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        setTranscript("");
+        recognitionRef.current.start();
+        setIsRecording(true);
+        toast({
+          title: "Recording Started",
+          description: "Speak clearly to transcribe your clinical notes",
+        });
       }
-    };
-  }, [form, toast]);
-
-  const startRecording = () => {
-    if (recognitionRef.current && !isRecording) {
-      setTranscript("");
-      recognitionRef.current.start();
-      setIsRecording(true);
+    } catch (error) {
+      console.error('Error starting recording:', error);
       toast({
-        title: "Recording Started",
-        description: "Speak clearly to transcribe your clinical notes",
+        title: "Microphone Access Required",
+        description: "Please allow microphone access to use voice transcription.",
+        variant: "destructive",
       });
     }
   };
 
   const stopRecording = () => {
-    if (recognitionRef.current && isRecording) {
-      recognitionRef.current.stop();
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+        console.log('Stopping speech recognition');
+      } catch (error) {
+        console.error('Error stopping recognition:', error);
+      }
+    }
+    
+    if (isRecording) {
       setIsRecording(false);
       toast({
         title: "Recording Stopped",
@@ -325,6 +405,16 @@ export default function ConsultationNotes({ patientId }: ConsultationNotesProps)
                         {...form.register("notes")}
                         placeholder="Patient presentation, examination findings, etc. Click 'Transcribe Audio' to dictate your notes."
                         rows={4}
+                        onFocus={() => {
+                          // Don't stop recording when user clicks in the text area
+                          // This allows them to position cursor while recording continues
+                          console.log('Textarea focused, recording state:', isRecording);
+                        }}
+                        onChange={(e) => {
+                          // Handle manual text changes
+                          const { onChange } = form.register("notes");
+                          onChange(e);
+                        }}
                       />
                       {transcript && (
                         <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
