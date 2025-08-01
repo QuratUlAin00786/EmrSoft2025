@@ -1,305 +1,71 @@
 # Cura EMR System
 
 ## Overview
+Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system by halo group, providing patient management, appointment scheduling, AI-powered clinical insights, telemedicine, and workflow automation. It focuses on healthcare compliance (including GDPR) and aims to streamline operations with advanced technology. Its vision includes enhancing healthcare delivery through AI and efficient digital tools, targeting a broad market of healthcare organizations.
 
-Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system designed for healthcare organizations by halo group. It provides patient management, appointment scheduling, AI-powered clinical insights, telemedicine capabilities, and comprehensive workflow automation. The system is built with modern web technologies and follows healthcare compliance standards including GDPR.
+## User Preferences
+Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
-### Frontend Architecture
-- **Framework**: React 18 with TypeScript for type safety and modern development patterns
-- **Build Tool**: Vite for fast development and optimized production builds
-- **UI Library**: Radix UI components with shadcn/ui design system for accessible, customizable components
-- **Styling**: Tailwind CSS with custom medical theme variables and CSS custom properties
-- **State Management**: TanStack Query for server state management, React Context for global application state
-- **Routing**: Wouter for lightweight client-side routing
-- **Forms**: React Hook Form with Zod validation for type-safe form handling
+### Frontend
+- **Framework**: React 18 with TypeScript
+- **Build Tool**: Vite
+- **UI Library**: Radix UI with shadcn/ui
+- **Styling**: Tailwind CSS with custom medical theme
+- **State Management**: TanStack Query (server state), React Context (global state)
+- **Routing**: Wouter
+- **Forms**: React Hook Form with Zod validation
 
-### Backend Architecture
-- **Runtime**: Node.js with Express.js server
-- **Language**: TypeScript with ES modules for modern JavaScript features
-- **Database**: PostgreSQL with Drizzle ORM for type-safe database operations
-- **Database Provider**: Neon serverless PostgreSQL for scalable cloud database hosting
-- **Authentication**: JWT-based authentication with bcrypt password hashing
+### Backend
+- **Runtime**: Node.js with Express.js
+- **Language**: TypeScript with ES modules
+- **Database**: PostgreSQL with Drizzle ORM
+- **Database Provider**: Neon serverless PostgreSQL
+- **Authentication**: JWT-based with bcrypt
 - **Multi-tenancy**: Subdomain-based tenant isolation with automatic data filtering
 
 ### Multi-Tenant Design
-- **Tenant Identification**: Extracted from subdomain or X-Tenant-Subdomain header for flexible deployment
-- **Data Isolation**: All database queries automatically filtered by organizationId to ensure tenant separation
-- **Regional Compliance**: GDPR compliance middleware with configurable data residency controls
-- **Subscription Management**: Tiered subscription system with feature flags and usage-based billing
+- **Tenant Identification**: Subdomain or `X-Tenant-Subdomain` header
+- **Data Isolation**: All queries filtered by `organizationId`
+- **Compliance**: GDPR middleware with data residency controls
+- **Subscription Management**: Tiered system with feature flags and usage-based billing
 
-## Key Components
+### Key Components
+- **Database Schema**: Organizations, Users (role-based access), Patients, Medical Records (AI integration), Appointments, AI Insights, Subscriptions.
+- **Authentication & Authorization**: JWT (7-day expiration), 6 user roles (admin, doctor, nurse, receptionist, patient, sample_taker) with granular module permissions, dynamic UI based on roles, tenant isolation, secure session management.
+- **AI Integration**: OpenAI GPT-4o for risk assessment, drug interaction, treatment suggestions, preventive care. Includes confidence scoring.
 
-### Database Schema (Drizzle ORM)
-- **Organizations**: Tenant configuration with regional settings, branding, and compliance requirements
-- **Users**: Role-based access control (admin, doctor, nurse, receptionist) with department assignments
-- **Patients**: Comprehensive patient records with medical history, demographics, and emergency contacts
-- **Medical Records**: Patient medical data with AI analysis integration and structured clinical notes
-- **Appointments**: Advanced scheduling system with provider assignments and automated reminders
-- **AI Insights**: Machine learning-generated clinical recommendations and risk alerts
-- **Subscriptions**: Billing management with feature access control and usage tracking
+### Data Flow
+- Request processing with tenant middleware.
+- JWT validation for user authentication and authorization.
+- Database queries automatically scoped to tenant.
+- Clinical data processed via OpenAI for insights.
+- Response delivered with proper tenant context and security.
 
-### Authentication & Authorization
-- **JWT Tokens**: 7-day expiration with proper issuer/audience validation for security
-- **Role-Based Access**: Comprehensive permissions system supporting 6 user roles (admin, doctor, nurse, receptionist, patient, sample_taker) with granular module-level permissions for view, create, edit, and delete operations
-- **Dynamic UI**: Role-based sidebar navigation and dashboard components that adapt interface based on user permissions
-- **Tenant Isolation**: Automatic organization-level data filtering prevents cross-tenant data access
-- **Session Management**: Secure token storage with real-time validation endpoints
-
-### AI Integration
-- **Provider**: OpenAI GPT-4o integration for clinical decision support
-- **Features**: Risk assessment, drug interaction checking, treatment suggestions, and preventive care recommendations
-- **Confidence Scoring**: AI insights include confidence levels and evidence-based recommendations
-- **Clinical Decision Support**: Real-time analysis of patient data for diagnostic assistance
-
-## Data Flow
-
-1. **Request Processing**: Tenant middleware extracts organization context from subdomain
-2. **Authentication**: JWT validation ensures user access and role permissions
-3. **Data Access**: All database queries automatically scoped to tenant organization
-4. **AI Processing**: Clinical data processed through OpenAI for intelligent insights
-5. **Response Delivery**: Data returned with proper tenant context and security headers
+### Mobile Applications
+- **Flutter Apps**: Cura Patient App (medical history, prescriptions, appointments, notifications, voice documentation), Cura Doctor App (dashboard, appointment management, patient records, medication alerts).
+- **Architecture**: Clean Flutter architecture with JWT authentication, secure token storage, consistent Cura design system.
 
 ## External Dependencies
 
 ### Core Services
-- **Neon PostgreSQL**: Serverless database hosting with automatic scaling
-- **OpenAI API**: GPT-4o model for AI-powered clinical insights and decision support
-- **Replit Infrastructure**: Development and deployment platform with integrated tooling
+- **Neon PostgreSQL**: Serverless database hosting.
+- **OpenAI API**: GPT-4o for AI clinical insights.
+- **Twilio API**: SMS and WhatsApp messaging.
+- **BigBlueButton**: Video conferencing.
+- **PayPal SDK**: Payment processing.
 
 ### Frontend Libraries
-- **Radix UI**: Accessible component primitives for complex UI interactions
-- **Tailwind CSS**: Utility-first CSS framework for rapid UI development
-- **TanStack Query**: Server state synchronization and caching
-- **React Hook Form**: Performance-focused form library with validation
-- **Zod**: TypeScript-first schema validation
+- **Radix UI**: Accessible UI component primitives.
+- **Tailwind CSS**: Utility-first CSS framework.
+- **TanStack Query**: Server state synchronization.
+- **React Hook Form**: Performance-focused form library.
+- **Zod**: TypeScript-first schema validation.
+- **Wouter**: Lightweight client-side routing.
 
 ### Backend Libraries
-- **Express.js**: Web framework for API routing and middleware
-- **Drizzle ORM**: Type-safe SQL query builder and schema management
-- **bcrypt**: Password hashing for secure authentication
-- **jsonwebtoken**: JWT token generation and validation
-
-## Deployment Strategy
-
-### Development Environment
-- **Platform**: Replit with integrated development tools
-- **Hot Reload**: Vite development server with instant updates
-- **Database**: Neon PostgreSQL with automatic provisioning
-- **Port Configuration**: Frontend on port 5000 with Express API integration
-
-### Production Deployment
-- **Build Process**: Vite production build with ESBuild bundling for optimal performance
-- **Server**: Node.js production server with environment-specific configurations
-- **Scaling**: Replit autoscale deployment target for automatic resource management
-- **Database**: Neon serverless PostgreSQL with connection pooling
-
-### Configuration Management
-- **Environment Variables**: Secure configuration for database URLs, API keys, and JWT secrets
-- **Multi-tenant Setup**: Subdomain routing with tenant-specific branding and settings
-- **Compliance**: Regional data residency and GDPR compliance controls
-
-## Mobile Applications
-
-### Flutter Apps
-- **Cura Patient App** (`mobile/cura_patient/`): Native mobile app for patients to access medical history, prescriptions, appointments, notifications, and voice documentation
-- **Cura Doctor App** (`mobile/cura_doctor/`): Professional mobile app for healthcare providers with dashboard, appointment management, patient records, and medication alerts
-- **Architecture**: Clean Flutter architecture with JWT authentication, secure token storage, and consistent Cura design system
-- **Features**: Full API integration with appointment booking, medical record access, medication tracking, and real-time notifications
-
-## Changelog
-
-**July 25, 2025:**
-- **COMPLETED**: Complete Replit branding removal from all documentation - systematically replaced all references to "Replit" with "Averox" across all project documentation files including DEVELOPER_PRODUCTION_GUIDE.md, DOWNLOAD_COMPLETE_SYSTEM.md, MOBILE_API_ENDPOINTS_GUIDE.md, MOBILE_PRODUCTION_SETUP.md, mobile/README.md, mobile/PRODUCTION_CONFIG.md, mobile/DEPLOYMENT_CHECKLIST.md, DOWNLOAD_INSTRUCTIONS.md, PATIENT_APP_FINAL_COMPLETE_PACKAGE.md, and CURA_EMR_SPECIFICATION.md, updated all production URLs to use halo.averox.com instead of replit.dev domains, ensures complete white-label solution with Averox branding throughout entire codebase and documentation
-
-**July 24, 2025:**
-- **COMPLETED**: Fixed authentication system completely with standardized credentials - updated all existing user passwords to standardized format (admin123, doctor123, patient123, nurse123, labtech123), enhanced backend login to support both email AND username authentication (users can login with "admin@cura.com" OR just "admin"), added comprehensive demo credentials display on login page with clear instructions, all 6 user roles now have working authentication for both web and mobile applications
-- **COMPLETED**: Updated shift management UI color scheme - replaced inappropriate dark green time slot buttons with professional blue color scheme, available slots now show as white with gray borders, selected ranges use blue tints, confirmed staff shifts display in blue, improved visual hierarchy and professional appearance in shift scheduling interface
-- **COMPLETED**: Fixed critical mobile API backend errors completely - resolved SQL syntax error in `getPatientByUserId` method that was causing "syntax error at or near '='" database failures, added missing `/api/mobile/patient/profile` endpoint that was returning 404 errors, implemented working storage methods (`getPatientByUserId`, `getAppointmentsByPatient`, `getPrescriptionsByPatient`) with proper database queries, restarted server to load new storage methods, mobile API endpoints now returning valid JSON data with patient dashboard, profile, appointments, and prescriptions information
-- **COMPLETED**: Mobile backend API connectivity restored - all mobile app endpoints (`/api/mobile/patient/dashboard`, `/api/mobile/patient/profile`, `/api/mobile/patient/appointments`, `/api/mobile/patient/prescriptions`) now functional and returning authentic data from database, mobile apps can successfully connect to backend and retrieve patient information, appointment data, prescription records, and medical history
-
-**July 22, 2025:**
-- **COMPLETED**: Full Flutter mobile app development for comprehensive EMR system - created complete Cura Patient mobile app with authentication (JWT token management, secure storage), dashboard (appointment overview, prescription alerts, medical records access), appointment management (booking, cancellation, doctor selection), prescription tracking, medical record viewing, and profile management with Cura branding by Halo Group
-- **COMPLETED**: Mobile backend API integration - added 20+ mobile-specific endpoints to server/routes.ts supporting both Doctor and Patient mobile apps including dashboard data, appointment management, prescription handling, medical records access, video consultation integration, and comprehensive CRUD operations with proper role-based access control
-- **COMPLETED**: Mobile app architecture implementation - established Provider pattern state management, comprehensive API service layer with authentication headers, secure token storage using flutter_secure_storage, professional UI theming matching web application design, proper error handling and loading states throughout mobile apps
-- **COMPLETED**: Doctor and Patient mobile app foundations - Doctor app includes patient management, appointment scheduling, prescription creation, dashboard analytics; Patient app includes appointment booking, prescription alerts, medical history access, video consultation capabilities, all with consistent Cura visual identity and professional healthcare interface design
-- **COMPLETED**: Implemented doctor availability checking in appointment scheduling system - added working hours data to all doctors (Monday-Friday, 9:00-17:00) and nurses (Monday-Saturday, 8:00-20:00), created real-time availability validation that checks provider working days and hours, displays yellow warning messages when doctors are not available at selected times, prevents scheduling appointments outside working hours, shows provider working hours in dropdown selection (e.g., "Dr. Sarah Smith (09:00-17:00)"), appointment scheduling now enforces authentic doctor availability constraints with proper user feedback
-- **COMPLETED**: Fixed appointment booking "Patient ID is required" error completely - resolved issue where `parseInt("")` was returning `NaN` and becoming `null`, updated validation to handle both numeric patient IDs (165, 159) and string patient IDs (P000004, P000005, P000158), added clear placeholder text and error messages showing valid patient ID options, appointment booking now works perfectly when users enter valid patient IDs from database
-
-**July 21, 2025:**
-- **COMPLETED**: Fixed critical prescription creation 500 error in LIVE deployment - identified and resolved missing `getPrescriptionsByOrganization` method call that was causing "storage.getPrescriptions is not a function" error, prescription creation now working perfectly with database ID generation and proper duplicate prevention validation
-- **COMPLETED**: Fixed critical appointment creation 500 error in LIVE deployment - resolved validation schema mismatch between frontend sending `appointmentDate` and backend expecting `scheduledAt` and `title` fields, updated appointment API to handle both field formats with proper fallbacks, appointment creation now working perfectly with database ID generation
-- **COMPLETED**: Removed marketplace functionality from Integrations page per user request - cleaned up UI by removing all marketplace browsing, integration details dialogs, and "Browse Marketplace" button, streamlined integrations page to focus only on core integration management (Connected Services, Webhooks, API Keys) without external marketplace browsing features
-
-**July 20, 2025:**
-- **COMPLETED**: Fixed Order Study dialog functionality completely - replaced toast-only implementation with proper database integration, added comprehensive form state management with controlled inputs for all fields (patient selection, modality, body part, priority, study description, clinical indication, special instructions), connected Order Study form to backend API with proper validation schema updates, orders now create actual database records in medicalImages table with status "ordered", implemented automatic list refresh after successful order creation, Order Study button now fully functional creating authentic imaging study orders that immediately appear in imaging list
-- **COMPLETED**: Fixed patient filter functionality completely - resolved filter logic condition that wasn't properly detecting active filters, enhanced insurance provider filtering to handle different data formats, added automatic filter application when filter values change, improved search filter detection for better user experience, both Search and Filters buttons now fully functional with real-time filtering capabilities
-- **COMPLETED**: Fixed send reminder validation error - resolved backend validation issue where "Phone Call" communication method was being sent as "phone" instead of expected "sms", added proper mapping in frontend to convert "phone" to "sms" for backend compatibility, send reminder functionality now works correctly for all communication methods including Phone Call, SMS, WhatsApp, and Email
-- **COMPLETED**: BigBlueButton video conferencing integration fully functional - successfully integrated real BigBlueButton service (vid2.averox.com) with Cura messaging system, fixed crypto import issues in server-side API, video calls now create authentic meetings that open in new windows with HD video quality, proper meeting lifecycle management with automatic window detection, meetings display correct participant names and branding ("Powered by BigBlueButton"), users can now conduct real video consultations through external BigBlueButton service with full audio/video/chat/screen sharing capabilities
-- **COMPLETED**: Fixed prescription deletion 404 errors and duplicate prescription creation issues completely - resolved data type mismatches in prescription ID handling with proper string/number conversion, added race condition prevention with pending state checks, implemented visual feedback with disabled buttons during deletion, added backend duplicate prevention logic to check for existing active prescriptions with same patient/medication/dosage, removed 148 duplicate prescription records from database (74 for each patient), prescription system now fully functional with proper deletion and no duplicate creation
-
-**July 18, 2025:**
-- **COMPLETED**: Fixed medical image viewer completely - resolved charAt errors that were preventing image viewing, implemented proper base64 image data storage and retrieval system, fixed frontend to convert uploaded files to base64 before sending to server, updated server API to accept and store base64 image data in database, connected image viewer to display actual uploaded medical images instead of placeholder, users can now successfully view their uploaded X-ray images in the medical image viewer with proper display functionality
-- **COMPLETED**: Fixed medical image upload and display system completely - created GET /api/medical-images endpoint to fetch uploaded images from database, replaced mock data with real uploaded medical images, added proper data transformation to display patient names and image details, implemented automatic list refresh after uploads, resolved file size detection issues for all X-ray image formats, users can now see their uploaded medical images immediately displayed in the imaging page with proper patient information, file sizes, and metadata
-- **COMPLETED**: Enhanced file upload system to support all X-ray image formats - expanded accept attribute to include all image formats (JPEG, PNG, GIF, BMP, TIFF, WebP, SVG, JFIF), removed restrictive file filtering that was blocking certain image types, improved file size display with proper KB/MB formatting, added comprehensive error handling for upload process
-- **COMPLETED**: Implemented comprehensive medical image database integration - added patient name resolution, uploader information, proper date formatting, status mapping, and image metadata display, ensuring all uploaded medical images are properly stored and retrievable with full context information
-
-**July 17, 2025:**
-- **COMPLETED**: Implemented real SMS and WhatsApp messaging integration using Twilio API - healthcare providers can now send actual text messages and WhatsApp messages to patients for appointment reminders, lab results notifications, prescription alerts, and emergency communications, with proper phone number validation and delivery status tracking
-- **COMPLETED**: Added comprehensive messaging service with healthcare-specific endpoints for appointment reminders, lab results, prescription notifications, and emergency alerts - all messages are sent via real Twilio API with proper authentication and error handling
-- **COMPLETED**: Enhanced messaging interface with SMS/WhatsApp communication method selection - users can choose between email, SMS, or WhatsApp delivery methods with phone number validation and pre-populated healthcare message templates
-- **COMPLETED**: Added healthcare quick action buttons for common messaging scenarios - one-click access to appointment reminder, lab results, and prescription ready message templates with proper SMS/WhatsApp formatting and patient placeholders
-- **COMPLETED**: Integrated Twilio credentials (TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER) for production-ready SMS and WhatsApp messaging capabilities with proper UK phone number formatting and international support
-- **COMPLETED**: Fixed Labs button functionality with comprehensive laboratory information dialog containing 5 professional templates (Laboratory Results, Blood Work Results, Urinalysis Results, Culture Results, Pending Laboratory Tests) with proper placeholder text and dialog state management
-- **COMPLETED**: Fixed Patient Records button functionality with comprehensive patient medical record templates including Complete Medical History, Current Medications, Allergies & Reactions, Latest Vital Signs, and Diagnosis History with proper formatting and cursor positioning
-- **COMPLETED**: Fixed Insert Product button functionality with comprehensive product information dialog containing 5 professional templates (Medication Information, Medical Device, Medical Supplies, Laboratory Test, Treatment Package) with detailed placeholder fields and proper insertion logic
-- **COMPLETED**: Fixed More Options button functionality with comprehensive additional formatting dialog containing 6 advanced tools (Insert Table, Checkbox List, Horizontal Line, Current Date & Time, Signature Line, Text Box) enabling professional document creation with tables, interactive elements, and structured formatting
-- **COMPLETED**: Fixed table creation to generate empty cells instead of placeholder data - tables now insert with clean formatting and blank cells that users can populate with their own content
-- **COMPLETED**: Implemented database-backed template system for Forms page - converted Save Document to Save Template functionality, added comprehensive template storage with database persistence, created template loading system in template dialog, users can now save custom templates and reuse them from the main template section with proper authentication and tenant isolation
-
-**July 16, 2025:**
-- **COMPLETED**: Fixed database preservation issue - modified seed data script to preserve existing users and data instead of recreating them on server restart, ensuring manually created users like "Zubaisha Khan" persist between deployments without data loss
-- **COMPLETED**: Fixed bold, italic, and underline button functionality in forms page - replaced toast-only functions with proper text formatting that applies styling to selected text only, users must select text first then apply formatting
-- **COMPLETED**: Fixed font size and font family dropdown functionality - added selection validation to prevent global text changes, dropdowns now only apply formatting when text is actually selected
-- **COMPLETED**: Fixed bullet list button functionality - implemented proper bullet list creation that preserves exact line structure from selected text, converts each line into separate bullet points with proper HTML ul/li elements
-- **COMPLETED**: Fixed numbered list button CSS styling issue - added proper listStyleType 'decimal' and listStylePosition 'outside' with increased padding for number display
-- **COMPLETED**: Fixed center alignment button functionality - replaced single-line conversion with proper line preservation that maintains text structure while applying center alignment to each line
-- **COMPLETED**: Enhanced alignment buttons (left, center, right, justify) to properly apply text alignment to selected text with proper DOM manipulation
-
-**July 15, 2025:**
-- **COMPLETED**: Fixed PayPal integration completely - implemented proper PayPal SDK integration with redirect functionality, users now redirected to actual PayPal payment interface when clicking PayPal button, payment window opens in popup for authentic experience, system detects payment completion when window closes, subscription properly updated after successful PayPal payments, includes fallback error handling for blocked popups
-- **COMPLETED**: Implemented comprehensive user management with granular role-based permissions system - created detailed permission matrix with checkboxes for 20 modules (Patient Management, Appointments, Medical Records, Prescriptions, etc.) and 8 field categories, enabling fine-grained access control with view/create/edit/delete permissions for each module, role-specific permission templates (admin gets full access, receptionist gets limited access to only patient info and billing, doctor gets clinical access), and real-time permission updates through intuitive interface with lock icon for permission management
-- **COMPLETED**: Fixed nurse and sample taker password length validation errors - updated passwords to meet 6-character minimum requirement (nurse/nurse123, sample.taker@demo.com/sample123), resolving login validation failures and enabling successful authentication for all user roles in LIVE deployment
-- **COMPLETED**: Fixed sample taker login credentials issue - corrected username field to match email address for sample taker user (changed username from "sample_taker" to "sample.taker@demo.com"), enabling successful login with sample.taker@demo.com/sample_taker credentials in LIVE deployment
-- **COMPLETED**: Fixed patient login credentials issue - corrected username field to match email address for patient user (changed username from "patient" to "patient@gmail.com"), enabling successful login with patient@gmail.com/patient123 credentials in LIVE deployment
-- **COMPLETED**: Fixed doctor login credentials issue - updated seed data to use correct individual passwords for each role (doctor/doctor123, nurse/nurse, patient@gmail.com/patient123, sample.taker@demo.com/sample_taker), implemented proper cascading delete to recreate users with correct authentication, enabling successful login for all user roles in LIVE deployment
-- **COMPLETED**: Implemented comprehensive role-based visibility system - created role permissions hook with detailed permission matrix for all 6 user roles (admin, doctor, nurse, receptionist, patient, sample_taker), updated database schema to support additional roles, created role-specific dashboard components with tailored UI and functionality for each user type, implemented dynamic sidebar navigation filtering based on role permissions, and added sample users for testing all roles including patient@gmail.com/patient123 and sample.taker@demo.com/sample_taker credentials
-- **COMPLETED**: Fixed Provider dropdown in appointment booking showing no options - root cause was missing medical staff users (doctors/nurses) in database; added Dr. Sarah Smith (Cardiology), Dr. Michael Johnson (Neurology), and Nurse Emily Wilson (General Medicine) to provide provider options for appointment scheduling in LIVE deployment
-- **COMPLETED**: Fixed duplicate "Dr." prefix display issue in Provider dropdown - removed "Dr." prefix from first names in database (changed "Dr. Sarah" to "Sarah", "Dr. Michael" to "Michael") so frontend display logic properly shows "Dr. Sarah Smith" instead of "Dr. Dr. Sarah Smith"
-- **COMPLETED**: Fixed appointment creation error completely - modified backend to accept both string and numeric patientId, added getPatientByPatientId method to storage interface, fixed frontend to send patient IDs as strings instead of attempting parseInt conversion, and corrected patient dropdown to use patient.patientId instead of patient.id, enabling successful appointment booking when frontend sends patient string ID (P000007) and backend converts to numeric database ID (163), with proper error handling for empty values - appointment booking system now fully operational
-- **COMPLETED**: Fixed non-functional "Total Patients" button in doctor mobile app dashboard - added onTap parameter to _QuickStatCard component with GestureDetector wrapper, connected Total Patients card to navigate to PatientsScreen when tapped, enabling doctors to access full patient list from dashboard statistics in LIVE mobile deployment
-
-**July 11, 2025:**
-- **COMPLETED**: Created comprehensive Flutter mobile applications for both patients and doctors - implemented patient app with medical history, prescriptions, appointments, notifications, and voice documentation screens; created doctor app with dashboard, appointment management, patient records, and medication alerts; both apps feature JWT authentication, secure token storage, API integration, and consistent Cura branding with demo credentials (patient@gmail.com/patient123, doctor@gmail.com/doctor123)
-- **COMPLETED**: Created comprehensive Cura EMR specifications document (CURA_COMPLETE_SPECIFICATIONS.md) - documented all 24+ healthcare modules including core features (Patient Management, Appointments, Medical Records, Prescriptions, Voice Documentation, AI Insights, Billing, Forms, Analytics, Telemedicine) and 14 additional modules (Medical Imaging, Lab Management, Pharmacy, Population Health, Clinical Decision Support, Patient Portal, Inventory, Staff Management, Quality Management, Emergency Management, Research, Mobile Health, Integrations, Advanced Reporting)
-- **COMPLETED**: Enhanced font selection with visually distinct options - added Times New Roman (serif) and Courier New (monospace) fonts with improved fallbacks, ensuring clear visual differences when applied to selected text in Forms editor
-- **COMPLETED**: Fixed font style application to selected text only - removed global font styling, added proper text selection requirement for font changes, enabling different text sections to have different fonts
-- **COMPLETED**: Fixed typewriter jumping issue in Forms page - replaced dangerouslySetInnerHTML with proper contentEditable implementation, preventing cursor jumping during typing while maintaining H1/H2 font size functionality, ensuring smooth professional text editing experience in LIVE deployment
-- **COMPLETED**: Extended JWT token expiration to 7 days - prevents automatic logout during development sessions, maintaining user authentication across code changes and server restarts for improved development workflow
-
-**July 10, 2025:**
-- **COMPLETED**: Fixed H1 and H2 formatting visual hierarchy in Forms page - implemented contentEditable rich text editor with actual font size differences (H1: 24px bold, H2: 18px bold, Paragraph: 14px normal), creating visually distinct formatting levels with proper HTML element rendering instead of tag-based system
-
-**July 8, 2025:**
-- **COMPLETED**: Fixed View Patient button functionality on AI Insights page - added navigation import (wouter useLocation hook), implemented click handler to navigate to patient details page (/patients/:id), ensuring proper patient navigation from AI insights without modifying any other application functionality
-- **COMPLETED**: Added Cura favicon to browser tab - implemented proper Cura icon favicon using official brand assets, placed in public directory for proper Vite serving, added comprehensive favicon support including PNG and ICO formats for all browser compatibility, updated page title to "Cura - AI-Powered Healthcare Platform"
-- **COMPLETED**: Completely redesigned form creation interface for user-friendliness - simplified form builder with just 4 main field types, removed complex drag-and-drop interface, added inline field editing with clear labels, proper form preview that matches actual appearance, clean field names like "Full Name" and "Email Address", eliminated garbled text issues
-
-**July 7, 2025:**
-- **COMPLETED**: Complete Cura rebranding implementation - replaced all Halo Health/Averox references with Cura branding, updated color scheme to Cura brand colors (BlueWave primary, Electric Lilac accents, Midnight text), integrated new Cura logo and icon assets, updated login page with "Welcome to Cura" and "AI-Powered Healthcare Platform" messaging, sidebar now displays Cura icon with "by halo group" tagline, maintaining all existing functionality while refreshing visual identity
-
-**July 4, 2025:**
-- **COMPLETED**: Fixed View Profile button authentication error on Appointments page - replaced manual fetch with apiRequest method in staff-profile.tsx for consistent authentication handling, ensuring staff member details display correctly in LIVE deployment
-- **COMPLETED**: Fixed BOOK buttons functionality on Appointments page - replaced manual fetch with apiRequest method in both doctor-list.tsx and calendar.tsx components, enabling proper appointment booking dialog display and successful appointment creation in LIVE deployment
-
-**July 3, 2025:**
-- **COMPLETED**: Fixed Delete button functionality completely - implemented grid layout (grid-cols-4) to display all 4 buttons properly, DELETE API endpoint working with cascade deletion, confirmation dialogs functional, success notifications working, and automatic patient list refresh after deletion - Delete button now fully operational in LIVE deployment allowing users to remove patients efficiently
-- **COMPLETED**: Fixed Settings page completely - organization data now loads properly with missing updatedAt field added to organizations table schema, updateOrganization method fixed to handle settings updates, database schema updated with npm run db:push command, and verified settings changes persist correctly in database - Settings page now fully functional for admin users to configure organization
-- **COMPLETED**: Enhanced login screen with larger Halo Health logo (doubled size from 16x16 to 32x32) and added comprehensive EMR features and benefits description underneath including Patient Management, AI Clinical Insights, Smart Scheduling, and Billing & Payments with professional styling and benefit statement
-
-**July 2, 2025:**
-- **COMPLETED**: Fixed user creation and display system in LIVE deployment - implemented unique email generation to bypass duplicate email constraints, removed role restrictions from user list endpoint, and added immediate user display functionality so new users appear instantly in the user management interface without page refresh
-- **COMPLETED**: Resolved admin navigation visibility in LIVE deployment - admin navigation items (User Management, Subscription, Settings) now properly display in sidebar for authenticated users
-- **COMPLETED**: Fixed tenant resolution for production deployment - middleware now defaults to "demo" organization for both development and production environments, resolving "Organization not found" errors
-- **COMPLETED**: Fixed payment form validation system - implemented comprehensive card validation using Luhn algorithm, pattern rejection for fake card numbers, proper expiry date validation requiring future dates, CVV validation, and cardholder name requirements, ensuring invalid card data is properly rejected with clear error messages before payment processing
-- **COMPLETED**: Fixed PayPal payment validation system - implemented comprehensive PayPal credential validation to reject common test emails (demo@paypal.com, test@test.com), weak passwords (••••••, 123456), and enforce 8+ character password requirements with pattern validation, ensuring invalid PayPal credentials are properly rejected with clear error messages before payment processing
-- **COMPLETED**: Fixed Send Invoice dialog contact information fields - added proper input fields for SMS (phone number) and Print & Mail (recipient name and mailing address) methods, with pre-populated patient data and validation to prevent sending without required contact information, ensuring complete invoice sending functionality in LIVE deployment
-
-**July 1, 2025:**
-- **COMPLETED**: Fixed invoice Delete button functionality in Billing & Payments - added functional red Delete button with Trash2 icon, proper React Query cache management for instant UI updates, confirmation dialog before deletion, success notifications, and immediate invoice removal without page reload, ensuring complete delete functionality in LIVE deployment
-- **COMPLETED**: Fixed patient dropdown in Create New Invoice dialog - replaced hardcoded 3 patients with dynamic API data loading, added proper JWT authentication headers, applied name-based deduplication to prevent duplicate entries, added loading states and error handling, ensuring all available patients appear in dropdown in LIVE deployment
-- **COMPLETED**: Fixed dialog clickability issue in Financial Intelligence Track Claim Status popup - added proper z-index (z-50) and pointer-events-auto classes to DialogContent, plus functional Close button, ensuring all dialog elements are interactive and clickable in LIVE deployment
-- **COMPLETED**: Cleaned up Integrations page marketplace - removed DocuSign, Epic MyChart, and LabCorp from Featured Integrations section, completely removed "Browse by Category" section, leaving only Stripe Payments, Twilio SMS, and Zoom Health in Featured section for LIVE deployment
-- **COMPLETED**: Fixed duplicate dropdown entries in appointment booking system - implemented name-based deduplication logic that filters dropdown options by unique patient and provider names instead of IDs, reducing patient dropdown from 50 to 4 unique entries and provider dropdown from 149 to 3 unique entries, ensuring clean dropdown lists in LIVE deployment
-- **COMPLETED**: Implemented real audio transcription system - added Web Speech API integration for live speech-to-text conversion during recording, real-time transcript display, automatic transcript saving with voice notes, and proper cleanup between recordings, enabling authentic voice documentation with actual spoken word capture in LIVE environment
-- **COMPLETED**: Fixed audio playback for voice notes - implemented comprehensive playback system supporting original recorded audio for live recordings, text-to-speech for API-created notes, and demo tone fallback, ensuring all voice notes are playable in LIVE environment
-- **COMPLETED**: Fixed delete button functionality in Voice Documentation - simplified deletion approach with reliable backend API calls, automatic UI refresh after successful deletion, proper audio storage cleanup, and consistent behavior in LIVE environment
-- **COMPLETED**: Optimized audio saving speed in Voice Documentation - implemented optimistic UI updates so voice notes appear instantly in the record list while saving happens in background, eliminating user wait times and providing immediate audio playback capability
-- **COMPLETED**: Fixed audio recording and playback system in Voice Documentation - implemented proper MediaRecorder API integration to capture actual audio, store audio blobs as URLs in browser memory, and play back original recorded audio instead of text-to-speech, ensuring authentic voice recording functionality works identically in LIVE deployment
-- **COMPLETED**: Added delete functionality for voice notes - implemented red Delete button with confirmation dialog, backend DELETE endpoint with JWT authentication, automatic list refresh after deletion, and proper error handling for LIVE environment compatibility
-- **COMPLETED**: Fixed patient persistence issue across server restarts - modified seed-data.ts to preserve existing patients instead of recreating them, ensuring manually added patients like "Imran Mubashir" survive server restarts and appear in all dropdown menus throughout the application
-- **COMPLETED**: Fixed SelectItem validation errors in Voice Documentation and Mobile Health pages - replaced empty string values with proper non-empty values ("loading", "no-patients") to eliminate red error overlay and enable proper dropdown functionality
-
-**June 30, 2025:**
-- **COMPLETED**: Fixed AI Insights page data loading in live environment - added JWT Bearer token headers to AI insights API calls and created sample AI insights data (5 insights: cardiovascular risk assessment, drug interaction alerts, treatment suggestions, preventive care recommendations), enabling proper display of AI insights instead of error message
-- **COMPLETED**: Fixed Analytics Dashboard page data loading in live environment - added JWT Bearer token headers to analytics API calls, enabling proper display of analytics data (1,247 total patients, real revenue figures, actual metrics) instead of showing zeros
-- **COMPLETED**: Fixed Automation page data loading in live environment - added JWT Bearer token headers to automation rules and statistics API calls, enabling proper display of automation data (12 total rules, 9 active rules) instead of showing zeros
-- **COMPLETED**: Fixed messaging system authentication for live environment - added JWT Bearer token headers to all messaging API calls including conversations, messages, campaigns, and message sending functionality, enabling users to create new messages and campaigns in production
-- **COMPLETED**: Fixed medical record creation authentication for live environment - added JWT Bearer token headers to all medical record API calls including creation, updates, and fetching in ConsultationNotes component, enabling users to add and edit patient medical records in production
-- **COMPLETED**: Fixed message templates functionality in live environment - added templates API endpoint with proper JWT authentication and comprehensive message templates (appointment reminders, lab results, prescriptions, emergency alerts, patient onboarding) with usage statistics
-- **COMPLETED**: Fixed messaging analytics functionality in live environment - added analytics API endpoint with proper JWT authentication, comprehensive analytics dashboard with key metrics (total messages, response rates, campaign reach), message volume trends, template usage statistics, and recent messaging activity
-- **COMPLETED**: Fixed appointment department selection issue - added department dropdown field to appointment booking form with 10 medical departments (Cardiology, Neurology, Orthopedics, etc.), updated form validation to require department selection, automatic location generation with department name, and enhanced visibility with department badges in appointment cards and details dialog to prevent all appointments defaulting to Cardiology
-- **COMPLETED**: Fixed appointment deletion functionality - added DELETE API endpoint (/api/appointments/:id) with proper authorization, implemented deleteAppointment method in storage layer with organization-level security, and added red "Delete" button in appointment details dialog with error handling and success notifications
-- **COMPLETED**: Fixed Dashboard appointment booking dialog scrolling issue - added max-height constraint (90vh) and vertical scrolling to the New Appointment Dialog in appointment-calendar component, enabling users to scroll through all form fields when content exceeds viewport height
-- **COMPLETED**: Fixed authentication system for deployed environment - enabled proper authentication flow, created professional login page with Averox branding and demo credentials for all user roles, configured proper routing between login and main application
-- **COMPLETED**: Fixed user settings button in sidebar - replaced direct logout button with proper dropdown menu containing Profile Settings, Account Settings, and Sign out options with proper visual hierarchy and user information display
-- **COMPLETED**: Fixed page refresh authentication persistence - added missing /api/auth/validate endpoint to maintain user sessions across page refreshes without requiring re-login
-- **COMPLETED**: Fixed department display issue - corrected garbled department text by improving location string parsing logic to properly extract department names from appointment locations
-- **COMPLETED**: Fixed appointment scheduling in live environment - added JWT token authentication headers to appointment creation and deletion API calls to work properly in production deployment
-- **COMPLETED**: Fixed patients page blank screen issue in live environment - implemented custom queryFn with explicit JWT authentication headers, proper error handling, and TypeScript type safety to ensure patient data loads correctly in production
-- **COMPLETED**: Fixed appointment scheduling dropdown and appointment visibility in live environment - replaced hardcoded patient/provider dropdowns with dynamic data loading using proper JWT authentication, ensuring recently created contacts like "Imran Mubashir" appear in appointment booking and scheduled appointments display correctly in calendar
-- **COMPLETED**: Fixed prescription page patient dropdown and prescription list issues in live environment - replaced hardcoded patient dropdown (Sarah Johnson, Robert Davis, Emily Watson) with dynamic patient data loading using JWT authentication, ensuring recently created patients appear in prescription creation and existing prescriptions display correctly with proper patient name mapping
-- **COMPLETED**: Fixed lab results page empty list issue in live environment - added JWT Bearer token authentication headers to lab results data fetching, ensuring ordered lab tests display correctly in the results list with proper statistics and filtering functionality
-- **COMPLETED**: Fixed Order Study button functionality in Medical Imaging page - implemented missing dialog with comprehensive form fields for patient selection, imaging modality, body part, priority, clinical indication, and special instructions, enabling users to order new imaging studies with proper validation and success notifications
-
-**June 29, 2025:**
-- **COMPLETED**: Fixed telemedicine Schedule Consultation dialog scrolling issue - added max-height constraint and vertical scrolling for proper dialog accessibility
-- **COMPLETED**: Fixed telemedicine Settings dialog save functionality - implemented controlled state management and proper dialog closing after save operations
-- **COMPLETED**: Fixed telemedicine "Set Up Monitoring" button - created comprehensive remote patient monitoring setup dialog with device configuration, alert thresholds, and notification settings
-- **COMPLETED**: Fixed Population Health "Create Cohort" button - implemented full cohort creation dialog with patient selection, age criteria, medical conditions, form validation, and success notifications
-- **COMPLETED**: Fixed Population Health "Export Report" button - added comprehensive CSV report generation with population metrics, cohort breakdown, intervention rates, and preventive care data
-- **COMPLETED**: Fixed Settings page authentication error - replaced generic error message with clear admin login instructions and credentials display for proper user guidance
-- **COMPLETED**: Fixed application-wide scrolling issue - changed main layout from overflow-hidden to overflow-y-auto enabling vertical scrolling for all pages when content exceeds viewport height
-
-**June 28, 2025:**
-- Implemented comprehensive notification system with database backend and real-time updates
-- Added advanced clinical decision support service with AI-powered drug interaction analysis
-- Created patient monitoring service with vital signs analysis and medication adherence tracking
-- Built sophisticated appointment scheduler with conflict detection and automated optimization
-- Developed prescription management service with safety analysis and automated refill management
-- Added health dashboard service for population health analytics and clinical insights
-- Implemented audit compliance service with GDPR compliance checks and data retention policies
-- Enhanced backend with 6 major clinical services providing enterprise-grade medical functionality
-- All services integrated with OpenAI GPT-4o for intelligent clinical analysis and recommendations
-- Fixed "View All" button navigation issue in Recent Patients dashboard component - now properly navigates to patients page in all component states (loading, error, empty, and main content)
-- **COMPLETED**: Fixed appointment calendar functionality - appointments now display correctly on calendar, new appointment creation works with proper API integration, and resolved layout issue with buttons extending outside appointment cards
-- **COMPLETED**: Fixed patient View button 404 errors by adding missing `/patients/:id` route for individual patient detail pages
-- **COMPLETED**: Fixed medical staff not displaying in appointments calendar by creating dedicated `/api/medical-staff` endpoint accessible to authenticated users and updating DoctorList component with proper fetch implementation
-- **COMPLETED**: Fixed View Profile button functionality for medical staff - created dedicated StaffProfile page with comprehensive staff information display, proper routing (/staff/:id), and navigation from appointments calendar
-- **COMPLETED**: Made "Send to Pharmacy" button fully functional - added pharmacy selection dialog with pre-filled UK pharmacy details, API integration to update prescription pharmacy data, proper error handling and success notifications, while preserving prescription data loading functionality
-- **COMPLETED**: Fixed Share Study button on imaging page - implemented comprehensive sharing dialog with email/WhatsApp contact method selection, custom message field, validation, and success notifications
-- **COMPLETED**: Fixed Generate Report button on imaging page - created detailed radiology report generation dialog with patient information display, editable findings and impression fields, existing report status indicators, and download functionality for completed reports
-- **COMPLETED**: Fixed Create Campaign button functionality in Messaging Center - implemented comprehensive campaign creation dialog with name, type, subject, content, and template selection fields, proper validation, API integration, and success notifications
-- **COMPLETED**: Fixed New Message button functionality in Messaging Center - created professional message composition dialog with recipient, type, subject, priority, and content fields, comprehensive form validation, and proper state management
-- **COMPLETED**: Enhanced video call functionality in Messaging Center - improved interface with realistic effects, animated gradients, connection quality indicators, audio visualizers, enhanced self-video display, microphone indicators, and professional control buttons for complete telemedicine experience
-- **COMPLETED**: Fixed Add Integration button on Integrations page - added comprehensive dialog with integration categories (Messaging, Clinical, Billing, Analytics, Compliance, Workflow) and popular integrations section with working Connect buttons
-- **COMPLETED**: Fixed Browse Marketplace button on Integrations page - implemented full marketplace dialog with featured integrations, category browser, trending integrations, ratings, install counts, and functional install buttons
-- **COMPLETED**: Fixed Filter button on Analytics Dashboard page - now opens comprehensive filter dialog with date range, department, provider, and patient type options
-- **COMPLETED**: Fixed Export button on Analytics Dashboard page - now downloads CSV report with all analytics metrics and proper file handling
-- **COMPLETED**: Fixed Filter button on Automation page - now opens comprehensive filter dialog with status and category filtering options connected to existing filter logic
-- **COMPLETED**: Added scrollbar functionality to Analytics Dashboard page - implemented proper vertical scrolling for content that extends beyond viewport
-
-**June 27, 2025:**
-- Fixed dashboard statistics display issue by implementing direct API calls instead of TanStack Query
-- Resolved authentication flow to properly display dashboard data (Total Patients: 3, Today's Appointments: 2, AI Suggestions: 0, Revenue: £89,240)
-- Updated query client configuration to support multi-tenant headers
-- Completed comprehensive EMR system with all 20+ features functional and accessible
-
-**June 26, 2025:**
-- Initial setup and implementation of comprehensive EMR features
-- Complete rebranding from external provider to Averox Ltd
-
-## User Preferences
-
-Preferred communication style: Simple, everyday language.
+- **Express.js**: Web framework.
+- **Drizzle ORM**: Type-safe SQL query builder.
+- **bcrypt**: Password hashing.
+- **jsonwebtoken**: JWT handling.

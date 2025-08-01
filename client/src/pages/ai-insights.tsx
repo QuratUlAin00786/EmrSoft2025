@@ -270,6 +270,23 @@ export default function AiInsights() {
       />
       
       <div className="flex-1 overflow-auto p-6">
+        {/* AI Disclaimer */}
+        <div className="mb-6">
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <div className="flex items-start space-x-3">
+              <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="font-medium text-amber-900 mb-1">Medical AI Disclaimer</h3>
+                <p className="text-sm text-amber-800">
+                  AI insights are for informational purposes only and should not replace professional medical judgment. 
+                  All AI-generated recommendations must be reviewed and validated by qualified healthcare professionals 
+                  before making any clinical decisions. This system is designed to assist, not replace, medical expertise.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="mb-6">
           <div className="flex items-center space-x-4">
             <Badge className="ai-gradient text-white">
