@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
-import { Crown, Users, Calendar, Zap, Check, X } from "lucide-react";
+import { Crown, Users, Calendar, Zap, Check, X, Package, Heart, Brain, Shield, Stethoscope, Phone, FileText, Activity, Pill, UserCheck } from "lucide-react";
 import { PaymentMethodDialog } from "@/components/payment-method-dialog";
 import type { Subscription } from "@/types";
 
@@ -63,6 +63,135 @@ const plans = [
       "Advanced security"
     ],
     notIncluded: []
+  }
+];
+
+const packages = [
+  {
+    id: "telehealth",
+    name: "Telehealth Pro",
+    price: 15,
+    icon: Phone,
+    description: "Advanced video consultations with recording and notes",
+    features: [
+      "HD video consultations",
+      "Session recordings",
+      "Screen sharing",
+      "Waiting room",
+      "Mobile app support"
+    ]
+  },
+  {
+    id: "ai-insights",
+    name: "AI Clinical Assistant",
+    price: 25,
+    icon: Brain,
+    description: "AI-powered clinical decision support and insights",
+    features: [
+      "Drug interaction alerts",
+      "Diagnosis suggestions",
+      "Risk assessments",
+      "Treatment recommendations",
+      "Clinical note automation"
+    ]
+  },
+  {
+    id: "specialty-cardiology",
+    name: "Cardiology Suite",
+    price: 40,
+    icon: Heart,
+    description: "Specialized tools for cardiac care and monitoring",
+    features: [
+      "ECG interpretation",
+      "Cardiac risk scoring",
+      "Heart failure monitoring",
+      "Pacemaker tracking",
+      "Cardiac rehabilitation"
+    ]
+  },
+  {
+    id: "pharmacy-integration",
+    name: "Pharmacy Connect",
+    price: 20,
+    icon: Pill,
+    description: "Direct integration with pharmacy networks",
+    features: [
+      "Electronic prescriptions",
+      "Medication adherence tracking",
+      "Drug formulary access",
+      "Insurance verification",
+      "Refill management"
+    ]
+  },
+  {
+    id: "advanced-reporting",
+    name: "Analytics Pro",
+    price: 18,
+    icon: FileText,
+    description: "Comprehensive reporting and business intelligence",
+    features: [
+      "Custom report builder",
+      "Revenue analytics",
+      "Patient outcome tracking",
+      "Compliance reporting",
+      "Export to multiple formats"
+    ]
+  },
+  {
+    id: "patient-portal",
+    name: "Patient Portal Plus",
+    price: 12,
+    icon: UserCheck,
+    description: "Enhanced patient engagement and self-service portal",
+    features: [
+      "Appointment self-scheduling",
+      "Test results access",
+      "Medication tracking",
+      "Secure messaging",
+      "Health education resources"
+    ]
+  },
+  {
+    id: "monitoring-iot",
+    name: "Remote Monitoring",
+    price: 35,
+    icon: Activity,
+    description: "IoT device integration for continuous patient monitoring",
+    features: [
+      "Wearable device integration",
+      "Real-time vital signs",
+      "Alert management",
+      "Trend analysis",
+      "Patient compliance tracking"
+    ]
+  },
+  {
+    id: "security-hipaa",
+    name: "HIPAA Security Plus",
+    price: 22,
+    icon: Shield,
+    description: "Enhanced security and compliance features",
+    features: [
+      "Advanced encryption",
+      "Audit trail management",
+      "Access control",
+      "Breach detection",
+      "Compliance monitoring"
+    ]
+  },
+  {
+    id: "specialty-tools",
+    name: "Multi-Specialty Tools",
+    price: 30,
+    icon: Stethoscope,
+    description: "Specialized tools for various medical specialties",
+    features: [
+      "Dermatology imaging",
+      "Orthopedic assessments",
+      "Mental health screening",
+      "Pediatric growth charts",
+      "Geriatric care protocols"
+    ]
   }
 ];
 
@@ -240,6 +369,164 @@ export default function Subscription() {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          </div>
+
+          {/* Add-on Packages */}
+          <div>
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold mb-4">Add-on Packages</h2>
+              <p className="text-neutral-600 max-w-2xl mx-auto">
+                Enhance your EMR system with specialized packages designed for modern healthcare practices.
+                Mix and match to create the perfect solution for your organization.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {packages.map((pkg) => {
+                const IconComponent = pkg.icon;
+                return (
+                  <Card key={pkg.id} className="relative hover:shadow-lg transition-shadow border border-neutral-200">
+                    <CardHeader className="pb-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="p-2 bg-medical-blue/10 rounded-lg">
+                            <IconComponent className="h-6 w-6 text-medical-blue" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-lg">{pkg.name}</h3>
+                            <div className="flex items-center space-x-2">
+                              <span className="text-2xl font-bold text-medical-blue">£{pkg.price}</span>
+                              <span className="text-sm text-neutral-500">/month</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-neutral-600">{pkg.description}</p>
+                    </CardHeader>
+                    
+                    <CardContent>
+                      <div className="space-y-3 mb-6">
+                        {pkg.features.map((feature, index) => (
+                          <div key={index} className="flex items-center space-x-2">
+                            <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                            <span className="text-sm">{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <Button 
+                        className="w-full bg-medical-blue hover:bg-blue-700"
+                        onClick={() => {
+                          // Handle package selection
+                          console.log('Selected package:', pkg.id);
+                        }}
+                      >
+                        <Package className="h-4 w-4 mr-2" />
+                        Add Package
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            {/* Package Bundles */}
+            <div className="mt-12">
+              <div className="text-center mb-8">
+                <h3 className="text-2xl font-bold mb-4">Popular Package Bundles</h3>
+                <p className="text-neutral-600 max-w-2xl mx-auto">
+                  Save money with our curated package bundles designed for specific healthcare scenarios.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="border-2 border-medical-blue/20 bg-medical-blue/5">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="text-xl font-bold">Primary Care Bundle</h4>
+                        <p className="text-sm text-neutral-600 mt-1">Perfect for family practices and general medicine</p>
+                      </div>
+                      <Badge className="bg-green-100 text-green-800">Save 25%</Badge>
+                    </div>
+                    <div className="flex items-center space-x-2 mt-3">
+                      <span className="text-3xl font-bold text-medical-blue">£65</span>
+                      <span className="text-lg text-neutral-500 line-through">£87</span>
+                      <span className="text-sm text-neutral-500">/month</span>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center space-x-2 text-sm">
+                        <Check className="h-4 w-4 text-green-500" />
+                        <span>Telehealth Pro (£15)</span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-sm">
+                        <Check className="h-4 w-4 text-green-500" />
+                        <span>AI Clinical Assistant (£25)</span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-sm">
+                        <Check className="h-4 w-4 text-green-500" />
+                        <span>Pharmacy Connect (£20)</span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-sm">
+                        <Check className="h-4 w-4 text-green-500" />
+                        <span>Analytics Pro (£18)</span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-sm">
+                        <Check className="h-4 w-4 text-green-500" />
+                        <span>Patient Portal Plus (£12)</span>
+                      </div>
+                    </div>
+                    <Button className="w-full bg-medical-blue hover:bg-blue-700">
+                      <Package className="h-4 w-4 mr-2" />
+                      Add Bundle
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-2 border-purple-200 bg-purple-50">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="text-xl font-bold">Specialty Care Bundle</h4>
+                        <p className="text-sm text-neutral-600 mt-1">Advanced tools for specialized medical practices</p>
+                      </div>
+                      <Badge className="bg-purple-100 text-purple-800">Save 30%</Badge>
+                    </div>
+                    <div className="flex items-center space-x-2 mt-3">
+                      <span className="text-3xl font-bold text-purple-600">£91</span>
+                      <span className="text-lg text-neutral-500 line-through">£130</span>
+                      <span className="text-sm text-neutral-500">/month</span>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center space-x-2 text-sm">
+                        <Check className="h-4 w-4 text-green-500" />
+                        <span>Cardiology Suite (£40)</span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-sm">
+                        <Check className="h-4 w-4 text-green-500" />
+                        <span>Remote Monitoring (£35)</span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-sm">
+                        <Check className="h-4 w-4 text-green-500" />
+                        <span>Multi-Specialty Tools (£30)</span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-sm">
+                        <Check className="h-4 w-4 text-green-500" />
+                        <span>HIPAA Security Plus (£22)</span>
+                      </div>
+                    </div>
+                    <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                      <Package className="h-4 w-4 mr-2" />
+                      Add Bundle
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </div>
 
