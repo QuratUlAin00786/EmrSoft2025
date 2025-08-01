@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Package, AlertTriangle, TrendingUp, Search, Filter, BarChart3, ShoppingCart } from "lucide-react";
+import { Plus, Package, AlertTriangle, TrendingUp, Search, Filter, BarChart3, ShoppingCart, Edit, MoreVertical } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import AddItemDialog from "@/components/inventory/add-item-dialog";
+import StockAdjustmentDialog from "@/components/inventory/stock-adjustment-dialog";
 
 interface InventoryItem {
   id: number;
@@ -78,6 +81,9 @@ export default function Inventory() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
   const [showLowStock, setShowLowStock] = useState(false);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showStockDialog, setShowStockDialog] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -152,7 +158,7 @@ export default function Inventory() {
               </p>
             </div>
             <div className="flex space-x-3">
-              <Button>
+              <Button onClick={() => setShowAddDialog(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Item
               </Button>
@@ -332,11 +338,31 @@ export default function Inventory() {
                           <CardTitle className="text-lg">{item.name}</CardTitle>
                           <CardDescription>{item.brandName || item.manufacturer}</CardDescription>
                         </div>
-                        {item.isLowStock && (
-                          <Badge variant="outline" className="text-orange-700 border-orange-300">
-                            Low Stock
-                          </Badge>
-                        )}
+                        <div className="flex items-center space-x-2">
+                          {item.isLowStock && (
+                            <Badge variant="outline" className="text-orange-700 border-orange-300">
+                              Low Stock
+                            </Badge>
+                          )}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem 
+                                onClick={() => {
+                                  setSelectedItem(item);
+                                  setShowStockDialog(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4 mr-2" />
+                                Adjust Stock
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent>
@@ -560,6 +586,18 @@ export default function Inventory() {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Dialogs */}
+        <AddItemDialog 
+          open={showAddDialog} 
+          onOpenChange={setShowAddDialog} 
+        />
+        
+        <StockAdjustmentDialog 
+          open={showStockDialog} 
+          onOpenChange={setShowStockDialog}
+          item={selectedItem}
+        />
       </div>
     </div>
   );
