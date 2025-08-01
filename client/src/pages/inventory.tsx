@@ -443,7 +443,7 @@ export default function Inventory() {
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600 dark:text-gray-400">Value:</span>
-                          <span className="font-medium">£{item.stockValue.toFixed(2)}</span>
+                          <span className="font-medium">£{parseFloat(item.stockValue.toString()).toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600 dark:text-gray-400">Category:</span>
