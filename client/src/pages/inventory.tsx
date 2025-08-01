@@ -228,7 +228,7 @@ export default function Inventory() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                £{inventoryValue?.totalValue?.toFixed(2) || '0.00'}
+                £{inventoryValue?.totalValue ? parseFloat(inventoryValue.totalValue).toFixed(2) : '0.00'}
               </div>
               <p className="text-xs text-muted-foreground">
                 Across {inventoryValue?.totalItems || 0} items
@@ -243,7 +243,7 @@ export default function Inventory() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {inventoryValue?.totalStock?.toLocaleString() || '0'}
+                {inventoryValue?.totalStock ? parseInt(inventoryValue.totalStock.toString()).toLocaleString() : '0'}
               </div>
               <p className="text-xs text-muted-foreground">
                 Units in stock
