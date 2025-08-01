@@ -2864,107 +2864,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // In-memory storage for patient consents (in production this would be in database)
+  let patientConsents = [
+    {
+      id: "consent_1",
+      patientId: "patient_1",
+      patientName: "Sarah Johnson",
+      email: "sarah.johnson@email.com",
+      consentStatus: "consented",
+      consentDate: "2024-01-15T10:30:00.000Z",
+      monitoringTypes: {
+        heartRate: true,
+        bloodPressure: true,
+        glucose: false,
+        activity: true,
+        sleep: true
+      },
+      deviceAccess: true,
+      dataSharing: true,
+      emergencyContact: true,
+      lastUpdated: "2024-01-15T10:30:00.000Z"
+    },
+    {
+      id: "consent_2",
+      patientId: "patient_2",
+      patientName: "Michael Chen",
+      email: "michael.chen@email.com",
+      consentStatus: "pending",
+      monitoringTypes: {
+        heartRate: false,
+        bloodPressure: false,
+        glucose: false,
+        activity: false,
+        sleep: false
+      },
+      deviceAccess: false,
+      dataSharing: false,
+      emergencyContact: false,
+      lastUpdated: "2024-01-20T14:15:00.000Z"
+    },
+    {
+      id: "consent_3",
+      patientId: "patient_3",
+      patientName: "Emma Davis",
+      email: "emma.davis@email.com",
+      consentStatus: "declined",
+      monitoringTypes: {
+        heartRate: false,
+        bloodPressure: false,
+        glucose: false,
+        activity: false,
+        sleep: false
+      },
+      deviceAccess: false,
+      dataSharing: false,
+      emergencyContact: false,
+      lastUpdated: "2024-01-18T09:45:00.000Z"
+    },
+    {
+      id: "consent_4",
+      patientId: "patient_4",
+      patientName: "Robert Wilson",
+      email: "robert.wilson@email.com",
+      consentStatus: "consented",
+      consentDate: "2024-01-22T16:20:00.000Z",
+      monitoringTypes: {
+        heartRate: true,
+        bloodPressure: true,
+        glucose: true,
+        activity: false,
+        sleep: false
+      },
+      deviceAccess: true,
+      dataSharing: false,
+      emergencyContact: true,
+      lastUpdated: "2024-01-22T16:20:00.000Z"
+    },
+    {
+      id: "consent_5",
+      patientId: "patient_5",
+      patientName: "Lisa Anderson",
+      email: "lisa.anderson@email.com",
+      consentStatus: "revoked",
+      consentDate: "2024-01-10T11:00:00.000Z",
+      revokedDate: "2024-01-25T13:30:00.000Z",
+      monitoringTypes: {
+        heartRate: false,
+        bloodPressure: false,
+        glucose: false,
+        activity: false,
+        sleep: false
+      },
+      deviceAccess: false,
+      dataSharing: false,
+      emergencyContact: false,
+      lastUpdated: "2024-01-25T13:30:00.000Z"
+    }
+  ];
+
   // Patient consent management endpoints
   app.get("/api/mobile-health/patient-consent", authMiddleware, async (req: TenantRequest, res) => {
     try {
-      // Mock patient consent data - in production this would come from database
-      const patientConsents = [
-        {
-          id: "consent_1",
-          patientId: "patient_1",
-          patientName: "Sarah Johnson",
-          email: "sarah.johnson@email.com",
-          consentStatus: "consented",
-          consentDate: "2024-01-15T10:30:00.000Z",
-          monitoringTypes: {
-            heartRate: true,
-            bloodPressure: true,
-            glucose: false,
-            activity: true,
-            sleep: true
-          },
-          deviceAccess: true,
-          dataSharing: true,
-          emergencyContact: true,
-          lastUpdated: "2024-01-15T10:30:00.000Z"
-        },
-        {
-          id: "consent_2",
-          patientId: "patient_2",
-          patientName: "Michael Chen",
-          email: "michael.chen@email.com",
-          consentStatus: "pending",
-          monitoringTypes: {
-            heartRate: false,
-            bloodPressure: false,
-            glucose: false,
-            activity: false,
-            sleep: false
-          },
-          deviceAccess: false,
-          dataSharing: false,
-          emergencyContact: false,
-          lastUpdated: "2024-01-20T14:15:00.000Z"
-        },
-        {
-          id: "consent_3",
-          patientId: "patient_3",
-          patientName: "Emma Davis",
-          email: "emma.davis@email.com",
-          consentStatus: "declined",
-          monitoringTypes: {
-            heartRate: false,
-            bloodPressure: false,
-            glucose: false,
-            activity: false,
-            sleep: false
-          },
-          deviceAccess: false,
-          dataSharing: false,
-          emergencyContact: false,
-          lastUpdated: "2024-01-18T09:45:00.000Z"
-        },
-        {
-          id: "consent_4",
-          patientId: "patient_4",
-          patientName: "Robert Wilson",
-          email: "robert.wilson@email.com",
-          consentStatus: "consented",
-          consentDate: "2024-01-22T16:20:00.000Z",
-          monitoringTypes: {
-            heartRate: true,
-            bloodPressure: true,
-            glucose: true,
-            activity: false,
-            sleep: false
-          },
-          deviceAccess: true,
-          dataSharing: false,
-          emergencyContact: true,
-          lastUpdated: "2024-01-22T16:20:00.000Z"
-        },
-        {
-          id: "consent_5",
-          patientId: "patient_5",
-          patientName: "Lisa Anderson",
-          email: "lisa.anderson@email.com",
-          consentStatus: "revoked",
-          consentDate: "2024-01-10T11:00:00.000Z",
-          revokedDate: "2024-01-25T13:30:00.000Z",
-          monitoringTypes: {
-            heartRate: false,
-            bloodPressure: false,
-            glucose: false,
-            activity: false,
-            sleep: false
-          },
-          deviceAccess: false,
-          dataSharing: false,
-          emergencyContact: false,
-          lastUpdated: "2024-01-25T13:30:00.000Z"
-        }
-      ];
-      
       res.json(patientConsents);
     } catch (error) {
       console.error("Error fetching patient consent data:", error);
@@ -2977,21 +2977,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { patientId } = req.params;
       const consentData = req.body;
       
-      // In production, this would update the consent record in database
       console.log(`Updating consent for patient ${patientId}:`, consentData);
       
-      // Mock response - in production this would return the updated record
-      const updatedConsent = {
-        id: `consent_${patientId}`,
-        patientId,
+      // Find and update the consent record
+      const consentIndex = patientConsents.findIndex(consent => consent.patientId === patientId);
+      
+      if (consentIndex === -1) {
+        return res.status(404).json({ error: "Patient consent record not found" });
+      }
+      
+      // Update the consent record with new data
+      patientConsents[consentIndex] = {
+        ...patientConsents[consentIndex],
         ...consentData,
         lastUpdated: new Date().toISOString()
       };
       
+      // Handle consent status specific updates
+      if (consentData.consentStatus === 'consented') {
+        patientConsents[consentIndex].deviceAccess = true;
+        patientConsents[consentIndex].dataSharing = true;
+        patientConsents[consentIndex].monitoringTypes = {
+          heartRate: true,
+          bloodPressure: true,
+          glucose: true,
+          activity: true,
+          sleep: true
+        };
+      } else if (consentData.consentStatus === 'declined' || consentData.consentStatus === 'revoked') {
+        patientConsents[consentIndex].deviceAccess = false;
+        patientConsents[consentIndex].dataSharing = false;
+        patientConsents[consentIndex].monitoringTypes = {
+          heartRate: false,
+          bloodPressure: false,
+          glucose: false,
+          activity: false,
+          sleep: false
+        };
+      }
+      
       res.json({
         success: true,
         message: "Patient consent updated successfully",
-        data: updatedConsent
+        data: patientConsents[consentIndex]
       });
     } catch (error) {
       console.error("Error updating patient consent:", error);
