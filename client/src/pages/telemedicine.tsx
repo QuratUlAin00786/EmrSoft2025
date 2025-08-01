@@ -1543,6 +1543,72 @@ export default function Telemedicine() {
                             </div>
                             <Button variant="outline" size="sm">Configure</Button>
                           </div>
+                          
+                          {/* IoT Cardiac Monitoring Devices */}
+                          <div className="bg-red-50 border border-red-200 rounded-lg p-4 space-y-3">
+                            <div className="flex items-center space-x-2">
+                              <Heart className="w-5 h-5 text-red-600" />
+                              <h4 className="font-semibold text-red-900">Cardiac Monitoring Devices</h4>
+                            </div>
+                            
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                  <div>
+                                    <p className="font-medium">Holter Monitor</p>
+                                    <p className="text-sm text-gray-600">CardioNet MCOT - 24/7 ECG Monitoring</p>
+                                  </div>
+                                </div>
+                                <div className="flex space-x-2">
+                                  <Badge variant="outline" className="text-green-600">Active</Badge>
+                                  <Button variant="outline" size="sm">View Data</Button>
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                  <div>
+                                    <p className="font-medium">Implantable Cardiac Monitor</p>
+                                    <p className="text-sm text-gray-600">Medtronic LINQ II - Long-term Arrhythmia Detection</p>
+                                  </div>
+                                </div>
+                                <div className="flex space-x-2">
+                                  <Badge variant="outline" className="text-blue-600">Transmitting</Badge>
+                                  <Button variant="outline" size="sm">Remote Access</Button>
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                                  <div>
+                                    <p className="font-medium">Pacemaker</p>
+                                    <p className="text-sm text-gray-600">Boston Scientific CRT-D - Remote Monitoring Enabled</p>
+                                  </div>
+                                </div>
+                                <div className="flex space-x-2">
+                                  <Badge variant="outline" className="text-orange-600">Monitoring</Badge>
+                                  <Button variant="outline" size="sm">Device Status</Button>
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                                  <div>
+                                    <p className="font-medium">Wearable ECG Patch</p>
+                                    <p className="text-sm text-gray-600">Zio XT Patch - 14-day Continuous ECG</p>
+                                  </div>
+                                </div>
+                                <div className="flex space-x-2">
+                                  <Badge variant="outline" className="text-purple-600">Recording</Badge>
+                                  <Button variant="outline" size="sm">Sync Data</Button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
 
@@ -1668,6 +1734,230 @@ export default function Telemedicine() {
                     </div>
                   </DialogContent>
                 </Dialog>
+              </CardContent>
+            </Card>
+
+            {/* IoT Cardiac Device Monitoring Dashboard */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Heart className="w-5 h-5 text-red-600" />
+                  <span>IoT Cardiac Device Monitoring</span>
+                </CardTitle>
+                <p className="text-sm text-gray-600">Real-time monitoring of connected cardiac devices</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  
+                  {/* Real-time ECG Monitoring */}
+                  <Card className="border-red-200">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg flex items-center space-x-2">
+                        <Activity className="w-4 h-4 text-red-600" />
+                        <span>Live ECG Monitor</span>
+                        <Badge variant="outline" className="text-green-600 border-green-600">Live</Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="bg-black p-4 rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-green-400 text-sm font-mono">ECG - Lead II</span>
+                            <span className="text-green-400 text-sm font-mono">Heart Rate: 72 BPM</span>
+                          </div>
+                          <div className="h-24 bg-black relative overflow-hidden">
+                            <svg className="w-full h-full" viewBox="0 0 400 100">
+                              <path
+                                d="M0,50 L30,50 L32,30 L35,70 L38,10 L42,90 L45,50 L75,50 L77,30 L80,70 L83,10 L87,90 L90,50 L120,50 L122,30 L125,70 L128,10 L132,90 L135,50 L165,50 L167,30 L170,70 L173,10 L177,90 L180,50 L210,50 L212,30 L215,70 L218,10 L222,90 L225,50 L255,50 L257,30 L260,70 L263,10 L267,90 L270,50 L300,50 L302,30 L305,70 L308,10 L312,90 L315,50 L345,50 L347,30 L350,70 L353,10 L357,90 L360,50 L400,50"
+                                stroke="#10b981"
+                                strokeWidth="2"
+                                fill="none"
+                                className="animate-pulse"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-gray-50 p-3 rounded">
+                            <div className="text-sm text-gray-600">Rhythm</div>
+                            <div className="font-semibold">Normal Sinus</div>
+                          </div>
+                          <div className="bg-gray-50 p-3 rounded">
+                            <div className="text-sm text-gray-600">QT Interval</div>
+                            <div className="font-semibold">420ms</div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Device Status Overview */}
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg">Device Status Overview</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                            <div>
+                              <p className="font-medium">Holter Monitor</p>
+                              <p className="text-sm text-gray-600">Last transmission: 2 min ago</p>
+                            </div>
+                          </div>
+                          <Badge className="bg-green-100 text-green-800">Active</Badge>
+                        </div>
+                        
+                        <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                            <div>
+                              <p className="font-medium">Pacemaker</p>
+                              <p className="text-sm text-gray-600">Battery: 89% | Last check: 1 hour ago</p>
+                            </div>
+                          </div>
+                          <Badge className="bg-blue-100 text-blue-800">Normal</Badge>
+                        </div>
+                        
+                        <div className="flex items-center justify-between p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse"></div>
+                            <div>
+                              <p className="font-medium">ECG Patch</p>
+                              <p className="text-sm text-gray-600">Recording day 3 of 14</p>
+                            </div>
+                          </div>
+                          <Badge className="bg-purple-100 text-purple-800">Recording</Badge>
+                        </div>
+                        
+                        <div className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                            <div>
+                              <p className="font-medium">Cardiac Monitor</p>
+                              <p className="text-sm text-gray-600">Sync pending</p>
+                            </div>
+                          </div>
+                          <Badge className="bg-orange-100 text-orange-800">Syncing</Badge>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Vital Signs Monitoring */}
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg">Current Vital Signs</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="text-center p-4 bg-red-50 rounded-lg">
+                          <Heart className="w-8 h-8 text-red-600 mx-auto mb-2" />
+                          <div className="text-2xl font-bold text-red-600">72</div>
+                          <div className="text-sm text-gray-600">Heart Rate (BPM)</div>
+                          <Badge className="mt-1 bg-green-100 text-green-800">Normal</Badge>
+                        </div>
+                        
+                        <div className="text-center p-4 bg-blue-50 rounded-lg">
+                          <Activity className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                          <div className="text-2xl font-bold text-blue-600">118/76</div>
+                          <div className="text-sm text-gray-600">Blood Pressure</div>
+                          <Badge className="mt-1 bg-green-100 text-green-800">Normal</Badge>
+                        </div>
+                        
+                        <div className="text-center p-4 bg-purple-50 rounded-lg">
+                          <Monitor className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                          <div className="text-2xl font-bold text-purple-600">98%</div>
+                          <div className="text-sm text-gray-600">O2 Saturation</div>
+                          <Badge className="mt-1 bg-green-100 text-green-800">Normal</Badge>
+                        </div>
+                        
+                        <div className="text-center p-4 bg-green-50 rounded-lg">
+                          <Stethoscope className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                          <div className="text-2xl font-bold text-green-600">16</div>
+                          <div className="text-sm text-gray-600">Resp. Rate</div>
+                          <Badge className="mt-1 bg-green-100 text-green-800">Normal</Badge>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Alerts and Notifications */}
+                  <Card className="border-yellow-200">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg flex items-center space-x-2">
+                        <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                        <span>Active Alerts</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex items-start space-x-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                          <div className="flex-1">
+                            <div className="font-medium text-yellow-900">Irregular Heart Rhythm Detected</div>
+                            <div className="text-sm text-yellow-700">Possible atrial fibrillation episode at 2:34 PM</div>
+                            <div className="text-xs text-yellow-600 mt-1">5 minutes ago</div>
+                          </div>
+                          <Button size="sm" variant="outline">Review</Button>
+                        </div>
+                        
+                        <div className="flex items-start space-x-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <Clock className="w-5 h-5 text-blue-600 mt-0.5" />
+                          <div className="flex-1">
+                            <div className="font-medium text-blue-900">Medication Reminder</div>
+                            <div className="text-sm text-blue-700">Patient should take Metoprolol 25mg</div>
+                            <div className="text-xs text-blue-600 mt-1">Due in 30 minutes</div>
+                          </div>
+                          <Button size="sm" variant="outline">Send</Button>
+                        </div>
+                        
+                        <div className="flex items-start space-x-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                          <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                          <div className="flex-1">
+                            <div className="font-medium text-green-900">Device Sync Completed</div>
+                            <div className="text-sm text-green-700">All monitoring data successfully uploaded</div>
+                            <div className="text-xs text-green-600 mt-1">2 hours ago</div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex space-x-4 mt-6">
+                  <Button className="flex-1" onClick={() => {
+                    toast({
+                      title: "Generating Report",
+                      description: "Cardiac monitoring report is being generated for the selected time period."
+                    });
+                  }}>
+                    <FileText className="w-4 h-4 mr-2" />
+                    Generate Report
+                  </Button>
+                  <Button variant="outline" className="flex-1" onClick={() => {
+                    toast({
+                      title: "Alert Settings Updated",
+                      description: "Cardiac monitoring alert thresholds have been configured."
+                    });
+                  }}>
+                    <Settings className="w-4 h-4 mr-2" />
+                    Configure Alerts
+                  </Button>
+                  <Button variant="outline" className="flex-1" onClick={() => {
+                    toast({
+                      title: "Emergency Protocol",
+                      description: "Emergency contact has been notified of critical cardiac event."
+                    });
+                  }}>
+                    <Phone className="w-4 h-4 mr-2" />
+                    Emergency Contact
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
