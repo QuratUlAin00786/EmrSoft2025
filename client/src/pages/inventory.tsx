@@ -88,28 +88,29 @@ export default function Inventory() {
   const queryClient = useQueryClient();
 
   // Fetch inventory data
-  const { data: items = [], isLoading: itemsLoading } = useQuery<InventoryItem[]>({
-    queryKey: ["/api/inventory/items", { 
-      search: searchTerm, 
-      categoryId: selectedCategory, 
-      lowStock: showLowStock 
-    }],
+  const { data: items = [], isLoading: itemsLoading, error: itemsError } = useQuery<InventoryItem[]>({
+    queryKey: ["/api/inventory/items"],
+    retry: 3,
   });
 
-  const { data: categories = [] } = useQuery<InventoryCategory[]>({
+  const { data: categories = [], error: categoriesError } = useQuery<InventoryCategory[]>({
     queryKey: ["/api/inventory/categories"],
+    retry: 3,
   });
 
   const { data: alerts = [] } = useQuery<StockAlert[]>({
-    queryKey: ["/api/inventory/alerts", { unreadOnly: true }],
+    queryKey: ["/api/inventory/alerts"],
+    retry: 3,
   });
 
   const { data: inventoryValue } = useQuery<InventoryValue>({
     queryKey: ["/api/inventory/reports/value"],
+    retry: 3,
   });
 
   const { data: purchaseOrders = [] } = useQuery<PurchaseOrder[]>({
     queryKey: ["/api/inventory/purchase-orders"],
+    retry: 3,
   });
 
   // Send purchase order email mutation
@@ -142,6 +143,34 @@ export default function Inventory() {
     };
     return <Badge variant={variants[status] || "outline"}>{status.toUpperCase()}</Badge>;
   };
+
+  // Filter items based on search and filters
+  const filteredItems = items.filter(item => {
+    // Search filter
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      if (!item.name.toLowerCase().includes(searchLower) && 
+          !item.sku.toLowerCase().includes(searchLower) &&
+          !item.barcode?.toLowerCase().includes(searchLower)) {
+        return false;
+      }
+    }
+    
+    // Category filter
+    if (selectedCategory && item.categoryName) {
+      const category = categories.find(c => c.id === selectedCategory);
+      if (category && item.categoryName !== category.name) {
+        return false;
+      }
+    }
+    
+    // Low stock filter
+    if (showLowStock && !item.isLowStock) {
+      return false;
+    }
+    
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -324,13 +353,20 @@ export default function Inventory() {
                   <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
                   <p className="text-gray-600 dark:text-gray-400 mt-2">Loading inventory items...</p>
                 </div>
-              ) : items.length === 0 ? (
+              ) : itemsError ? (
+                <div className="col-span-full text-center py-8">
+                  <Package className="h-12 w-12 text-red-400 mx-auto mb-4" />
+                  <p className="text-red-600 dark:text-red-400">Error loading items: {itemsError.message}</p>
+                </div>
+              ) : filteredItems.length === 0 ? (
                 <div className="col-span-full text-center py-8">
                   <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 dark:text-gray-400">No items found</p>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {items.length === 0 ? "No items found" : "No items match your filters"}
+                  </p>
                 </div>
               ) : (
-                items.map((item) => (
+                filteredItems.map((item) => (
                   <Card key={item.id} className={item.isLowStock ? "border-orange-200" : ""}>
                     <CardHeader>
                       <div className="flex items-start justify-between">

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import AddCategoryDialog from "./add-category-dialog";
 
 interface InventoryCategory {
   id: number;
@@ -30,6 +32,7 @@ interface AddItemDialogProps {
 }
 
 export default function AddItemDialog({ open, onOpenChange }: AddItemDialogProps) {
+  const [showCategoryDialog, setShowCategoryDialog] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -198,18 +201,29 @@ export default function AddItemDialog({ open, onOpenChange }: AddItemDialogProps
 
               <div>
                 <Label htmlFor="category">Category *</Label>
-                <Select value={formData.categoryId} onValueChange={(value) => handleInputChange("categoryId", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id.toString()}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex space-x-2">
+                  <Select value={formData.categoryId} onValueChange={(value) => handleInputChange("categoryId", value)}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id.toString()}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowCategoryDialog(true)}
+                    className="px-3"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
 
@@ -427,6 +441,12 @@ export default function AddItemDialog({ open, onOpenChange }: AddItemDialogProps
           </Button>
         </DialogFooter>
       </DialogContent>
+      
+      {/* Add Category Dialog */}
+      <AddCategoryDialog 
+        open={showCategoryDialog} 
+        onOpenChange={setShowCategoryDialog} 
+      />
     </Dialog>
   );
 }
