@@ -27,7 +27,13 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
-  Trash2
+  Trash2,
+  BarChart3,
+  TrendingUp,
+  Filter,
+  PieChart,
+  FileBarChart,
+  Target
 } from "lucide-react";
 
 interface Invoice {
@@ -208,6 +214,7 @@ export default function BillingPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showNewInvoice, setShowNewInvoice] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<string>("");
 
   const { data: billingData = [], isLoading, error } = useQuery({
     queryKey: ["/api/billing"],
@@ -650,13 +657,281 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
             </Card>
           </TabsContent>
 
-          <TabsContent value="reports">
+          <TabsContent value="reports" className="space-y-6">
+            {/* Report Selection Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedReport('revenue')}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold text-lg mb-2">Revenue Report</h3>
+                      <p className="text-sm text-gray-600">Monthly and yearly revenue analysis</p>
+                    </div>
+                    <BarChart3 className="h-8 w-8 text-blue-600" />
+                  </div>
+                  <div className="mt-3 text-sm text-gray-500">
+                    Last updated: {format(new Date(), 'MMM d, yyyy')}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedReport('outstanding')}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold text-lg mb-2">Outstanding Invoices</h3>
+                      <p className="text-sm text-gray-600">Unpaid and overdue invoices</p>
+                    </div>
+                    <AlertTriangle className="h-8 w-8 text-red-600" />
+                  </div>
+                  <div className="mt-3 text-sm text-gray-500">
+                    Total: {formatCurrency(getOutstandingAmount())}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedReport('insurance')}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold text-lg mb-2">Insurance Analytics</h3>
+                      <p className="text-sm text-gray-600">Claims processing and reimbursements</p>
+                    </div>
+                    <PieChart className="h-8 w-8 text-green-600" />
+                  </div>
+                  <div className="mt-3 text-sm text-gray-500">
+                    Active claims: 12
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedReport('aging')}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold text-lg mb-2">Aging Report</h3>
+                      <p className="text-sm text-gray-600">Accounts receivable by age</p>
+                    </div>
+                    <Clock className="h-8 w-8 text-orange-600" />
+                  </div>
+                  <div className="mt-3 text-sm text-gray-500">
+                    30+ days: £1,250
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedReport('provider')}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold text-lg mb-2">Provider Performance</h3>
+                      <p className="text-sm text-gray-600">Revenue by healthcare provider</p>
+                    </div>
+                    <User className="h-8 w-8 text-purple-600" />
+                  </div>
+                  <div className="mt-3 text-sm text-gray-500">
+                    5 providers tracked
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedReport('procedures')}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold text-lg mb-2">Procedure Analysis</h3>
+                      <p className="text-sm text-gray-600">Most profitable procedures and services</p>
+                    </div>
+                    <Target className="h-8 w-8 text-teal-600" />
+                  </div>
+                  <div className="mt-3 text-sm text-gray-500">
+                    Top CPT: 99213
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Quick Stats Overview */}
             <Card>
               <CardHeader>
-                <CardTitle>Financial Reports</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Quick Financial Overview
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600">Financial reporting interface coming soon...</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">{formatCurrency(getTotalRevenue())}</div>
+                    <div className="text-sm text-gray-600">Total Revenue</div>
+                    <div className="text-xs text-green-600 mt-1">+12% vs last month</div>
+                  </div>
+                  <div className="text-center p-4 bg-red-50 rounded-lg">
+                    <div className="text-2xl font-bold text-red-600">{formatCurrency(getOutstandingAmount())}</div>
+                    <div className="text-sm text-gray-600">Outstanding</div>
+                    <div className="text-xs text-red-600 mt-1">2 overdue invoices</div>
+                  </div>
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">92%</div>
+                    <div className="text-sm text-gray-600">Collection Rate</div>
+                    <div className="text-xs text-green-600 mt-1">Above industry avg</div>
+                  </div>
+                  <div className="text-center p-4 bg-orange-50 rounded-lg">
+                    <div className="text-2xl font-bold text-orange-600">18 days</div>
+                    <div className="text-sm text-gray-600">Avg Collection Time</div>
+                    <div className="text-xs text-orange-600 mt-1">Industry: 25 days</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Report Filters */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Filter className="h-5 w-5" />
+                  Report Filters
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <Label>Date Range</Label>
+                    <Select defaultValue="this-month">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="today">Today</SelectItem>
+                        <SelectItem value="this-week">This Week</SelectItem>
+                        <SelectItem value="this-month">This Month</SelectItem>
+                        <SelectItem value="last-month">Last Month</SelectItem>
+                        <SelectItem value="this-quarter">This Quarter</SelectItem>
+                        <SelectItem value="this-year">This Year</SelectItem>
+                        <SelectItem value="custom">Custom Range</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Provider</Label>
+                    <Select defaultValue="all">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Providers</SelectItem>
+                        <SelectItem value="dr-smith">Dr. Smith</SelectItem>
+                        <SelectItem value="dr-jones">Dr. Jones</SelectItem>
+                        <SelectItem value="dr-brown">Dr. Brown</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Insurance Type</Label>
+                    <Select defaultValue="all">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Insurance</SelectItem>
+                        <SelectItem value="nhs">NHS</SelectItem>
+                        <SelectItem value="private">Private</SelectItem>
+                        <SelectItem value="self-pay">Self Pay</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-end">
+                    <Button className="w-full">
+                      <FileBarChart className="h-4 w-4 mr-2" />
+                      Generate Report
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Sample Report Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Revenue Breakdown - Current Month</CardTitle>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm">
+                    <Download className="h-4 w-4 mr-2" />
+                    Export CSV
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Export PDF
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-gray-50">
+                        <th className="text-left p-3">Service Type</th>
+                        <th className="text-left p-3">Procedures</th>
+                        <th className="text-left p-3">Revenue</th>
+                        <th className="text-left p-3">Insurance</th>
+                        <th className="text-left p-3">Self-Pay</th>
+                        <th className="text-left p-3">Collection Rate</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b hover:bg-gray-50">
+                        <td className="p-3 font-medium">General Consultation</td>
+                        <td className="p-3">24</td>
+                        <td className="p-3 font-semibold">{formatCurrency(3600)}</td>
+                        <td className="p-3">{formatCurrency(2800)}</td>
+                        <td className="p-3">{formatCurrency(800)}</td>
+                        <td className="p-3">
+                          <Badge className="bg-green-100 text-green-800">95%</Badge>
+                        </td>
+                      </tr>
+                      <tr className="border-b hover:bg-gray-50">
+                        <td className="p-3 font-medium">Specialist Consultation</td>
+                        <td className="p-3">12</td>
+                        <td className="p-3 font-semibold">{formatCurrency(2400)}</td>
+                        <td className="p-3">{formatCurrency(1900)}</td>
+                        <td className="p-3">{formatCurrency(500)}</td>
+                        <td className="p-3">
+                          <Badge className="bg-green-100 text-green-800">92%</Badge>
+                        </td>
+                      </tr>
+                      <tr className="border-b hover:bg-gray-50">
+                        <td className="p-3 font-medium">Diagnostic Tests</td>
+                        <td className="p-3">18</td>
+                        <td className="p-3 font-semibold">{formatCurrency(1800)}</td>
+                        <td className="p-3">{formatCurrency(1600)}</td>
+                        <td className="p-3">{formatCurrency(200)}</td>
+                        <td className="p-3">
+                          <Badge className="bg-yellow-100 text-yellow-800">88%</Badge>
+                        </td>
+                      </tr>
+                      <tr className="border-b hover:bg-gray-50">
+                        <td className="p-3 font-medium">Minor Procedures</td>
+                        <td className="p-3">8</td>
+                        <td className="p-3 font-semibold">{formatCurrency(1200)}</td>
+                        <td className="p-3">{formatCurrency(900)}</td>
+                        <td className="p-3">{formatCurrency(300)}</td>
+                        <td className="p-3">
+                          <Badge className="bg-green-100 text-green-800">94%</Badge>
+                        </td>
+                      </tr>
+                      <tr className="border-b bg-gray-50 font-semibold">
+                        <td className="p-3">Total</td>
+                        <td className="p-3">62</td>
+                        <td className="p-3">{formatCurrency(9000)}</td>
+                        <td className="p-3">{formatCurrency(7200)}</td>
+                        <td className="p-3">{formatCurrency(1800)}</td>
+                        <td className="p-3">
+                          <Badge className="bg-green-100 text-green-800">92%</Badge>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
