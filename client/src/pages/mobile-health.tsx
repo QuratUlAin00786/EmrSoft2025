@@ -255,25 +255,71 @@ export default function MobileHealth() {
       if (!response.ok) throw new Error("Failed to update consent");
       return response.json();
     },
-    onSuccess: async (response) => {
-      console.log("Consent update response:", response);
-      // Force refetch the consent data immediately
-      await queryClient.invalidateQueries({ queryKey: ["/api/mobile-health/patient-consent"] });
-      await queryClient.refetchQueries({ queryKey: ["/api/mobile-health/patient-consent"] });
-      // Also clear any cached data and force a fresh fetch
-      queryClient.removeQueries({ queryKey: ["/api/mobile-health/patient-consent"] });
-      console.log("Cache cleared, triggering fresh fetch");
-      toast({ 
-        title: "Consent Updated Successfully",
-        description: "Patient monitoring consent has been updated."
+    onMutate: async ({ patientId, consentData }) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ["/api/mobile-health/patient-consent"] });
+
+      // Snapshot the previous value
+      const previousConsents = queryClient.getQueryData(["/api/mobile-health/patient-consent"]);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(["/api/mobile-health/patient-consent"], (old: any) => {
+        if (!old) return old;
+        return old.map((consent: any) => {
+          if (consent.patientId === patientId) {
+            const updated = { ...consent, ...consentData, lastUpdated: new Date().toISOString() };
+            
+            // Handle consent status specific updates
+            if (consentData.consentStatus === 'consented') {
+              updated.deviceAccess = true;
+              updated.dataSharing = true;
+              updated.monitoringTypes = {
+                heartRate: true,
+                bloodPressure: true,
+                glucose: true,
+                activity: true,
+                sleep: true
+              };
+            } else if (consentData.consentStatus === 'declined' || consentData.consentStatus === 'revoked') {
+              updated.deviceAccess = false;
+              updated.dataSharing = false;
+              updated.monitoringTypes = {
+                heartRate: false,
+                bloodPressure: false,
+                glucose: false,
+                activity: false,
+                sleep: false
+              };
+            }
+            
+            return updated;
+          }
+          return consent;
+        });
       });
+
+      // Return a context object with the snapshotted value
+      return { previousConsents };
     },
-    onError: (error) => {
-      console.error("Consent update error:", error);
+    onError: (err, newTodo, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      queryClient.setQueryData(["/api/mobile-health/patient-consent"], context?.previousConsents);
+      console.error("Consent update error:", err);
       toast({
         title: "Update Failed",
         description: "Unable to update consent. Please try again.",
         variant: "destructive"
+      });
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure we have the latest data
+      queryClient.invalidateQueries({ queryKey: ["/api/mobile-health/patient-consent"] });
+    },
+    onSuccess: (response) => {
+      console.log("Consent update response:", response);
+      toast({ 
+        title: "Consent Updated Successfully",
+        description: "Patient monitoring consent has been updated."
       });
     }
   });
