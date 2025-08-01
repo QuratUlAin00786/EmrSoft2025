@@ -600,11 +600,11 @@ export default function Inventory() {
                     </div>
                     <div className="flex justify-between">
                       <span>Total Stock Units:</span>
-                      <span className="font-medium">{inventoryValue?.totalStock?.toLocaleString() || '0'}</span>
+                      <span className="font-medium">{inventoryValue?.totalStock ? parseInt(inventoryValue.totalStock.toString()).toLocaleString() : '0'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Total Value:</span>
-                      <span className="font-medium">£{inventoryValue?.totalValue?.toFixed(2) || '0.00'}</span>
+                      <span className="font-medium">£{inventoryValue?.totalValue ? parseFloat(inventoryValue.totalValue).toFixed(2) : '0.00'}</span>
                     </div>
                     <div className="flex justify-between text-orange-600">
                       <span>Low Stock Items:</span>
