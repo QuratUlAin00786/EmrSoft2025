@@ -7,6 +7,8 @@ import { storage } from "./storage";
 import { authService } from "./services/auth";
 import { aiService } from "./services/ai";
 import { tenantMiddleware, authMiddleware, requireRole, gdprComplianceMiddleware, type TenantRequest } from "./middleware/tenant";
+import { multiTenantEnforcer, validateOrganizationFilter, withTenantIsolation } from "./middleware/multi-tenant-enforcer";
+import { initializeMultiTenantPackage, getMultiTenantPackage } from "./packages/multi-tenant-core";
 import { messagingService } from "./messaging-service";
 import { createPaypalOrder, capturePaypalOrder, loadPaypalDefault } from "./paypal";
 import { gdprComplianceService } from "./services/gdpr-compliance";
@@ -17,23 +19,39 @@ import { processAppointmentBookingChat, generateAppointmentSummary } from "./ant
 let voiceNotes: any[] = [];
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Initialize Multi-Tenant Core Package
+  const multiTenantPackage = initializeMultiTenantPackage(storage as any, {
+    enforceStrictTenantIsolation: true,
+    auditAllDataAccess: true,
+    validateCrossTenantOperations: true,
+    logUnauthorizedAccess: true,
+    enablePerformanceMonitoring: true
+  });
+
   // Debug endpoint BEFORE middleware - to diagnose tenant issues v6 FORCE CACHE CLEAR
   app.get("/api/status", (req, res) => {
     const host = req.get("host");
     const extractedSubdomain = host ? host.split('.')[0] : "none";
     res.json({ 
-      status: "LIVE-UPDATED", 
+      status: "MULTI-TENANT-ENFORCED", 
       host, 
       extractedSubdomain,
       env: process.env.NODE_ENV,
       timestamp: new Date().toISOString(),
-      version: "v6-force-deployment-refresh-status"
+      version: "v7-multi-tenant-package-enforced",
+      multiTenantConfig: {
+        strictIsolation: true,
+        auditEnabled: true,
+        validationEnabled: true
+      }
     });
   });
 
-  // Apply tenant and GDPR middleware to all API routes
-  app.use("/api", tenantMiddleware as any);
-  app.use("/api", gdprComplianceMiddleware as any);
+  // Initialize multi-tenant middleware stack
+  multiTenantPackage.initializeMiddleware(app);
+  
+  // Get tenant-aware storage
+  const tenantStorage = multiTenantPackage.getTenantStorage();
 
   // Authentication routes (no auth required)
   app.post("/api/auth/login", async (req: TenantRequest, res) => {

@@ -44,10 +44,14 @@ export async function tenantMiddleware(req: TenantRequest, res: Response, next: 
     if (!organization) {
       organization = {
         id: 1,
-        name: "MediCore Healthcare",
+        name: "Halo Healthcare",
         subdomain: "demo",
         region: "UK",
-        settings: {}
+        brandName: "Cura",
+        settings: {},
+        subscriptionStatus: "active",
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
       console.log("FORCE CREATED demo organization");
     }

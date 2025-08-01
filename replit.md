@@ -25,11 +25,16 @@ Preferred communication style: Simple, everyday language.
 - **Authentication**: JWT-based with bcrypt
 - **Multi-tenancy**: Subdomain-based tenant isolation with automatic data filtering
 
-### Multi-Tenant Design
+### Multi-Tenant Design (ENFORCED SYSTEM-WIDE)
 - **Tenant Identification**: Subdomain or `X-Tenant-Subdomain` header
-- **Data Isolation**: All queries filtered by `organizationId`
+- **Data Isolation**: All queries automatically filtered by `organizationId` with strict enforcement
+- **Multi-Tenant Core Package**: Comprehensive enforcement across all system packages
+- **Validation**: Cross-tenant operations validated and blocked if unauthorized
+- **Audit Trail**: All sensitive data access logged for compliance
+- **Storage Wrapper**: Tenant-aware storage operations with automatic organizationId injection
 - **Compliance**: GDPR middleware with data residency controls
 - **Subscription Management**: Tiered system with feature flags and usage-based billing
+- **Performance Monitoring**: Query performance tracking per organization
 
 ### Key Components
 - **Database Schema**: Organizations, Users (role-based access), Patients, Medical Records (AI integration), Appointments, AI Insights, Subscriptions.
