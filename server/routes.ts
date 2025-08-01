@@ -14,6 +14,7 @@ import { createPaypalOrder, capturePaypalOrder, loadPaypalDefault } from "./payp
 import { gdprComplianceService } from "./services/gdpr-compliance";
 import { insertGdprConsentSchema, insertGdprDataRequestSchema } from "../shared/schema";
 import { processAppointmentBookingChat, generateAppointmentSummary } from "./anthropic";
+import { inventoryService } from "./services/inventory";
 
 // In-memory storage for voice notes - persistent across server restarts
 let voiceNotes: any[] = [];
@@ -5230,6 +5231,314 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching chatbot context:", error);
       res.status(500).json({ error: "Failed to fetch chatbot context" });
+    }
+  });
+
+  // ====== INVENTORY MANAGEMENT ROUTES ======
+  
+  // Categories
+  app.get("/api/inventory/categories", authMiddleware, requireRole(["admin", "doctor", "nurse", "receptionist"]), async (req: TenantRequest, res) => {
+    try {
+      const categories = await inventoryService.getCategories(req.tenant!.id);
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching inventory categories:", error);
+      res.status(500).json({ error: "Failed to fetch categories" });
+    }
+  });
+
+  app.post("/api/inventory/categories", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const categoryData = z.object({
+        name: z.string().min(1),
+        description: z.string().optional(),
+        parentCategoryId: z.number().optional()
+      }).parse(req.body);
+
+      const category = await inventoryService.createCategory({
+        ...categoryData,
+        organizationId: req.tenant!.id
+      });
+
+      res.status(201).json(category);
+    } catch (error) {
+      console.error("Error creating inventory category:", error);
+      res.status(500).json({ error: "Failed to create category" });
+    }
+  });
+
+  // Items
+  app.get("/api/inventory/items", authMiddleware, requireRole(["admin", "doctor", "nurse", "receptionist"]), async (req: TenantRequest, res) => {
+    try {
+      const filters = {
+        categoryId: req.query.categoryId ? parseInt(req.query.categoryId as string) : undefined,
+        lowStock: req.query.lowStock === 'true',
+        search: req.query.search as string,
+        limit: req.query.limit ? parseInt(req.query.limit as string) : undefined
+      };
+
+      const items = await inventoryService.getItems(req.tenant!.id, filters);
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching inventory items:", error);
+      res.status(500).json({ error: "Failed to fetch items" });
+    }
+  });
+
+  app.get("/api/inventory/items/:id", authMiddleware, requireRole(["admin", "doctor", "nurse", "receptionist"]), async (req: TenantRequest, res) => {
+    try {
+      const itemId = parseInt(req.params.id);
+      const item = await inventoryService.getItem(itemId, req.tenant!.id);
+      
+      if (!item) {
+        return res.status(404).json({ error: "Item not found" });
+      }
+
+      res.json(item);
+    } catch (error) {
+      console.error("Error fetching inventory item:", error);
+      res.status(500).json({ error: "Failed to fetch item" });
+    }
+  });
+
+  app.post("/api/inventory/items", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const itemData = z.object({
+        categoryId: z.number(),
+        name: z.string().min(1),
+        description: z.string().optional(),
+        sku: z.string().optional(),
+        barcode: z.string().optional(),
+        genericName: z.string().optional(),
+        brandName: z.string().optional(),
+        manufacturer: z.string().optional(),
+        unitOfMeasurement: z.string().default("pieces"),
+        packSize: z.number().default(1),
+        purchasePrice: z.string().transform(val => val),
+        salePrice: z.string().transform(val => val),
+        mrp: z.string().optional().transform(val => val || null),
+        taxRate: z.string().default("0.00"),
+        currentStock: z.number().default(0),
+        minimumStock: z.number().default(10),
+        maximumStock: z.number().default(1000),
+        reorderPoint: z.number().default(20),
+        expiryTracking: z.boolean().default(false),
+        batchTracking: z.boolean().default(false),
+        prescriptionRequired: z.boolean().default(false),
+        storageConditions: z.string().optional(),
+        sideEffects: z.string().optional(),
+        contraindications: z.string().optional(),
+        dosageInstructions: z.string().optional()
+      }).parse(req.body);
+
+      // Generate SKU and barcode if not provided
+      if (!itemData.sku) {
+        itemData.sku = inventoryService.generateSKU("ITEM", itemData.name);
+      }
+      if (!itemData.barcode) {
+        itemData.barcode = inventoryService.generateBarcode();
+      }
+
+      const item = await inventoryService.createItem({
+        ...itemData,
+        organizationId: req.tenant!.id
+      });
+
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error creating inventory item:", error);
+      res.status(500).json({ error: "Failed to create item" });
+    }
+  });
+
+  app.patch("/api/inventory/items/:id", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const itemId = parseInt(req.params.id);
+      const updates = req.body;
+
+      const item = await inventoryService.updateItem(itemId, req.tenant!.id, updates);
+      
+      if (!item) {
+        return res.status(404).json({ error: "Item not found" });
+      }
+
+      res.json(item);
+    } catch (error) {
+      console.error("Error updating inventory item:", error);
+      res.status(500).json({ error: "Failed to update item" });
+    }
+  });
+
+  // Stock Management
+  app.post("/api/inventory/items/:id/stock", authMiddleware, requireRole(["admin", "doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const itemId = parseInt(req.params.id);
+      const { quantity, movementType, notes } = z.object({
+        quantity: z.number(),
+        movementType: z.enum(["purchase", "sale", "adjustment", "transfer", "expired"]),
+        notes: z.string().optional()
+      }).parse(req.body);
+
+      const result = await inventoryService.updateStock(
+        itemId, 
+        req.tenant!.id, 
+        quantity, 
+        movementType, 
+        notes, 
+        req.user!.id
+      );
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error updating stock:", error);
+      res.status(500).json({ error: "Failed to update stock" });
+    }
+  });
+
+  // Suppliers
+  app.get("/api/inventory/suppliers", authMiddleware, requireRole(["admin", "doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const suppliers = await inventoryService.getSuppliers(req.tenant!.id);
+      res.json(suppliers);
+    } catch (error) {
+      console.error("Error fetching suppliers:", error);
+      res.status(500).json({ error: "Failed to fetch suppliers" });
+    }
+  });
+
+  app.post("/api/inventory/suppliers", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const supplierData = z.object({
+        name: z.string().min(1),
+        contactPerson: z.string().optional(),
+        email: z.string().email().optional(),
+        phone: z.string().optional(),
+        address: z.string().optional(),
+        city: z.string().optional(),
+        country: z.string().default("UK"),
+        taxId: z.string().optional(),
+        paymentTerms: z.string().default("Net 30")
+      }).parse(req.body);
+
+      const supplier = await inventoryService.createSupplier({
+        ...supplierData,
+        organizationId: req.tenant!.id
+      });
+
+      res.status(201).json(supplier);
+    } catch (error) {
+      console.error("Error creating supplier:", error);
+      res.status(500).json({ error: "Failed to create supplier" });
+    }
+  });
+
+  // Purchase Orders
+  app.get("/api/inventory/purchase-orders", authMiddleware, requireRole(["admin", "doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const status = req.query.status as string;
+      const purchaseOrders = await inventoryService.getPurchaseOrders(req.tenant!.id, status);
+      res.json(purchaseOrders);
+    } catch (error) {
+      console.error("Error fetching purchase orders:", error);
+      res.status(500).json({ error: "Failed to fetch purchase orders" });
+    }
+  });
+
+  app.post("/api/inventory/purchase-orders", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const orderData = z.object({
+        supplierId: z.number(),
+        expectedDeliveryDate: z.string().optional().transform(val => val ? new Date(val) : undefined),
+        totalAmount: z.string().transform(val => val),
+        taxAmount: z.string().default("0.00"),
+        discountAmount: z.string().default("0.00"),
+        notes: z.string().optional(),
+        items: z.array(z.object({
+          itemId: z.number(),
+          quantity: z.number(),
+          unitPrice: z.string().transform(val => val),
+          totalPrice: z.string().transform(val => val)
+        }))
+      }).parse(req.body);
+
+      // Generate PO number
+      const poCount = (await inventoryService.getPurchaseOrders(req.tenant!.id)).length;
+      const poNumber = `PO-${Date.now()}-${(poCount + 1).toString().padStart(4, '0')}`;
+
+      const result = await inventoryService.createPurchaseOrder({
+        ...orderData,
+        organizationId: req.tenant!.id,
+        poNumber,
+        createdBy: req.user!.id
+      }, orderData.items);
+
+      res.status(201).json(result);
+    } catch (error) {
+      console.error("Error creating purchase order:", error);
+      res.status(500).json({ error: "Failed to create purchase order" });
+    }
+  });
+
+  // Send Purchase Order Email to Halo Pharmacy
+  app.post("/api/inventory/purchase-orders/:id/send-email", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const purchaseOrderId = parseInt(req.params.id);
+      
+      await inventoryService.sendPurchaseOrderEmail(purchaseOrderId, req.tenant!.id);
+      
+      res.json({ 
+        success: true, 
+        message: "Purchase order sent to Halo Pharmacy successfully" 
+      });
+    } catch (error) {
+      console.error("Error sending purchase order email:", error);
+      res.status(500).json({ error: "Failed to send purchase order email" });
+    }
+  });
+
+  // Stock Alerts
+  app.get("/api/inventory/alerts", authMiddleware, requireRole(["admin", "doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const unreadOnly = req.query.unreadOnly === 'true';
+      const alerts = await inventoryService.getStockAlerts(req.tenant!.id, unreadOnly);
+      res.json(alerts);
+    } catch (error) {
+      console.error("Error fetching stock alerts:", error);
+      res.status(500).json({ error: "Failed to fetch alerts" });
+    }
+  });
+
+  // Inventory Reports
+  app.get("/api/inventory/reports/value", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const inventoryValue = await inventoryService.getInventoryValue(req.tenant!.id);
+      res.json(inventoryValue);
+    } catch (error) {
+      console.error("Error fetching inventory value:", error);
+      res.status(500).json({ error: "Failed to fetch inventory value" });
+    }
+  });
+
+  app.get("/api/inventory/reports/low-stock", authMiddleware, requireRole(["admin", "doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const lowStockItems = await inventoryService.getLowStockItems(req.tenant!.id);
+      res.json(lowStockItems);
+    } catch (error) {
+      console.error("Error fetching low stock items:", error);
+      res.status(500).json({ error: "Failed to fetch low stock items" });
+    }
+  });
+
+  app.get("/api/inventory/reports/stock-movements", authMiddleware, requireRole(["admin", "doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const itemId = req.query.itemId ? parseInt(req.query.itemId as string) : undefined;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+      
+      const movements = await inventoryService.getStockMovements(req.tenant!.id, itemId, limit);
+      res.json(movements);
+    } catch (error) {
+      console.error("Error fetching stock movements:", error);
+      res.status(500).json({ error: "Failed to fetch stock movements" });
     }
   });
 

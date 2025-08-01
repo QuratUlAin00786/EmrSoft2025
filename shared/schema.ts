@@ -688,6 +688,185 @@ export const medicationsDatabase = pgTable("medications_database", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Inventory Management System
+export const inventoryCategories = pgTable("inventory_categories", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  name: text("name").notNull(), // Tablets, Syrups, Pharmaceuticals, Beauty Products, Vitamins, Minerals
+  description: text("description"),
+  parentCategoryId: integer("parent_category_id"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const inventoryItems = pgTable("inventory_items", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  categoryId: integer("category_id").notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  sku: varchar("sku", { length: 100 }).notNull(), // Stock Keeping Unit
+  barcode: varchar("barcode", { length: 100 }),
+  genericName: text("generic_name"),
+  brandName: text("brand_name"),
+  manufacturer: text("manufacturer"),
+  unitOfMeasurement: varchar("unit_of_measurement", { length: 20 }).notNull().default("pieces"), // pieces, ml, mg, grams, etc.
+  packSize: integer("pack_size").notNull().default(1),
+  
+  // Pricing
+  purchasePrice: decimal("purchase_price", { precision: 10, scale: 2 }).notNull(),
+  salePrice: decimal("sale_price", { precision: 10, scale: 2 }).notNull(),
+  mrp: decimal("mrp", { precision: 10, scale: 2 }), // Maximum Retail Price
+  taxRate: decimal("tax_rate", { precision: 5, scale: 2 }).notNull().default("0.00"), // VAT/GST percentage
+  
+  // Stock Management
+  currentStock: integer("current_stock").notNull().default(0),
+  minimumStock: integer("minimum_stock").notNull().default(10),
+  maximumStock: integer("maximum_stock").notNull().default(1000),
+  reorderPoint: integer("reorder_point").notNull().default(20),
+  
+  // Additional Information
+  expiryTracking: boolean("expiry_tracking").notNull().default(false),
+  batchTracking: boolean("batch_tracking").notNull().default(false),
+  prescriptionRequired: boolean("prescription_required").notNull().default(false),
+  storageConditions: text("storage_conditions"),
+  sideEffects: text("side_effects"),
+  contraindications: text("contraindications"),
+  dosageInstructions: text("dosage_instructions"),
+  
+  // Status
+  isActive: boolean("is_active").notNull().default(true),
+  isDiscontinued: boolean("is_discontinued").notNull().default(false),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const inventorySuppliers = pgTable("inventory_suppliers", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  name: text("name").notNull(),
+  contactPerson: text("contact_person"),
+  email: text("email"),
+  phone: varchar("phone", { length: 20 }),
+  address: text("address"),
+  city: text("city"),
+  country: text("country").notNull().default("UK"),
+  taxId: varchar("tax_id", { length: 50 }),
+  paymentTerms: varchar("payment_terms", { length: 100 }).default("Net 30"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const inventoryPurchaseOrders = pgTable("inventory_purchase_orders", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  poNumber: varchar("po_number", { length: 100 }).notNull().unique(),
+  supplierId: integer("supplier_id").notNull(),
+  orderDate: timestamp("order_date").defaultNow().notNull(),
+  expectedDeliveryDate: timestamp("expected_delivery_date"),
+  status: varchar("status", { length: 20 }).notNull().default("pending"), // pending, sent, received, cancelled
+  totalAmount: decimal("total_amount", { precision: 12, scale: 2 }).notNull(),
+  taxAmount: decimal("tax_amount", { precision: 10, scale: 2 }).notNull().default("0.00"),
+  discountAmount: decimal("discount_amount", { precision: 10, scale: 2 }).notNull().default("0.00"),
+  notes: text("notes"),
+  createdBy: integer("created_by").notNull(),
+  approvedBy: integer("approved_by"),
+  approvedAt: timestamp("approved_at"),
+  emailSent: boolean("email_sent").notNull().default(false),
+  emailSentAt: timestamp("email_sent_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const inventoryPurchaseOrderItems = pgTable("inventory_purchase_order_items", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  purchaseOrderId: integer("purchase_order_id").notNull(),
+  itemId: integer("item_id").notNull(),
+  quantity: integer("quantity").notNull(),
+  unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
+  totalPrice: decimal("total_price", { precision: 12, scale: 2 }).notNull(),
+  receivedQuantity: integer("received_quantity").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const inventoryBatches = pgTable("inventory_batches", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  itemId: integer("item_id").notNull(),
+  batchNumber: varchar("batch_number", { length: 100 }).notNull(),
+  expiryDate: timestamp("expiry_date"),
+  manufactureDate: timestamp("manufacture_date"),
+  quantity: integer("quantity").notNull(),
+  purchasePrice: decimal("purchase_price", { precision: 10, scale: 2 }).notNull(),
+  supplierId: integer("supplier_id"),
+  receivedDate: timestamp("received_date").defaultNow().notNull(),
+  isExpired: boolean("is_expired").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const inventorySales = pgTable("inventory_sales", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  patientId: integer("patient_id"),
+  saleNumber: varchar("sale_number", { length: 100 }).notNull().unique(),
+  saleDate: timestamp("sale_date").defaultNow().notNull(),
+  totalAmount: decimal("total_amount", { precision: 12, scale: 2 }).notNull(),
+  taxAmount: decimal("tax_amount", { precision: 10, scale: 2 }).notNull().default("0.00"),
+  discountAmount: decimal("discount_amount", { precision: 10, scale: 2 }).notNull().default("0.00"),
+  paymentMethod: varchar("payment_method", { length: 50 }).notNull().default("cash"), // cash, card, insurance
+  paymentStatus: varchar("payment_status", { length: 20 }).notNull().default("paid"), // paid, pending, partial
+  prescriptionId: integer("prescription_id"),
+  soldBy: integer("sold_by").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const inventorySaleItems = pgTable("inventory_sale_items", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  saleId: integer("sale_id").notNull(),
+  itemId: integer("item_id").notNull(),
+  batchId: integer("batch_id"),
+  quantity: integer("quantity").notNull(),
+  unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
+  totalPrice: decimal("total_price", { precision: 12, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const inventoryStockMovements = pgTable("inventory_stock_movements", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  itemId: integer("item_id").notNull(),
+  batchId: integer("batch_id"),
+  movementType: varchar("movement_type", { length: 20 }).notNull(), // purchase, sale, adjustment, transfer, expired
+  quantity: integer("quantity").notNull(), // positive for in, negative for out
+  previousStock: integer("previous_stock").notNull(),
+  newStock: integer("new_stock").notNull(),
+  unitCost: decimal("unit_cost", { precision: 10, scale: 2 }),
+  referenceType: varchar("reference_type", { length: 50 }), // purchase_order, sale, adjustment
+  referenceId: integer("reference_id"),
+  notes: text("notes"),
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const inventoryStockAlerts = pgTable("inventory_stock_alerts", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  itemId: integer("item_id").notNull(),
+  alertType: varchar("alert_type", { length: 20 }).notNull(), // low_stock, expired, expiring_soon
+  message: text("message").notNull(),
+  isRead: boolean("is_read").notNull().default(false),
+  isResolved: boolean("is_resolved").notNull().default(false),
+  resolvedBy: integer("resolved_by"),
+  resolvedAt: timestamp("resolved_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Relations
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   users: many(users),
@@ -984,6 +1163,169 @@ export const gdprProcessingActivitiesRelations = relations(gdprProcessingActivit
   }),
 }));
 
+// Inventory Relations
+export const inventoryCategoriesRelations = relations(inventoryCategories, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [inventoryCategories.organizationId],
+    references: [organizations.id],
+  }),
+  parentCategory: one(inventoryCategories, {
+    fields: [inventoryCategories.parentCategoryId],
+    references: [inventoryCategories.id],
+  }),
+  items: many(inventoryItems),
+}));
+
+export const inventoryItemsRelations = relations(inventoryItems, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [inventoryItems.organizationId],
+    references: [organizations.id],
+  }),
+  category: one(inventoryCategories, {
+    fields: [inventoryItems.categoryId],
+    references: [inventoryCategories.id],
+  }),
+  batches: many(inventoryBatches),
+  stockMovements: many(inventoryStockMovements),
+  stockAlerts: many(inventoryStockAlerts),
+  purchaseOrderItems: many(inventoryPurchaseOrderItems),
+  saleItems: many(inventorySaleItems),
+}));
+
+export const inventorySuppliersRelations = relations(inventorySuppliers, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [inventorySuppliers.organizationId],
+    references: [organizations.id],
+  }),
+  purchaseOrders: many(inventoryPurchaseOrders),
+  batches: many(inventoryBatches),
+}));
+
+export const inventoryPurchaseOrdersRelations = relations(inventoryPurchaseOrders, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [inventoryPurchaseOrders.organizationId],
+    references: [organizations.id],
+  }),
+  supplier: one(inventorySuppliers, {
+    fields: [inventoryPurchaseOrders.supplierId],
+    references: [inventorySuppliers.id],
+  }),
+  createdByUser: one(users, {
+    fields: [inventoryPurchaseOrders.createdBy],
+    references: [users.id],
+  }),
+  approvedByUser: one(users, {
+    fields: [inventoryPurchaseOrders.approvedBy],
+    references: [users.id],
+  }),
+  items: many(inventoryPurchaseOrderItems),
+}));
+
+export const inventoryPurchaseOrderItemsRelations = relations(inventoryPurchaseOrderItems, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [inventoryPurchaseOrderItems.organizationId],
+    references: [organizations.id],
+  }),
+  purchaseOrder: one(inventoryPurchaseOrders, {
+    fields: [inventoryPurchaseOrderItems.purchaseOrderId],
+    references: [inventoryPurchaseOrders.id],
+  }),
+  item: one(inventoryItems, {
+    fields: [inventoryPurchaseOrderItems.itemId],
+    references: [inventoryItems.id],
+  }),
+}));
+
+export const inventoryBatchesRelations = relations(inventoryBatches, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [inventoryBatches.organizationId],
+    references: [organizations.id],
+  }),
+  item: one(inventoryItems, {
+    fields: [inventoryBatches.itemId],
+    references: [inventoryItems.id],
+  }),
+  supplier: one(inventorySuppliers, {
+    fields: [inventoryBatches.supplierId],
+    references: [inventorySuppliers.id],
+  }),
+  saleItems: many(inventorySaleItems),
+  stockMovements: many(inventoryStockMovements),
+}));
+
+export const inventorySalesRelations = relations(inventorySales, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [inventorySales.organizationId],
+    references: [organizations.id],
+  }),
+  patient: one(patients, {
+    fields: [inventorySales.patientId],
+    references: [patients.id],
+  }),
+  prescription: one(prescriptions, {
+    fields: [inventorySales.prescriptionId],
+    references: [prescriptions.id],
+  }),
+  soldByUser: one(users, {
+    fields: [inventorySales.soldBy],
+    references: [users.id],
+  }),
+  items: many(inventorySaleItems),
+}));
+
+export const inventorySaleItemsRelations = relations(inventorySaleItems, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [inventorySaleItems.organizationId],
+    references: [organizations.id],
+  }),
+  sale: one(inventorySales, {
+    fields: [inventorySaleItems.saleId],
+    references: [inventorySales.id],
+  }),
+  item: one(inventoryItems, {
+    fields: [inventorySaleItems.itemId],
+    references: [inventoryItems.id],
+  }),
+  batch: one(inventoryBatches, {
+    fields: [inventorySaleItems.batchId],
+    references: [inventoryBatches.id],
+  }),
+}));
+
+export const inventoryStockMovementsRelations = relations(inventoryStockMovements, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [inventoryStockMovements.organizationId],
+    references: [organizations.id],
+  }),
+  item: one(inventoryItems, {
+    fields: [inventoryStockMovements.itemId],
+    references: [inventoryItems.id],
+  }),
+  batch: one(inventoryBatches, {
+    fields: [inventoryStockMovements.batchId],
+    references: [inventoryBatches.id],
+  }),
+  createdByUser: one(users, {
+    fields: [inventoryStockMovements.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const inventoryStockAlertsRelations = relations(inventoryStockAlerts, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [inventoryStockAlerts.organizationId],
+    references: [organizations.id],
+  }),
+  item: one(inventoryItems, {
+    fields: [inventoryStockAlerts.itemId],
+    references: [inventoryItems.id],
+  }),
+  resolvedByUser: one(users, {
+    fields: [inventoryStockAlerts.resolvedBy],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertOrganizationSchema = createInsertSchema(organizations).omit({
   id: true,
@@ -1124,6 +1466,61 @@ export const insertGdprProcessingActivitySchema = createInsertSchema(gdprProcess
   updatedAt: true,
 });
 
+// Inventory Insert Schemas
+export const insertInventoryCategorySchema = createInsertSchema(inventoryCategories).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertInventoryItemSchema = createInsertSchema(inventoryItems).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertInventorySupplierSchema = createInsertSchema(inventorySuppliers).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertInventoryPurchaseOrderSchema = createInsertSchema(inventoryPurchaseOrders).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertInventoryPurchaseOrderItemSchema = createInsertSchema(inventoryPurchaseOrderItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertInventoryBatchSchema = createInsertSchema(inventoryBatches).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertInventorySaleSchema = createInsertSchema(inventorySales).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertInventorySaleItemSchema = createInsertSchema(inventorySaleItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertInventoryStockMovementSchema = createInsertSchema(inventoryStockMovements).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertInventoryStockAlertSchema = createInsertSchema(inventoryStockAlerts).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type Organization = typeof organizations.$inferSelect;
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
@@ -1200,5 +1597,36 @@ export type InsertGdprAuditTrail = z.infer<typeof insertGdprAuditTrailSchema>;
 
 export type GdprProcessingActivity = typeof gdprProcessingActivities.$inferSelect;
 export type InsertGdprProcessingActivity = z.infer<typeof insertGdprProcessingActivitySchema>;
+
+// Inventory Types
+export type InventoryCategory = typeof inventoryCategories.$inferSelect;
+export type InsertInventoryCategory = z.infer<typeof insertInventoryCategorySchema>;
+
+export type InventoryItem = typeof inventoryItems.$inferSelect;
+export type InsertInventoryItem = z.infer<typeof insertInventoryItemSchema>;
+
+export type InventorySupplier = typeof inventorySuppliers.$inferSelect;
+export type InsertInventorySupplier = z.infer<typeof insertInventorySupplierSchema>;
+
+export type InventoryPurchaseOrder = typeof inventoryPurchaseOrders.$inferSelect;
+export type InsertInventoryPurchaseOrder = z.infer<typeof insertInventoryPurchaseOrderSchema>;
+
+export type InventoryPurchaseOrderItem = typeof inventoryPurchaseOrderItems.$inferSelect;
+export type InsertInventoryPurchaseOrderItem = z.infer<typeof insertInventoryPurchaseOrderItemSchema>;
+
+export type InventoryBatch = typeof inventoryBatches.$inferSelect;
+export type InsertInventoryBatch = z.infer<typeof insertInventoryBatchSchema>;
+
+export type InventorySale = typeof inventorySales.$inferSelect;
+export type InsertInventorySale = z.infer<typeof insertInventorySaleSchema>;
+
+export type InventorySaleItem = typeof inventorySaleItems.$inferSelect;
+export type InsertInventorySaleItem = z.infer<typeof insertInventorySaleItemSchema>;
+
+export type InventoryStockMovement = typeof inventoryStockMovements.$inferSelect;
+export type InsertInventoryStockMovement = z.infer<typeof insertInventoryStockMovementSchema>;
+
+export type InventoryStockAlert = typeof inventoryStockAlerts.$inferSelect;
+export type InsertInventoryStockAlert = z.infer<typeof insertInventoryStockAlertSchema>;
 
 

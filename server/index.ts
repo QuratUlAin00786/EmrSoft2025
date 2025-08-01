@@ -55,6 +55,10 @@ app.use((req, res, next) => {
   if (process.env.NODE_ENV === "development") {
     try {
       await seedDatabase();
+      
+      // Seed inventory data for existing organizations
+      const { seedAllOrganizations } = await import("./seed-inventory");
+      await seedAllOrganizations();
     } catch (error: any) {
       console.log("Database already seeded or seeding failed:", error.message);
     }
