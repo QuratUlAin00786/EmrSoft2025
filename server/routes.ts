@@ -11,6 +11,7 @@ import { messagingService } from "./messaging-service";
 import { createPaypalOrder, capturePaypalOrder, loadPaypalDefault } from "./paypal";
 import { gdprComplianceService } from "./services/gdpr-compliance";
 import { insertGdprConsentSchema, insertGdprDataRequestSchema } from "../shared/schema";
+import { processAppointmentBookingChat, generateAppointmentSummary } from "./anthropic";
 
 // In-memory storage for voice notes - persistent across server restarts
 let voiceNotes: any[] = [];
@@ -5069,6 +5070,148 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error joining video consultation:", error);
       res.status(500).json({ error: "Failed to join video consultation" });
+    }
+  });
+
+  // AI Chatbot for Appointment Booking Routes
+  app.post("/api/chatbot/chat", authMiddleware, requireRole(["patient"]), async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const { messages } = req.body;
+      
+      if (!messages || !Array.isArray(messages)) {
+        return res.status(400).json({ error: "Messages array is required" });
+      }
+
+      // Get available doctors and time slots for context
+      const doctors = await storage.getUsers(req.tenant!.id);
+      const availableDoctors = doctors
+        .filter(doctor => doctor.role === 'doctor' && doctor.isActive)
+        .map(doctor => ({
+          id: doctor.id,
+          name: `${doctor.firstName} ${doctor.lastName}`,
+          specialty: doctor.department || 'General Medicine'
+        }));
+
+      // Get available appointments (future slots)
+      const allAppointments = await storage.getAppointments(req.tenant!.id);
+      const now = new Date();
+      const availableTimeSlots = [
+        // Generate some sample available slots for the next 7 days
+        ...Array.from({ length: 7 }, (_, dayOffset) => {
+          const date = new Date(now);
+          date.setDate(date.getDate() + dayOffset + 1);
+          const dateStr = date.toISOString().split('T')[0];
+          
+          return availableDoctors.flatMap(doctor => [
+            { date: dateStr, time: '09:00', doctorId: doctor.id },
+            { date: dateStr, time: '10:00', doctorId: doctor.id },
+            { date: dateStr, time: '11:00', doctorId: doctor.id },
+            { date: dateStr, time: '14:00', doctorId: doctor.id },
+            { date: dateStr, time: '15:00', doctorId: doctor.id },
+            { date: dateStr, time: '16:00', doctorId: doctor.id }
+          ]);
+        }).flat()
+      ];
+
+      const context = {
+        availableDoctors,
+        availableTimeSlots,
+        patientInfo: {
+          id: req.user.id,
+          name: `${req.user.firstName} ${req.user.lastName}`,
+          email: req.user.email
+        },
+        organizationId: req.tenant!.id
+      };
+
+      const result = await processAppointmentBookingChat(messages, context);
+
+      // If the AI wants to book an appointment, handle it
+      if (result.intent === 'BOOK_APPOINTMENT' && result.extractedData) {
+        try {
+          const { doctorId, date, time, reason } = result.extractedData;
+          
+          // Find the doctor
+          const doctor = availableDoctors.find(d => d.id === parseInt(doctorId));
+          if (!doctor) {
+            return res.json({
+              response: "I'm sorry, but that doctor is not available. Please choose from the available doctors I mentioned earlier."
+            });
+          }
+
+          // Create the appointment
+          const appointmentDateTime = new Date(`${date}T${time}:00`);
+          
+          const newAppointment = await storage.createAppointment({
+            patientId: req.user.id,
+            doctorId: parseInt(doctorId),
+            appointmentDate: appointmentDateTime,
+            status: 'scheduled',
+            notes: reason || 'Appointment booked via AI chatbot',
+            organizationId: req.tenant!.id
+          });
+
+          if (newAppointment) {
+            const confirmationMessage = await generateAppointmentSummary({
+              doctorName: doctor.name,
+              date: date,
+              time: time,
+              reason: reason || 'General consultation',
+              patientName: context.patientInfo.name
+            });
+
+            return res.json({
+              response: confirmationMessage,
+              appointmentBooked: true,
+              appointmentId: newAppointment.id
+            });
+          }
+        } catch (bookingError) {
+          console.error('Error booking appointment:', bookingError);
+          return res.json({
+            response: "I apologize, but there was an issue booking your appointment. Please try again or contact our support team."
+          });
+        }
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error("Chatbot error:", error);
+      res.status(500).json({ error: "Failed to process chat message" });
+    }
+  });
+
+  // Get chatbot context data
+  app.get("/api/chatbot/context", authMiddleware, requireRole(["patient"]), async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const doctors = await storage.getUsers(req.tenant!.id);
+      const availableDoctors = doctors
+        .filter(doctor => doctor.role === 'doctor' && doctor.isActive)
+        .map(doctor => ({
+          id: doctor.id,
+          name: `${doctor.firstName} ${doctor.lastName}`,
+          specialty: doctor.department || 'General Medicine'
+        }));
+
+      res.json({
+        availableDoctors,
+        patientInfo: {
+          id: req.user.id,
+          name: `${req.user.firstName} ${req.user.lastName}`,
+          email: req.user.email
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching chatbot context:", error);
+      res.status(500).json({ error: "Failed to fetch chatbot context" });
     }
   });
 

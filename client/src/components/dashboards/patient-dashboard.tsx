@@ -1,12 +1,15 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
-import { Calendar, Heart, Pill, FileText, Clock, AlertCircle } from "lucide-react";
+import { Calendar, Heart, Pill, FileText, Clock, AlertCircle, MessageSquare } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import { useState } from "react";
+import AIChatbot from "@/components/ai-chatbot";
 
 export function PatientDashboard() {
   const { user } = useAuth();
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   
   const { data: patientAppointments } = useQuery({
     queryKey: ["/api/patients/my-appointments"],
@@ -199,6 +202,23 @@ export function PatientDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Floating AI Chatbot Button */}
+      <div className="fixed bottom-6 right-6 z-40">
+        <Button
+          onClick={() => setIsChatbotOpen(true)}
+          className="w-14 h-14 rounded-full bg-medical-blue hover:bg-blue-700 shadow-lg transition-all duration-300 hover:scale-110"
+          size="lg"
+        >
+          <MessageSquare className="h-6 w-6" />
+        </Button>
+      </div>
+
+      {/* AI Chatbot */}
+      <AIChatbot 
+        isOpen={isChatbotOpen} 
+        onClose={() => setIsChatbotOpen(false)} 
+      />
     </div>
   );
 }

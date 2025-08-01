@@ -47,6 +47,7 @@ import {
   ArrowLeft
 } from "lucide-react";
 import { format } from "date-fns";
+import AIChatbot from "@/components/ai-chatbot";
 
 interface PatientPortalData {
   patient: {
@@ -234,6 +235,7 @@ export default function PatientPortal() {
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
   const [showAllNotifications, setShowAllNotifications] = useState(false);
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
   const { data: portalData = mockPortalData, isLoading } = useQuery({
     queryKey: ['/api/patient-portal'],
@@ -961,6 +963,23 @@ export default function PatientPortal() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Floating AI Chatbot Button */}
+      <div className="fixed bottom-6 right-6 z-40">
+        <Button
+          onClick={() => setIsChatbotOpen(true)}
+          className="w-14 h-14 rounded-full bg-medical-blue hover:bg-blue-700 shadow-lg transition-all duration-300 hover:scale-110"
+          size="lg"
+        >
+          <MessageSquare className="h-6 w-6" />
+        </Button>
+      </div>
+
+      {/* AI Chatbot */}
+      <AIChatbot 
+        isOpen={isChatbotOpen} 
+        onClose={() => setIsChatbotOpen(false)} 
+      />
     </div>
   );
 }
