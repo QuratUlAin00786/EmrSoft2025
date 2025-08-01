@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { Plus, Package, AlertTriangle, TrendingUp, Search, Filter, BarChart3, ShoppingCart, Edit, MoreVertical } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 import AddItemDialog from "@/components/inventory/add-item-dialog";
 import StockAdjustmentDialog from "@/components/inventory/stock-adjustment-dialog";
 
@@ -90,26 +90,46 @@ export default function Inventory() {
   // Fetch inventory data
   const { data: items = [], isLoading: itemsLoading, error: itemsError } = useQuery<InventoryItem[]>({
     queryKey: ["/api/inventory/items"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/inventory/items");
+      return response.json();
+    },
     retry: 3,
   });
 
   const { data: categories = [], error: categoriesError } = useQuery<InventoryCategory[]>({
     queryKey: ["/api/inventory/categories"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/inventory/categories");
+      return response.json();
+    },
     retry: 3,
   });
 
   const { data: alerts = [] } = useQuery<StockAlert[]>({
     queryKey: ["/api/inventory/alerts"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/inventory/alerts");
+      return response.json();
+    },
     retry: 3,
   });
 
   const { data: inventoryValue } = useQuery<InventoryValue>({
     queryKey: ["/api/inventory/reports/value"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/inventory/reports/value");
+      return response.json();
+    },
     retry: 3,
   });
 
   const { data: purchaseOrders = [] } = useQuery<PurchaseOrder[]>({
     queryKey: ["/api/inventory/purchase-orders"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/inventory/purchase-orders");
+      return response.json();
+    },
     retry: 3,
   });
 
