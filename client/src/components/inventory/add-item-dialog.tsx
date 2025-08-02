@@ -66,15 +66,19 @@ export default function AddItemDialog({ open, onOpenChange }: AddItemDialogProps
 
   const addItemMutation = useMutation({
     mutationFn: async (data: any) => {
-      // Ensure numeric fields have proper values
+      // Ensure numeric fields have proper values, handle empty strings
       const itemData = {
         ...data,
-        categoryId: data.categoryId ? parseInt(data.categoryId) : null,
-        packSize: data.packSize ? parseInt(data.packSize) : 1,
-        currentStock: data.currentStock ? parseInt(data.currentStock) : 0,
-        minimumStock: data.minimumStock ? parseInt(data.minimumStock) : 10,
-        maximumStock: data.maximumStock ? parseInt(data.maximumStock) : 1000,
-        reorderPoint: data.reorderPoint ? parseInt(data.reorderPoint) : 20,
+        categoryId: data.categoryId && data.categoryId !== "" ? parseInt(data.categoryId) : null,
+        packSize: data.packSize && data.packSize !== "" ? parseInt(data.packSize) : 1,
+        purchasePrice: data.purchasePrice && data.purchasePrice !== "" ? parseFloat(data.purchasePrice) : 0,
+        salePrice: data.salePrice && data.salePrice !== "" ? parseFloat(data.salePrice) : 0,
+        mrp: data.mrp && data.mrp !== "" ? parseFloat(data.mrp) : 0,
+        taxRate: data.taxRate && data.taxRate !== "" ? parseFloat(data.taxRate) : 20.00,
+        currentStock: data.currentStock && data.currentStock !== "" ? parseInt(data.currentStock) : 0,
+        minimumStock: data.minimumStock && data.minimumStock !== "" ? parseInt(data.minimumStock) : 10,
+        maximumStock: data.maximumStock && data.maximumStock !== "" ? parseInt(data.maximumStock) : 1000,
+        reorderPoint: data.reorderPoint && data.reorderPoint !== "" ? parseInt(data.reorderPoint) : 20,
       };
       
       await apiRequest("POST", "/api/inventory/items", itemData);
