@@ -1027,30 +1027,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
 
             </div>
 
-            {/* Additional Analysis Tools */}
-            <div className="xl:col-span-2 space-y-4">
-              <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-5 rounded-xl border-2 border-purple-200">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-3 h-3 bg-purple-600 rounded-full"></div>
-                  <h3 className="text-lg font-semibold text-gray-800">Analysis Tools</h3>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-3">
-                  <Button variant="outline" className="text-sm">
-                    📊 Generate Report
-                  </Button>
-                  <Button variant="outline" className="text-sm">
-                    📸 Capture Image
-                  </Button>
-                  <Button variant="outline" className="text-sm">
-                    📋 Treatment Plan
-                  </Button>
-                  <Button variant="outline" className="text-sm">
-                    🔄 Compare Views
-                  </Button>
-                </div>
-              </div>
-            </div>
+
           </div>
 
           {/* Clinical Documentation Section - Moved to Bottom */}
