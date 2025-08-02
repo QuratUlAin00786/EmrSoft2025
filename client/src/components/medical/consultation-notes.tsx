@@ -21,7 +21,7 @@ import { FileText, Plus, Calendar, User, Stethoscope, Pill, AlertTriangle, Mic, 
 import { format } from "date-fns";
 import type { MedicalRecord } from "@/types";
 import anatomicalDiagramImage from "@assets/image_1753778337429.png";
-const facialDiagramImage = "/clean-facial-diagram.svg";
+import facialDiagramImage from "@assets/1_1754125060560.png";
 
 const consultationSchema = z.object({
   type: z.enum(["consultation", "prescription", "lab_result", "imaging", "procedure"]),
@@ -826,85 +826,28 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
             <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg max-w-4xl mx-auto">
               <div className="bg-white rounded-lg p-4 min-h-[600px] flex items-center justify-center relative overflow-hidden">
                 <div className="w-full max-w-lg mx-auto relative bg-white p-4 rounded-lg">
-                  {currentImageIndex === 0 ? (
-                    <img 
-                      src={anatomicalDiagramImage}
-                      alt="Facial muscle anatomy diagram with detailed muscle labels"
-                      className="w-full mx-auto rounded-lg transition-opacity duration-300"
-                      style={{
-                        height: '500px',
-                        objectFit: 'cover',
-                        objectPosition: 'center 40%',
-                        clipPath: 'inset(13% 19% 22% 19%)',
-                        transform: 'scale(1.5)',
-                        transformOrigin: 'center',
-                        filter: 'contrast(1.1) brightness(1.05) saturate(1.1)',
-                        imageRendering: 'crisp-edges',
-                        backgroundColor: 'white'
-                      }}
-                    />
-                  ) : (
-                    <div className="w-full mx-auto transition-opacity duration-300" style={{ height: '400px' }}>
-                      <svg width="100%" height="100%" viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg" className="rounded-lg">
-                        <defs>
-                          <style>
-                            {`.face-outline { fill: none; stroke: #2563eb; stroke-width: 2; }
-                            .muscle-point { fill: #fbbf24; stroke: #f59e0b; stroke-width: 1; }
-                            .feature-line { fill: none; stroke: #374151; stroke-width: 1.5; }
-                            .label-text { font-family: Arial, sans-serif; font-size: 11px; fill: #374151; }`}
-                          </style>
-                        </defs>
-                        
-                        {/* Clean background */}
-                        <rect width="400" height="500" fill="white"/>
-                        
-                        {/* Face outline */}
-                        <ellipse cx="200" cy="280" rx="90" ry="120" className="face-outline"/>
-                        
-                        {/* Forehead area */}
-                        <path d="M 140 200 Q 200 190 260 200" className="feature-line"/>
-                        
-                        {/* Eyebrows */}
-                        <path d="M 160 230 Q 180 225 200 230" className="feature-line"/>
-                        <path d="M 200 230 Q 220 225 240 230" className="feature-line"/>
-                        
-                        {/* Eyes */}
-                        <ellipse cx="175" cy="250" rx="15" ry="8" className="feature-line"/>
-                        <ellipse cx="225" cy="250" rx="15" ry="8" className="feature-line"/>
-                        <circle cx="175" cy="250" r="3" fill="#374151"/>
-                        <circle cx="225" cy="250" r="3" fill="#374151"/>
-                        
-                        {/* Nose */}
-                        <path d="M 200 270 L 195 290 L 200 295 L 205 290 Z" className="feature-line"/>
-                        <path d="M 190 290 Q 195 292 200 290 Q 205 292 210 290" className="feature-line"/>
-                        
-                        {/* Mouth */}
-                        <path d="M 180 320 Q 200 330 220 320" className="feature-line"/>
-                        <path d="M 180 320 Q 200 315 220 320" className="feature-line"/>
-                        
-                        {/* Chin */}
-                        <path d="M 185 380 Q 200 385 215 380" className="feature-line"/>
-                        
-                        {/* Muscle reference points */}
-                        <circle cx="200" cy="210" r="3" className="muscle-point" data-muscle="frontalis"/>
-                        <circle cx="165" cy="235" r="3" className="muscle-point" data-muscle="corrugator"/>
-                        <circle cx="235" cy="235" r="3" className="muscle-point" data-muscle="corrugator"/>
-                        <circle cx="155" cy="250" r="3" className="muscle-point" data-muscle="orbicularis_oculi"/>
-                        <circle cx="245" cy="250" r="3" className="muscle-point" data-muscle="orbicularis_oculi"/>
-                        <circle cx="190" cy="280" r="3" className="muscle-point" data-muscle="nasalis"/>
-                        <circle cx="210" cy="280" r="3" className="muscle-point" data-muscle="nasalis"/>
-                        <circle cx="160" cy="300" r="3" className="muscle-point" data-muscle="zygomaticus"/>
-                        <circle cx="240" cy="300" r="3" className="muscle-point" data-muscle="zygomaticus"/>
-                        <circle cx="170" cy="320" r="3" className="muscle-point" data-muscle="risorius"/>
-                        <circle cx="230" cy="320" r="3" className="muscle-point" data-muscle="risorius"/>
-                        <circle cx="180" cy="320" r="3" className="muscle-point" data-muscle="orbicularis_oris"/>
-                        <circle cx="220" cy="320" r="3" className="muscle-point" data-muscle="orbicularis_oris"/>
-                        <circle cx="140" cy="320" r="3" className="muscle-point" data-muscle="masseter"/>
-                        <circle cx="260" cy="320" r="3" className="muscle-point" data-muscle="masseter"/>
-                        <circle cx="200" cy="360" r="3" className="muscle-point" data-muscle="mentalis"/>
-                      </svg>
-                    </div>
-                  )}
+                  <img 
+                    key={currentImageIndex}
+                    src={currentImageIndex === 0 ? anatomicalDiagramImage : facialDiagramImage}
+                    alt={currentImageIndex === 0 ? "Facial muscle anatomy diagram with detailed muscle labels" : "Facial Anatomy Reference Diagram"}
+                    className="w-full mx-auto rounded-lg transition-opacity duration-300"
+                    style={currentImageIndex === 0 ? {
+                      height: '500px',
+                      objectFit: 'cover',
+                      objectPosition: 'center 40%',
+                      clipPath: 'inset(13% 19% 22% 19%)',
+                      transform: 'scale(1.5)',
+                      transformOrigin: 'center',
+                      filter: 'contrast(1.1) brightness(1.05) saturate(1.1)',
+                      imageRendering: 'crisp-edges',
+                      backgroundColor: 'white'
+                    } : {
+                      height: '400px',
+                      objectFit: 'contain',
+                      objectPosition: 'center',
+                      backgroundColor: 'white'
+                    }}
+                  />
                 </div>
                 
                 {/* Left Arrow Button */}
