@@ -1035,8 +1035,8 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
               <h3 className="text-xl font-semibold text-gray-800">Clinical Documentation</h3>
             </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+              <div className="flex flex-col space-y-6 h-full">
                 {/* Treatment Phase */}
                 <div className="p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded-r-lg">
                   <div className="flex items-center gap-2 mb-1">
@@ -1049,32 +1049,32 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                 </div>
                 
                 {/* Clinical Notes */}
-                <div className="space-y-3">
+                <div className="flex flex-col space-y-3 flex-1">
                   <Label className="text-base font-semibold text-gray-700">Clinical Examination Notes</Label>
                   <Textarea
                     placeholder="Document muscle condition, asymmetries, treatment areas, contraindications..."
-                    className="text-sm border-2 border-gray-300 focus:border-blue-500 min-h-[120px]"
-                    rows={5}
+                    className="text-sm border-2 border-gray-300 focus:border-blue-500 flex-1 resize-none"
+                    rows={8}
                   />
                 </div>
               </div>
               
-              <div className="space-y-6">
-                <div className="space-y-3">
+              <div className="flex flex-col space-y-6 h-full">
+                <div className="flex flex-col space-y-3 flex-1">
                   <Label className="text-base font-semibold text-gray-700">Treatment Recommendations</Label>
                   <Textarea
                     placeholder="Recommended procedures, dosage, injection sites, follow-up schedule..."
-                    className="text-sm border-2 border-gray-300 focus:border-blue-500 min-h-[120px]"
+                    className="text-sm border-2 border-gray-300 focus:border-blue-500 flex-1 resize-none"
                     rows={5}
                   />
                 </div>
                 
-                <div className="space-y-3">
+                <div className="flex flex-col space-y-3 flex-1">
                   <Label className="text-base font-semibold text-gray-700">Follow-up Actions</Label>
                   <Textarea
                     placeholder="Next appointment scheduling, monitoring requirements, patient instructions..."
-                    className="text-sm border-2 border-gray-300 focus:border-blue-500 min-h-[100px]"
-                    rows={4}
+                    className="text-sm border-2 border-gray-300 focus:border-blue-500 flex-1 resize-none"
+                    rows={5}
                   />
                 </div>
               </div>
