@@ -1036,9 +1036,9 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div>
+              <div className="space-y-6">
                 {/* Treatment Phase */}
-                <div className="mb-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded-r-lg">
+                <div className="p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded-r-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <div className="w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center">
                       <span className="text-white text-xs font-bold">!</span>
@@ -1053,26 +1053,30 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                   <Label className="text-base font-semibold text-gray-700">Clinical Examination Notes</Label>
                   <Textarea
                     placeholder="Document muscle condition, asymmetries, treatment areas, contraindications..."
-                    className="text-sm border-2 border-gray-300 focus:border-blue-500"
+                    className="text-sm border-2 border-gray-300 focus:border-blue-500 min-h-[120px]"
                     rows={5}
                   />
                 </div>
               </div>
               
-              <div className="space-y-3">
-                <Label className="text-base font-semibold text-gray-700">Treatment Recommendations</Label>
-                <Textarea
-                  placeholder="Recommended procedures, dosage, injection sites, follow-up schedule..."
-                  className="text-sm border-2 border-gray-300 focus:border-blue-500"
-                  rows={5}
-                />
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold text-gray-700">Treatment Recommendations</Label>
+                  <Textarea
+                    placeholder="Recommended procedures, dosage, injection sites, follow-up schedule..."
+                    className="text-sm border-2 border-gray-300 focus:border-blue-500 min-h-[120px]"
+                    rows={5}
+                  />
+                </div>
                 
-                <Label className="text-base font-semibold text-gray-700">Follow-up Actions</Label>
-                <Textarea
-                  placeholder="Next appointment scheduling, monitoring requirements, patient instructions..."
-                  className="text-sm border-2 border-gray-300 focus:border-blue-500"
-                  rows={4}
-                />
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold text-gray-700">Follow-up Actions</Label>
+                  <Textarea
+                    placeholder="Next appointment scheduling, monitoring requirements, patient instructions..."
+                    className="text-sm border-2 border-gray-300 focus:border-blue-500 min-h-[100px]"
+                    rows={4}
+                  />
+                </div>
               </div>
             </div>
           </div>
