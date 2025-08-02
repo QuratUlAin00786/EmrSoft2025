@@ -824,7 +824,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
           {/* Single Image with Sliding Navigation - Preserves All Labels */}
           <div className="mb-6">
             <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg max-w-4xl mx-auto">
-              <div className="bg-gradient-to-b from-blue-50 to-white rounded-lg p-4 min-h-[600px] flex items-center justify-center relative overflow-hidden">
+              <div className="bg-white rounded-lg p-4 min-h-[600px] flex items-center justify-center relative overflow-hidden">
                 <div className="w-full max-w-lg mx-auto relative">
                   <img 
                     key={currentImageIndex}
