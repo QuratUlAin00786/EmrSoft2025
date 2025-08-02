@@ -820,9 +820,9 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
             <p className="text-gray-600 text-sm">Advanced facial muscle analysis and clinical documentation system</p>
           </DialogHeader>
           
-          <div className={`grid gap-6 transition-all duration-500 ${showRightPanel ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 xl:grid-cols-4'}`}>
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
             {/* Left Panel - Professional Muscle Selection */}
-            <div className={`${showRightPanel ? 'hidden' : 'xl:col-span-1'} bg-gradient-to-br from-gray-50 to-blue-50 p-5 rounded-xl border-2 border-blue-100`}>
+            <div className={`xl:col-span-1 bg-gradient-to-br from-gray-50 to-blue-50 p-5 rounded-xl border-2 border-blue-100 transition-transform duration-500 ${showRightPanel ? '-translate-x-full opacity-0' : 'translate-x-0 opacity-100'}`}>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-3 h-3 bg-red-600 rounded-full"></div>
                 <h3 className="text-lg font-semibold text-gray-800">Facial Muscle Analysis</h3>
@@ -924,17 +924,16 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
 
             </div>
 
-            {/* First Window - Professional Medical Diagram */}
-            <div className={`${showRightPanel ? 'lg:col-span-1' : 'xl:col-span-2'} relative`}>
+            {/* Center Panel - Professional Medical Diagram (Realistic Head Sketch with Labels) */}
+            <div className={`xl:col-span-2 relative transition-transform duration-500 ${showRightPanel ? '-translate-x-full' : 'translate-x-0'}`}>
               <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg">
                 <div className="bg-gradient-to-b from-blue-50 to-white rounded-lg p-4 min-h-[600px] flex items-center justify-center relative">
                   <img 
                     src={anatomicalDiagramImage}
                     alt="Facial muscle anatomy diagram"
-                    className="mx-auto rounded-lg shadow-md"
+                    className="w-full max-w-lg mx-auto rounded-lg shadow-md"
                     style={{
-                      width: '320px',
-                      height: '400px',
+                      height: '500px',
                       objectFit: 'cover',
                       objectPosition: 'center 40%',
                       clipPath: 'inset(13% 19% 22% 19%)',
@@ -945,11 +944,11 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     }}
                   />
                   
-                  {/* Right Arrow Button - Show Adjacent Window */}
+                  {/* Right Arrow Button - Slide to Right Panel */}
                   <button
                     onClick={() => setShowRightPanel(!showRightPanel)}
                     className="absolute right-2 top-2 bg-white border border-gray-300 rounded-full p-2 shadow-md hover:bg-gray-50 hover:shadow-lg transition-all duration-200"
-                    title="Show anatomical reference window"
+                    title="Slide to anatomical reference panel"
                   >
                     <svg 
                       width="16" 
@@ -975,23 +974,54 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
               </div>
             </div>
 
-            {/* Second Window - Anatomical Reference (appears adjacent when arrow is clicked) */}
-            {showRightPanel && (
-              <div className="lg:col-span-1 bg-gradient-to-br from-green-50 to-blue-50 p-5 rounded-xl border-2 border-green-200 transition-all duration-500 transform animate-in slide-in-from-right">
+            {/* Right Panel - Clinical Documentation */}
+            <div className={`xl:col-span-1 bg-gradient-to-br from-yellow-50 to-orange-50 p-5 rounded-xl border-2 border-yellow-200 transition-transform duration-500 ${showRightPanel ? '-translate-x-full' : 'translate-x-0'}`}>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-3 h-3 bg-yellow-600 rounded-full"></div>
+                <h3 className="text-lg font-semibold text-gray-800">Clinical Documentation</h3>
+              </div>
+              
+              {/* Treatment Phase */}
+              <div className="mb-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded-r-lg">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">!</span>
+                  </div>
+                  <div className="text-yellow-800 font-semibold text-sm">Before Treatment Phase</div>
+                </div>
+                <div className="text-yellow-700 text-xs">Baseline documentation required</div>
+              </div>
+              
+
+              
+              {/* Clinical Notes */}
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold text-gray-700">Clinical Examination Notes</Label>
+                <Textarea
+                  placeholder="Document muscle condition, asymmetries, treatment areas, contraindications..."
+                  className="text-sm border-2 border-gray-300 focus:border-blue-500"
+                  rows={4}
+                />
                 
-                {/* Facial Diagram */}
-                <div className="bg-gradient-to-b from-green-50 to-white rounded-lg p-4 min-h-[600px] flex items-center justify-center mb-6">
+                <Label className="text-sm font-semibold text-gray-700">Treatment Recommendations</Label>
+                <Textarea
+                  placeholder="Recommended procedures, dosage, injection sites, follow-up schedule..."
+                  className="text-sm border-2 border-gray-300 focus:border-blue-500"
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            {/* Anatomical Reference Panel - Slides in from right */}
+            {showRightPanel && (
+              <div className="xl:col-span-4 bg-gradient-to-br from-green-50 to-blue-50 p-5 rounded-xl border-2 border-green-200 transition-all duration-500 transform animate-in slide-in-from-right">
+                
+                {/* Facial Diagram ABOVE the Anatomical Reference Window Header */}
+                <div className="flex justify-center mb-6">
                   <img 
                     src={facialDiagramImage} 
                     alt="Facial Anatomy Diagram" 
-                    className="mx-auto rounded-lg shadow-md"
-                    style={{
-                      width: '320px',
-                      height: '400px',
-                      objectFit: 'contain',
-                      transform: 'scale(1.5)',
-                      transformOrigin: 'center'
-                    }}
+                    className="w-64 h-80 object-contain rounded-lg"
                   />
                 </div>
 
@@ -1241,46 +1271,6 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                 </div>
               </div>
             )}
-          </div>
-          
-          {/* Clinical Documentation Section - Moved to Bottom */}
-          <div className="mt-6 bg-gradient-to-br from-yellow-50 to-orange-50 p-5 rounded-xl border-2 border-yellow-200">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-3 h-3 bg-yellow-600 rounded-full"></div>
-              <h3 className="text-lg font-semibold text-gray-800">Clinical Documentation</h3>
-            </div>
-            
-            {/* Treatment Phase */}
-            <div className="mb-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded-r-lg">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">!</span>
-                </div>
-                <div className="text-yellow-800 font-semibold text-sm">Before Treatment Phase</div>
-              </div>
-              <div className="text-yellow-700 text-xs">Baseline documentation required</div>
-            </div>
-            
-            {/* Clinical Notes */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-3">
-                <Label className="text-sm font-semibold text-gray-700">Clinical Examination Notes</Label>
-                <Textarea
-                  placeholder="Document muscle condition, asymmetries, treatment areas, contraindications..."
-                  className="text-sm border-2 border-gray-300 focus:border-blue-500"
-                  rows={4}
-                />
-              </div>
-              
-              <div className="space-y-3">
-                <Label className="text-sm font-semibold text-gray-700">Treatment Recommendations</Label>
-                <Textarea
-                  placeholder="Recommended procedures, dosage, injection sites, follow-up schedule..."
-                  className="text-sm border-2 border-gray-300 focus:border-blue-500"
-                  rows={4}
-                />
-              </div>
-            </div>
           </div>
           
           {/* Professional Action Bar */}
