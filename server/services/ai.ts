@@ -19,9 +19,9 @@ When copying code from this code snippet, ensure you also include this informati
 const DEFAULT_MODEL_STR = "claude-sonnet-4-20250514";
 // </important_do_not_delete>
 
-const anthropic = new Anthropic({
+const anthropic = process.env.ANTHROPIC_API_KEY ? new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
-});
+}) : null;
 
 export interface AiInsightData {
   type: "risk_alert" | "drug_interaction" | "treatment_suggestion" | "preventive_care";
@@ -355,6 +355,35 @@ Please provide a comprehensive safety analysis focusing on clinically significan
     confidence: number;
     parameters?: any;
   }> {
+    // Check if Anthropic API is available
+    if (!anthropic) {
+      // Use basic pattern matching for simple requests
+      const lowerMessage = params.message.toLowerCase();
+      let intent = 'general_inquiry';
+      let confidence = 0.7;
+      let response = "I can help you with basic tasks using simple commands:\n\n📅 **Book appointments** - Try saying 'book appointment'\n💊 **Find prescriptions** - Try saying 'find prescriptions'\n\nFor more intelligent conversation, please ask your administrator to configure the Anthropic API key.";
+
+      if (lowerMessage.includes('book') || lowerMessage.includes('schedule') || lowerMessage.includes('appointment')) {
+        intent = 'book_appointment';
+        response = "I can help you book an appointment! However, without the AI service configured, I'll need you to provide specific details:\n\n• Patient name\n• Doctor/provider name\n• Preferred date and time\n• Reason for visit\n\nPlease provide these details and I'll process the appointment booking.";
+        confidence = 0.8;
+      } else if (lowerMessage.includes('prescription') || lowerMessage.includes('medication') || lowerMessage.includes('find')) {
+        intent = 'find_prescriptions';
+        response = "I can help you find prescriptions! Let me search the system for prescription information.";
+        confidence = 0.8;
+      } else if (lowerMessage.includes('help')) {
+        intent = 'help';
+        response = "I'm your Cura AI Assistant! Even without full AI capabilities, I can still help with:\n\n📅 **Booking appointments** - Say 'book appointment'\n💊 **Finding prescriptions** - Say 'find prescriptions'\n\nWhat would you like to do?";
+        confidence = 0.9;
+      }
+
+      return {
+        response,
+        intent,
+        confidence
+      };
+    }
+
     try {
       // Build conversation context for Anthropic
       const conversationContext = params.conversationHistory
