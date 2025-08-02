@@ -1001,17 +1001,52 @@ export default function MobileHealth() {
 
                   <div className="flex justify-between items-center pt-4 border-t">
                     <div className="flex items-center gap-2">
-                      {consent.consentStatus === 'consented' ? (
-                        <CheckCircle className="w-5 h-5 text-green-500" />
-                      ) : consent.consentStatus === 'declined' || consent.consentStatus === 'revoked' ? (
-                        <AlertTriangle className="w-5 h-5 text-red-500" />
-                      ) : (
-                        <Activity className="w-5 h-5 text-yellow-500" />
-                      )}
+                      {(() => {
+                        if (consent.consentStatus === 'consented') {
+                          const patientDevices = devices?.filter(device => device.patientName === consent.patientName) || [];
+                          const activeDevices = patientDevices.filter(device => device.status === 'connected');
+                          const recentData = patientDevices.some(device => 
+                            device.readings?.length > 0 && 
+                            new Date(device.lastSync) > new Date(Date.now() - 24 * 60 * 60 * 1000)
+                          );
+                          
+                          if (activeDevices.length > 0 && recentData) {
+                            return <div className="relative"><CheckCircle className="w-5 h-5 text-green-500" /><div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse"></div></div>;
+                          } else if (activeDevices.length > 0) {
+                            return <Activity className="w-5 h-5 text-blue-500" />;
+                          } else {
+                            return <CheckCircle className="w-5 h-5 text-gray-400" />;
+                          }
+                        } else if (consent.consentStatus === 'declined' || consent.consentStatus === 'revoked') {
+                          return <AlertTriangle className="w-5 h-5 text-red-500" />;
+                        } else {
+                          return <Activity className="w-5 h-5 text-yellow-500" />;
+                        }
+                      })()}
                       <span className="text-sm text-gray-600">
-                        {consent.consentStatus === 'consented' ? 'Patient is being monitored' :
-                         consent.consentStatus === 'declined' || consent.consentStatus === 'revoked' ? 'No monitoring active' :
-                         'Awaiting patient response'}
+                        {(() => {
+                          if (consent.consentStatus === 'consented') {
+                            // Check if patient has connected devices that are actively monitoring
+                            const patientDevices = devices?.filter(device => device.patientName === consent.patientName) || [];
+                            const activeDevices = patientDevices.filter(device => device.status === 'connected');
+                            const recentData = patientDevices.some(device => 
+                              device.readings?.length > 0 && 
+                              new Date(device.lastSync) > new Date(Date.now() - 24 * 60 * 60 * 1000) // Within 24 hours
+                            );
+                            
+                            if (activeDevices.length > 0 && recentData) {
+                              return `Actively monitoring via ${activeDevices.length} device${activeDevices.length > 1 ? 's' : ''} • Last data: ${format(new Date(patientDevices[0]?.lastSync || new Date()), 'HH:mm')}`;
+                            } else if (activeDevices.length > 0) {
+                              return `Connected but no recent data • ${activeDevices.length} device${activeDevices.length > 1 ? 's' : ''} online`;
+                            } else {
+                              return 'Consented but no active devices';
+                            }
+                          } else if (consent.consentStatus === 'declined' || consent.consentStatus === 'revoked') {
+                            return 'No monitoring active';
+                          } else {
+                            return 'Awaiting patient response';
+                          }
+                        })()}
                       </span>
                     </div>
                     <div className="flex gap-2">
