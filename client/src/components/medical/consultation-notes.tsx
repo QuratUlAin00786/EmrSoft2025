@@ -845,9 +845,10 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                       height: '500px',
                       objectFit: 'contain',
                       objectPosition: 'center',
-                      filter: 'contrast(1.1) brightness(1.05) saturate(1.1)',
+                      filter: 'contrast(1.1) brightness(1.3) saturate(1.1) invert(0)',
                       imageRendering: 'crisp-edges',
-                      backgroundColor: 'white'
+                      backgroundColor: 'white',
+                      mixBlendMode: 'multiply'
                     }}
                   />
                 </div>
