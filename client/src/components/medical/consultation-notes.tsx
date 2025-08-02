@@ -21,7 +21,7 @@ import { FileText, Plus, Calendar, User, Stethoscope, Pill, AlertTriangle, Mic, 
 import { format } from "date-fns";
 import type { MedicalRecord } from "@/types";
 import anatomicalDiagramImage from "@assets/image_1753778337429.png";
-import facialDiagramImage from "@assets/1_1754125060560.png";
+const facialDiagramImage = "/clean-facial-diagram.svg";
 
 const consultationSchema = z.object({
   type: z.enum(["consultation", "prescription", "lab_result", "imaging", "procedure"]),
