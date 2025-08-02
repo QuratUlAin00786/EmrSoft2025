@@ -2685,6 +2685,122 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Agent endpoints
+  app.post("/api/ai-agent/chat", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const { message, conversationHistory = [] } = req.body;
+      
+      if (!message) {
+        return res.status(400).json({ error: "Message is required" });
+      }
+
+      // Use Anthropic AI to understand the user's intent and perform actions
+      const aiResponse = await aiService.processAgentRequest({
+        message,
+        conversationHistory,
+        organizationId: req.tenant!.id,
+        userId: req.user.id,
+        userRole: req.user.role
+      });
+
+      // Perform actions based on AI analysis
+      let actionResult = null;
+      let responseData = null;
+
+      if (aiResponse.intent === 'book_appointment') {
+        // Handle appointment booking
+        if (aiResponse.parameters) {
+          try {
+            const appointmentData = {
+              patientId: aiResponse.parameters.patientId,
+              providerId: aiResponse.parameters.providerId,
+              title: aiResponse.parameters.title || 'General Consultation',
+              description: aiResponse.parameters.description || '',
+              scheduledAt: aiResponse.parameters.scheduledAt,
+              duration: aiResponse.parameters.duration || 30,
+              type: aiResponse.parameters.type || 'consultation',
+              location: aiResponse.parameters.location || '',
+              isVirtual: aiResponse.parameters.isVirtual || false
+            };
+
+            const newAppointment = await storage.createAppointment(appointmentData, req.tenant!.id);
+            actionResult = {
+              action: 'appointment_booked',
+              actionDescription: `Appointment scheduled successfully for ${aiResponse.parameters.patientName}`,
+              data: { appointment: newAppointment }
+            };
+            responseData = { appointments: [newAppointment] };
+          } catch (error) {
+            console.error("Error booking appointment:", error);
+          }
+        }
+      } else if (aiResponse.intent === 'find_prescriptions') {
+        // Handle prescription search
+        try {
+          let prescriptions = [];
+          
+          if (aiResponse.parameters?.patientId) {
+            prescriptions = await storage.getPrescriptionsByPatient(aiResponse.parameters.patientId, req.tenant!.id);
+          } else if (aiResponse.parameters?.patientName) {
+            // Search by patient name
+            const patients = await storage.getPatients(req.tenant!.id);
+            const matchingPatients = patients.filter(p => 
+              p.firstName.toLowerCase().includes(aiResponse.parameters.patientName.toLowerCase()) ||
+              p.lastName.toLowerCase().includes(aiResponse.parameters.patientName.toLowerCase())
+            );
+            
+            if (matchingPatients.length > 0) {
+              const allPrescriptions = await storage.getPrescriptions(req.tenant!.id);
+              prescriptions = allPrescriptions.filter(p => 
+                matchingPatients.some(patient => patient.id === p.patientId)
+              );
+            }
+          } else {
+            // Get all prescriptions if no specific patient
+            prescriptions = await storage.getPrescriptions(req.tenant!.id);
+          }
+
+          // Get patient names for prescriptions
+          const patients = await storage.getPatients(req.tenant!.id);
+          const prescriptionsWithNames = prescriptions.map(prescription => {
+            const patient = patients.find(p => p.id === prescription.patientId);
+            return {
+              ...prescription,
+              patientName: patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown Patient'
+            };
+          });
+
+          responseData = { prescriptions: prescriptionsWithNames };
+          actionResult = {
+            action: 'prescriptions_found',
+            actionDescription: `Found ${prescriptions.length} prescription(s)`
+          };
+        } catch (error) {
+          console.error("Error finding prescriptions:", error);
+        }
+      }
+
+      res.json({
+        message: aiResponse.response,
+        intent: aiResponse.intent,
+        confidence: aiResponse.confidence,
+        data: responseData,
+        ...actionResult
+      });
+
+    } catch (error) {
+      console.error("AI Agent error:", error);
+      res.status(500).json({ 
+        error: "Failed to process AI request",
+        message: "I apologize, but I'm having trouble processing your request right now. Please try again."
+      });
+    }
+  });
+
   // Mobile Health endpoints
   app.get("/api/mobile-health/devices", authMiddleware, async (req: TenantRequest, res) => {
     try {

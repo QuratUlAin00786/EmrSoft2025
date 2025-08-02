@@ -28,7 +28,8 @@ import {
   Package,
   Menu,
   X,
-  Shield
+  Shield,
+  Bot
 } from "lucide-react";
 import { useTenant } from "@/hooks/use-tenant";
 import curaIconPath from "@assets/Cura Icon Main_1751893631980.png";
@@ -63,6 +64,7 @@ const ALL_NAVIGATION = [
   { name: "Automation", href: "/automation", icon: Zap, module: "automation" },
   { name: "Patient Portal", href: "/patient-portal", icon: Globe, module: "patient_portal" },
   { name: "AI Insights", href: "/ai-insights", icon: Brain, module: "ai_insights" },
+  { name: "AI Agent", href: "/ai-agent", icon: Bot, module: "ai_insights" },
   { name: "Clinical Decision Support", href: "/clinical-decision-support", icon: Brain, module: "ai_insights" },
   { name: "Telemedicine", href: "/telemedicine", icon: Video, module: "telemedicine" },
   { name: "Population Health", href: "/population-health", icon: Users, module: "population_health" },
