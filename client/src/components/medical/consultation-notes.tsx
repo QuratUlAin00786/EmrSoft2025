@@ -820,9 +820,84 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
             <p className="text-gray-600 text-sm">Advanced facial muscle analysis and clinical documentation system</p>
           </DialogHeader>
           
-          <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-            {/* Left Panel - Professional Muscle Selection */}
-            <div className={`xl:col-span-1 bg-gradient-to-br from-gray-50 to-blue-50 p-5 rounded-xl border-2 border-blue-100 transition-transform duration-500 ${showRightPanel ? '-translate-x-full opacity-0' : 'translate-x-0 opacity-100'}`}>
+          {/* Two Images Side by Side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            {/* Left Image - Original Anatomical Diagram */}
+            <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg">
+              <div className="bg-gradient-to-b from-blue-50 to-white rounded-lg p-4 min-h-[600px] flex items-center justify-center relative">
+                <img 
+                  src={anatomicalDiagramImage}
+                  alt="Facial muscle anatomy diagram"
+                  className="w-full max-w-lg mx-auto rounded-lg shadow-md"
+                  style={{
+                    height: '500px',
+                    objectFit: 'cover',
+                    objectPosition: 'center 40%',
+                    clipPath: 'inset(13% 19% 22% 19%)',
+                    transform: 'scale(1.5)',
+                    transformOrigin: 'center',
+                    filter: 'contrast(1.1) brightness(1.05) saturate(1.1)',
+                    imageRendering: 'crisp-edges'
+                  }}
+                />
+                
+                {/* Right Arrow Button - Navigate to adjacent window */}
+                <button
+                  onClick={() => setShowRightPanel(!showRightPanel)}
+                  className="absolute right-2 top-2 bg-white border border-gray-300 rounded-full p-2 shadow-md hover:bg-gray-50 hover:shadow-lg transition-all duration-200"
+                  title="Navigate to anatomical reference"
+                >
+                  <svg 
+                    width="16" 
+                    height="16" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2"
+                    className="text-gray-600"
+                  >
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
+                </button>
+              </div>
+              
+              {/* Professional Medical Diagram Label */}
+              <div className="mt-4 text-center">
+                <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-600 text-white text-sm font-semibold shadow-lg">
+                  <div className="w-3 h-3 bg-white rounded-full mr-2 animate-pulse"></div>
+                  Professional Medical Anatomical Diagram
+                </div>
+              </div>
+            </div>
+
+            {/* Right Image - Facial Diagram (Equal Size) */}
+            <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg">
+              <div className="bg-gradient-to-b from-green-50 to-white rounded-lg p-4 min-h-[600px] flex items-center justify-center relative">
+                <img 
+                  src={facialDiagramImage} 
+                  alt="Facial Anatomy Diagram" 
+                  className="w-full max-w-lg mx-auto rounded-lg shadow-md"
+                  style={{
+                    height: '500px',
+                    objectFit: 'contain',
+                    filter: 'contrast(1.1) brightness(1.05) saturate(1.1)'
+                  }}
+                />
+              </div>
+              
+              {/* Anatomical Reference Label */}
+              <div className="mt-4 text-center">
+                <div className="inline-flex items-center px-4 py-2 rounded-full bg-green-600 text-white text-sm font-semibold shadow-lg">
+                  <div className="w-3 h-3 bg-white rounded-full mr-2 animate-pulse"></div>
+                  Anatomical Reference Window
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Facial Muscle Analysis Section */}
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+            <div className="bg-gradient-to-br from-gray-50 to-blue-50 p-5 rounded-xl border-2 border-blue-100">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-3 h-3 bg-red-600 rounded-full"></div>
                 <h3 className="text-lg font-semibold text-gray-800">Facial Muscle Analysis</h3>
@@ -924,401 +999,125 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
 
             </div>
 
-            {/* Center Panel - Professional Medical Diagram (Realistic Head Sketch with Labels) */}
-            <div className={`xl:col-span-2 relative transition-transform duration-500 ${showRightPanel ? '-translate-x-full' : 'translate-x-0'}`}>
-              <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg">
-                <div className="bg-gradient-to-b from-blue-50 to-white rounded-lg p-4 min-h-[600px] flex items-center justify-center relative">
-                  <img 
-                    src={anatomicalDiagramImage}
-                    alt="Facial muscle anatomy diagram"
-                    className="w-full max-w-lg mx-auto rounded-lg shadow-md"
-                    style={{
-                      height: '500px',
-                      objectFit: 'cover',
-                      objectPosition: 'center 40%',
-                      clipPath: 'inset(13% 19% 22% 19%)',
-                      transform: 'scale(1.5)',
-                      transformOrigin: 'center',
-                      filter: 'contrast(1.1) brightness(1.05) saturate(1.1)',
-                      imageRendering: 'crisp-edges'
-                    }}
-                  />
-                  
-                  {/* Right Arrow Button - Slide to Right Panel */}
-                  <button
-                    onClick={() => setShowRightPanel(!showRightPanel)}
-                    className="absolute right-2 top-2 bg-white border border-gray-300 rounded-full p-2 shadow-md hover:bg-gray-50 hover:shadow-lg transition-all duration-200"
-                    title="Slide to anatomical reference panel"
-                  >
-                    <svg 
-                      width="16" 
-                      height="16" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeWidth="2"
-                      className={`text-gray-600 transition-transform duration-300 ${showRightPanel ? 'rotate-180' : ''}`}
-                    >
-                      <path d="M9 18l6-6-6-6" />
-                    </svg>
-                  </button>
+            {/* Additional Analysis Tools */}
+            <div className="xl:col-span-2 space-y-4">
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-5 rounded-xl border-2 border-purple-200">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-3 h-3 bg-purple-600 rounded-full"></div>
+                  <h3 className="text-lg font-semibold text-gray-800">Analysis Tools</h3>
                 </div>
                 
-                {/* Professional Medical Diagram Label */}
-                <div className="mt-4 text-center">
-                  <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-600 text-white text-sm font-semibold shadow-lg">
-                    <div className="w-3 h-3 bg-white rounded-full mr-2 animate-pulse"></div>
-                    Professional Medical Anatomical Diagram
-                  </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button variant="outline" className="text-sm">
+                    📊 Generate Report
+                  </Button>
+                  <Button variant="outline" className="text-sm">
+                    📸 Capture Image
+                  </Button>
+                  <Button variant="outline" className="text-sm">
+                    📋 Treatment Plan
+                  </Button>
+                  <Button variant="outline" className="text-sm">
+                    🔄 Compare Views
+                  </Button>
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Right Panel - Clinical Documentation */}
-            <div className={`xl:col-span-1 bg-gradient-to-br from-yellow-50 to-orange-50 p-5 rounded-xl border-2 border-yellow-200 transition-transform duration-500 ${showRightPanel ? '-translate-x-full' : 'translate-x-0'}`}>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-3 h-3 bg-yellow-600 rounded-full"></div>
-                <h3 className="text-lg font-semibold text-gray-800">Clinical Documentation</h3>
-              </div>
-              
-              {/* Treatment Phase */}
-              <div className="mb-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded-r-lg">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">!</span>
+          {/* Clinical Documentation Section - Moved to Bottom */}
+          <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-6 rounded-xl border-2 border-yellow-200">
+            <div className="flex items-center gap-2 mb-6">
+              <div className="w-3 h-3 bg-yellow-600 rounded-full"></div>
+              <h3 className="text-xl font-semibold text-gray-800">Clinical Documentation</h3>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div>
+                {/* Treatment Phase */}
+                <div className="mb-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded-r-lg">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">!</span>
+                    </div>
+                    <div className="text-yellow-800 font-semibold text-sm">Before Treatment Phase</div>
                   </div>
-                  <div className="text-yellow-800 font-semibold text-sm">Before Treatment Phase</div>
+                  <div className="text-yellow-700 text-xs">Baseline documentation required</div>
                 </div>
-                <div className="text-yellow-700 text-xs">Baseline documentation required</div>
+                
+                {/* Clinical Notes */}
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold text-gray-700">Clinical Examination Notes</Label>
+                  <Textarea
+                    placeholder="Document muscle condition, asymmetries, treatment areas, contraindications..."
+                    className="text-sm border-2 border-gray-300 focus:border-blue-500"
+                    rows={5}
+                  />
+                </div>
               </div>
               
-
-              
-              {/* Clinical Notes */}
               <div className="space-y-3">
-                <Label className="text-sm font-semibold text-gray-700">Clinical Examination Notes</Label>
-                <Textarea
-                  placeholder="Document muscle condition, asymmetries, treatment areas, contraindications..."
-                  className="text-sm border-2 border-gray-300 focus:border-blue-500"
-                  rows={4}
-                />
-                
-                <Label className="text-sm font-semibold text-gray-700">Treatment Recommendations</Label>
+                <Label className="text-base font-semibold text-gray-700">Treatment Recommendations</Label>
                 <Textarea
                   placeholder="Recommended procedures, dosage, injection sites, follow-up schedule..."
                   className="text-sm border-2 border-gray-300 focus:border-blue-500"
-                  rows={3}
+                  rows={5}
+                />
+                
+                <Label className="text-base font-semibold text-gray-700">Follow-up Actions</Label>
+                <Textarea
+                  placeholder="Next appointment scheduling, monitoring requirements, patient instructions..."
+                  className="text-sm border-2 border-gray-300 focus:border-blue-500"
+                  rows={4}
                 />
               </div>
             </div>
+          </div>
 
-            {/* Anatomical Reference Panel - Slides in from right */}
-            {showRightPanel && (
-              <div className="xl:col-span-4 bg-gradient-to-br from-green-50 to-blue-50 p-5 rounded-xl border-2 border-green-200 transition-all duration-500 transform animate-in slide-in-from-right">
-                
-                {/* Facial Diagram ABOVE the Anatomical Reference Window Header */}
-                <div className="flex justify-center mb-6">
-                  <img 
-                    src={facialDiagramImage} 
-                    alt="Facial Anatomy Diagram" 
-                    className="w-64 h-80 object-contain rounded-lg"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => setShowRightPanel(false)}
-                      className="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-blue-500"
-                    >
-                      <svg 
-                        width="20" 
-                        height="20" 
-                        viewBox="0 0 24 24" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        strokeWidth="3"
-                        className="text-white"
-                      >
-                        <path d="M15 18l-6-6 6-6" />
-                      </svg>
-                    </button>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-green-600 rounded-full"></div>
-                      <h3 className="text-lg font-semibold text-gray-800">Anatomical Reference Window</h3>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setShowRightPanel(false)}
-                    className="text-gray-500 hover:text-gray-700 font-bold text-xl"
-                  >
-                    ×
-                  </button>
-                </div>
-                
-                {/* Digital Facial Assessment Interface - Slide 2 */}
-                <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
-                    
-                    {/* Left Section - Face Diagram */}
-                    <div className="md:col-span-2 bg-gray-50 rounded-lg p-4">
-                      <div className="relative bg-white border-2 border-gray-200 rounded-lg p-6" style={{ minHeight: '400px' }}>
-                        
-                        {/* Professional Facial Diagram - Matching Reference Image Exactly */}
-                        <div className="flex justify-center items-center h-full">
-                          <svg width="300" height="400" viewBox="0 0 300 400" className="bg-white">
-                            {/* Main head outline - oval shaped like reference */}
-                            <ellipse cx="150" cy="200" rx="85" ry="115" fill="none" stroke="#8B7EC8" strokeWidth="2"/>
-                            
-                            {/* Neck - clean straight lines */}
-                            <line x1="125" y1="310" x2="125" y2="380" stroke="#8B7EC8" strokeWidth="2"/>
-                            <line x1="175" y1="310" x2="175" y2="380" stroke="#8B7EC8" strokeWidth="2"/>
-                            
-                            {/* Left eyebrow - realistic arch */}
-                            <path d="M 110 150 Q 125 145 140 150" stroke="#8B7EC8" strokeWidth="2" fill="none"/>
-                            
-                            {/* Right eyebrow - realistic arch */}
-                            <path d="M 160 150 Q 175 145 190 150" stroke="#8B7EC8" strokeWidth="2" fill="none"/>
-                            
-                            {/* Left eye - almond shaped */}
-                            <path d="M 110 170 Q 125 165 140 170 Q 125 175 110 170" stroke="#8B7EC8" strokeWidth="1.5" fill="none"/>
-                            <circle cx="125" cy="170" r="2" fill="#8B7EC8"/>
-                            
-                            {/* Right eye - almond shaped */}
-                            <path d="M 160 170 Q 175 165 190 170 Q 175 175 160 170" stroke="#8B7EC8" strokeWidth="1.5" fill="none"/>
-                            <circle cx="175" cy="170" r="2" fill="#8B7EC8"/>
-                            
-                            {/* Nose - simplified realistic outline */}
-                            <path d="M 150 180 L 145 200 L 150 210 L 155 200 Z" fill="none" stroke="#8B7EC8" strokeWidth="1.5"/>
-                            
-                            {/* Nostrils - small curves */}
-                            <path d="M 145 205 Q 148 207 150 205" stroke="#8B7EC8" strokeWidth="1" fill="none"/>
-                            <path d="M 150 205 Q 152 207 155 205" stroke="#8B7EC8" strokeWidth="1" fill="none"/>
-                            
-                            {/* Mouth - realistic lip shape */}
-                            <path d="M 130 240 Q 150 250 170 240" stroke="#8B7EC8" strokeWidth="1.5" fill="none"/>
-                            <path d="M 130 240 Q 150 235 170 240" stroke="#8B7EC8" strokeWidth="1" fill="none"/>
-                            
-                            {/* Jaw/chin definition */}
-                            <path d="M 120 280 Q 150 290 180 280" stroke="#8B7EC8" strokeWidth="1" fill="none"/>
-                            
-                            {/* Left ear - realistic proportions */}
-                            <ellipse cx="65" cy="185" rx="10" ry="25" fill="none" stroke="#8B7EC8" strokeWidth="1.5"/>
-                            <path d="M 70 175 Q 65 180 70 185" stroke="#8B7EC8" strokeWidth="1" fill="none"/>
-                            
-                            {/* Right ear - realistic proportions */}
-                            <ellipse cx="235" cy="185" rx="10" ry="25" fill="none" stroke="#8B7EC8" strokeWidth="1.5"/>
-                            <path d="M 230 175 Q 235 180 230 185" stroke="#8B7EC8" strokeWidth="1" fill="none"/>
-                            
-                            {/* Yellow treatment markers - exactly like reference */}
-                            <rect x="145" y="115" width="10" height="10" fill="#FFD700" stroke="#E6B800" strokeWidth="1"/>
-                            <rect x="145" y="265" width="10" height="10" fill="#FFD700" stroke="#E6B800" strokeWidth="1"/>
-                          </svg>
-                        </div>
-                        
-                        {/* Warning and consent text */}
-                        <div className="absolute bottom-4 left-4 right-4">
-                          <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-3">
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-                                <span className="text-white text-sm font-bold">!</span>
-                              </div>
-                              <span className="text-red-800 font-semibold text-sm">Are you sure you want proceed?</span>
-                            </div>
-                            <div className="text-xs text-red-700 mt-2 space-y-1">
-                              <p>⚠ You have confirmed No action that taking 3 may only carry in procedures.</p>
-                              <p>⚠ You haven't taken any Botox rather photos.</p>
-                              <p>⚠ You haven't edited any more tips to far age.</p>
-                              <p className="mt-2">Once you finish the consultation you won't be able to return to this section to make changes.</p>
-                            </div>
-                          </div>
-                          
-                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                            <div className="text-sm text-blue-800 mb-2">Please sign</div>
-                            <div className="text-xs text-blue-700 mb-3">
-                              I confirm I have read the details, I understand the procedure & risks and my practitioner 
-                              has explained in detail any medical risks.
-                            </div>
-                            
-                            {/* Signature area */}
-                            <div className="bg-white border border-gray-300 rounded p-3 min-h-[80px] relative">
-                              {patientSignature ? (
-                                <div className="font-cursive text-2xl text-blue-800">{patientSignature}</div>
-                              ) : (
-                                <div className="text-gray-400 text-sm">Signature area - click to sign</div>
-                              )}
-                              <input
-                                type="text"
-                                value={patientSignature}
-                                onChange={(e) => setPatientSignature(e.target.value)}
-                                placeholder="Patient signature..."
-                                className="absolute inset-0 opacity-0 cursor-pointer"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Right Section - Options and Upload */}
-                    <div className="space-y-4">
-                      
-                      {/* Rating Section */}
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <div className="text-center mb-3">
-                          <div className="bg-white rounded-full px-3 py-1 text-sm font-semibold text-gray-700 inline-block">
-                            RATINGS
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-3">
-                          <div className="text-center">
-                            <div className="bg-blue-100 rounded-lg px-3 py-2 mb-2">
-                              <span className="text-blue-800 font-medium text-sm">{ratingType}</span>
-                            </div>
-                          </div>
-                          
-                          <div className="text-center mb-3">
-                            <div className="text-xs text-gray-600 mb-2">SYMMETRY</div>
-                            <div className="flex justify-center space-x-2">
-                              {[0, 1, 2, 3, 4, 5].map((rating) => (
-                                <button
-                                  key={rating}
-                                  onClick={() => setSymmetryRating(rating)}
-                                  className={`w-8 h-8 rounded-full border-2 text-sm font-semibold transition-all ${
-                                    symmetryRating === rating
-                                      ? 'bg-blue-500 text-white border-blue-500'
-                                      : 'bg-white text-gray-600 border-gray-300 hover:border-blue-300'
-                                  }`}
-                                >
-                                  {rating}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Photo Upload Section */}
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <div className="text-center mb-3">
-                          <div className="text-xs text-gray-600 mb-2">PATIENT TREATMENT PHOTOS</div>
-                        </div>
-                        
-                        {/* Uploaded Images Grid */}
-                        <div className="grid grid-cols-2 gap-2 mb-3">
-                          {uploadedImages.map((image, index) => (
-                            <div key={index} className="relative">
-                              <img 
-                                src={image} 
-                                alt={`Uploaded ${index + 1}`}
-                                className="w-full h-16 object-cover rounded border border-gray-300"
-                              />
-                              <button
-                                onClick={() => removeImage(index)}
-                                className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold"
-                              >
-                                ×
-                              </button>
-                            </div>
-                          ))}
-                          
-                          {/* Add Photo Button */}
-                          <label className="flex items-center justify-center w-full h-16 border-2 border-dashed border-gray-300 rounded cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all">
-                            <div className="text-center">
-                              <div className="text-2xl text-gray-400 mb-1">+</div>
-                            </div>
-                            <input
-                              type="file"
-                              multiple
-                              accept="image/*"
-                              onChange={handleImageUpload}
-                              className="hidden"
-                            />
-                          </label>
-                        </div>
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="space-y-2">
-                        <Button 
-                          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                          onClick={() => {
-                            toast({
-                              title: "Assessment Saved",
-                              description: "Digital facial assessment data has been saved to patient record."
-                            });
-                          }}
-                        >
-                          Save Assessment
-                        </Button>
-                        
-                        <Button 
-                          variant="outline" 
-                          className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
-                          onClick={() => {
-                            toast({
-                              title: "Assessment Complete",
-                              description: "Digital assessment finalized and ready for next steps."
-                            });
-                          }}
-                        >
-                          Next
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+          <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-300">
+            <div className="text-sm text-gray-600">
+              Professional Anatomical Assessment Complete
+            </div>
+            
+            {selectedFacialFeatures.length > 0 && (
+              <div className="text-xs text-gray-500 bg-red-50 px-2 py-1 rounded border border-red-200">
+                Muscles highlighted in red on diagram
               </div>
             )}
           </div>
           
-          {/* Professional Action Bar */}
-          <div className="flex justify-between items-center pt-6 border-t-2 border-gray-200">
-            <div className="flex items-center gap-4">
-              <div className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full font-medium">
-                Selected: <span className="font-bold text-red-600">{selectedFacialFeatures.length}</span> muscle{selectedFacialFeatures.length !== 1 ? 's' : ''}
-              </div>
-              {selectedFacialFeatures.length > 0 && (
-                <div className="text-xs text-gray-500 bg-red-50 px-2 py-1 rounded border border-red-200">
-                  Muscles highlighted in red on diagram
-                </div>
-              )}
-            </div>
-            
-            <div className="flex space-x-4">
-              <Button 
-                variant="outline" 
-                onClick={() => setSelectedFacialFeatures([])}
-                className="border-2 border-gray-300 hover:bg-gray-50"
-              >
-                Clear All
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setShowAnatomicalViewer(false)}
-                className="border-2 border-gray-300 hover:bg-gray-50"
-              >
-                Cancel
-              </Button>
-              <Button 
-                onClick={() => {
-                  const featuresText = selectedFacialFeatures.length > 0 
-                    ? `Professional anatomical examination completed - Selected muscles: ${selectedFacialFeatures.join(', ')}`
-                    : 'Professional anatomical examination completed';
-                  
-                  toast({
-                    title: "Professional Analysis Saved",
-                    description: featuresText,
-                  });
-                  
-                  setShowAnatomicalViewer(false);
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 shadow-lg"
-              >
-                Save Professional Analysis
-              </Button>
-            </div>
+          <div className="flex space-x-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setSelectedFacialFeatures([])}
+              className="border-2 border-gray-300 hover:bg-gray-50"
+            >
+              Clear All
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowAnatomicalViewer(false)}
+              className="border-2 border-gray-300 hover:bg-gray-50"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                const featuresText = selectedFacialFeatures.length > 0 
+                  ? `Professional anatomical examination completed - Selected muscles: ${selectedFacialFeatures.join(', ')}`
+                  : 'Professional anatomical examination completed';
+                
+                toast({
+                  title: "Professional Analysis Saved",
+                  description: featuresText,
+                });
+                
+                setShowAnatomicalViewer(false);
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 shadow-lg"
+            >
+              Save Professional Analysis
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
