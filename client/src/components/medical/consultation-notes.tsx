@@ -825,12 +825,13 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
           <div className="mb-6">
             <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg max-w-4xl mx-auto">
               <div className="bg-gradient-to-b from-blue-50 to-white rounded-lg p-4 min-h-[600px] flex items-center justify-center relative overflow-hidden">
-                {currentImageIndex === 0 ? (
+                <div className="w-full max-w-lg mx-auto relative">
                   <img 
-                    src={anatomicalDiagramImage}
-                    alt="Facial muscle anatomy diagram with detailed muscle labels"
-                    className="w-full max-w-lg mx-auto rounded-lg shadow-md"
-                    style={{
+                    key={currentImageIndex}
+                    src={currentImageIndex === 0 ? anatomicalDiagramImage : facialDiagramImage}
+                    alt={currentImageIndex === 0 ? "Facial muscle anatomy diagram with detailed muscle labels" : "Facial Anatomy Reference Diagram"}
+                    className="w-full mx-auto rounded-lg shadow-md transition-opacity duration-300"
+                    style={currentImageIndex === 0 ? {
                       height: '500px',
                       objectFit: 'cover',
                       objectPosition: 'center 40%',
@@ -839,14 +840,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                       transformOrigin: 'center',
                       filter: 'contrast(1.1) brightness(1.05) saturate(1.1)',
                       imageRendering: 'crisp-edges'
-                    }}
-                  />
-                ) : (
-                  <img 
-                    src={facialDiagramImage} 
-                    alt="Facial Anatomy Reference Diagram" 
-                    className="w-full max-w-lg mx-auto rounded-lg shadow-md"
-                    style={{
+                    } : {
                       height: '500px',
                       objectFit: 'contain',
                       objectPosition: 'center',
@@ -855,11 +849,18 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                       backgroundColor: 'white'
                     }}
                   />
-                )}
+                </div>
                 
                 {/* Left Arrow Button */}
                 <button
-                  onClick={() => setCurrentImageIndex(prev => prev === 0 ? 1 : 0)}
+                  onClick={() => {
+                    console.log("Left arrow clicked, currentImageIndex:", currentImageIndex);
+                    setCurrentImageIndex(prev => {
+                      const newIndex = prev === 0 ? 1 : 0;
+                      console.log("Setting new index:", newIndex);
+                      return newIndex;
+                    });
+                  }}
                   className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white border border-gray-300 rounded-full p-3 shadow-md hover:bg-gray-50 hover:shadow-lg transition-all duration-200"
                   title="Previous image"
                 >
@@ -878,7 +879,14 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
 
                 {/* Right Arrow Button */}
                 <button
-                  onClick={() => setCurrentImageIndex(prev => prev === 0 ? 1 : 0)}
+                  onClick={() => {
+                    console.log("Right arrow clicked, currentImageIndex:", currentImageIndex);
+                    setCurrentImageIndex(prev => {
+                      const newIndex = prev === 0 ? 1 : 0;
+                      console.log("Setting new index:", newIndex);
+                      return newIndex;
+                    });
+                  }}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white border border-gray-300 rounded-full p-3 shadow-md hover:bg-gray-50 hover:shadow-lg transition-all duration-200"
                   title="Next image"
                 >
