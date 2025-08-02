@@ -121,6 +121,7 @@ export function AIChatWidget() {
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
+  const [transcriptBuffer, setTranscriptBuffer] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -145,13 +146,15 @@ export function AIChatWidget() {
       
       recognition.onstart = () => {
         setIsListening(true);
+        setTranscriptBuffer("");
       };
       
       recognition.onresult = (event) => {
         let finalTranscript = '';
         let interimTranscript = '';
         
-        for (let i = event.resultIndex; i < event.results.length; i++) {
+        // Process ALL results from beginning, not just from resultIndex
+        for (let i = 0; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
             finalTranscript += transcript;
@@ -160,16 +163,21 @@ export function AIChatWidget() {
           }
         }
         
-        // Update input with final transcript, append to existing text
+        // Update transcript buffer with final results
         if (finalTranscript) {
-          setInput(prev => (prev + ' ' + finalTranscript).trim());
+          setTranscriptBuffer(prev => (prev + ' ' + finalTranscript).trim());
+          setInput(prev => {
+            const baseText = prev.replace(/\s*\[.*?\]\s*$/, ''); // Remove interim text
+            return (baseText + ' ' + finalTranscript).trim();
+          });
         }
         
-        // For interim results, show preview but don't save
-        if (interimTranscript && !finalTranscript) {
+        // Show interim results with accumulated transcript
+        if (interimTranscript) {
           setInput(prev => {
-            const baseText = prev.replace(/\s*\[.*?\]\s*$/, ''); // Remove any previous interim text
-            return (baseText + ' [' + interimTranscript + ']').trim();
+            const baseText = prev.replace(/\s*\[.*?\]\s*$/, ''); // Remove previous interim text
+            const fullTranscript = (transcriptBuffer + ' ' + interimTranscript).trim();
+            return (baseText + ' [' + fullTranscript + ']').trim();
           });
         }
       };
@@ -261,6 +269,7 @@ export function AIChatWidget() {
 
   const startVoiceRecognition = () => {
     if (recognition && !isListening) {
+      setTranscriptBuffer("");
       recognition.start();
       toast({
         title: "Listening...",
@@ -273,8 +282,12 @@ export function AIChatWidget() {
     if (recognition && isListening) {
       recognition.stop();
       setIsListening(false);
-      // Clean up any interim text in brackets
-      setInput(prev => prev.replace(/\s*\[.*?\]\s*$/, '').trim());
+      // Clean up any interim text in brackets and keep final transcript
+      setInput(prev => {
+        const cleanedText = prev.replace(/\s*\[.*?\]\s*$/, '').trim();
+        return transcriptBuffer ? (cleanedText + ' ' + transcriptBuffer).trim() : cleanedText;
+      });
+      setTranscriptBuffer("");
     }
   };
 
