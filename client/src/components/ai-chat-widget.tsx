@@ -93,18 +93,40 @@ export function AIChatWidget() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
       
-      recognition.continuous = false;
-      recognition.interimResults = false;
+      recognition.continuous = true;
+      recognition.interimResults = true;
       recognition.lang = 'en-US';
+      recognition.maxAlternatives = 1;
       
       recognition.onstart = () => {
         setIsListening(true);
       };
       
       recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        setInput(transcript);
-        setIsListening(false);
+        let finalTranscript = '';
+        let interimTranscript = '';
+        
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript;
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+        
+        // Update input with final transcript, append to existing text
+        if (finalTranscript) {
+          setInput(prev => (prev + ' ' + finalTranscript).trim());
+        }
+        
+        // For interim results, show preview but don't save
+        if (interimTranscript && !finalTranscript) {
+          setInput(prev => {
+            const baseText = prev.replace(/\s*\[.*?\]\s*$/, ''); // Remove any previous interim text
+            return (baseText + ' [' + interimTranscript + ']').trim();
+          });
+        }
       };
       
       recognition.onerror = (event) => {
@@ -206,6 +228,8 @@ export function AIChatWidget() {
     if (recognition && isListening) {
       recognition.stop();
       setIsListening(false);
+      // Clean up any interim text in brackets
+      setInput(prev => prev.replace(/\s*\[.*?\]\s*$/, '').trim());
     }
   };
 
