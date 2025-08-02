@@ -560,9 +560,9 @@ export default function Inventory() {
                           </TableCell>
                         </TableRow>
                       ) : (
-                        filteredItems.map(item => (
+                        filteredItems.map((item, index) => (
                           <TableRow key={item.id}>
-                            <TableCell className="font-medium">#{item.id}</TableCell>
+                            <TableCell className="font-medium">#{index + 1}</TableCell>
                             <TableCell>
                               <div>
                                 <div className="font-medium">{item.name}</div>
@@ -689,11 +689,11 @@ export default function Inventory() {
                           </TableCell>
                         </TableRow>
                       ) : (
-                        filteredStockEntries.map(entry => (
+                        filteredStockEntries.map((entry, index) => (
                           <TableRow key={entry.id}>
                             <TableCell>
                               <div>
-                                <div className="font-medium">#{entry.itemId} - {entry.itemName}</div>
+                                <div className="font-medium">#{index + 1} - {entry.itemName}</div>
                               </div>
                             </TableCell>
                             <TableCell className="font-mono text-sm">{entry.batchNumber}</TableCell>

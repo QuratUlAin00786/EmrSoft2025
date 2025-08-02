@@ -66,15 +66,18 @@ export default function AddItemDialog({ open, onOpenChange }: AddItemDialogProps
 
   const addItemMutation = useMutation({
     mutationFn: async (data: any) => {
-      await apiRequest("POST", "/api/inventory/items", {
+      // Ensure numeric fields have proper values
+      const itemData = {
         ...data,
-        categoryId: parseInt(data.categoryId),
-        packSize: parseInt(data.packSize),
-        currentStock: parseInt(data.currentStock),
-        minimumStock: parseInt(data.minimumStock),
-        maximumStock: parseInt(data.maximumStock),
-        reorderPoint: parseInt(data.reorderPoint),
-      });
+        categoryId: data.categoryId ? parseInt(data.categoryId) : null,
+        packSize: data.packSize ? parseInt(data.packSize) : 1,
+        currentStock: data.currentStock ? parseInt(data.currentStock) : 0,
+        minimumStock: data.minimumStock ? parseInt(data.minimumStock) : 10,
+        maximumStock: data.maximumStock ? parseInt(data.maximumStock) : 1000,
+        reorderPoint: data.reorderPoint ? parseInt(data.reorderPoint) : 20,
+      };
+      
+      await apiRequest("POST", "/api/inventory/items", itemData);
     },
     onSuccess: () => {
       toast({
