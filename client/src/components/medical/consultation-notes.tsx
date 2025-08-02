@@ -21,7 +21,7 @@ import { FileText, Plus, Calendar, User, Stethoscope, Pill, AlertTriangle, Mic, 
 import { format } from "date-fns";
 import type { MedicalRecord } from "@/types";
 import anatomicalDiagramImage from "@assets/image_1753778337429.png";
-import facialDiagramImage from "@assets/image_1753939397565.png";
+import facialDiagramImage from "@assets/1_1754125060560.png";
 
 const consultationSchema = z.object({
   type: z.enum(["consultation", "prescription", "lab_result", "imaging", "procedure"]),
@@ -842,13 +842,10 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                       imageRendering: 'crisp-edges',
                       backgroundColor: 'white'
                     } : {
-                      height: '500px',
+                      height: '400px',
                       objectFit: 'contain',
                       objectPosition: 'center',
-                      filter: 'contrast(1.1) brightness(1.3) saturate(1.1) invert(0)',
-                      imageRendering: 'crisp-edges',
-                      backgroundColor: 'white',
-                      mixBlendMode: 'multiply'
+                      backgroundColor: 'white'
                     }}
                   />
                 </div>
