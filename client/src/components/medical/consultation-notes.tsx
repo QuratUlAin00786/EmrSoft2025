@@ -848,11 +848,8 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     className="w-full max-w-lg mx-auto rounded-lg shadow-md"
                     style={{
                       height: '500px',
-                      objectFit: 'cover',
-                      objectPosition: 'center 40%',
-                      clipPath: 'inset(13% 19% 22% 19%)',
-                      transform: 'scale(1.5)',
-                      transformOrigin: 'center',
+                      objectFit: 'contain',
+                      objectPosition: 'center',
                       filter: 'contrast(1.1) brightness(1.05) saturate(1.1)',
                       imageRendering: 'crisp-edges',
                       backgroundColor: 'white'
