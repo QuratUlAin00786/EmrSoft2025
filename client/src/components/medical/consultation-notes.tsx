@@ -825,12 +825,12 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
           <div className="mb-6">
             <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg max-w-4xl mx-auto">
               <div className="bg-white rounded-lg p-4 min-h-[600px] flex items-center justify-center relative overflow-hidden">
-                <div className="w-full max-w-lg mx-auto relative">
+                <div className="w-full max-w-lg mx-auto relative bg-white p-4 rounded-lg">
                   <img 
                     key={currentImageIndex}
                     src={currentImageIndex === 0 ? anatomicalDiagramImage : facialDiagramImage}
                     alt={currentImageIndex === 0 ? "Facial muscle anatomy diagram with detailed muscle labels" : "Facial Anatomy Reference Diagram"}
-                    className="w-full mx-auto rounded-lg shadow-md transition-opacity duration-300"
+                    className="w-full mx-auto rounded-lg transition-opacity duration-300"
                     style={currentImageIndex === 0 ? {
                       height: '500px',
                       objectFit: 'cover',
