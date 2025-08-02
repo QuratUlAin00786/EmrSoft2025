@@ -931,9 +931,10 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                   <img 
                     src={anatomicalDiagramImage}
                     alt="Facial muscle anatomy diagram"
-                    className="w-full max-w-lg mx-auto rounded-lg shadow-md"
+                    className="mx-auto rounded-lg shadow-md"
                     style={{
-                      height: '500px',
+                      width: '320px',
+                      height: '400px',
                       objectFit: 'cover',
                       objectPosition: 'center 40%',
                       clipPath: 'inset(13% 19% 22% 19%)',
@@ -979,11 +980,16 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
               <div className="lg:col-span-1 bg-gradient-to-br from-green-50 to-blue-50 p-5 rounded-xl border-2 border-green-200 transition-all duration-500 transform animate-in slide-in-from-right">
                 
                 {/* Facial Diagram */}
-                <div className="flex justify-center mb-6">
+                <div className="bg-gradient-to-b from-green-50 to-white rounded-lg p-4 min-h-[600px] flex items-center justify-center mb-6">
                   <img 
                     src={facialDiagramImage} 
                     alt="Facial Anatomy Diagram" 
-                    className="w-64 h-80 object-contain rounded-lg"
+                    className="mx-auto rounded-lg shadow-md"
+                    style={{
+                      width: '320px',
+                      height: '400px',
+                      objectFit: 'contain'
+                    }}
                   />
                 </div>
 
