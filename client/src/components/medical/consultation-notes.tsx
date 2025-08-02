@@ -57,6 +57,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
   const [showAnatomicalViewer, setShowAnatomicalViewer] = useState(false);
   const [selectedFacialFeatures, setSelectedFacialFeatures] = useState<string[]>([]);
   const [showRightPanel, setShowRightPanel] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [symmetryRating, setSymmetryRating] = useState<number>(0);
   const [patientSignature, setPatientSignature] = useState<string>('');
@@ -820,36 +821,67 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
             <p className="text-gray-600 text-sm">Advanced facial muscle analysis and clinical documentation system</p>
           </DialogHeader>
           
-          {/* Two Images Side by Side */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {/* Left Image - Original Anatomical Diagram */}
-            <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg">
+          {/* Single Image with Sliding Navigation - Preserves All Labels */}
+          <div className="mb-6">
+            <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg max-w-4xl mx-auto">
               <div className="bg-gradient-to-b from-blue-50 to-white rounded-lg p-4 min-h-[600px] flex items-center justify-center relative">
-                <img 
-                  src={anatomicalDiagramImage}
-                  alt="Facial muscle anatomy diagram"
-                  className="w-full max-w-lg mx-auto rounded-lg shadow-md"
-                  style={{
-                    height: '500px',
-                    objectFit: 'cover',
-                    objectPosition: 'center 40%',
-                    clipPath: 'inset(13% 19% 22% 19%)',
-                    transform: 'scale(1.5)',
-                    transformOrigin: 'center',
-                    filter: 'contrast(1.1) brightness(1.05) saturate(1.1)',
-                    imageRendering: 'crisp-edges'
-                  }}
-                />
+                {currentImageIndex === 0 ? (
+                  <img 
+                    src={anatomicalDiagramImage}
+                    alt="Facial muscle anatomy diagram with detailed muscle labels"
+                    className="w-full max-w-lg mx-auto rounded-lg shadow-md"
+                    style={{
+                      height: '500px',
+                      objectFit: 'cover',
+                      objectPosition: 'center 40%',
+                      clipPath: 'inset(13% 19% 22% 19%)',
+                      transform: 'scale(1.5)',
+                      transformOrigin: 'center',
+                      filter: 'contrast(1.1) brightness(1.05) saturate(1.1)',
+                      imageRendering: 'crisp-edges'
+                    }}
+                  />
+                ) : (
+                  <img 
+                    src={facialDiagramImage} 
+                    alt="Facial Anatomy Reference Diagram" 
+                    className="w-full max-w-lg mx-auto rounded-lg shadow-md"
+                    style={{
+                      height: '500px',
+                      objectFit: 'contain',
+                      filter: 'contrast(1.1) brightness(1.05) saturate(1.1)'
+                    }}
+                  />
+                )}
                 
-                {/* Right Arrow Button - Navigate to adjacent window */}
+                {/* Left Arrow Button */}
                 <button
-                  onClick={() => setShowRightPanel(!showRightPanel)}
-                  className="absolute right-2 top-2 bg-white border border-gray-300 rounded-full p-2 shadow-md hover:bg-gray-50 hover:shadow-lg transition-all duration-200"
-                  title="Navigate to anatomical reference"
+                  onClick={() => setCurrentImageIndex(currentImageIndex === 0 ? 1 : 0)}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white border border-gray-300 rounded-full p-3 shadow-md hover:bg-gray-50 hover:shadow-lg transition-all duration-200"
+                  title="Previous image"
                 >
                   <svg 
-                    width="16" 
-                    height="16" 
+                    width="20" 
+                    height="20" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2"
+                    className="text-gray-600"
+                  >
+                    <path d="M15 18l-6-6 6-6" />
+                  </svg>
+                </button>
+
+                {/* Right Arrow Button */}
+                <button
+                  onClick={() => setCurrentImageIndex(currentImageIndex === 0 ? 1 : 0)}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white border border-gray-300 rounded-full p-3 shadow-md hover:bg-gray-50 hover:shadow-lg transition-all duration-200"
+                  title="Next image"
+                >
+                  <svg 
+                    width="20" 
+                    height="20" 
                     viewBox="0 0 24 24" 
                     fill="none" 
                     stroke="currentColor" 
@@ -859,37 +891,21 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     <path d="M9 18l6-6-6-6" />
                   </svg>
                 </button>
-              </div>
-              
-              {/* Professional Medical Diagram Label */}
-              <div className="mt-4 text-center">
-                <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-600 text-white text-sm font-semibold shadow-lg">
-                  <div className="w-3 h-3 bg-white rounded-full mr-2 animate-pulse"></div>
-                  Professional Medical Anatomical Diagram
+
+                {/* Image Indicator Dots */}
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                  <div className={`w-3 h-3 rounded-full transition-all duration-200 ${currentImageIndex === 0 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
+                  <div className={`w-3 h-3 rounded-full transition-all duration-200 ${currentImageIndex === 1 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
                 </div>
               </div>
-            </div>
-
-            {/* Right Image - Facial Diagram (Equal Size) */}
-            <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg">
-              <div className="bg-gradient-to-b from-green-50 to-white rounded-lg p-4 min-h-[600px] flex items-center justify-center relative">
-                <img 
-                  src={facialDiagramImage} 
-                  alt="Facial Anatomy Diagram" 
-                  className="w-full max-w-lg mx-auto rounded-lg shadow-md"
-                  style={{
-                    height: '500px',
-                    objectFit: 'contain',
-                    filter: 'contrast(1.1) brightness(1.05) saturate(1.1)'
-                  }}
-                />
-              </div>
               
-              {/* Anatomical Reference Label */}
+              {/* Dynamic Label based on current image */}
               <div className="mt-4 text-center">
-                <div className="inline-flex items-center px-4 py-2 rounded-full bg-green-600 text-white text-sm font-semibold shadow-lg">
+                <div className={`inline-flex items-center px-4 py-2 rounded-full text-white text-sm font-semibold shadow-lg transition-all duration-200 ${
+                  currentImageIndex === 0 ? 'bg-blue-600' : 'bg-green-600'
+                }`}>
                   <div className="w-3 h-3 bg-white rounded-full mr-2 animate-pulse"></div>
-                  Anatomical Reference Window
+                  {currentImageIndex === 0 ? 'Professional Medical Anatomical Diagram with Labels' : 'Anatomical Reference Window'}
                 </div>
               </div>
             </div>
