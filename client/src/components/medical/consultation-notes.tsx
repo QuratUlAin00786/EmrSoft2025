@@ -824,7 +824,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
           {/* Single Image with Sliding Navigation - Preserves All Labels */}
           <div className="mb-6">
             <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg max-w-4xl mx-auto">
-              <div className="bg-gradient-to-b from-blue-50 to-white rounded-lg p-4 min-h-[600px] flex items-center justify-center relative">
+              <div className="bg-gradient-to-b from-blue-50 to-white rounded-lg p-4 min-h-[600px] flex items-center justify-center relative overflow-hidden">
                 {currentImageIndex === 0 ? (
                   <img 
                     src={anatomicalDiagramImage}
@@ -859,7 +859,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                 
                 {/* Left Arrow Button */}
                 <button
-                  onClick={() => setCurrentImageIndex(currentImageIndex === 0 ? 1 : 0)}
+                  onClick={() => setCurrentImageIndex(prev => prev === 0 ? 1 : 0)}
                   className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white border border-gray-300 rounded-full p-3 shadow-md hover:bg-gray-50 hover:shadow-lg transition-all duration-200"
                   title="Previous image"
                 >
@@ -878,7 +878,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
 
                 {/* Right Arrow Button */}
                 <button
-                  onClick={() => setCurrentImageIndex(currentImageIndex === 0 ? 1 : 0)}
+                  onClick={() => setCurrentImageIndex(prev => prev === 0 ? 1 : 0)}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white border border-gray-300 rounded-full p-3 shadow-md hover:bg-gray-50 hover:shadow-lg transition-all duration-200"
                   title="Next image"
                 >
