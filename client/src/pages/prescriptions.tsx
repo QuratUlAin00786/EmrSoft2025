@@ -49,7 +49,7 @@ interface Prescription {
     genericAllowed: boolean;
   }>;
   diagnosis: string;
-  status: 'active' | 'completed' | 'cancelled' | 'pending';
+  status: 'active' | 'completed' | 'cancelled' | 'pending' | 'signed';
   prescribedAt: string;
   pharmacy?: {
     name: string;
@@ -164,6 +164,7 @@ const getStatusColor = (status: string) => {
     case 'completed': return 'bg-blue-100 text-blue-800';
     case 'cancelled': return 'bg-red-100 text-red-800';
     case 'pending': return 'bg-yellow-100 text-yellow-800';
+    case 'signed': return 'bg-purple-100 text-purple-800';
     default: return 'bg-gray-100 text-gray-800';
   }
 };
