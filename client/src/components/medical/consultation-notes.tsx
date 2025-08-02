@@ -20,7 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { FileText, Plus, Calendar, User, Stethoscope, Pill, AlertTriangle, Mic, Square } from "lucide-react";
 import { format } from "date-fns";
 import type { MedicalRecord } from "@/types";
-import anatomicalDiagramImage from "@assets/1_1754124133731.PNG";
+import anatomicalDiagramImage from "@assets/1_1754124133731.png";
 import facialDiagramImage from "@assets/image_1753939397565.png";
 
 const consultationSchema = z.object({
