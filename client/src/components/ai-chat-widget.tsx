@@ -15,10 +15,20 @@ import {
   MessageCircle,
   Loader2,
   Minimize2,
-  Maximize2
+  Maximize2,
+  Mic,
+  MicOff
 } from "lucide-react";
 import { format } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
+
+// TypeScript declarations for Web Speech API
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
+}
 
 interface Message {
   id: string;
@@ -64,6 +74,8 @@ export function AIChatWidget() {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -74,6 +86,44 @@ export function AIChatWidget() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Initialize speech recognition
+  useEffect(() => {
+    if (typeof window !== 'undefined' && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+      
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+      
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setInput(transcript);
+        setIsListening(false);
+      };
+      
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+        toast({
+          title: "Voice Recognition Error",
+          description: "Could not capture audio. Please try again.",
+          variant: "destructive",
+        });
+      };
+      
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+      
+      setRecognition(recognition);
+    }
+  }, [toast]);
 
   const handleSendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -139,6 +189,23 @@ export function AIChatWidget() {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  const startVoiceRecognition = () => {
+    if (recognition && !isListening) {
+      recognition.start();
+      toast({
+        title: "Listening...",
+        description: "Speak now to transcribe your message",
+      });
+    }
+  };
+
+  const stopVoiceRecognition = () => {
+    if (recognition && isListening) {
+      recognition.stop();
+      setIsListening(false);
     }
   };
 
@@ -333,14 +400,29 @@ export function AIChatWidget() {
             )}
 
             <div className="flex gap-2">
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask me anything..."
-                disabled={isLoading}
-                className="flex-1"
-              />
+              <div className="relative flex-1">
+                <Input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Ask me anything..."
+                  disabled={isLoading || isListening}
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={isListening ? stopVoiceRecognition : startVoiceRecognition}
+                  disabled={isLoading || !recognition}
+                  className={`absolute right-1 top-1 h-8 w-8 p-0 ${
+                    isListening ? 'text-red-500 animate-pulse' : 'text-muted-foreground hover:text-primary'
+                  }`}
+                  title={isListening ? 'Stop recording' : 'Start voice input'}
+                >
+                  {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                </Button>
+              </div>
               <Button
                 onClick={handleSendMessage}
                 disabled={!input.trim() || isLoading}
