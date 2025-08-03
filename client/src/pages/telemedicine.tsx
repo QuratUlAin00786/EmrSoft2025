@@ -1285,7 +1285,7 @@ export default function Telemedicine() {
         <TabsContent value="waiting" className="space-y-4">
           <div className="grid gap-4">
             {mockWaitingRoom.map((patient) => (
-              <Card key={patient.patientId} className={patient.priority === 'urgent' ? 'border-red-200 bg-red-50' : ''}>
+              <Card key={patient.patientId} className={patient.priority === 'urgent' ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20' : ''}>
                 <CardContent className="p-4">
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-3">
@@ -1295,8 +1295,8 @@ export default function Telemedicine() {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="font-medium">{patient.patientName}</div>
-                        <div className="text-sm text-gray-600">
+                        <div className="font-medium text-gray-900 dark:text-gray-100">{patient.patientName}</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-300">
                           Scheduled: {format(new Date(patient.appointmentTime), 'HH:mm')}
                         </div>
                       </div>
@@ -1304,7 +1304,7 @@ export default function Telemedicine() {
                     <div className="flex items-center gap-4">
                       <div className="text-center">
                         <div className="text-lg font-bold text-orange-600">{patient.waitTime}min</div>
-                        <div className="text-xs text-gray-500">Waiting</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Waiting</div>
                       </div>
                       {patient.priority === 'urgent' && (
                         <Badge variant="destructive">Urgent</Badge>
@@ -1432,10 +1432,10 @@ export default function Telemedicine() {
           <div className="grid gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>Remote Patient Monitoring</CardTitle>
+                <CardTitle className="text-gray-900 dark:text-gray-100">Remote Patient Monitoring</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 mb-4">
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
                   Monitor patients remotely with connected devices and real-time health data.
                 </p>
                 <Dialog open={monitoringOpen} onOpenChange={setMonitoringOpen}>
@@ -1470,32 +1470,32 @@ export default function Telemedicine() {
                       <div className="space-y-2">
                         <Label>Monitoring Type</Label>
                         <div className="grid grid-cols-2 gap-3">
-                          <div className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                          <div className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700">
                             <input type="checkbox" id="vital-signs" className="rounded" />
                             <div>
-                              <Label htmlFor="vital-signs" className="font-medium cursor-pointer">Vital Signs</Label>
-                              <p className="text-sm text-gray-600">Blood pressure, heart rate, temperature</p>
+                              <Label htmlFor="vital-signs" className="font-medium cursor-pointer text-gray-900 dark:text-gray-100">Vital Signs</Label>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">Blood pressure, heart rate, temperature</p>
                             </div>
                           </div>
-                          <div className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                          <div className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700">
                             <input type="checkbox" id="glucose" className="rounded" />
                             <div>
-                              <Label htmlFor="glucose" className="font-medium cursor-pointer">Blood Glucose</Label>
-                              <p className="text-sm text-gray-600">Continuous glucose monitoring</p>
+                              <Label htmlFor="glucose" className="font-medium cursor-pointer text-gray-900 dark:text-gray-100">Blood Glucose</Label>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">Continuous glucose monitoring</p>
                             </div>
                           </div>
-                          <div className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                          <div className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700">
                             <input type="checkbox" id="weight" className="rounded" />
                             <div>
-                              <Label htmlFor="weight" className="font-medium cursor-pointer">Weight Tracking</Label>
-                              <p className="text-sm text-gray-600">Daily weight measurements</p>
+                              <Label htmlFor="weight" className="font-medium cursor-pointer text-gray-900 dark:text-gray-100">Weight Tracking</Label>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">Daily weight measurements</p>
                             </div>
                           </div>
-                          <div className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                          <div className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700">
                             <input type="checkbox" id="activity" className="rounded" />
                             <div>
-                              <Label htmlFor="activity" className="font-medium cursor-pointer">Activity Level</Label>
-                              <p className="text-sm text-gray-600">Steps, exercise, sleep patterns</p>
+                              <Label htmlFor="activity" className="font-medium cursor-pointer text-gray-900 dark:text-gray-100">Activity Level</Label>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">Steps, exercise, sleep patterns</p>
                             </div>
                           </div>
                         </div>
@@ -1509,8 +1509,8 @@ export default function Telemedicine() {
                             <div className="flex items-center space-x-3">
                               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                               <div>
-                                <p className="font-medium">Blood Pressure Monitor</p>
-                                <p className="text-sm text-gray-600">Omron HeartGuide - Connected</p>
+                                <p className="font-medium text-gray-900 dark:text-gray-100">Blood Pressure Monitor</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-300">Omron HeartGuide - Connected</p>
                               </div>
                             </div>
                             <Button variant="outline" size="sm">Configure</Button>
@@ -1519,8 +1519,8 @@ export default function Telemedicine() {
                             <div className="flex items-center space-x-3">
                               <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
                               <div>
-                                <p className="font-medium">Glucose Meter</p>
-                                <p className="text-sm text-gray-600">Dexcom G7 - Pairing Required</p>
+                                <p className="font-medium text-gray-900 dark:text-gray-100">Glucose Meter</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-300">Dexcom G7 - Pairing Required</p>
                               </div>
                             </div>
                             <Button variant="outline" size="sm">Pair Device</Button>
@@ -1529,8 +1529,8 @@ export default function Telemedicine() {
                             <div className="flex items-center space-x-3">
                               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                               <div>
-                                <p className="font-medium">Smart Scale</p>
-                                <p className="text-sm text-gray-600">Withings Body+ - Connected</p>
+                                <p className="font-medium text-gray-900 dark:text-gray-100">Smart Scale</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-300">Withings Body+ - Connected</p>
                               </div>
                             </div>
                             <Button variant="outline" size="sm">Configure</Button>
@@ -1539,8 +1539,8 @@ export default function Telemedicine() {
                             <div className="flex items-center space-x-3">
                               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                               <div>
-                                <p className="font-medium">Fitness Tracker</p>
-                                <p className="text-sm text-gray-600">Apple Watch Series 9 - Connected</p>
+                                <p className="font-medium text-gray-900 dark:text-gray-100">Fitness Tracker</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-300">Apple Watch Series 9 - Connected</p>
                               </div>
                             </div>
                             <Button variant="outline" size="sm">Configure</Button>
@@ -1742,11 +1742,11 @@ export default function Telemedicine() {
             {/* IoT Cardiac Device Monitoring Dashboard */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
+                <CardTitle className="flex items-center space-x-2 text-gray-900 dark:text-gray-100">
                   <Heart className="w-5 h-5 text-red-600" />
                   <span>IoT Cardiac Device Monitoring</span>
                 </CardTitle>
-                <p className="text-sm text-gray-600">Real-time monitoring of connected cardiac devices</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">Real-time monitoring of connected cardiac devices</p>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1781,13 +1781,13 @@ export default function Telemedicine() {
                         </div>
                         
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-gray-50 p-3 rounded">
-                            <div className="text-sm text-gray-600">Rhythm</div>
-                            <div className="font-semibold">Normal Sinus</div>
+                          <div className="bg-gray-50 dark:bg-slate-700 p-3 rounded">
+                            <div className="text-sm text-gray-600 dark:text-gray-300">Rhythm</div>
+                            <div className="font-semibold text-gray-900 dark:text-gray-100">Normal Sinus</div>
                           </div>
-                          <div className="bg-gray-50 p-3 rounded">
-                            <div className="text-sm text-gray-600">QT Interval</div>
-                            <div className="font-semibold">420ms</div>
+                          <div className="bg-gray-50 dark:bg-slate-700 p-3 rounded">
+                            <div className="text-sm text-gray-600 dark:text-gray-300">QT Interval</div>
+                            <div className="font-semibold text-gray-900 dark:text-gray-100">420ms</div>
                           </div>
                         </div>
                       </div>
@@ -1797,49 +1797,49 @@ export default function Telemedicine() {
                   {/* Device Status Overview */}
                   <Card>
                     <CardHeader className="pb-3">
-                      <CardTitle className="text-lg">Device Status Overview</CardTitle>
+                      <CardTitle className="text-lg text-gray-900 dark:text-gray-100">Device Status Overview</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
                           <div className="flex items-center space-x-3">
                             <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                             <div>
-                              <p className="font-medium">Holter Monitor</p>
-                              <p className="text-sm text-gray-600">Last transmission: 2 min ago</p>
+                              <p className="font-medium text-gray-900 dark:text-gray-100">Holter Monitor</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">Last transmission: 2 min ago</p>
                             </div>
                           </div>
                           <Badge className="bg-green-100 text-green-800">Active</Badge>
                         </div>
                         
-                        <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                           <div className="flex items-center space-x-3">
                             <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
                             <div>
-                              <p className="font-medium">Pacemaker</p>
-                              <p className="text-sm text-gray-600">Battery: 89% | Last check: 1 hour ago</p>
+                              <p className="font-medium text-gray-900 dark:text-gray-100">Pacemaker</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">Battery: 89% | Last check: 1 hour ago</p>
                             </div>
                           </div>
                           <Badge className="bg-blue-100 text-blue-800">Normal</Badge>
                         </div>
                         
-                        <div className="flex items-center justify-between p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                        <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
                           <div className="flex items-center space-x-3">
                             <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse"></div>
                             <div>
-                              <p className="font-medium">ECG Patch</p>
-                              <p className="text-sm text-gray-600">Recording day 3 of 14</p>
+                              <p className="font-medium text-gray-900 dark:text-gray-100">ECG Patch</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">Recording day 3 of 14</p>
                             </div>
                           </div>
                           <Badge className="bg-purple-100 text-purple-800">Recording</Badge>
                         </div>
                         
-                        <div className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                        <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
                           <div className="flex items-center space-x-3">
                             <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
                             <div>
-                              <p className="font-medium">Cardiac Monitor</p>
-                              <p className="text-sm text-gray-600">Sync pending</p>
+                              <p className="font-medium text-gray-900 dark:text-gray-100">Cardiac Monitor</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">Sync pending</p>
                             </div>
                           </div>
                           <Badge className="bg-orange-100 text-orange-800">Syncing</Badge>
@@ -1851,35 +1851,35 @@ export default function Telemedicine() {
                   {/* Vital Signs Monitoring */}
                   <Card>
                     <CardHeader className="pb-3">
-                      <CardTitle className="text-lg">Current Vital Signs</CardTitle>
+                      <CardTitle className="text-lg text-gray-900 dark:text-gray-100">Current Vital Signs</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="grid grid-cols-2 gap-4">
-                        <div className="text-center p-4 bg-red-50 rounded-lg">
+                        <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
                           <Heart className="w-8 h-8 text-red-600 mx-auto mb-2" />
                           <div className="text-2xl font-bold text-red-600">72</div>
-                          <div className="text-sm text-gray-600">Heart Rate (BPM)</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-300">Heart Rate (BPM)</div>
                           <Badge className="mt-1 bg-green-100 text-green-800">Normal</Badge>
                         </div>
                         
-                        <div className="text-center p-4 bg-blue-50 rounded-lg">
+                        <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                           <Activity className="w-8 h-8 text-blue-600 mx-auto mb-2" />
                           <div className="text-2xl font-bold text-blue-600">118/76</div>
-                          <div className="text-sm text-gray-600">Blood Pressure</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-300">Blood Pressure</div>
                           <Badge className="mt-1 bg-green-100 text-green-800">Normal</Badge>
                         </div>
                         
-                        <div className="text-center p-4 bg-purple-50 rounded-lg">
+                        <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                           <Monitor className="w-8 h-8 text-purple-600 mx-auto mb-2" />
                           <div className="text-2xl font-bold text-purple-600">98%</div>
-                          <div className="text-sm text-gray-600">O2 Saturation</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-300">O2 Saturation</div>
                           <Badge className="mt-1 bg-green-100 text-green-800">Normal</Badge>
                         </div>
                         
-                        <div className="text-center p-4 bg-green-50 rounded-lg">
+                        <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                           <Stethoscope className="w-8 h-8 text-green-600 mx-auto mb-2" />
                           <div className="text-2xl font-bold text-green-600">16</div>
-                          <div className="text-sm text-gray-600">Resp. Rate</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-300">Resp. Rate</div>
                           <Badge className="mt-1 bg-green-100 text-green-800">Normal</Badge>
                         </div>
                       </div>
