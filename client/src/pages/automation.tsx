@@ -174,7 +174,7 @@ export default function AutomationPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
-        return <Badge className="bg-green-100 text-green-800">Active</Badge>;
+        return <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">Active</Badge>;
       case 'paused':
         return <Badge variant="secondary">Paused</Badge>;
       case 'draft':
@@ -224,8 +224,8 @@ export default function AutomationPage() {
             <span>Back</span>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Automation</h1>
-            <p className="text-gray-600 mt-1">Streamline workflows with intelligent automation</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Automation</h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">Streamline workflows with intelligent automation</p>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -355,8 +355,8 @@ export default function AutomationPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Rules</p>
-                <p className="text-2xl font-bold">{stats.totalRules}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Rules</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.totalRules}</p>
               </div>
               <Settings className="h-8 w-8 text-blue-500" />
             </div>
@@ -367,8 +367,8 @@ export default function AutomationPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Active Rules</p>
-                <p className="text-2xl font-bold">{stats.activeRules}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Active Rules</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.activeRules}</p>
               </div>
               <CheckCircle className="h-8 w-8 text-green-500" />
             </div>
@@ -379,8 +379,8 @@ export default function AutomationPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Success Rate</p>
-                <p className="text-2xl font-bold">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Success Rate</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                   {stats.totalTriggers > 0 ? Math.round((stats.successfulExecutions / stats.totalTriggers) * 100) : 0}%
                 </p>
               </div>
@@ -393,8 +393,8 @@ export default function AutomationPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Avg Response</p>
-                <p className="text-2xl font-bold">{stats.averageResponseTime}s</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Avg Response</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.averageResponseTime}s</p>
               </div>
               <Clock className="h-8 w-8 text-purple-500" />
             </div>
@@ -444,10 +444,10 @@ export default function AutomationPage() {
             {filteredRules.length === 0 ? (
               <Card>
                 <CardContent className="p-8 text-center">
-                  <div className="text-gray-500">
+                  <div className="text-gray-500 dark:text-gray-400">
                     <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <h3 className="text-lg font-medium mb-2">No automation rules found</h3>
-                    <p className="text-sm">Create your first automation rule to streamline your workflows.</p>
+                    <h3 className="text-lg font-medium mb-2 text-gray-900 dark:text-gray-100">No automation rules found</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">Create your first automation rule to streamline your workflows.</p>
                   </div>
                 </CardContent>
               </Card>
@@ -462,38 +462,38 @@ export default function AutomationPage() {
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <h3 className="font-semibold text-lg">{rule.name}</h3>
+                            <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">{rule.name}</h3>
                             {getStatusBadge(rule.status)}
                             <Badge variant="outline" className="text-xs">
                               {rule.category}
                             </Badge>
                           </div>
-                          <p className="text-gray-600 mb-3">{rule.description}</p>
+                          <p className="text-gray-600 dark:text-gray-300 mb-3">{rule.description}</p>
                           
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                             <div>
-                              <span className="text-gray-500">Triggered:</span>
-                              <span className="ml-2 font-medium">{rule.triggerCount} times</span>
+                              <span className="text-gray-500 dark:text-gray-400">Triggered:</span>
+                              <span className="ml-2 font-medium text-gray-900 dark:text-gray-100">{rule.triggerCount} times</span>
                             </div>
                             <div>
-                              <span className="text-gray-500">Success Rate:</span>
-                              <span className="ml-2 font-medium">{rule.successRate}%</span>
+                              <span className="text-gray-500 dark:text-gray-400">Success Rate:</span>
+                              <span className="ml-2 font-medium text-gray-900 dark:text-gray-100">{rule.successRate}%</span>
                             </div>
                             <div>
-                              <span className="text-gray-500">Last Run:</span>
-                              <span className="ml-2 font-medium">
+                              <span className="text-gray-500 dark:text-gray-400">Last Run:</span>
+                              <span className="ml-2 font-medium text-gray-900 dark:text-gray-100">
                                 {rule.lastTriggered ? format(new Date(rule.lastTriggered), 'MMM d, HH:mm') : 'Never'}
                               </span>
                             </div>
                             <div>
-                              <span className="text-gray-500">Actions:</span>
-                              <span className="ml-2 font-medium">{rule.actions.length}</span>
+                              <span className="text-gray-500 dark:text-gray-400">Actions:</span>
+                              <span className="ml-2 font-medium text-gray-900 dark:text-gray-100">{rule.actions.length}</span>
                             </div>
                           </div>
 
                           {rule.actions.length > 0 && (
                             <div className="mt-4">
-                              <div className="text-sm text-gray-600 mb-2">Actions:</div>
+                              <div className="text-sm text-gray-600 dark:text-gray-300 mb-2">Actions:</div>
                               <div className="flex flex-wrap gap-2">
                                 {rule.actions.map((action: any, index: number) => (
                                   <Badge key={index} variant="secondary" className="text-xs">
@@ -533,7 +533,7 @@ export default function AutomationPage() {
               <CardTitle>Performance Overview</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center text-gray-500 py-8">
+              <div className="text-center text-gray-500 dark:text-gray-400 py-8">
                 Performance analytics will be displayed here once automation rules are created and executed.
               </div>
             </CardContent>
@@ -548,7 +548,7 @@ export default function AutomationPage() {
             <CardContent>
               <div className="space-y-4">
                 {stats.recentActivity.length === 0 ? (
-                  <div className="text-center text-gray-500 py-8">
+                  <div className="text-center text-gray-500 dark:text-gray-400 py-8">
                     No recent automation activity found.
                   </div>
                 ) : (
@@ -560,7 +560,7 @@ export default function AutomationPage() {
                       }`}></div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium">{activity.ruleName}</span>
+                          <span className="font-medium text-gray-900 dark:text-gray-100">{activity.ruleName}</span>
                           <Badge variant="outline" className="text-xs">
                             {activity.trigger}
                           </Badge>
@@ -568,11 +568,11 @@ export default function AutomationPage() {
                             {activity.action}
                           </Badge>
                         </div>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-gray-600 dark:text-gray-300">
                           {activity.details}
                         </div>
                       </div>
-                      <div className="text-right text-sm text-gray-500">
+                      <div className="text-right text-sm text-gray-500 dark:text-gray-400">
                         {format(new Date(activity.timestamp), 'MMM d, HH:mm')}
                       </div>
                     </div>
