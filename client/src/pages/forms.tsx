@@ -3146,32 +3146,23 @@ export default function Forms() {
           </Button>
         </div>
         
-        {/* Save Button - Prominent and easily accessible */}
-        <div className="flex justify-center items-center mt-2 gap-2">
+        {/* Save and View buttons - matching toolbar style */}
+        <div className="flex justify-center items-center gap-1">
           <Button 
-            variant="default" 
+            variant="outline" 
             size="sm" 
-            className="!bg-teal-600 hover:!bg-teal-700 dark:!bg-teal-600 dark:hover:!bg-teal-700 !text-white dark:!text-white px-4 py-2 text-sm font-medium !border-none"
+            className="text-xs h-5 px-2 border border-gray-300 dark:border-gray-600 bg-teal-600 hover:bg-teal-700 text-white hover:text-white dark:bg-teal-600 dark:hover:bg-teal-700 dark:text-white dark:hover:text-white"
             onClick={handleSave}
-            style={{
-              backgroundColor: '#0d9488 !important',
-              color: 'white !important',
-              border: 'none !important'
-            }}
           >
-            💾 Save Template
+            Save Template
           </Button>
           <Button 
             variant="outline" 
             size="sm" 
-            className="!border-teal-600 dark:!border-teal-400 !text-teal-600 dark:!text-teal-400 hover:!bg-teal-50 dark:hover:!bg-teal-900/30 px-4 py-2 text-sm font-medium"
+            className="text-xs h-5 px-2 border border-gray-300 dark:border-gray-600 dark:text-gray-300 dark:hover:text-white"
             onClick={() => setShowSavedTemplatesDialog(true)}
-            style={{
-              borderColor: '#0d9488 !important',
-              color: '#0d9488 !important'
-            }}
           >
-            📋 View Saved Templates
+            View Saved Templates
           </Button>
         </div>
       </div>
