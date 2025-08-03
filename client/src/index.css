@@ -108,6 +108,16 @@
     background: linear-gradient(135deg, var(--medical-blue), hsl(210, 100%, 56%));
   }
   
+  /* Force exact button styling to match medical data buttons */
+  .force-small-button {
+    height: 1.25rem !important;
+    min-height: 1.25rem !important;
+    padding: 0 0.5rem !important;
+    font-size: 0.75rem !important;
+    line-height: 1rem !important;
+    font-weight: 500 !important;
+  }
+  
   .ai-gradient {
     background: linear-gradient(135deg, hsl(270, 100%, 60%), hsl(210, 100%, 46%));
   }
