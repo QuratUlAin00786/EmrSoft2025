@@ -2662,11 +2662,11 @@ export default function Forms() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="h-screen flex flex-col bg-gray-50 dark:bg-slate-900">
       {/* Scrollable Content Wrapper */}
       <div className="flex-1 overflow-y-auto">
         {/* Top Header - exact match to Semble */}
-        <div className="bg-white border-b border-gray-200 px-3 py-2 flex-shrink-0">
+        <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-600 px-3 py-2 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => toast({ title: "Letters", description: "Navigating back to letters list." })}>
@@ -2680,20 +2680,20 @@ export default function Forms() {
               Save as draft
             </Button>
           </div>
-          <div className="text-xs text-gray-600">Letter body</div>
+          <div className="text-xs text-gray-600 dark:text-gray-300">Letter body</div>
           <div className="flex items-center space-x-2">
-            <span className="text-xs text-gray-600 cursor-pointer">Select Patient...</span>
-            <span className="text-xs text-gray-600 cursor-pointer">New Chris...</span>
-            <span className="text-xs text-gray-600 cursor-pointer">Share this...</span>
+            <span className="text-xs text-gray-600 dark:text-gray-300 cursor-pointer">Select Patient...</span>
+            <span className="text-xs text-gray-600 dark:text-gray-300 cursor-pointer">New Chris...</span>
+            <span className="text-xs text-gray-600 dark:text-gray-300 cursor-pointer">Share this...</span>
           </div>
         </div>
       </div>
 
       {/* Form Fields Section - Collapsible */}
-      <div className="bg-gray-50 border-b border-gray-200">
+      <div className="bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-600">
         {/* Toggle Header */}
         <div className="px-4 py-2 flex items-center justify-between cursor-pointer" onClick={() => setShowFormFields(!showFormFields)}>
-          <span className="text-sm font-medium text-gray-700">Letter Details</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Letter Details</span>
           <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
             {showFormFields ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </Button>
@@ -2704,18 +2704,18 @@ export default function Forms() {
           <div className="px-4 pb-4">
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Subject</label>
                 <input
                   type="text"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                   placeholder="Enter subject"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Recipient (optional)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Recipient (optional)</label>
                 <input
                   type="text"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                   placeholder="Enter recipient"
                 />
               </div>
@@ -2723,7 +2723,7 @@ export default function Forms() {
             
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Location (optional)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location (optional)</label>
                 <Select>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select..." />
@@ -2736,10 +2736,10 @@ export default function Forms() {
                 </Select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Copied in recipients (optional)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Copied in recipients (optional)</label>
                 <input
                   type="text"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                   placeholder="Enter copied recipients"
                 />
               </div>
@@ -2747,7 +2747,7 @@ export default function Forms() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Practitioner (optional)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Practitioner (optional)</label>
                 <Select>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select practitioner" />
@@ -2760,7 +2760,7 @@ export default function Forms() {
                 </Select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Select Header</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Select Header</label>
                 <Select>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Your Clinic" />
@@ -2779,11 +2779,11 @@ export default function Forms() {
       </div>
 
       {/* Clinical Header Selection - Create the Letter */}
-      <div className="bg-white border-b border-gray-200 px-4 py-4">
+      <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-600 px-4 py-4">
         <div className="flex flex-col items-center">
-          <h3 className="text-sm font-medium text-gray-900 mb-3">Create the Letter</h3>
+          <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Create the Letter</h3>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-2 text-center">Select Header</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 text-center">Select Header</label>
             <Select value={selectedHeader} onValueChange={setSelectedHeader}>
               <SelectTrigger style={{ width: '700px' }}>
                 <SelectValue placeholder="Your Clinic" />
@@ -2801,13 +2801,13 @@ export default function Forms() {
           </div>
           
           {/* Header Preview Area */}
-          <div className="mt-4 p-6 bg-gray-50 border border-gray-200 rounded text-center relative" style={{ width: '700px' }}>
+          <div className="mt-4 p-6 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded text-center relative" style={{ width: '700px' }}>
             {selectedHeader === "your-clinic" ? (
               <div>
-                <div className="text-teal-600 text-lg font-semibold">🏥 {clinicInfo.name}</div>
-                <div className="text-sm text-gray-600 mt-1">{clinicInfo.address}</div>
-                <div className="text-sm text-gray-600">{clinicInfo.phone} • {clinicInfo.email}</div>
-                <div className="text-sm text-gray-600">{clinicInfo.website}</div>
+                <div className="text-teal-600 dark:text-teal-400 text-lg font-semibold">🏥 {clinicInfo.name}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">{clinicInfo.address}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">{clinicInfo.phone} • {clinicInfo.email}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">{clinicInfo.website}</div>
                 
                 {/* Edit Button */}
                 <Dialog open={showEditClinic} onOpenChange={setShowEditClinic}>
@@ -2895,7 +2895,7 @@ export default function Forms() {
       </div>
 
       {/* Toolbar - exact match to Semble with all visible options */}
-      <div className="bg-white border-b border-gray-200 px-2 py-2 flex-shrink-0">
+      <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-600 px-2 py-2 flex-shrink-0">
         {/* Main formatting row */}
         <div className="flex justify-center items-center gap-0.5 mb-2">
           {/* Font controls */}
@@ -2986,54 +2986,54 @@ export default function Forms() {
             </SelectContent>
           </Select>
           
-          <div className="h-4 w-px bg-gray-300 mx-1"></div>
+          <div className="h-4 w-px bg-gray-300 dark:bg-slate-600 mx-1"></div>
           
           {/* Text formatting - more visible */}
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleBold}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200 dark:border-slate-600" onClick={handleBold}>
             <Bold className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleItalic}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200 dark:border-slate-600" onClick={handleItalic}>
             <Italic className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleUnderline}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200 dark:border-slate-600" onClick={handleUnderline}>
             <Underline className="h-3 w-3" />
           </Button>
           
-          <div className="h-4 w-px bg-gray-300 mx-1"></div>
+          <div className="h-4 w-px bg-gray-300 dark:bg-slate-600 mx-1"></div>
           
           {/* Lists */}
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleBulletList}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200 dark:border-slate-600" onClick={handleBulletList}>
             <List className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleNumberedList}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200 dark:border-slate-600" onClick={handleNumberedList}>
             <ListOrdered className="h-3 w-3" />
           </Button>
           
-          <div className="h-4 w-px bg-gray-300 mx-1"></div>
+          <div className="h-4 w-px bg-gray-300 dark:bg-slate-600 mx-1"></div>
           
           {/* Alignment */}
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleAlignLeft}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200 dark:border-slate-600" onClick={handleAlignLeft}>
             <AlignLeft className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleAlignCenter}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200 dark:border-slate-600" onClick={handleAlignCenter}>
             <AlignCenter className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleAlignRight}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200 dark:border-slate-600" onClick={handleAlignRight}>
             <AlignRight className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleAlignJustify}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200 dark:border-slate-600" onClick={handleAlignJustify}>
             <AlignJustify className="h-3 w-3" />
           </Button>
           
-          <div className="h-4 w-px bg-gray-300 mx-1"></div>
+          <div className="h-4 w-px bg-gray-300 dark:bg-slate-600 mx-1"></div>
           
           {/* Text color and tools */}
           <div className="relative">
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={() => setShowColorPicker(!showColorPicker)}>
+            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200 dark:border-slate-600" onClick={() => setShowColorPicker(!showColorPicker)}>
               <Type className="h-3 w-3" />
             </Button>
             {showColorPicker && (
-              <div className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded shadow-lg p-2 z-50">
+              <div className="absolute top-full left-0 mt-1 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded shadow-lg p-2 z-50">
                 <div className="grid grid-cols-8 gap-1">
                   {[
                     '#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#FFFFFF',
@@ -3168,9 +3168,9 @@ export default function Forms() {
       </div>
 
       {/* Document Editor - expandable page layout */}
-      <div className="flex-1 bg-gray-100 overflow-y-auto min-h-0">
+      <div className="flex-1 bg-gray-100 dark:bg-slate-900 overflow-y-auto min-h-0">
         <div className="h-full flex items-start justify-center p-4">
-          <div className="bg-white shadow-sm border border-gray-300 min-h-[600px]" style={{ width: '700px', maxWidth: '700px' }}>
+          <div className="bg-white dark:bg-slate-700 shadow-sm border border-gray-300 dark:border-slate-600 min-h-[600px]" style={{ width: '700px', maxWidth: '700px' }}>
             <div className="p-6">
               <div
                 ref={(el) => {
@@ -3198,7 +3198,7 @@ export default function Forms() {
                     }
                   }
                 }}
-                className="w-full border-none outline-none text-black leading-normal bg-transparent focus:outline-none"
+                className="w-full border-none outline-none text-black dark:text-gray-100 leading-normal bg-transparent focus:outline-none"
                 style={{ 
                   fontSize: fontSize,
                   lineHeight: '1.6',
