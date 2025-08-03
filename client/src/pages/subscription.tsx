@@ -238,18 +238,18 @@ export default function Subscription() {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
-                    <p className="text-sm text-neutral-600">Plan</p>
-                    <p className="text-xl font-semibold capitalize">
+                    <p className="text-sm text-neutral-600 dark:text-gray-400">Plan</p>
+                    <p className="text-xl font-semibold capitalize text-gray-900 dark:text-gray-100">
                       {subscription.plan}
                     </p>
                     <Badge 
                       variant="secondary"
                       className={
                         subscription.status === 'active' 
-                          ? "bg-green-100 text-green-800" 
+                          ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300" 
                           : subscription.status === 'trial'
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-yellow-100 text-yellow-800"
+                          ? "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
+                          : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300"
                       }
                     >
                       {subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1)}
@@ -257,11 +257,11 @@ export default function Subscription() {
                   </div>
                   
                   <div>
-                    <p className="text-sm text-neutral-600">Users</p>
-                    <p className="text-xl font-semibold">
+                    <p className="text-sm text-neutral-600 dark:text-gray-400">Users</p>
+                    <p className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                       {subscription.currentUsers} / {subscription.userLimit}
                     </p>
-                    <div className="w-full bg-neutral-200 rounded-full h-2 mt-2">
+                    <div className="w-full bg-neutral-200 dark:bg-slate-700 rounded-full h-2 mt-2">
                       <div 
                         className="bg-medical-blue h-2 rounded-full" 
                         style={{ 
@@ -272,10 +272,10 @@ export default function Subscription() {
                   </div>
                   
                   <div>
-                    <p className="text-sm text-neutral-600">
+                    <p className="text-sm text-neutral-600 dark:text-gray-400">
                       {subscription.status === 'trial' ? 'Trial Ends' : 'Next Billing'}
                     </p>
-                    <p className="text-xl font-semibold">
+                    <p className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                       {subscription.status === 'trial' 
                         ? new Date(subscription.trialEndsAt!).toLocaleDateString()
                         : subscription.nextBillingAt 
@@ -284,7 +284,7 @@ export default function Subscription() {
                       }
                     </p>
                     {subscription.monthlyPrice && (
-                      <p className="text-sm text-neutral-600">
+                      <p className="text-sm text-neutral-600 dark:text-gray-400">
                         £{subscription.monthlyPrice}/month
                       </p>
                     )}
@@ -296,7 +296,7 @@ export default function Subscription() {
 
           {/* Available Plans */}
           <div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-6">Available Plans</h3>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Available Plans</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {plans.map((plan) => (
                 <Card 
@@ -318,10 +318,10 @@ export default function Subscription() {
                   <CardHeader className="text-center">
                     <CardTitle className="text-xl">{plan.name}</CardTitle>
                     <div className="mt-4">
-                      <span className="text-4xl font-bold">£{plan.price}</span>
-                      <span className="text-neutral-600">/month</span>
+                      <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">£{plan.price}</span>
+                      <span className="text-neutral-600 dark:text-gray-400">/month</span>
                     </div>
-                    <p className="text-sm text-neutral-600 flex items-center justify-center space-x-1">
+                    <p className="text-sm text-neutral-600 dark:text-gray-400 flex items-center justify-center space-x-1">
                       <Users className="h-4 w-4" />
                       <span>Up to {plan.userLimit} users</span>
                     </p>
@@ -332,14 +332,14 @@ export default function Subscription() {
                       {plan.features.map((feature, index) => (
                         <div key={index} className="flex items-center space-x-2">
                           <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                          <span className="text-sm">{feature}</span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">{feature}</span>
                         </div>
                       ))}
                       
                       {plan.notIncluded.map((feature, index) => (
                         <div key={index} className="flex items-center space-x-2 opacity-50">
                           <X className="h-4 w-4 text-red-500 flex-shrink-0" />
-                          <span className="text-sm">{feature}</span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">{feature}</span>
                         </div>
                       ))}
                     </div>
@@ -375,8 +375,8 @@ export default function Subscription() {
           {/* Add-on Packages */}
           <div>
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold mb-4">Add-on Packages</h2>
-              <p className="text-neutral-600 max-w-2xl mx-auto">
+              <h2 className="text-3xl font-bold mb-4 text-gray-900 dark:text-gray-100">Add-on Packages</h2>
+              <p className="text-neutral-600 dark:text-gray-400 max-w-2xl mx-auto">
                 Enhance your EMR system with specialized packages designed for modern healthcare practices.
                 Mix and match to create the perfect solution for your organization.
               </p>
@@ -386,23 +386,23 @@ export default function Subscription() {
               {packages.map((pkg) => {
                 const IconComponent = pkg.icon;
                 return (
-                  <Card key={pkg.id} className="relative hover:shadow-lg transition-shadow border border-neutral-200">
+                  <Card key={pkg.id} className="relative hover:shadow-lg transition-shadow border border-neutral-200 dark:border-slate-600">
                     <CardHeader className="pb-4">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center space-x-3">
-                          <div className="p-2 bg-medical-blue/10 rounded-lg">
+                          <div className="p-2 bg-medical-blue/10 dark:bg-medical-blue/20 rounded-lg">
                             <IconComponent className="h-6 w-6 text-medical-blue" />
                           </div>
                           <div>
-                            <h3 className="font-semibold text-lg">{pkg.name}</h3>
+                            <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">{pkg.name}</h3>
                             <div className="flex items-center space-x-2">
                               <span className="text-2xl font-bold text-medical-blue">£{pkg.price}</span>
-                              <span className="text-sm text-neutral-500">/month</span>
+                              <span className="text-sm text-neutral-500 dark:text-gray-400">/month</span>
                             </div>
                           </div>
                         </div>
                       </div>
-                      <p className="text-sm text-neutral-600">{pkg.description}</p>
+                      <p className="text-sm text-neutral-600 dark:text-gray-400">{pkg.description}</p>
                     </CardHeader>
                     
                     <CardContent>
@@ -410,7 +410,7 @@ export default function Subscription() {
                         {pkg.features.map((feature, index) => (
                           <div key={index} className="flex items-center space-x-2">
                             <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                            <span className="text-sm">{feature}</span>
+                            <span className="text-sm text-gray-700 dark:text-gray-300">{feature}</span>
                           </div>
                         ))}
                       </div>
@@ -434,49 +434,49 @@ export default function Subscription() {
             {/* Package Bundles */}
             <div className="mt-12">
               <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold mb-4">Popular Package Bundles</h3>
-                <p className="text-neutral-600 max-w-2xl mx-auto">
+                <h3 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">Popular Package Bundles</h3>
+                <p className="text-neutral-600 dark:text-gray-400 max-w-2xl mx-auto">
                   Save money with our curated package bundles designed for specific healthcare scenarios.
                 </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="border-2 border-medical-blue/20 bg-medical-blue/5">
+                <Card className="border-2 border-medical-blue/20 bg-medical-blue/5 dark:bg-medical-blue/10">
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="text-xl font-bold">Primary Care Bundle</h4>
-                        <p className="text-sm text-neutral-600 mt-1">Perfect for family practices and general medicine</p>
+                        <h4 className="text-xl font-bold text-gray-900 dark:text-gray-100">Primary Care Bundle</h4>
+                        <p className="text-sm text-neutral-600 dark:text-gray-400 mt-1">Perfect for family practices and general medicine</p>
                       </div>
-                      <Badge className="bg-green-100 text-green-800">Save 25%</Badge>
+                      <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300">Save 25%</Badge>
                     </div>
                     <div className="flex items-center space-x-2 mt-3">
                       <span className="text-3xl font-bold text-medical-blue">£65</span>
-                      <span className="text-lg text-neutral-500 line-through">£87</span>
-                      <span className="text-sm text-neutral-500">/month</span>
+                      <span className="text-lg text-neutral-500 dark:text-gray-400 line-through">£87</span>
+                      <span className="text-sm text-neutral-500 dark:text-gray-400">/month</span>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center space-x-2 text-sm">
                         <Check className="h-4 w-4 text-green-500" />
-                        <span>Telehealth Pro (£15)</span>
+                        <span className="text-gray-700 dark:text-gray-300">Telehealth Pro (£15)</span>
                       </div>
                       <div className="flex items-center space-x-2 text-sm">
                         <Check className="h-4 w-4 text-green-500" />
-                        <span>AI Clinical Assistant (£25)</span>
+                        <span className="text-gray-700 dark:text-gray-300">AI Clinical Assistant (£25)</span>
                       </div>
                       <div className="flex items-center space-x-2 text-sm">
                         <Check className="h-4 w-4 text-green-500" />
-                        <span>Pharmacy Connect (£20)</span>
+                        <span className="text-gray-700 dark:text-gray-300">Pharmacy Connect (£20)</span>
                       </div>
                       <div className="flex items-center space-x-2 text-sm">
                         <Check className="h-4 w-4 text-green-500" />
-                        <span>Analytics Pro (£18)</span>
+                        <span className="text-gray-700 dark:text-gray-300">Analytics Pro (£18)</span>
                       </div>
                       <div className="flex items-center space-x-2 text-sm">
                         <Check className="h-4 w-4 text-green-500" />
-                        <span>Patient Portal Plus (£12)</span>
+                        <span className="text-gray-700 dark:text-gray-300">Patient Portal Plus (£12)</span>
                       </div>
                     </div>
                     <Button className="w-full bg-medical-blue hover:bg-blue-700">
@@ -486,38 +486,38 @@ export default function Subscription() {
                   </CardContent>
                 </Card>
 
-                <Card className="border-2 border-purple-200 bg-purple-50">
+                <Card className="border-2 border-purple-200 dark:border-purple-500/30 bg-purple-50 dark:bg-purple-900/10">
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="text-xl font-bold">Specialty Care Bundle</h4>
-                        <p className="text-sm text-neutral-600 mt-1">Advanced tools for specialized medical practices</p>
+                        <h4 className="text-xl font-bold text-gray-900 dark:text-gray-100">Specialty Care Bundle</h4>
+                        <p className="text-sm text-neutral-600 dark:text-gray-400 mt-1">Advanced tools for specialized medical practices</p>
                       </div>
-                      <Badge className="bg-purple-100 text-purple-800">Save 30%</Badge>
+                      <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300">Save 30%</Badge>
                     </div>
                     <div className="flex items-center space-x-2 mt-3">
                       <span className="text-3xl font-bold text-purple-600">£91</span>
-                      <span className="text-lg text-neutral-500 line-through">£130</span>
-                      <span className="text-sm text-neutral-500">/month</span>
+                      <span className="text-lg text-neutral-500 dark:text-gray-400 line-through">£130</span>
+                      <span className="text-sm text-neutral-500 dark:text-gray-400">/month</span>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center space-x-2 text-sm">
                         <Check className="h-4 w-4 text-green-500" />
-                        <span>Cardiology Suite (£40)</span>
+                        <span className="text-gray-700 dark:text-gray-300">Cardiology Suite (£40)</span>
                       </div>
                       <div className="flex items-center space-x-2 text-sm">
                         <Check className="h-4 w-4 text-green-500" />
-                        <span>Remote Monitoring (£35)</span>
+                        <span className="text-gray-700 dark:text-gray-300">Remote Monitoring (£35)</span>
                       </div>
                       <div className="flex items-center space-x-2 text-sm">
                         <Check className="h-4 w-4 text-green-500" />
-                        <span>Multi-Specialty Tools (£30)</span>
+                        <span className="text-gray-700 dark:text-gray-300">Multi-Specialty Tools (£30)</span>
                       </div>
                       <div className="flex items-center space-x-2 text-sm">
                         <Check className="h-4 w-4 text-green-500" />
-                        <span>HIPAA Security Plus (£22)</span>
+                        <span className="text-gray-700 dark:text-gray-300">HIPAA Security Plus (£22)</span>
                       </div>
                     </div>
                     <Button className="w-full bg-purple-600 hover:bg-purple-700">
@@ -537,9 +537,9 @@ export default function Subscription() {
             </CardHeader>
             <CardContent>
               <div className="text-center py-8">
-                <Calendar className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
-                <p className="text-neutral-600">No billing history available.</p>
-                <p className="text-sm text-neutral-500 mt-2">
+                <Calendar className="h-12 w-12 text-neutral-400 dark:text-gray-500 mx-auto mb-4" />
+                <p className="text-neutral-600 dark:text-gray-400">No billing history available.</p>
+                <p className="text-sm text-neutral-500 dark:text-gray-500 mt-2">
                   Billing records will appear here once your subscription becomes active.
                 </p>
               </div>
