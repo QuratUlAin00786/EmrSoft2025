@@ -152,11 +152,11 @@ export default function AIAgentPage() {
   };
 
   const renderPrescriptionCard = (prescription: Prescription) => (
-    <Card key={prescription.id} className="mt-2 bg-blue-50 border-blue-200">
+    <Card key={prescription.id} className="mt-2 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800/30">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <Pill className="h-4 w-4 text-blue-600" />
+          <CardTitle className="text-sm font-medium flex items-center gap-2 text-gray-900 dark:text-gray-100">
+            <Pill className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             {prescription.patientName}
           </CardTitle>
           <Badge variant={prescription.status === 'signed' ? 'default' : 'secondary'}>
@@ -165,17 +165,17 @@ export default function AIAgentPage() {
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        <p className="text-sm text-gray-600 mb-2">
+        <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
           <strong>Diagnosis:</strong> {prescription.diagnosis}
         </p>
         <div className="space-y-1">
           {prescription.medications.map((med, idx) => (
-            <div key={idx} className="text-sm">
+            <div key={idx} className="text-sm text-gray-900 dark:text-gray-100">
               <strong>{med.name}</strong> - {med.dosage} ({med.frequency})
             </div>
           ))}
         </div>
-        <p className="text-xs text-gray-500 mt-2">
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
           Prescribed: {format(new Date(prescription.prescribedAt), 'PPp')}
         </p>
       </CardContent>
@@ -183,11 +183,11 @@ export default function AIAgentPage() {
   );
 
   const renderAppointmentCard = (appointment: Appointment) => (
-    <Card key={appointment.id} className="mt-2 bg-green-50 border-green-200">
+    <Card key={appointment.id} className="mt-2 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800/30">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-green-600" />
+          <CardTitle className="text-sm font-medium flex items-center gap-2 text-gray-900 dark:text-gray-100">
+            <Calendar className="h-4 w-4 text-green-600 dark:text-green-400" />
             {appointment.title}
           </CardTitle>
           <Badge variant={appointment.status === 'scheduled' ? 'default' : 'secondary'}>
@@ -196,13 +196,13 @@ export default function AIAgentPage() {
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 dark:text-gray-300">
           <strong>Patient:</strong> {appointment.patientName}
         </p>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 dark:text-gray-300">
           <strong>Provider:</strong> {appointment.providerName}
         </p>
-        <p className="text-sm text-gray-600 flex items-center gap-1">
+        <p className="text-sm text-gray-600 dark:text-gray-300 flex items-center gap-1">
           <Clock className="h-3 w-3" />
           {format(new Date(appointment.scheduledAt), 'PPp')} ({appointment.duration} mins)
         </p>
@@ -218,15 +218,15 @@ export default function AIAgentPage() {
             <Sparkles className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Cura AI Assistant</h1>
-            <p className="text-gray-600">Intelligent appointment booking and prescription management</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Cura AI Assistant</h1>
+            <p className="text-gray-600 dark:text-gray-300">Intelligent appointment booking and prescription management</p>
           </div>
         </div>
       </div>
 
       <Card className="h-[600px] flex flex-col">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 border-b">
-          <CardTitle className="flex items-center gap-2">
+        <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 border-b">
+          <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
             <MessageCircle className="h-5 w-5" />
             Chat with AI Assistant
           </CardTitle>
@@ -266,7 +266,7 @@ export default function AIAgentPage() {
                         className={`px-4 py-2 rounded-lg ${
                           message.type === 'user'
                             ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 text-gray-900'
+                            : 'bg-gray-100 dark:bg-slate-700 text-gray-900 dark:text-gray-100'
                         }`}
                       >
                         <div
@@ -296,7 +296,7 @@ export default function AIAgentPage() {
                         </div>
                       )}
 
-                      <span className="text-xs text-gray-500 mt-1">
+                      <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         {format(message.timestamp, 'HH:mm')}
                       </span>
                     </div>
@@ -309,8 +309,8 @@ export default function AIAgentPage() {
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center">
                     <Bot className="h-4 w-4 text-white" />
                   </div>
-                  <div className="bg-gray-100 px-4 py-2 rounded-lg">
-                    <div className="flex items-center gap-2">
+                  <div className="bg-gray-100 dark:bg-slate-700 px-4 py-2 rounded-lg">
+                    <div className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
                       <Loader2 className="h-4 w-4 animate-spin" />
                       <span>AI is thinking...</span>
                     </div>
@@ -347,7 +347,7 @@ export default function AIAgentPage() {
               </Button>
             </div>
 
-            <div className="flex gap-2 mt-2 text-xs text-gray-500">
+            <div className="flex gap-2 mt-2 text-xs text-gray-500 dark:text-gray-400">
               <div className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
                 Book appointments
