@@ -3146,20 +3146,25 @@ export default function Forms() {
           </Button>
         </div>
         
-        {/* Save and View buttons - matching toolbar style exactly */}
+        {/* Save and View buttons - identical to medical data buttons */}
         <div className="flex justify-center items-center gap-1">
           <Button 
             variant="outline" 
             size="sm" 
-            className="text-xs h-5 px-2 border border-gray-300 bg-teal-600 text-white hover:bg-teal-700 hover:text-white dark:border-gray-600 dark:bg-teal-600 dark:text-white dark:hover:bg-teal-700 dark:hover:text-white"
+            className="text-xs h-5 px-2 border border-gray-300"
             onClick={handleSave}
+            style={{
+              backgroundColor: '#0d9488',
+              color: 'white',
+              borderColor: '#0d9488'
+            }}
           >
             Save Template
           </Button>
           <Button 
             variant="outline" 
             size="sm" 
-            className="text-xs h-5 px-2 border border-gray-300 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 dark:hover:text-white"
+            className="text-xs h-5 px-2 border border-gray-300"
             onClick={() => setShowSavedTemplatesDialog(true)}
           >
             View Saved Templates
