@@ -973,16 +973,16 @@ export default function VoiceDocumentation() {
               </div>
 
               {/* Transcript Display Area */}
-              <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded">
+              <div className="mt-4 p-4 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     {isRecording ? (
                       <>
                         <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                        <span className="text-sm font-medium text-red-800">Live Transcription</span>
+                        <span className="text-sm font-medium text-red-800 dark:text-red-400">Live Transcription</span>
                       </>
                     ) : (
-                      <span className="text-sm font-medium text-gray-800">Transcript</span>
+                      <span className="text-sm font-medium text-gray-800 dark:text-gray-200">Transcript</span>
                     )}
                   </div>
                   <div className="flex gap-2">
@@ -1010,7 +1010,7 @@ export default function VoiceDocumentation() {
                   value={currentTranscript}
                   onChange={(e) => setCurrentTranscript(e.target.value)}
                   placeholder={isRecording ? "Start speaking to see real-time transcription..." : "Type your transcript here or start recording to capture speech automatically..."}
-                  className="w-full text-sm text-gray-700 min-h-[3rem] p-2 bg-white border rounded resize-none"
+                  className="w-full text-sm text-gray-700 dark:text-gray-200 min-h-[3rem] p-2 bg-white dark:bg-slate-800 border dark:border-slate-600 rounded resize-none placeholder:text-gray-500 dark:placeholder:text-gray-400"
                   rows={3}
                   disabled={isRecording}
                 />
@@ -1025,31 +1025,31 @@ export default function VoiceDocumentation() {
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle className="text-lg">{note.patientName}</CardTitle>
+                      <CardTitle className="text-lg text-gray-900 dark:text-gray-100">{note.patientName}</CardTitle>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge className={getStatusColor(note.status)}>{note.status}</Badge>
                         <Badge variant="outline">{note.type.replace('_', ' ')}</Badge>
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
                           {formatTime(note.recordingDuration)} • {note.confidence}% confidence
                         </span>
                       </div>
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
                       {format(new Date(note.createdAt), 'MMM dd, HH:mm')}
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <h4 className="font-medium text-sm mb-2">Transcript</h4>
-                    <div className="text-sm text-gray-700 bg-gray-50 p-3 rounded">
+                    <h4 className="font-medium text-sm mb-2 text-gray-900 dark:text-gray-100">Transcript</h4>
+                    <div className="text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-slate-800 p-3 rounded">
                       {note.transcript}
                     </div>
                   </div>
 
                   {note.medicalTerms.length > 0 && (
                     <div>
-                      <h4 className="font-medium text-sm mb-2">Medical Terms Detected</h4>
+                      <h4 className="font-medium text-sm mb-2 text-gray-900 dark:text-gray-100">Medical Terms Detected</h4>
                       <div className="flex flex-wrap gap-2">
                         {note.medicalTerms.map((term, idx) => (
                           <Badge key={idx} variant="outline" className="text-xs">
@@ -1813,8 +1813,8 @@ export default function VoiceDocumentation() {
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
                 <div>
-                  <div className="text-sm text-gray-500">Patient</div>
-                  <div className="font-medium">{editingNote.patientName}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Patient</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100">{editingNote.patientName}</div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Provider</div>
@@ -1962,8 +1962,8 @@ export default function VoiceDocumentation() {
               </div>
               <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
                 <div>
-                  <div className="text-sm text-gray-500">Patient</div>
-                  <div className="font-medium">{selectedPhoto.patientName}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Patient</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100">{selectedPhoto.patientName}</div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Type</div>
@@ -2092,8 +2092,8 @@ export default function VoiceDocumentation() {
                 />
                 <div className="flex-1 space-y-2">
                   <div>
-                    <div className="text-sm text-gray-500">Patient</div>
-                    <div className="font-medium">{selectedPhoto.patientName}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">Patient</div>
+                    <div className="font-medium text-gray-900 dark:text-gray-100">{selectedPhoto.patientName}</div>
                   </div>
                   <div>
                     <div className="text-sm text-gray-500">Photo Type</div>
