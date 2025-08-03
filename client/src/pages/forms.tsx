@@ -2911,7 +2911,7 @@ export default function Forms() {
               }, 100);
             }}
             className="w-20 border border-gray-300 bg-white rounded text-xs px-2"
-            style={{ height: '20px', fontSize: '12px', lineHeight: '1' }}
+            style={{ height: '20px', fontSize: '12px', lineHeight: '20px', minHeight: '20px', maxHeight: '20px' }}
           >
             <option value="paragraph">Paragraph</option>
             <option value="heading1">H1</option>
@@ -2929,7 +2929,7 @@ export default function Forms() {
               }
             }}
             className="w-24 border border-gray-300 bg-white rounded text-xs px-2"
-            style={{ height: '20px', fontSize: '12px', lineHeight: '1' }}
+            style={{ height: '20px', fontSize: '12px', lineHeight: '20px', minHeight: '20px', maxHeight: '20px' }}
           >
             <option value="arial">Arial</option>
             <option value="calibri">Calibri</option>
@@ -2964,7 +2964,7 @@ export default function Forms() {
               }
             }}
             className="w-16 border border-gray-300 bg-white rounded text-xs px-2"
-            style={{ height: '20px', fontSize: '12px', lineHeight: '1' }}
+            style={{ height: '20px', fontSize: '12px', lineHeight: '20px', minHeight: '20px', maxHeight: '20px' }}
           >
             <option value="8pt">8pt</option>
             <option value="9pt">9pt</option>
