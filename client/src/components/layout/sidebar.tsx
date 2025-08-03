@@ -29,7 +29,8 @@ import {
   Menu,
   X,
   Shield,
-  Bot
+  Bot,
+  Activity
 } from "lucide-react";
 import { useTenant } from "@/hooks/use-tenant";
 import curaIconPath from "@assets/Cura Icon Main_1751893631980.png";
@@ -52,6 +53,7 @@ import { useState, useEffect } from "react";
 
 const ALL_NAVIGATION = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard, module: "dashboard" },
+  { name: "Live App Demo", href: "/live-app", icon: Activity, module: "dashboard" },
   { name: "Patients", href: "/patients", icon: Users, module: "patients" },
   { name: "Appointments", href: "/appointments", icon: Calendar, module: "appointments" },
   { name: "Prescriptions", href: "/prescriptions", icon: Pill, module: "prescriptions" },
