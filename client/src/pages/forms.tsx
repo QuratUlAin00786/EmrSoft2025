@@ -2908,7 +2908,7 @@ export default function Forms() {
               else if (value === "heading2") handleH2();
             }, 100);
           }}>
-            <SelectTrigger className="w-20 h-6 text-xs border border-gray-300">
+            <SelectTrigger className="w-20 h-5 text-xs border border-gray-300 px-2">
               <SelectValue placeholder="H2" />
             </SelectTrigger>
             <SelectContent>
@@ -2926,7 +2926,7 @@ export default function Forms() {
               applyFontFamily(value);
             }
           }}>
-            <SelectTrigger className="w-24 h-5 text-xs border border-gray-300 bg-white">
+            <SelectTrigger className="w-24 h-5 text-xs border border-gray-300 bg-white px-2">
               <SelectValue placeholder="Verdana" />
             </SelectTrigger>
             <SelectContent>
@@ -2963,7 +2963,7 @@ export default function Forms() {
               applyFontSize(value);
             }
           }}>
-            <SelectTrigger className="w-16 h-5 text-xs border border-gray-300 bg-white">
+            <SelectTrigger className="w-16 h-5 text-xs border border-gray-300 bg-white px-2">
               <SelectValue placeholder="12pt" />
             </SelectTrigger>
             <SelectContent>
