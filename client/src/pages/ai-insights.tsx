@@ -22,32 +22,32 @@ const insightIcons = {
 
 const insightColors = {
   risk_alert: {
-    bg: "bg-blue-50",
-    border: "border-blue-100",
-    icon: "text-blue-500"
+    bg: "bg-blue-50 dark:bg-blue-900/20",
+    border: "border-blue-100 dark:border-blue-800/30",
+    icon: "text-blue-500 dark:text-blue-400"
   },
   treatment_suggestion: {
-    bg: "bg-green-50",
-    border: "border-green-100",
-    icon: "text-green-500"
+    bg: "bg-green-50 dark:bg-green-900/20",
+    border: "border-green-100 dark:border-green-800/30",
+    icon: "text-green-500 dark:text-green-400"
   },
   drug_interaction: {
-    bg: "bg-yellow-50",
-    border: "border-yellow-100",
-    icon: "text-yellow-500"
+    bg: "bg-yellow-50 dark:bg-yellow-900/20",
+    border: "border-yellow-100 dark:border-yellow-800/30",
+    icon: "text-yellow-500 dark:text-yellow-400"
   },
   preventive_care: {
-    bg: "bg-purple-50",
-    border: "border-purple-100",
-    icon: "text-purple-500"
+    bg: "bg-purple-50 dark:bg-purple-900/20",
+    border: "border-purple-100 dark:border-purple-800/30",
+    icon: "text-purple-500 dark:text-purple-400"
   }
 };
 
 const severityColors = {
-  low: "bg-green-100 text-green-800",
-  medium: "bg-yellow-100 text-yellow-800",
-  high: "bg-orange-100 text-orange-800",
-  critical: "bg-red-100 text-red-800"
+  low: "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300",
+  medium: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300",
+  high: "bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300",
+  critical: "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300"
 };
 
 export default function AiInsights() {
@@ -327,7 +327,7 @@ export default function AiInsights() {
                     <Card key={insight.id} className={`${colors.bg} ${colors.border}`}>
                       <CardContent className="p-6">
                         <div className="flex items-start space-x-4">
-                          <div className={`w-10 h-10 ${colors.icon} bg-white rounded-full flex items-center justify-center flex-shrink-0`}>
+                          <div className={`w-10 h-10 ${colors.icon} bg-white dark:bg-slate-800 rounded-full flex items-center justify-center flex-shrink-0`}>
                             <IconComponent className="w-5 h-5" />
                           </div>
                           <div className="flex-1">
