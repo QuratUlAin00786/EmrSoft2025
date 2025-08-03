@@ -649,14 +649,14 @@ export default function MobileHealth() {
             ) : (devices || []).map((device) => {
               const DeviceIcon = getDeviceIcon(device.deviceType);
               return (
-                <Card key={device.id} className={device.status === 'error' ? 'border-red-200' : ''}>
+                <Card key={device.id} className={device.status === 'error' ? 'border-red-200 dark:border-red-800' : 'dark:border-slate-700'}>
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <div className="flex items-center gap-3">
                         <DeviceIcon className="w-8 h-8 text-blue-500" />
                         <div>
-                          <CardTitle className="text-lg">{device.brand} {device.model}</CardTitle>
-                          <p className="text-sm text-gray-600">{device.patientName}</p>
+                          <CardTitle className="text-lg text-gray-900 dark:text-gray-100">{device.brand} {device.model}</CardTitle>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">{device.patientName}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -675,47 +675,47 @@ export default function MobileHealth() {
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div>
-                        <div className="text-sm text-gray-500">Device Type</div>
-                        <div className="font-medium capitalize">
+                        <div className="text-sm text-gray-500 dark:text-gray-400">Device Type</div>
+                        <div className="font-medium capitalize text-gray-900 dark:text-gray-100">
                           {device.deviceType.replace('_', ' ')}
                         </div>
                       </div>
                       <div>
-                        <div className="text-sm text-gray-500">Last Sync</div>
-                        <div className="font-medium">
+                        <div className="text-sm text-gray-500 dark:text-gray-400">Last Sync</div>
+                        <div className="font-medium text-gray-900 dark:text-gray-100">
                           {format(new Date(device.lastSync), 'MMM dd, HH:mm')}
                         </div>
                       </div>
                       <div>
-                        <div className="text-sm text-gray-500">Data Types</div>
-                        <div className="font-medium">{device.dataTypes.length} types</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">Data Types</div>
+                        <div className="font-medium text-gray-900 dark:text-gray-100">{device.dataTypes.length} types</div>
                       </div>
                       <div>
-                        <div className="text-sm text-gray-500">Latest Readings</div>
-                        <div className="font-medium">{device.readings.length} readings</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">Latest Readings</div>
+                        <div className="font-medium text-gray-900 dark:text-gray-100">{device.readings.length} readings</div>
                       </div>
                     </div>
 
                     {device.readings.length > 0 && (
                       <div>
-                        <h4 className="font-medium text-sm mb-2">Recent Data</h4>
+                        <h4 className="font-medium text-sm mb-2 text-gray-900 dark:text-gray-100">Recent Data</h4>
                         <div className="space-y-2">
                           {device.readings.map((reading, idx) => (
-                            <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                            <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-slate-800 rounded">
                               <div className="flex items-center gap-2">
                                 <Heart className="w-4 h-4 text-red-500" />
-                                <span className="text-sm capitalize">
+                                <span className="text-sm capitalize text-gray-900 dark:text-gray-100">
                                   {reading.type.replace('_', ' ')}
                                 </span>
                               </div>
                               <div className="flex items-center gap-2">
-                                <span className="font-medium">
+                                <span className="font-medium text-gray-900 dark:text-gray-100">
                                   {reading.value} {reading.unit}
                                 </span>
                                 <Badge 
                                   className={reading.status === 'normal' ? 
-                                    'bg-green-100 text-green-800' : 
-                                    'bg-orange-100 text-orange-800'
+                                    'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' : 
+                                    'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100'
                                   }
                                 >
                                   {reading.status}
