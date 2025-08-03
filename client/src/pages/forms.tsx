@@ -3146,27 +3146,12 @@ export default function Forms() {
           </Button>
         </div>
         
-        {/* Save and View buttons - identical to medical data buttons */}
+        {/* Save and View buttons - exactly matching medical data buttons */}
         <div className="flex justify-center items-center gap-1">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="text-xs h-5 px-2 border border-gray-300"
-            onClick={handleSave}
-            style={{
-              backgroundColor: '#0d9488',
-              color: 'white',
-              borderColor: '#0d9488'
-            }}
-          >
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={handleSave} style={{ backgroundColor: '#0d9488', color: 'white', borderColor: '#0d9488' }}>
             Save Template
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="text-xs h-5 px-2 border border-gray-300"
-            onClick={() => setShowSavedTemplatesDialog(true)}
-          >
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={() => setShowSavedTemplatesDialog(true)}>
             View Saved Templates
           </Button>
         </div>
