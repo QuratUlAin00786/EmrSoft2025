@@ -220,10 +220,10 @@ export default function LiveApp() {
                           </span>
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900 dark:text-white">
+                          <p className="font-medium text-gray-900 dark:text-gray-100">
                             {patient.firstName} {patient.lastName}
                           </p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                          <p className="text-sm text-gray-600 dark:text-gray-300">
                             ID: {patient.patientId}
                           </p>
                         </div>
@@ -252,10 +252,10 @@ export default function LiveApp() {
                           <Clock className="h-5 w-5 text-green-600 dark:text-green-400" />
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900 dark:text-white">
+                          <p className="font-medium text-gray-900 dark:text-gray-100">
                             {appointment.title}
                           </p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                          <p className="text-sm text-gray-600 dark:text-gray-300">
                             {format(new Date(appointment.scheduledAt), 'p')} - {appointment.duration}min
                           </p>
                         </div>
@@ -285,15 +285,15 @@ export default function LiveApp() {
                   <div className="space-y-3">
                     <div className="flex items-center space-x-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Voice transcription</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-200">Voice transcription</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Clinical insights</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-200">Clinical insights</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Appointment booking</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-200">Appointment booking</span>
                     </div>
                   </div>
                 </CardContent>
@@ -311,15 +311,15 @@ export default function LiveApp() {
                   <div className="space-y-3">
                     <div className="flex items-center space-x-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">HD video calls</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-200">HD video calls</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Screen sharing</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-200">Screen sharing</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Recording capability</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-200">Recording capability</span>
                     </div>
                   </div>
                 </CardContent>
@@ -337,15 +337,15 @@ export default function LiveApp() {
                   <div className="space-y-3">
                     <div className="flex items-center space-x-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">SMS notifications</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-200">SMS notifications</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">WhatsApp alerts</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-200">WhatsApp alerts</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Automated reminders</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-200">Automated reminders</span>
                     </div>
                   </div>
                 </CardContent>
@@ -363,15 +363,15 @@ export default function LiveApp() {
                   <div className="space-y-3">
                     <div className="flex items-center space-x-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Item master catalog</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-200">Item master catalog</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Purchase orders</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-200">Purchase orders</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Low stock alerts</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-200">Low stock alerts</span>
                     </div>
                   </div>
                 </CardContent>
@@ -389,15 +389,15 @@ export default function LiveApp() {
                   <div className="space-y-3">
                     <div className="flex items-center space-x-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Digital signatures</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-200">Digital signatures</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Drug interactions</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-200">Drug interactions</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Pharmacy integration</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-200">Pharmacy integration</span>
                     </div>
                   </div>
                 </CardContent>
@@ -415,15 +415,15 @@ export default function LiveApp() {
                   <div className="space-y-3">
                     <div className="flex items-center space-x-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Patient portal</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-200">Patient portal</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Doctor dashboard</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-200">Doctor dashboard</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Cross-platform sync</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-200">Cross-platform sync</span>
                     </div>
                   </div>
                 </CardContent>
@@ -440,22 +440,22 @@ export default function LiveApp() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">CPU Usage</span>
-                      <span className="text-sm text-gray-500">23%</span>
+                      <span className="text-sm font-medium text-gray-800 dark:text-gray-200">CPU Usage</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-300">23%</span>
                     </div>
                     <Progress value={23} className="h-2" />
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Memory Usage</span>
-                      <span className="text-sm text-gray-500">67%</span>
+                      <span className="text-sm font-medium text-gray-800 dark:text-gray-200">Memory Usage</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-300">67%</span>
                     </div>
                     <Progress value={67} className="h-2" />
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Database Load</span>
-                      <span className="text-sm text-gray-500">34%</span>
+                      <span className="text-sm font-medium text-gray-800 dark:text-gray-200">Database Load</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-300">34%</span>
                     </div>
                     <Progress value={34} className="h-2" />
                   </div>
