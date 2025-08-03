@@ -3146,12 +3146,12 @@ export default function Forms() {
           </Button>
         </div>
         
-        {/* Save and View buttons - matching toolbar style */}
+        {/* Save and View buttons - matching toolbar style exactly */}
         <div className="flex justify-center items-center gap-1">
           <Button 
             variant="outline" 
             size="sm" 
-            className="text-xs h-5 px-2 border border-gray-300 dark:border-gray-600 bg-teal-600 hover:bg-teal-700 text-white hover:text-white dark:bg-teal-600 dark:hover:bg-teal-700 dark:text-white dark:hover:text-white"
+            className="text-xs h-5 px-2 border border-gray-300 bg-teal-600 text-white hover:bg-teal-700 hover:text-white dark:border-gray-600 dark:bg-teal-600 dark:text-white dark:hover:bg-teal-700 dark:hover:text-white"
             onClick={handleSave}
           >
             Save Template
@@ -3159,7 +3159,7 @@ export default function Forms() {
           <Button 
             variant="outline" 
             size="sm" 
-            className="text-xs h-5 px-2 border border-gray-300 dark:border-gray-600 dark:text-gray-300 dark:hover:text-white"
+            className="text-xs h-5 px-2 border border-gray-300 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 dark:hover:text-white"
             onClick={() => setShowSavedTemplatesDialog(true)}
           >
             View Saved Templates
