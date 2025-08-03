@@ -2926,7 +2926,7 @@ export default function Forms() {
               applyFontFamily(value);
             }
           }}>
-            <SelectTrigger className="w-24 h-7 text-sm border-2 border-gray-400 bg-white font-medium">
+            <SelectTrigger className="w-24 h-5 text-xs border border-gray-300 bg-white">
               <SelectValue placeholder="Verdana" />
             </SelectTrigger>
             <SelectContent>
@@ -2963,7 +2963,7 @@ export default function Forms() {
               applyFontSize(value);
             }
           }}>
-            <SelectTrigger className="w-16 h-7 text-sm border-2 border-gray-400 bg-white font-medium">
+            <SelectTrigger className="w-16 h-5 text-xs border border-gray-300 bg-white">
               <SelectValue placeholder="12pt" />
             </SelectTrigger>
             <SelectContent>
