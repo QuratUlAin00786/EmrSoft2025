@@ -457,7 +457,7 @@ export default function AutomationPage() {
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
                           {getCategoryIcon(rule.category)}
                         </div>
                         <div className="flex-1">
