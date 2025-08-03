@@ -162,12 +162,12 @@ export function AdminDashboard() {
         {dashboardCards.map((card) => (
           <Card key={card.title} className="hover:shadow-lg transition-shadow cursor-pointer">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">{card.title}</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600 dark:!text-gray-300">{card.title}</CardTitle>
               <card.icon className={`h-6 w-6 ${card.color}`} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{card.value}</div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{card.description}</p>
+              <div className="text-2xl font-bold text-gray-900 dark:!text-gray-100">{card.value}</div>
+              <p className="text-xs text-gray-500 dark:!text-gray-400">{card.description}</p>
             </CardContent>
           </Card>
         ))}
