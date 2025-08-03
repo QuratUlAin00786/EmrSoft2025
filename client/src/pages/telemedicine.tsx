@@ -175,7 +175,7 @@ function PatientList() {
     return (
       <div className="text-center py-8">
         <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <p className="text-gray-600">No patients available for consultation</p>
+        <p className="text-gray-600 dark:text-gray-300">No patients available for consultation</p>
       </div>
     );
   }
@@ -192,16 +192,16 @@ function PatientList() {
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <h3 className="font-medium text-lg">
+                <h3 className="font-medium text-lg text-gray-900 dark:text-gray-100">
                   {patient.firstName} {patient.lastName}
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   ID: {patient.patientId || patient.id}
                 </p>
               </div>
             </div>
             
-            <div className="space-y-2 text-sm text-gray-600 mb-4">
+            <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300 mb-4">
               <div className="flex justify-between">
                 <span>Age:</span>
                 <span>{patient.age || 'N/A'}</span>
@@ -600,14 +600,14 @@ export default function Telemedicine() {
             variant="ghost"
             size="sm"
             onClick={() => setLocation("/")}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Telemedicine</h1>
-            <p className="text-gray-600 mt-1">Virtual consultations and remote patient care</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Telemedicine</h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">Virtual consultations and remote patient care</p>
           </div>
         </div>
         <div className="flex gap-3">
@@ -625,7 +625,7 @@ export default function Telemedicine() {
               <div className="space-y-6">
                 {/* Patient Selection */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Patient</label>
+                  <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Patient</label>
                   <select className="w-full p-2 border rounded-md">
                     <option value="">Select a patient...</option>
                     <option value="patient_1">Sarah Johnson</option>
@@ -637,7 +637,7 @@ export default function Telemedicine() {
 
                 {/* Provider Selection */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Provider</label>
+                  <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Provider</label>
                   <select className="w-full p-2 border rounded-md">
                     <option value="">Select a provider...</option>
                     <option value="provider_1">Dr. Emily Watson</option>
@@ -649,18 +649,18 @@ export default function Telemedicine() {
                 {/* Date and Time */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Date</label>
+                    <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Date</label>
                     <Input type="date" min={new Date().toISOString().split('T')[0]} />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Time</label>
+                    <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Time</label>
                     <Input type="time" />
                   </div>
                 </div>
 
                 {/* Consultation Type */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Consultation Type</label>
+                  <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Consultation Type</label>
                   <select className="w-full p-2 border rounded-md">
                     <option value="video">Video Consultation</option>
                     <option value="audio">Audio Only</option>
@@ -670,7 +670,7 @@ export default function Telemedicine() {
 
                 {/* Duration */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Duration</label>
+                  <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Duration</label>
                   <select className="w-full p-2 border rounded-md">
                     <option value="15">15 minutes</option>
                     <option value="30">30 minutes</option>
@@ -681,7 +681,7 @@ export default function Telemedicine() {
 
                 {/* Notes */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Notes (Optional)</label>
+                  <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Notes (Optional)</label>
                   <textarea 
                     className="w-full p-2 border rounded-md h-20 resize-none"
                     placeholder="Add any special instructions or notes for this consultation..."
@@ -724,11 +724,11 @@ export default function Telemedicine() {
               <div className="space-y-6">
                 {/* Video Settings */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Video & Audio Settings</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Video & Audio Settings</h3>
                   
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium">Default Video Quality</label>
+                      <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Default Video Quality</label>
                       <select className="w-32 p-2 border rounded-md text-sm">
                         <option value="720p">720p HD</option>
                         <option value="1080p">1080p Full HD</option>
@@ -737,17 +737,17 @@ export default function Telemedicine() {
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium">Auto-start Video</label>
+                      <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Auto-start Video</label>
                       <input type="checkbox" className="w-4 h-4" defaultChecked />
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium">Auto-start Audio</label>
+                      <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Auto-start Audio</label>
                       <input type="checkbox" className="w-4 h-4" defaultChecked />
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium">Echo Cancellation</label>
+                      <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Echo Cancellation</label>
                       <input type="checkbox" className="w-4 h-4" defaultChecked />
                     </div>
                   </div>
@@ -755,16 +755,16 @@ export default function Telemedicine() {
 
                 {/* Recording Settings */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Recording Settings</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Recording Settings</h3>
                   
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium">Auto-record Consultations</label>
+                      <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Auto-record Consultations</label>
                       <input type="checkbox" className="w-4 h-4" />
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium">Recording Quality</label>
+                      <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Recording Quality</label>
                       <select className="w-32 p-2 border rounded-md text-sm">
                         <option value="high">High Quality</option>
                         <option value="medium">Medium Quality</option>
@@ -773,7 +773,7 @@ export default function Telemedicine() {
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium">Patient Consent Required</label>
+                      <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Patient Consent Required</label>
                       <input type="checkbox" className="w-4 h-4" defaultChecked />
                     </div>
                   </div>
@@ -781,21 +781,21 @@ export default function Telemedicine() {
 
                 {/* Notification Settings */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Notifications</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Notifications</h3>
                   
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium">Appointment Reminders</label>
+                      <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Appointment Reminders</label>
                       <input type="checkbox" className="w-4 h-4" defaultChecked />
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium">Patient Waiting Alerts</label>
+                      <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Patient Waiting Alerts</label>
                       <input type="checkbox" className="w-4 h-4" defaultChecked />
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium">Connection Issues Alerts</label>
+                      <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Connection Issues Alerts</label>
                       <input type="checkbox" className="w-4 h-4" defaultChecked />
                     </div>
                   </div>
@@ -841,7 +841,7 @@ export default function Telemedicine() {
                 <Users className="w-5 h-5" />
                 Select Patient for Consultation
               </CardTitle>
-              <p className="text-sm text-gray-600">Choose a patient to start a new telemedicine consultation</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300">Choose a patient to start a new telemedicine consultation</p>
             </CardHeader>
             <CardContent>
               <PatientList />
@@ -862,7 +862,7 @@ export default function Telemedicine() {
                         </Avatar>
                         {consultation.patientName}
                       </CardTitle>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                         {format(new Date(consultation.scheduledTime), 'MMM dd, yyyy HH:mm')}
                       </p>
                     </div>
@@ -882,29 +882,29 @@ export default function Telemedicine() {
                       <div className="flex items-center gap-2">
                         <Heart className="w-4 h-4 text-red-500" />
                         <div>
-                          <div className="text-sm font-medium">{consultation.vitalSigns.heartRate} BPM</div>
-                          <div className="text-xs text-gray-500">Heart Rate</div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{consultation.vitalSigns.heartRate} BPM</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">Heart Rate</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <Activity className="w-4 h-4 text-blue-500" />
                         <div>
-                          <div className="text-sm font-medium">{consultation.vitalSigns.bloodPressure}</div>
-                          <div className="text-xs text-gray-500">Blood Pressure</div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{consultation.vitalSigns.bloodPressure}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">Blood Pressure</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <Stethoscope className="w-4 h-4 text-green-500" />
                         <div>
-                          <div className="text-sm font-medium">{consultation.vitalSigns.temperature}°F</div>
-                          <div className="text-xs text-gray-500">Temperature</div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{consultation.vitalSigns.temperature}°F</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">Temperature</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <Monitor className="w-4 h-4 text-purple-500" />
                         <div>
-                          <div className="text-sm font-medium">{consultation.vitalSigns.oxygenSaturation}%</div>
-                          <div className="text-xs text-gray-500">O2 Sat</div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{consultation.vitalSigns.oxygenSaturation}%</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">O2 Sat</div>
                         </div>
                       </div>
                     </div>
@@ -912,19 +912,19 @@ export default function Telemedicine() {
 
                   {consultation.notes && (
                     <div>
-                      <h4 className="font-medium text-sm mb-1">Consultation Notes</h4>
-                      <p className="text-sm text-gray-600">{consultation.notes}</p>
+                      <h4 className="font-medium text-sm mb-1 text-gray-900 dark:text-gray-100">Consultation Notes</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">{consultation.notes}</p>
                     </div>
                   )}
 
                   {consultation.prescriptions && (
                     <div>
-                      <h4 className="font-medium text-sm mb-2">Prescriptions</h4>
+                      <h4 className="font-medium text-sm mb-2 text-gray-900 dark:text-gray-100">Prescriptions</h4>
                       <div className="space-y-2">
                         {consultation.prescriptions.map((rx, idx) => (
-                          <div key={idx} className="bg-blue-50 p-3 rounded border">
-                            <div className="font-medium text-sm">{rx.medication} {rx.dosage}</div>
-                            <div className="text-xs text-gray-600">{rx.instructions}</div>
+                          <div key={idx} className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded border dark:border-slate-600">
+                            <div className="font-medium text-sm text-gray-900 dark:text-gray-100">{rx.medication} {rx.dosage}</div>
+                            <div className="text-xs text-gray-600 dark:text-gray-300">{rx.instructions}</div>
                           </div>
                         ))}
                       </div>
@@ -960,19 +960,19 @@ export default function Telemedicine() {
                         </DialogHeader>
                         <div className="space-y-6">
                           {/* Patient Info */}
-                          <div className="bg-gray-50 p-4 rounded-lg">
+                          <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-lg">
                             <div className="grid grid-cols-2 gap-4 text-sm">
                               <div>
-                                <span className="font-medium">Patient:</span>
-                                <p className="text-gray-600">{consultation.patientName}</p>
+                                <span className="font-medium text-gray-900 dark:text-gray-100">Patient:</span>
+                                <p className="text-gray-600 dark:text-gray-300">{consultation.patientName}</p>
                               </div>
                               <div>
-                                <span className="font-medium">Date:</span>
-                                <p className="text-gray-600">{format(new Date(consultation.scheduledTime), 'PPP')}</p>
+                                <span className="font-medium text-gray-900 dark:text-gray-100">Date:</span>
+                                <p className="text-gray-600 dark:text-gray-300">{format(new Date(consultation.scheduledTime), 'PPP')}</p>
                               </div>
                               <div>
-                                <span className="font-medium">Provider:</span>
-                                <p className="text-gray-600">{consultation.providerName}</p>
+                                <span className="font-medium text-gray-900 dark:text-gray-100">Provider:</span>
+                                <p className="text-gray-600 dark:text-gray-300">{consultation.providerName}</p>
                               </div>
                               <div>
                                 <span className="font-medium">Duration:</span>
