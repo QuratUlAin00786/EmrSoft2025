@@ -3146,20 +3146,23 @@ export default function Forms() {
           </Button>
         </div>
         
-        {/* Save and View buttons - exactly matching medical data buttons */}
+        {/* Save and View buttons - force exact styling match */}
         <div className="flex justify-center items-center gap-1">
           <Button 
             variant="outline" 
             size="sm" 
-            className="text-xs h-5 px-2 border border-gray-300" 
+            className="!text-xs !h-5 !px-2 !py-0 !border !border-gray-300 !font-normal" 
             onClick={handleSave} 
             style={{ 
-              backgroundColor: '#0d9488', 
-              color: 'white', 
-              borderColor: '#0d9488',
-              fontSize: '0.75rem',
-              lineHeight: '1rem',
-              fontWeight: '400'
+              backgroundColor: '#0d9488 !important', 
+              color: 'white !important', 
+              borderColor: '#0d9488 !important',
+              fontSize: '0.75rem !important',
+              lineHeight: '1.25rem !important',
+              fontWeight: '400 !important',
+              height: '1.25rem !important',
+              padding: '0 0.5rem !important',
+              minHeight: 'auto !important'
             }}
           >
             Save Template
@@ -3167,12 +3170,15 @@ export default function Forms() {
           <Button 
             variant="outline" 
             size="sm" 
-            className="text-xs h-5 px-2 border border-gray-300" 
+            className="!text-xs !h-5 !px-2 !py-0 !border !border-gray-300 !font-normal" 
             onClick={() => setShowSavedTemplatesDialog(true)}
             style={{
-              fontSize: '0.75rem',
-              lineHeight: '1rem', 
-              fontWeight: '400'
+              fontSize: '0.75rem !important',
+              lineHeight: '1.25rem !important', 
+              fontWeight: '400 !important',
+              height: '1.25rem !important',
+              padding: '0 0.5rem !important',
+              minHeight: 'auto !important'
             }}
           >
             View Saved Templates
