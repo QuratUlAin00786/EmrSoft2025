@@ -2899,90 +2899,92 @@ export default function Forms() {
         {/* Main formatting row */}
         <div className="flex justify-center items-center gap-0.5 mb-2">
           {/* Font controls */}
-          <select 
-            value={textStyle} 
-            onChange={(e) => {
-              console.log("Dropdown changed to:", e.target.value);
-              setTextStyle(e.target.value);
-              setTimeout(() => {
-                if (e.target.value === "paragraph") handleParagraph();
-                else if (e.target.value === "heading1") handleH1();
-                else if (e.target.value === "heading2") handleH2();
-              }, 100);
-            }}
-            className="w-20 border border-gray-300 bg-white rounded text-xs px-2"
-            style={{ height: '20px', fontSize: '12px', lineHeight: '20px', minHeight: '20px', maxHeight: '20px' }}
-          >
-            <option value="paragraph">Paragraph</option>
-            <option value="heading1">H1</option>
-            <option value="heading2">H2</option>
-          </select>
+          <Select value={textStyle} onValueChange={(value) => {
+            console.log("Dropdown changed to:", value);
+            setTextStyle(value);
+            setTimeout(() => {
+              if (value === "paragraph") handleParagraph();
+              else if (value === "heading1") handleH1();
+              else if (value === "heading2") handleH2();
+            }, 100);
+          }}>
+            <SelectTrigger className="w-20 h-6 text-xs border border-gray-300">
+              <SelectValue placeholder="H2" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="paragraph">Paragraph</SelectItem>
+              <SelectItem value="heading1">H1</SelectItem>
+              <SelectItem value="heading2">H2</SelectItem>
+            </SelectContent>
+          </Select>
           
-          <select 
-            value={fontFamily} 
-            onChange={(e) => {
-              setFontFamily(e.target.value);
-              // Only apply font family if there's a valid selection
-              const selection = window.getSelection();
-              if (selection && selection.rangeCount > 0 && selection.toString().trim()) {
-                applyFontFamily(e.target.value);
-              }
-            }}
-            className="w-24 border border-gray-300 bg-white rounded text-xs px-2"
-            style={{ height: '20px', fontSize: '12px', lineHeight: '20px', minHeight: '20px', maxHeight: '20px' }}
-          >
-            <option value="arial">Arial</option>
-            <option value="calibri">Calibri</option>
-            <option value="cambria">Cambria</option>
-            <option value="comic-sans">Comic Sans MS</option>
-            <option value="times">Times New Roman</option>
-            <option value="courier">Courier New</option>
-            <option value="consolas">Consolas</option>
-            <option value="franklin">Franklin Gothic</option>
-            <option value="garamond">Garamond</option>
-            <option value="georgia">Georgia</option>
-            <option value="helvetica">Helvetica</option>
-            <option value="impact">Impact</option>
-            <option value="lato">Lato</option>
-            <option value="lucida">Lucida Console</option>
-            <option value="open-sans">Open Sans</option>
-            <option value="palatino">Palatino</option>
-            <option value="segoe">Segoe UI</option>
-            <option value="tahoma">Tahoma</option>
-            <option value="trebuchet">Trebuchet MS</option>
-            <option value="verdana">Verdana</option>
-          </select>
+          <Select value={fontFamily} onValueChange={(value) => {
+            setFontFamily(value);
+            // Only apply font family if there's a valid selection
+            const selection = window.getSelection();
+            if (selection && selection.rangeCount > 0 && selection.toString().trim()) {
+              applyFontFamily(value);
+            }
+          }}>
+            <SelectTrigger className="w-24 h-5 text-xs border border-gray-300 bg-white">
+              <SelectValue placeholder="Verdana" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="arial">Arial</SelectItem>
+              <SelectItem value="calibri">Calibri</SelectItem>
+              <SelectItem value="cambria">Cambria</SelectItem>
+              <SelectItem value="comic-sans">Comic Sans MS</SelectItem>
+              <SelectItem value="times">Times New Roman</SelectItem>
+              <SelectItem value="courier">Courier New</SelectItem>
+              <SelectItem value="consolas">Consolas</SelectItem>
+              <SelectItem value="courier">Courier New</SelectItem>
+              <SelectItem value="franklin">Franklin Gothic</SelectItem>
+              <SelectItem value="garamond">Garamond</SelectItem>
+              <SelectItem value="georgia">Georgia</SelectItem>
+              <SelectItem value="helvetica">Helvetica</SelectItem>
+              <SelectItem value="impact">Impact</SelectItem>
+              <SelectItem value="lato">Lato</SelectItem>
+              <SelectItem value="lucida">Lucida Console</SelectItem>
+              <SelectItem value="open-sans">Open Sans</SelectItem>
+              <SelectItem value="palatino">Palatino</SelectItem>
+              <SelectItem value="segoe">Segoe UI</SelectItem>
+              <SelectItem value="tahoma">Tahoma</SelectItem>
+              <SelectItem value="times">Times New Roman</SelectItem>
+              <SelectItem value="trebuchet">Trebuchet MS</SelectItem>
+              <SelectItem value="verdana">Verdana</SelectItem>
+            </SelectContent>
+          </Select>
           
-          <select 
-            value={fontSize} 
-            onChange={(e) => {
-              setFontSize(e.target.value);
-              // Only apply font size if there's a valid selection
-              const selection = window.getSelection();
-              if (selection && selection.rangeCount > 0 && selection.toString().trim()) {
-                applyFontSize(e.target.value);
-              }
-            }}
-            className="w-16 border border-gray-300 bg-white rounded text-xs px-2"
-            style={{ height: '20px', fontSize: '12px', lineHeight: '20px', minHeight: '20px', maxHeight: '20px' }}
-          >
-            <option value="8pt">8pt</option>
-            <option value="9pt">9pt</option>
-            <option value="10pt">10pt</option>
-            <option value="11pt">11pt</option>
-            <option value="12pt">12pt</option>
-            <option value="14pt">14pt</option>
-            <option value="16pt">16pt</option>
-            <option value="18pt">18pt</option>
-            <option value="20pt">20pt</option>
-            <option value="22pt">22pt</option>
-            <option value="24pt">24pt</option>
-            <option value="26pt">26pt</option>
-            <option value="28pt">28pt</option>
-            <option value="36pt">36pt</option>
-            <option value="48pt">48pt</option>
-            <option value="72pt">72pt</option>
-          </select>
+          <Select value={fontSize} onValueChange={(value) => {
+            setFontSize(value);
+            // Only apply font size if there's a valid selection
+            const selection = window.getSelection();
+            if (selection && selection.rangeCount > 0 && selection.toString().trim()) {
+              applyFontSize(value);
+            }
+          }}>
+            <SelectTrigger className="w-16 h-5 text-xs border border-gray-300 bg-white">
+              <SelectValue placeholder="12pt" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="8pt">8pt</SelectItem>
+              <SelectItem value="9pt">9pt</SelectItem>
+              <SelectItem value="10pt">10pt</SelectItem>
+              <SelectItem value="11pt">11pt</SelectItem>
+              <SelectItem value="12pt">12pt</SelectItem>
+              <SelectItem value="14pt">14pt</SelectItem>
+              <SelectItem value="16pt">16pt</SelectItem>
+              <SelectItem value="18pt">18pt</SelectItem>
+              <SelectItem value="20pt">20pt</SelectItem>
+              <SelectItem value="22pt">22pt</SelectItem>
+              <SelectItem value="24pt">24pt</SelectItem>
+              <SelectItem value="26pt">26pt</SelectItem>
+              <SelectItem value="28pt">28pt</SelectItem>
+              <SelectItem value="36pt">36pt</SelectItem>
+              <SelectItem value="48pt">48pt</SelectItem>
+              <SelectItem value="72pt">72pt</SelectItem>
+            </SelectContent>
+          </Select>
           
           <div className="h-4 w-px bg-gray-300 dark:bg-slate-600 mx-1"></div>
           
@@ -3146,20 +3148,12 @@ export default function Forms() {
         
         {/* Save and View buttons - EXACT COPY of medical data button structure */}
         <div className="flex justify-center items-center gap-1">
-          <button 
-            onClick={handleSave}
-            className="text-xs h-5 px-2 border border-gray-300 bg-white rounded text-white"
-            style={{ backgroundColor: '#0d9488', borderColor: '#0d9488', height: '20px', lineHeight: '1', fontSize: '12px' }}
-          >
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={handleSave} style={{ backgroundColor: '#0d9488', color: 'white', borderColor: '#0d9488' }}>
             Save Template
-          </button>
-          <button 
-            onClick={() => setShowSavedTemplatesDialog(true)}
-            className="text-xs h-5 px-2 border border-gray-300 bg-white rounded hover:bg-gray-50"
-            style={{ height: '20px', lineHeight: '1', fontSize: '12px' }}
-          >
+          </Button>
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={() => setShowSavedTemplatesDialog(true)}>
             View Saved Templates
-          </button>
+          </Button>
         </div>
       </div>
 
