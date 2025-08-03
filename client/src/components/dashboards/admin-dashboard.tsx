@@ -40,18 +40,18 @@ function RecentPatientsList() {
   });
 
   if (isLoading) {
-    return <div className="text-sm text-gray-500 text-center py-4">Loading patients...</div>;
+    return <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">Loading patients...</div>;
   }
 
   if (error || !patients) {
-    return <div className="text-sm text-gray-500 text-center py-4">Unable to load patient data. Please try again later.</div>;
+    return <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">Unable to load patient data. Please try again later.</div>;
   }
 
   // Ensure patients is an array
   const patientsArray = Array.isArray(patients) ? patients : [];
   
   if (patientsArray.length === 0) {
-    return <div className="text-sm text-gray-500 text-center py-4">No patients found.</div>;
+    return <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">No patients found.</div>;
   }
 
   // Get the 5 most recent patients (sorted by creation date)
@@ -62,16 +62,16 @@ function RecentPatientsList() {
   return (
     <div className="space-y-3">
       {recentPatients.map((patient: any) => (
-        <div key={patient.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+        <div key={patient.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800">
           <div className="flex-1">
-            <div className="font-medium text-sm">
+            <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
               {patient.firstName} {patient.lastName}
             </div>
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-gray-500 dark:text-gray-400">
               Patient ID: {patient.patientId || patient.id}
             </div>
           </div>
-          <div className="text-xs text-gray-400">
+          <div className="text-xs text-gray-400 dark:text-gray-500">
             {patient.createdAt ? new Date(patient.createdAt).toLocaleDateString() : "Recent"}
           </div>
         </div>
@@ -162,12 +162,12 @@ export function AdminDashboard() {
         {dashboardCards.map((card) => (
           <Card key={card.title} className="hover:shadow-lg transition-shadow cursor-pointer">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">{card.title}</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">{card.title}</CardTitle>
               <card.icon className={`h-6 w-6 ${card.color}`} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{card.value}</div>
-              <p className="text-xs text-gray-500">{card.description}</p>
+              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{card.value}</div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{card.description}</p>
             </CardContent>
           </Card>
         ))}
@@ -202,13 +202,13 @@ export function AdminDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg font-semibold">AI Patient Insights</CardTitle>
-              <div className="flex items-center gap-1 text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
+              <div className="flex items-center gap-1 text-xs bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300 px-2 py-1 rounded-full">
                 <Brain className="h-3 w-3" />
                 AI Powered
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-gray-500 text-center py-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
                 No AI insights available at the moment.
               </p>
             </CardContent>
@@ -218,8 +218,8 @@ export function AdminDashboard() {
           <Card>
             <CardContent className="pt-4">
               <div className="text-center">
-                <div className="text-sm text-gray-500 mb-2">Subscription info unavailable</div>
-                <div className="w-8 h-8 bg-gray-100 rounded mx-auto"></div>
+                <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">Subscription info unavailable</div>
+                <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded mx-auto"></div>
               </div>
             </CardContent>
           </Card>
