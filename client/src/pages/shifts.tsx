@@ -491,21 +491,21 @@ export default function ShiftsPage() {
         <div className="flex items-center gap-3">
           <Calendar className="h-8 w-8 text-blue-600" />
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Shift Management</h1>
-            <p className="text-gray-600">Manage doctor and staff schedules, availability, and absences</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Shift Management</h1>
+            <p className="text-gray-600 dark:text-gray-300">Manage doctor and staff schedules, availability, and absences</p>
           </div>
         </div>
-        <div className="text-sm text-gray-500">
-          View shifts for: <span className="font-medium">{selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+        <div className="text-sm text-gray-500 dark:text-gray-400">
+          View shifts for: <span className="font-medium text-gray-900 dark:text-gray-100">{selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
         </div>
       </div>
 
       {/* Role and Name Selection */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div className="bg-white rounded-lg shadow-sm border p-6">
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 p-6">
           <div className="flex items-center gap-3 mb-4">
             <UserCheck className="h-6 w-6 text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Select Role</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Select Role</h2>
           </div>
           <Select value={selectedRole} onValueChange={setSelectedRole}>
             <SelectTrigger className="w-full h-12">
@@ -521,10 +521,10 @@ export default function ShiftsPage() {
           </Select>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border p-6">
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 p-6">
           <div className="flex items-center gap-3 mb-4">
             <Users className="h-6 w-6 text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Select Name</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Select Name</h2>
           </div>
           <Select 
             value={selectedStaffId} 
@@ -548,9 +548,9 @@ export default function ShiftsPage() {
       {/* Calendar and Time Selection */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Date Calendar */}
-        <div className="bg-white rounded-lg shadow-sm border p-6">
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Select a Date & Time</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Select a Date & Time</h2>
           </div>
           
           {/* Calendar Header */}
@@ -562,7 +562,7 @@ export default function ShiftsPage() {
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <h3 className="font-medium text-gray-900">
+            <h3 className="font-medium text-gray-900 dark:text-gray-100">
               {currentMonthName} {currentYear}
             </h3>
             <Button 
@@ -577,7 +577,7 @@ export default function ShiftsPage() {
           {/* Calendar Grid */}
           <div className="grid grid-cols-7 gap-1 mb-2">
             {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((day) => (
-              <div key={day} className="p-2 text-center text-xs font-medium text-gray-500">
+              <div key={day} className="p-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400">
                 {day}
               </div>
             ))}
@@ -596,9 +596,9 @@ export default function ShiftsPage() {
                   size="sm"
                   className={`
                     h-10 p-0 font-normal
-                    ${!isCurrentMonth ? 'text-gray-300' : 'text-gray-900'}
+                    ${!isCurrentMonth ? 'text-gray-300 dark:text-gray-600' : 'text-gray-900 dark:text-gray-100'}
                     ${isSelected ? 'bg-blue-600 text-white hover:bg-blue-700' : ''}
-                    ${isToday && !isSelected ? 'bg-blue-100 text-blue-600' : ''}
+                    ${isToday && !isSelected ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300' : ''}
                   `}
                   onClick={() => {
                     console.log("Calendar day clicked:", day.toDateString(), day);
@@ -613,10 +613,10 @@ export default function ShiftsPage() {
         </div>
 
         {/* Time Slots */}
-        <div className="bg-white rounded-lg shadow-sm border p-6">
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 p-6">
           <div className="flex items-center gap-3 mb-4">
             <Clock className="h-6 w-6 text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             </h2>
           </div>
@@ -624,8 +624,8 @@ export default function ShiftsPage() {
           {!selectedStaffId ? (
             <div className="text-center py-8">
               <Clock className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500 mb-2">Select a staff member to view time slots</p>
-              <p className="text-sm text-gray-400">Choose role and name from the dropdowns above</p>
+              <p className="text-gray-500 dark:text-gray-400 mb-2">Select a staff member to view time slots</p>
+              <p className="text-sm text-gray-400 dark:text-gray-500">Choose role and name from the dropdowns above</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -692,7 +692,7 @@ export default function ShiftsPage() {
               
               {/* Legend */}
               <div className="mt-4 pt-4 border-t space-y-2 text-sm">
-                <div className="text-center text-gray-700 font-medium mb-3">
+                <div className="text-center text-gray-700 dark:text-gray-300 font-medium mb-3">
                   {!selectedStartTime && "Click a time slot to set start time"}
                   {selectedStartTime && !selectedEndTime && "Now select end time to complete shift"}
                   {selectedStartTime && selectedEndTime && "Shift scheduled! Click another slot to create new shift"}
@@ -700,15 +700,15 @@ export default function ShiftsPage() {
                 <div className="flex items-center justify-center gap-4 flex-wrap">
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 bg-gradient-to-r from-blue-400 to-cyan-400 rounded"></div>
-                    <span className="text-gray-600">Available</span>
+                    <span className="text-gray-600 dark:text-gray-400">Available</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 bg-gradient-to-r from-purple-400 to-violet-500 rounded"></div>
-                    <span className="text-gray-600">Scheduled Shifts</span>
+                    <span className="text-gray-600 dark:text-gray-400">Scheduled Shifts</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-500 rounded"></div>
-                    <span className="text-gray-600">Selected</span>
+                    <span className="text-gray-600 dark:text-gray-400">Selected</span>
                   </div>
                 </div>
               </div>
@@ -719,43 +719,43 @@ export default function ShiftsPage() {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div className="bg-white rounded-lg shadow-sm border p-6">
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 p-6">
           <div className="flex items-center">
             <Users className="h-8 w-8 text-blue-600" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Shifts</p>
-              <p className="text-2xl font-bold text-gray-900">{shifts.length}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Shifts</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{shifts.length}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border p-6">
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 p-6">
           <div className="flex items-center">
             <CalendarCheck className="h-8 w-8 text-green-600" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Available Staff</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Available Staff</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {shifts.filter((s: any) => s.isAvailable && s.status === 'scheduled').length}
               </p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border p-6">
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 p-6">
           <div className="flex items-center">
             <Clock className="h-8 w-8 text-orange-600" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">On Call</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">On Call</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {shifts.filter((s: any) => s.shiftType === 'on_call').length}
               </p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border p-6">
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 p-6">
           <div className="flex items-center">
             <Calendar className="h-8 w-8 text-red-600" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Absent</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Absent</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {shifts.filter((s: any) => s.shiftType === 'absent' || s.status === 'absent').length}
               </p>
             </div>
@@ -764,9 +764,9 @@ export default function ShiftsPage() {
       </div>
 
       {/* Shifts List */}
-      <div className="bg-white rounded-lg shadow-sm border">
-        <div className="p-6 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700">
+        <div className="p-6 border-b dark:border-slate-600">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             Shifts for {selectedDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
           </h2>
         </div>
@@ -774,16 +774,16 @@ export default function ShiftsPage() {
         {shiftsLoading ? (
           <div className="p-6 text-center">
             <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />
-            <p className="text-gray-600">Loading shifts...</p>
+            <p className="text-gray-600 dark:text-gray-400">Loading shifts...</p>
           </div>
         ) : shifts.length === 0 ? (
           <div className="p-12 text-center">
             <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No shifts scheduled for this date</h3>
-            <p className="text-gray-600 mb-4">Use the calendar above to schedule new shifts</p>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No shifts scheduled for this date</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">Use the calendar above to schedule new shifts</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-gray-200 dark:divide-slate-600">
             {shifts
               .sort((a: any, b: any) => {
                 // Sort by creation date (newest first), then by start time
@@ -833,7 +833,7 @@ export default function ShiftsPage() {
                         {shift.status.toUpperCase()}
                       </span>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                       <div className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
 {shift.startTime}-{shift.endTime}
@@ -861,15 +861,15 @@ export default function ShiftsPage() {
       {/* Doctor Availability Modal */}
       {showAvailability && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b dark:border-slate-600">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-gray-900">Doctor Availability</h2>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Doctor Availability</h2>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setShowAvailability(false)}
-                  className="text-gray-600 hover:text-gray-800"
+                  className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
                 >
                   ✕
                 </Button>
@@ -879,7 +879,7 @@ export default function ShiftsPage() {
             <div className="p-6">
               {(() => {
                 const selectedDoctor = staff.find((s: any) => s.id.toString() === selectedDoctorId);
-                if (!selectedDoctor) return <p className="text-gray-600">Doctor not found</p>;
+                if (!selectedDoctor) return <p className="text-gray-600 dark:text-gray-400">Doctor not found</p>;
                 
                 console.log("All shifts data:", shifts);
                 console.log("Looking for doctor ID:", selectedDoctorId, "on date:", selectedAvailabilityDay.toDateString());
@@ -903,19 +903,19 @@ export default function ShiftsPage() {
                 return (
                   <div className="space-y-6">
                     {/* Doctor Info */}
-                    <div className="bg-blue-50 rounded-lg p-4">
-                      <h3 className="text-lg font-semibold text-blue-900">
+                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                      <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-300">
                         {selectedDoctor.role === 'doctor' ? 'Dr.' : ''} {selectedDoctor.firstName} {selectedDoctor.lastName}
                       </h3>
-                      <p className="text-blue-700">{selectedDoctor.email}</p>
-                      <p className="text-blue-600 capitalize">{selectedDoctor.role}</p>
+                      <p className="text-blue-700 dark:text-blue-400">{selectedDoctor.email}</p>
+                      <p className="text-blue-600 dark:text-blue-400 capitalize">{selectedDoctor.role}</p>
                     </div>
 
                     {/* Availability Overview */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="bg-green-50 rounded-lg p-4 text-center">
-                        <h4 className="text-lg font-semibold text-green-800">Available Hours</h4>
-                        <p className="text-2xl font-bold text-green-600">
+                      <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 text-center">
+                        <h4 className="text-lg font-semibold text-green-800 dark:text-green-300">Available Hours</h4>
+                        <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                           {(() => {
                             const totalHours = doctorShifts
                               .filter((s: any) => s.isAvailable && s.status === 'scheduled' && s.shiftType !== 'absent')
@@ -941,18 +941,18 @@ export default function ShiftsPage() {
                             return totalHours;
                           })()}h
                         </p>
-                        <p className="text-sm text-green-600">This period</p>
+                        <p className="text-sm text-green-600 dark:text-green-400">This period</p>
                       </div>
-                      <div className="bg-orange-50 rounded-lg p-4 text-center">
-                        <h4 className="text-lg font-semibold text-orange-800">On Call</h4>
-                        <p className="text-2xl font-bold text-orange-600">
+                      <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 text-center">
+                        <h4 className="text-lg font-semibold text-orange-800 dark:text-orange-300">On Call</h4>
+                        <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                           {doctorShifts.filter((s: any) => s.shiftType === 'on_call').length}
                         </p>
-                        <p className="text-sm text-orange-600">Shifts</p>
+                        <p className="text-sm text-orange-600 dark:text-orange-400">Shifts</p>
                       </div>
-                      <div className="bg-red-50 rounded-lg p-4 text-center">
-                        <h4 className="text-lg font-semibold text-red-800">Absent Hours</h4>
-                        <p className="text-2xl font-bold text-red-600">
+                      <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 text-center">
+                        <h4 className="text-lg font-semibold text-red-800 dark:text-red-300">Absent Hours</h4>
+                        <p className="text-2xl font-bold text-red-600 dark:text-red-400">
                           {(() => {
                             const absentHours = doctorShifts
                               .filter((s: any) => s.shiftType === 'absent' || s.status === 'absent')
@@ -978,13 +978,13 @@ export default function ShiftsPage() {
                             return absentHours;
                           })()}h
                         </p>
-                        <p className="text-sm text-red-600">Unavailable</p>
+                        <p className="text-sm text-red-600 dark:text-red-400">Unavailable</p>
                       </div>
                     </div>
 
                     {/* Day Selection */}
                     <div>
-                      <h4 className="text-lg font-semibold text-gray-900 mb-4">Select Day</h4>
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Select Day</h4>
                       <div className="grid grid-cols-7 gap-2">
                         {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((dayName, index) => {
                           // Calculate the date for this day of the week
@@ -1005,7 +1005,7 @@ export default function ShiftsPage() {
                               className={`p-3 rounded-lg border text-center font-medium transition-colors ${
                                 isSelected 
                                   ? 'bg-blue-600 text-white border-blue-600' 
-                                  : 'bg-white text-gray-700 border-gray-300 hover:bg-blue-50'
+                                  : 'bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-slate-600 hover:bg-blue-50 dark:hover:bg-slate-600'
                               }`}
                             >
                               <div className="text-sm">{dayName}</div>
