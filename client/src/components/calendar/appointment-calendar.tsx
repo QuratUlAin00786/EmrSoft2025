@@ -202,7 +202,7 @@ export default function AppointmentCalendar() {
           {viewMode === "month" && (
             <div className="grid grid-cols-7 gap-1 mb-4">
               {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
-                <div key={day} className="p-2 text-sm font-medium text-center text-gray-500">
+                <div key={day} className="p-2 text-sm font-medium text-center text-gray-500 dark:text-gray-400">
                   {day}
                 </div>
               ))}
@@ -216,13 +216,13 @@ export default function AppointmentCalendar() {
                     key={day.toISOString()}
                     onClick={() => setSelectedDate(day)}
                     className={`
-                      p-2 text-sm border rounded-lg hover:bg-gray-50 transition-colors
-                      ${isSelected ? "bg-blue-100 border-blue-300" : "border-gray-200"}
-                      ${isCurrentDay ? "bg-blue-50 font-semibold" : ""}
+                      p-2 text-sm border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors
+                      ${isSelected ? "bg-blue-100 dark:bg-blue-900 border-blue-300 dark:border-blue-600" : "border-gray-200 dark:border-gray-600"}
+                      ${isCurrentDay ? "bg-blue-50 dark:bg-blue-900/50 font-semibold" : ""}
                     `}
                   >
                     <div className="text-center">
-                      <div className={isCurrentDay ? "text-blue-600" : ""}>
+                      <div className={isCurrentDay ? "text-blue-600 dark:text-blue-400" : "text-gray-900 dark:text-gray-100"}>
                         {format(day, "d")}
                       </div>
 
