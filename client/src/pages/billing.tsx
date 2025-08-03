@@ -444,8 +444,8 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                      <p className="text-2xl font-bold">{formatCurrency(getTotalRevenue())}</p>
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Revenue</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(getTotalRevenue())}</p>
                     </div>
                     <DollarSign className="h-8 w-8 text-green-600" />
                   </div>
@@ -456,8 +456,8 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Outstanding</p>
-                      <p className="text-2xl font-bold">{formatCurrency(getOutstandingAmount())}</p>
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Outstanding</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(getOutstandingAmount())}</p>
                     </div>
                     <AlertTriangle className="h-8 w-8 text-red-600" />
                   </div>
@@ -468,8 +468,8 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Overdue Invoices</p>
-                      <p className="text-2xl font-bold">2</p>
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Overdue Invoices</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">2</p>
                     </div>
                     <Clock className="h-8 w-8 text-orange-600" />
                   </div>
@@ -480,8 +480,8 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">This Month</p>
-                      <p className="text-2xl font-bold">24</p>
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-300">This Month</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">24</p>
                     </div>
                     <Receipt className="h-8 w-8 text-blue-600" />
                   </div>
@@ -535,7 +535,7 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-3">
-                          <h3 className="text-lg font-semibold">{invoice.patientName}</h3>
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{invoice.patientName}</h3>
                           <Badge className={getStatusColor(invoice.status)}>
                             {invoice.status}
                           </Badge>
@@ -549,8 +549,8 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
                         
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
                           <div>
-                            <h4 className="font-medium text-sm text-gray-700 mb-2">Invoice Details</h4>
-                            <div className="space-y-1 text-sm">
+                            <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Invoice Details</h4>
+                            <div className="space-y-1 text-sm text-gray-900 dark:text-gray-100">
                               <div><strong>Invoice:</strong> {invoice.id}</div>
                               <div><strong>Service Date:</strong> {format(new Date(invoice.dateOfService), 'MMM d, yyyy')}</div>
                               <div><strong>Due Date:</strong> {format(new Date(invoice.dueDate), 'MMM d, yyyy')}</div>
@@ -558,8 +558,8 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
                           </div>
                           
                           <div>
-                            <h4 className="font-medium text-sm text-gray-700 mb-2">Amount</h4>
-                            <div className="space-y-1 text-sm">
+                            <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Amount</h4>
+                            <div className="space-y-1 text-sm text-gray-900 dark:text-gray-100">
                               <div><strong>Total:</strong> {formatCurrency(invoice.totalAmount)}</div>
                               <div><strong>Paid:</strong> {formatCurrency(invoice.paidAmount)}</div>
                               <div><strong>Outstanding:</strong> {formatCurrency(invoice.totalAmount - invoice.paidAmount)}</div>
@@ -568,8 +568,8 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
                           
                           {invoice.insurance && (
                             <div>
-                              <h4 className="font-medium text-sm text-gray-700 mb-2">Insurance</h4>
-                              <div className="space-y-1 text-sm">
+                              <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Insurance</h4>
+                              <div className="space-y-1 text-sm text-gray-900 dark:text-gray-100">
                                 <div><strong>Provider:</strong> {invoice.insurance.provider}</div>
                                 <div><strong>Claim:</strong> {invoice.insurance.claimNumber}</div>
                                 <div className="flex items-center gap-2">
@@ -583,17 +583,17 @@ BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
                           )}
                         </div>
 
-                        <div className="bg-gray-50 p-3 rounded-lg">
-                          <h4 className="font-medium text-sm text-gray-700 mb-2">Services</h4>
+                        <div className="bg-gray-50 dark:bg-slate-800 p-3 rounded-lg">
+                          <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Services</h4>
                           <div className="space-y-1">
                             {invoice.items.slice(0, 2).map((item: any, index: number) => (
-                              <div key={index} className="flex justify-between text-sm">
+                              <div key={index} className="flex justify-between text-sm text-gray-900 dark:text-gray-100">
                                 <span>{item.description}</span>
                                 <span>{formatCurrency(item.total)}</span>
                               </div>
                             ))}
                             {invoice.items.length > 2 && (
-                              <div className="text-sm text-gray-500">
+                              <div className="text-sm text-gray-500 dark:text-gray-400">
                                 +{invoice.items.length - 2} more items
                               </div>
                             )}
