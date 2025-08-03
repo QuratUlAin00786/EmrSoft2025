@@ -74,7 +74,7 @@ export function DoctorDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Doctor Dashboard</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Doctor Dashboard</h1>
         <p className="text-neutral-600">
           Clinical overview and patient management tools
         </p>
@@ -102,7 +102,7 @@ export function DoctorDashboard() {
 
       {/* Quick Actions */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {quickActions.map((action) => (
             <Card key={action.title} className="hover:shadow-md transition-shadow">

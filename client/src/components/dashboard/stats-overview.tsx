@@ -107,11 +107,11 @@ export function StatsOverview() {
           <Card key={card.title} className="dashboard-card">
             <CardContent className="flex items-center justify-between">
               <div>
-                <p className="text-neutral-600 text-sm">{card.title}</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">--</p>
-                <p className="text-neutral-500 text-sm mt-1">Fetch data for {card.title}</p>
+                <p className="text-neutral-600 dark:text-neutral-400 text-sm">{card.title}</p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-2">--</p>
+                <p className="text-neutral-500 dark:text-neutral-400 text-sm mt-1">Fetch data for {card.title}</p>
               </div>
-              <div className={`w-12 h-12 ${card.bgColor} rounded-lg flex items-center justify-center`}>
+              <div className={`w-12 h-12 ${card.bgColor} dark:bg-opacity-20 rounded-lg flex items-center justify-center`}>
                 <card.icon className={`${card.color} text-xl h-6 w-6`} />
               </div>
             </CardContent>
@@ -135,15 +135,15 @@ export function StatsOverview() {
           <Card key={card.title} className="dashboard-card hover:shadow-md transition-shadow">
             <CardContent className="flex items-center justify-between p-6">
               <div>
-                <p className="text-neutral-600 text-sm">{card.title}</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">
+                <p className="text-neutral-600 dark:text-neutral-400 text-sm">{card.title}</p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-2">
                   {formattedValue}
                 </p>
                 <p className={`text-sm mt-1 ${card.changeColor}`}>
                   {card.change}
                 </p>
               </div>
-              <div className={`w-12 h-12 ${card.bgColor} rounded-lg flex items-center justify-center`}>
+              <div className={`w-12 h-12 ${card.bgColor} dark:bg-opacity-20 rounded-lg flex items-center justify-center`}>
                 <card.icon className={`${card.color} text-xl h-6 w-6`} />
               </div>
             </CardContent>
