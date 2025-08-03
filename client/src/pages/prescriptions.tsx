@@ -1017,21 +1017,21 @@ export default function PrescriptionsPage() {
               <Card>
                 <CardContent className="p-12 text-center">
                   <Pill className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-600 mb-2">No prescriptions found</h3>
-                  <p className="text-gray-600">Try adjusting your search terms or filters</p>
+                  <h3 className="text-lg font-medium text-gray-600 dark:text-gray-300 mb-2">No prescriptions found</h3>
+                  <p className="text-gray-600 dark:text-gray-300">Try adjusting your search terms or filters</p>
                 </CardContent>
               </Card>
             ) : (
               filteredPrescriptions.map((prescription) => (
-                <Card key={prescription.id} className="hover:shadow-md transition-shadow bg-gradient-to-br from-blue-50 to-purple-100 border-2 border-blue-200">
+                <Card key={prescription.id} className="hover:shadow-md transition-shadow bg-gradient-to-br from-blue-50 to-purple-100 dark:from-slate-800 dark:to-slate-700 border-2 border-blue-200 dark:border-slate-600">
                   <CardContent className="p-0">
                     {/* Professional Prescription Header */}
-                    <div className="bg-white border-b-2 border-blue-200 p-4">
+                    <div className="bg-white dark:bg-slate-700 border-b-2 border-blue-200 dark:border-slate-600 p-4">
                       <div className="flex justify-between items-start">
                         <div className="text-center">
-                          <h2 className="text-lg font-bold text-gray-800">CURA HEALTH EMR</h2>
-                          <p className="text-sm text-gray-600">License # 123456</p>
-                          <p className="text-sm text-gray-600">NPI # 1234567890</p>
+                          <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">CURA HEALTH EMR</h2>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">License # 123456</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">NPI # 1234567890</p>
                         </div>
                         <div>
                           <Badge className={getStatusColor(prescription.status)}>
@@ -1047,49 +1047,49 @@ export default function PrescriptionsPage() {
                       </div>
                       
                       <div className="text-center mt-2">
-                        <h3 className="text-md font-semibold text-gray-800">RESIDENT PHYSICIAN M.D</h3>
-                        <p className="text-sm text-gray-600">{prescription.providerName}</p>
-                        <p className="text-sm text-gray-600">Halo Health Clinic</p>
-                        <p className="text-sm text-gray-600">Unit 2 Drayton Court, Solihull</p>
-                        <p className="text-sm text-gray-600">B90 4NG, UK</p>
-                        <p className="text-sm text-gray-600">+44(0)121 827 5531</p>
+                        <h3 className="text-md font-semibold text-gray-800 dark:text-gray-100">RESIDENT PHYSICIAN M.D</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">{prescription.providerName}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">Halo Health Clinic</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">Unit 2 Drayton Court, Solihull</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">B90 4NG, UK</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">+44(0)121 827 5531</p>
                       </div>
                     </div>
 
                     {/* Patient Information */}
-                    <div className="px-6 py-4 bg-blue-50">
+                    <div className="px-6 py-4 bg-blue-50 dark:bg-slate-600">
                       <div className="flex justify-between items-start">
                         <div>
-                          <p className="text-sm"><strong>Name:</strong> {prescription.patientName}</p>
-                          <p className="text-sm"><strong>Address:</strong> Patient Address</p>
-                          <p className="text-sm"><strong>Allergies:</strong> NKDA</p>
-                          <p className="text-sm"><strong>Weight:</strong> {prescription.patientWeight || '70 kg'}</p>
+                          <p className="text-sm text-gray-800 dark:text-gray-100"><strong>Name:</strong> {prescription.patientName}</p>
+                          <p className="text-sm text-gray-800 dark:text-gray-100"><strong>Address:</strong> Patient Address</p>
+                          <p className="text-sm text-gray-800 dark:text-gray-100"><strong>Allergies:</strong> NKDA</p>
+                          <p className="text-sm text-gray-800 dark:text-gray-100"><strong>Weight:</strong> {prescription.patientWeight || '70 kg'}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm"><strong>DOB:</strong> {prescription.patientDob || '01/01/1985'}</p>
-                          <p className="text-sm"><strong>Age:</strong> {prescription.patientAge || '39'}</p>
-                          <p className="text-sm"><strong>Sex:</strong> {prescription.patientSex || 'M'}</p>
-                          <p className="text-sm"><strong>Date:</strong> {format(new Date(prescription.prescribedAt), 'MM/dd/yyyy')}</p>
+                          <p className="text-sm text-gray-800 dark:text-gray-100"><strong>DOB:</strong> {prescription.patientDob || '01/01/1985'}</p>
+                          <p className="text-sm text-gray-800 dark:text-gray-100"><strong>Age:</strong> {prescription.patientAge || '39'}</p>
+                          <p className="text-sm text-gray-800 dark:text-gray-100"><strong>Sex:</strong> {prescription.patientSex || 'M'}</p>
+                          <p className="text-sm text-gray-800 dark:text-gray-100"><strong>Date:</strong> {format(new Date(prescription.prescribedAt), 'MM/dd/yyyy')}</p>
                         </div>
                       </div>
                     </div>
 
                     {/* Large HHC Symbol */}
-                    <div className="flex justify-center py-4 bg-blue-50">
-                      <div className="text-6xl font-bold text-blue-400 opacity-50">
+                    <div className="flex justify-center py-4 bg-blue-50 dark:bg-slate-600">
+                      <div className="text-6xl font-bold text-blue-400 dark:text-blue-300 opacity-50">
                         HHC
                       </div>
                     </div>
 
                     {/* Prescription Content */}
-                    <div className="px-6 py-4 bg-white min-h-[200px]">
+                    <div className="px-6 py-4 bg-white dark:bg-slate-700 min-h-[200px]">
                       <div className="space-y-4">
                         {prescription.medications.map((medication: any, index: number) => (
                           <div key={index}>
-                            <p className="font-medium text-lg">{medication.name} {medication.dosage}</p>
-                            <p className="text-sm text-gray-700 ml-4">Sig: {medication.instructions || medication.frequency}</p>
-                            <p className="text-sm text-gray-700 ml-4">Disp: {medication.quantity} ({medication.duration})</p>
-                            <p className="text-sm text-gray-700 ml-4">Refills: {medication.refills}</p>
+                            <p className="font-medium text-lg text-gray-800 dark:text-gray-100">{medication.name} {medication.dosage}</p>
+                            <p className="text-sm text-gray-700 dark:text-gray-300 ml-4">Sig: {medication.instructions || medication.frequency}</p>
+                            <p className="text-sm text-gray-700 dark:text-gray-300 ml-4">Disp: {medication.quantity} ({medication.duration})</p>
+                            <p className="text-sm text-gray-700 dark:text-gray-300 ml-4">Refills: {medication.refills}</p>
                             {index < prescription.medications.length - 1 && (
                               <hr className="my-3 border-gray-200" />
                             )}
@@ -1098,17 +1098,17 @@ export default function PrescriptionsPage() {
                       </div>
                       
                       {/* Diagnosis */}
-                      <div className="mt-6 pt-4 border-t border-gray-200">
-                        <p className="text-sm"><strong>Diagnosis:</strong> {prescription.diagnosis}</p>
+                      <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+                        <p className="text-sm text-gray-800 dark:text-gray-100"><strong>Diagnosis:</strong> {prescription.diagnosis}</p>
                       </div>
                     </div>
 
                     {/* Prescription Footer */}
-                    <div className="px-6 py-4 bg-blue-50 border-t-2 border-blue-200">
+                    <div className="px-6 py-4 bg-blue-50 dark:bg-slate-600 border-t-2 border-blue-200 dark:border-slate-600">
                       <div className="flex justify-between items-end">
                         <div>
-                          <p className="text-sm font-medium">Resident Physician</p>
-                          <p className="text-xs text-gray-600">(Signature)</p>
+                          <p className="text-sm font-medium text-gray-800 dark:text-gray-100">Resident Physician</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-300">(Signature)</p>
                           {prescription.signature && prescription.signature.doctorSignature ? (
                             <div className="mt-2">
                               <img 
@@ -1131,14 +1131,14 @@ export default function PrescriptionsPage() {
                           )}
                         </div>
                         <div className="text-right">
-                          <p className="text-sm font-medium">May Substitute</p>
+                          <p className="text-sm font-medium text-gray-800 dark:text-gray-100">May Substitute</p>
                           <div className="border-b border-gray-400 w-32 mt-2"></div>
                         </div>
                       </div>
                       
                       {prescription.pharmacy && (
                         <div className="mt-4 text-center">
-                          <p className="text-xs text-gray-600">
+                          <p className="text-xs text-gray-600 dark:text-gray-300">
                             <strong>Pharmacy:</strong> {prescription.pharmacy.name} - {prescription.pharmacy.phone}
                           </p>
                         </div>
