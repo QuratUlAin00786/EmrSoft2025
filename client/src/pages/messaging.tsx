@@ -681,11 +681,11 @@ export default function MessagingPage() {
 
   const getCampaignStatusColor = (status: string) => {
     switch (status) {
-      case 'sent': return 'bg-green-100 text-green-800';
-      case 'scheduled': return 'bg-blue-100 text-blue-800';
-      case 'paused': return 'bg-yellow-100 text-yellow-800';
-      case 'draft': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'sent': return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300';
+      case 'scheduled': return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300';
+      case 'paused': return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300';
+      case 'draft': return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300';
+      default: return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300';
     }
   };
 
@@ -714,8 +714,8 @@ export default function MessagingPage() {
             <span>Back</span>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Messaging Center</h1>
-            <p className="text-gray-600 mt-1">Secure communication with patients and staff</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Messaging Center</h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">Secure communication with patients and staff</p>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -1040,11 +1040,11 @@ export default function MessagingPage() {
         <TabsContent value="conversations" className="space-y-6">
           <div className="grid grid-cols-12 gap-6 h-[700px]">
             {/* Conversations List */}
-            <div className="col-span-4 border rounded-lg">
-              <div className="p-4 border-b">
+            <div className="col-span-4 border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 rounded-lg">
+              <div className="p-4 border-b border-gray-200 dark:border-slate-600">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
                     <Input
                       placeholder="Search conversations..."
                       className="pl-10"
@@ -1073,14 +1073,14 @@ export default function MessagingPage() {
                   {/* Show existing conversations first */}
                   {filteredConversations && filteredConversations.length > 0 && (
                     <div className="mb-4">
-                      <h3 className="text-sm font-medium text-gray-900 mb-2 px-1">📩 Click conversation below to send messages:</h3>
+                      <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2 px-1">📩 Click conversation below to send messages:</h3>
                       {filteredConversations.map((conversation: Conversation) => (
                         <div
                           key={conversation.id}
                           className={`p-3 rounded-lg cursor-pointer mb-2 transition-colors border-2 ${
                             selectedConversation === conversation.id
-                              ? 'bg-blue-50 border-blue-500 ring-4 ring-blue-200 shadow-lg'
-                              : 'hover:bg-green-50 border-green-300 hover:border-green-500 bg-green-25'
+                              ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-500 ring-4 ring-blue-200 dark:ring-blue-800 shadow-lg'
+                              : 'hover:bg-green-50 dark:hover:bg-green-900/30 border-green-300 dark:border-green-700 hover:border-green-500 dark:hover:border-green-500 bg-green-25 dark:bg-slate-700'
                           }`}
                           onClick={() => {
                             console.log('🔥 CONVERSATION SELECTED:', conversation.id);
@@ -1096,7 +1096,7 @@ export default function MessagingPage() {
                             </Avatar>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between mb-1">
-                                <p className="font-medium text-sm truncate">
+                                <p className="font-medium text-sm truncate text-gray-900 dark:text-gray-100">
                                   {conversation.participants[0]?.name}
                                 </p>
                                 <div className="flex items-center gap-1">
@@ -1110,10 +1110,10 @@ export default function MessagingPage() {
                                   )}
                                 </div>
                               </div>
-                              <p className="text-xs text-gray-600 truncate">
+                              <p className="text-xs text-gray-600 dark:text-gray-300 truncate">
                                 {conversation.lastMessage?.content || "No messages yet"}
                               </p>
-                              <p className="text-xs text-gray-400 mt-1">
+                              <p className="text-xs text-gray-400 dark:text-gray-400 mt-1">
                                 {conversation.lastMessage?.timestamp ? new Date(conversation.lastMessage.timestamp).toLocaleDateString() : ''}
                               </p>
                             </div>
@@ -1123,25 +1123,25 @@ export default function MessagingPage() {
                     </div>
                   )}
 
-                  <div className="mt-6 pt-4 border-t border-gray-200">
-                    <p className="text-xs text-gray-400 mb-2 px-1">Or create new conversation:</p>
+                  <div className="mt-6 pt-4 border-t border-gray-200 dark:border-slate-600">
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mb-2 px-1">Or create new conversation:</p>
                     <div
-                      className="p-2 rounded-lg cursor-pointer transition-colors border border-dashed border-gray-200 hover:border-gray-300 hover:bg-gray-25"
+                      className="p-2 rounded-lg cursor-pointer transition-colors border border-dashed border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500 hover:bg-gray-25 dark:hover:bg-slate-700"
                       onClick={() => setShowNewMessage(true)}
                     >
                       <div className="flex items-center gap-2">
-                        <div className="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center">
-                          <Plus className="h-3 w-3 text-gray-500" />
+                        <div className="h-6 w-6 rounded-full bg-gray-100 dark:bg-slate-600 flex items-center justify-center">
+                          <Plus className="h-3 w-3 text-gray-500 dark:text-gray-400" />
                         </div>
                         <div>
-                          <p className="text-xs text-gray-600">New Message</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-300">New Message</p>
                         </div>
                       </div>
                     </div>
                   </div>
 
                   {(!filteredConversations || filteredConversations.length === 0) && (
-                    <div className="text-center py-8 text-gray-500">
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                       <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
                       <p>No existing conversations found</p>
                     </div>
@@ -1151,11 +1151,11 @@ export default function MessagingPage() {
             </div>
 
             {/* Message Thread */}
-            <div className="col-span-8 border rounded-lg flex flex-col">
+            <div className="col-span-8 border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 rounded-lg flex flex-col">
               {selectedConversation ? (
                 <>
                   {/* Message Header */}
-                  <div className="p-4 border-b flex items-center justify-between">
+                  <div className="p-4 border-b border-gray-200 dark:border-slate-600 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10">
                         <AvatarFallback>
@@ -1164,11 +1164,11 @@ export default function MessagingPage() {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <h3 className="font-medium">
+                        <h3 className="font-medium text-gray-900 dark:text-gray-100">
                           {conversations.find((c: Conversation) => c.id === selectedConversation)
                             ?.participants[0]?.name}
                         </h3>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
                           {conversations.find((c: Conversation) => c.id === selectedConversation)
                             ?.participants[0]?.role}
                         </p>
@@ -1191,7 +1191,7 @@ export default function MessagingPage() {
                   <ScrollArea className="flex-1 p-4">
                     <div className="space-y-4">
                       {messages.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500">
+                        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                           <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
                           <p>No messages in this conversation</p>
                         </div>
@@ -1205,21 +1205,21 @@ export default function MessagingPage() {
                             </Avatar>
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
-                                <span className="font-medium text-sm">{message.senderName}</span>
-                                <span className="text-xs text-gray-500">
+                                <span className="font-medium text-sm text-gray-900 dark:text-gray-100">{message.senderName}</span>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
                                   {format(new Date(message.timestamp), 'MMM d, HH:mm')}
                                 </span>
                                 <div className={`w-2 h-2 rounded-full ${getPriorityColor(message.priority)}`}></div>
                               </div>
-                              <div className="bg-gray-50 rounded-lg p-3">
-                                <p className="text-sm">{message.content}</p>
+                              <div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3">
+                                <p className="text-sm text-gray-900 dark:text-gray-100">{message.content}</p>
                                 {message.attachments && message.attachments.length > 0 && (
                                   <div className="mt-2 space-y-1">
                                     {message.attachments.map((attachment) => (
-                                      <div key={attachment.id} className="flex items-center gap-2 text-xs">
+                                      <div key={attachment.id} className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300">
                                         <Paperclip className="h-3 w-3" />
                                         <span>{attachment.name}</span>
-                                        <span className="text-gray-500">({(attachment.size / 1024).toFixed(1)} KB)</span>
+                                        <span className="text-gray-500 dark:text-gray-400">({(attachment.size / 1024).toFixed(1)} KB)</span>
                                       </div>
                                     ))}
                                   </div>
@@ -1233,8 +1233,8 @@ export default function MessagingPage() {
                   </ScrollArea>
 
                   {/* Message Composer */}
-                  <div className="p-4 border-t bg-blue-50">
-                    <div className="text-sm font-medium text-blue-700 mb-2">
+                  <div className="p-4 border-t border-gray-200 dark:border-slate-600 bg-blue-50 dark:bg-slate-700">
+                    <div className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
                       💬 Reply to this conversation
                     </div>
                     <div className="flex gap-3">
@@ -1251,7 +1251,7 @@ export default function MessagingPage() {
                             }
                           }
                         }}
-                        className="flex-1 min-h-[80px] bg-white"
+                        className="flex-1 min-h-[80px] bg-white dark:bg-slate-600"
                       />
                       <div className="flex flex-col gap-2">
                         <Button variant="outline" size="sm">
@@ -1270,10 +1270,10 @@ export default function MessagingPage() {
                   </div>
                 </>
               ) : (
-                <div className="flex-1 flex items-center justify-center text-gray-500">
+                <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-gray-400">
                   <div className="text-center">
                     <MessageSquare className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                    <h3 className="text-lg font-medium mb-2">Select a conversation</h3>
+                    <h3 className="text-lg font-medium mb-2 text-gray-900 dark:text-gray-100">Select a conversation</h3>
                     <p className="text-sm">Choose a conversation from the list to start messaging</p>
                   </div>
                 </div>
@@ -1284,7 +1284,7 @@ export default function MessagingPage() {
 
         <TabsContent value="campaigns" className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Messaging Campaigns</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Messaging Campaigns</h2>
             <Dialog open={showCreateCampaign} onOpenChange={setShowCreateCampaign}>
               <DialogTrigger asChild>
                 <Button>
@@ -1498,16 +1498,16 @@ export default function MessagingPage() {
                   </CardHeader>
                   <CardContent className="pt-0">
                     <div className="mb-4">
-                      <p className="text-sm font-medium text-gray-700 mb-2">Subject:</p>
-                      <p className="text-sm bg-gray-50 p-2 rounded">{template.subject}</p>
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Subject:</p>
+                      <p className="text-sm bg-gray-50 dark:bg-slate-700 text-gray-900 dark:text-gray-100 p-2 rounded">{template.subject}</p>
                     </div>
                     <div className="mb-4">
-                      <p className="text-sm font-medium text-gray-700 mb-2">Preview:</p>
-                      <p className="text-sm text-gray-600 line-clamp-3">
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Preview:</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3">
                         {template.content.substring(0, 100)}...
                       </p>
                     </div>
-                    <div className="flex items-center justify-between text-xs text-gray-500">
+                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                       <span>Used {template.usageCount || 0} times</span>
                       <span>Updated {new Date(template.updatedAt).toLocaleDateString()}</span>
                     </div>
@@ -1531,7 +1531,7 @@ export default function MessagingPage() {
 
         <TabsContent value="analytics" className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Messaging Analytics</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Messaging Analytics</h2>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm">
                 <Search className="h-4 w-4 mr-2" />
@@ -1560,16 +1560,16 @@ export default function MessagingPage() {
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600">Total Messages</p>
-                        <p className="text-2xl font-bold">{analytics.totalMessages || 2847}</p>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Messages</p>
+                        <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{analytics.totalMessages || 2847}</p>
                       </div>
-                      <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <MessageSquare className="h-4 w-4 text-blue-600" />
+                      <div className="h-8 w-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                        <MessageSquare className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                       </div>
                     </div>
                     <div className="mt-2 flex items-center text-xs">
-                      <span className="text-green-600 font-medium">+12.5%</span>
-                      <span className="text-gray-500 ml-1">from last month</span>
+                      <span className="text-green-600 dark:text-green-400 font-medium">+12.5%</span>
+                      <span className="text-gray-500 dark:text-gray-400 ml-1">from last month</span>
                     </div>
                   </CardContent>
                 </Card>
