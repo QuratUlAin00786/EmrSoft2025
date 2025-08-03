@@ -619,7 +619,7 @@ export default function FinancialIntelligence() {
 
         <TabsContent value="claims" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Claims Management</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Claims Management</h3>
             <Dialog open={submitClaimOpen} onOpenChange={setSubmitClaimOpen}>
               <DialogTrigger asChild>
                 <Button onClick={() => setSubmitClaimOpen(true)}>
@@ -633,7 +633,7 @@ export default function FinancialIntelligence() {
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium">Patient</label>
+                    <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Patient</label>
                     <Select value={claimFormData.patient} onValueChange={(value) => 
                       setClaimFormData(prev => ({ ...prev, patient: value }))
                     }>
@@ -647,7 +647,7 @@ export default function FinancialIntelligence() {
                     </Select>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Service Date</label>
+                    <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Service Date</label>
                     <Input 
                       type="date" 
                       value={claimFormData.serviceDate}
@@ -655,7 +655,7 @@ export default function FinancialIntelligence() {
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Total Amount</label>
+                    <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Total Amount</label>
                     <Input 
                       placeholder="0.00" 
                       value={claimFormData.totalAmount}
@@ -705,14 +705,14 @@ export default function FinancialIntelligence() {
 
           <div className="grid gap-4">
             {mockClaims.map((claim) => (
-              <Card key={claim.id} className={claim.status === 'denied' ? 'border-red-200' : ''}>
+              <Card key={claim.id} className={claim.status === 'denied' ? 'border-red-200 dark:border-red-800' : 'dark:border-slate-700'}>
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle className="text-lg">{claim.patientName}</CardTitle>
+                      <CardTitle className="text-lg text-gray-900 dark:text-gray-100">{claim.patientName}</CardTitle>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge className={getStatusColor(claim.status)}>{claim.status}</Badge>
-                        <span className="text-sm text-gray-500">{claim.claimNumber}</span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">{claim.claimNumber}</span>
                       </div>
                     </div>
                     <div className="text-right">
@@ -730,25 +730,25 @@ export default function FinancialIntelligence() {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                      <div className="text-sm text-gray-500">Insurance</div>
-                      <div className="font-medium">{claim.insuranceProvider}</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">Insurance</div>
+                      <div className="font-medium text-gray-900 dark:text-gray-100">{claim.insuranceProvider}</div>
                     </div>
                     <div>
-                      <div className="text-sm text-gray-500">Service Date</div>
-                      <div className="font-medium">
+                      <div className="text-sm text-gray-500 dark:text-gray-400">Service Date</div>
+                      <div className="font-medium text-gray-900 dark:text-gray-100">
                         {format(new Date(claim.serviceDate), 'MMM dd, yyyy')}
                       </div>
                     </div>
                     <div>
-                      <div className="text-sm text-gray-500">Submitted</div>
-                      <div className="font-medium">
+                      <div className="text-sm text-gray-500 dark:text-gray-400">Submitted</div>
+                      <div className="font-medium text-gray-900 dark:text-gray-100">
                         {format(new Date(claim.submissionDate), 'MMM dd, yyyy')}
                       </div>
                     </div>
                     {claim.paymentDate && (
                       <div>
-                        <div className="text-sm text-gray-500">Payment Date</div>
-                        <div className="font-medium">
+                        <div className="text-sm text-gray-500 dark:text-gray-400">Payment Date</div>
+                        <div className="font-medium text-gray-900 dark:text-gray-100">
                           {format(new Date(claim.paymentDate), 'MMM dd, yyyy')}
                         </div>
                       </div>
@@ -756,27 +756,27 @@ export default function FinancialIntelligence() {
                   </div>
 
                   {claim.denialReason && (
-                    <div className="p-3 bg-red-50 border border-red-200 rounded">
+                    <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded">
                       <div className="flex items-start gap-2">
                         <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5" />
                         <div>
-                          <div className="font-medium text-red-800">Claim Denied</div>
-                          <div className="text-sm text-red-700">{claim.denialReason}</div>
+                          <div className="font-medium text-red-800 dark:text-red-200">Claim Denied</div>
+                          <div className="text-sm text-red-700 dark:text-red-300">{claim.denialReason}</div>
                         </div>
                       </div>
                     </div>
                   )}
 
                   <div>
-                    <h4 className="font-medium text-sm mb-2">Procedures</h4>
+                    <h4 className="font-medium text-sm mb-2 text-gray-900 dark:text-gray-100">Procedures</h4>
                     <div className="space-y-2">
                       {claim.procedures.map((procedure, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                        <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-slate-800 rounded">
                           <div>
-                            <div className="font-medium text-sm">{procedure.code}</div>
-                            <div className="text-xs text-gray-600">{procedure.description}</div>
+                            <div className="font-medium text-sm text-gray-900 dark:text-gray-100">{procedure.code}</div>
+                            <div className="text-xs text-gray-600 dark:text-gray-300">{procedure.description}</div>
                           </div>
-                          <div className="font-medium">{formatCurrency(procedure.amount)}</div>
+                          <div className="font-medium text-gray-900 dark:text-gray-100">{formatCurrency(procedure.amount)}</div>
                         </div>
                       ))}
                     </div>
