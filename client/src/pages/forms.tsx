@@ -3146,43 +3146,25 @@ export default function Forms() {
           </Button>
         </div>
         
-        {/* Save and View buttons - force exact styling match */}
+        {/* Save and View buttons - exact copy of medical data button structure */}
         <div className="flex justify-center items-center gap-1">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="!text-xs !h-5 !px-2 !py-0 !border !border-gray-300 !font-normal" 
-            onClick={handleSave} 
-            style={{ 
-              backgroundColor: '#0d9488 !important', 
-              color: 'white !important', 
-              borderColor: '#0d9488 !important',
-              fontSize: '0.75rem !important',
-              lineHeight: '1.25rem !important',
-              fontWeight: '400 !important',
-              height: '1.25rem !important',
-              padding: '0 0.5rem !important',
-              minHeight: 'auto !important'
+          <button 
+            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input hover:bg-accent hover:text-accent-foreground h-5 px-2 border-gray-300" 
+            onClick={handleSave}
+            style={{
+              backgroundColor: '#0d9488',
+              color: 'white',
+              borderColor: '#0d9488'
             }}
           >
             Save Template
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="!text-xs !h-5 !px-2 !py-0 !border !border-gray-300 !font-normal" 
+          </button>
+          <button 
+            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input hover:bg-accent hover:text-accent-foreground h-5 px-2 border-gray-300" 
             onClick={() => setShowSavedTemplatesDialog(true)}
-            style={{
-              fontSize: '0.75rem !important',
-              lineHeight: '1.25rem !important', 
-              fontWeight: '400 !important',
-              height: '1.25rem !important',
-              padding: '0 0.5rem !important',
-              minHeight: 'auto !important'
-            }}
           >
             View Saved Templates
-          </Button>
+          </button>
         </div>
       </div>
 
