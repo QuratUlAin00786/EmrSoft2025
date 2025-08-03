@@ -20,24 +20,39 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const savedTheme = localStorage.getItem("cura-theme") as Theme;
     const initialTheme = savedTheme || "light";
+    
+    // Apply theme immediately without waiting for state update
+    const root = document.documentElement;
+    root.classList.remove("light", "dark");
+    root.classList.add(initialTheme);
+    
     setTheme(initialTheme);
     setIsInitialized(true);
   }, []);
 
+  // Apply theme changes immediately when theme state changes
   useEffect(() => {
-    if (!isInitialized) return;
-    
-    // Apply theme to document root
     const root = document.documentElement;
     root.classList.remove("light", "dark");
     root.classList.add(theme);
     
     // Save theme to localStorage
     localStorage.setItem("cura-theme", theme);
-  }, [theme, isInitialized]);
+  }, [theme]);
 
   const toggleTheme = () => {
-    setTheme(prev => prev === "light" ? "dark" : "light");
+    const newTheme = theme === "light" ? "dark" : "light";
+    
+    // Apply theme change immediately to DOM
+    const root = document.documentElement;
+    root.classList.remove("light", "dark");
+    root.classList.add(newTheme);
+    
+    // Update state
+    setTheme(newTheme);
+    
+    // Save to localStorage immediately
+    localStorage.setItem("cura-theme", newTheme);
   };
 
   return (
