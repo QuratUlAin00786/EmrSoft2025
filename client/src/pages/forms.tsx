@@ -3146,25 +3146,14 @@ export default function Forms() {
           </Button>
         </div>
         
-        {/* Save and View buttons - exact copy of medical data button structure */}
+        {/* Save and View buttons - EXACT COPY of medical data button code */}
         <div className="flex justify-center items-center gap-1">
-          <button 
-            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input hover:bg-accent hover:text-accent-foreground h-5 px-2 border-gray-300" 
-            onClick={handleSave}
-            style={{
-              backgroundColor: '#0d9488',
-              color: 'white',
-              borderColor: '#0d9488'
-            }}
-          >
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={handleSave} style={{ backgroundColor: '#0d9488', color: 'white', borderColor: '#0d9488' }}>
             Save Template
-          </button>
-          <button 
-            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input hover:bg-accent hover:text-accent-foreground h-5 px-2 border-gray-300" 
-            onClick={() => setShowSavedTemplatesDialog(true)}
-          >
+          </Button>
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={() => setShowSavedTemplatesDialog(true)}>
             View Saved Templates
-          </button>
+          </Button>
         </div>
       </div>
 
