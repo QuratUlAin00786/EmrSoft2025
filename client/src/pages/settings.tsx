@@ -189,16 +189,16 @@ export default function Settings() {
         <div className="flex-1 p-6">
           <Card>
             <CardContent className="text-center py-8">
-              <p className="text-neutral-600 mb-4">
+              <p className="text-neutral-600 dark:text-gray-400 mb-4">
                 Settings require administrator access.
               </p>
-              <p className="text-sm text-neutral-500 mb-4">
+              <p className="text-sm text-neutral-500 dark:text-gray-500 mb-4">
                 Please log in with admin credentials to access organization settings.
               </p>
-              <div className="bg-blue-50 p-4 rounded-lg text-left">
-                <p className="font-medium text-blue-900 mb-2">Admin Login:</p>
-                <p className="text-sm text-blue-800">Email: admin@demo.medicoreemr.com</p>
-                <p className="text-sm text-blue-800">Password: password123</p>
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg text-left">
+                <p className="font-medium text-blue-900 dark:text-blue-300 mb-2">Admin Login:</p>
+                <p className="text-sm text-blue-800 dark:text-blue-400">Email: admin@demo.medicoreemr.com</p>
+                <p className="text-sm text-blue-800 dark:text-blue-400">Password: password123</p>
               </div>
             </CardContent>
           </Card>
@@ -274,7 +274,7 @@ export default function Settings() {
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-sm text-neutral-600">
+                <p className="text-sm text-neutral-600 dark:text-gray-400">
                   This determines compliance requirements and data residency rules.
                 </p>
               </div>
@@ -293,7 +293,7 @@ export default function Settings() {
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <Label>GDPR Compliance</Label>
-                  <p className="text-sm text-neutral-600">
+                  <p className="text-sm text-neutral-600 dark:text-gray-400">
                     Enable enhanced data protection features required for EU/UK operations.
                   </p>
                 </div>
@@ -304,9 +304,9 @@ export default function Settings() {
               </div>
               
               {settings.gdprEnabled && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-medium text-blue-900 mb-2">GDPR Features Enabled</h4>
-                  <ul className="text-sm text-blue-800 space-y-1">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/50 rounded-lg p-4">
+                  <h4 className="font-medium text-blue-900 dark:text-blue-300 mb-2">GDPR Features Enabled</h4>
+                  <ul className="text-sm text-blue-800 dark:text-blue-400 space-y-1">
                     <li>• Enhanced audit logging</li>
                     <li>• Data encryption at rest and in transit</li>
                     <li>• Right to be forgotten implementation</li>
@@ -327,7 +327,7 @@ export default function Settings() {
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <Label>AI Insights</Label>
-                  <p className="text-sm text-neutral-600">
+                  <p className="text-sm text-neutral-600 dark:text-gray-400">
                     Enable AI-powered medical insights and recommendations.
                   </p>
                 </div>
@@ -342,7 +342,7 @@ export default function Settings() {
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <Label>Billing Module</Label>
-                  <p className="text-sm text-neutral-600">
+                  <p className="text-sm text-neutral-600 dark:text-gray-400">
                     Enable billing and payment processing features.
                   </p>
                 </div>
@@ -380,7 +380,7 @@ export default function Settings() {
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-sm text-neutral-600">
+                <p className="text-sm text-neutral-600 dark:text-gray-400">
                   Customize the color scheme for your organization's branding.
                 </p>
               </div>
