@@ -210,7 +210,7 @@ export default function AiInsights() {
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                     Select Patient
                   </label>
                   <Select value={selectedPatientId} onValueChange={setSelectedPatientId}>
@@ -272,12 +272,12 @@ export default function AiInsights() {
       <div className="flex-1 overflow-auto p-6">
         {/* AI Disclaimer */}
         <div className="mb-6">
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/30 rounded-lg p-4">
             <div className="flex items-start space-x-3">
-              <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+              <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-medium text-amber-900 mb-1">Medical AI Disclaimer</h3>
-                <p className="text-sm text-amber-800">
+                <h3 className="font-medium text-amber-900 dark:text-amber-200 mb-1">Medical AI Disclaimer</h3>
+                <p className="text-sm text-amber-800 dark:text-amber-300">
                   AI insights are for informational purposes only and should not replace professional medical judgment. 
                   All AI-generated recommendations must be reviewed and validated by qualified healthcare professionals 
                   before making any clinical decisions. This system is designed to assist, not replace, medical expertise.
@@ -293,7 +293,7 @@ export default function AiInsights() {
               <Sparkles className="w-3 h-3 mr-1" />
               AI Powered
             </Badge>
-            <div className="flex items-center space-x-2 text-sm text-neutral-600">
+            <div className="flex items-center space-x-2 text-sm text-neutral-600 dark:text-neutral-300">
               <Clock className="w-4 h-4" />
               <span>Real-time analysis</span>
             </div>
@@ -303,7 +303,7 @@ export default function AiInsights() {
         {/* Active Insights */}
         <div className="space-y-6">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Active Insights ({activeInsights.length})
             </h3>
             
@@ -311,8 +311,8 @@ export default function AiInsights() {
               <Card>
                 <CardContent className="text-center py-8">
                   <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-                  <p className="text-neutral-600">No active insights at the moment.</p>
-                  <p className="text-sm text-neutral-500 mt-2">
+                  <p className="text-neutral-600 dark:text-neutral-300">No active insights at the moment.</p>
+                  <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-2">
                     The AI is continuously monitoring for new insights.
                   </p>
                 </CardContent>
@@ -332,7 +332,7 @@ export default function AiInsights() {
                           </div>
                           <div className="flex-1">
                             <div className="flex items-start justify-between mb-2">
-                              <h4 className="font-semibold text-gray-900">{insight.title}</h4>
+                              <h4 className="font-semibold text-gray-900 dark:text-gray-100">{insight.title}</h4>
                               <div className="flex items-center space-x-2">
                                 <Badge 
                                   variant="secondary"
@@ -346,18 +346,18 @@ export default function AiInsights() {
                               </div>
                             </div>
                             
-                            <p className="text-gray-700 mb-3">{insight.description}</p>
+                            <p className="text-gray-700 dark:text-gray-300 mb-3">{insight.description}</p>
                             
                             {insight.confidence && (
-                              <p className="text-sm text-gray-600 mb-3">
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                                 Confidence: {Math.round(insight.confidence * 100)}%
                               </p>
                             )}
 
                             {insight.metadata.suggestedActions && insight.metadata.suggestedActions.length > 0 && (
                               <div className="mb-4">
-                                <h5 className="text-sm font-medium text-gray-800 mb-2">Suggested Actions:</h5>
-                                <ul className="text-sm text-gray-600 space-y-1">
+                                <h5 className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-2">Suggested Actions:</h5>
+                                <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
                                   {insight.metadata.suggestedActions.map((action, index) => (
                                     <li key={index} className="flex items-start space-x-2">
                                       <span className="text-medical-blue">•</span>
