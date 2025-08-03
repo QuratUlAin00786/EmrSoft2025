@@ -3151,7 +3151,7 @@ export default function Forms() {
           <Button 
             variant="default" 
             size="sm" 
-            className="bg-teal-600 hover:bg-teal-700 dark:bg-teal-600 dark:hover:bg-teal-700 text-white dark:text-white px-4 py-2 text-sm font-medium"
+            className="bg-teal-600 hover:bg-teal-700 dark:!bg-teal-600 dark:!hover:bg-teal-700 text-white dark:!text-white px-4 py-2 text-sm font-medium"
             onClick={handleSave}
           >
             💾 Save Template
@@ -3159,7 +3159,7 @@ export default function Forms() {
           <Button 
             variant="outline" 
             size="sm" 
-            className="border-teal-600 dark:border-teal-400 text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30 px-4 py-2 text-sm font-medium"
+            className="border-teal-600 dark:!border-teal-400 text-teal-600 dark:!text-teal-400 hover:bg-teal-50 dark:!hover:bg-teal-900/30 px-4 py-2 text-sm font-medium"
             onClick={() => setShowSavedTemplatesDialog(true)}
           >
             📋 View Saved Templates
