@@ -520,7 +520,7 @@ export default function LiveApp() {
                       </div>
                       <div className="p-4 bg-orange-50 dark:bg-orange-900 rounded-lg">
                         <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                          {patients?.filter(p => p.medicalHistory && p.medicalHistory.trim() !== '').length || 0}
+                          {patients?.filter(p => p.medicalHistory && typeof p.medicalHistory === 'string' && p.medicalHistory.trim() !== '').length || 0}
                         </div>
                         <p className="text-sm text-orange-600 dark:text-orange-400">Medical History</p>
                       </div>
