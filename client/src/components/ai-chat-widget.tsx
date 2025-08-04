@@ -168,7 +168,10 @@ export function AIChatWidget() {
     try {
       const response = await apiRequest("POST", "/api/ai-agent/chat", {
         message: input,
-        conversationHistory: messages.slice(-5) // Send last 5 messages for context
+        conversationHistory: messages.slice(-5).map(msg => ({
+          role: msg.type,
+          content: msg.content
+        })) // Send last 5 messages for context in correct format
       });
 
       const responseData = await response.json();
