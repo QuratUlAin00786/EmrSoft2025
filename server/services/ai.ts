@@ -370,7 +370,7 @@ Please provide a comprehensive safety analysis focusing on clinically significan
         confidence = 0.9;
         
         // Get available doctors and patients for context
-        const allUsers = await storage.getUsers(params.organizationId);
+        const allUsers = await storage.getUsersByOrganization(params.organizationId);
         const doctors = allUsers.filter((user: any) => user.role === 'doctor');
         const patients = await storage.getPatientsByOrganization(params.organizationId, 20);
         
@@ -481,7 +481,7 @@ Please provide a comprehensive safety analysis focusing on clinically significan
         confidence = 0.9;
         
         const patients = await storage.getPatientsByOrganization(params.organizationId, 5);
-        const allUsers = await storage.getUsers(params.organizationId);
+        const allUsers = await storage.getUsersByOrganization(params.organizationId);
         const doctors = allUsers.filter((user: any) => user.role === 'doctor');
         
         response = `I'm your **Cura AI Assistant**! I can help you with:\n\n📅 **Book Appointments**\n• Say "Book appointment for [patient] with [doctor] on [date/time]"\n• Example: "Book appointment for John Smith with Dr. Johnson tomorrow at 2pm"\n\n💊 **Find Prescriptions**\n• Say "Find prescriptions for [patient name]"\n• Example: "Find prescriptions for Sarah Wilson"\n\n📊 **Quick Stats**\n• ${patients.length} patients in system\n• ${doctors.length} doctors available\n• ${params.userRole} access level\n\nWhat would you like to do?`;
