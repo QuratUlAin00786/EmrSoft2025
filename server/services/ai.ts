@@ -364,8 +364,23 @@ Please provide a comprehensive safety analysis focusing on clinically significan
     let extractedParams = null;
 
     try {
-      // Enhanced appointment booking logic
-      if (lowerMessage.includes('book') || lowerMessage.includes('schedule') || lowerMessage.includes('appointment')) {
+      // Check if this is a continuing appointment booking conversation
+      const isAppointmentContext = params.conversationHistory && params.conversationHistory.some(item => 
+        item.role === 'assistant' && (
+          item.content.includes('Which doctor would you like to book with?') ||
+          item.content.includes('Which patient is this appointment for?') ||
+          item.content.includes('I need a specific date and time:') ||
+          item.content.includes('Available doctors:') ||
+          item.content.includes('Recent patients:')
+        )
+      );
+
+      // Enhanced appointment booking logic with context persistence
+      if (lowerMessage.includes('book') || lowerMessage.includes('schedule') || lowerMessage.includes('appointment') || 
+          lowerMessage.includes('tomorrow') || lowerMessage.includes('today') || lowerMessage.includes('next week') ||
+          /\d{1,2}(:\d{2})?\s*(am|pm)/i.test(lowerMessage) || 
+          lowerMessage.includes('dr.') || lowerMessage.includes('doctor') ||
+          isAppointmentContext) {
         intent = 'book_appointment';
         confidence = 0.9;
         
@@ -374,32 +389,69 @@ Please provide a comprehensive safety analysis focusing on clinically significan
         const doctors = allUsers.filter((user: any) => user.role === 'doctor');
         const patients = await storage.getPatientsByOrganization(params.organizationId, 20);
         
-        // Extract potential patient and doctor names from message
-        const words = params.message.split(' ');
-        let foundPatient = null;
-        let foundDoctor = null;
+        // Check conversation history for previously identified patient/doctor
+        let contextPatient = null;
+        let contextDoctor = null;
+        let contextDateTime = null;
         
-        // Look for patient names in the message
-        for (const patient of patients) {
-          const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
-          if (lowerMessage.includes(patient.firstName.toLowerCase()) || 
-              lowerMessage.includes(patient.lastName.toLowerCase()) ||
-              lowerMessage.includes(fullName)) {
-            foundPatient = patient;
-            break;
+        // Look through conversation history for context
+        if (params.conversationHistory && params.conversationHistory.length > 0) {
+          for (const historyItem of params.conversationHistory) {
+            if (historyItem.role === 'assistant' && historyItem.content) {
+              // Check if we previously identified a patient
+              const patientMatch = historyItem.content.match(/I found patient \*\*([^*]+)\*\*/);
+              if (patientMatch) {
+                const patientName = patientMatch[1];
+                contextPatient = patients.find(p => 
+                  `${p.firstName} ${p.lastName}` === patientName ||
+                  `${p.firstName}  ${p.lastName}` === patientName
+                );
+              }
+              
+              // Check if we previously identified a doctor
+              const doctorMatch = historyItem.content.match(/I found \*\*Dr\. ([^*]+)\*\*/);
+              if (doctorMatch) {
+                const doctorName = doctorMatch[1];
+                contextDoctor = doctors.find(d => 
+                  `${d.firstName} ${d.lastName}` === doctorName ||
+                  `Dr. ${d.firstName} ${d.lastName}` === `Dr. ${doctorName}`
+                );
+              }
+            }
           }
         }
         
-        // Look for doctor names in the message
-        for (const doctor of doctors) {
-          const fullName = `${doctor.firstName} ${doctor.lastName}`.toLowerCase();
-          if (lowerMessage.includes(doctor.firstName.toLowerCase()) || 
-              lowerMessage.includes(doctor.lastName.toLowerCase()) ||
-              lowerMessage.includes(fullName) ||
-              lowerMessage.includes('dr. ' + doctor.lastName.toLowerCase()) ||
-              lowerMessage.includes('doctor ' + doctor.lastName.toLowerCase())) {
-            foundDoctor = doctor;
-            break;
+        // Extract potential patient and doctor names from current message
+        let foundPatient = contextPatient;
+        let foundDoctor = contextDoctor;
+        
+        // Look for patient names in the current message (if not already found in context)
+        if (!foundPatient) {
+          for (const patient of patients) {
+            const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
+            const spacedName = `${patient.firstName}  ${patient.lastName}`.toLowerCase(); // Handle double spaces
+            if (lowerMessage.includes(patient.firstName.toLowerCase()) || 
+                lowerMessage.includes(patient.lastName.toLowerCase()) ||
+                lowerMessage.includes(fullName) ||
+                lowerMessage.includes(spacedName)) {
+              foundPatient = patient;
+              break;
+            }
+          }
+        }
+        
+        // Look for doctor names in the current message (if not already found in context)
+        if (!foundDoctor) {
+          for (const doctor of doctors) {
+            const fullName = `${doctor.firstName} ${doctor.lastName}`.toLowerCase();
+            if (lowerMessage.includes(doctor.firstName.toLowerCase()) || 
+                lowerMessage.includes(doctor.lastName.toLowerCase()) ||
+                lowerMessage.includes(fullName) ||
+                lowerMessage.includes('dr. ' + doctor.lastName.toLowerCase()) ||
+                lowerMessage.includes('doctor ' + doctor.lastName.toLowerCase())) {
+              foundDoctor = doctor;
+              break;
+            }
           }
         }
         
@@ -443,7 +495,7 @@ Please provide a comprehensive safety analysis focusing on clinically significan
               providerId: foundDoctor.id,
               title: 'General Consultation',
               description: 'Appointment booked via AI Assistant',
-              scheduledAt: new Date(scheduledDate.toISOString()),
+              scheduledAt: scheduledDate,
               duration: 30,
               status: 'scheduled' as const,
               type: 'consultation' as const,
