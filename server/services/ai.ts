@@ -492,49 +492,67 @@ Please provide a comprehensive safety analysis focusing on clinically significan
         }
         
         if (foundPatient && foundDoctor && scheduledDate) {
-          // Actually create the appointment
-          try {
-            const appointmentData = {
-              organizationId: params.organizationId,
-              patientId: foundPatient.id,
-              providerId: foundDoctor.id,
-              title: 'General Consultation',
-              description: 'Appointment booked via AI Assistant',
-              scheduledAt: scheduledDate,
-              duration: 30,
-              status: 'scheduled' as const,
-              type: 'consultation' as const,
-              location: `${foundDoctor.department || 'General'} Department`,
-              isVirtual: false
-            };
+          // Validate that scheduledDate is valid and in the future
+          if (!scheduledDate || isNaN(scheduledDate.getTime()) || scheduledDate < new Date()) {
+            response = `I found the patient and doctor, but there was an issue with the date/time. Please provide a valid future date and time like "tomorrow at 2pm" or "August 5th at 10:30am".`;
+          } else {
+            // Actually create the appointment
+            try {
+              console.log('Creating appointment with data:', {
+                organizationId: params.organizationId,
+                patientId: foundPatient.id,
+                providerId: foundDoctor.id,
+                title: 'General Consultation',
+                description: 'Appointment booked via AI Assistant',
+                scheduledAt: scheduledDate.toISOString(),
+                duration: 30,
+                type: 'consultation',
+                location: `${foundDoctor.department || 'General'} Department`,
+                isVirtual: false
+              });
+              
+              const appointmentData = {
+                organizationId: params.organizationId,
+                patientId: foundPatient.id,
+                providerId: foundDoctor.id,
+                title: 'General Consultation',
+                description: 'Appointment booked via AI Assistant',
+                scheduledAt: scheduledDate,
+                duration: 30,
+                status: 'scheduled' as const,
+                type: 'consultation' as const,
+                location: `${foundDoctor.department || 'General'} Department`,
+                isVirtual: false
+              };
             
-            const newAppointment = await storage.createAppointment(appointmentData);
-            
-            extractedParams = {
-              appointmentId: newAppointment.id,
-              patientId: foundPatient.id,
-              patientName: `${foundPatient.firstName} ${foundPatient.lastName}`,
-              providerId: foundDoctor.id,
-              providerName: `Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}`,
-              scheduledAt: scheduledDate.toISOString(),
-              success: true
-            };
-            
-            const formattedDate = scheduledDate.toLocaleDateString('en-US', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            });
-            const formattedTime = scheduledDate.toLocaleTimeString('en-US', {
-              hour: '2-digit',
-              minute: '2-digit'
-            });
-            
-            response = `✅ **Appointment Successfully Booked!**\n\n📅 **Details:**\n• **Patient:** ${foundPatient.firstName} ${foundPatient.lastName}\n• **Doctor:** Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}\n• **Date:** ${formattedDate}\n• **Time:** ${formattedTime}\n• **Duration:** 30 minutes\n• **Location:** ${foundDoctor.department || 'General'} Department\n\n**Appointment ID:** #${newAppointment.id}\n\nThe appointment has been added to the calendar and both parties will be notified.`;
-          } catch (error) {
-            console.error('Error creating appointment:', error);
-            response = `I found the patient and doctor, but there was an error creating the appointment. Please try booking manually or contact support.`;
+              const newAppointment = await storage.createAppointment(appointmentData);
+              
+              extractedParams = {
+                appointmentId: newAppointment.id,
+                patientId: foundPatient.id,
+                patientName: `${foundPatient.firstName} ${foundPatient.lastName}`,
+                providerId: foundDoctor.id,
+                providerName: `Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}`,
+                scheduledAt: scheduledDate.toISOString(),
+                success: true
+              };
+              
+              const formattedDate = scheduledDate.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              });
+              const formattedTime = scheduledDate.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit'
+              });
+              
+              response = `✅ **Appointment Successfully Booked!**\n\n📅 **Details:**\n• **Patient:** ${foundPatient.firstName} ${foundPatient.lastName}\n• **Doctor:** Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}\n• **Date:** ${formattedDate}\n• **Time:** ${formattedTime}\n• **Duration:** 30 minutes\n• **Location:** ${foundDoctor.department || 'General'} Department\n\n**Appointment ID:** #${newAppointment.id}\n\nThe appointment has been added to the calendar and both parties will be notified.`;
+            } catch (error) {
+              console.error('Error booking appointment:', error);
+              response = `I found the patient and doctor, but there was an error creating the appointment. Please try booking manually or contact support.`;
+            }
           }
         } else if (foundPatient && foundDoctor) {
           extractedParams = {

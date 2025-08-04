@@ -38,8 +38,6 @@ export default function AppointmentCalendar() {
   const { data: rawAppointments = [], isLoading, refetch } = useQuery({
     queryKey: ["/api/appointments"],
     queryFn: async () => {
-      console.log("Fetching appointments from calendar using React Query...");
-      
       const token = localStorage.getItem('auth_token');
       const headers: Record<string, string> = {
         'X-Tenant-Subdomain': 'demo'
@@ -58,34 +56,11 @@ export default function AppointmentCalendar() {
         credentials: 'include'
       });
       
-      console.log("Appointments response status:", response.status);
-      
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
       
       const data = await response.json();
-      console.log("Fetched appointments data:", data);
-      console.log("Appointments count:", data?.length || 0);
-      if (data && data.length > 0) {
-        console.log("First appointment details:", {
-          id: data[0].id,
-          scheduledAt: data[0].scheduledAt,
-          patientId: data[0].patientId,
-          title: data[0].title
-        });
-        // Log all appointment IDs and dates for debugging
-        console.log("All appointments summary:", data.map((apt: any) => ({
-          id: apt.id,
-          scheduledAt: apt.scheduledAt,
-          patientId: apt.patientId,
-          status: apt.status,
-          type: apt.type
-        })));
-        console.log("Calendar will display these appointments in UI");
-      } else {
-        console.log("No appointments data received from API");
-      }
       return data || [];
     },
     staleTime: 30000,
@@ -94,8 +69,6 @@ export default function AppointmentCalendar() {
 
   // Process appointments to ensure they're properly typed and filtered
   const appointments = rawAppointments?.filter((apt: any) => apt && apt.id) || [];
-  
-  console.log("Final processed appointments for UI:", appointments.length);
 
   const monthStart = startOfMonth(selectedDate);
   const monthEnd = endOfMonth(selectedDate);
@@ -340,16 +313,7 @@ export default function AppointmentCalendar() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Debug info */}
-          <div className="mb-4 p-2 bg-gray-100 dark:bg-gray-800 rounded text-xs">
-            <strong>Debug:</strong> Loaded {appointments.length} appointments
-            {appointments.length > 0 && (
-              <div>
-                <div>First appointment: {appointments[0]?.title} (ID: {appointments[0]?.id})</div>
-                <div>Sample IDs: {appointments.slice(0, 3).map(apt => apt.id).join(', ')}</div>
-              </div>
-            )}
-          </div>
+
           
           {appointments.length === 0 ? (
             <p className="text-gray-500 dark:text-gray-400 text-center py-8">
