@@ -35,7 +35,7 @@ export default function AppointmentCalendar() {
   const [dialogStable, setDialogStable] = useState(true);
   const { toast } = useToast();
 
-  const { data: appointments = [], isLoading, refetch } = useQuery({
+  const { data: rawAppointments = [], isLoading, refetch } = useQuery({
     queryKey: ["/api/appointments"],
     queryFn: async () => {
       console.log("Fetching appointments from calendar using React Query...");
@@ -92,17 +92,17 @@ export default function AppointmentCalendar() {
     refetchOnWindowFocus: true
   });
 
-  // Auto-refresh appointments every 30 seconds to catch newly created appointments
-  // Auto-refresh removed to prevent screen blinking
-
-
+  // Process appointments to ensure they're properly typed and filtered
+  const appointments = rawAppointments?.filter((apt: any) => apt && apt.id) || [];
+  
+  console.log("Final processed appointments for UI:", appointments.length);
 
   const monthStart = startOfMonth(selectedDate);
   const monthEnd = endOfMonth(selectedDate);
   const calendarDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
   const getAppointmentsForDate = (date: Date) => {
-    return (appointments as any || []).filter((apt: any) => {
+    return appointments.filter((apt: any) => {
       const appointmentDate = new Date(apt.scheduledAt);
       return isSameDay(appointmentDate, date);
     });
@@ -341,10 +341,13 @@ export default function AppointmentCalendar() {
         </CardHeader>
         <CardContent>
           {/* Debug info */}
-          <div className="mb-4 p-2 bg-gray-100 rounded text-xs">
+          <div className="mb-4 p-2 bg-gray-100 dark:bg-gray-800 rounded text-xs">
             <strong>Debug:</strong> Loaded {appointments.length} appointments
             {appointments.length > 0 && (
-              <div>First appointment: {appointments[0]?.title} (ID: {appointments[0]?.id})</div>
+              <div>
+                <div>First appointment: {appointments[0]?.title} (ID: {appointments[0]?.id})</div>
+                <div>Sample IDs: {appointments.slice(0, 3).map(apt => apt.id).join(', ')}</div>
+              </div>
             )}
           </div>
           
