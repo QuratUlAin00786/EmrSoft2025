@@ -2730,25 +2730,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
             prescriptions = await storage.getPrescriptionsByPatient(aiResponse.parameters.patientId, req.tenant!.id);
           } else if (aiResponse.parameters?.patientName) {
             // Search by patient name
-            const patients = await storage.getPatients(req.tenant!.id);
+            const patients = await storage.getPatientsByOrganization(req.tenant!.id, 100);
             const matchingPatients = patients.filter(p => 
               p.firstName.toLowerCase().includes(aiResponse.parameters.patientName.toLowerCase()) ||
               p.lastName.toLowerCase().includes(aiResponse.parameters.patientName.toLowerCase())
             );
             
             if (matchingPatients.length > 0) {
-              const allPrescriptions = await storage.getPrescriptions(req.tenant!.id);
+              const allPrescriptions = await storage.getPrescriptionsByOrganization(req.tenant!.id);
               prescriptions = allPrescriptions.filter(p => 
                 matchingPatients.some(patient => patient.id === p.patientId)
               );
             }
           } else {
             // Get all prescriptions if no specific patient
-            prescriptions = await storage.getPrescriptions(req.tenant!.id);
+            prescriptions = await storage.getPrescriptionsByOrganization(req.tenant!.id);
           }
 
           // Get patient names for prescriptions
-          const patients = await storage.getPatients(req.tenant!.id);
+          const patients = await storage.getPatientsByOrganization(req.tenant!.id, 100);
           const prescriptionsWithNames = prescriptions.map(prescription => {
             const patient = patients.find(p => p.id === prescription.patientId);
             return {
