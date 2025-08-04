@@ -2721,7 +2721,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               providerId: aiResponse.parameters.providerId,
               title: aiResponse.parameters.title || 'General Consultation',
               description: aiResponse.parameters.description || '',
-              scheduledAt: aiResponse.parameters.scheduledAt,
+              scheduledAt: aiResponse.parameters.scheduledAt ? new Date(aiResponse.parameters.scheduledAt) : undefined,
               duration: aiResponse.parameters.duration || 30,
               type: aiResponse.parameters.type || 'consultation',
               location: aiResponse.parameters.location || '',
