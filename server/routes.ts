@@ -888,7 +888,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Appointments routes
   app.get("/api/appointments", async (req: TenantRequest, res) => {
     try {
-      const date = req.query.date ? new Date(req.query.date as string) : new Date();
+      const date = req.query.date ? new Date(req.query.date as string) : undefined;
       const appointments = await storage.getAppointmentsByOrganization(req.tenant!.id, date);
       res.json(appointments);
     } catch (error) {

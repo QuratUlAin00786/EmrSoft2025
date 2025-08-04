@@ -27,7 +27,7 @@ import {
   type GdprProcessingActivity, type InsertGdprProcessingActivity
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, count, not, sql, gte, lt } from "drizzle-orm";
+import { eq, and, desc, asc, count, not, sql, gte, lt, lte } from "drizzle-orm";
 
 export interface IStorage {
   // Organizations
@@ -526,6 +526,12 @@ export class DatabaseStorage implements IStorage {
       startOfDay.setHours(0, 0, 0, 0);
       const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
+      
+      query = query.where(and(
+        eq(appointments.organizationId, organizationId),
+        gte(appointments.scheduledAt, startOfDay),
+        lte(appointments.scheduledAt, endOfDay)
+      ));
     }
     
     return await query.orderBy(asc(appointments.scheduledAt));
