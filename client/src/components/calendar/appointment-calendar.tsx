@@ -69,13 +69,6 @@ export default function AppointmentCalendar() {
 
   // Process appointments to ensure they're properly typed and filtered
   const appointments = rawAppointments?.filter((apt: any) => apt && apt.id) || [];
-  
-  // Debug: Log appointments to see what we have
-  console.log("Raw appointments from API:", rawAppointments?.length || 0);
-  console.log("Filtered appointments:", appointments?.length || 0);
-  if (appointments?.length > 0) {
-    console.log("First appointment date:", appointments[0].scheduledAt);
-  }
 
   const monthStart = startOfMonth(selectedDate);
   const monthEnd = endOfMonth(selectedDate);
