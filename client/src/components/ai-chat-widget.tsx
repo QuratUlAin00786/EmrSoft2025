@@ -21,7 +21,7 @@ import {
   MicOff
 } from "lucide-react";
 import { format } from "date-fns";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 // Simple type for our speech recognition usage
 type CustomSpeechRecognition = any;
@@ -192,6 +192,17 @@ export function AIChatWidget() {
           title: "Action Completed",
           description: responseData.actionDescription,
         });
+      }
+
+      // Invalidate appointments cache if appointment was created
+      if (responseData.message && (
+        responseData.message.includes("Appointment Successfully Booked") ||
+        responseData.message.includes("✅") ||
+        responseData.message.includes("appointment has been created") ||
+        responseData.message.includes("Appointment ID")
+      )) {
+        console.log("Invalidating appointments cache due to successful appointment creation");
+        queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
       }
 
     } catch (error) {
