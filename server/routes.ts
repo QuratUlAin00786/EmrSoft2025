@@ -2716,6 +2716,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (aiResponse.parameters) {
           try {
             const appointmentData = {
+              organizationId: req.tenant!.id,
               patientId: aiResponse.parameters.patientId,
               providerId: aiResponse.parameters.providerId,
               title: aiResponse.parameters.title || 'General Consultation',
@@ -2727,7 +2728,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               isVirtual: aiResponse.parameters.isVirtual || false
             };
 
-            const newAppointment = await storage.createAppointment(appointmentData, req.tenant!.id);
+            const newAppointment = await storage.createAppointment(appointmentData);
             actionResult = {
               action: 'appointment_booked',
               actionDescription: `Appointment scheduled successfully for ${aiResponse.parameters.patientName}`,
