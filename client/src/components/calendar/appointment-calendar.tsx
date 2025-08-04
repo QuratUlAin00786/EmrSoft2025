@@ -74,6 +74,17 @@ export default function AppointmentCalendar() {
           patientId: data[0].patientId,
           title: data[0].title
         });
+        // Log all appointment IDs and dates for debugging
+        console.log("All appointments summary:", data.map((apt: any) => ({
+          id: apt.id,
+          scheduledAt: apt.scheduledAt,
+          patientId: apt.patientId,
+          status: apt.status,
+          type: apt.type
+        })));
+        console.log("Calendar will display these appointments in UI");
+      } else {
+        console.log("No appointments data received from API");
       }
       return data || [];
     },
@@ -329,6 +340,14 @@ export default function AppointmentCalendar() {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          {/* Debug info */}
+          <div className="mb-4 p-2 bg-gray-100 rounded text-xs">
+            <strong>Debug:</strong> Loaded {appointments.length} appointments
+            {appointments.length > 0 && (
+              <div>First appointment: {appointments[0]?.title} (ID: {appointments[0]?.id})</div>
+            )}
+          </div>
+          
           {appointments.length === 0 ? (
             <p className="text-gray-500 dark:text-gray-400 text-center py-8">
               No appointments scheduled
