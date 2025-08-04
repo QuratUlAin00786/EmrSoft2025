@@ -105,7 +105,7 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
           {medicalStaff.map((doctor: Doctor) => (
             <div 
               key={doctor.id} 
-              className="flex items-start justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+              className="flex items-start justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
               onClick={() => onSelectDoctor?.(doctor)}
             >
               <div className="flex items-start gap-3 flex-1">
@@ -117,7 +117,7 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-semibold text-gray-900">
+                    <h4 className="font-semibold text-gray-900 dark:text-gray-100">
                       Dr. {doctor.firstName} {doctor.lastName}
                     </h4>
                     <Badge className={roleColors[doctor.role] || "bg-gray-100 text-gray-800"}>
@@ -140,8 +140,8 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                   {/* Working Hours Display */}
                   {doctor.workingDays && doctor.workingDays.length > 0 && doctor.workingHours && (
                     <div className="flex items-center gap-1 mb-2">
-                      <Clock className="h-3 w-3 text-blue-500" />
-                      <span className="text-sm text-blue-700 font-medium">
+                      <Clock className="h-3 w-3 text-blue-500 dark:text-blue-400" />
+                      <span className="text-sm text-blue-700 dark:text-blue-300 font-medium">
                         {doctor.workingDays.slice(0, 3).join(", ")}
                         {doctor.workingDays.length > 3 && ` +${doctor.workingDays.length - 3} more`} 
                         {" · "}{doctor.workingHours.start} - {doctor.workingHours.end}
@@ -149,7 +149,7 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                     </div>
                   )}
                   
-                  <div className="flex items-center gap-4 text-sm text-gray-500">
+                  <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                     <span className="flex items-center gap-1">
                       <User className="h-3 w-3" />
                       ID: {doctor.id}
