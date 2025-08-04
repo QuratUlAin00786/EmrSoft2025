@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -433,13 +434,14 @@ export function AIChatWidget() {
 
             <div className="flex gap-2">
               <div className="relative flex-1">
-                <Input
+                <Textarea
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Ask me anything..."
+                  placeholder="Ask me anything... (Press Enter to send, Shift+Enter for new line)"
                   disabled={isLoading || isListening}
-                  className="pr-10"
+                  className="pr-10 min-h-[40px] max-h-[120px] resize-none"
+                  rows={1}
                 />
                 <Button
                   type="button"
