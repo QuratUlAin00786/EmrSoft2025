@@ -2712,32 +2712,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let responseData = null;
 
       if (aiResponse.intent === 'book_appointment') {
-        // Handle appointment booking
-        if (aiResponse.parameters) {
-          try {
-            const appointmentData = {
-              organizationId: req.tenant!.id,
-              patientId: aiResponse.parameters.patientId,
-              providerId: aiResponse.parameters.providerId,
-              title: aiResponse.parameters.title || 'General Consultation',
-              description: aiResponse.parameters.description || '',
-              scheduledAt: aiResponse.parameters.scheduledAt ? new Date(aiResponse.parameters.scheduledAt) : undefined,
-              duration: aiResponse.parameters.duration || 30,
-              type: aiResponse.parameters.type || 'consultation',
-              location: aiResponse.parameters.location || '',
-              isVirtual: aiResponse.parameters.isVirtual || false
-            };
-
-            const newAppointment = await storage.createAppointment(appointmentData);
-            actionResult = {
-              action: 'appointment_booked',
-              actionDescription: `Appointment scheduled successfully for ${aiResponse.parameters.patientName}`,
-              data: { appointment: newAppointment }
-            };
-            responseData = { appointments: [newAppointment] };
-          } catch (error) {
-            console.error("Error booking appointment:", error);
-          }
+        // Appointment booking is handled directly in the AI service
+        if (aiResponse.parameters && aiResponse.parameters.success) {
+          actionResult = {
+            action: 'appointment_booked',
+            actionDescription: `Appointment scheduled successfully for ${aiResponse.parameters.patientName}`,
+            data: { appointmentId: aiResponse.parameters.appointmentId }
+          };
+          responseData = { appointmentBooked: true, appointmentId: aiResponse.parameters.appointmentId };
         }
       } else if (aiResponse.intent === 'find_prescriptions') {
         // Handle prescription search
