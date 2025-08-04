@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 import type { Patient, MedicalRecord } from "@shared/schema";
+import { storage } from "../storage";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
@@ -355,144 +356,154 @@ Please provide a comprehensive safety analysis focusing on clinically significan
     confidence: number;
     parameters?: any;
   }> {
-    // Check if Anthropic API is available
-    if (!anthropic) {
-      // Use basic pattern matching for simple requests
-      const lowerMessage = params.message.toLowerCase();
-      let intent = 'general_inquiry';
-      let confidence = 0.7;
-      let response = "I can help you with basic tasks using simple commands:\n\n📅 **Book appointments** - Try saying 'book appointment'\n💊 **Find prescriptions** - Try saying 'find prescriptions'\n\nFor more intelligent conversation, please ask your administrator to configure the Anthropic API key.";
-
-      if (lowerMessage.includes('book') || lowerMessage.includes('schedule') || lowerMessage.includes('appointment')) {
-        intent = 'book_appointment';
-        response = "I can help you book an appointment! However, without the AI service configured, I'll need you to provide specific details:\n\n• Patient name\n• Doctor/provider name\n• Preferred date and time\n• Reason for visit\n\nPlease provide these details and I'll process the appointment booking.";
-        confidence = 0.8;
-      } else if (lowerMessage.includes('prescription') || lowerMessage.includes('medication') || lowerMessage.includes('find')) {
-        intent = 'find_prescriptions';
-        response = "I can help you find prescriptions! Let me search the system for prescription information.";
-        confidence = 0.8;
-      } else if (lowerMessage.includes('help')) {
-        intent = 'help';
-        response = "I'm your Cura AI Assistant! Even without full AI capabilities, I can still help with:\n\n📅 **Booking appointments** - Say 'book appointment'\n💊 **Finding prescriptions** - Say 'find prescriptions'\n\nWhat would you like to do?";
-        confidence = 0.9;
-      }
-
-      return {
-        response,
-        intent,
-        confidence
-      };
-    }
+    // Use enhanced pattern matching with actual data access
+    const lowerMessage = params.message.toLowerCase();
+    let intent = 'general_inquiry';
+    let confidence = 0.7;
+    let response = "";
+    let extractedParams = null;
 
     try {
-      // Build conversation context for Anthropic
-      const conversationContext = params.conversationHistory
-        .slice(-3) // Last 3 messages for context
-        .map(msg => `${msg.type === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`)
-        .join('\n');
-
-      const systemPrompt = `You are a Cura AI Assistant for a healthcare EMR system. You help users with:
-
-1. **Booking Appointments**: Schedule patient consultations with doctors
-2. **Finding Prescriptions**: Search and retrieve patient medication information
-
-Current user role: ${params.userRole}
-Organization ID: ${params.organizationId}
-
-When users request appointment booking, extract these parameters:
-- patientName (required)
-- patientId (if mentioned)
-- providerName or doctorName (if mentioned)
-- providerId (if mentioned) 
-- appointmentDate/time (required)
-- appointmentType (consultation, follow-up, etc.)
-- duration (default 30 minutes)
-- description/reason
-
-When users request prescription searches, extract:
-- patientName (if mentioned)
-- patientId (if mentioned)
-- medicationName (if searching for specific medication)
-
-Always respond in a helpful, professional medical assistant tone. If you can perform the requested action, clearly state what you're doing. If you need more information, ask specific questions.
-
-Classify user intent as one of:
-- "book_appointment" - User wants to schedule an appointment
-- "find_prescriptions" - User wants to search prescriptions  
-- "general_inquiry" - General questions or conversation
-- "help" - User needs assistance understanding what you can do
-
-Provide your response in JSON format with:
-{
-  "response": "Your natural language response to the user",
-  "intent": "detected_intent",
-  "confidence": 0.0-1.0,
-  "parameters": { extracted_parameters_if_any }
-}`;
-
-      const response = await anthropic.messages.create({
-        max_tokens: 1024,
-        messages: [
-          {
-            role: 'user',
-            content: `Previous conversation:\n${conversationContext}\n\nCurrent message: "${params.message}"\n\nAnalyze this message and respond appropriately. Extract any relevant parameters for appointment booking or prescription searching.`
-          }
-        ],
-        // "claude-sonnet-4-20250514"
-        model: DEFAULT_MODEL_STR,
-        system: systemPrompt
-      });
-
-      // Parse the response
-      const content = response.content[0].text;
-      
-      try {
-        // Try to parse as JSON first
-        const jsonMatch = content.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const parsed = JSON.parse(jsonMatch[0]);
-          return {
-            response: parsed.response || content,
-            intent: parsed.intent || 'general_inquiry',
-            confidence: parsed.confidence || 0.8,
-            parameters: parsed.parameters || null
-          };
-        }
-      } catch (parseError) {
-        console.log("JSON parsing failed, using text response");
-      }
-
-      // Fallback to text analysis if JSON parsing fails
-      const lowerMessage = params.message.toLowerCase();
-      let intent = 'general_inquiry';
-      let confidence = 0.6;
-
+      // Enhanced appointment booking logic
       if (lowerMessage.includes('book') || lowerMessage.includes('schedule') || lowerMessage.includes('appointment')) {
         intent = 'book_appointment';
-        confidence = 0.8;
-      } else if (lowerMessage.includes('prescription') || lowerMessage.includes('medication') || lowerMessage.includes('find') || lowerMessage.includes('search')) {
+        confidence = 0.9;
+        
+        // Get available doctors and patients for context
+        const allUsers = await storage.getUsers(params.organizationId);
+        const doctors = allUsers.filter((user: any) => user.role === 'doctor');
+        const patients = await storage.getPatientsByOrganization(params.organizationId, 20);
+        
+        // Extract potential patient and doctor names from message
+        const words = params.message.split(' ');
+        let foundPatient = null;
+        let foundDoctor = null;
+        
+        // Look for patient names in the message
+        for (const patient of patients) {
+          const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
+          if (lowerMessage.includes(patient.firstName.toLowerCase()) || 
+              lowerMessage.includes(patient.lastName.toLowerCase()) ||
+              lowerMessage.includes(fullName)) {
+            foundPatient = patient;
+            break;
+          }
+        }
+        
+        // Look for doctor names in the message
+        for (const doctor of doctors) {
+          const fullName = `${doctor.firstName} ${doctor.lastName}`.toLowerCase();
+          if (lowerMessage.includes(doctor.firstName.toLowerCase()) || 
+              lowerMessage.includes(doctor.lastName.toLowerCase()) ||
+              lowerMessage.includes(fullName) ||
+              lowerMessage.includes('dr. ' + doctor.lastName.toLowerCase()) ||
+              lowerMessage.includes('doctor ' + doctor.lastName.toLowerCase())) {
+            foundDoctor = doctor;
+            break;
+          }
+        }
+        
+        // Extract date/time information
+        const dateRegex = /(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})|(\d{1,2}:\d{2})|(\d{1,2}(am|pm))/gi;
+        const dateMatches = params.message.match(dateRegex);
+        
+        if (foundPatient && foundDoctor) {
+          extractedParams = {
+            patientId: foundPatient.id,
+            patientName: `${foundPatient.firstName} ${foundPatient.lastName}`,
+            providerId: foundDoctor.id,
+            providerName: `Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}`,
+            title: 'General Consultation',
+            description: 'Appointment booked via AI Assistant',
+            duration: 30,
+            type: 'consultation',
+            isVirtual: false
+          };
+          
+          response = `Perfect! I can help you book an appointment for **${foundPatient.firstName} ${foundPatient.lastName}** with **Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}**.\n\nI need a specific date and time. Please provide when you'd like to schedule this appointment (e.g., "tomorrow at 2pm" or "July 25th at 10:30am").`;
+        } else if (foundPatient && !foundDoctor) {
+          response = `I found patient **${foundPatient.firstName} ${foundPatient.lastName}**. Which doctor would you like to book with?\n\nAvailable doctors:\n${doctors.slice(0, 5).map(d => `• Dr. ${d.firstName} ${d.lastName}`).join('\n')}`;
+        } else if (!foundPatient && foundDoctor) {
+          response = `I found **Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}**. Which patient is this appointment for?\n\nRecent patients:\n${patients.slice(0, 5).map(p => `• ${p.firstName} ${p.lastName}`).join('\n')}`;
+        } else {
+          response = `I can help you book an appointment! Please specify:\n\n**Available Doctors:**\n${doctors.slice(0, 5).map(d => `• Dr. ${d.firstName} ${d.lastName}`).join('\n')}\n\n**Recent Patients:**\n${patients.slice(0, 5).map(p => `• ${p.firstName} ${p.lastName}`).join('\n')}\n\nExample: "Book appointment for John Smith with Dr. Johnson tomorrow at 2pm"`;
+        }
+      }
+      
+      // Enhanced prescription search logic
+      else if (lowerMessage.includes('prescription') || lowerMessage.includes('medication') || lowerMessage.includes('find') || lowerMessage.includes('search')) {
         intent = 'find_prescriptions';
-        confidence = 0.8;
-      } else if (lowerMessage.includes('help') || lowerMessage.includes('what can you do')) {
+        confidence = 0.9;
+        
+        const patients = await storage.getPatientsByOrganization(params.organizationId, 20);
+        const prescriptions = await storage.getPrescriptionsByOrganization(params.organizationId);
+        
+        // Look for patient names in the message
+        let foundPatient = null;
+        for (const patient of patients) {
+          const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
+          if (lowerMessage.includes(patient.firstName.toLowerCase()) || 
+              lowerMessage.includes(patient.lastName.toLowerCase()) ||
+              lowerMessage.includes(fullName)) {
+            foundPatient = patient;
+            break;
+          }
+        }
+        
+        if (foundPatient) {
+          const patientPrescriptions = prescriptions.filter(p => p.patientId === foundPatient.id);
+          extractedParams = {
+            patientId: foundPatient.id,
+            patientName: `${foundPatient.firstName} ${foundPatient.lastName}`
+          };
+          
+          if (patientPrescriptions.length > 0) {
+            response = `Found **${patientPrescriptions.length} prescriptions** for **${foundPatient.firstName} ${foundPatient.lastName}**:\n\n${patientPrescriptions.slice(0, 5).map(p => 
+              `• **${p.medicationName}** - ${p.dosage} (${p.frequency})\n  Status: ${p.status} | Prescribed: ${new Date(p.createdAt).toLocaleDateString()}`
+            ).join('\n\n')}${patientPrescriptions.length > 5 ? `\n\n...and ${patientPrescriptions.length - 5} more` : ''}`;
+          } else {
+            response = `No prescriptions found for **${foundPatient.firstName} ${foundPatient.lastName}**.`;
+          }
+        } else {
+          // Show recent prescriptions overview
+          const recentPrescriptions = prescriptions.slice(0, 10);
+          response = `Here are the most recent prescriptions in the system:\n\n${recentPrescriptions.map(p => {
+            const patient = patients.find(pt => pt.id === p.patientId);
+            const patientName = patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown Patient';
+            return `• **${p.medicationName}** for ${patientName}\n  ${p.dosage} (${p.frequency}) - Status: ${p.status}`;
+          }).join('\n\n')}\n\nTo find prescriptions for a specific patient, mention their name (e.g., "Find prescriptions for John Smith").`;
+        }
+      }
+      
+      // Help and general inquiries
+      else if (lowerMessage.includes('help') || lowerMessage.includes('what can you do')) {
         intent = 'help';
         confidence = 0.9;
+        
+        const patients = await storage.getPatientsByOrganization(params.organizationId, 5);
+        const allUsers = await storage.getUsers(params.organizationId);
+        const doctors = allUsers.filter((user: any) => user.role === 'doctor');
+        
+        response = `I'm your **Cura AI Assistant**! I can help you with:\n\n📅 **Book Appointments**\n• Say "Book appointment for [patient] with [doctor] on [date/time]"\n• Example: "Book appointment for John Smith with Dr. Johnson tomorrow at 2pm"\n\n💊 **Find Prescriptions**\n• Say "Find prescriptions for [patient name]"\n• Example: "Find prescriptions for Sarah Wilson"\n\n📊 **Quick Stats**\n• ${patients.length} patients in system\n• ${doctors.length} doctors available\n• ${params.userRole} access level\n\nWhat would you like to do?`;
+      }
+      
+      // Default response with context
+      else {
+        const stats = await storage.getDashboardStats(params.organizationId);
+        response = `Hello! I'm your Cura AI Assistant. I can help you with appointments and prescriptions.\n\n📊 **Quick Overview:**\n• ${stats.totalPatients} total patients\n• ${stats.todayAppointments} appointments today\n• Role: ${params.userRole}\n\nTry saying:\n• "Book an appointment"\n• "Find prescriptions"\n• "Help" for more options`;
       }
 
-      return {
-        response: content,
-        intent,
-        confidence,
-        parameters: null
-      };
-
     } catch (error) {
-      console.error("Anthropic AI error:", error);
-      return {
-        response: "I apologize, but I'm having trouble processing your request right now. Please try again or be more specific about what you'd like me to help you with.",
-        intent: 'general_inquiry',
-        confidence: 0.3
-      };
+      console.error("AI service error:", error);
+      response = "I'm having trouble accessing the system data right now. Please try again in a moment, or ask your administrator to check the system status.";
     }
+
+    return {
+      response,
+      intent,
+      confidence,
+      parameters: extractedParams
+    };
   }
 }
 
