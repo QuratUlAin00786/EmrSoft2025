@@ -472,7 +472,12 @@ Please provide a comprehensive safety analysis focusing on clinically significan
         
         // Extract time if provided
         const timeMatch = lowerMessage.match(/(\d{1,2})(:\d{2})?\s*(am|pm)/i);
-        if (timeMatch && scheduledDate) {
+        if (timeMatch) {
+          // If we found a time but no date yet, default to today
+          if (!scheduledDate) {
+            scheduledDate = new Date(now);
+          }
+          
           let hour = parseInt(timeMatch[1]);
           const minute = timeMatch[2] ? parseInt(timeMatch[2].substring(1)) : 0;
           const period = timeMatch[3].toLowerCase();
