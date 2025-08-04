@@ -1330,7 +1330,7 @@ export default function VoiceDocumentation() {
                 <CardContent className="space-y-4">
                   <div>
                     <h4 className="font-medium text-sm mb-2">Template Preview</h4>
-                    <div className="text-sm text-gray-700 bg-gray-50 p-3 rounded font-mono whitespace-pre-line">
+                    <div className="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-slate-800 p-3 rounded font-mono whitespace-pre-line">
                       {template.template}
                     </div>
                   </div>
@@ -1811,28 +1811,28 @@ export default function VoiceDocumentation() {
           </DialogHeader>
           {editingNote && (
             <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg">
                 <div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">Patient</div>
                   <div className="font-medium text-gray-900 dark:text-gray-100">{editingNote.patientName}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500">Provider</div>
-                  <div className="font-medium">{editingNote.providerName}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Provider</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100">{editingNote.providerName}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500">Note Type</div>
-                  <div className="font-medium capitalize">{editingNote.type.replace('_', ' ')}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Note Type</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100 capitalize">{editingNote.type.replace('_', ' ')}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500">Recording Duration</div>
-                  <div className="font-medium">{Math.floor(editingNote.recordingDuration / 60)}:{(editingNote.recordingDuration % 60).toString().padStart(2, '0')}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Recording Duration</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100">{Math.floor(editingNote.recordingDuration / 60)}:{(editingNote.recordingDuration % 60).toString().padStart(2, '0')}</div>
                 </div>
               </div>
 
               <div>
                 <label className="text-sm font-medium mb-2 block">Original Transcript</label>
-                <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-700 max-h-32 overflow-y-auto">
+                <div className="p-3 bg-gray-50 dark:bg-slate-800 rounded-lg text-sm text-gray-700 dark:text-gray-300 max-h-32 overflow-y-auto">
                   {editingNote.transcript}
                 </div>
               </div>
@@ -1960,22 +1960,22 @@ export default function VoiceDocumentation() {
                   className="max-w-full max-h-[70vh] object-contain rounded-lg"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg">
                 <div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">Patient</div>
                   <div className="font-medium text-gray-900 dark:text-gray-100">{selectedPhoto.patientName}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500">Type</div>
-                  <div className="font-medium capitalize">{selectedPhoto.type.replace('_', ' ')}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Type</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100 capitalize">{selectedPhoto.type.replace('_', ' ')}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500">Date Taken</div>
-                  <div className="font-medium">{selectedPhoto.dateTaken}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Date Taken</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100">{selectedPhoto.dateTaken}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500">AI Analysis</div>
-                  <div className="font-medium">{selectedPhoto.aiAnalysis.findings.join(', ')}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">AI Analysis</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100">{selectedPhoto.aiAnalysis.findings.join(', ')}</div>
                 </div>
               </div>
               <div className="flex justify-end gap-2">
