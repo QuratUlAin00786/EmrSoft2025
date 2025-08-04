@@ -443,7 +443,7 @@ Please provide a comprehensive safety analysis focusing on clinically significan
               providerId: foundDoctor.id,
               title: 'General Consultation',
               description: 'Appointment booked via AI Assistant',
-              scheduledAt: scheduledDate,
+              scheduledAt: new Date(scheduledDate.toISOString()),
               duration: 30,
               status: 'scheduled' as const,
               type: 'consultation' as const,
@@ -526,9 +526,12 @@ Please provide a comprehensive safety analysis focusing on clinically significan
           };
           
           if (patientPrescriptions.length > 0) {
-            response = `Found **${patientPrescriptions.length} prescriptions** for **${foundPatient.firstName} ${foundPatient.lastName}**:\n\n${patientPrescriptions.slice(0, 5).map(p => 
-              `• **${p.medicationName}** - ${p.dosage} (${p.frequency})\n  Status: ${p.status} | Prescribed: ${new Date(p.createdAt).toLocaleDateString()}`
-            ).join('\n\n')}${patientPrescriptions.length > 5 ? `\n\n...and ${patientPrescriptions.length - 5} more` : ''}`;
+            response = `Found **${patientPrescriptions.length} prescriptions** for **${foundPatient.firstName} ${foundPatient.lastName}**:\n\n${patientPrescriptions.slice(0, 5).map(p => {
+              const medList = p.medications && p.medications.length > 0 
+                ? p.medications.map((med: any) => `${med.name} - ${med.dosage} (${med.frequency})`).join(', ')
+                : 'Medication details not available';
+              return `• **${medList}**\n  Status: ${p.status} | Prescribed: ${new Date(p.createdAt).toLocaleDateString()}`;
+            }).join('\n\n')}${patientPrescriptions.length > 5 ? `\n\n...and ${patientPrescriptions.length - 5} more` : ''}`;
           } else {
             response = `No prescriptions found for **${foundPatient.firstName} ${foundPatient.lastName}**.`;
           }
@@ -538,7 +541,10 @@ Please provide a comprehensive safety analysis focusing on clinically significan
           response = `Here are the most recent prescriptions in the system:\n\n${recentPrescriptions.map(p => {
             const patient = patients.find(pt => pt.id === p.patientId);
             const patientName = patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown Patient';
-            return `• **${p.medicationName}** for ${patientName}\n  ${p.dosage} (${p.frequency}) - Status: ${p.status}`;
+            const medList = p.medications && p.medications.length > 0 
+              ? p.medications.map((med: any) => `${med.name}`).join(', ')
+              : 'Medication details not available';
+            return `• **${medList}** for ${patientName}\n  Status: ${p.status}`;
           }).join('\n\n')}\n\nTo find prescriptions for a specific patient, mention their name (e.g., "Find prescriptions for John Smith").`;
         }
       }
