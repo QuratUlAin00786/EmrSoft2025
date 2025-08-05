@@ -538,12 +538,28 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAppointmentsByProvider(providerId: number, organizationId: number, date?: Date): Promise<Appointment[]> {
-    return await db.select().from(appointments)
+    let query = db.select().from(appointments)
       .where(and(
         eq(appointments.providerId, providerId),
         eq(appointments.organizationId, organizationId)
-      ))
-      .orderBy(asc(appointments.scheduledAt));
+      ));
+
+    // If date is provided, filter appointments for that specific date
+    if (date) {
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      query = query.where(and(
+        eq(appointments.providerId, providerId),
+        eq(appointments.organizationId, organizationId),
+        gte(appointments.scheduledAt, startOfDay),
+        lte(appointments.scheduledAt, endOfDay)
+      ));
+    }
+
+    return await query.orderBy(asc(appointments.scheduledAt));
   }
 
   async getAppointmentsByPatient(patientId: number, organizationId: number): Promise<Appointment[]> {
