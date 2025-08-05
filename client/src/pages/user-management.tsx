@@ -1012,14 +1012,14 @@ export default function UserManagement() {
 
                     <div className="space-y-4">
                       <Label>Module Permissions</Label>
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <p className="text-sm text-gray-600 mb-4">
+                      <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border dark:border-gray-700">
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
                           Configure what modules this role can access and what actions they can perform.
                         </p>
-                        <div className="text-center text-gray-500 py-8">
-                          <Shield className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-                          <p>Permission matrix will be implemented here</p>
-                          <p className="text-sm">Select view, create, edit, and delete permissions for each module</p>
+                        <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+                          <Shield className="h-12 w-12 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
+                          <p className="text-gray-700 dark:text-gray-300">Permission matrix will be implemented here</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Select view, create, edit, and delete permissions for each module</p>
                         </div>
                       </div>
                     </div>
