@@ -499,6 +499,15 @@ export default function UserManagement() {
       user.role.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Debug: Log filtered users to see exactly what's being rendered
+  console.log("Filtered users for rendering:", filteredUsers.map(u => ({
+    id: u.id,
+    email: u.email,
+    firstName: u.firstName,
+    lastName: u.lastName,
+    role: u.role
+  })));
+
   const userCounts = users.reduce((acc, user) => {
     acc[user.role] = (acc[user.role] || 0) + 1;
     return acc;
@@ -844,9 +853,9 @@ export default function UserManagement() {
               </div>
             ) : (
               <div className="space-y-4">
-                {filteredUsers.map((user) => (
+                {filteredUsers.map((user, index) => (
                   <div
-                    key={user.id}
+                    key={`user-${user.id}-${user.email}-${index}`}
                     className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
                   >
                     <div className="flex items-center space-x-4">
@@ -854,10 +863,10 @@ export default function UserManagement() {
                         {getRoleIcon(user.role)}
                       </div>
                       <div>
-                        <h3 className="font-medium text-gray-900">
+                        <h3 className="font-medium text-gray-900" title={`${user.firstName} ${user.lastName} - ID: ${user.id}`}>
                           {user.firstName || 'N/A'} {user.lastName || 'N/A'}
                         </h3>
-                        <p className="text-sm text-gray-500">{user.email || 'No email'}</p>
+                        <p className="text-sm text-gray-500" title={user.email}>{user.email || 'No email'}</p>
                         {user.department && user.department.trim() && (
                           <p className="text-xs text-gray-400">{user.department}</p>
                         )}
@@ -866,6 +875,10 @@ export default function UserManagement() {
                             Working: {user.workingDays.join(", ")} ({user.workingHours?.start || '09:00'} - {user.workingHours?.end || '17:00'})
                           </p>
                         )}
+                        {/* Debug info */}
+                        <div className="text-xs text-red-500" style={{ display: 'none' }}>
+                          DEBUG: {JSON.stringify({ id: user.id, fn: user.firstName, ln: user.lastName, email: user.email })}
+                        </div>
                       </div>
                     </div>
                     
