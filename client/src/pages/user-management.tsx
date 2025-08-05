@@ -852,84 +852,88 @@ export default function UserManagement() {
                 {searchTerm ? "No users found matching your search." : "No users found."}
               </div>
             ) : (
-              <div className="space-y-4">
-                {filteredUsers.map((user, index) => (
-                  <div
-                    key={`user-${user.id}-${user.email}-${index}`}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        {getRoleIcon(user.role)}
+              <div className="space-y-4" key={`users-list-${Date.now()}`}>
+                {filteredUsers.map((user, index) => {
+                  // Force immediate values to prevent any rendering delays
+                  const displayName = `${user.firstName || 'Unknown'} ${user.lastName || 'User'}`;
+                  const userEmail = user.email || 'No email';
+                  const userRole = user.role || 'unknown';
+                  
+                  return (
+                    <div
+                      key={`user-card-${user.id}-${index}-${Date.now()}`}
+                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 bg-white"
+                      style={{ minHeight: '80px' }}
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
+                          {getRoleIcon(userRole)}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-medium text-gray-900 text-base">
+                            {displayName}
+                          </h3>
+                          <p className="text-sm text-gray-500">{userEmail}</p>
+                          {user.department && user.department.trim() && (
+                            <p className="text-xs text-gray-400">{user.department}</p>
+                          )}
+                          {user.workingDays && user.workingDays.length > 0 && (
+                            <p className="text-xs text-blue-600">
+                              Working: {user.workingDays.join(", ")} ({user.workingHours?.start || '09:00'} - {user.workingHours?.end || '17:00'})
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-medium text-gray-900" title={`${user.firstName} ${user.lastName} - ID: ${user.id}`}>
-                          {user.firstName || 'N/A'} {user.lastName || 'N/A'}
-                        </h3>
-                        <p className="text-sm text-gray-500" title={user.email}>{user.email || 'No email'}</p>
-                        {user.department && user.department.trim() && (
-                          <p className="text-xs text-gray-400">{user.department}</p>
-                        )}
-                        {user.workingDays && user.workingDays.length > 0 && (
-                          <p className="text-xs text-blue-600">
-                            Working: {user.workingDays.join(", ")} ({user.workingHours?.start || '09:00'} - {user.workingHours?.end || '17:00'})
-                          </p>
-                        )}
-                        {/* Debug info */}
-                        <div className="text-xs text-red-500" style={{ display: 'none' }}>
-                          DEBUG: {JSON.stringify({ id: user.id, fn: user.firstName, ln: user.lastName, email: user.email })}
+                      
+                      <div className="flex items-center space-x-3">
+                        <Badge className={getRoleColor(user.role)}>
+                          {getRoleDisplayName(user.role)}
+                        </Badge>
+                        
+                        <Badge variant={user.isActive ? "default" : "secondary"}>
+                          {user.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                        
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEdit(user)}
+                            title="Edit User"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete User</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete {user.firstName} {user.lastName}? 
+                                  This action cannot be undone and will remove all their access to the system.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDelete(user.id)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Delete User
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </div>
                     </div>
-                    
-                    <div className="flex items-center space-x-3">
-                      <Badge className={getRoleColor(user.role)}>
-                        {getRoleDisplayName(user.role)}
-                      </Badge>
-                      
-                      <Badge variant={user.isActive ? "default" : "secondary"}>
-                        {user.isActive ? "Active" : "Inactive"}
-                      </Badge>
-                      
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEdit(user)}
-                          title="Edit User"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete User</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete {user.firstName} {user.lastName}? 
-                                This action cannot be undone and will remove all their access to the system.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDelete(user.id)}
-                                className="bg-red-600 hover:bg-red-700"
-                              >
-                                Delete User
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
