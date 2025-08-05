@@ -144,7 +144,13 @@ export function AIChatWidget() {
       };
       
       recognition.onend = () => {
+        console.log('Speech recognition ended');
         setIsListening(false);
+        // Ensure final transcript is properly set
+        setInput(prev => {
+          const cleanedText = prev.replace(/\s*\[.*?\]\s*$/, '').trim();
+          return transcriptBuffer ? (cleanedText + ' ' + transcriptBuffer).trim() : cleanedText;
+        });
       };
       
       setRecognition(recognition);
@@ -152,22 +158,25 @@ export function AIChatWidget() {
   }, [toast, transcriptBuffer]);
 
   const handleSendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+    // Clean up any interim text and get final message
+    const finalMessage = input.replace(/\s*\[.*?\]\s*$/, '').trim();
+    if (!finalMessage || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
-      content: input,
+      content: finalMessage,
       timestamp: new Date(),
     };
 
     setMessages(prev => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
+    setTranscriptBuffer(""); // Clear transcript buffer
 
     try {
       const response = await apiRequest("POST", "/api/ai-agent/chat", {
-        message: input,
+        message: finalMessage,
         conversationHistory: messages.slice(-5).map(msg => ({
           role: msg.type,
           content: msg.content
@@ -245,7 +254,12 @@ export function AIChatWidget() {
 
   const stopVoiceRecognition = () => {
     if (recognition && isListening) {
-      recognition.stop();
+      try {
+        recognition.stop();
+        console.log("Voice recognition stop requested");
+      } catch (error) {
+        console.error("Error stopping voice recognition:", error);
+      }
       setIsListening(false);
       // Clean up any interim text in brackets and keep final transcript
       setInput(prev => {
@@ -253,6 +267,10 @@ export function AIChatWidget() {
         return transcriptBuffer ? (cleanedText + ' ' + transcriptBuffer).trim() : cleanedText;
       });
       setTranscriptBuffer("");
+      toast({
+        title: "Recording stopped",
+        description: "Voice input complete",
+      });
     }
   };
 
@@ -475,6 +493,7 @@ export function AIChatWidget() {
                 onClick={handleSendMessage}
                 disabled={!input.trim() || isLoading}
                 size="sm"
+                title="Send message"
               >
                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               </Button>
