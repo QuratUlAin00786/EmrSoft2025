@@ -224,6 +224,7 @@ export default function UserManagement() {
 
   // Debug roles data
   console.log("Roles query - loading:", rolesLoading, "error:", rolesError, "roles count:", roles.length);
+  console.log("Current roles data:", roles);
   if (rolesError) console.log("Roles error details:", rolesError);
 
   // Role mutations
@@ -235,8 +236,10 @@ export default function UserManagement() {
       console.log("Server response:", result);
       return result;
     },
-    onSuccess: () => {
+    onSuccess: (newRole) => {
+      console.log("Role created successfully, invalidating cache and refetching...");
       queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
+      queryClient.refetchQueries({ queryKey: ["/api/roles"] });
       setIsRoleModalOpen(false);
       setEditingRole(null);
       roleForm.reset();
