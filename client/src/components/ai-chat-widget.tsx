@@ -206,10 +206,23 @@ export function AIChatWidget() {
         responseData.message.includes("Appointment ID")
       )) {
         console.log("Invalidating appointments cache due to successful appointment creation");
-        // Force immediate refetch by invalidating and refetching
-        queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
-        const refetchResult = queryClient.refetchQueries({ queryKey: ["/api/appointments"] });
-        console.log("Cache invalidation and refetch triggered:", refetchResult);
+        // Force aggressive cache invalidation and refetch
+        await queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+        await queryClient.refetchQueries({ queryKey: ["/api/appointments"] });
+        
+        // Additional refetch after delay to ensure UI updates
+        setTimeout(async () => {
+          console.log("Performing delayed refetch for appointments");
+          await queryClient.refetchQueries({ queryKey: ["/api/appointments"] });
+          // Force window refresh if needed for stubborn cache
+          setTimeout(() => {
+            if (window.location.pathname === '/') {
+              window.location.reload();
+            }
+          }, 500);
+        }, 1000);
+        
+        console.log("Cache invalidation and refetch completed");
       }
 
     } catch (error) {
