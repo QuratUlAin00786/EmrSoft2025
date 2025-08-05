@@ -496,8 +496,23 @@ Please provide a comprehensive safety analysis focusing on clinically significan
           if (!scheduledDate || isNaN(scheduledDate.getTime()) || scheduledDate < new Date()) {
             response = `I found the patient and doctor, but there was an issue with the date/time. Please provide a valid future date and time like "tomorrow at 2pm" or "August 5th at 10:30am".`;
           } else {
-            // Actually create the appointment
-            try {
+            // Check for existing appointments at this time slot
+            const existingAppointments = await storage.getAppointmentsByProvider(foundDoctor.id, params.organizationId, scheduledDate);
+            const appointmentEndTime = new Date(scheduledDate.getTime() + 30 * 60 * 1000); // 30 minutes duration
+            
+            const hasConflict = existingAppointments.some(appointment => {
+              const existingStart = new Date(appointment.scheduledAt);
+              const existingEnd = new Date(existingStart.getTime() + (appointment.duration || 30) * 60 * 1000);
+              
+              // Check if times overlap
+              return (scheduledDate < existingEnd && appointmentEndTime > existingStart);
+            });
+            
+            if (hasConflict) {
+              response = `I found the patient and doctor, but **Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}** already has an appointment at that time. Please choose a different time slot.\n\n**Available appointment slots:** 9:00 AM - 5:00 PM (30-minute appointments)\n\n**Try another time like:**\n• "tomorrow at 3pm"\n• "today at 11am"\n• "August 5th at 2:30pm"`;
+            } else {
+              // Actually create the appointment
+              try {
               console.log('Creating appointment with data:', {
                 organizationId: params.organizationId,
                 patientId: foundPatient.id,
@@ -549,9 +564,10 @@ Please provide a comprehensive safety analysis focusing on clinically significan
               });
               
               response = `✅ **Appointment Successfully Booked!**\n\n📅 **Details:**\n• **Patient:** ${foundPatient.firstName} ${foundPatient.lastName}\n• **Doctor:** Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}\n• **Date:** ${formattedDate}\n• **Time:** ${formattedTime}\n• **Duration:** 30 minutes\n• **Location:** ${foundDoctor.department || 'General'} Department\n\n**Appointment ID:** #${newAppointment.id}\n\nThe appointment has been added to the calendar and both parties will be notified.`;
-            } catch (error) {
-              console.error('Error booking appointment:', error);
-              response = `I found the patient and doctor, but there was an error creating the appointment. Please try booking manually or contact support.`;
+              } catch (error) {
+                console.error('Error booking appointment:', error);
+                response = `I found the patient and doctor, but there was an error creating the appointment. Please try booking manually or contact support.`;
+              }
             }
           }
         } else if (foundPatient && foundDoctor) {
