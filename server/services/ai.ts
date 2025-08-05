@@ -495,6 +495,44 @@ Please provide a comprehensive safety analysis focusing on clinically significan
         } else if (lowerMessage.includes('next week')) {
           scheduledDate = new Date(now);
           scheduledDate.setDate(scheduledDate.getDate() + 7);
+        } else {
+          // Try to extract specific dates - check "7th of August" format first
+          const ofPattern = /(\d{1,2})(st|nd|rd|th)?\s+of\s+(\w+)/i;
+          const ofMatch = lowerMessage.match(ofPattern);
+          if (ofMatch) {
+            const day = parseInt(ofMatch[1]);
+            const month = ofMatch[3];
+            scheduledDate = parseMonthDate(month, day, now.getFullYear());
+          } else {
+            // Try "August 7th" format
+            const monthPattern = /(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2})(st|nd|rd|th)?/i;
+            const monthMatch = lowerMessage.match(monthPattern);
+            if (monthMatch) {
+              const month = monthMatch[1];
+              const day = parseInt(monthMatch[2]);
+              scheduledDate = parseMonthDate(month, day, now.getFullYear());
+            } else {
+              // Try "8/7/2025" format
+              const numericPattern = /(\d{1,2})[-\/](\d{1,2})[-\/](\d{2,4})/i;
+              const numericMatch = lowerMessage.match(numericPattern);
+              if (numericMatch) {
+                const month = parseInt(numericMatch[1]);
+                const day = parseInt(numericMatch[2]);
+                const year = numericMatch[3] ? (numericMatch[3].length === 2 ? 2000 + parseInt(numericMatch[3]) : parseInt(numericMatch[3])) : now.getFullYear();
+                scheduledDate = new Date(year, month - 1, day);
+              }
+            }
+          }
+        }
+        
+        function parseMonthDate(monthName: string, day: number, year: number): Date | null {
+          const months = ['january', 'february', 'march', 'april', 'may', 'june', 
+                         'july', 'august', 'september', 'october', 'november', 'december'];
+          const monthIndex = months.findIndex(m => m.startsWith(monthName.toLowerCase().slice(0, 3)));
+          if (monthIndex !== -1) {
+            return new Date(year, monthIndex, day);
+          }
+          return null;
         }
         
         // Extract time if provided
@@ -524,7 +562,7 @@ Please provide a comprehensive safety analysis focusing on clinically significan
           const oneMinuteFromNow = new Date(currentTime.getTime() + 60 * 1000);
           
           if (!scheduledDate || isNaN(scheduledDate.getTime()) || scheduledDate <= oneMinuteFromNow) {
-            response = `I found the patient and doctor, but there was an issue with the date/time. Please provide a valid future date and time like "tomorrow at 2pm" or "August 5th at 10:30am".`;
+            response = `I found the patient and doctor, but there was an issue with the date/time. Please provide a valid future date and time like "tomorrow at 2pm" or "August 8th at 10:30am".`;
           } else {
             // Check for existing appointments at this time slot
             const existingAppointments = await storage.getAppointmentsByProvider(foundDoctor.id, params.organizationId, scheduledDate);

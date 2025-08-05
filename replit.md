@@ -8,6 +8,7 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system by 
 - **Improved date validation**: Enhanced appointment scheduling with proper future date validation (1-minute buffer) to prevent timing edge cases
 - **Fixed patient name display**: Appointments now correctly show patient names ("Ifra Khan", "Rashida Yunas") instead of patient IDs in calendar views
 - **Enhanced conflict detection**: Updated `getAppointmentsByProvider` to properly filter by date for accurate time slot availability checking
+- **Fixed AI date parsing**: Resolved "7th of August" format date parsing in AI assistant by restructuring regex patterns to properly handle ordinal date formats, eliminating confusing responses and ensuring accurate appointment scheduling
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
