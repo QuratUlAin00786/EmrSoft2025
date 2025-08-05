@@ -224,7 +224,6 @@ export default function UserManagement() {
 
   // Debug roles data
   console.log("Roles query - loading:", rolesLoading, "error:", rolesError, "roles count:", roles.length);
-  console.log("Current roles data:", roles);
   if (rolesError) console.log("Roles error details:", rolesError);
 
   // Role mutations
@@ -1239,7 +1238,7 @@ export default function UserManagement() {
                             </Button>
                             
                             {/* Delete button only for custom roles */}
-                            {(!role.isSystem || role.isSystem === undefined) && role.id > 4 && (
+                            {role.isSystem === false && (
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
