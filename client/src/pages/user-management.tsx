@@ -863,7 +863,7 @@ export default function UserManagement() {
                         {getRoleIcon(user.role)}
                       </div>
                       <div>
-                        <h3 className="font-medium text-gray-900">
+                        <h3 className="font-medium text-gray-900 dark:text-white bg-yellow-200 dark:bg-yellow-600 px-2 py-1 rounded">
                           {user.firstName || 'N/A'} {user.lastName || 'N/A'}
                         </h3>
                         <p className="text-sm text-gray-500">{user.email}</p>
