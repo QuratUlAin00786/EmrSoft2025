@@ -182,8 +182,32 @@ export default function UserManagement() {
       displayName: "",
       description: "",
       permissions: {
-        modules: {},
-        fields: {},
+        modules: {
+          patients: { view: false, create: false, edit: false, delete: false },
+          appointments: { view: false, create: false, edit: false, delete: false },
+          medicalRecords: { view: false, create: false, edit: false, delete: false },
+          prescriptions: { view: false, create: false, edit: false, delete: false },
+          billing: { view: false, create: false, edit: false, delete: false },
+          analytics: { view: false, create: false, edit: false, delete: false },
+          userManagement: { view: false, create: false, edit: false, delete: false },
+          settings: { view: false, create: false, edit: false, delete: false },
+          aiInsights: { view: false, create: false, edit: false, delete: false },
+          messaging: { view: false, create: false, edit: false, delete: false },
+          telemedicine: { view: false, create: false, edit: false, delete: false },
+          labResults: { view: false, create: false, edit: false, delete: false },
+          medicalImaging: { view: false, create: false, edit: false, delete: false },
+          forms: { view: false, create: false, edit: false, delete: false },
+        },
+        fields: {
+          patientSensitiveInfo: { view: false, edit: false },
+          financialData: { view: false, edit: false },
+          medicalHistory: { view: false, edit: false },
+          prescriptionDetails: { view: false, edit: false },
+          labResults: { view: false, edit: false },
+          imagingResults: { view: false, edit: false },
+          billingInformation: { view: false, edit: false },
+          insuranceDetails: { view: false, edit: false },
+        },
       },
     },
   });
@@ -286,7 +310,10 @@ export default function UserManagement() {
       name: role.name,
       displayName: role.displayName,
       description: role.description,
-      permissions: role.permissions,
+      permissions: {
+        modules: role.permissions?.modules || {},
+        fields: role.permissions?.fields || {},
+      },
     });
     setIsRoleModalOpen(true);
   };
@@ -1016,10 +1043,112 @@ export default function UserManagement() {
                         <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
                           Configure what modules this role can access and what actions they can perform.
                         </p>
-                        <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-                          <Shield className="h-12 w-12 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
-                          <p className="text-gray-700 dark:text-gray-300">Permission matrix will be implemented here</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">Select view, create, edit, and delete permissions for each module</p>
+                        
+                        <div className="space-y-4">
+                          {/* Permission Matrix Headers */}
+                          <div className="grid grid-cols-5 gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 pb-2 border-b border-gray-200 dark:border-gray-600">
+                            <div>Module</div>
+                            <div className="text-center">View</div>
+                            <div className="text-center">Create</div>
+                            <div className="text-center">Edit</div>
+                            <div className="text-center">Delete</div>
+                          </div>
+
+                          {/* Module Permissions */}
+                          {[
+                            { key: 'patients', name: 'Patients', description: 'Manage patient records and information' },
+                            { key: 'appointments', name: 'Appointments', description: 'Schedule and manage appointments' },
+                            { key: 'medicalRecords', name: 'Medical Records', description: 'Create and view medical records' },
+                            { key: 'prescriptions', name: 'Prescriptions', description: 'Prescribe and manage medications' },
+                            { key: 'billing', name: 'Billing', description: 'Process payments and invoicing' },
+                            { key: 'analytics', name: 'Analytics', description: 'View reports and analytics' },
+                            { key: 'userManagement', name: 'User Management', description: 'Manage system users and roles' },
+                            { key: 'settings', name: 'Settings', description: 'Configure system settings' },
+                            { key: 'aiInsights', name: 'AI Insights', description: 'Access AI-powered insights' },
+                            { key: 'messaging', name: 'Messaging', description: 'Send messages and notifications' },
+                            { key: 'telemedicine', name: 'Telemedicine', description: 'Video consultations' },
+                            { key: 'labResults', name: 'Lab Results', description: 'Manage laboratory results' },
+                            { key: 'medicalImaging', name: 'Medical Imaging', description: 'View and manage medical images' },
+                            { key: 'forms', name: 'Forms', description: 'Create and manage forms' }
+                          ].map((module) => {
+                            const currentPerms = roleForm.watch(`permissions.modules.${module.key}`) || {};
+                            
+                            return (
+                              <div key={module.key} className="grid grid-cols-5 gap-2 items-center py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+                                <div>
+                                  <div className="font-medium text-gray-900 dark:text-gray-100">{module.name}</div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">{module.description}</div>
+                                </div>
+                                
+                                {['view', 'create', 'edit', 'delete'].map((action) => (
+                                  <div key={action} className="flex justify-center">
+                                    <input
+                                      type="checkbox"
+                                      checked={currentPerms[action] || false}
+                                      onChange={(e) => {
+                                        const newPerms = { ...currentPerms, [action]: e.target.checked };
+                                        roleForm.setValue(`permissions.modules.${module.key}`, newPerms);
+                                      }}
+                                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Field Permissions */}
+                        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+                          <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-4">Sensitive Field Access</h4>
+                          <div className="grid grid-cols-2 gap-4">
+                            {[
+                              { key: 'patientSensitiveInfo', name: 'Patient Sensitive Information' },
+                              { key: 'financialData', name: 'Financial Data' },
+                              { key: 'medicalHistory', name: 'Medical History' },
+                              { key: 'prescriptionDetails', name: 'Prescription Details' },
+                              { key: 'labResults', name: 'Lab Results' },
+                              { key: 'imagingResults', name: 'Imaging Results' },
+                              { key: 'billingInformation', name: 'Billing Information' },
+                              { key: 'insuranceDetails', name: 'Insurance Details' }
+                            ].map((field) => {
+                              const currentFieldPerms = roleForm.watch(`permissions.fields.${field.key}`) || {};
+                              
+                              return (
+                                <div key={field.key} className="flex items-center space-x-4 p-3 bg-white dark:bg-gray-900 rounded border border-gray-200 dark:border-gray-700">
+                                  <div className="flex-1">
+                                    <div className="font-medium text-gray-900 dark:text-gray-100">{field.name}</div>
+                                  </div>
+                                  <div className="flex space-x-4">
+                                    <label className="flex items-center space-x-2">
+                                      <input
+                                        type="checkbox"
+                                        checked={currentFieldPerms.view || false}
+                                        onChange={(e) => {
+                                          const newPerms = { ...currentFieldPerms, view: e.target.checked };
+                                          roleForm.setValue(`permissions.fields.${field.key}`, newPerms);
+                                        }}
+                                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                                      />
+                                      <span className="text-sm text-gray-600 dark:text-gray-400">View</span>
+                                    </label>
+                                    <label className="flex items-center space-x-2">
+                                      <input
+                                        type="checkbox"
+                                        checked={currentFieldPerms.edit || false}
+                                        onChange={(e) => {
+                                          const newPerms = { ...currentFieldPerms, edit: e.target.checked };
+                                          roleForm.setValue(`permissions.fields.${field.key}`, newPerms);
+                                        }}
+                                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                                      />
+                                      <span className="text-sm text-gray-600 dark:text-gray-400">Edit</span>
+                                    </label>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
                       </div>
                     </div>
