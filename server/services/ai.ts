@@ -304,6 +304,16 @@ Please provide a comprehensive safety analysis focusing on clinically significan
     return age;
   }
 
+  private parseMonthDate(monthName: string, day: number, year: number): Date | null {
+    const months = ['january', 'february', 'march', 'april', 'may', 'june', 
+                   'july', 'august', 'september', 'october', 'november', 'december'];
+    const monthIndex = months.findIndex(m => m.startsWith(monthName.toLowerCase().slice(0, 3)));
+    if (monthIndex !== -1) {
+      return new Date(year, monthIndex, day);
+    }
+    return null;
+  }
+
   private getAppointmentTitle(department?: string, specialization?: string): string {
     // Determine appointment title based on doctor's department or specialization
     const specialty = specialization || department;
@@ -554,7 +564,7 @@ Please provide a comprehensive safety analysis focusing on clinically significan
           if (ofMatch) {
             const day = parseInt(ofMatch[1]);
             const month = ofMatch[3];
-            scheduledDate = parseMonthDate(month, day, now.getFullYear());
+            scheduledDate = this.parseMonthDate(month, day, now.getFullYear());
           } else {
             // Try "August 7th" format
             const monthPattern = /(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2})(st|nd|rd|th)?/i;
@@ -562,7 +572,7 @@ Please provide a comprehensive safety analysis focusing on clinically significan
             if (monthMatch) {
               const month = monthMatch[1];
               const day = parseInt(monthMatch[2]);
-              scheduledDate = parseMonthDate(month, day, now.getFullYear());
+              scheduledDate = this.parseMonthDate(month, day, now.getFullYear());
             } else {
               // Try "8/7/2025" format
               const numericPattern = /(\d{1,2})[-\/](\d{1,2})[-\/](\d{2,4})/i;
@@ -575,16 +585,6 @@ Please provide a comprehensive safety analysis focusing on clinically significan
               }
             }
           }
-        }
-        
-        function parseMonthDate(monthName: string, day: number, year: number): Date | null {
-          const months = ['january', 'february', 'march', 'april', 'may', 'june', 
-                         'july', 'august', 'september', 'october', 'november', 'december'];
-          const monthIndex = months.findIndex(m => m.startsWith(monthName.toLowerCase().slice(0, 3)));
-          if (monthIndex !== -1) {
-            return new Date(year, monthIndex, day);
-          }
-          return null;
         }
         
         // Extract time if provided
@@ -644,7 +644,7 @@ Please provide a comprehensive safety analysis focusing on clinically significan
               // Actually create the appointment
               try {
               // Determine appointment title based on doctor's specialty/department
-              const appointmentTitle = this.getAppointmentTitle(foundDoctor.department, foundDoctor.specialization);
+              const appointmentTitle = this.getAppointmentTitle(foundDoctor.department || undefined, undefined);
               
               console.log('Creating appointment with data:', {
                 organizationId: params.organizationId,
