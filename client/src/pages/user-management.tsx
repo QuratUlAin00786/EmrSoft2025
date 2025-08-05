@@ -229,8 +229,11 @@ export default function UserManagement() {
   // Role mutations
   const createRoleMutation = useMutation({
     mutationFn: async (data: RoleFormData) => {
+      console.log("Sending role data to server:", JSON.stringify(data, null, 2));
       const response = await apiRequest("POST", "/api/roles", data);
-      return response.json();
+      const result = await response.json();
+      console.log("Server response:", result);
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
@@ -297,6 +300,9 @@ export default function UserManagement() {
 
   // Role submission handlers
   const onRoleSubmit = (data: RoleFormData) => {
+    console.log("Role form submission data:", data);
+    console.log("Permissions structure:", JSON.stringify(data.permissions, null, 2));
+    
     if (editingRole) {
       updateRoleMutation.mutate({ ...data, id: editingRole.id });
     } else {
