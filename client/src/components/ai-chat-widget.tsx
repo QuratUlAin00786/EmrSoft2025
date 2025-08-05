@@ -136,11 +136,6 @@ export function AIChatWidget() {
       recognition.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
         setIsListening(false);
-        toast({
-          title: "Voice Recognition Error",
-          description: "Could not capture audio. Please try again.",
-          variant: "destructive",
-        });
       };
       
       recognition.onend = () => {
