@@ -206,7 +206,10 @@ export function AIChatWidget() {
         responseData.message.includes("Appointment ID")
       )) {
         console.log("Invalidating appointments cache due to successful appointment creation");
+        // Force immediate refetch by invalidating and refetching
         queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+        const refetchResult = queryClient.refetchQueries({ queryKey: ["/api/appointments"] });
+        console.log("Cache invalidation and refetch triggered:", refetchResult);
       }
 
     } catch (error) {

@@ -69,6 +69,11 @@ export default function AppointmentCalendar() {
 
   // Process appointments to ensure they're properly typed and filtered
   const appointments = rawAppointments?.filter((apt: any) => apt && apt.id) || [];
+  
+  // Debug: Log appointments data to console
+  console.log("AppointmentCalendar - Raw appointments count:", rawAppointments?.length || 0);
+  console.log("AppointmentCalendar - Filtered appointments count:", appointments?.length || 0);
+  console.log("AppointmentCalendar - Appointments:", appointments);
 
   const monthStart = startOfMonth(selectedDate);
   const monthEnd = endOfMonth(selectedDate);
