@@ -309,7 +309,8 @@ export default function UserManagement() {
     if (editingRole) {
       updateRoleMutation.mutate({ ...data, id: editingRole.id });
     } else {
-      createRoleMutation.mutate(data);
+      // Ensure isSystem is false for custom roles
+      createRoleMutation.mutate({ ...data, isSystem: false });
     }
   };
 
@@ -1238,7 +1239,7 @@ export default function UserManagement() {
                             </Button>
                             
                             {/* Delete button only for custom roles */}
-                            {!role.isSystem && (
+                            {(!role.isSystem || role.isSystem === undefined) && role.id > 4 && (
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
