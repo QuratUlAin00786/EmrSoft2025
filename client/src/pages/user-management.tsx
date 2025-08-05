@@ -46,7 +46,7 @@ const userSchema = z.object({
   email: z.string().email("Invalid email address"),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
-  role: z.enum(["admin", "doctor", "nurse", "receptionist", "patient", "sample_taker"]),
+  role: z.enum(["admin", "doctor", "nurse", "receptionist", "patient", "sample_taker", "lab_technician"]),
   department: z.string().optional(),
   workingDays: z.array(z.string()).optional(),
   workingHours: z.object({
@@ -444,6 +444,7 @@ export default function UserManagement() {
       case "patient":
         return <User className="h-4 w-4" />;
       case "sample_taker":
+      case "lab_technician":
         return <TestTube className="h-4 w-4" />;
       default:
         return <Users className="h-4 w-4" />;
@@ -463,6 +464,7 @@ export default function UserManagement() {
       case "patient":
         return "bg-purple-100 text-purple-800";
       case "sample_taker":
+      case "lab_technician":
         return "bg-cyan-100 text-cyan-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -482,6 +484,7 @@ export default function UserManagement() {
       case "patient":
         return "Patient";
       case "sample_taker":
+      case "lab_technician":
         return "Lab Technician";
       default:
         return role;
@@ -793,6 +796,7 @@ export default function UserManagement() {
                     {selectedRole === 'receptionist' && "Limited access to patient information, appointments, and billing functions."}
                     {selectedRole === 'patient' && "Personal health record access including appointments, prescriptions, and medical history."}
                     {selectedRole === 'sample_taker' && "Lab-focused access for sample collection, lab results, and basic patient information."}
+                    {selectedRole === 'lab_technician' && "Lab-focused access for sample collection, lab results, and basic patient information."}
                   </p>
                   <p className="text-xs text-blue-600 mt-2">
                     ✓ Permissions will be automatically assigned based on the selected role
