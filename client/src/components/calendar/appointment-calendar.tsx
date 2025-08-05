@@ -132,12 +132,23 @@ export default function AppointmentCalendar() {
     return provider ? `Dr. ${provider.firstName} ${provider.lastName}` : `Provider ID: ${providerId}`;
   };
 
+  // Only process appointments if we have patient and user data loaded
+  const isDataLoaded = patients.length > 0 && users.length > 0;
+  
   // Process appointments to ensure they're properly typed and filtered, with patient/provider names
-  const appointments = (rawAppointments?.filter((apt: any) => apt && apt.id) || []).map((apt: any) => ({
-    ...apt,
-    patientName: getPatientName(apt.patientId),
-    providerName: getProviderName(apt.providerId)
-  }));
+  const appointments = (rawAppointments?.filter((apt: any) => apt && apt.id) || []).map((apt: any) => {
+    if (!isDataLoaded) {
+      // Return appointment without names if data isn't loaded yet
+      return apt;
+    }
+    const patientName = getPatientName(apt.patientId);
+    const providerName = getProviderName(apt.providerId);
+    return {
+      ...apt,
+      patientName,
+      providerName
+    };
+  });
   
   // Debug: Log appointments data to console
   console.log("AppointmentCalendar - Raw appointments count:", rawAppointments?.length || 0);
@@ -326,7 +337,7 @@ export default function AppointmentCalendar() {
                           <div key={dayIndex} className="p-1 border border-gray-200 min-h-[60px]">
                             {hourAppointments.map((apt: any) => (
                               <div key={apt.id} className="text-xs p-1 bg-medical-blue text-white rounded mb-1">
-                                {apt.patientName || getPatientName(apt.patientId)}
+                                {isDataLoaded ? (apt.patientName || getPatientName(apt.patientId)) : `Patient ${apt.patientId}`}
                               </div>
                             ))}
                           </div>
@@ -359,7 +370,7 @@ export default function AppointmentCalendar() {
                         {hourAppointments.length > 0 ? (
                           hourAppointments.map((apt: any) => (
                             <div key={apt.id} className="p-3 bg-medical-blue text-white rounded mb-2">
-                              <div className="font-medium">{apt.patientName || getPatientName(apt.patientId)}</div>
+                              <div className="font-medium">{isDataLoaded ? (apt.patientName || getPatientName(apt.patientId)) : `Patient ${apt.patientId}`}</div>
                               <div className="text-sm">{apt.type}</div>
                               <div className="text-xs">
                                 {format(new Date(apt.scheduledAt), "h:mm a")} ({apt.duration} min)
@@ -431,7 +442,7 @@ export default function AppointmentCalendar() {
                       </div>
                       <div className="flex items-center gap-1">
                         <User className="h-4 w-4" />
-                        {(appointment as any).patientName || getPatientName(appointment.patientId)}
+                        {isDataLoaded ? ((appointment as any).patientName || getPatientName(appointment.patientId)) : `Patient ID: ${appointment.patientId}`}
                       </div>
                     </div>
                   </div>
@@ -456,8 +467,8 @@ export default function AppointmentCalendar() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <h4 className="font-medium text-gray-700 mb-2">Patient Information</h4>
-                  <p className="text-sm"><strong>Patient:</strong> {selectedAppointment.patientName || getPatientName(selectedAppointment.patientId)}</p>
-                  <p className="text-sm"><strong>Doctor:</strong> {selectedAppointment.providerName || getProviderName(selectedAppointment.providerId)}</p>
+                  <p className="text-sm"><strong>Patient:</strong> {isDataLoaded ? (selectedAppointment.patientName || getPatientName(selectedAppointment.patientId)) : `Patient ID: ${selectedAppointment.patientId}`}</p>
+                  <p className="text-sm"><strong>Doctor:</strong> {isDataLoaded ? (selectedAppointment.providerName || getProviderName(selectedAppointment.providerId)) : `Provider ID: ${selectedAppointment.providerId}`}</p>
                   <p className="text-sm"><strong>Type:</strong> {selectedAppointment.type}</p>
                   <p className="text-sm"><strong>Status:</strong> 
                     <Badge className={`ml-2 ${(statusColors as any)[selectedAppointment.status] || 'bg-gray-100'}`}>
@@ -499,7 +510,7 @@ export default function AppointmentCalendar() {
                     setShowConsultation(true);
                     toast({
                       title: "Starting Consultation",
-                      description: `Beginning consultation for Patient ${selectedAppointment.patientId}`,
+                      description: `Beginning consultation for ${isDataLoaded ? ((selectedAppointment as any).patientName || getPatientName(selectedAppointment.patientId)) : `Patient ${selectedAppointment.patientId}`}`,
                     });
                   }}
                   disabled={selectedAppointment.status !== "scheduled"}
