@@ -3,6 +3,12 @@
 ## Overview
 Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system by halo group, providing patient management, appointment scheduling, AI-powered clinical insights, telemedicine, and workflow automation. It focuses on healthcare compliance (including GDPR) and aims to streamline operations with advanced technology. Its vision includes enhancing healthcare delivery through AI and efficient digital tools, targeting a broad market of healthcare organizations.
 
+## Recent Changes (August 2025)
+- **Fixed appointment creation system**: Resolved critical issues with AI assistant appointment booking where conflict detection was checking against all appointments instead of date-specific appointments
+- **Improved date validation**: Enhanced appointment scheduling with proper future date validation (1-minute buffer) to prevent timing edge cases
+- **Fixed patient name display**: Appointments now correctly show patient names ("Ifra Khan", "Rashida Yunas") instead of patient IDs in calendar views
+- **Enhanced conflict detection**: Updated `getAppointmentsByProvider` to properly filter by date for accurate time slot availability checking
+
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 

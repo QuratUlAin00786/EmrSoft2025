@@ -519,8 +519,11 @@ Please provide a comprehensive safety analysis focusing on clinically significan
         }
         
         if (foundPatient && foundDoctor && scheduledDate) {
-          // Validate that scheduledDate is valid and in the future
-          if (!scheduledDate || isNaN(scheduledDate.getTime()) || scheduledDate < new Date()) {
+          // Validate that scheduledDate is valid and in the future (with 1 minute buffer)
+          const currentTime = new Date();
+          const oneMinuteFromNow = new Date(currentTime.getTime() + 60 * 1000);
+          
+          if (!scheduledDate || isNaN(scheduledDate.getTime()) || scheduledDate <= oneMinuteFromNow) {
             response = `I found the patient and doctor, but there was an issue with the date/time. Please provide a valid future date and time like "tomorrow at 2pm" or "August 5th at 10:30am".`;
           } else {
             // Check for existing appointments at this time slot
