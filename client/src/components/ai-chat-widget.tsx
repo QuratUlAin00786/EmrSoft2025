@@ -245,10 +245,6 @@ export function AIChatWidget() {
     if (recognition && !isListening) {
       setTranscriptBuffer("");
       recognition.start();
-      toast({
-        title: "Listening...",
-        description: "Speak now to transcribe your message",
-      });
     }
   };
 
@@ -267,10 +263,6 @@ export function AIChatWidget() {
         return transcriptBuffer ? (cleanedText + ' ' + transcriptBuffer).trim() : cleanedText;
       });
       setTranscriptBuffer("");
-      toast({
-        title: "Recording stopped",
-        description: "Voice input complete",
-      });
     }
   };
 
