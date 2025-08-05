@@ -314,12 +314,12 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-auto">
           {displayPatients.map((patient: any) => {
 
             
             return (
-              <Card key={patient.id} className="hover:shadow-md transition-shadow">
+              <Card key={patient.id} className="hover:shadow-md transition-shadow h-fit">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3">
@@ -374,7 +374,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                 </div>
               </CardHeader>
               
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-3 overflow-visible pb-6">
                 <div className="space-y-2 text-sm">
                   {patient.phone && (
                     <div className="flex items-center text-neutral-600">
@@ -426,7 +426,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                   </div>
                 )}
 
-                <div className="space-y-2">
+                <div className="space-y-2 mt-4">
                   {/* Primary action buttons - Medical Records prominently featured */}
                   <div className="flex gap-2">
                     <Button 
