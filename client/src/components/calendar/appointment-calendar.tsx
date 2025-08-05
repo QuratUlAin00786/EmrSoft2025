@@ -67,8 +67,77 @@ export default function AppointmentCalendar() {
     refetchOnWindowFocus: true
   });
 
-  // Process appointments to ensure they're properly typed and filtered
-  const appointments = rawAppointments?.filter((apt: any) => apt && apt.id) || [];
+  // Fetch patients data to get patient names
+  const { data: patients = [] } = useQuery({
+    queryKey: ["/api/patients"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch('/api/patients', {
+        headers,
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      return await response.json();
+    },
+    staleTime: 300000 // 5 minutes cache
+  });
+
+  // Fetch users data to get provider names
+  const { data: users = [] } = useQuery({
+    queryKey: ["/api/users"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch('/api/users', {
+        headers,
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      return await response.json();
+    },
+    staleTime: 300000 // 5 minutes cache
+  });
+
+  // Helper functions to get patient and provider names
+  const getPatientName = (patientId: number) => {
+    const patient = patients.find((p: any) => p.id === patientId);
+    return patient ? `${patient.firstName} ${patient.lastName}` : `Patient ID: ${patientId}`;
+  };
+
+  const getProviderName = (providerId: number) => {
+    const provider = users.find((u: any) => u.id === providerId);
+    return provider ? `Dr. ${provider.firstName} ${provider.lastName}` : `Provider ID: ${providerId}`;
+  };
+
+  // Process appointments to ensure they're properly typed and filtered, with patient/provider names
+  const appointments = (rawAppointments?.filter((apt: any) => apt && apt.id) || []).map((apt: any) => ({
+    ...apt,
+    patientName: getPatientName(apt.patientId),
+    providerName: getProviderName(apt.providerId)
+  }));
   
   // Debug: Log appointments data to console
   console.log("AppointmentCalendar - Raw appointments count:", rawAppointments?.length || 0);
@@ -257,7 +326,7 @@ export default function AppointmentCalendar() {
                           <div key={dayIndex} className="p-1 border border-gray-200 min-h-[60px]">
                             {hourAppointments.map((apt: any) => (
                               <div key={apt.id} className="text-xs p-1 bg-medical-blue text-white rounded mb-1">
-                                Patient {apt.patientId}
+                                {apt.patientName || getPatientName(apt.patientId)}
                               </div>
                             ))}
                           </div>
@@ -290,7 +359,7 @@ export default function AppointmentCalendar() {
                         {hourAppointments.length > 0 ? (
                           hourAppointments.map((apt: any) => (
                             <div key={apt.id} className="p-3 bg-medical-blue text-white rounded mb-2">
-                              <div className="font-medium">Patient ID: {apt.patientId}</div>
+                              <div className="font-medium">{apt.patientName || getPatientName(apt.patientId)}</div>
                               <div className="text-sm">{apt.type}</div>
                               <div className="text-xs">
                                 {format(new Date(apt.scheduledAt), "h:mm a")} ({apt.duration} min)
@@ -362,7 +431,7 @@ export default function AppointmentCalendar() {
                       </div>
                       <div className="flex items-center gap-1">
                         <User className="h-4 w-4" />
-                        Patient ID: {appointment.patientId}
+                        {(appointment as any).patientName || getPatientName(appointment.patientId)}
                       </div>
                     </div>
                   </div>
@@ -387,7 +456,8 @@ export default function AppointmentCalendar() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <h4 className="font-medium text-gray-700 mb-2">Patient Information</h4>
-                  <p className="text-sm"><strong>Patient ID:</strong> {selectedAppointment.patientId}</p>
+                  <p className="text-sm"><strong>Patient:</strong> {selectedAppointment.patientName || getPatientName(selectedAppointment.patientId)}</p>
+                  <p className="text-sm"><strong>Doctor:</strong> {selectedAppointment.providerName || getProviderName(selectedAppointment.providerId)}</p>
                   <p className="text-sm"><strong>Type:</strong> {selectedAppointment.type}</p>
                   <p className="text-sm"><strong>Status:</strong> 
                     <Badge className={`ml-2 ${(statusColors as any)[selectedAppointment.status] || 'bg-gray-100'}`}>
