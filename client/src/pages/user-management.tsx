@@ -364,7 +364,7 @@ export default function UserManagement() {
         title: "User updated successfully",
         description: "The user information has been updated.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      refetch();
       setEditingUser(null);
       form.reset();
     },
@@ -855,15 +855,15 @@ export default function UserManagement() {
                       </div>
                       <div>
                         <h3 className="font-medium text-gray-900">
-                          {user.firstName} {user.lastName}
+                          {user.firstName || 'N/A'} {user.lastName || 'N/A'}
                         </h3>
-                        <p className="text-sm text-gray-500">{user.email}</p>
-                        {user.department && (
+                        <p className="text-sm text-gray-500">{user.email || 'No email'}</p>
+                        {user.department && user.department.trim() && (
                           <p className="text-xs text-gray-400">{user.department}</p>
                         )}
                         {user.workingDays && user.workingDays.length > 0 && (
                           <p className="text-xs text-blue-600">
-                            Working: {user.workingDays.join(", ")} ({user.workingHours?.start} - {user.workingHours?.end})
+                            Working: {user.workingDays.join(", ")} ({user.workingHours?.start || '09:00'} - {user.workingHours?.end || '17:00'})
                           </p>
                         )}
                       </div>
