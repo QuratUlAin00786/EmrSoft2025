@@ -304,6 +304,58 @@ Please provide a comprehensive safety analysis focusing on clinically significan
     return age;
   }
 
+  private getAppointmentTitle(department?: string, specialization?: string): string {
+    // Determine appointment title based on doctor's department or specialization
+    const specialty = specialization || department;
+    
+    if (!specialty) {
+      return 'General Consultation';
+    }
+    
+    const specialtyLower = specialty.toLowerCase();
+    
+    // Map departments/specializations to appropriate appointment titles
+    const titleMap: { [key: string]: string } = {
+      'cardiology': 'Cardiology Consultation',
+      'dermatology': 'Dermatology Consultation', 
+      'neurology': 'Neurology Consultation',
+      'orthopedics': 'Orthopedic Consultation',
+      'pediatrics': 'Pediatric Consultation',
+      'psychiatry': 'Psychiatric Consultation',
+      'psychology': 'Psychology Consultation',
+      'psychologist': 'Psychology Session',
+      'radiology': 'Radiology Consultation',
+      'surgery': 'Surgical Consultation',
+      'gynecology': 'Gynecology Consultation',
+      'urology': 'Urology Consultation',
+      'ophthalmology': 'Eye Examination',
+      'ent': 'ENT Consultation',
+      'otolaryngology': 'ENT Consultation',
+      'gastroenterology': 'Gastroenterology Consultation',
+      'endocrinology': 'Endocrinology Consultation',
+      'rheumatology': 'Rheumatology Consultation',
+      'pulmonology': 'Pulmonology Consultation',
+      'nephrology': 'Nephrology Consultation',
+      'hematology': 'Hematology Consultation',
+      'oncology': 'Oncology Consultation',
+      'emergency': 'Emergency Consultation',
+      'family': 'Family Medicine Consultation',
+      'internal': 'Internal Medicine Consultation',
+      'general': 'General Consultation'
+    };
+    
+    // Check for partial matches
+    for (const [key, title] of Object.entries(titleMap)) {
+      if (specialtyLower.includes(key)) {
+        return title;
+      }
+    }
+    
+    // If no match found, create a title from the department/specialization
+    const formatted = specialty.charAt(0).toUpperCase() + specialty.slice(1).toLowerCase();
+    return `${formatted} Consultation`;
+  }
+
   private formatAiInsights(aiResponse: any): AiInsightData[] {
     const insights: AiInsightData[] = [];
     
@@ -591,11 +643,14 @@ Please provide a comprehensive safety analysis focusing on clinically significan
               } else {
               // Actually create the appointment
               try {
+              // Determine appointment title based on doctor's specialty/department
+              const appointmentTitle = this.getAppointmentTitle(foundDoctor.department, foundDoctor.specialization);
+              
               console.log('Creating appointment with data:', {
                 organizationId: params.organizationId,
                 patientId: foundPatient.id,
                 providerId: foundDoctor.id,
-                title: 'General Consultation',
+                title: appointmentTitle,
                 description: 'Appointment booked via AI Assistant',
                 scheduledAt: scheduledDate.toISOString(),
                 duration: 30,
@@ -608,7 +663,7 @@ Please provide a comprehensive safety analysis focusing on clinically significan
                 organizationId: params.organizationId,
                 patientId: foundPatient.id,
                 providerId: foundDoctor.id,
-                title: 'General Consultation',
+                title: appointmentTitle,
                 description: 'Appointment booked via AI Assistant',
                 scheduledAt: scheduledDate,
                 duration: 30,
