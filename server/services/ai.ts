@@ -443,12 +443,39 @@ Please provide a comprehensive safety analysis focusing on clinically significan
         // Look for doctor names in the current message (if not already found in context)
         if (!foundDoctor) {
           for (const doctor of doctors) {
-            const fullName = `${doctor.firstName} ${doctor.lastName}`.toLowerCase();
-            if (lowerMessage.includes(doctor.firstName.toLowerCase()) || 
-                lowerMessage.includes(doctor.lastName.toLowerCase()) ||
-                lowerMessage.includes(fullName) ||
-                lowerMessage.includes('dr. ' + doctor.lastName.toLowerCase()) ||
-                lowerMessage.includes('doctor ' + doctor.lastName.toLowerCase())) {
+            const firstName = doctor.firstName.toLowerCase();
+            const lastName = doctor.lastName.toLowerCase();
+            const fullName = `${firstName} ${lastName}`;
+            
+            // Enhanced doctor name matching with flexible patterns
+            const variations = [
+              firstName,
+              lastName,
+              fullName,
+              `dr. ${firstName}`,
+              `dr. ${lastName}`,
+              `dr. ${fullName}`,
+              `dr ${firstName}`,
+              `dr ${lastName}`,
+              `dr ${fullName}`,
+              `doctor ${firstName}`,
+              `doctor ${lastName}`,
+              `doctor ${fullName}`,
+              // Handle "Dr. David Wilson" format specifically
+              `dr. ${firstName} ${lastName}`,
+              `dr ${firstName} ${lastName}`,
+              `doctor ${firstName} ${lastName}`
+            ];
+            
+            // Check if message contains any variation
+            const messageContainsDoctor = variations.some(variation => {
+              return lowerMessage.includes(variation);
+            });
+            
+            // Also check for partial matches (e.g., "wilson" should match "Dr. David Wilson")
+            const partialMatch = lowerMessage.includes(lastName) || lowerMessage.includes(firstName);
+            
+            if (messageContainsDoctor || partialMatch) {
               foundDoctor = doctor;
               break;
             }
@@ -762,14 +789,48 @@ Which patient would you like to know more about?`;
         }
       }
       
-      // Default response with context
+      // Default response with context - enhanced for appointment booking intent
       else {
         const stats = await storage.getDashboardStats(params.organizationId);
         const patients = await storage.getPatientsByOrganization(params.organizationId, 3);
         const allUsers = await storage.getUsersByOrganization(params.organizationId);
         const doctors = allUsers.filter((user: any) => user.role === 'doctor').slice(0, 3);
         
-        response = `## Hello! I'm your Cura AI Assistant
+        // Check if the message seems to be appointment-related but didn't match
+        const isLikelyAppointment = lowerMessage.includes('book') || lowerMessage.includes('schedule') || 
+                                   lowerMessage.includes('appointment') || lowerMessage.includes('dr.') || 
+                                   lowerMessage.includes('doctor') || /\d{1,2}(:\d{2})?\s*(am|pm)/i.test(lowerMessage);
+        
+        if (isLikelyAppointment) {
+          const doctorsList = doctors.map(d => {
+            const dept = d.department ? ` (${d.department})` : '';
+            return `• **Dr. ${d.firstName} ${d.lastName}**${dept}`;
+          }).join('\n');
+          
+          const patientsList = patients.map(p => {
+            const id = p.patientId ? ` (ID: ${p.patientId})` : '';
+            return `• **${p.firstName} ${p.lastName}**${id}`;
+          }).join('\n');
+          
+          response = `I understand you want to book an appointment! Let me help you with that.
+
+**🏥 Available Doctors:**
+${doctorsList}
+
+**👥 Recent Patients:**
+${patientsList}
+
+**💬 Complete Example:**
+"Book appointment for ${patients[0]?.firstName || 'John'} ${patients[0]?.lastName || 'Smith'} with Dr. ${doctors[0]?.lastName || 'Johnson'} tomorrow at 2pm"
+
+**Or tell me step by step:**
+1. Patient name (e.g., "${patients[0]?.firstName || 'John'} ${patients[0]?.lastName || 'Smith'}")
+2. Doctor name (e.g., "Dr. ${doctors[0]?.lastName || 'Johnson'}")  
+3. Date and time (e.g., "tomorrow at 2pm")
+
+What information do you have so far?`;
+        } else {
+          response = `## Hello! I'm your Cura AI Assistant
 
 **📊 System Overview:**
 • ${stats.totalPatients} patients in your organization
@@ -786,6 +847,7 @@ Which patient would you like to know more about?`;
 ${patients.length > 0 ? `Recent patients: ${patients.map(p => p.firstName + ' ' + p.lastName).join(', ')}` : 'No recent patient activity'}
 
 Just tell me what you need in your own words - I'm here to help!`;
+        }
       }
 
     } catch (error) {
