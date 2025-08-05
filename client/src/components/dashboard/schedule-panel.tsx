@@ -5,8 +5,9 @@ import { LoadingSpinner } from "@/components/common/loading-spinner";
 import type { Appointment } from "@/types";
 
 function formatAppointmentTime(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleTimeString('en-US', { 
+  // Parse date as local time to avoid timezone conversion
+  const localDate = new Date(dateString.replace('Z', ''));
+  return localDate.toLocaleTimeString('en-US', { 
     hour: '2-digit', 
     minute: '2-digit',
     hour12: true 
