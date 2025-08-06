@@ -15,6 +15,7 @@ import { gdprComplianceService } from "./services/gdpr-compliance";
 import { insertGdprConsentSchema, insertGdprDataRequestSchema } from "../shared/schema";
 import { processAppointmentBookingChat, generateAppointmentSummary } from "./anthropic";
 import { inventoryService } from "./services/inventory";
+import { emailService } from "./services/email";
 
 // In-memory storage for voice notes - persistent across server restarts
 let voiceNotes: any[] = [];
@@ -4282,6 +4283,138 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating consultation:", error);
       res.status(500).json({ error: "Failed to create consultation" });
+    }
+  });
+
+  // Email Service API endpoints
+  app.post("/api/email/appointment-reminder", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const emailData = z.object({
+        patientEmail: z.string().email(),
+        patientName: z.string(),
+        doctorName: z.string(),
+        appointmentDate: z.string(),
+        appointmentTime: z.string()
+      }).parse(req.body);
+
+      const success = await emailService.sendAppointmentReminder(
+        emailData.patientEmail,
+        emailData.patientName,
+        emailData.doctorName,
+        emailData.appointmentDate,
+        emailData.appointmentTime
+      );
+
+      if (success) {
+        res.json({ success: true, message: "Appointment reminder sent successfully" });
+      } else {
+        res.status(500).json({ error: "Failed to send appointment reminder" });
+      }
+    } catch (error) {
+      console.error("Error sending appointment reminder:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+        });
+      }
+      res.status(500).json({ error: "Failed to send appointment reminder" });
+    }
+  });
+
+  app.post("/api/email/prescription-notification", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const emailData = z.object({
+        patientEmail: z.string().email(),
+        patientName: z.string(),
+        medicationName: z.string(),
+        dosage: z.string(),
+        instructions: z.string()
+      }).parse(req.body);
+
+      const success = await emailService.sendPrescriptionNotification(
+        emailData.patientEmail,
+        emailData.patientName,
+        emailData.medicationName,
+        emailData.dosage,
+        emailData.instructions
+      );
+
+      if (success) {
+        res.json({ success: true, message: "Prescription notification sent successfully" });
+      } else {
+        res.status(500).json({ error: "Failed to send prescription notification" });
+      }
+    } catch (error) {
+      console.error("Error sending prescription notification:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+        });
+      }
+      res.status(500).json({ error: "Failed to send prescription notification" });
+    }
+  });
+
+  app.post("/api/email/test-results", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const emailData = z.object({
+        patientEmail: z.string().email(),
+        patientName: z.string(),
+        testName: z.string(),
+        status: z.string()
+      }).parse(req.body);
+
+      const success = await emailService.sendTestResultsNotification(
+        emailData.patientEmail,
+        emailData.patientName,
+        emailData.testName,
+        emailData.status
+      );
+
+      if (success) {
+        res.json({ success: true, message: "Test results notification sent successfully" });
+      } else {
+        res.status(500).json({ error: "Failed to send test results notification" });
+      }
+    } catch (error) {
+      console.error("Error sending test results notification:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+        });
+      }
+      res.status(500).json({ error: "Failed to send test results notification" });
+    }
+  });
+
+  app.post("/api/email/custom", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const emailData = z.object({
+        to: z.string().email(),
+        subject: z.string(),
+        text: z.string().optional(),
+        html: z.string().optional()
+      }).parse(req.body);
+
+      const success = await emailService.sendEmail(emailData);
+
+      if (success) {
+        res.json({ success: true, message: "Email sent successfully" });
+      } else {
+        res.status(500).json({ error: "Failed to send email" });
+      }
+    } catch (error) {
+      console.error("Error sending custom email:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+        });
+      }
+      res.status(500).json({ error: "Failed to send email" });
     }
   });
 
