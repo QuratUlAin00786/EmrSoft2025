@@ -880,7 +880,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     return (
                       <div
                         key={muscleId}
-                        className="absolute w-3 h-3 bg-yellow-400 border-2 border-yellow-600 rounded-full shadow-md animate-pulse"
+                        className="absolute w-3 h-3 bg-yellow-300 border-2 border-yellow-500 rounded-full shadow-md animate-pulse"
                         style={{
                           top: position.top,
                           left: position.left,
