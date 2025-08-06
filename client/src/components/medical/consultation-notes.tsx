@@ -839,7 +839,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                       imageRendering: 'crisp-edges',
                       backgroundColor: 'white'
                     } : {
-                      height: '400px',
+                      height: '550px',
                       objectFit: 'contain',
                       objectPosition: 'center',
                       backgroundColor: 'white'
