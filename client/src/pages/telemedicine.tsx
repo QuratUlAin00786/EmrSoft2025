@@ -498,7 +498,7 @@ export default function Telemedicine() {
           <div className="absolute top-4 left-4 bg-black bg-opacity-50 text-white p-3 rounded-lg">
             <div className="flex items-center gap-3">
               <Avatar>
-                <AvatarFallback>{currentCall.patientName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                <AvatarFallback>{currentCall.patientName?.split(' ').map(n => n[0]).join('') || 'P'}</AvatarFallback>
               </Avatar>
               <div>
                 <div className="font-medium">{currentCall.patientName}</div>
