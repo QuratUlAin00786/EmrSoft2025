@@ -109,10 +109,10 @@ export default function Patients() {
                 Back to Patients
               </Button>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                   {patient.firstName} {patient.lastName} - Medical Records
                 </h3>
-                <p className="text-sm text-neutral-600">
+                <p className="text-sm text-neutral-600 dark:text-neutral-300">
                   Patient ID: {patient.patientId} • Age: {new Date().getFullYear() - new Date(patient.dateOfBirth).getFullYear()}
                 </p>
               </div>
@@ -130,19 +130,19 @@ export default function Patients() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Contact Information</p>
-                  <p className="text-sm text-gray-600">{patient.phone}</p>
-                  <p className="text-sm text-gray-600">{patient.email}</p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-white">Contact Information</p>
+                  <p className="text-sm text-gray-600 dark:text-neutral-300">{patient.phone}</p>
+                  <p className="text-sm text-gray-600 dark:text-neutral-300">{patient.email}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Address</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm font-medium text-gray-700 dark:text-white">Address</p>
+                  <p className="text-sm text-gray-600 dark:text-neutral-300">
                     {patient.address?.street}, {patient.address?.city} {patient.address?.postcode}
                   </p>
                 </div>
                 {patient.medicalHistory?.chronicConditions && (
                   <div>
-                    <p className="text-sm font-medium text-gray-700">Chronic Conditions</p>
+                    <p className="text-sm font-medium text-gray-700 dark:text-white">Chronic Conditions</p>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {patient.medicalHistory.chronicConditions.map((condition: string, index: number) => (
                         <Badge key={index} variant="outline" className="text-xs">
@@ -154,7 +154,7 @@ export default function Patients() {
                 )}
                 {patient.medicalHistory?.allergies && (
                   <div>
-                    <p className="text-sm font-medium text-gray-700">Allergies</p>
+                    <p className="text-sm font-medium text-gray-700 dark:text-white">Allergies</p>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {patient.medicalHistory.allergies.map((allergy: string, index: number) => (
                         <Badge key={index} variant="destructive" className="text-xs">

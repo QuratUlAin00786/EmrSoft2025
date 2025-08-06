@@ -428,7 +428,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
               Medical Records & Consultation Notes
             </CardTitle>
             {patientName && (
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-muted-foreground dark:text-neutral-300 mt-1">
                 {patientName} • Patient ID: {patientNumber}
               </p>
             )}
@@ -699,7 +699,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     </Badge>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="text-sm text-gray-500 flex items-center gap-1">
+                    <div className="text-sm text-gray-500 dark:text-neutral-400 flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
                       {format(new Date(record.createdAt), "MMM d, yyyy 'at' h:mm a")}
                     </div>
@@ -724,27 +724,27 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
 
                 {record.notes && (
                   <div className="mb-3">
-                    <p className="text-sm text-gray-700">{record.notes}</p>
+                    <p className="text-sm text-gray-700 dark:text-neutral-300">{record.notes}</p>
                   </div>
                 )}
 
                 {record.diagnosis && (
                   <div className="mb-3">
-                    <h5 className="font-medium text-sm mb-1">Diagnosis:</h5>
-                    <p className="text-sm text-gray-700">{record.diagnosis}</p>
+                    <h5 className="font-medium text-sm mb-1 dark:text-white">Diagnosis:</h5>
+                    <p className="text-sm text-gray-700 dark:text-neutral-300">{record.diagnosis}</p>
                   </div>
                 )}
 
                 {record.treatment && (
                   <div className="mb-3">
-                    <h5 className="font-medium text-sm mb-1">Treatment:</h5>
-                    <p className="text-sm text-gray-700">{record.treatment}</p>
+                    <h5 className="font-medium text-sm mb-1 dark:text-white">Treatment:</h5>
+                    <p className="text-sm text-gray-700 dark:text-neutral-300">{record.treatment}</p>
                   </div>
                 )}
 
                 {record.prescription?.medications && record.prescription.medications.length > 0 && (
                   <div className="mb-3">
-                    <h5 className="font-medium text-sm mb-2 flex items-center gap-1">
+                    <h5 className="font-medium text-sm mb-2 flex items-center gap-1 dark:text-white">
                       <Pill className="h-4 w-4" />
                       Prescribed Medications:
                     </h5>
