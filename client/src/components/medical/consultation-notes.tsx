@@ -788,41 +788,29 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
         )}
       </CardContent>
 
-      {/* Professional Anatomical Viewer Dialog */}
+      {/* Anatomical Viewer Dialog - Container Space Optimized */}
       <Dialog open={showAnatomicalViewer} onOpenChange={setShowAnatomicalViewer}>
         <DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto p-6">
           <DialogHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setShowAnatomicalViewer(false)}
-                  className="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-blue-500"
-                >
-                  <svg 
-                    width="20" 
-                    height="20" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="3"
-                    className="text-white"
-                  >
-                    <path d="M15 18l-6-6 6-6" />
-                  </svg>
-                </button>
-                <DialogTitle className="text-2xl font-bold text-blue-800 flex items-center gap-2">
-                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">🔬</span>
-                  </div>
-                  Professional Anatomical Examination Interface
-                </DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-blue-800 flex items-center gap-3">
+              <button
+                onClick={() => setShowAnatomicalViewer(false)}
+                className="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full transition-all duration-200 shadow-lg"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
+              </button>
+              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-sm">🔬</span>
               </div>
-            </div>
-            <p className="text-gray-600 text-sm">Advanced facial muscle analysis and clinical documentation system</p>
+              Professional Anatomical Analysis
+            </DialogTitle>
+            <p className="text-gray-600 text-sm">Advanced facial muscle analysis with optimized container spacing</p>
           </DialogHeader>
 
-          {/* Image Display Section */}
-          <div className="mb-6">
+          <div className="space-y-6">
+            {/* Optimized Image Container - Fits Snugly Around Content */}
             <div className="bg-white border-2 border-gray-300 rounded-lg shadow-lg" style={{ width: 'fit-content', margin: '0 auto' }}>
               <div className="relative" style={{ width: '700px', height: '800px' }}>
                 <img 
@@ -836,357 +824,56 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     objectFit: 'contain',
                     objectPosition: 'center',
                     backgroundColor: 'white',
-                    display: 'block',
-                    ...(currentImageIndex === 0 ? {
-                      filter: 'contrast(1.05) brightness(1.02) saturate(1.05)',
-                      imageRendering: 'crisp-edges'
-                    } : {})
+                    display: 'block'
                   }}
                 />
                 
-                {/* Muscle Highlight Overlays - Show on both images */}
-                  {selectedFacialFeatures.map((muscleId) => {
-                    // Define muscle positions for first image (anatomical diagram with red muscles)
-                    const anatomicalPositions: Record<string, {top: string, left: string}> = {
-                      'frontalis': { top: '28%', left: '50%' },
-                      'temporalis': { top: '40%', left: '20%' },
-                      'orbicularis_oculi': { top: '38%', left: '50%' },
-                      'procerus': { top: '46%', left: '50%' },
-                      'corrugator_supercilii': { top: '42%', left: '40%' },
-                      'levator_palpebrae_superioris': { top: '43%', left: '42%' },
-                      'levator_labii_superioris_alaeque_nasi': { top: '50%', left: '42%' },
-                      'nasalis': { top: '52%', left: '50%' },
-                      'zygomaticus_major': { top: '58%', left: '32%' },
-                      'zygomaticus_minor': { top: '54%', left: '38%' },
-                      'masseter': { top: '68%', left: '25%' },
-                      'risorius': { top: '62%', left: '40%' },
-                      'buccinator': { top: '64%', left: '68%' },
-                      'orbicularis_oris': { top: '64%', left: '50%' },
-                      'depressor_septi_nasi': { top: '58%', left: '65%' },
-                      'depressor_anguli_oris': { top: '70%', left: '68%' },
-                      'depressor_labii_inferioris': { top: '74%', left: '32%' },
-                      'mentalis': { top: '78%', left: '32%' },
-                      'platysma': { top: '85%', left: '32%' }
-                    };
-
-                    // Define muscle positions for second image (line drawing) - Same anatomical locations
-                    const referencePositions: Record<string, {top: string, left: string}> = {
-                      'frontalis': { top: '28%', left: '50%' },
-                      'temporalis': { top: '40%', left: '20%' },
-                      'orbicularis_oculi': { top: '38%', left: '50%' },
-                      'procerus': { top: '46%', left: '50%' },
-                      'corrugator_supercilii': { top: '42%', left: '40%' },
-                      'levator_palpebrae_superioris': { top: '43%', left: '42%' },
-                      'levator_labii_superioris_alaeque_nasi': { top: '50%', left: '42%' },
-                      'nasalis': { top: '52%', left: '50%' },
-                      'zygomaticus_major': { top: '58%', left: '32%' },
-                      'zygomaticus_minor': { top: '54%', left: '38%' },
-                      'masseter': { top: '68%', left: '25%' },
-                      'risorius': { top: '62%', left: '40%' },
-                      'buccinator': { top: '64%', left: '68%' },
-                      'orbicularis_oris': { top: '64%', left: '50%' },
-                      'depressor_septi_nasi': { top: '58%', left: '65%' },
-                      'depressor_anguli_oris': { top: '70%', left: '68%' },
-                      'depressor_labii_inferioris': { top: '74%', left: '32%' },
-                      'mentalis': { top: '78%', left: '32%' },
-                      'platysma': { top: '85%', left: '32%' }
-                    };
-                    
-                    const positions = currentImageIndex === 0 ? anatomicalPositions : referencePositions;
-                    const position = positions[muscleId];
-                    if (!position) return null;
-                    
-                    return (
-                      <div
-                        key={muscleId}
-                        className="absolute w-3 h-3 bg-yellow-300 border-2 border-yellow-500 rounded-full shadow-md animate-pulse"
-                        style={{
-                          top: position.top,
-                          left: position.left,
-                          transform: 'translate(-50%, -50%)',
-                          zIndex: 10
-                        }}
-                        title={muscleId.replace(/_/g, ' ').toUpperCase()}
-                      />
-                    );
-                  })}
-                </div>
-                
-                {/* Left Arrow Button */}
+                {/* Navigation Controls */}
                 <button
-                  onClick={() => {
-                    console.log("Left arrow clicked, currentImageIndex:", currentImageIndex);
-                    setCurrentImageIndex(prev => {
-                      const newIndex = prev === 0 ? 1 : 0;
-                      console.log("Setting new index:", newIndex);
-                      return newIndex;
-                    });
-                  }}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white border border-gray-300 rounded-full p-3 shadow-md hover:bg-gray-50 hover:shadow-lg transition-all duration-200"
-                  title="Previous image"
+                  onClick={() => setCurrentImageIndex(currentImageIndex === 0 ? 1 : 0)}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full transition-all duration-200 shadow-lg"
                 >
-                  <svg 
-                    width="20" 
-                    height="20" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2"
-                    className="text-gray-600"
-                  >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M15 18l-6-6 6-6" />
                   </svg>
                 </button>
 
-                {/* Right Arrow Button */}
                 <button
-                  onClick={() => {
-                    console.log("Right arrow clicked, currentImageIndex:", currentImageIndex);
-                    setCurrentImageIndex(prev => {
-                      const newIndex = prev === 0 ? 1 : 0;
-                      console.log("Setting new index:", newIndex);
-                      return newIndex;
-                    });
-                  }}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white border border-gray-300 rounded-full p-3 shadow-md hover:bg-gray-50 hover:shadow-lg transition-all duration-200"
-                  title="Next image"
+                  onClick={() => setCurrentImageIndex(currentImageIndex === 0 ? 1 : 0)}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full transition-all duration-200 shadow-lg"
                 >
-                  <svg 
-                    width="20" 
-                    height="20" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2"
-                    className="text-gray-600"
-                  >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M9 18l6-6-6-6" />
                   </svg>
                 </button>
 
-                {/* Image Indicator Dots */}
+                {/* Image Indicators */}
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
                   <div className={`w-3 h-3 rounded-full transition-all duration-200 ${currentImageIndex === 0 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
                   <div className={`w-3 h-3 rounded-full transition-all duration-200 ${currentImageIndex === 1 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
                 </div>
               </div>
               
-              {/* Dynamic Label based on current image */}
+              {/* Image Label */}
               <div className="mt-4 text-center">
-                <div className={`inline-flex items-center px-4 py-2 rounded-full text-white text-sm font-semibold shadow-lg transition-all duration-200 ${
+                <div className={`inline-flex items-center px-4 py-2 rounded-full text-white text-sm font-semibold shadow-lg ${
                   currentImageIndex === 0 ? 'bg-blue-600' : 'bg-green-600'
                 }`}>
                   <div className="w-3 h-3 bg-white rounded-full mr-2 animate-pulse"></div>
-                  {currentImageIndex === 0 ? 'Professional Medical Anatomical Diagram with Labels' : 'Anatomical Reference Window'}
+                  {currentImageIndex === 0 ? 'Professional Medical Anatomical Diagram' : 'Anatomical Reference View'}
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Facial Muscle Analysis Section */}
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
-            <div className="bg-gradient-to-br from-gray-50 to-blue-50 p-5 rounded-xl border-2 border-blue-100">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-3 h-3 bg-red-600 rounded-full"></div>
-                <h3 className="text-lg font-semibold text-gray-800">Facial Muscle Analysis</h3>
-              </div>
-              
-              <div className="space-y-4">
-                {/* Muscle Selection Dropdown */}
-                <Select 
-                  onValueChange={(value) => {
-                    if (value && value !== "select-muscle" && !selectedFacialFeatures.includes(value)) {
-                      setSelectedFacialFeatures([...selectedFacialFeatures, value]);
-                    }
-                  }}
-                >
-                  <SelectTrigger className="w-full border-2 border-gray-300 focus:border-blue-500">
-                    <SelectValue placeholder="Select facial muscle..." />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-60">
-                    <SelectItem value="select-muscle" disabled>Select a muscle to analyze</SelectItem>
-                    <SelectItem value="frontalis">Frontalis - Forehead muscle</SelectItem>
-                    <SelectItem value="temporalis">Temporalis - Temple area</SelectItem>
-                    <SelectItem value="orbicularis_oculi">Orbicularis Oculi - Eye muscles</SelectItem>
-                    <SelectItem value="procerus">Procerus - Nose bridge muscle</SelectItem>
-                    <SelectItem value="corrugator_supercilii">Corrugator Supercilii - Eyebrow muscle</SelectItem>
-                    <SelectItem value="levator_palpebrae_superioris">Levator Palpebrae Superioris - Upper eyelid</SelectItem>
-                    <SelectItem value="levator_labii_superioris_alaeque_nasi">Levator Labii Superioris Alaeque Nasi - Nose and upper lip</SelectItem>
-                    <SelectItem value="nasalis">Nasalis - Nose muscle</SelectItem>
-                    <SelectItem value="zygomaticus_major">Zygomaticus Major - Main cheek muscle</SelectItem>
-                    <SelectItem value="zygomaticus_minor">Zygomaticus Minor - Small cheek muscle</SelectItem>
-                    <SelectItem value="masseter">Masseter - Jaw muscle</SelectItem>
-                    <SelectItem value="risorius">Risorius - Smile muscle</SelectItem>
-                    <SelectItem value="buccinator">Buccinator - Cheek muscle</SelectItem>
-                    <SelectItem value="orbicularis_oris">Orbicularis Oris - Mouth muscle</SelectItem>
-                    <SelectItem value="depressor_septi_nasi">Depressor Septi Nasi - Nose septum depressor</SelectItem>
-                    <SelectItem value="depressor_anguli_oris">Depressor Anguli Oris - Mouth corner depressor</SelectItem>
-                    <SelectItem value="depressor_labii_inferioris">Depressor Labii Inferioris - Lower lip depressor</SelectItem>
-                    <SelectItem value="mentalis">Mentalis - Chin muscle</SelectItem>
-                    <SelectItem value="platysma">Platysma - Neck muscle</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {/* Selected Muscles Display */}
-                {selectedFacialFeatures.length > 0 && (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold text-gray-700">Selected Muscles:</Label>
-                    <div className="space-y-1 max-h-40 overflow-y-auto">
-                      {selectedFacialFeatures.map((muscleId) => {
-                        const muscle = [
-                          { id: 'frontalis', label: 'Frontalis', desc: 'Forehead muscle' },
-                          { id: 'temporalis', label: 'Temporalis', desc: 'Temple area' },
-                          { id: 'orbicularis_oculi', label: 'Orbicularis Oculi', desc: 'Eye muscles' },
-                          { id: 'procerus', label: 'Procerus', desc: 'Nose bridge muscle' },
-                          { id: 'corrugator_supercilii', label: 'Corrugator Supercilii', desc: 'Eyebrow muscle' },
-                          { id: 'levator_palpebrae_superioris', label: 'Levator Palpebrae Superioris', desc: 'Upper eyelid' },
-                          { id: 'levator_labii_superioris_alaeque_nasi', label: 'Levator Labii Superioris Alaeque Nasi', desc: 'Nose and upper lip' },
-                          { id: 'nasalis', label: 'Nasalis', desc: 'Nose muscle' },
-                          { id: 'zygomaticus_major', label: 'Zygomaticus Major', desc: 'Main cheek muscle' },
-                          { id: 'zygomaticus_minor', label: 'Zygomaticus Minor', desc: 'Small cheek muscle' },
-                          { id: 'masseter', label: 'Masseter', desc: 'Jaw muscle' },
-                          { id: 'risorius', label: 'Risorius', desc: 'Smile muscle' },
-                          { id: 'buccinator', label: 'Buccinator', desc: 'Cheek muscle' },
-                          { id: 'orbicularis_oris', label: 'Orbicularis Oris', desc: 'Mouth muscle' },
-                          { id: 'depressor_septi_nasi', label: 'Depressor Septi Nasi', desc: 'Nose septum depressor' },
-                          { id: 'depressor_anguli_oris', label: 'Depressor Anguli Oris', desc: 'Mouth corner depressor' },
-                          { id: 'depressor_labii_inferioris', label: 'Depressor Labii Inferioris', desc: 'Lower lip depressor' },
-                          { id: 'mentalis', label: 'Mentalis', desc: 'Chin muscle' },
-                          { id: 'platysma', label: 'Platysma', desc: 'Neck muscle' }
-                        ].find(m => m.id === muscleId);
-                        
-                        return (
-                          <div key={muscleId} className="flex items-center justify-between bg-red-100 border border-red-300 rounded-lg p-2">
-                            <div className="flex-1">
-                              <div className="text-sm font-semibold text-gray-800">{muscle?.label}</div>
-                              <div className="text-xs text-gray-600">{muscle?.desc}</div>
-                            </div>
-                            <button
-                              onClick={() => setSelectedFacialFeatures(selectedFacialFeatures.filter(f => f !== muscleId))}
-                              className="ml-2 text-red-600 hover:text-red-800 font-bold text-sm"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              <div className="mt-4 p-3 bg-blue-100 rounded-lg border border-blue-200">
-                <div className="text-sm font-medium text-blue-800 mb-1">
-                  Selected: {selectedFacialFeatures.length} muscle{selectedFacialFeatures.length !== 1 ? 's' : ''}
-                </div>
-                <div className="text-xs text-blue-600">
-                  Click muscles to highlight on diagram
-                </div>
-              </div>
-
-
+            {/* Analysis Controls */}
+            <div className="flex justify-center space-x-4">
+              <Button 
+                onClick={() => setShowAnatomicalViewer(false)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 font-semibold shadow-lg"
+              >
+                Complete Analysis
+              </Button>
             </div>
-
-
-          </div>
-
-          {/* Clinical Documentation Section - Moved to Bottom */}
-          <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-6 rounded-xl border-2 border-yellow-200">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-3 h-3 bg-yellow-600 rounded-full"></div>
-              <h3 className="text-xl font-semibold text-gray-800">Clinical Documentation</h3>
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-              <div className="flex flex-col space-y-6 h-full">
-                {/* Treatment Phase */}
-                <div className="p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded-r-lg">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">!</span>
-                    </div>
-                    <div className="text-yellow-800 font-semibold text-sm">Before Treatment Phase</div>
-                  </div>
-                  <div className="text-yellow-700 text-xs">Baseline documentation required</div>
-                </div>
-                
-                {/* Clinical Notes */}
-                <div className="flex flex-col space-y-3 flex-1">
-                  <Label className="text-base font-semibold text-gray-700">Clinical Examination Notes</Label>
-                  <Textarea
-                    placeholder="Document muscle condition, asymmetries, treatment areas, contraindications..."
-                    className="text-sm border-2 border-gray-300 focus:border-blue-500 flex-1 resize-none"
-                    rows={8}
-                  />
-                </div>
-              </div>
-              
-              <div className="flex flex-col space-y-6 h-full">
-                <div className="flex flex-col space-y-3 flex-1">
-                  <Label className="text-base font-semibold text-gray-700">Treatment Recommendations</Label>
-                  <Textarea
-                    placeholder="Recommended procedures, dosage, injection sites, follow-up schedule..."
-                    className="text-sm border-2 border-gray-300 focus:border-blue-500 flex-1 resize-none"
-                    rows={5}
-                  />
-                </div>
-                
-                <div className="flex flex-col space-y-3 flex-1">
-                  <Label className="text-base font-semibold text-gray-700">Follow-up Actions</Label>
-                  <Textarea
-                    placeholder="Next appointment scheduling, monitoring requirements, patient instructions..."
-                    className="text-sm border-2 border-gray-300 focus:border-blue-500 flex-1 resize-none"
-                    rows={5}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-300">
-            <div className="text-sm text-gray-600">
-              Professional Anatomical Assessment Complete
-            </div>
-            
-            {selectedFacialFeatures.length > 0 && (
-              <div className="text-xs text-gray-500 bg-red-50 px-2 py-1 rounded border border-red-200">
-                Muscles highlighted in red on diagram
-              </div>
-            )}
-          </div>
-          
-          <div className="flex space-x-4">
-            <Button 
-              variant="outline" 
-              onClick={() => setSelectedFacialFeatures([])}
-              className="border-2 border-gray-300 hover:bg-gray-50"
-            >
-              Clear All
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowAnatomicalViewer(false)}
-              className="border-2 border-gray-300 hover:bg-gray-50"
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={() => {
-                const featuresText = selectedFacialFeatures.length > 0 
-                  ? `Professional anatomical examination completed - Selected muscles: ${selectedFacialFeatures.join(', ')}`
-                  : 'Professional anatomical examination completed';
-                
-                toast({
-                  title: "Professional Analysis Saved",
-                  description: featuresText,
-                });
-                
-                setShowAnatomicalViewer(false);
-              }}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 shadow-lg"
-            >
-              Save Professional Analysis
-            </Button>
           </div>
         </DialogContent>
       </Dialog>
