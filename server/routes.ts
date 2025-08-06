@@ -4428,6 +4428,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         patientName: z.string().optional()
       }).parse(req.body);
 
+      console.log('Email request data:', {
+        prescriptionId,
+        pharmacyEmail: emailData.pharmacyEmail,
+        pharmacyName: emailData.pharmacyName,
+        patientName: emailData.patientName
+      });
+
+      // If no patient name provided, try to get it from the prescription record
+      let patientName = emailData.patientName;
+      if (!patientName) {
+        try {
+          const prescription = await storage.getPrescription(prescriptionId, req.organizationId);
+          if (prescription && prescription.patientId) {
+            const patient = await storage.getPatient(prescription.patientId, req.organizationId);
+            if (patient) {
+              patientName = `${patient.firstName} ${patient.lastName}`.trim();
+            }
+          }
+        } catch (error) {
+          console.log('Could not fetch patient name from prescription:', error);
+          patientName = 'Patient';
+        }
+      }
+
+      console.log('Final patient name used in email:', patientName);
+
       // Get organization info for logo and branding
       const organization = await storage.getOrganization(req.organizationId);
       const clinicLogoUrl = organization?.settings?.theme?.logoUrl;
@@ -4435,7 +4461,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Generate professional HTML email template with clinic logo and branding
       const emailTemplate = emailService.generatePrescriptionEmail(
-        emailData.patientName || 'Patient',
+        patientName || 'Patient',
         emailData.pharmacyName || 'Pharmacy Team',
         undefined, // prescriptionData - not needed for this basic email
         clinicLogoUrl,
