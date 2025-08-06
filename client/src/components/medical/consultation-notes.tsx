@@ -825,7 +825,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
           <div className="mb-6">
             <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg max-w-4xl mx-auto">
               <div className="bg-white rounded-lg p-4 min-h-[800px] flex items-center justify-center relative overflow-visible">
-                <div className="w-full max-w-lg mx-auto relative bg-white p-4 rounded-lg">
+                <div className="relative bg-white p-4 rounded-lg" style={{ width: '500px', height: '600px' }}>
                   <img 
                     key={currentImageIndex}
                     src={currentImageIndex === 0 ? anatomicalDiagramImage : facialDiagramImage}
@@ -838,6 +838,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                       objectPosition: 'center',
                       backgroundColor: 'white',
                       display: 'block',
+                      margin: '0 auto',
                       ...(currentImageIndex === 0 ? {
                         filter: 'contrast(1.05) brightness(1.02) saturate(1.05)',
                         imageRendering: 'crisp-edges'
