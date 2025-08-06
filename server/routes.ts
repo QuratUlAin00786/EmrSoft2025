@@ -4437,7 +4437,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const emailTemplate = emailService.generatePrescriptionEmail(
         emailData.patientName || 'Patient',
         emailData.pharmacyName || 'Pharmacy Team',
-        prescription, // Pass the prescription data
+        undefined, // prescriptionData - not needed for this basic email
         clinicLogoUrl,
         organizationName
       );
