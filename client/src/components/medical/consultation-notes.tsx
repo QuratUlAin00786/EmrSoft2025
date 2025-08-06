@@ -788,9 +788,9 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
         )}
       </CardContent>
 
-      {/* Professional Anatomical Viewer Dialog - Matching Your Reference Sketches */}
+      {/* Professional Anatomical Viewer Dialog */}
       <Dialog open={showAnatomicalViewer} onOpenChange={setShowAnatomicalViewer}>
-        <DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto">
+        <DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto p-6">
           <DialogHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -821,7 +821,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
             <p className="text-gray-600 text-sm">Advanced facial muscle analysis and clinical documentation system</p>
           </DialogHeader>
 
-          {/* Single Image with Sliding Navigation - Preserves All Labels */}
+          {/* Image Display Section */}
           <div className="mb-6">
             <div className="bg-white border-2 border-gray-300 rounded-lg shadow-lg" style={{ width: 'fit-content', margin: '0 auto' }}>
               <div className="relative" style={{ width: '700px', height: '800px' }}>
