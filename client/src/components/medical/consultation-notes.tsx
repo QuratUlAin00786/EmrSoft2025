@@ -854,7 +854,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     const anatomicalPositions: Record<string, {top: string, left: string}> = {
                       'frontalis': { top: '28%', left: '50%' },
                       'temporalis': { top: '40%', left: '20%' },
-                      'orbicularis_oculi': { top: '44%', left: '35%' },
+                      'orbicularis_oculi': { top: '46%', left: '38%' },
                       'procerus': { top: '46%', left: '50%' },
                       'corrugator_supercilii': { top: '42%', left: '40%' },
                       'levator_palpebrae_superioris': { top: '43%', left: '42%' },
@@ -877,7 +877,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     const referencePositions: Record<string, {top: string, left: string}> = {
                       'frontalis': { top: '28%', left: '50%' },
                       'temporalis': { top: '40%', left: '20%' },
-                      'orbicularis_oculi': { top: '44%', left: '35%' },
+                      'orbicularis_oculi': { top: '46%', left: '38%' },
                       'procerus': { top: '46%', left: '50%' },
                       'corrugator_supercilii': { top: '42%', left: '40%' },
                       'levator_palpebrae_superioris': { top: '43%', left: '42%' },
