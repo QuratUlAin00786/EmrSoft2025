@@ -461,7 +461,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     <TabsTrigger value="followup">Follow-up</TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="basic" className="space-y-6 p-4">
+                  <TabsContent value="basic" className="space-y-6 p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg">
                     <div className="grid grid-cols-2 gap-6">
                       <div>
                         <Label htmlFor="type">Record Type</Label>
@@ -497,8 +497,8 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                   </TabsContent>
 
                   <TabsContent value="clinical" className="space-y-4">
-                    <div className="bg-blue-50 p-3 rounded-lg border border-blue-200 mb-4">
-                      <Label htmlFor="examination" className="text-blue-800 font-semibold">Examination</Label>
+                    <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-700 mb-4">
+                      <Label htmlFor="examination" className="text-blue-800 dark:text-blue-200 font-semibold">Examination</Label>
                       <Select
                         onValueChange={(value) => {
                           if (value === "anatomical") {
@@ -506,7 +506,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                           }
                         }}
                       >
-                        <SelectTrigger className="mt-2 border-blue-300">
+                        <SelectTrigger className="mt-2 border-blue-300 dark:border-blue-600">
                           <SelectValue placeholder="Select examination type" />
                         </SelectTrigger>
                         <SelectContent>
