@@ -820,7 +820,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
             </div>
             <p className="text-gray-600 text-sm">Advanced facial muscle analysis and clinical documentation system</p>
           </DialogHeader>
-          
+
           {/* Single Image with Sliding Navigation - Preserves All Labels */}
           <div className="mb-6">
             <div className="bg-white border-2 border-gray-300 rounded-lg shadow-lg" style={{ width: 'fit-content', margin: '0 auto' }}>
@@ -982,7 +982,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
               </div>
             </div>
           </div>
-          
+
           {/* Facial Muscle Analysis Section */}
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
             <div className="bg-gradient-to-br from-gray-50 to-blue-50 p-5 rounded-xl border-2 border-blue-100">
