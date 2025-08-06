@@ -831,18 +831,17 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     src={currentImageIndex === 0 ? anatomicalDiagramImage : facialDiagramImage}
                     alt={currentImageIndex === 0 ? "Facial muscle anatomy diagram with detailed muscle labels" : "Facial Anatomy Reference Diagram"}
                     className="w-full mx-auto rounded-lg transition-opacity duration-300"
-                    style={currentImageIndex === 0 ? {
+                    style={{
                       height: '750px',
+                      width: '100%',
+                      maxWidth: '500px',
                       objectFit: 'contain',
                       objectPosition: 'center',
-                      filter: 'contrast(1.05) brightness(1.02) saturate(1.05)',
-                      imageRendering: 'crisp-edges',
-                      backgroundColor: 'white'
-                    } : {
-                      height: '750px',
-                      objectFit: 'contain',
-                      objectPosition: 'center',
-                      backgroundColor: 'white'
+                      backgroundColor: 'white',
+                      ...(currentImageIndex === 0 ? {
+                        filter: 'contrast(1.05) brightness(1.02) saturate(1.05)',
+                        imageRendering: 'crisp-edges'
+                      } : {})
                     }}
                   />
                   
@@ -854,7 +853,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     const anatomicalPositions: Record<string, {top: string, left: string}> = {
                       'frontalis': { top: '28%', left: '50%' },
                       'temporalis': { top: '40%', left: '20%' },
-                      'orbicularis_oculi': { top: '46%', left: '38%' },
+                      'orbicularis_oculi': { top: '48%', left: '42%' },
                       'procerus': { top: '46%', left: '50%' },
                       'corrugator_supercilii': { top: '42%', left: '40%' },
                       'levator_palpebrae_superioris': { top: '43%', left: '42%' },
@@ -877,7 +876,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     const referencePositions: Record<string, {top: string, left: string}> = {
                       'frontalis': { top: '28%', left: '50%' },
                       'temporalis': { top: '40%', left: '20%' },
-                      'orbicularis_oculi': { top: '46%', left: '38%' },
+                      'orbicularis_oculi': { top: '48%', left: '42%' },
                       'procerus': { top: '46%', left: '50%' },
                       'corrugator_supercilii': { top: '42%', left: '40%' },
                       'levator_palpebrae_superioris': { top: '43%', left: '42%' },
