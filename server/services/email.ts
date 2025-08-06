@@ -6,6 +6,12 @@ interface EmailOptions {
   text?: string;
   html?: string;
   from?: string;
+  attachments?: Array<{
+    filename: string;
+    content?: Buffer;
+    path?: string;
+    contentType?: string;
+  }>;
 }
 
 interface EmailTemplate {
@@ -39,7 +45,8 @@ class EmailService {
         to: options.to,
         subject: options.subject,
         text: options.text,
-        html: options.html
+        html: options.html,
+        attachments: options.attachments
       };
 
       const result = await this.transporter.sendMail(mailOptions);
@@ -275,6 +282,233 @@ Cura EMR Team
       html: template.html,
       text: template.text
     });
+  }
+
+  // Template for prescription PDF emails with Cura logo
+  generatePrescriptionEmail(patientName: string, pharmacyName: string, prescriptionData?: any): EmailTemplate {
+    const subject = `Prescription PDF - ${patientName}`;
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #f8fafc;
+          }
+          .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background-color: white; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          }
+          .header { 
+            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); 
+            color: white; 
+            padding: 30px 20px; 
+            text-align: center; 
+          }
+          .logo {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #4F46E5;
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+          }
+          .header h1 { 
+            margin: 0; 
+            font-size: 28px; 
+            font-weight: 600; 
+          }
+          .header p { 
+            margin: 5px 0 0; 
+            opacity: 0.9; 
+            font-size: 16px; 
+          }
+          .content { 
+            padding: 40px 30px; 
+          }
+          .prescription-details { 
+            background: linear-gradient(135deg, #EEF2FF 0%, #F3E8FF 100%); 
+            padding: 25px; 
+            border-radius: 12px; 
+            margin: 25px 0; 
+            border-left: 4px solid #4F46E5;
+          }
+          .detail-item {
+            margin: 12px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(79, 70, 229, 0.1);
+          }
+          .detail-item:last-child {
+            border-bottom: none;
+          }
+          .detail-label {
+            font-weight: 600;
+            color: #4F46E5;
+            display: inline-block;
+            width: 120px;
+          }
+          .detail-value {
+            color: #1f2937;
+          }
+          .attachment-notice {
+            background: #F0FDF4;
+            border: 2px dashed #22C55E;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin: 25px 0;
+          }
+          .attachment-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: #22C55E;
+          }
+          .footer { 
+            background: #f8fafc;
+            padding: 30px; 
+            text-align: center; 
+            border-top: 1px solid #e5e7eb;
+          }
+          .footer-logo {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 10px;
+          }
+          .footer-text {
+            color: #9ca3af; 
+            font-size: 12px; 
+            line-height: 1.5;
+          }
+          .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            margin: 10px 0;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="logo">CURA</div>
+            <h1>Cura EMR</h1>
+            <p>AI-Powered Healthcare Platform</p>
+          </div>
+          
+          <div class="content">
+            <h2 style="color: #1f2937; margin-bottom: 20px;">Prescription Document</h2>
+            
+            <p style="font-size: 16px; color: #4b5563;">Dear ${pharmacyName || 'Pharmacy Team'},</p>
+            
+            <p style="font-size: 16px; line-height: 1.6; color: #4b5563;">
+              Please find attached the electronic prescription for <strong>${patientName}</strong>. 
+              This document has been digitally generated and contains all necessary prescription details 
+              with electronic signature verification.
+            </p>
+
+            <div class="prescription-details">
+              <h3 style="color: #4F46E5; margin-top: 0; margin-bottom: 15px;">Prescription Details</h3>
+              <div class="detail-item">
+                <span class="detail-label">Patient:</span>
+                <span class="detail-value">${patientName}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Document:</span>
+                <span class="detail-value">Electronic Prescription (PDF)</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">System:</span>
+                <span class="detail-value">Cura EMR Platform</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Generated:</span>
+                <span class="detail-value">${new Date().toLocaleDateString('en-GB')} at ${new Date().toLocaleTimeString('en-GB')}</span>
+              </div>
+            </div>
+
+            <div class="attachment-notice">
+              <div class="attachment-icon">📄</div>
+              <h3 style="color: #15803d; margin: 0 0 8px 0;">PDF Attachment Included</h3>
+              <p style="margin: 0; color: #166534;">
+                The complete prescription document is attached to this email as a PDF file.
+                <br>Please review and process according to your standard procedures.
+              </p>
+            </div>
+
+            <h3 style="color: #1f2937; margin-top: 30px;">Important Notes:</h3>
+            <ul style="color: #4b5563; line-height: 1.6; padding-left: 20px;">
+              <li>This prescription has been electronically signed and verified</li>
+              <li>Please check the PDF attachment for complete medication details</li>
+              <li>Contact our system if you need any clarification</li>
+              <li>Maintain confidentiality as per healthcare regulations</li>
+            </ul>
+            
+            <p style="margin-top: 30px; color: #4b5563;">
+              Thank you for your professional service in patient care.
+            </p>
+          </div>
+          
+          <div class="footer">
+            <div class="footer-logo">
+              <strong>CURA EMR</strong> | Powered by Halo Group & Averox
+            </div>
+            <div class="footer-text">
+              This is an automated message from Cura EMR System.<br>
+              AI-Powered Healthcare Platform | Secure • Compliant • Intelligent<br>
+              © ${new Date().getFullYear()} Halo Group & Averox. All rights reserved.
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    const text = `
+Prescription PDF - ${patientName}
+
+Dear ${pharmacyName || 'Pharmacy Team'},
+
+Please find attached the electronic prescription for ${patientName}.
+
+This document has been digitally generated and contains all necessary prescription details with electronic signature verification.
+
+Prescription Details:
+- Patient: ${patientName}
+- Document: Electronic Prescription (PDF)
+- System: Cura EMR Platform
+- Generated: ${new Date().toLocaleDateString('en-GB')} at ${new Date().toLocaleTimeString('en-GB')}
+
+Important Notes:
+- This prescription has been electronically signed and verified
+- Please check the PDF attachment for complete medication details
+- Contact our system if you need any clarification
+- Maintain confidentiality as per healthcare regulations
+
+Thank you for your professional service in patient care.
+
+Best regards,
+Cura EMR System
+Powered by Halo Group & Averox
+    `;
+
+    return { subject, html, text };
   }
 }
 

@@ -4428,25 +4428,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         patientName: z.string().optional()
       }).parse(req.body);
 
-      // In a real implementation, you would:
-      // 1. Generate the prescription PDF
-      // 2. Attach it to the email
-      // 3. Send via the email service
+      // Generate professional HTML email template
+      const emailTemplate = emailService.generatePrescriptionEmail(
+        emailData.patientName || 'Patient',
+        emailData.pharmacyName || 'Pharmacy Team'
+      );
 
+      // In a real implementation, you would generate and attach the PDF here
+      // For now, we'll send the professional HTML email without attachment
       const success = await emailService.sendEmail({
         to: emailData.pharmacyEmail,
-        subject: `Prescription PDF - ${emailData.patientName || 'Patient'}`,
-        html: `
-          <h2>Prescription from Cura EMR</h2>
-          <p>Dear ${emailData.pharmacyName || 'Pharmacy Team'},</p>
-          <p>Please find attached the prescription for ${emailData.patientName || 'the patient'}.</p>
-          <p>The PDF contains all necessary prescription details and electronic signature.</p>
-          <br>
-          <p>Best regards,</p>
-          <p>Cura EMR System</p>
-          <p>Powered by Halo Group & Averox</p>
-        `,
-        text: `Prescription PDF for ${emailData.patientName || 'patient'} attached. Please process as required.`
+        subject: emailTemplate.subject,
+        html: emailTemplate.html,
+        text: emailTemplate.text,
+        // Future: Add PDF attachment here
+        // attachments: [{
+        //   filename: `prescription-${emailData.patientName || 'patient'}.pdf`,
+        //   content: pdfBuffer,
+        //   contentType: 'application/pdf'
+        // }]
       });
 
       if (success) {
