@@ -687,7 +687,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
         ) : (
           <div className="space-y-4">
             {(medicalRecords as any[]).map((record: any) => (
-              <div key={record.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+              <div key={record.id} className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2">
