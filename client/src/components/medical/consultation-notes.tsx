@@ -864,7 +864,6 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                       'zygomaticus_major': { top: '50%', left: '35%' },
                       'zygomaticus_minor': { top: '48%', left: '38%' },
                       'masseter': { top: '60%', left: '28%' },
-                      'buccinator': { top: '52%', left: '30%' },
                       'orbicularis_oris': { top: '58%', left: '47%' },
                       'depressor_septi_nasi': { top: '50%', left: '47%' },
                       'depressor_anguli_oris': { top: '62%', left: '42%' },
