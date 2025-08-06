@@ -982,11 +982,9 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
               </div>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Facial Muscle Analysis Section */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+          
+          {/* Facial Muscle Analysis Section */}
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
             <div className="bg-gradient-to-br from-gray-50 to-blue-50 p-5 rounded-xl border-2 border-blue-100">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-3 h-3 bg-red-600 rounded-full"></div>
@@ -1192,7 +1190,6 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
           </div>
         </DialogContent>
       </Dialog>
-
     </Card>
   );
 }
