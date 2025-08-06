@@ -378,25 +378,25 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
               <CardContent className="space-y-3 overflow-visible pb-6">
                 <div className="space-y-2 text-sm">
                   {patient.phone && (
-                    <div className="flex items-center text-neutral-600">
+                    <div className="flex items-center text-neutral-600 dark:text-neutral-300">
                       <Phone className="h-4 w-4 mr-2" />
                       {patient.phone}
                     </div>
                   )}
                   {patient.email && (
-                    <div className="flex items-center text-neutral-600 truncate">
+                    <div className="flex items-center text-neutral-600 dark:text-neutral-300 truncate">
                       <User className="h-4 w-4 mr-2" />
                       {patient.email}
                     </div>
                   )}
                   {patient.nhsNumber && (
-                    <div className="flex items-center text-neutral-600">
+                    <div className="flex items-center text-neutral-600 dark:text-white">
                       <FileText className="h-4 w-4 mr-2" />
                       NHS: {patient.nhsNumber}
                     </div>
                   )}
                   {patient.address?.postcode && (
-                    <div className="flex items-center text-neutral-600">
+                    <div className="flex items-center text-neutral-600 dark:text-neutral-300">
                       <MapPin className="h-4 w-4 mr-2" />
                       {patient.address.postcode}
                       {patient.address.city && `, ${patient.address.city}`}
@@ -440,7 +440,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                       size="default"
                       variant="outline"
                       onClick={() => setLocation(`/patients/${patient.id}/records`)}
-                      className="flex-1 border-medical-blue text-medical-blue hover:bg-medical-blue hover:text-white text-sm"
+                      className="flex-1 border-medical-blue text-medical-blue hover:bg-medical-blue hover:text-white text-sm dark:text-white dark:border-white dark:hover:bg-white dark:hover:text-black"
                     >
                       <FileText className="h-4 w-4 mr-1" />
                       Records
