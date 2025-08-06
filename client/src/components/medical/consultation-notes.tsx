@@ -848,6 +848,49 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                       backgroundColor: 'white'
                     }}
                   />
+                  
+                  {/* Muscle Highlight Overlays - Only show on first image (anatomical diagram) */}
+                  {currentImageIndex === 0 && selectedFacialFeatures.map((muscleId) => {
+                    // Define muscle positions on the anatomical diagram
+                    const musclePositions: Record<string, {top: string, left: string}> = {
+                      'frontalis': { top: '15%', left: '45%' },
+                      'temporalis': { top: '25%', left: '25%' },
+                      'orbicularis_oculi': { top: '30%', left: '35%' },
+                      'procerus': { top: '35%', left: '47%' },
+                      'corrugator_supercilii': { top: '28%', left: '42%' },
+                      'levator_palpebrae_superioris': { top: '32%', left: '38%' },
+                      'levator_labii_superioris_alaeque_nasi': { top: '42%', left: '40%' },
+                      'nasalis': { top: '45%', left: '47%' },
+                      'zygomaticus_major': { top: '50%', left: '35%' },
+                      'zygomaticus_minor': { top: '48%', left: '38%' },
+                      'masseter': { top: '60%', left: '28%' },
+                      'risorius': { top: '55%', left: '32%' },
+                      'buccinator': { top: '52%', left: '30%' },
+                      'orbicularis_oris': { top: '58%', left: '47%' },
+                      'depressor_septi_nasi': { top: '50%', left: '47%' },
+                      'depressor_anguli_oris': { top: '62%', left: '42%' },
+                      'depressor_labii_inferioris': { top: '65%', left: '47%' },
+                      'mentalis': { top: '72%', left: '47%' },
+                      'platysma': { top: '80%', left: '47%' }
+                    };
+                    
+                    const position = musclePositions[muscleId];
+                    if (!position) return null;
+                    
+                    return (
+                      <div
+                        key={muscleId}
+                        className="absolute w-4 h-4 bg-yellow-400 border-2 border-yellow-600 rounded-sm shadow-lg animate-pulse"
+                        style={{
+                          top: position.top,
+                          left: position.left,
+                          transform: 'translate(-50%, -50%)',
+                          zIndex: 10
+                        }}
+                        title={muscleId.replace(/_/g, ' ').toUpperCase()}
+                      />
+                    );
+                  })}
                 </div>
                 
                 {/* Left Arrow Button */}
