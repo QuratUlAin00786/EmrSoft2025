@@ -284,8 +284,14 @@ Cura EMR Team
     });
   }
 
-  // Template for prescription PDF emails with Cura logo
-  generatePrescriptionEmail(patientName: string, pharmacyName: string, prescriptionData?: any): EmailTemplate {
+  // Template for prescription PDF emails with clinic logo in header and Cura logo in footer
+  generatePrescriptionEmail(
+    patientName: string, 
+    pharmacyName: string, 
+    prescriptionData?: any,
+    clinicLogoUrl?: string,
+    organizationName?: string
+  ): EmailTemplate {
     const subject = `Prescription PDF - ${patientName}`;
     const html = `
       <!DOCTYPE html>
@@ -312,7 +318,16 @@ Cura EMR Team
             padding: 30px 20px; 
             text-align: center; 
           }
-          .logo {
+          .clinic-logo {
+            max-width: 120px;
+            max-height: 80px;
+            margin: 0 auto 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+            background: white;
+            padding: 10px;
+          }
+          .fallback-logo {
             width: 80px;
             height: 80px;
             background: white;
@@ -383,6 +398,20 @@ Cura EMR Team
             border-top: 1px solid #e5e7eb;
           }
           .footer-logo {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 18px;
+            box-shadow: 0 2px 10px rgba(79, 70, 229, 0.3);
+          }
+          .footer-brand {
             color: #6b7280;
             font-size: 14px;
             margin-bottom: 10px;
@@ -407,9 +436,14 @@ Cura EMR Team
       <body>
         <div class="container">
           <div class="header">
-            <div class="logo">CURA</div>
-            <h1>Cura EMR</h1>
-            <p>AI-Powered Healthcare Platform</p>
+            ${clinicLogoUrl ? 
+              `<img src="${clinicLogoUrl}" alt="${organizationName || 'Clinic'} Logo" class="clinic-logo">
+               <h1>${organizationName || 'Medical Clinic'}</h1>
+               <p>Powered by Cura EMR Platform</p>` :
+              `<div class="fallback-logo">CURA</div>
+               <h1>Cura EMR</h1>
+               <p>AI-Powered Healthcare Platform</p>`
+            }
           </div>
           
           <div class="content">
@@ -466,7 +500,8 @@ Cura EMR Team
           </div>
           
           <div class="footer">
-            <div class="footer-logo">
+            <div class="footer-logo">CURA</div>
+            <div class="footer-brand">
               <strong>CURA EMR</strong> | Powered by Halo Group & Averox
             </div>
             <div class="footer-text">

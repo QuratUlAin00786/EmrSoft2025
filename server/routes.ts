@@ -4428,10 +4428,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         patientName: z.string().optional()
       }).parse(req.body);
 
-      // Generate professional HTML email template
+      // Get organization info for logo and branding
+      const organization = await storage.getOrganization(req.organizationId);
+      const clinicLogoUrl = organization?.settings?.theme?.logoUrl;
+      const organizationName = organization?.brandName || organization?.name;
+
+      // Generate professional HTML email template with clinic logo and branding
       const emailTemplate = emailService.generatePrescriptionEmail(
         emailData.patientName || 'Patient',
-        emailData.pharmacyName || 'Pharmacy Team'
+        emailData.pharmacyName || 'Pharmacy Team',
+        prescription, // Pass the prescription data
+        clinicLogoUrl,
+        organizationName
       );
 
       // In a real implementation, you would generate and attach the PDF here
