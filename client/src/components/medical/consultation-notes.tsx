@@ -832,7 +832,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     alt={currentImageIndex === 0 ? "Facial muscle anatomy diagram with detailed muscle labels" : "Facial Anatomy Reference Diagram"}
                     className="w-full mx-auto rounded-lg transition-opacity duration-300"
                     style={currentImageIndex === 0 ? {
-                      height: '600px',
+                      height: '650px',
                       objectFit: 'contain',
                       objectPosition: 'center',
                       filter: 'contrast(1.05) brightness(1.02) saturate(1.05)',
