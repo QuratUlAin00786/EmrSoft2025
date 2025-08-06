@@ -455,7 +455,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                   <TabsList className="grid w-full grid-cols-4 mb-6">
-                    <TabsTrigger value="basic" className="bg-blue-100 font-semibold">Basic Info ⭐</TabsTrigger>
+                    <TabsTrigger value="basic" className="bg-blue-100 dark:bg-blue-900/30 font-semibold data-[state=active]:bg-blue-100 data-[state=active]:dark:bg-blue-900/50">Basic Info ⭐</TabsTrigger>
                     <TabsTrigger value="clinical">Clinical Notes</TabsTrigger>
                     <TabsTrigger value="medications">Medications</TabsTrigger>
                     <TabsTrigger value="followup">Follow-up</TabsTrigger>
