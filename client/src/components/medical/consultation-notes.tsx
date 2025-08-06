@@ -824,16 +824,16 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
           {/* Single Image with Sliding Navigation - Preserves All Labels */}
           <div className="mb-6">
             <div className="bg-white border-4 border-gray-300 rounded-xl p-6 shadow-lg max-w-4xl mx-auto">
-              <div className="bg-white rounded-lg p-4 min-h-[800px] flex items-center justify-center relative overflow-visible">
-                <div className="relative bg-white p-4 rounded-lg" style={{ width: '500px', height: '600px' }}>
+              <div className="bg-white rounded-lg p-4 min-h-[900px] flex items-center justify-center relative overflow-visible">
+                <div className="relative bg-white p-4 rounded-lg" style={{ width: '700px', height: '800px' }}>
                   <img 
                     key={currentImageIndex}
                     src={currentImageIndex === 0 ? anatomicalDiagramImage : facialDiagramImage}
                     alt={currentImageIndex === 0 ? "Facial muscle anatomy diagram with detailed muscle labels" : "Facial Anatomy Reference Diagram"}
                     className="mx-auto rounded-lg transition-opacity duration-300"
                     style={{
-                      height: '600px',
-                      width: '500px',
+                      height: '800px',
+                      width: '700px',
                       objectFit: 'contain',
                       objectPosition: 'center',
                       backgroundColor: 'white',
