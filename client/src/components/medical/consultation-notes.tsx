@@ -559,7 +559,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                       <Textarea
                         {...form.register("notes")}
                         placeholder="Detailed consultation notes, observations, and findings. Click 'Transcribe Audio' to dictate your notes."
-                        className="min-h-32"
+                        className="min-h-32 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
                       />
                       {transcript && (
                         <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
@@ -579,7 +579,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                         <Textarea
                           {...form.register("diagnosis")}
                           placeholder="Primary and secondary diagnoses with ICD codes..."
-                          className="min-h-24"
+                          className="min-h-24 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
                         />
                       </div>
                       <div>
@@ -587,7 +587,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                         <Textarea
                           {...form.register("treatment")}
                           placeholder="Treatment recommendations and care plan..."
-                          className="min-h-24"
+                          className="min-h-24 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
                         />
                       </div>
                     </div>
