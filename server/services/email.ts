@@ -40,13 +40,22 @@ class EmailService {
 
   async sendEmail(options: EmailOptions): Promise<boolean> {
     try {
+      const attachments = [...(options.attachments || [])];
+      
+      // Add Cura logo as embedded attachment for email footer
+      attachments.push({
+        filename: 'cura-logo.png',
+        path: './public/cura-logo.png',
+        cid: 'cura-logo'
+      });
+
       const mailOptions = {
         from: options.from || 'Cura EMR <no-reply@averox.com>',
         to: options.to,
         subject: options.subject,
         text: options.text,
         html: options.html,
-        attachments: options.attachments
+        attachments
       };
 
       const result = await this.transporter.sendMail(mailOptions);
@@ -500,7 +509,9 @@ Cura EMR Team
           </div>
           
           <div class="footer">
-            <div class="footer-logo">CURA</div>
+            <div class="footer-logo">
+              <img src="cid:cura-logo" alt="Cura EMR" style="max-width: 120px; height: auto;">
+            </div>
             <div class="footer-brand">
               <strong>CURA EMR</strong> | Powered by Halo Group & Averox
             </div>
