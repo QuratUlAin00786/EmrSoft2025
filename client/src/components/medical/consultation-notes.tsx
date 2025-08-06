@@ -849,20 +849,6 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     }}
                   />
                   
-                  {/* SVG mask to hide yellow squares in original image */}
-                  {currentImageIndex === 0 && (
-                    <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 3 }}>
-                      <defs>
-                        <mask id="hideYellowSquares">
-                          <rect width="100%" height="100%" fill="white" />
-                          {/* Hide yellow square near mouth area */}
-                          <circle cx="47%" cy="59%" r="3px" fill="black" />
-                          <circle cx="53%" cy="59%" r="3px" fill="black" />
-                        </mask>
-                      </defs>
-                      <rect width="100%" height="100%" fill="white" mask="url(#hideYellowSquares)" />
-                    </svg>
-                  )}
                   
                   {/* Muscle Highlight Overlays - Only show on first image (anatomical diagram) */}
                   {currentImageIndex === 0 && selectedFacialFeatures.map((muscleId) => {
