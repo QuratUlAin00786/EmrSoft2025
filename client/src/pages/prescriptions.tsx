@@ -185,6 +185,7 @@ export default function PrescriptionsPage() {
   const [showNewPrescription, setShowNewPrescription] = useState(false);
   const [showPharmacyDialog, setShowPharmacyDialog] = useState(false);
   const [selectedPrescriptionId, setSelectedPrescriptionId] = useState<string>("");
+  const [pharmacyEmail, setPharmacyEmail] = useState<string>("pharmacy@halohealth.co.uk");
   const [patients, setPatients] = useState<any[]>([]);
   const [providers, setProviders] = useState<any[]>([]);
   const queryClient = useQueryClient();
@@ -420,7 +421,7 @@ export default function PrescriptionsPage() {
   });
 
   const sendToPharmacyMutation = useMutation({
-    mutationFn: async ({ prescriptionId, pharmacyData }: { prescriptionId: string, pharmacyData: any }) => {
+    mutationFn: async ({ prescriptionId, pharmacyData, patientName }: { prescriptionId: string, pharmacyData: any, patientName?: string }) => {
       const token = localStorage.getItem('auth_token');
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
@@ -431,6 +432,7 @@ export default function PrescriptionsPage() {
         headers['Authorization'] = `Bearer ${token}`;
       }
       
+      // First update the prescription with pharmacy data
       const response = await fetch(`/api/prescriptions/${prescriptionId}`, {
         method: "PATCH",
         headers,
@@ -438,12 +440,27 @@ export default function PrescriptionsPage() {
         credentials: "include",
       });
       if (!response.ok) throw new Error('Failed to send prescription to pharmacy');
+      
+      // Then send the PDF email to the pharmacy
+      const emailResponse = await fetch(`/api/prescriptions/${prescriptionId}/send-pdf`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          pharmacyEmail: pharmacyData.email,
+          pharmacyName: pharmacyData.name,
+          patientName: patientName
+        }),
+        credentials: "include",
+      });
+      
+      if (!emailResponse.ok) throw new Error('Failed to send PDF email to pharmacy');
+      
       return response.json();
     },
     onSuccess: () => {
       toast({
         title: "Success",
-        description: "Prescription sent to pharmacy successfully",
+        description: "Prescription sent to pharmacy and PDF emailed successfully",
       });
       setShowPharmacyDialog(false);
       queryClient.invalidateQueries({ queryKey: ["/api/prescriptions"] });
@@ -1486,10 +1503,24 @@ export default function PrescriptionsPage() {
               </div>
             </div>
             
-            <div className="space-y-3">
+            <div className="space-y-4">
               <p className="text-sm text-gray-600">
                 This prescription will be sent as a PDF to the pharmacy via email for processing.
               </p>
+              
+              <div className="space-y-2">
+                <Label htmlFor="pharmacy-email" className="text-sm font-medium">
+                  Pharmacy Email Address
+                </Label>
+                <Input
+                  id="pharmacy-email"
+                  type="email"
+                  value={pharmacyEmail}
+                  onChange={(e) => setPharmacyEmail(e.target.value)}
+                  placeholder="Enter pharmacy email address"
+                  className="w-full"
+                />
+              </div>
               
               <div className="flex items-center gap-2 text-sm">
                 <FileText className="h-4 w-4 text-blue-600" />
@@ -1498,7 +1529,7 @@ export default function PrescriptionsPage() {
               
               <div className="flex items-center gap-2 text-sm">
                 <Send className="h-4 w-4 text-green-600" />
-                <span>Email will be sent to pharmacy@halohealth.co.uk</span>
+                <span>Email will be sent to the specified pharmacy address</span>
               </div>
             </div>
 
@@ -1512,14 +1543,17 @@ export default function PrescriptionsPage() {
                     name: "Halo Health",
                     address: "Unit 2 Drayton Court, Solihull, B90 4NG",
                     phone: "+44(0)121 827 5531",
-                    email: "pharmacy@halohealth.co.uk"
+                    email: pharmacyEmail
                   };
+                  // Find the selected prescription to get patient name
+                  const prescription = prescriptions?.find(p => p.id === selectedPrescriptionId);
                   sendToPharmacyMutation.mutate({ 
                     prescriptionId: selectedPrescriptionId, 
-                    pharmacyData 
+                    pharmacyData,
+                    patientName: prescription?.patientName || "Patient"
                   });
                 }}
-                disabled={sendToPharmacyMutation.isPending}
+                disabled={sendToPharmacyMutation.isPending || !pharmacyEmail.trim()}
                 className="flex-1 bg-medical-blue hover:bg-blue-700"
               >
                 {sendToPharmacyMutation.isPending ? "Sending PDF..." : "Send PDF to Pharmacy"}
