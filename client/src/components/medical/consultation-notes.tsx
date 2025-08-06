@@ -830,14 +830,14 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     key={currentImageIndex}
                     src={currentImageIndex === 0 ? anatomicalDiagramImage : facialDiagramImage}
                     alt={currentImageIndex === 0 ? "Facial muscle anatomy diagram with detailed muscle labels" : "Facial Anatomy Reference Diagram"}
-                    className="w-full mx-auto rounded-lg transition-opacity duration-300"
+                    className="mx-auto rounded-lg transition-opacity duration-300"
                     style={{
-                      height: '750px',
-                      width: '100%',
-                      maxWidth: '500px',
+                      height: '600px',
+                      width: '500px',
                       objectFit: 'contain',
                       objectPosition: 'center',
                       backgroundColor: 'white',
+                      display: 'block',
                       ...(currentImageIndex === 0 ? {
                         filter: 'contrast(1.05) brightness(1.02) saturate(1.05)',
                         imageRendering: 'crisp-edges'
