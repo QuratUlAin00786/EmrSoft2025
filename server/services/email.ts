@@ -328,13 +328,14 @@ Cura EMR Team
             text-align: center; 
           }
           .clinic-logo {
-            max-width: 120px;
-            max-height: 80px;
-            margin: 0 auto 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+            max-width: 150px;
+            max-height: 100px;
+            margin: 0 auto 20px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.4);
             background: white;
-            padding: 10px;
+            padding: 15px;
+            display: block;
           }
           .fallback-logo {
             width: 80px;
@@ -446,12 +447,14 @@ Cura EMR Team
         <div class="container">
           <div class="header">
             ${clinicLogoUrl ? 
-              `<img src="${clinicLogoUrl}" alt="${organizationName || 'Clinic'} Logo" class="clinic-logo">
-               <h1>${organizationName || 'Medical Clinic'}</h1>
-               <p>Powered by Cura EMR Platform</p>` :
-              `<div class="fallback-logo">CURA</div>
-               <h1>Cura EMR</h1>
-               <p>AI-Powered Healthcare Platform</p>`
+              `<img src="${clinicLogoUrl}" alt="${organizationName || 'Medical Clinic'} Logo" class="clinic-logo">
+               <h1 style="margin: 0 0 8px 0; font-size: 32px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">${organizationName || 'Medical Clinic'}</h1>
+               <p style="margin: 0; font-size: 18px; opacity: 0.95; font-weight: 500;">Powered by Cura EMR Platform</p>` :
+              `<div class="fallback-logo">
+                 <img src="cid:cura-logo" alt="Cura EMR" style="width: 60px; height: auto;">
+               </div>
+               <h1 style="margin: 0 0 8px 0; font-size: 32px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">Cura EMR</h1>
+               <p style="margin: 0; font-size: 18px; opacity: 0.95; font-weight: 500;">AI-Powered Healthcare Platform</p>`
             }
           </div>
           
