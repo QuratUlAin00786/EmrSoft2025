@@ -854,10 +854,10 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     <div
                       className="absolute bg-white"
                       style={{
-                        top: '60%',
-                        left: '35%',
-                        width: '20px',
-                        height: '20px',
+                        top: '59%',
+                        left: '41%',
+                        width: '6px',
+                        height: '6px',
                         transform: 'translate(-50%, -50%)',
                         zIndex: 5
                       }}
