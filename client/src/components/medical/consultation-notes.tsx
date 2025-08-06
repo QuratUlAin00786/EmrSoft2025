@@ -873,27 +873,27 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                       'platysma': { top: '85%', left: '30%' }
                     };
 
-                    // Define muscle positions for second image (line drawing) - Precisely mapped to facial anatomy
+                    // Define muscle positions for second image (line drawing) - Accurately mapped to match first image positions
                     const referencePositions: Record<string, {top: string, left: string}> = {
-                      'frontalis': { top: '26%', left: '50%' },
-                      'temporalis': { top: '42%', left: '15%' },
-                      'orbicularis_oculi': { top: '44%', left: '35%' },
-                      'procerus': { top: '50%', left: '50%' },
-                      'corrugator_supercilii': { top: '40%', left: '38%' },
-                      'levator_palpebrae_superioris': { top: '42%', left: '40%' },
-                      'levator_labii_superioris_alaeque_nasi': { top: '54%', left: '42%' },
-                      'nasalis': { top: '56%', left: '50%' },
-                      'zygomaticus_major': { top: '60%', left: '28%' },
-                      'zygomaticus_minor': { top: '58%', left: '32%' },
-                      'masseter': { top: '70%', left: '22%' },
-                      'risorius': { top: '62%', left: '38%' },
-                      'buccinator': { top: '64%', left: '70%' },
-                      'orbicularis_oris': { top: '66%', left: '50%' },
-                      'depressor_septi_nasi': { top: '60%', left: '70%' },
-                      'depressor_anguli_oris': { top: '70%', left: '70%' },
-                      'depressor_labii_inferioris': { top: '74%', left: '28%' },
-                      'mentalis': { top: '78%', left: '28%' },
-                      'platysma': { top: '85%', left: '28%' }
+                      'frontalis': { top: '35%', left: '50%' },
+                      'temporalis': { top: '45%', left: '10%' },
+                      'orbicularis_oculi': { top: '48%', left: '30%' },
+                      'procerus': { top: '54%', left: '50%' },
+                      'corrugator_supercilii': { top: '46%', left: '35%' },
+                      'levator_palpebrae_superioris': { top: '47%', left: '37%' },
+                      'levator_labii_superioris_alaeque_nasi': { top: '58%', left: '38%' },
+                      'nasalis': { top: '60%', left: '50%' },
+                      'zygomaticus_major': { top: '65%', left: '25%' },
+                      'zygomaticus_minor': { top: '62%', left: '30%' },
+                      'masseter': { top: '75%', left: '18%' },
+                      'risorius': { top: '67%', left: '35%' },
+                      'buccinator': { top: '68%', left: '75%' },
+                      'orbicularis_oris': { top: '70%', left: '50%' },
+                      'depressor_septi_nasi': { top: '64%', left: '75%' },
+                      'depressor_anguli_oris': { top: '74%', left: '75%' },
+                      'depressor_labii_inferioris': { top: '78%', left: '25%' },
+                      'mentalis': { top: '82%', left: '25%' },
+                      'platysma': { top: '88%', left: '25%' }
                     };
                     
                     const positions = currentImageIndex === 0 ? anatomicalPositions : referencePositions;
