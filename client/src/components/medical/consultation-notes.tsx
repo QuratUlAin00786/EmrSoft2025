@@ -849,6 +849,21 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     }}
                   />
                   
+                  {/* Remove unwanted yellow square from original image - right side under lips */}
+                  {currentImageIndex === 0 && (
+                    <div
+                      className="absolute"
+                      style={{
+                        top: '59%',
+                        left: '53%',
+                        width: '8px',
+                        height: '8px',
+                        backgroundColor: '#F5F5F5',
+                        transform: 'translate(-50%, -50%)',
+                        zIndex: 5
+                      }}
+                    />
+                  )}
                   
                   {/* Muscle Highlight Overlays - Only show on first image (anatomical diagram) */}
                   {currentImageIndex === 0 && selectedFacialFeatures.map((muscleId) => {
