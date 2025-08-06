@@ -850,25 +850,27 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                   
                   {/* Muscle Highlight Overlays - Only show on first image (anatomical diagram) */}
                   {currentImageIndex === 0 && selectedFacialFeatures.map((muscleId) => {
-                    // Define muscle positions on the anatomical diagram
+                    // Define muscle positions on the anatomical diagram - Updated for new image
                     const musclePositions: Record<string, {top: string, left: string}> = {
-                      'frontalis': { top: '15%', left: '45%' },
-                      'temporalis': { top: '25%', left: '25%' },
-                      'orbicularis_oculi': { top: '30%', left: '35%' },
-                      'procerus': { top: '35%', left: '47%' },
-                      'corrugator_supercilii': { top: '28%', left: '42%' },
-                      'levator_palpebrae_superioris': { top: '32%', left: '38%' },
-                      'levator_labii_superioris_alaeque_nasi': { top: '42%', left: '40%' },
-                      'nasalis': { top: '45%', left: '47%' },
-                      'zygomaticus_major': { top: '50%', left: '35%' },
-                      'zygomaticus_minor': { top: '48%', left: '38%' },
-                      'masseter': { top: '60%', left: '28%' },
-                      'orbicularis_oris': { top: '58%', left: '47%' },
-                      'depressor_septi_nasi': { top: '50%', left: '47%' },
-                      'depressor_anguli_oris': { top: '62%', left: '42%' },
-                      'depressor_labii_inferioris': { top: '65%', left: '47%' },
-                      'mentalis': { top: '72%', left: '47%' },
-                      'platysma': { top: '80%', left: '47%' }
+                      'frontalis': { top: '18%', left: '50%' },
+                      'temporalis': { top: '32%', left: '18%' },
+                      'orbicularis_oculi': { top: '38%', left: '42%' },
+                      'procerus': { top: '40%', left: '50%' },
+                      'corrugator_supercilii': { top: '35%', left: '76%' },
+                      'levator_palpebrae_superioris': { top: '36%', left: '80%' },
+                      'levator_labii_superioris_alaeque_nasi': { top: '45%', left: '80%' },
+                      'nasalis': { top: '48%', left: '50%' },
+                      'zygomaticus_major': { top: '52%', left: '38%' },
+                      'zygomaticus_minor': { top: '50%', left: '42%' },
+                      'masseter': { top: '65%', left: '22%' },
+                      'risorius': { top: '56%', left: '30%' },
+                      'buccinator': { top: '58%', left: '75%' },
+                      'orbicularis_oris': { top: '62%', left: '50%' },
+                      'depressor_septi_nasi': { top: '54%', left: '75%' },
+                      'depressor_anguli_oris': { top: '68%', left: '75%' },
+                      'depressor_labii_inferioris': { top: '72%', left: '25%' },
+                      'mentalis': { top: '76%', left: '25%' },
+                      'platysma': { top: '82%', left: '25%' }
                     };
                     
                     const position = musclePositions[muscleId];
