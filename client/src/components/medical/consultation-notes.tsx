@@ -823,32 +823,28 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
           
           {/* Single Image with Sliding Navigation - Preserves All Labels */}
           <div className="mb-6">
-            <div className="bg-white border-4 border-gray-300 rounded-xl p-3 shadow-lg max-w-fit mx-auto">
-              <div className="bg-white rounded-lg flex items-center justify-center relative overflow-visible">
-                <div className="relative bg-white rounded-lg" style={{ width: '700px', height: '800px' }}>
-                  <img 
-                    key={currentImageIndex}
-                    src={currentImageIndex === 0 ? anatomicalDiagramImage : facialDiagramImage}
-                    alt={currentImageIndex === 0 ? "Facial muscle anatomy diagram with detailed muscle labels" : "Facial Anatomy Reference Diagram"}
-                    className="mx-auto rounded-lg transition-opacity duration-300"
-                    style={{
-                      height: '800px',
-                      width: '700px',
-                      objectFit: 'contain',
-                      objectPosition: 'center',
-                      backgroundColor: 'white',
-                      display: 'block',
-                      margin: '0 auto',
-                      ...(currentImageIndex === 0 ? {
-                        filter: 'contrast(1.05) brightness(1.02) saturate(1.05)',
-                        imageRendering: 'crisp-edges'
-                      } : {})
-                    }}
-                  />
-                  
-
-                  
-                  {/* Muscle Highlight Overlays - Show on both images */}
+            <div className="bg-white border-2 border-gray-300 rounded-lg shadow-lg" style={{ width: 'fit-content', margin: '0 auto' }}>
+              <div className="relative" style={{ width: '700px', height: '800px' }}>
+                <img 
+                  key={currentImageIndex}
+                  src={currentImageIndex === 0 ? anatomicalDiagramImage : facialDiagramImage}
+                  alt={currentImageIndex === 0 ? "Facial muscle anatomy diagram with detailed muscle labels" : "Facial Anatomy Reference Diagram"}
+                  className="rounded-lg transition-opacity duration-300"
+                  style={{
+                    height: '800px',
+                    width: '700px',
+                    objectFit: 'contain',
+                    objectPosition: 'center',
+                    backgroundColor: 'white',
+                    display: 'block',
+                    ...(currentImageIndex === 0 ? {
+                      filter: 'contrast(1.05) brightness(1.02) saturate(1.05)',
+                      imageRendering: 'crisp-edges'
+                    } : {})
+                  }}
+                />
+                
+                {/* Muscle Highlight Overlays - Show on both images */}
                   {selectedFacialFeatures.map((muscleId) => {
                     // Define muscle positions for first image (anatomical diagram with red muscles)
                     const anatomicalPositions: Record<string, {top: string, left: string}> = {
@@ -986,9 +982,11 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
               </div>
             </div>
           </div>
-
-          {/* Facial Muscle Analysis Section */}
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+        </DialogContent>
+      </Dialog>
+      
+      {/* Facial Muscle Analysis Section */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
             <div className="bg-gradient-to-br from-gray-50 to-blue-50 p-5 rounded-xl border-2 border-blue-100">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-3 h-3 bg-red-600 rounded-full"></div>
