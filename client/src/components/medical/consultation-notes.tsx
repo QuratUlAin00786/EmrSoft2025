@@ -849,35 +849,6 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                     }}
                   />
                   
-                  {/* Hide unwanted yellow squares in original image - Only on first image (anatomical diagram) */}
-                  {currentImageIndex === 0 && (
-                    <>
-                      {/* Left yellow square */}
-                      <div
-                        className="absolute bg-white"
-                        style={{
-                          top: '59%',
-                          left: '41%',
-                          width: '6px',
-                          height: '6px',
-                          transform: 'translate(-50%, -50%)',
-                          zIndex: 5
-                        }}
-                      />
-                      {/* Right yellow square */}
-                      <div
-                        className="absolute bg-white"
-                        style={{
-                          top: '59%',
-                          left: '53%',
-                          width: '6px',
-                          height: '6px',
-                          transform: 'translate(-50%, -50%)',
-                          zIndex: 5
-                        }}
-                      />
-                    </>
-                  )}
                   
                   {/* Muscle Highlight Overlays - Only show on first image (anatomical diagram) */}
                   {currentImageIndex === 0 && selectedFacialFeatures.map((muscleId) => {
