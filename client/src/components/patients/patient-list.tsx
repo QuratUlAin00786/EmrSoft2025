@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
-import { Calendar, Eye, User, Phone, MapPin, AlertTriangle, Clock, Bell, FileText, Flag, Trash2 } from "lucide-react";
+import { Calendar, Eye, User, Phone, MapPin, AlertTriangle, Clock, Bell, FileText, Flag, Trash2, Hash } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLocation } from "wouter";
 import { formatDistanceToNow } from "date-fns";
@@ -135,6 +135,8 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
 
   const { data: patients, isLoading, error } = useQuery({
     queryKey: ["/api/patients"],
+    staleTime: 0,
+    cacheTime: 0,
     queryFn: async () => {
       try {
         const token = localStorage.getItem('auth_token');
@@ -170,7 +172,6 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
       }
     },
     refetchOnMount: true,
-    staleTime: 0,
     retry: 1
   });
 
@@ -382,17 +383,23 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                       {patient.phone}
                     </div>
                   )}
+                  {patient.email && (
+                    <div className="flex items-center text-neutral-600 truncate">
+                      <User className="h-4 w-4 mr-2" />
+                      {patient.email}
+                    </div>
+                  )}
+                  {patient.nhsNumber && (
+                    <div className="flex items-center text-neutral-600">
+                      <FileText className="h-4 w-4 mr-2" />
+                      NHS: {patient.nhsNumber}
+                    </div>
+                  )}
                   {patient.address?.postcode && (
                     <div className="flex items-center text-neutral-600">
                       <MapPin className="h-4 w-4 mr-2" />
                       {patient.address.postcode}
                       {patient.address.city && `, ${patient.address.city}`}
-                    </div>
-                  )}
-                  {patient.email && (
-                    <div className="flex items-center text-neutral-600 truncate">
-                      <User className="h-4 w-4 mr-2" />
-                      {patient.email}
                     </div>
                   )}
                 </div>
