@@ -1006,9 +1006,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const users = await storage.getUsersByOrganization(req.tenant!.id);
       
+      // Get today's date for shift checking
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Get all staff shifts for today
+      const todayShifts = await storage.getStaffShiftsByOrganization(req.tenant!.id, today.toISOString().split('T')[0]);
+      
       // Filter for all staff roles needed for shift management and appointments
       const medicalStaff = users
         .filter(user => ['doctor', 'nurse', 'sample_taker', 'lab_technician', 'admin', 'receptionist'].includes(user.role) && user.isActive)
+        .filter(user => {
+          // For doctors specifically, check if they are available today
+          if (user.role === 'doctor') {
+            // Check if doctor has a shift today and is marked as available
+            const todayShift = todayShifts.find(shift => shift.staffId === user.id);
+            if (todayShift) {
+              // Doctor has a shift today - check if they're available and not absent
+              return todayShift.isAvailable && 
+                     todayShift.status !== 'absent' && 
+                     todayShift.status !== 'cancelled';
+            } else {
+              // No shift found - check working days to see if they normally work today
+              const dayOfWeek = today.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+              return user.workingDays && user.workingDays.includes(dayOfWeek);
+            }
+          }
+          // For non-doctors, show all active staff
+          return true;
+        })
         .map(user => {
           const { password, ...safeUser } = user;
           return safeUser;
