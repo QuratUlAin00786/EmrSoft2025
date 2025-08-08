@@ -73,6 +73,7 @@ const ALL_NAVIGATION = [
   { name: "Voice Documentation", href: "/voice-documentation", icon: Mic, module: "voice_documentation" },
   { name: "Financial Intelligence", href: "/financial-intelligence", icon: Calculator, module: "billing" },
   { name: "Billing", href: "/billing", icon: Receipt, module: "billing" },
+  { name: "QuickBooks", href: "/quickbooks", icon: Calculator, module: "billing" },
   { name: "Inventory", href: "/inventory", icon: Package, module: "inventory" },
   { name: "GDPR Compliance", href: "/gdpr-compliance", icon: Shield, module: "gdpr_compliance" },
 ];
