@@ -294,15 +294,30 @@ export default function QuickBooks() {
         <div class="header">
             <div class="logo-section">
                 <div class="logo">
-                    <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M22 44C34.1503 44 44 34.1503 44 22C44 9.84974 34.1503 0 22 0C9.84974 0 0 9.84974 0 22C0 34.1503 9.84974 44 22 44Z" fill="url(#gradient1)"/>
-                        <path d="M15.5 16.5C15.5 13.4624 17.9624 11 21 11H23C26.0376 11 28.5 13.4624 28.5 16.5C28.5 19.5376 26.0376 22 23 22H21C17.9624 22 15.5 19.5376 15.5 16.5Z" fill="white"/>
-                        <path d="M15.5 27.5C15.5 24.4624 17.9624 22 21 22H23C26.0376 22 28.5 24.4624 28.5 27.5C28.5 30.5376 26.0376 33 23 33H21C17.9624 33 15.5 30.5376 15.5 27.5Z" fill="white"/>
+                    <svg width="44" height="44" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Cura Logo - Interconnected gradient loops -->
+                        <path d="M50 10C55 10 60 12 64 16C68 12 73 10 78 12C83 14 86 18 88 23C92 25 95 29 96 34C97 39 95 44 91 48C95 52 97 57 96 62C95 67 92 71 88 73C86 78 83 82 78 84C73 86 68 84 64 80C60 84 55 86 50 86C45 86 40 84 36 80C32 84 27 86 22 84C17 82 14 78 12 73C8 71 5 67 4 62C3 57 5 52 9 48C5 44 3 39 4 34C5 29 8 25 12 23C14 18 17 14 22 12C27 10 32 12 36 16C40 12 45 10 50 10Z" fill="url(#curaGradient)" stroke="url(#curaGradient2)" stroke-width="2"/>
+                        
+                        <!-- Inner connecting elements -->
+                        <path d="M35 35C40 30 45 28 50 30C55 28 60 30 65 35" stroke="url(#curaGradient3)" stroke-width="3" stroke-linecap="round" fill="none"/>
+                        <path d="M65 35C70 40 72 45 70 50C72 55 70 60 65 65" stroke="url(#curaGradient3)" stroke-width="3" stroke-linecap="round" fill="none"/>
+                        <path d="M65 65C60 70 55 72 50 70C45 72 40 70 35 65" stroke="url(#curaGradient3)" stroke-width="3" stroke-linecap="round" fill="none"/>
+                        <path d="M35 65C30 60 28 55 30 50C28 45 30 40 35 35" stroke="url(#curaGradient3)" stroke-width="3" stroke-linecap="round" fill="none"/>
+                        
                         <defs>
-                            <linearGradient id="gradient1" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse">
-                                <stop stop-color="#3B82F6"/>
-                                <stop offset="0.5" stop-color="#6366F1"/>
-                                <stop offset="1" stop-color="#8B5CF6"/>
+                            <linearGradient id="curaGradient" x1="10" y1="10" x2="90" y2="90" gradientUnits="userSpaceOnUse">
+                                <stop offset="0%" stop-color="#4F46E5"/>
+                                <stop offset="50%" stop-color="#7C3AED"/>
+                                <stop offset="100%" stop-color="#EC4899"/>
+                            </linearGradient>
+                            <linearGradient id="curaGradient2" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+                                <stop offset="0%" stop-color="#6366F1"/>
+                                <stop offset="100%" stop-color="#8B5CF6"/>
+                            </linearGradient>
+                            <linearGradient id="curaGradient3" x1="30" y1="30" x2="70" y2="70" gradientUnits="userSpaceOnUse">
+                                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.8"/>
+                                <stop offset="50%" stop-color="#ffffff" stop-opacity="0.6"/>
+                                <stop offset="100%" stop-color="#ffffff" stop-opacity="0.4"/>
                             </linearGradient>
                         </defs>
                     </svg>
