@@ -89,36 +89,339 @@ export default function QuickBooks() {
         total: 247.50
       };
 
-      // Create and download PDF invoice
-      const invoiceContent = `
-CURA MEDICAL PRACTICE
-Invoice ${invoiceData.invoiceNumber}
-Date: ${invoiceData.date}
+      // Create professional HTML invoice
+      const invoiceHTML = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice ${invoiceData.invoiceNumber} - Cura Medical Practice</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: #f8f9fa; 
+            padding: 20px; 
+            color: #333;
+        }
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            padding: 40px;
+            position: relative;
+        }
+        .logo-section {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .logo {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            font-weight: bold;
+            color: #2563eb;
+            font-size: 24px;
+        }
+        .company-info {
+            flex: 1;
+        }
+        .company-name {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .company-tagline {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .invoice-title {
+            font-size: 36px;
+            font-weight: bold;
+            text-align: right;
+            margin-top: -60px;
+        }
+        .content {
+            padding: 40px;
+        }
+        .invoice-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        .bill-to, .invoice-details {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+        }
+        .section-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+        .patient-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 5px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .detail-label {
+            color: #6b7280;
+            font-weight: 500;
+        }
+        .detail-value {
+            font-weight: 600;
+            color: #111827;
+        }
+        .services-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .services-table th {
+            background: #2563eb;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .services-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .services-table tr:hover {
+            background: #f9fafb;
+        }
+        .amount-col {
+            text-align: right;
+            font-weight: 600;
+        }
+        .totals-section {
+            margin-top: 30px;
+            border-top: 2px solid #e5e7eb;
+            padding-top: 20px;
+        }
+        .totals-grid {
+            display: grid;
+            grid-template-columns: 1fr 200px;
+            gap: 20px;
+        }
+        .totals-table {
+            margin-left: auto;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 16px;
+        }
+        .total-row.final {
+            border-top: 2px solid #2563eb;
+            margin-top: 10px;
+            padding-top: 15px;
+            font-weight: bold;
+            font-size: 20px;
+            color: #2563eb;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 30px 40px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        .thank-you {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+        .contact-info {
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.6;
+        }
+        .payment-info {
+            background: #dbeafe;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .payment-title {
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 10px;
+        }
+        @media print {
+            body { background: white; padding: 0; }
+            .invoice-container { box-shadow: none; border-radius: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <div class="header">
+            <div class="logo-section">
+                <div class="logo">C</div>
+                <div class="company-info">
+                    <div class="company-name">Cura Medical Practice</div>
+                    <div class="company-tagline">Excellence in Healthcare • Powered by Halo Group</div>
+                </div>
+            </div>
+            <div class="invoice-title">INVOICE</div>
+        </div>
+        
+        <div class="content">
+            <div class="invoice-meta">
+                <div class="bill-to">
+                    <div class="section-title">Bill To</div>
+                    <div class="patient-name">${invoiceData.patientName}</div>
+                    <div style="color: #6b7280; font-size: 14px;">Patient ID: PAT-${Math.floor(Math.random() * 10000)}</div>
+                </div>
+                
+                <div class="invoice-details">
+                    <div class="section-title">Invoice Details</div>
+                    <div class="detail-row">
+                        <span class="detail-label">Invoice Number:</span>
+                        <span class="detail-value">${invoiceData.invoiceNumber}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Invoice Date:</span>
+                        <span class="detail-value">${invoiceData.date}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Due Date:</span>
+                        <span class="detail-value">${new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Payment Terms:</span>
+                        <span class="detail-value">Net 30</span>
+                    </div>
+                </div>
+            </div>
 
-Bill To: ${invoiceData.patientName}
+            <div class="payment-info">
+                <div class="payment-title">Payment Information</div>
+                <div style="font-size: 14px; color: #374151;">
+                    Multiple payment options available: Credit Card, Bank Transfer, PayPal, or Cash
+                </div>
+            </div>
 
-Services:
-${invoiceData.services.map(service => 
-  `${service.description} - Qty: ${service.quantity} - Rate: $${service.rate} - Amount: $${service.amount}`
-).join('\n')}
+            <table class="services-table">
+                <thead>
+                    <tr>
+                        <th>Service Description</th>
+                        <th style="text-align: center;">Quantity</th>
+                        <th style="text-align: right;">Rate</th>
+                        <th style="text-align: right;">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${invoiceData.services.map(service => `
+                    <tr>
+                        <td>
+                            <div style="font-weight: 600; margin-bottom: 4px;">${service.description}</div>
+                            <div style="font-size: 12px; color: #6b7280;">Professional medical consultation</div>
+                        </td>
+                        <td style="text-align: center;">${service.quantity}</td>
+                        <td class="amount-col">$${service.rate.toFixed(2)}</td>
+                        <td class="amount-col">$${service.amount.toFixed(2)}</td>
+                    </tr>
+                    `).join('')}
+                </tbody>
+            </table>
 
-Subtotal: $${invoiceData.subtotal}
-Tax (10%): $${invoiceData.tax}
-Total: $${invoiceData.total}
+            <div class="totals-section">
+                <div class="totals-grid">
+                    <div style="color: #6b7280; font-style: italic;">
+                        All services provided in accordance with medical standards and regulations.
+                    </div>
+                    <div class="totals-table">
+                        <div class="total-row">
+                            <span>Subtotal:</span>
+                            <span>$${invoiceData.subtotal.toFixed(2)}</span>
+                        </div>
+                        <div class="total-row">
+                            <span>Tax (10%):</span>
+                            <span>$${invoiceData.tax.toFixed(2)}</span>
+                        </div>
+                        <div class="total-row final">
+                            <span>Total Amount:</span>
+                            <span>$${invoiceData.total.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-Thank you for choosing Cura Medical Practice!
-      `.trim();
+        <div class="footer">
+            <div class="thank-you">Thank You for Choosing Cura Medical Practice!</div>
+            <div class="contact-info">
+                🏥 Advanced Healthcare Solutions | 📞 +1 (555) 123-4567 | 📧 billing@cura.com<br>
+                🌐 www.cura.com | 📍 123 Medical Center Drive, Healthcare City, HC 12345<br>
+                <br>
+                <strong>Cura by Halo Group</strong> - Excellence in Healthcare Technology
+            </div>
+        </div>
+    </div>
 
-      // Create and download the invoice as a text file (in a real app, this would be a PDF)
-      const blob = new Blob([invoiceContent], { type: 'text/plain' });
+    <script>
+        // Auto-print functionality
+        setTimeout(() => {
+            if (confirm('Would you like to print this invoice?')) {
+                window.print();
+            }
+        }, 500);
+    </script>
+</body>
+</html>
+      `;
+
+      // Create and download the HTML invoice
+      const blob = new Blob([invoiceHTML], { type: 'text/html' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `invoice-${invoiceNumber}.txt`;
+      a.download = `invoice-${invoiceNumber}.html`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
+
+      // Also open the invoice in a new window for immediate viewing
+      const newWindow = window.open('', '_blank');
+      if (newWindow) {
+        newWindow.document.write(invoiceHTML);
+        newWindow.document.close();
+      }
 
       toast({
         title: "Invoice Created & Downloaded",
