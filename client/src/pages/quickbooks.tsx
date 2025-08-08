@@ -294,20 +294,48 @@ export default function QuickBooks() {
         <div class="header">
             <div class="logo-section">
                 <div class="logo">
-                    <svg width="80" height="80" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                    <svg width="80" height="80" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                         <defs>
-                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                                 <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
-                                <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                                <stop offset="50%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#a855f7;stop-opacity:1" />
                             </linearGradient>
                         </defs>
-                        <!-- Cura Logo Symbol -->
-                        <g transform="translate(30, 15)">
-                            <path d="M30 0 C45 5, 55 15, 50 25 C60 20, 65 35, 55 40 C65 50, 50 60, 40 55 C45 65, 30 70, 25 60 C15 70, 0 65, 5 55 C-5 60, -10 45, 0 40 C-10 30, 5 20, 15 25 C10 15, 25 10, 30 0 Z" fill="url(#gradient)" stroke="url(#gradient)" stroke-width="2"/>
+                        <!-- Cura Logo - Interwoven circular pattern -->
+                        <g transform="translate(50, 25)">
+                            <!-- Top flowing element -->
+                            <path d="M-15,-10 C-20,-15 -10,-20 0,-15 C10,-20 20,-15 15,-10 C20,-5 10,0 0,-5 C-10,0 -20,-5 -15,-10 Z" fill="url(#logoGradient)" stroke="none"/>
+                            
+                            <!-- Right flowing element -->
+                            <g transform="rotate(60)">
+                                <path d="M-15,-10 C-20,-15 -10,-20 0,-15 C10,-20 20,-15 15,-10 C20,-5 10,0 0,-5 C-10,0 -20,-5 -15,-10 Z" fill="url(#logoGradient)" stroke="none"/>
+                            </g>
+                            
+                            <!-- Bottom right flowing element -->
+                            <g transform="rotate(120)">
+                                <path d="M-15,-10 C-20,-15 -10,-20 0,-15 C10,-20 20,-15 15,-10 C20,-5 10,0 0,-5 C-10,0 -20,-5 -15,-10 Z" fill="url(#logoGradient)" stroke="none"/>
+                            </g>
+                            
+                            <!-- Bottom left flowing element -->
+                            <g transform="rotate(180)">
+                                <path d="M-15,-10 C-20,-15 -10,-20 0,-15 C10,-20 20,-15 15,-10 C20,-5 10,0 0,-5 C-10,0 -20,-5 -15,-10 Z" fill="url(#logoGradient)" stroke="none"/>
+                            </g>
+                            
+                            <!-- Left flowing element -->
+                            <g transform="rotate(240)">
+                                <path d="M-15,-10 C-20,-15 -10,-20 0,-15 C10,-20 20,-15 15,-10 C20,-5 10,0 0,-5 C-10,0 -20,-5 -15,-10 Z" fill="url(#logoGradient)" stroke="none"/>
+                            </g>
+                            
+                            <!-- Top left flowing element -->
+                            <g transform="rotate(300)">
+                                <path d="M-15,-10 C-20,-15 -10,-20 0,-15 C10,-20 20,-15 15,-10 C20,-5 10,0 0,-5 C-10,0 -20,-5 -15,-10 Z" fill="url(#logoGradient)" stroke="none"/>
+                            </g>
                         </g>
+                        
                         <!-- Text -->
-                        <text x="60" y="85" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#1f2937">Cura</text>
-                        <text x="60" y="100" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">by halo group</text>
+                        <text x="50" y="70" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#1f2937">Cura</text>
+                        <text x="50" y="82" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#6b7280">by halo group</text>
                     </svg>
                 </div>
                 <div class="company-info">
