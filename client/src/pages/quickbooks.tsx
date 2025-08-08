@@ -294,11 +294,20 @@ export default function QuickBooks() {
         <div class="header">
             <div class="logo-section">
                 <div class="logo">
-                    <svg width="80" height="80" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                        <rect width="100" height="100" rx="20" fill="white" stroke="#e5e7eb" stroke-width="2"/>
-                        <circle cx="50" cy="35" r="15" fill="#3b82f6"/>
-                        <path d="M35 60 Q50 45 65 60 Q50 75 35 60" fill="#3b82f6"/>
-                        <text x="50" y="88" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#1f2937">CURA</text>
+                    <svg width="80" height="80" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <!-- Cura Logo Symbol -->
+                        <g transform="translate(30, 15)">
+                            <path d="M30 0 C45 5, 55 15, 50 25 C60 20, 65 35, 55 40 C65 50, 50 60, 40 55 C45 65, 30 70, 25 60 C15 70, 0 65, 5 55 C-5 60, -10 45, 0 40 C-10 30, 5 20, 15 25 C10 15, 25 10, 30 0 Z" fill="url(#gradient)" stroke="url(#gradient)" stroke-width="2"/>
+                        </g>
+                        <!-- Text -->
+                        <text x="60" y="85" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#1f2937">Cura</text>
+                        <text x="60" y="100" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">by halo group</text>
                     </svg>
                 </div>
                 <div class="company-info">
