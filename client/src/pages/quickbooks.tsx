@@ -133,9 +133,12 @@ export default function QuickBooks() {
             align-items: center;
             justify-content: center;
             margin-right: 20px;
-            font-weight: bold;
-            color: #2563eb;
-            font-size: 24px;
+            padding: 8px;
+        }
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
         .company-info {
             flex: 1;
@@ -290,7 +293,20 @@ export default function QuickBooks() {
     <div class="invoice-container">
         <div class="header">
             <div class="logo-section">
-                <div class="logo">C</div>
+                <div class="logo">
+                    <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22 44C34.1503 44 44 34.1503 44 22C44 9.84974 34.1503 0 22 0C9.84974 0 0 9.84974 0 22C0 34.1503 9.84974 44 22 44Z" fill="url(#gradient1)"/>
+                        <path d="M15.5 16.5C15.5 13.4624 17.9624 11 21 11H23C26.0376 11 28.5 13.4624 28.5 16.5C28.5 19.5376 26.0376 22 23 22H21C17.9624 22 15.5 19.5376 15.5 16.5Z" fill="white"/>
+                        <path d="M15.5 27.5C15.5 24.4624 17.9624 22 21 22H23C26.0376 22 28.5 24.4624 28.5 27.5C28.5 30.5376 26.0376 33 23 33H21C17.9624 33 15.5 30.5376 15.5 27.5Z" fill="white"/>
+                        <defs>
+                            <linearGradient id="gradient1" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#3B82F6"/>
+                                <stop offset="0.5" stop-color="#6366F1"/>
+                                <stop offset="1" stop-color="#8B5CF6"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
                 <div class="company-info">
                     <div class="company-name">Cura Medical Practice</div>
                     <div class="company-tagline">Excellence in Healthcare • Powered by Halo Group</div>
