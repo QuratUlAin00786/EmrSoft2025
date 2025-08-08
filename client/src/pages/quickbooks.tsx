@@ -294,30 +294,55 @@ export default function QuickBooks() {
         <div class="header">
             <div class="logo-section">
                 <div class="logo">
-                    <svg width="44" height="44" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Cura Logo - Interconnected gradient loops -->
-                        <path d="M50 10C55 10 60 12 64 16C68 12 73 10 78 12C83 14 86 18 88 23C92 25 95 29 96 34C97 39 95 44 91 48C95 52 97 57 96 62C95 67 92 71 88 73C86 78 83 82 78 84C73 86 68 84 64 80C60 84 55 86 50 86C45 86 40 84 36 80C32 84 27 86 22 84C17 82 14 78 12 73C8 71 5 67 4 62C3 57 5 52 9 48C5 44 3 39 4 34C5 29 8 25 12 23C14 18 17 14 22 12C27 10 32 12 36 16C40 12 45 10 50 10Z" fill="url(#curaGradient)" stroke="url(#curaGradient2)" stroke-width="2"/>
+                    <svg width="44" height="44" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Cura Logo - Accurate interconnected flowing design -->
+                        <!-- Top curve -->
+                        <path d="M60 15 C75 15, 90 25, 95 40 C100 55, 90 70, 80 75" 
+                              stroke="url(#curaGrad1)" stroke-width="8" stroke-linecap="round" fill="none"/>
                         
-                        <!-- Inner connecting elements -->
-                        <path d="M35 35C40 30 45 28 50 30C55 28 60 30 65 35" stroke="url(#curaGradient3)" stroke-width="3" stroke-linecap="round" fill="none"/>
-                        <path d="M65 35C70 40 72 45 70 50C72 55 70 60 65 65" stroke="url(#curaGradient3)" stroke-width="3" stroke-linecap="round" fill="none"/>
-                        <path d="M65 65C60 70 55 72 50 70C45 72 40 70 35 65" stroke="url(#curaGradient3)" stroke-width="3" stroke-linecap="round" fill="none"/>
-                        <path d="M35 65C30 60 28 55 30 50C28 45 30 40 35 35" stroke="url(#curaGradient3)" stroke-width="3" stroke-linecap="round" fill="none"/>
+                        <!-- Right curve -->
+                        <path d="M80 75 C85 85, 85 100, 70 105 C55 110, 40 100, 35 85" 
+                              stroke="url(#curaGrad2)" stroke-width="8" stroke-linecap="round" fill="none"/>
+                        
+                        <!-- Bottom curve -->
+                        <path d="M35 85 C25 70, 25 55, 40 50 C55 45, 70 55, 75 70" 
+                              stroke="url(#curaGrad3)" stroke-width="8" stroke-linecap="round" fill="none"/>
+                        
+                        <!-- Left curve -->
+                        <path d="M75 70 C80 55, 70 40, 55 35 C40 30, 25 40, 20 55 C15 70, 25 85, 40 90" 
+                              stroke="url(#curaGrad4)" stroke-width="8" stroke-linecap="round" fill="none"/>
+                        
+                        <!-- Inner connecting curves -->
+                        <path d="M40 90 C50 85, 60 80, 75 70" 
+                              stroke="url(#curaGrad5)" stroke-width="6" stroke-linecap="round" fill="none"/>
+                        
+                        <path d="M80 75 C75 65, 70 55, 60 45" 
+                              stroke="url(#curaGrad6)" stroke-width="6" stroke-linecap="round" fill="none"/>
                         
                         <defs>
-                            <linearGradient id="curaGradient" x1="10" y1="10" x2="90" y2="90" gradientUnits="userSpaceOnUse">
-                                <stop offset="0%" stop-color="#4F46E5"/>
-                                <stop offset="50%" stop-color="#7C3AED"/>
-                                <stop offset="100%" stop-color="#EC4899"/>
-                            </linearGradient>
-                            <linearGradient id="curaGradient2" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
-                                <stop offset="0%" stop-color="#6366F1"/>
+                            <linearGradient id="curaGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#5B7CFA"/>
                                 <stop offset="100%" stop-color="#8B5CF6"/>
                             </linearGradient>
-                            <linearGradient id="curaGradient3" x1="30" y1="30" x2="70" y2="70" gradientUnits="userSpaceOnUse">
-                                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.8"/>
-                                <stop offset="50%" stop-color="#ffffff" stop-opacity="0.6"/>
-                                <stop offset="100%" stop-color="#ffffff" stop-opacity="0.4"/>
+                            <linearGradient id="curaGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#8B5CF6"/>
+                                <stop offset="100%" stop-color="#A855F7"/>
+                            </linearGradient>
+                            <linearGradient id="curaGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#A855F7"/>
+                                <stop offset="100%" stop-color="#5B7CFA"/>
+                            </linearGradient>
+                            <linearGradient id="curaGrad4" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#5B7CFA"/>
+                                <stop offset="100%" stop-color="#8B5CF6"/>
+                            </linearGradient>
+                            <linearGradient id="curaGrad5" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#8B5CF6"/>
+                                <stop offset="100%" stop-color="#A855F7"/>
+                            </linearGradient>
+                            <linearGradient id="curaGrad6" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#A855F7"/>
+                                <stop offset="100%" stop-color="#5B7CFA"/>
                             </linearGradient>
                         </defs>
                     </svg>
