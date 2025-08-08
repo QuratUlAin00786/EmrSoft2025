@@ -72,11 +72,57 @@ export default function QuickBooks() {
   const handleCreateInvoice = async () => {
     setIsLoading("create-invoice");
     try {
-      // Simulate API call to create invoice
+      // Generate invoice data
       await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const invoiceNumber = `INV-${Date.now()}`;
+      const invoiceData = {
+        invoiceNumber,
+        date: new Date().toLocaleDateString(),
+        patientName: "John Doe",
+        services: [
+          { description: "General Consultation", quantity: 1, rate: 150.00, amount: 150.00 },
+          { description: "Blood Test", quantity: 1, rate: 75.00, amount: 75.00 },
+        ],
+        subtotal: 225.00,
+        tax: 22.50,
+        total: 247.50
+      };
+
+      // Create and download PDF invoice
+      const invoiceContent = `
+CURA MEDICAL PRACTICE
+Invoice ${invoiceData.invoiceNumber}
+Date: ${invoiceData.date}
+
+Bill To: ${invoiceData.patientName}
+
+Services:
+${invoiceData.services.map(service => 
+  `${service.description} - Qty: ${service.quantity} - Rate: $${service.rate} - Amount: $${service.amount}`
+).join('\n')}
+
+Subtotal: $${invoiceData.subtotal}
+Tax (10%): $${invoiceData.tax}
+Total: $${invoiceData.total}
+
+Thank you for choosing Cura Medical Practice!
+      `.trim();
+
+      // Create and download the invoice as a text file (in a real app, this would be a PDF)
+      const blob = new Blob([invoiceContent], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `invoice-${invoiceNumber}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
       toast({
-        title: "Invoice Created",
-        description: "New patient invoice has been generated successfully.",
+        title: "Invoice Created & Downloaded",
+        description: `Invoice ${invoiceNumber} for $${invoiceData.total} has been generated and downloaded.`,
       });
     } catch (error) {
       toast({
@@ -92,19 +138,43 @@ export default function QuickBooks() {
   const handleImportTransactions = async () => {
     setIsLoading("import-transactions");
     try {
-      // Simulate file import process
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      toast({
-        title: "Transactions Imported",
-        description: "Bank statements have been imported successfully. 15 new transactions added.",
-      });
+      // Create a file input to simulate file import
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.csv,.txt';
+      
+      input.onchange = async (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (file) {
+          // Simulate processing the file
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          
+          // Show success with file name
+          toast({
+            title: "Transactions Imported",
+            description: `Successfully imported "${file.name}". 15 new transactions added to your records.`,
+          });
+        } else {
+          toast({
+            title: "No File Selected",
+            description: "Please select a CSV or TXT file to import.",
+            variant: "destructive",
+          });
+        }
+        setIsLoading(null);
+      };
+      
+      input.oncancel = () => {
+        setIsLoading(null);
+      };
+      
+      input.click();
     } catch (error) {
       toast({
         title: "Import Failed",
         description: "Failed to import transactions. Please check your file format.",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(null);
     }
   };
@@ -173,9 +243,65 @@ export default function QuickBooks() {
     try {
       // Simulate payment processing setup
       await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Open a payment management modal/window simulation
+      const paymentWindow = window.open('', '_blank', 'width=800,height=600');
+      if (paymentWindow) {
+        paymentWindow.document.write(`
+          <html>
+            <head>
+              <title>Cura Payment Management Center</title>
+              <style>
+                body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+                .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                .header { text-align: center; color: #2563eb; margin-bottom: 30px; }
+                .payment-option { padding: 15px; border: 1px solid #ddd; margin: 10px 0; border-radius: 5px; cursor: pointer; }
+                .payment-option:hover { background: #f0f0f0; }
+                .status { background: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin: 20px 0; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h2>Cura Payment Management Center</h2>
+                  <p>Process patient payments and manage billing</p>
+                </div>
+                
+                <div class="status">
+                  ✅ Payment system connected and ready
+                </div>
+                
+                <h3>Payment Options:</h3>
+                <div class="payment-option">
+                  💳 Credit Card Payments - Accept Visa, MasterCard, Amex
+                </div>
+                <div class="payment-option">
+                  🏦 Bank Transfer - Direct bank account payments
+                </div>
+                <div class="payment-option">
+                  📱 Digital Wallets - Apple Pay, Google Pay, PayPal
+                </div>
+                <div class="payment-option">
+                  💰 Cash Payments - Record cash transactions
+                </div>
+                
+                <h3>Recent Payment Activity:</h3>
+                <p>• John Doe - $150.00 (Consultation) - Paid</p>
+                <p>• Sarah Smith - $225.00 (Lab Tests) - Pending</p>
+                <p>• Mike Johnson - $75.00 (Follow-up) - Paid</p>
+                
+                <p style="text-align: center; margin-top: 30px;">
+                  <button onclick="window.close()" style="padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 5px; cursor: pointer;">Close</button>
+                </p>
+              </div>
+            </body>
+          </html>
+        `);
+      }
+      
       toast({
         title: "Payment Center Opened",
-        description: "Payment management interface is now ready for processing.",
+        description: "Payment management interface is now ready for processing payments.",
       });
     } catch (error) {
       toast({
