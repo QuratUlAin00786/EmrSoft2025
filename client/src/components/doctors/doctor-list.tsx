@@ -40,7 +40,7 @@ function getInitials(firstName: string, lastName: string): string {
 export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: DoctorListProps) {
   const [, setLocation] = useLocation();
   
-  const { data: medicalStaff = [], isLoading, error } = useQuery({
+  const { data: medicalStaffResponse, isLoading, error } = useQuery({
     queryKey: ["/api/medical-staff"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/medical-staff");
@@ -49,6 +49,10 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
     },
     enabled: true,
   });
+
+  const medicalStaff = medicalStaffResponse?.staff || [];
+  const totalDoctors = medicalStaffResponse?.totalDoctors || 0;
+  const availableDoctors = medicalStaffResponse?.availableDoctors || 0;
 
   if (isLoading) {
     return (
@@ -97,7 +101,7 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Stethoscope className="h-5 w-5" />
-          Medical Staff ({medicalStaff.length})
+          Medical Staff ({availableDoctors}/{totalDoctors} Available)
         </CardTitle>
       </CardHeader>
       <CardContent>

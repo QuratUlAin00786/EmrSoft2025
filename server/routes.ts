@@ -1013,6 +1013,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all staff shifts for today
       const todayShifts = await storage.getStaffShiftsByOrganization(req.tenant!.id, today.toISOString().split('T')[0]);
       
+      // Get total doctor count
+      const totalDoctors = users.filter(user => user.role === 'doctor' && user.isActive).length;
+      
       // Filter for all staff roles needed for shift management and appointments
       const medicalStaff = users
         .filter(user => ['doctor', 'nurse', 'sample_taker', 'lab_technician', 'admin', 'receptionist'].includes(user.role) && user.isActive)
@@ -1040,7 +1043,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return safeUser;
         });
       
-      res.json(medicalStaff);
+      // Count available doctors
+      const availableDoctors = medicalStaff.filter(user => user.role === 'doctor').length;
+      
+      res.json({
+        staff: medicalStaff,
+        totalDoctors,
+        availableDoctors
+      });
     } catch (error) {
       console.error("Medical staff fetch error:", error);
       res.status(500).json({ error: "Failed to fetch medical staff" });
