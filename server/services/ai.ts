@@ -429,11 +429,13 @@ Please provide a comprehensive safety analysis focusing on clinically significan
       // Check if this is a continuing appointment booking conversation
       const isAppointmentContext = params.conversationHistory && params.conversationHistory.some(item => 
         item.role === 'assistant' && (
-          item.content.includes('Which doctor would you like to book with?') ||
-          item.content.includes('Which patient is this appointment for?') ||
-          item.content.includes('I need a specific date and time:') ||
-          item.content.includes('Available doctors:') ||
-          item.content.includes('Recent patients:')
+          item.content.includes('Which doctor?') ||
+          item.content.includes('Which patient?') ||
+          item.content.includes('When?') ||
+          item.content.includes('Found patient') ||
+          item.content.includes('Found **Dr.') ||
+          item.content.includes('Ready to book') ||
+          item.content.includes('Tell me:')
         )
       );
 
@@ -461,9 +463,9 @@ Please provide a comprehensive safety analysis focusing on clinically significan
           for (const historyItem of params.conversationHistory) {
             if (historyItem.role === 'assistant' && historyItem.content) {
               // Check if we previously identified a patient
-              const patientMatch = historyItem.content.match(/I found patient \*\*([^*]+)\*\*|Great! I found patient \*\*([^*]+)\*\*|I can book an appointment for \*\*([^*]+)\*\*/);
+              const patientMatch = historyItem.content.match(/Found patient \*\*([^*]+)\*\*|Ready to book \*\*([^*]+)\*\* with/);
               if (patientMatch) {
-                const patientName = patientMatch[1] || patientMatch[2] || patientMatch[3];
+                const patientName = patientMatch[1] || patientMatch[2];
                 contextPatient = patients.find(p => 
                   `${p.firstName} ${p.lastName}` === patientName ||
                   `${p.firstName}  ${p.lastName}` === patientName
@@ -471,9 +473,9 @@ Please provide a comprehensive safety analysis focusing on clinically significan
               }
               
               // Check if we previously identified a doctor
-              const doctorMatch = historyItem.content.match(/I found \*\*Dr\. ([^*]+)\*\*|Excellent! I found \*\*Dr\. ([^*]+)\*\*|with \*\*Dr\. ([^*]+)\*\*/);
+              const doctorMatch = historyItem.content.match(/Found \*\*Dr\. ([^*]+)\*\*|Ready to book .+ with \*\*Dr\. ([^*]+)\*\*/);
               if (doctorMatch) {
-                const doctorName = doctorMatch[1] || doctorMatch[2] || doctorMatch[3];
+                const doctorName = doctorMatch[1] || doctorMatch[2];
                 contextDoctor = doctors.find(d => 
                   `${d.firstName} ${d.lastName}` === doctorName ||
                   `Dr. ${d.firstName} ${d.lastName}` === `Dr. ${doctorName}`
@@ -490,12 +492,21 @@ Please provide a comprehensive safety analysis focusing on clinically significan
         // Look for patient names in the current message (if not already found in context)
         if (!foundPatient) {
           for (const patient of patients) {
-            const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
-            const spacedName = `${patient.firstName}  ${patient.lastName}`.toLowerCase(); // Handle double spaces
-            if (lowerMessage.includes(patient.firstName.toLowerCase()) || 
-                lowerMessage.includes(patient.lastName.toLowerCase()) ||
+            const firstName = patient.firstName.toLowerCase();
+            const lastName = patient.lastName.toLowerCase();
+            const fullName = `${firstName} ${lastName}`;
+            const spacedName = `${firstName}  ${lastName}`; // Handle double spaces
+            
+            // Enhanced patient name matching - check for exact names and partial matches
+            if (lowerMessage.includes(firstName) || 
+                lowerMessage.includes(lastName) ||
                 lowerMessage.includes(fullName) ||
-                lowerMessage.includes(spacedName)) {
+                lowerMessage.includes(spacedName) ||
+                // Handle user responses like "Harris" or "Khan"
+                lowerMessage === firstName || 
+                lowerMessage === lastName ||
+                lowerMessage.includes(`${firstName} ${lastName}`) ||
+                lowerMessage.includes(`${lastName} ${firstName}`)) {
               foundPatient = patient;
               break;
             }
@@ -510,34 +521,22 @@ Please provide a comprehensive safety analysis focusing on clinically significan
             const fullName = `${firstName} ${lastName}`;
             
             // Enhanced doctor name matching with flexible patterns
-            const variations = [
-              firstName,
-              lastName,
-              fullName,
-              `dr. ${firstName}`,
-              `dr. ${lastName}`,
-              `dr. ${fullName}`,
-              `dr ${firstName}`,
-              `dr ${lastName}`,
-              `dr ${fullName}`,
-              `doctor ${firstName}`,
-              `doctor ${lastName}`,
-              `doctor ${fullName}`,
-              // Handle "Dr. David Wilson" format specifically
-              `dr. ${firstName} ${lastName}`,
-              `dr ${firstName} ${lastName}`,
-              `doctor ${firstName} ${lastName}`
-            ];
-            
-            // Check if message contains any variation
-            const messageContainsDoctor = variations.some(variation => {
-              return lowerMessage.includes(variation);
-            });
-            
-            // Also check for partial matches (e.g., "wilson" should match "Dr. David Wilson")
-            const partialMatch = lowerMessage.includes(lastName) || lowerMessage.includes(firstName);
-            
-            if (messageContainsDoctor || partialMatch) {
+            if (lowerMessage.includes(firstName) || 
+                lowerMessage.includes(lastName) ||
+                lowerMessage.includes(fullName) ||
+                lowerMessage.includes(`dr. ${firstName}`) ||
+                lowerMessage.includes(`dr. ${lastName}`) ||
+                lowerMessage.includes(`dr ${firstName}`) ||
+                lowerMessage.includes(`dr ${lastName}`) ||
+                lowerMessage.includes(`doctor ${firstName}`) ||
+                lowerMessage.includes(`doctor ${lastName}`) ||
+                // Handle simple responses like "mobile" or "smith"
+                lowerMessage === firstName || 
+                lowerMessage === lastName ||
+                lowerMessage === `dr. ${firstName}` ||
+                lowerMessage === `dr. ${lastName}` ||
+                lowerMessage === `dr ${firstName}` ||
+                lowerMessage === `dr ${lastName}`) {
               foundDoctor = doctor;
               break;
             }
