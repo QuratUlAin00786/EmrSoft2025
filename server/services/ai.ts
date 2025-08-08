@@ -537,20 +537,17 @@ Please provide a comprehensive safety analysis focusing on clinically significan
           }
         }
         
-        // Simple doctor name matching
+        // Simplified doctor name matching to prevent repetitive responses
         if (!foundDoctor) {
           for (const doctor of doctors) {
             const firstName = doctor.firstName.toLowerCase();
             const lastName = doctor.lastName.toLowerCase();
             const fullName = `${firstName} ${lastName}`;
             
-            if (lowerMessage.includes(firstName) || 
-                lowerMessage.includes(lastName) ||
-                lowerMessage.includes(fullName) ||
-                lowerMessage.includes(`dr. ${firstName}`) ||
-                lowerMessage.includes(`dr. ${lastName}`) ||
-                lowerMessage.includes(`dr ${firstName}`) ||
-                lowerMessage.includes(`dr ${lastName}`)) {
+            // Only match if the name appears clearly in the message
+            if (lowerMessage.includes(fullName) || 
+                lowerMessage.includes(`dr. ${fullName}`) ||
+                lowerMessage.includes(`dr ${fullName}`)) {
               foundDoctor = doctor;
               break;
             }
