@@ -804,20 +804,20 @@ Please provide a comprehensive safety analysis focusing on clinically significan
               needsDateTime: true
             };
             
-            response = `Perfect! I can book an appointment for **${foundPatient.firstName} ${foundPatient.lastName}** with **Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}**.\n\n⏰ **Please provide a specific date and time:**\n\n**Examples:**\n• "tomorrow at 2pm" \n• "today at 10:30am"\n• "August 5th at 3pm"\n• "next Monday at 9am"\n\n**Available appointment slots:** 9:00 AM - 5:00 PM (30-minute appointments)\n\nOnce you specify the time, I'll immediately create the appointment and add it to the calendar!`;
+            response = `Ready to book **${foundPatient.firstName} ${foundPatient.lastName}** with **Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}**. When?\n\nExamples: "tomorrow at 2pm", "today at 10am"`;
           }
         } else if (foundPatient && !foundDoctor) {
           const doctorsList = doctors.slice(0, 4).map(d => {
             return `• **Dr. ${d.firstName} ${d.lastName}**${d.department ? ` (${d.department})` : ''}`;
           }).join('\n');
           
-          response = `Great! I found patient **${foundPatient.firstName} ${foundPatient.lastName}**.\n\n**Which doctor would you like to book with?**\n${doctorsList}\n\nJust say "Book with Dr. [Last Name]" and I'll help you schedule the appointment!`;
+          response = `Found patient **${foundPatient.firstName} ${foundPatient.lastName}**. Which doctor?\n${doctorsList}`;
         } else if (!foundPatient && foundDoctor) {
           const patientsList = patients.slice(0, 4).map(p => {
             return `• **${p.firstName} ${p.lastName}** (ID: ${p.patientId || 'N/A'})`;
           }).join('\n');
           
-          response = `Excellent! I found **Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}**.\n\n**Which patient is this appointment for?**\n${patientsList}\n\nJust say "${patients[0]?.firstName || 'Patient Name'} with Dr. ${foundDoctor.lastName}" and I'll complete the booking!`;
+          response = `Found **Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}**. Which patient?\n${patientsList}`;
         } else {
           const doctorsList = doctors.slice(0, 3).map(d => {
             return `• **Dr. ${d.firstName} ${d.lastName}**${d.department ? ` (${d.department})` : ''}`;
@@ -827,7 +827,7 @@ Please provide a comprehensive safety analysis focusing on clinically significan
             return `• **${p.firstName} ${p.lastName}** (ID: ${p.patientId || 'N/A'})`;
           }).join('\n');
           
-          response = `I'll help you book an appointment!\n\n**Available Doctors:**\n${doctorsList}\n\n**Recent Patients:**\n${patientsList}\n\n**Example:** "Book appointment for ${patients[0]?.firstName || 'John'} ${patients[0]?.lastName || 'Smith'} with Dr. ${doctors[0]?.lastName || 'Johnson'} tomorrow at 2pm"\n\nJust tell me the patient name, doctor, and time - I'll guide you through it!`;
+          response = `I'll help you book an appointment. Tell me:\n• Patient name\n• Doctor name\n• Date and time`;
         }
       }
       
@@ -859,26 +859,21 @@ Please provide a comprehensive safety analysis focusing on clinically significan
           };
           
           if (patientPrescriptions.length > 0) {
-            response = `Found **${patientPrescriptions.length} prescriptions** for **${foundPatient.firstName} ${foundPatient.lastName}**:\n\n${patientPrescriptions.slice(0, 5).map(p => {
+            response = `**${patientPrescriptions.length} prescriptions** for **${foundPatient.firstName} ${foundPatient.lastName}**:\n\n${patientPrescriptions.slice(0, 3).map(p => {
               const medList = p.medications && p.medications.length > 0 
-                ? p.medications.map((med: any) => `${med.name} - ${med.dosage} (${med.frequency})`).join(', ')
-                : 'Medication details not available';
-              return `• **${medList}**\n  Status: ${p.status} | Prescribed: ${new Date(p.createdAt).toLocaleDateString()}`;
-            }).join('\n\n')}${patientPrescriptions.length > 5 ? `\n\n...and ${patientPrescriptions.length - 5} more` : ''}`;
+                ? p.medications.map((med: any) => `${med.name}`).join(', ')
+                : 'No medication details';
+              return `• ${medList} (${p.status})`;
+            }).join('\n')}`;
           } else {
             response = `No prescriptions found for **${foundPatient.firstName} ${foundPatient.lastName}**.`;
           }
         } else {
-          // Show recent prescriptions overview
-          const recentPrescriptions = prescriptions.slice(0, 10);
-          response = `Here are the most recent prescriptions in the system:\n\n${recentPrescriptions.map(p => {
+          response = `Recent prescriptions:\n${prescriptions.slice(0, 5).map(p => {
             const patient = patients.find(pt => pt.id === p.patientId);
-            const patientName = patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown Patient';
-            const medList = p.medications && p.medications.length > 0 
-              ? p.medications.map((med: any) => `${med.name}`).join(', ')
-              : 'Medication details not available';
-            return `• **${medList}** for ${patientName}\n  Status: ${p.status}`;
-          }).join('\n\n')}\n\nTo find prescriptions for a specific patient, mention their name (e.g., "Find prescriptions for John Smith").`;
+            const patientName = patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown';
+            return `• ${patientName} (${p.status})`;
+          }).join('\n')}\n\nTell me a patient name to see their prescriptions.`;
         }
       }
       
