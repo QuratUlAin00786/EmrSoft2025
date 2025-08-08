@@ -545,7 +545,7 @@ Please provide a comprehensive safety analysis focusing on clinically significan
         }
         
         // Extract date/time information and try to parse it
-        let scheduledDate = null;
+        let scheduledDate: Date | null = null;
         const now = new Date();
         
         // Check for common date patterns
@@ -624,7 +624,7 @@ Please provide a comprehensive safety analysis focusing on clinically significan
             const exactDuplicate = existingAppointments.find(appointment => {
               const existingStart = new Date(appointment.scheduledAt);
               return appointment.patientId === foundPatient.id && 
-                     Math.abs(existingStart.getTime() - scheduledDate.getTime()) < 60000; // Within 1 minute
+                     scheduledDate && Math.abs(existingStart.getTime() - scheduledDate.getTime()) < 60000; // Within 1 minute
             });
             
             if (exactDuplicate) {
@@ -635,7 +635,7 @@ Please provide a comprehensive safety analysis focusing on clinically significan
                 const existingEnd = new Date(existingStart.getTime() + (appointment.duration || 30) * 60 * 1000);
                 
                 // Check if times overlap
-                return (scheduledDate < existingEnd && appointmentEndTime > existingStart);
+                return scheduledDate && (scheduledDate < existingEnd && appointmentEndTime > existingStart);
               });
               
               if (hasConflict) {
@@ -741,7 +741,7 @@ Please provide a comprehensive safety analysis focusing on clinically significan
               const hasConflict = existingAppointments.some(appointment => {
                 const existingStart = new Date(appointment.scheduledAt);
                 const existingEnd = new Date(existingStart.getTime() + (appointment.duration || 30) * 60 * 1000);
-                return (scheduledDate < existingEnd && appointmentEndTime > existingStart);
+                return scheduledDate && (scheduledDate < existingEnd && appointmentEndTime > existingStart);
               });
               
               if (hasConflict) {
@@ -892,29 +892,12 @@ Please provide a comprehensive safety analysis focusing on clinically significan
         const doctors = allUsers.filter((user: any) => user.role === 'doctor');
         const stats = await storage.getDashboardStats(params.organizationId);
         
-        response = `## Welcome to Cura AI Assistant! 
-        
-I'm here to help you manage appointments and find information quickly. Here's what I can do:
+        response = `Hello! I can help you with:
+• Book appointments
+• Find prescriptions  
+• Search patients
 
-### 📅 **Appointment Booking**
-**Complete booking:** "Book appointment for John Smith with Dr. Johnson tomorrow at 2pm"
-**Step by step:** Just tell me the patient name, I'll guide you through the rest
-**Flexible timing:** "today", "tomorrow", "next week", "August 5th at 3pm"
-
-### 💊 **Prescription Search**
-**Find by patient:** "Find prescriptions for Sarah Wilson"
-**General search:** "Show recent prescriptions"
-**Medication lookup:** "Search for Lisinopril prescriptions"
-
-### 📊 **System Information**
-**Current status:** ${stats.totalPatients} patients, ${stats.todayAppointments} appointments today
-**Available doctors:** ${doctors.length} physicians ready for appointments
-**Your access:** ${params.userRole} permissions
-
-### 💬 **Natural Conversation**
-You can ask me questions in plain English! I understand context and can help with multi-step tasks.
-
-**What would you like to do first?** Just tell me in your own words!`;
+What would you like to do?`;
       }
       
       // Patient search and information
@@ -937,42 +920,13 @@ You can ask me questions in plain English! I understand context and can help wit
         }
         
         if (foundPatient) {
-          const medicalHistory = foundPatient.medicalHistory || {};
-          const allergies = medicalHistory.allergies || [];
-          const conditions = medicalHistory.chronicConditions || [];
-          const medications = medicalHistory.medications || [];
-          
-          response = `## Patient Information: ${foundPatient.firstName} ${foundPatient.lastName}
-
-**📋 Basic Details:**
-• Patient ID: ${foundPatient.patientId || 'Not assigned'}
-• Phone: ${foundPatient.phone || 'Not provided'}
-• Email: ${foundPatient.email || 'Not provided'}
-• Risk Level: ${foundPatient.riskLevel || 'Not assessed'}
-
-**🏥 Medical Information:**
-• Allergies: ${allergies.length > 0 ? allergies.join(', ') : 'None recorded'}
-• Conditions: ${conditions.length > 0 ? conditions.join(', ') : 'None recorded'}
-• Current Medications: ${medications.length > 0 ? medications.join(', ') : 'None recorded'}
-
-**💡 Quick Actions:**
-• "Book appointment for ${foundPatient.firstName}"
-• "Find prescriptions for ${foundPatient.firstName}"
-• "Show medical records for ${foundPatient.firstName}"`;
+          response = `Found patient **${foundPatient.firstName} ${foundPatient.lastName}** (ID: ${foundPatient.patientId || 'N/A'}).\n\nWhat would you like to do?\n• Book appointment\n• Find prescriptions\n• View medical records`;
         } else {
-          const recentPatients = patients.slice(0, 5).map(p => {
-            return `• **${p.firstName} ${p.lastName}** (ID: ${p.patientId || 'N/A'})`;
+          const recentPatients = patients.slice(0, 3).map(p => {
+            return `• **${p.firstName} ${p.lastName}**`;
           }).join('\n');
           
-          response = `## Patient Search Results
-
-**Recent Patients:**
-${recentPatients}
-
-**Search by name:** "Find patient [name]" for detailed information
-**Book appointment:** "Book appointment for [patient name]"
-
-Which patient would you like to know more about?`;
+          response = `Recent patients:\n${recentPatients}\n\nTell me a patient name for specific information.`;
         }
       }
       
@@ -989,43 +943,9 @@ Which patient would you like to know more about?`;
                                    lowerMessage.includes('doctor') || /\d{1,2}(:\d{2})?\s*(am|pm)/i.test(lowerMessage);
         
         if (isLikelyAppointment) {
-          const doctorsList = doctors.map(d => {
-            return `• **Dr. ${d.firstName} ${d.lastName}**${d.department ? ` (${d.department})` : ''}`;
-          }).join('\n');
-          
-          const patientsList = patients.map(p => {
-            return `• **${p.firstName} ${p.lastName}** (ID: ${p.patientId || 'N/A'})`;
-          }).join('\n');
-          
-          response = `I understand you want to book an appointment! Let me help you with that.
-
-**Available Doctors:**
-${doctorsList}
-
-**Recent Patients:**
-${patientsList}
-
-**Example:** "Book appointment for ${patients[0]?.firstName || 'John'} ${patients[0]?.lastName || 'Smith'} with Dr. ${doctors[0]?.lastName || 'Johnson'} tomorrow at 2pm"
-
-What information do you have so far?`;
+          response = `I'll help you book an appointment. Please tell me:\n• Patient name\n• Doctor name\n• Date and time\n\nExample: "Book appointment for John Smith with Dr. Johnson tomorrow at 2pm"`;
         } else {
-          response = `## Hello! I'm your Cura AI Assistant
-
-**📊 System Overview:**
-• ${stats.totalPatients} patients in your organization
-• ${stats.todayAppointments} appointments scheduled today
-• ${doctors.length} doctors available
-• Access level: ${params.userRole}
-
-**🚀 Quick Start:**
-• **"Book an appointment"** - I'll guide you through the process
-• **"Find prescriptions"** - Search by patient name
-• **"Help"** - See all available commands
-
-**💬 Recent Activity:**
-${patients.length > 0 ? `Recent patients: ${patients.map(p => p.firstName + ' ' + p.lastName).join(', ')}` : 'No recent patient activity'}
-
-Just tell me what you need in your own words - I'm here to help!`;
+          response = `Hello! I can help with appointments, prescriptions, and patient information. What do you need?`;
         }
       }
 
