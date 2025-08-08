@@ -294,7 +294,7 @@ export default function QuickBooks() {
         <div class="header">
             <div class="logo-section">
                 <div class="logo">
-                    <img src="/attached_assets/0000_1754658479925.PNG" alt="Cura Logo" style="width: 100%; height: 100%; object-fit: contain;" />
+                    <img src="/cura-logo.png" alt="Cura Logo" style="width: 100%; height: 100%; object-fit: contain;" />
                 </div>
                 <div class="company-info">
                     <div class="company-name">Cura Medical Practice</div>
