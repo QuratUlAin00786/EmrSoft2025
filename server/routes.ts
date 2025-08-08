@@ -1009,12 +1009,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get today's date for shift checking
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+      const dayOfWeek = today.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
       
       // Get all staff shifts for today
-      const todayShifts = await storage.getStaffShiftsByOrganization(req.tenant!.id, today.toISOString().split('T')[0]);
+      let todayShifts = [];
+      try {
+        todayShifts = await storage.getStaffShiftsByOrganization(req.tenant!.id, today.toISOString().split('T')[0]);
+      } catch (error) {
+        console.log("No staff shifts data available, using fallback logic");
+        todayShifts = [];
+      }
       
       // Get total doctor count
       const totalDoctors = users.filter(user => user.role === 'doctor' && user.isActive).length;
+      
+      console.log(`=== MEDICAL STAFF DEBUG ===`);
+      console.log(`Total users: ${users.length}`);
+      console.log(`Total doctors: ${totalDoctors}`);
+      console.log(`Today shifts count: ${todayShifts.length}`);
+      console.log(`Day of week: ${dayOfWeek}`);
       
       // Filter for all staff roles needed for shift management and appointments
       const medicalStaff = users
@@ -1022,17 +1035,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .filter(user => {
           // For doctors specifically, check if they are available today
           if (user.role === 'doctor') {
+            console.log(`Checking doctor: ${user.firstName} ${user.lastName} (ID: ${user.id})`);
+            
             // Check if doctor has a shift today and is marked as available
             const todayShift = todayShifts.find(shift => shift.staffId === user.id);
+            
             if (todayShift) {
+              console.log(`  - Has shift today: available=${todayShift.isAvailable}, status=${todayShift.status}`);
               // Doctor has a shift today - check if they're available and not absent
-              return todayShift.isAvailable && 
+              const isAvailable = todayShift.isAvailable && 
                      todayShift.status !== 'absent' && 
                      todayShift.status !== 'cancelled';
+              console.log(`  - Final availability: ${isAvailable}`);
+              return isAvailable;
             } else {
               // No shift found - check working days to see if they normally work today
-              const dayOfWeek = today.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-              return user.workingDays && user.workingDays.includes(dayOfWeek);
+              const hasWorkingDays = user.workingDays && user.workingDays.length > 0;
+              const worksToday = hasWorkingDays && user.workingDays.includes(dayOfWeek);
+              
+              console.log(`  - No shift found. Working days: ${user.workingDays || 'none'}`);
+              console.log(`  - Works today (${dayOfWeek}): ${worksToday}`);
+              
+              // If no working days are set, assume doctor is available (fallback)
+              const isAvailable = hasWorkingDays ? worksToday : true;
+              console.log(`  - Final availability: ${isAvailable}`);
+              return isAvailable;
             }
           }
           // For non-doctors, show all active staff
@@ -1045,6 +1072,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Count available doctors
       const availableDoctors = medicalStaff.filter(user => user.role === 'doctor').length;
+      
+      console.log(`Available doctors after filtering: ${availableDoctors}`);
+      console.log(`=== END DEBUG ===`);
       
       res.json({
         staff: medicalStaff,
