@@ -438,11 +438,11 @@ Please provide a comprehensive safety analysis focusing on clinically significan
       );
 
       // Enhanced appointment booking logic with context persistence
-      if (lowerMessage.includes('book') || lowerMessage.includes('schedule') || lowerMessage.includes('appointment') || 
-          lowerMessage.includes('tomorrow') || lowerMessage.includes('today') || lowerMessage.includes('next week') ||
-          /\d{1,2}(:\d{2})?\s*(am|pm)/i.test(lowerMessage) || 
-          lowerMessage.includes('dr.') || lowerMessage.includes('doctor') ||
-          isAppointmentContext) {
+      const hasAppointmentKeywords = lowerMessage.includes('book') || lowerMessage.includes('schedule') || lowerMessage.includes('appointment');
+      const hasTimeKeywords = lowerMessage.includes('tomorrow') || lowerMessage.includes('today') || lowerMessage.includes('next week') || /\d{1,2}(:\d{2})?\s*(am|pm)/i.test(lowerMessage);
+      const hasDoctorKeywords = lowerMessage.includes('dr.') || lowerMessage.includes('doctor');
+      
+      if (hasAppointmentKeywords || (isAppointmentContext && (hasTimeKeywords || hasDoctorKeywords))) {
         intent = 'book_appointment';
         confidence = 0.9;
         
@@ -930,23 +930,9 @@ What would you like to do?`;
         }
       }
       
-      // Default response with context - enhanced for appointment booking intent
+      // Default response - simple and clean
       else {
-        const stats = await storage.getDashboardStats(params.organizationId);
-        const patients = await storage.getPatientsByOrganization(params.organizationId, 3);
-        const allUsers = await storage.getUsersByOrganization(params.organizationId);
-        const doctors = allUsers.filter((user: any) => user.role === 'doctor').slice(0, 3);
-        
-        // Check if the message seems to be appointment-related but didn't match
-        const isLikelyAppointment = lowerMessage.includes('book') || lowerMessage.includes('schedule') || 
-                                   lowerMessage.includes('appointment') || lowerMessage.includes('dr.') || 
-                                   lowerMessage.includes('doctor') || /\d{1,2}(:\d{2})?\s*(am|pm)/i.test(lowerMessage);
-        
-        if (isLikelyAppointment) {
-          response = `I'll help you book an appointment. Please tell me:\n• Patient name\n• Doctor name\n• Date and time\n\nExample: "Book appointment for John Smith with Dr. Johnson tomorrow at 2pm"`;
-        } else {
-          response = `Hello! I can help with appointments, prescriptions, and patient information. What do you need?`;
-        }
+        response = `Hello! I can help with appointments, prescriptions, and patient information. What do you need?`;
       }
 
     } catch (error) {
