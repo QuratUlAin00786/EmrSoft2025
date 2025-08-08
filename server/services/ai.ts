@@ -537,20 +537,34 @@ Please provide a comprehensive safety analysis focusing on clinically significan
           }
         }
         
-        // Simplified doctor name matching to prevent repetitive responses
+        // Enhanced doctor name matching with better patterns
         if (!foundDoctor) {
           for (const doctor of doctors) {
             const firstName = doctor.firstName.toLowerCase();
             const lastName = doctor.lastName.toLowerCase();
             const fullName = `${firstName} ${lastName}`;
             
-            // Only match if the name appears clearly in the message
-            if (lowerMessage.includes(fullName) || 
-                lowerMessage.includes(`dr. ${fullName}`) ||
-                lowerMessage.includes(`dr ${fullName}`)) {
-              foundDoctor = doctor;
-              break;
+            // Match various patterns but avoid partial matches that cause loops
+            const patterns = [
+              fullName,                           // "ali raza"
+              `dr. ${fullName}`,                 // "dr. ali raza"
+              `dr ${fullName}`,                  // "dr ali raza"
+              `doctor ${fullName}`,              // "doctor ali raza"
+              `dr. ${firstName}`,                // "dr. ali"
+              `dr ${firstName}`,                 // "dr ali"
+              `doctor ${firstName}`              // "doctor ali"
+            ];
+            
+            // Only match if pattern appears as whole words to prevent loops
+            for (const pattern of patterns) {
+              const regex = new RegExp(`\\b${pattern.replace(/\s+/g, '\\s+')}\\b`, 'i');
+              if (regex.test(lowerMessage)) {
+                foundDoctor = doctor;
+                break;
+              }
             }
+            
+            if (foundDoctor) break;
           }
         }
         
