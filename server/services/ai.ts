@@ -461,9 +461,9 @@ Please provide a comprehensive safety analysis focusing on clinically significan
           for (const historyItem of params.conversationHistory) {
             if (historyItem.role === 'assistant' && historyItem.content) {
               // Check if we previously identified a patient
-              const patientMatch = historyItem.content.match(/I found patient \*\*([^*]+)\*\*/);
+              const patientMatch = historyItem.content.match(/I found patient \*\*([^*]+)\*\*|Great! I found patient \*\*([^*]+)\*\*|I can book an appointment for \*\*([^*]+)\*\*/);
               if (patientMatch) {
-                const patientName = patientMatch[1];
+                const patientName = patientMatch[1] || patientMatch[2] || patientMatch[3];
                 contextPatient = patients.find(p => 
                   `${p.firstName} ${p.lastName}` === patientName ||
                   `${p.firstName}  ${p.lastName}` === patientName
@@ -471,9 +471,9 @@ Please provide a comprehensive safety analysis focusing on clinically significan
               }
               
               // Check if we previously identified a doctor
-              const doctorMatch = historyItem.content.match(/I found \*\*Dr\. ([^*]+)\*\*/);
+              const doctorMatch = historyItem.content.match(/I found \*\*Dr\. ([^*]+)\*\*|Excellent! I found \*\*Dr\. ([^*]+)\*\*|with \*\*Dr\. ([^*]+)\*\*/);
               if (doctorMatch) {
-                const doctorName = doctorMatch[1];
+                const doctorName = doctorMatch[1] || doctorMatch[2] || doctorMatch[3];
                 contextDoctor = doctors.find(d => 
                   `${d.firstName} ${d.lastName}` === doctorName ||
                   `Dr. ${d.firstName} ${d.lastName}` === `Dr. ${doctorName}`
@@ -705,15 +705,107 @@ Please provide a comprehensive safety analysis focusing on clinically significan
             }
           }
         } else if (foundPatient && foundDoctor) {
-          extractedParams = {
-            patientId: foundPatient.id,
-            patientName: `${foundPatient.firstName} ${foundPatient.lastName}`,
-            providerId: foundDoctor.id,
-            providerName: `Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}`,
-            needsDateTime: true
-          };
+          // Check if this is a follow-up message providing time information
+          const isTimeProvided = scheduledDate || /\d{1,2}(:\d{2})?\s*(am|pm)/i.test(lowerMessage) || 
+                                lowerMessage.includes('tomorrow') || lowerMessage.includes('today') ||
+                                lowerMessage.includes('next week') || lowerMessage.includes('august') ||
+                                lowerMessage.includes('monday') || lowerMessage.includes('tuesday') ||
+                                lowerMessage.includes('wednesday') || lowerMessage.includes('thursday') ||
+                                lowerMessage.includes('friday') || lowerMessage.includes('saturday') ||
+                                lowerMessage.includes('sunday');
           
-          response = `Perfect! I can book an appointment for **${foundPatient.firstName} ${foundPatient.lastName}** with **Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}**.\n\n⏰ **Please provide a specific date and time:**\n\n**Examples:**\n• "tomorrow at 2pm" \n• "today at 10:30am"\n• "August 5th at 3pm"\n• "next Monday at 9am"\n\n**Available appointment slots:** 9:00 AM - 5:00 PM (30-minute appointments)\n\nOnce you specify the time, I'll immediately create the appointment and add it to the calendar!`;
+          if (isTimeProvided && !scheduledDate) {
+            // If we detect time-related words but didn't parse a date, set a default
+            if (lowerMessage.includes('tomorrow')) {
+              scheduledDate = new Date();
+              scheduledDate.setDate(scheduledDate.getDate() + 1);
+              scheduledDate.setHours(14, 0, 0, 0); // Default to 2 PM
+            } else if (lowerMessage.includes('today')) {
+              scheduledDate = new Date();
+              scheduledDate.setHours(14, 0, 0, 0); // Default to 2 PM
+            }
+          }
+          
+          if (scheduledDate) {
+            // Try to book the appointment now that we have all information
+            const currentTime = new Date();
+            const oneMinuteFromNow = new Date(currentTime.getTime() + 60 * 1000);
+            
+            if (scheduledDate <= oneMinuteFromNow) {
+              response = `I found the patient and doctor, but the date/time needs to be in the future. Please provide a valid future date and time like "tomorrow at 2pm" or "August 8th at 10:30am".`;
+            } else {
+              // Check for conflicts and create appointment
+              const existingAppointments = await storage.getAppointmentsByProvider(foundDoctor.id, params.organizationId, scheduledDate);
+              const appointmentEndTime = new Date(scheduledDate.getTime() + 30 * 60 * 1000);
+              
+              const hasConflict = existingAppointments.some(appointment => {
+                const existingStart = new Date(appointment.scheduledAt);
+                const existingEnd = new Date(existingStart.getTime() + (appointment.duration || 30) * 60 * 1000);
+                return (scheduledDate < existingEnd && appointmentEndTime > existingStart);
+              });
+              
+              if (hasConflict) {
+                response = `**Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}** already has an appointment at that time. Please choose a different time slot.\n\n**Try another time like:**\n• "tomorrow at 3pm"\n• "today at 11am"\n• "August 5th at 2:30pm"`;
+              } else {
+                // Create the appointment
+                try {
+                  const appointmentTitle = this.getAppointmentTitle(foundDoctor.department || undefined, undefined);
+                  
+                  const appointmentData = {
+                    organizationId: params.organizationId,
+                    patientId: foundPatient.id,
+                    providerId: foundDoctor.id,
+                    title: appointmentTitle,
+                    description: 'Appointment booked via AI Assistant',
+                    scheduledAt: scheduledDate,
+                    duration: 30,
+                    status: 'scheduled' as const,
+                    type: 'consultation' as const,
+                    location: `${foundDoctor.department || 'General'} Department`,
+                    isVirtual: false
+                  };
+                
+                  const newAppointment = await storage.createAppointment(appointmentData);
+                  
+                  const formattedDate = scheduledDate.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  });
+                  const formattedTime = scheduledDate.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  });
+                  
+                  extractedParams = {
+                    appointmentId: newAppointment.id,
+                    patientId: foundPatient.id,
+                    patientName: `${foundPatient.firstName} ${foundPatient.lastName}`,
+                    providerId: foundDoctor.id,
+                    providerName: `Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}`,
+                    scheduledAt: scheduledDate.toISOString(),
+                    success: true
+                  };
+                  
+                  response = `✅ **Appointment Successfully Booked!**\n\n📅 **Details:**\n• **Patient:** ${foundPatient.firstName} ${foundPatient.lastName}\n• **Doctor:** Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}\n• **Date:** ${formattedDate}\n• **Time:** ${formattedTime}\n• **Duration:** 30 minutes\n• **Location:** ${foundDoctor.department || 'General'} Department\n\n**Appointment ID:** #${newAppointment.id}\n\nThe appointment has been added to the calendar and both parties will be notified.`;
+                } catch (error) {
+                  console.error('Error booking appointment:', error);
+                  response = `I found the patient and doctor, but there was an error creating the appointment. Please try booking manually or contact support.`;
+                }
+              }
+            }
+          } else {
+            extractedParams = {
+              patientId: foundPatient.id,
+              patientName: `${foundPatient.firstName} ${foundPatient.lastName}`,
+              providerId: foundDoctor.id,
+              providerName: `Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}`,
+              needsDateTime: true
+            };
+            
+            response = `Perfect! I can book an appointment for **${foundPatient.firstName} ${foundPatient.lastName}** with **Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}**.\n\n⏰ **Please provide a specific date and time:**\n\n**Examples:**\n• "tomorrow at 2pm" \n• "today at 10:30am"\n• "August 5th at 3pm"\n• "next Monday at 9am"\n\n**Available appointment slots:** 9:00 AM - 5:00 PM (30-minute appointments)\n\nOnce you specify the time, I'll immediately create the appointment and add it to the calendar!`;
+          }
         } else if (foundPatient && !foundDoctor) {
           const doctorsList = doctors.slice(0, 4).map(d => {
             return `• **Dr. ${d.firstName} ${d.lastName}**${d.department ? ` (${d.department})` : ''}`;
