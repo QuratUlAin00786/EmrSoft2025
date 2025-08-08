@@ -489,54 +489,61 @@ Please provide a comprehensive safety analysis focusing on clinically significan
         let foundPatient = contextPatient;
         let foundDoctor = contextDoctor;
         
-        // Look for patient names in the current message (if not already found in context)
+        // Enhanced patient name recognition - be more aggressive in matching
         if (!foundPatient) {
           for (const patient of patients) {
-            const firstName = patient.firstName.toLowerCase();
-            const lastName = patient.lastName.toLowerCase();
+            const firstName = patient.firstName.toLowerCase().trim();
+            const lastName = patient.lastName.toLowerCase().trim();
             const fullName = `${firstName} ${lastName}`;
             const spacedName = `${firstName}  ${lastName}`; // Handle double spaces
             
-            // Enhanced patient name matching - check for exact names and partial matches
-            if (lowerMessage.includes(firstName) || 
-                lowerMessage.includes(lastName) ||
-                lowerMessage.includes(fullName) ||
-                lowerMessage.includes(spacedName) ||
-                // Handle user responses like "Harris" or "Khan"
-                lowerMessage === firstName || 
-                lowerMessage === lastName ||
-                lowerMessage.includes(`${firstName} ${lastName}`) ||
-                lowerMessage.includes(`${lastName} ${firstName}`)) {
+            // Multiple matching strategies
+            const messageWords = lowerMessage.split(/\s+/);
+            const hasFirstName = messageWords.includes(firstName) || lowerMessage.includes(firstName);
+            const hasLastName = messageWords.includes(lastName) || lowerMessage.includes(lastName);
+            const hasFullName = lowerMessage.includes(fullName) || lowerMessage.includes(spacedName);
+            
+            // Match if we find any part of the name
+            if (hasFirstName || hasLastName || hasFullName ||
+                // Exact word matches (for single-word responses)
+                messageWords.some(word => word === firstName || word === lastName) ||
+                // Partial matches for unique names
+                (firstName.length > 3 && lowerMessage.includes(firstName)) ||
+                (lastName.length > 3 && lowerMessage.includes(lastName))) {
               foundPatient = patient;
               break;
             }
           }
         }
         
-        // Look for doctor names in the current message (if not already found in context)
+        // Enhanced doctor name recognition - be more aggressive in matching
         if (!foundDoctor) {
           for (const doctor of doctors) {
-            const firstName = doctor.firstName.toLowerCase();
-            const lastName = doctor.lastName.toLowerCase();
+            const firstName = doctor.firstName.toLowerCase().trim();
+            const lastName = doctor.lastName.toLowerCase().trim();
             const fullName = `${firstName} ${lastName}`;
             
-            // Enhanced doctor name matching with flexible patterns
-            if (lowerMessage.includes(firstName) || 
-                lowerMessage.includes(lastName) ||
-                lowerMessage.includes(fullName) ||
-                lowerMessage.includes(`dr. ${firstName}`) ||
-                lowerMessage.includes(`dr. ${lastName}`) ||
-                lowerMessage.includes(`dr ${firstName}`) ||
-                lowerMessage.includes(`dr ${lastName}`) ||
-                lowerMessage.includes(`doctor ${firstName}`) ||
-                lowerMessage.includes(`doctor ${lastName}`) ||
-                // Handle simple responses like "mobile" or "smith"
-                lowerMessage === firstName || 
-                lowerMessage === lastName ||
-                lowerMessage === `dr. ${firstName}` ||
-                lowerMessage === `dr. ${lastName}` ||
-                lowerMessage === `dr ${firstName}` ||
-                lowerMessage === `dr ${lastName}`) {
+            // Multiple matching strategies for doctors
+            const messageWords = lowerMessage.split(/\s+/);
+            const hasFirstName = messageWords.includes(firstName) || lowerMessage.includes(firstName);
+            const hasLastName = messageWords.includes(lastName) || lowerMessage.includes(lastName);
+            const hasFullName = lowerMessage.includes(fullName);
+            
+            // Check various doctor title formats
+            const titleFormats = [
+              `dr. ${firstName}`, `dr. ${lastName}`, `dr. ${fullName}`,
+              `dr ${firstName}`, `dr ${lastName}`, `dr ${fullName}`,
+              `doctor ${firstName}`, `doctor ${lastName}`, `doctor ${fullName}`
+            ];
+            const hasTitle = titleFormats.some(format => lowerMessage.includes(format));
+            
+            // Match if we find any part of the name or title combinations
+            if (hasFirstName || hasLastName || hasFullName || hasTitle ||
+                // Exact word matches (for single-word responses like "mobile" or "smith")
+                messageWords.some(word => word === firstName || word === lastName) ||
+                // Partial matches for unique names
+                (firstName.length > 3 && lowerMessage.includes(firstName)) ||
+                (lastName.length > 3 && lowerMessage.includes(lastName))) {
               foundDoctor = doctor;
               break;
             }
@@ -586,28 +593,54 @@ Please provide a comprehensive safety analysis focusing on clinically significan
           }
         }
         
-        // Extract time if provided
+        // Enhanced time parsing to handle more formats
+        let timeFound = false;
         const timeMatch = lowerMessage.match(/(\d{1,2})(:\d{2})?\s*(am|pm)/i);
-        if (timeMatch) {
+        const militaryTime = lowerMessage.match(/(\d{1,2}):(\d{2})/);
+        const hourMatch = lowerMessage.match(/(\d{1,2})\s*(am|pm)/i);
+        
+        if (timeMatch || militaryTime || hourMatch) {
           // If we found a time but no date yet, default to today
           if (!scheduledDate) {
             scheduledDate = new Date(now);
           }
           
-          let hour = parseInt(timeMatch[1]);
-          const minute = timeMatch[2] ? parseInt(timeMatch[2].substring(1)) : 0;
-          const period = timeMatch[3].toLowerCase();
-          
-          if (period === 'pm' && hour !== 12) hour += 12;
-          if (period === 'am' && hour === 12) hour = 0;
-          
-          scheduledDate.setHours(hour, minute, 0, 0);
-        } else if (scheduledDate) {
-          // Default to 2:00 PM if no time specified
-          scheduledDate.setHours(14, 0, 0, 0);
+          if (timeMatch) {
+            let hour = parseInt(timeMatch[1]);
+            const minute = timeMatch[2] ? parseInt(timeMatch[2].substring(1)) : 0;
+            const period = timeMatch[3].toLowerCase();
+            
+            if (period === 'pm' && hour !== 12) hour += 12;
+            if (period === 'am' && hour === 12) hour = 0;
+            
+            scheduledDate.setHours(hour, minute, 0, 0);
+            timeFound = true;
+          } else if (militaryTime) {
+            const hour = parseInt(militaryTime[1]);
+            const minute = parseInt(militaryTime[2]);
+            scheduledDate.setHours(hour, minute, 0, 0);
+            timeFound = true;
+          } else if (hourMatch) {
+            let hour = parseInt(hourMatch[1]);
+            const period = hourMatch[2].toLowerCase();
+            
+            if (period === 'pm' && hour !== 12) hour += 12;
+            if (period === 'am' && hour === 12) hour = 0;
+            
+            scheduledDate.setHours(hour, 0, 0, 0);
+            timeFound = true;
+          }
         }
         
+        // If we have a date but no specific time, set a default
+        if (scheduledDate && !timeFound) {
+          scheduledDate.setHours(14, 0, 0, 0); // Default to 2:00 PM
+        }
+        
+        // Enhanced appointment creation logic
         if (foundPatient && foundDoctor && scheduledDate) {
+          console.log(`[AI] All information found - Patient: ${foundPatient.firstName} ${foundPatient.lastName}, Doctor: ${foundDoctor.firstName} ${foundDoctor.lastName}, Date: ${scheduledDate}`);
+          
           // Validate that scheduledDate is valid and in the future (with 1 minute buffer)
           const currentTime = new Date();
           const oneMinuteFromNow = new Date(currentTime.getTime() + 60 * 1000);
