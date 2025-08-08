@@ -294,54 +294,64 @@ export default function QuickBooks() {
         <div class="header">
             <div class="logo-section">
                 <div class="logo">
-                    <svg width="44" height="44" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Cura Logo - Accurate interconnected flowing design -->
-                        <!-- Top curve -->
-                        <path d="M60 15 C75 15, 90 25, 95 40 C100 55, 90 70, 80 75" 
-                              stroke="url(#curaGrad1)" stroke-width="8" stroke-linecap="round" fill="none"/>
+                    <svg width="44" height="44" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Cura Logo - Exact 6-petal interconnected design -->
                         
-                        <!-- Right curve -->
-                        <path d="M80 75 C85 85, 85 100, 70 105 C55 110, 40 100, 35 85" 
-                              stroke="url(#curaGrad2)" stroke-width="8" stroke-linecap="round" fill="none"/>
+                        <!-- Petal 1 - Top (12 o'clock) -->
+                        <path d="M100 50 C85 30, 65 25, 50 35 C35 45, 40 65, 60 75 C75 60, 85 55, 100 50 Z" 
+                              fill="url(#curaGrad1)" opacity="0.9"/>
                         
-                        <!-- Bottom curve -->
-                        <path d="M35 85 C25 70, 25 55, 40 50 C55 45, 70 55, 75 70" 
-                              stroke="url(#curaGrad3)" stroke-width="8" stroke-linecap="round" fill="none"/>
+                        <!-- Petal 2 - Top Right (2 o'clock) -->
+                        <path d="M150 65 C170 50, 175 30, 165 15 C155 0, 135 5, 125 25 C140 40, 145 50, 150 65 Z" 
+                              fill="url(#curaGrad2)" opacity="0.9"/>
                         
-                        <!-- Left curve -->
-                        <path d="M75 70 C80 55, 70 40, 55 35 C40 30, 25 40, 20 55 C15 70, 25 85, 40 90" 
-                              stroke="url(#curaGrad4)" stroke-width="8" stroke-linecap="round" fill="none"/>
+                        <!-- Petal 3 - Bottom Right (4 o'clock) -->
+                        <path d="M150 135 C170 150, 175 170, 165 185 C155 200, 135 195, 125 175 C140 160, 145 150, 150 135 Z" 
+                              fill="url(#curaGrad3)" opacity="0.9"/>
                         
-                        <!-- Inner connecting curves -->
-                        <path d="M40 90 C50 85, 60 80, 75 70" 
-                              stroke="url(#curaGrad5)" stroke-width="6" stroke-linecap="round" fill="none"/>
+                        <!-- Petal 4 - Bottom (6 o'clock) -->
+                        <path d="M100 150 C115 170, 135 175, 150 165 C165 155, 160 135, 140 125 C125 140, 115 145, 100 150 Z" 
+                              fill="url(#curaGrad4)" opacity="0.9"/>
                         
-                        <path d="M80 75 C75 65, 70 55, 60 45" 
-                              stroke="url(#curaGrad6)" stroke-width="6" stroke-linecap="round" fill="none"/>
+                        <!-- Petal 5 - Bottom Left (8 o'clock) -->
+                        <path d="M50 135 C30 150, 25 170, 35 185 C45 200, 65 195, 75 175 C60 160, 55 150, 50 135 Z" 
+                              fill="url(#curaGrad5)" opacity="0.9"/>
+                        
+                        <!-- Petal 6 - Top Left (10 o'clock) -->
+                        <path d="M50 65 C30 50, 25 30, 35 15 C45 0, 65 5, 75 25 C60 40, 55 50, 50 65 Z" 
+                              fill="url(#curaGrad6)" opacity="0.9"/>
+                        
+                        <!-- Center connection paths -->
+                        <path d="M60 75 Q80 90 100 75 Q120 90 140 75 Q120 110 100 125 Q80 110 60 75" 
+                              stroke="url(#centerGrad)" stroke-width="3" fill="none" opacity="0.7"/>
                         
                         <defs>
-                            <linearGradient id="curaGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <radialGradient id="curaGrad1" cx="50%" cy="50%" r="50%">
                                 <stop offset="0%" stop-color="#5B7CFA"/>
                                 <stop offset="100%" stop-color="#8B5CF6"/>
-                            </linearGradient>
-                            <linearGradient id="curaGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#8B5CF6"/>
+                            </radialGradient>
+                            <radialGradient id="curaGrad2" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#6366F1"/>
                                 <stop offset="100%" stop-color="#A855F7"/>
-                            </linearGradient>
-                            <linearGradient id="curaGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#A855F7"/>
+                            </radialGradient>
+                            <radialGradient id="curaGrad3" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#7C3AED"/>
+                                <stop offset="100%" stop-color="#C084FC"/>
+                            </radialGradient>
+                            <radialGradient id="curaGrad4" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#8B5CF6"/>
                                 <stop offset="100%" stop-color="#5B7CFA"/>
-                            </linearGradient>
-                            <linearGradient id="curaGrad4" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#5B7CFA"/>
-                                <stop offset="100%" stop-color="#8B5CF6"/>
-                            </linearGradient>
-                            <linearGradient id="curaGrad5" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#8B5CF6"/>
-                                <stop offset="100%" stop-color="#A855F7"/>
-                            </linearGradient>
-                            <linearGradient id="curaGrad6" x1="0%" y1="0%" x2="100%" y2="100%">
+                            </radialGradient>
+                            <radialGradient id="curaGrad5" cx="50%" cy="50%" r="50%">
                                 <stop offset="0%" stop-color="#A855F7"/>
+                                <stop offset="100%" stop-color="#6366F1"/>
+                            </radialGradient>
+                            <radialGradient id="curaGrad6" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#C084FC"/>
+                                <stop offset="100%" stop-color="#7C3AED"/>
+                            </radialGradient>
+                            <linearGradient id="centerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#7C3AED"/>
                                 <stop offset="100%" stop-color="#5B7CFA"/>
                             </linearGradient>
                         </defs>
