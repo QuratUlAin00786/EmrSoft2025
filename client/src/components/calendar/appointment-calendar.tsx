@@ -373,12 +373,7 @@ export default function AppointmentCalendar() {
                               <div className="font-medium">{isDataLoaded ? (apt.patientName || getPatientName(apt.patientId)) : `Patient ${apt.patientId}`}</div>
                               <div className="text-sm">{apt.type}</div>
                               <div className="text-xs">
-                                {(() => {
-                                  // Parse date as local time to avoid timezone conversion
-                                  const dateStr = apt.scheduledAt;
-                                  const localDate = new Date(dateStr.replace('Z', ''));
-                                  return format(localDate, "h:mm a");
-                                })()} ({apt.duration} min)
+                                {format(new Date(apt.scheduledAt), "h:mm a")} ({apt.duration} min)
                               </div>
                             </div>
                           ))
@@ -438,12 +433,7 @@ export default function AppointmentCalendar() {
                     <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-300">
                       <div className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
-                        {(() => {
-                          // Parse date as local time to avoid timezone conversion
-                          const dateStr = appointment.scheduledAt;
-                          const localDate = new Date(dateStr.replace('Z', ''));
-                          return format(localDate, "h:mm a");
-                        })()} 
+                        {format(new Date(appointment.scheduledAt), "h:mm a")} 
                         ({appointment.duration} min)
                       </div>
                       <div className="flex items-center gap-1">

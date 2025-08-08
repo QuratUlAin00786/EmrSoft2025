@@ -138,9 +138,10 @@ export function DoctorDashboard() {
                 <div>
                   <p className="font-medium">Patient Consultation</p>
                   <p className="text-sm text-neutral-600">
-                    {new Date(appointment.scheduledAt).toLocaleTimeString([], { 
+                    {new Date(appointment.scheduledAt).toLocaleTimeString('en-US', { 
                       hour: '2-digit', 
-                      minute: '2-digit' 
+                      minute: '2-digit',
+                      hour12: true 
                     })}
                   </p>
                 </div>
