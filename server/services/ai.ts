@@ -715,31 +715,27 @@ Please provide a comprehensive safety analysis focusing on clinically significan
           
           response = `Perfect! I can book an appointment for **${foundPatient.firstName} ${foundPatient.lastName}** with **Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}**.\n\n⏰ **Please provide a specific date and time:**\n\n**Examples:**\n• "tomorrow at 2pm" \n• "today at 10:30am"\n• "August 5th at 3pm"\n• "next Monday at 9am"\n\n**Available appointment slots:** 9:00 AM - 5:00 PM (30-minute appointments)\n\nOnce you specify the time, I'll immediately create the appointment and add it to the calendar!`;
         } else if (foundPatient && !foundDoctor) {
-          const doctorsList = doctors.slice(0, 8).map(d => {
-            const dept = d.department ? ` (${d.department})` : '';
-            return `• **Dr. ${d.firstName} ${d.lastName}**${dept}`;
+          const doctorsList = doctors.slice(0, 4).map(d => {
+            return `• **Dr. ${d.firstName} ${d.lastName}**${d.department ? ` (${d.department})` : ''}`;
           }).join('\n');
           
-          response = `Great! I found patient **${foundPatient.firstName} ${foundPatient.lastName}**.\n\n👩‍⚕️ **Which doctor would you like to book with?**\n\n${doctorsList}\n\n**Just say:** "Book with Dr. [Last Name]" or mention the doctor's name, and I'll help you schedule the appointment!`;
+          response = `Great! I found patient **${foundPatient.firstName} ${foundPatient.lastName}**.\n\n**Which doctor would you like to book with?**\n${doctorsList}\n\nJust say "Book with Dr. [Last Name]" and I'll help you schedule the appointment!`;
         } else if (!foundPatient && foundDoctor) {
-          const patientsList = patients.slice(0, 8).map(p => {
-            const id = p.patientId ? ` (ID: ${p.patientId})` : '';
-            return `• **${p.firstName} ${p.lastName}**${id}`;
+          const patientsList = patients.slice(0, 4).map(p => {
+            return `• **${p.firstName} ${p.lastName}** (ID: ${p.patientId || 'N/A'})`;
           }).join('\n');
           
-          response = `Excellent! I found **Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}**.\n\n👤 **Which patient is this appointment for?**\n\n${patientsList}\n\n**Just say:** "${patients[0]?.firstName || 'Patient Name'} with Dr. ${foundDoctor.lastName}" and I'll help you complete the booking!`;
+          response = `Excellent! I found **Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}**.\n\n**Which patient is this appointment for?**\n${patientsList}\n\nJust say "${patients[0]?.firstName || 'Patient Name'} with Dr. ${foundDoctor.lastName}" and I'll complete the booking!`;
         } else {
-          const doctorsList = doctors.slice(0, 6).map(d => {
-            const dept = d.department ? ` (${d.department})` : '';
-            return `• **Dr. ${d.firstName} ${d.lastName}**${dept}`;
+          const doctorsList = doctors.slice(0, 3).map(d => {
+            return `• **Dr. ${d.firstName} ${d.lastName}**${d.department ? ` (${d.department})` : ''}`;
           }).join('\n');
           
-          const patientsList = patients.slice(0, 6).map(p => {
-            const id = p.patientId ? ` (ID: ${p.patientId})` : '';
-            return `• **${p.firstName} ${p.lastName}**${id}`;
+          const patientsList = patients.slice(0, 3).map(p => {
+            return `• **${p.firstName} ${p.lastName}** (ID: ${p.patientId || 'N/A'})`;
           }).join('\n');
           
-          response = `I'll help you book an appointment! 📅\n\n**🏥 Available Doctors:**\n${doctorsList}\n\n**👥 Recent Patients:**\n${patientsList}\n\n**💬 Complete Example:**\n"Book appointment for ${patients[0]?.firstName || 'John'} ${patients[0]?.lastName || 'Smith'} with Dr. ${doctors[0]?.lastName || 'Johnson'} tomorrow at 2pm"\n\n**Or step by step:**\n1. Tell me the patient name\n2. Tell me the doctor\n3. Tell me the date and time\n\nI'll guide you through each step!`;
+          response = `I'll help you book an appointment!\n\n**Available Doctors:**\n${doctorsList}\n\n**Recent Patients:**\n${patientsList}\n\n**Example:** "Book appointment for ${patients[0]?.firstName || 'John'} ${patients[0]?.lastName || 'Smith'} with Dr. ${doctors[0]?.lastName || 'Johnson'} tomorrow at 2pm"\n\nJust tell me the patient name, doctor, and time - I'll guide you through it!`;
         }
       }
       
@@ -872,25 +868,17 @@ You can ask me questions in plain English! I understand context and can help wit
 • "Find prescriptions for ${foundPatient.firstName}"
 • "Show medical records for ${foundPatient.firstName}"`;
         } else {
-          const recentPatients = patients.slice(0, 10).map(p => {
-            const id = p.patientId ? ` (ID: ${p.patientId})` : '';
-            const risk = p.riskLevel ? ` - ${p.riskLevel} risk` : '';
-            return `• **${p.firstName} ${p.lastName}**${id}${risk}`;
+          const recentPatients = patients.slice(0, 5).map(p => {
+            return `• **${p.firstName} ${p.lastName}** (ID: ${p.patientId || 'N/A'})`;
           }).join('\n');
           
           response = `## Patient Search Results
 
-**👥 Recent Patients (${patients.length} total):**
+**Recent Patients:**
 ${recentPatients}
 
-**🔍 Search Tips:**
-• Mention a patient's name to get detailed information
-• Example: "Find patient John Smith"
-• Or: "Show me Sarah Wilson's details"
-
-**⚡ Quick Actions:**
-• "Book appointment for [patient name]"
-• "Find prescriptions for [patient name]"
+**Search by name:** "Find patient [name]" for detailed information
+**Book appointment:** "Book appointment for [patient name]"
 
 Which patient would you like to know more about?`;
         }
@@ -910,30 +898,22 @@ Which patient would you like to know more about?`;
         
         if (isLikelyAppointment) {
           const doctorsList = doctors.map(d => {
-            const dept = d.department ? ` (${d.department})` : '';
-            return `• **Dr. ${d.firstName} ${d.lastName}**${dept}`;
+            return `• **Dr. ${d.firstName} ${d.lastName}**${d.department ? ` (${d.department})` : ''}`;
           }).join('\n');
           
           const patientsList = patients.map(p => {
-            const id = p.patientId ? ` (ID: ${p.patientId})` : '';
-            return `• **${p.firstName} ${p.lastName}**${id}`;
+            return `• **${p.firstName} ${p.lastName}** (ID: ${p.patientId || 'N/A'})`;
           }).join('\n');
           
           response = `I understand you want to book an appointment! Let me help you with that.
 
-**🏥 Available Doctors:**
+**Available Doctors:**
 ${doctorsList}
 
-**👥 Recent Patients:**
+**Recent Patients:**
 ${patientsList}
 
-**💬 Complete Example:**
-"Book appointment for ${patients[0]?.firstName || 'John'} ${patients[0]?.lastName || 'Smith'} with Dr. ${doctors[0]?.lastName || 'Johnson'} tomorrow at 2pm"
-
-**Or tell me step by step:**
-1. Patient name (e.g., "${patients[0]?.firstName || 'John'} ${patients[0]?.lastName || 'Smith'}")
-2. Doctor name (e.g., "Dr. ${doctors[0]?.lastName || 'Johnson'}")  
-3. Date and time (e.g., "tomorrow at 2pm")
+**Example:** "Book appointment for ${patients[0]?.firstName || 'John'} ${patients[0]?.lastName || 'Smith'} with Dr. ${doctors[0]?.lastName || 'Johnson'} tomorrow at 2pm"
 
 What information do you have so far?`;
         } else {
