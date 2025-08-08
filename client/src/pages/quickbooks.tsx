@@ -294,7 +294,12 @@ export default function QuickBooks() {
         <div class="header">
             <div class="logo-section">
                 <div class="logo">
-                    <img src="/cura-logo.png" alt="Cura Logo" style="width: 100%; height: 100%; object-fit: contain;" />
+                    <svg width="80" height="80" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="100" height="100" rx="20" fill="white" stroke="#e5e7eb" stroke-width="2"/>
+                        <circle cx="50" cy="35" r="15" fill="#3b82f6"/>
+                        <path d="M35 60 Q50 45 65 60 Q50 75 35 60" fill="#3b82f6"/>
+                        <text x="50" y="88" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#1f2937">CURA</text>
+                    </svg>
                 </div>
                 <div class="company-info">
                     <div class="company-name">Cura Medical Practice</div>
