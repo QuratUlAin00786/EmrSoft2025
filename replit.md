@@ -9,6 +9,9 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system by 
 - **Fixed patient name display**: Appointments now correctly show patient names ("Ifra Khan", "Rashida Yunas") instead of patient IDs in calendar views
 - **Enhanced conflict detection**: Updated `getAppointmentsByProvider` to properly filter by date for accurate time slot availability checking
 - **Fixed AI date parsing**: Resolved "7th of August" format date parsing in AI assistant by restructuring regex patterns to properly handle ordinal date formats, eliminating confusing responses and ensuring accurate appointment scheduling
+- **Resolved AI chatbot repetitive text bug**: Fixed critical issue where AI was generating repetitive responses like "Ali Raza doctor is Ali Raza doctor..." due to overly complex name matching logic
+- **Refined context detection**: Enhanced appointment booking conversation flow with improved context parsing for step-by-step booking scenarios
+- **Simplified name matching**: Streamlined patient and doctor name recognition to prevent infinite loops and ensure clean responses
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.

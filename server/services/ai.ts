@@ -435,7 +435,8 @@ Please provide a comprehensive safety analysis focusing on clinically significan
           item.content.includes('Found patient') ||
           item.content.includes('Found **Dr.') ||
           item.content.includes('Ready to book') ||
-          item.content.includes('Tell me:')
+          item.content.includes('Tell me:') ||
+          item.content.includes('book an appointment')
         )
       );
 
@@ -444,7 +445,7 @@ Please provide a comprehensive safety analysis focusing on clinically significan
       const hasTimeKeywords = lowerMessage.includes('tomorrow') || lowerMessage.includes('today') || lowerMessage.includes('next week') || /\d{1,2}(:\d{2})?\s*(am|pm)/i.test(lowerMessage);
       const hasDoctorKeywords = lowerMessage.includes('dr.') || lowerMessage.includes('doctor');
       
-      if (hasAppointmentKeywords || (isAppointmentContext && (hasTimeKeywords || hasDoctorKeywords))) {
+      if (hasAppointmentKeywords || isAppointmentContext) {
         intent = 'book_appointment';
         confidence = 0.9;
         
@@ -458,17 +459,60 @@ Please provide a comprehensive safety analysis focusing on clinically significan
         let contextDoctor = null;
         let contextDateTime = null;
         
-        // Simple context parsing - look for "Ready to book" pattern only
+        // Enhanced context parsing - look for multiple patterns
         if (params.conversationHistory && params.conversationHistory.length > 0) {
-          const lastMessage = params.conversationHistory[params.conversationHistory.length - 1];
-          if (lastMessage && lastMessage.role === 'assistant' && lastMessage.content.includes('Ready to book')) {
-            const readyMatch = lastMessage.content.match(/Ready to book \*\*([^*]+)\*\* with \*\*Dr\. ([^*]+)\*\*/);
-            if (readyMatch) {
-              const patientName = readyMatch[1];
-              const doctorName = readyMatch[2];
+          // Check the last few messages for context
+          const recentMessages = params.conversationHistory.slice(-3);
+          
+          for (const historyItem of recentMessages) {
+            if (historyItem.role === 'assistant') {
+              // Pattern: "Ready to book **Patient** with **Dr. Doctor**"
+              const readyMatch = historyItem.content.match(/Ready to book \*\*([^*]+)\*\* with \*\*Dr\. ([^*]+)\*\*/);
+              if (readyMatch) {
+                const patientName = readyMatch[1];
+                const doctorName = readyMatch[2];
+                contextPatient = patients.find(p => `${p.firstName} ${p.lastName}` === patientName);
+                contextDoctor = doctors.find(d => `${d.firstName} ${d.lastName}` === doctorName);
+                break;
+              }
               
-              contextPatient = patients.find(p => `${p.firstName} ${p.lastName}` === patientName);
-              contextDoctor = doctors.find(d => `${d.firstName} ${d.lastName}` === doctorName);
+              // Pattern: "Found **Dr. Name**. Which patient?"
+              const doctorFoundMatch = historyItem.content.match(/Found \*\*Dr\. ([^*]+)\*\*\. Which patient\?/);
+              if (doctorFoundMatch) {
+                const doctorName = doctorFoundMatch[1];
+                contextDoctor = doctors.find(d => `${d.firstName} ${d.lastName}` === doctorName);
+                // Current message should be patient name
+                if (!contextPatient) {
+                  for (const patient of patients) {
+                    if (lowerMessage.includes(patient.firstName.toLowerCase()) || 
+                        lowerMessage.includes(patient.lastName.toLowerCase())) {
+                      contextPatient = patient;
+                      break;
+                    }
+                  }
+                }
+                break;
+              }
+              
+              // Pattern: "Found patient **Name**. Which doctor?"
+              const patientFoundMatch = historyItem.content.match(/Found patient \*\*([^*]+)\*\*\. Which doctor\?/);
+              if (patientFoundMatch) {
+                const patientName = patientFoundMatch[1];
+                contextPatient = patients.find(p => `${p.firstName} ${p.lastName}` === patientName);
+                // Current message should be doctor name
+                if (!contextDoctor) {
+                  for (const doctor of doctors) {
+                    if (lowerMessage.includes(doctor.firstName.toLowerCase()) || 
+                        lowerMessage.includes(doctor.lastName.toLowerCase()) ||
+                        lowerMessage.includes(`dr. ${doctor.firstName.toLowerCase()}`) ||
+                        lowerMessage.includes(`dr ${doctor.firstName.toLowerCase()}`)) {
+                      contextDoctor = doctor;
+                      break;
+                    }
+                  }
+                }
+                break;
+              }
             }
           }
         }
