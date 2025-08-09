@@ -65,6 +65,8 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string>("");
   const [selectedAnalysisType, setSelectedAnalysisType] = useState<string>("");
   const [selectedTreatment, setSelectedTreatment] = useState<string>("");
+  const [generatedTreatmentPlan, setGeneratedTreatmentPlan] = useState<string>("");
+  const [isGeneratingPlan, setIsGeneratingPlan] = useState<boolean>(false);
 
   // Define muscle coordinates for interactive highlighting
   const muscleCoordinates = {
@@ -87,6 +89,61 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
   const [activeTab, setActiveTab] = useState("basic");
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  // Generate comprehensive treatment plan
+  const generateTreatmentPlan = async () => {
+    if (!selectedMuscleGroup || !selectedAnalysisType || !selectedTreatment) {
+      toast({
+        title: "Missing Information",
+        description: "Please select muscle group, analysis type, and treatment before generating plan.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGeneratingPlan(true);
+    
+    const treatmentPlan = `
+COMPREHENSIVE FACIAL MUSCLE TREATMENT PLAN
+
+Patient: ${patientName || 'Patient'}
+Date: ${format(new Date(), 'MMMM dd, yyyy')}
+
+TARGET ANALYSIS:
+• Muscle Group: ${selectedMuscleGroup.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+• Analysis Type: ${selectedAnalysisType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+• Primary Treatment: ${selectedTreatment.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+
+TREATMENT PROTOCOL:
+1. Initial Assessment & Baseline Documentation
+2. Pre-treatment Preparation & Patient Consultation
+3. ${selectedTreatment.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} Implementation
+4. Post-treatment Monitoring & Assessment
+5. Follow-up Care & Progress Evaluation
+
+EXPECTED OUTCOMES:
+• Improved muscle function and symmetry
+• Reduced symptoms and enhanced patient comfort
+• Optimized aesthetic and functional results
+• Long-term maintenance planning
+
+NEXT STEPS:
+• Schedule follow-up appointment in 1-2 weeks
+• Monitor patient response and adjust treatment as needed
+• Document progress with photographic evidence
+• Review treatment effectiveness and make modifications if required
+
+Generated on: ${format(new Date(), 'PPpp')}
+`;
+
+    setGeneratedTreatmentPlan(treatmentPlan);
+    setIsGeneratingPlan(false);
+    
+    toast({
+      title: "Treatment Plan Generated",
+      description: "Comprehensive treatment plan has been created successfully.",
+    });
+  };
 
   const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -1106,12 +1163,31 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
               </Card>
             </div>
 
+            {/* Generated Treatment Plan Display */}
+            {generatedTreatmentPlan && (
+              <Card className="mt-6 border-2 border-green-500 bg-green-50">
+                <CardHeader>
+                  <CardTitle className="text-green-800 flex items-center gap-2">
+                    <FileText className="w-5 h-5" />
+                    Generated Treatment Plan
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <pre className="whitespace-pre-wrap text-sm text-gray-800 font-mono bg-white p-4 rounded border">
+                    {generatedTreatmentPlan}
+                  </pre>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Action Buttons */}
             <div className="flex justify-center space-x-4 mt-6">
               <Button 
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 font-semibold shadow-lg"
+                onClick={generateTreatmentPlan}
+                disabled={isGeneratingPlan}
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 font-semibold shadow-lg disabled:opacity-50"
               >
-                Generate Treatment Plan
+                {isGeneratingPlan ? "Generating..." : "Generate Treatment Plan"}
               </Button>
               <Button 
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 font-semibold shadow-lg"
