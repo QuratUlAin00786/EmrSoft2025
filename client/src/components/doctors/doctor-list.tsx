@@ -74,20 +74,22 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
         workingHours: data.workingHours
       });
     },
-    onSuccess: () => {
+    onSuccess: async (response) => {
       toast({
         title: "Schedule Updated",
         description: "Doctor's schedule has been updated successfully.",
       });
       
-      // Update the selectedDoctor with the new schedule data immediately
-      if (selectedDoctor) {
-        const updatedDoctor = {
+      // Get the updated user data from the response
+      const updatedUserData = await response.json();
+      
+      // Update the selectedDoctor with fresh data from server
+      if (selectedDoctor && updatedUserData) {
+        setSelectedDoctor({
           ...selectedDoctor,
-          workingDays: workingDays,
-          workingHours: { start: startTime, end: endTime }
-        };
-        setSelectedDoctor(updatedDoctor);
+          workingDays: updatedUserData.workingDays || [],
+          workingHours: updatedUserData.workingHours || { start: "09:00", end: "17:00" }
+        });
       }
       
       // Invalidate queries to refresh the list
