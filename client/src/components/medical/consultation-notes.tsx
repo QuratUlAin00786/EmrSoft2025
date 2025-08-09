@@ -67,6 +67,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
   const [selectedTreatment, setSelectedTreatment] = useState<string>("");
   const [generatedTreatmentPlan, setGeneratedTreatmentPlan] = useState<string>("");
   const [isGeneratingPlan, setIsGeneratingPlan] = useState<boolean>(false);
+  const [isSavingAnalysis, setIsSavingAnalysis] = useState<boolean>(false);
 
   // Define muscle coordinates for interactive highlighting
   const muscleCoordinates = {
@@ -143,6 +144,100 @@ Generated on: ${format(new Date(), 'PPpp')}
       title: "Treatment Plan Generated",
       description: "Comprehensive treatment plan has been created successfully.",
     });
+  };
+
+  // Save anatomical analysis as medical record
+  const saveAnalysis = async () => {
+    if (!selectedMuscleGroup || !selectedAnalysisType) {
+      toast({
+        title: "Missing Information",
+        description: "Please select at least muscle group and analysis type before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSavingAnalysis(true);
+    
+    try {
+      const analysisData = {
+        type: "consultation",
+        title: `Anatomical Analysis - ${selectedMuscleGroup.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`,
+        notes: `FACIAL MUSCLE ANALYSIS REPORT
+
+Patient: ${patientName || 'Patient'}
+Date: ${format(new Date(), 'MMMM dd, yyyy')}
+
+ANALYSIS DETAILS:
+• Target Muscle Group: ${selectedMuscleGroup.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+• Analysis Type: ${selectedAnalysisType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+${selectedTreatment ? `• Primary Treatment: ${selectedTreatment.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}` : ''}
+
+CLINICAL OBSERVATIONS:
+- Comprehensive anatomical assessment completed
+- Interactive muscle group identification performed
+- Professional analysis methodology applied
+
+${generatedTreatmentPlan ? `\nTREATMENT PLAN:\n${generatedTreatmentPlan}` : ''}
+
+Analysis completed on: ${format(new Date(), 'PPpp')}`,
+        diagnosis: `Anatomical analysis of ${selectedMuscleGroup.replace(/_/g, ' ')} - ${selectedAnalysisType.replace(/_/g, ' ')}`,
+        treatment: selectedTreatment ? selectedTreatment.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : undefined
+      };
+
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/patients/${patientId}/records`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(analysisData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      // Refresh medical records by re-fetching them
+      const refreshResponse = await fetch(`/api/patients/${patientId}/records`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+      
+      if (refreshResponse.ok) {
+        const refreshedData = await refreshResponse.json();
+        setMedicalRecords(refreshedData || []);
+      }
+      
+      toast({
+        title: "Analysis Saved",
+        description: "Anatomical analysis has been saved to medical records successfully.",
+      });
+
+      // Reset the form
+      setSelectedMuscleGroup("");
+      setSelectedAnalysisType("");
+      setSelectedTreatment("");
+      setGeneratedTreatmentPlan("");
+      setShowAnatomicalViewer(false);
+      
+    } catch (error) {
+      console.error('Error saving analysis:', error);
+      toast({
+        title: "Save Failed",
+        description: "Failed to save anatomical analysis. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingAnalysis(false);
+    }
   };
 
   const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
@@ -1190,9 +1285,11 @@ Generated on: ${format(new Date(), 'PPpp')}
                 {isGeneratingPlan ? "Generating..." : "Generate Treatment Plan"}
               </Button>
               <Button 
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 font-semibold shadow-lg"
+                onClick={saveAnalysis}
+                disabled={isSavingAnalysis}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 font-semibold shadow-lg disabled:opacity-50"
               >
-                Save Analysis
+                {isSavingAnalysis ? "Saving..." : "Save Analysis"}
               </Button>
               <Button 
                 onClick={() => setShowAnatomicalViewer(false)}
