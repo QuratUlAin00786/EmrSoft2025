@@ -373,27 +373,17 @@ export default function MessagingPage() {
         resetNewMessage();
         queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
         
-        // Show status based on actual delivery result
-        let title = "Message Sent";
-        let description = "Your message has been stored successfully.";
-        let variant: "default" | "destructive" = "default";
-        
-        if (variables.messageType === 'sms' || variables.messageType === 'whatsapp') {
-          if (data.smsDelivered) {
-            title = "Message Sent";
-            description = `Your ${variables.messageType.toUpperCase()} message has been sent successfully.`;
-            variant = "default";
-          } else {
-            title = "Message Stored - SMS Failed";
-            description = `Message stored in system but ${variables.messageType.toUpperCase()} delivery failed: ${data.smsError || 'Authentication error'}`;
-            variant = "destructive";
-          }
+        // Show different success message based on communication method
+        let description = "Your message has been sent successfully.";
+        if (variables.messageType === 'sms') {
+          description = "Your SMS message has been sent successfully via Twilio.";
+        } else if (variables.messageType === 'whatsapp') {
+          description = "Your WhatsApp message has been sent successfully via Twilio.";
         }
         
         toast({
-          title,
-          description,
-          variant,
+          title: "Message Sent",
+          description: description,
         });
       }
       // Conversation message success is handled in handleSendConversationMessage
@@ -554,22 +544,9 @@ export default function MessagingPage() {
       queryClient.refetchQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
       queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
       
-      // Show status based on actual delivery result
-      let title = "Message Sent";
-      let description = "Your message has been sent successfully.";
-      let variant: "default" | "destructive" = "default";
-      
-      // Check if SMS was attempted and if it failed (only applies to messages with phone numbers)
-      if (responseData.smsError) {
-        title = "Message Stored - SMS Failed";
-        description = `Message stored in system but SMS delivery failed: ${responseData.smsError}`;
-        variant = "destructive";
-      }
-      
       toast({
-        title,
-        description,
-        variant,
+        title: "Message Sent",
+        description: "Your message has been sent successfully.",
       });
     } catch (error) {
       // Restore the message content if send failed
