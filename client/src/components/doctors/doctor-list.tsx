@@ -83,11 +83,17 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
       
       // Update the selectedDoctor with fresh data from server
       if (selectedDoctor && updatedUserData) {
-        setSelectedDoctor({
+        const newDoctor = {
           ...selectedDoctor,
           workingDays: updatedUserData.workingDays || [],
           workingHours: updatedUserData.workingHours || { start: "09:00", end: "17:00" }
-        });
+        };
+        setSelectedDoctor(newDoctor);
+        
+        // Also update the form fields to show the new values
+        setWorkingDays(updatedUserData.workingDays || []);
+        setStartTime(updatedUserData.workingHours?.start || "09:00");
+        setEndTime(updatedUserData.workingHours?.end || "17:00");
       }
       
       // Invalidate queries to refresh the list
