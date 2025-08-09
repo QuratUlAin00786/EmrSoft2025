@@ -373,17 +373,27 @@ export default function MessagingPage() {
         resetNewMessage();
         queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
         
-        // Show different success message based on communication method
-        let description = "Your message has been sent successfully.";
-        if (variables.messageType === 'sms') {
-          description = "Your SMS message has been sent successfully via Twilio.";
-        } else if (variables.messageType === 'whatsapp') {
-          description = "Your WhatsApp message has been sent successfully via Twilio.";
+        // Show status based on actual delivery result
+        let title = "Message Sent";
+        let description = "Your message has been stored successfully.";
+        let variant = "default" as const;
+        
+        if (variables.messageType === 'sms' || variables.messageType === 'whatsapp') {
+          if (data.smsDelivered) {
+            title = "Message Sent";
+            description = `Your ${variables.messageType.toUpperCase()} message has been sent successfully.`;
+            variant = "default";
+          } else {
+            title = "Message Stored - SMS Failed";
+            description = `Message stored in system but ${variables.messageType.toUpperCase()} delivery failed: ${data.smsError || 'Authentication error'}`;
+            variant = "destructive";
+          }
         }
         
         toast({
-          title: "Message Sent",
-          description: description,
+          title,
+          description,
+          variant,
         });
       }
       // Conversation message success is handled in handleSendConversationMessage
@@ -544,9 +554,28 @@ export default function MessagingPage() {
       queryClient.refetchQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
       queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
       
+      // Show status based on actual delivery result
+      let title = "Message Sent";
+      let description = "Your message has been stored successfully.";
+      let variant = "default" as const;
+      
+      // Check if SMS was attempted and if it succeeded
+      if (messageData.messageType === 'sms' || messageData.messageType === 'whatsapp') {
+        if (responseData.smsDelivered) {
+          title = "Message Sent";
+          description = `Your ${messageData.messageType.toUpperCase()} message has been sent successfully.`;
+          variant = "default";
+        } else {
+          title = "Message Stored - SMS Failed";
+          description = `Message stored in system but ${messageData.messageType.toUpperCase()} delivery failed: ${responseData.smsError || 'Authentication error'}`;
+          variant = "destructive";
+        }
+      }
+      
       toast({
-        title: "Message Sent",
-        description: "Your message has been sent successfully.",
+        title,
+        description,
+        variant,
       });
     } catch (error) {
       // Restore the message content if send failed

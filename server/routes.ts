@@ -2226,6 +2226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const message = await storage.sendMessage(messageDataWithUser, req.tenant!.id);
       
       // If phone number is provided, send via SMS or WhatsApp
+      let smsDeliveryResult = null;
       if (phoneNumber && (messageType === 'sms' || messageType === 'whatsapp')) {
         try {
           const result = await messagingService.sendMessage({
@@ -2234,6 +2235,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             type: messageType,
             priority: priority || 'normal'
           });
+          
+          smsDeliveryResult = result;
           
           if (result.success) {
             console.log(`${messageType.toUpperCase()} sent successfully:`, result.messageId);
@@ -2249,10 +2252,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error('Twilio API error:', twilioError);
           message.deliveryStatus = 'failed';
           message.error = 'Failed to send via Twilio';
+          smsDeliveryResult = { success: false, error: 'Failed to send via Twilio' };
         }
       }
       
-      res.json(message);
+      // Return message with SMS delivery status
+      const response = {
+        ...message,
+        smsDelivered: smsDeliveryResult?.success || false,
+        smsError: smsDeliveryResult?.error || null
+      };
+      
+      res.json(response);
     } catch (error) {
       console.error("Error sending message:", error);
       res.status(500).json({ error: "Failed to send message" });
