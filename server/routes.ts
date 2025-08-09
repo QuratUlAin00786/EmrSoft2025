@@ -5476,7 +5476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AI Chatbot for Appointment Booking Routes
-  app.post("/api/chatbot/chat", authMiddleware, requireRole(["patient"]), async (req: TenantRequest, res) => {
+  app.post("/api/chatbot/chat", authMiddleware, async (req: TenantRequest, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({ error: "User not authenticated" });
@@ -5489,7 +5489,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get available doctors and time slots for context
-      const doctors = await storage.getUsers(req.tenant!.id);
+      const doctors = await storage.getUsersByOrganization(req.tenant!.id);
       const availableDoctors = doctors
         .filter(doctor => doctor.role === 'doctor' && doctor.isActive)
         .map(doctor => ({
@@ -5499,7 +5499,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }));
 
       // Get available appointments (future slots)
-      const allAppointments = await storage.getAppointments(req.tenant!.id);
+      const allAppointments = await storage.getAppointmentsByOrganization(req.tenant!.id);
       const now = new Date();
       const availableTimeSlots = [
         // Generate some sample available slots for the next 7 days
@@ -5588,13 +5588,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get chatbot context data
-  app.get("/api/chatbot/context", authMiddleware, requireRole(["patient"]), async (req: TenantRequest, res) => {
+  app.get("/api/chatbot/context", authMiddleware, async (req: TenantRequest, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({ error: "User not authenticated" });
       }
 
-      const doctors = await storage.getUsers(req.tenant!.id);
+      const doctors = await storage.getUsersByOrganization(req.tenant!.id);
       const availableDoctors = doctors
         .filter(doctor => doctor.role === 'doctor' && doctor.isActive)
         .map(doctor => ({
