@@ -74,35 +74,29 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
         workingHours: data.workingHours
       });
     },
-    onSuccess: async () => {
+    onSuccess: () => {
       toast({
         title: "Schedule Updated",
         description: "Doctor's schedule has been updated successfully.",
       });
       
-      // Invalidate and refetch the medical staff data
-      await queryClient.invalidateQueries({ queryKey: ["/api/medical-staff"] });
-      const freshData = await queryClient.refetchQueries({ queryKey: ["/api/medical-staff"] });
-      
-      // Update the selectedDoctor with fresh data from the server
-      if (selectedDoctor && freshData && freshData[0]?.data?.staff) {
-        const updatedDoctor = freshData[0].data.staff.find((staff: Doctor) => staff.id === selectedDoctor.id);
-        if (updatedDoctor) {
-          setSelectedDoctor(updatedDoctor);
-          // Update the form states to match the fresh data
-          setWorkingDays(updatedDoctor.workingDays || []);
-          const hours = updatedDoctor.workingHours as { start?: string; end?: string } || {};
-          setStartTime(hours.start || "09:00");
-          setEndTime(hours.end || "17:00");
-        }
-        
-        // Close the dialog after showing the update briefly
-        setTimeout(() => {
-          setIsScheduleOpen(false);
-        }, 1500);
-      } else {
-        setIsScheduleOpen(false);
+      // Update the selectedDoctor with the new schedule data immediately
+      if (selectedDoctor) {
+        const updatedDoctor = {
+          ...selectedDoctor,
+          workingDays: workingDays,
+          workingHours: { start: startTime, end: endTime }
+        };
+        setSelectedDoctor(updatedDoctor);
       }
+      
+      // Invalidate queries to refresh the list
+      queryClient.invalidateQueries({ queryKey: ["/api/medical-staff"] });
+      
+      // Close the dialog after brief delay to show the update
+      setTimeout(() => {
+        setIsScheduleOpen(false);
+      }, 1000);
     },
     onError: (error: any) => {
       toast({
@@ -388,7 +382,7 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                     <>
                       <p>Days: {selectedDoctor.workingDays.join(", ")}</p>
                       {selectedDoctor.workingHours && (
-                        <p>Hours: {formatTime(selectedDoctor.workingHours.start)} - {formatTime(selectedDoctor.workingHours.end)}</p>
+                        <p>Hours: {formatTime(selectedDoctor.workingHours.start || "")} - {formatTime(selectedDoctor.workingHours.end || "")}</p>
                       )}
                     </>
                   ) : (
