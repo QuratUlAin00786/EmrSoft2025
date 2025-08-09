@@ -376,7 +376,7 @@ export default function MessagingPage() {
         // Show status based on actual delivery result
         let title = "Message Sent";
         let description = "Your message has been stored successfully.";
-        let variant = "default" as const;
+        let variant: "default" | "destructive" = "default";
         
         if (variables.messageType === 'sms' || variables.messageType === 'whatsapp') {
           if (data.smsDelivered) {
@@ -556,20 +556,14 @@ export default function MessagingPage() {
       
       // Show status based on actual delivery result
       let title = "Message Sent";
-      let description = "Your message has been stored successfully.";
-      let variant = "default" as const;
+      let description = "Your message has been sent successfully.";
+      let variant: "default" | "destructive" = "default";
       
-      // Check if SMS was attempted and if it succeeded
-      if (messageData.messageType === 'sms' || messageData.messageType === 'whatsapp') {
-        if (responseData.smsDelivered) {
-          title = "Message Sent";
-          description = `Your ${messageData.messageType.toUpperCase()} message has been sent successfully.`;
-          variant = "default";
-        } else {
-          title = "Message Stored - SMS Failed";
-          description = `Message stored in system but ${messageData.messageType.toUpperCase()} delivery failed: ${responseData.smsError || 'Authentication error'}`;
-          variant = "destructive";
-        }
+      // Check if SMS was attempted and if it failed (only applies to messages with phone numbers)
+      if (responseData.smsError) {
+        title = "Message Stored - SMS Failed";
+        description = `Message stored in system but SMS delivery failed: ${responseData.smsError}`;
+        variant = "destructive";
       }
       
       toast({
