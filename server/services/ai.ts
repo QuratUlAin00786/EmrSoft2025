@@ -1090,43 +1090,47 @@ IMPORTANT: You have access to real system data. Use the provided information to 
         let timeFound = false;
         const timeMatch = lowerMessage.match(/(\d{1,2})(:\d{2})?\s*(am|pm)/i);
         const militaryTime = lowerMessage.match(/(\d{1,2}):(\d{2})/);
-        const hourMatch = lowerMessage.match(/(\d{1,2})\s*(am|pm)/i);
         
-        if (timeMatch || militaryTime || hourMatch) {
+        if (timeMatch) {
           // If we found a time but no date yet, default to today
           if (!scheduledDate) {
             scheduledDate = new Date(now);
           }
           
-          if (timeMatch) {
-            let hour = parseInt(timeMatch[1]);
-            const minute = timeMatch[2] ? parseInt(timeMatch[2].substring(1)) : 0;
-            const period = timeMatch[3].toLowerCase();
-            
-            if (period === 'pm' && hour !== 12) hour += 12;
-            if (period === 'am' && hour === 12) hour = 0;
-            
+          let hour = parseInt(timeMatch[1]);
+          const minute = timeMatch[2] ? parseInt(timeMatch[2].substring(1)) : 0;
+          const period = timeMatch[3].toLowerCase();
+          
+          // Convert to 24-hour format
+          if (period === 'pm' && hour !== 12) {
+            hour += 12;
+          } else if (period === 'am' && hour === 12) {
+            hour = 0;
+          }
+          
+          console.log(`[AI] Time parsing - Original: ${timeMatch[0]}, Parsed hour: ${hour}, minute: ${minute}`);
+          scheduledDate.setHours(hour, minute, 0, 0);
+          timeFound = true;
+        } else if (militaryTime && !timeMatch) {
+          // Only use military time if no AM/PM time was found
+          if (!scheduledDate) {
+            scheduledDate = new Date(now);
+          }
+          
+          const hour = parseInt(militaryTime[1]);
+          const minute = parseInt(militaryTime[2]);
+          
+          // Only accept valid 24-hour time
+          if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
+            console.log(`[AI] Military time parsing - ${hour}:${minute}`);
             scheduledDate.setHours(hour, minute, 0, 0);
-            timeFound = true;
-          } else if (militaryTime) {
-            const hour = parseInt(militaryTime[1]);
-            const minute = parseInt(militaryTime[2]);
-            scheduledDate.setHours(hour, minute, 0, 0);
-            timeFound = true;
-          } else if (hourMatch) {
-            let hour = parseInt(hourMatch[1]);
-            const period = hourMatch[2].toLowerCase();
-            
-            if (period === 'pm' && hour !== 12) hour += 12;
-            if (period === 'am' && hour === 12) hour = 0;
-            
-            scheduledDate.setHours(hour, 0, 0, 0);
             timeFound = true;
           }
         }
         
         // If we have a date but no specific time, set a default
         if (scheduledDate && !timeFound) {
+          console.log(`[AI] No time found, setting default to 2:00 PM`);
           scheduledDate.setHours(14, 0, 0, 0); // Default to 2:00 PM
         }
         
