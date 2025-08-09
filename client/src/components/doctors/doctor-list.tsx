@@ -69,19 +69,17 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
 
   const updateScheduleMutation = useMutation({
     mutationFn: async (data: { userId: number; workingDays: string[]; workingHours: { start: string; end: string } }) => {
-      return await apiRequest("PATCH", `/api/users/${data.userId}`, {
+      const response = await apiRequest("PATCH", `/api/users/${data.userId}`, {
         workingDays: data.workingDays,
         workingHours: data.workingHours
       });
+      return await response.json();
     },
-    onSuccess: async (response) => {
+    onSuccess: (updatedUserData) => {
       toast({
         title: "Schedule Updated",
         description: "Doctor's schedule has been updated successfully.",
       });
-      
-      // Get the updated user data from the response
-      const updatedUserData = await response.json();
       
       // Update the selectedDoctor with fresh data from server
       if (selectedDoctor && updatedUserData) {
