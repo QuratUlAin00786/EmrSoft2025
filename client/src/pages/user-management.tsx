@@ -392,17 +392,44 @@ export default function UserManagement() {
   });
 
   const updateUserMutation = useMutation({
-    mutationFn: ({ id, userData }: { id: number; userData: Partial<UserFormData> }) => {
-      return apiRequest("PATCH", `/api/users/${id}`, userData);
+    mutationFn: async ({ id, userData }: { id: number; userData: Partial<UserFormData> }) => {
+      const response = await apiRequest("PATCH", `/api/users/${id}`, userData);
+      return await response.json();
     },
-    onSuccess: () => {
+    onSuccess: (updatedUserData) => {
       toast({
         title: "User updated successfully",
         description: "The user information has been updated.",
       });
+      
+      // Update the form with fresh data from server response
+      if (editingUser && updatedUserData) {
+        const updatedUser = {
+          ...editingUser,
+          ...updatedUserData,
+          workingDays: updatedUserData.workingDays || [],
+          workingHours: updatedUserData.workingHours || { start: "09:00", end: "17:00" }
+        };
+        setEditingUser(updatedUser);
+        
+        // Update form with fresh server data
+        form.reset({
+          email: updatedUserData.email,
+          firstName: updatedUserData.firstName,
+          lastName: updatedUserData.lastName,
+          role: updatedUserData.role as any,
+          department: updatedUserData.department || "",
+          workingDays: updatedUserData.workingDays || [],
+          workingHours: updatedUserData.workingHours || { start: "09:00", end: "17:00" },
+          password: "",
+        });
+      }
+      
       refetch();
-      setEditingUser(null);
-      form.reset();
+      setTimeout(() => {
+        setEditingUser(null);
+        setIsCreateModalOpen(false);
+      }, 1500);
     },
     onError: () => {
       toast({
