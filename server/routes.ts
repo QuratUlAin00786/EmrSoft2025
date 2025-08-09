@@ -2470,37 +2470,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update scheduled time for messaging
-  app.post("/api/messaging/update-scheduled-time", authMiddleware, async (req: TenantRequest, res) => {
-    try {
-      const { scheduledTime, conversationId } = req.body;
-      
-      if (!scheduledTime || !conversationId) {
-        return res.status(400).json({ error: "Scheduled time and conversation ID are required" });
-      }
-
-      // Validate that the time is in the future
-      const scheduledDate = new Date(scheduledTime);
-      if (scheduledDate <= new Date()) {
-        return res.status(400).json({ error: "Scheduled time must be in the future" });
-      }
-
-      // Mock update for now - in a real implementation this would update the database
-      const result = {
-        success: true,
-        conversationId,
-        scheduledTime,
-        updatedAt: new Date().toISOString(),
-        message: "Scheduled time updated successfully"
-      };
-
-      res.json(result);
-    } catch (error) {
-      console.error("Error updating scheduled time:", error);
-      res.status(500).json({ error: "Failed to update scheduled time" });
-    }
-  });
-
   // Integration endpoints
   app.get("/api/integrations", authMiddleware, async (req: TenantRequest, res) => {
     try {
