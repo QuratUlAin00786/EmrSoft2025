@@ -96,6 +96,7 @@ export function AIChatWidget() {
       recognition.maxAlternatives = 1;
       
       recognition.onstart = () => {
+        console.log('Speech recognition started successfully');
         setIsListening(true);
         setTranscriptBuffer("");
       };
@@ -254,19 +255,38 @@ export function AIChatWidget() {
 
   const startVoiceRecognition = () => {
     if (recognition && !isListening) {
-      setTranscriptBuffer("");
-      recognition.start();
+      try {
+        setTranscriptBuffer("");
+        setInput(prev => prev.replace(/\s*\[.*?\]\s*$/, '').trim()); // Clean any interim text
+        recognition.start();
+      } catch (error) {
+        console.error("Error starting voice recognition:", error);
+        // If recognition is already started, stop it first then restart
+        if (error.message && error.message.includes('already started')) {
+          try {
+            recognition.stop();
+            setTimeout(() => {
+              recognition.start();
+            }, 100);
+          } catch (restartError) {
+            console.error("Failed to restart recognition:", restartError);
+          }
+        }
+      }
     }
   };
 
   const stopVoiceRecognition = () => {
-    if (recognition && isListening) {
+    if (recognition) {
       try {
-        recognition.stop();
-        console.log("Voice recognition stop requested");
+        if (isListening) {
+          recognition.stop();
+          console.log("Voice recognition stop requested");
+        }
       } catch (error) {
         console.error("Error stopping voice recognition:", error);
       }
+      // Always reset state regardless of current listening status
       setIsListening(false);
       // Clean up any interim text in brackets and keep final transcript
       setInput(prev => {
