@@ -308,7 +308,7 @@ export default function PrescriptionsPage() {
       
       const data = await response.json();
       console.log("Fetched providers:", data);
-      setProviders(data || []);
+      setProviders(data.staff || []);
     } catch (err) {
       console.error("Error fetching providers:", err);
       setProviders([]);
