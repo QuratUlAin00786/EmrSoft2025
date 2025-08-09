@@ -723,11 +723,37 @@ IMPORTANT: You have access to real system data. Use the provided information to 
       }
       
       if (foundPatient) {
-        const patientPrescriptions = prescriptions.filter(p => p.patientId === foundPatient.id);
+        const allPatientPrescriptions = prescriptions.filter(p => p.patientId === foundPatient.id);
+        console.log(`[DEBUG] Found ${allPatientPrescriptions.length} total prescriptions for patient ${foundPatient.id}`);
+        
+        // Simple deduplication: only show one prescription per medication name+dosage combination
+        const uniquePrescriptions = [];
+        const seenMedications = new Set();
+        
+        for (const prescription of allPatientPrescriptions) {
+          // Create simple key based on first medication name and dosage only
+          if (prescription.medications && prescription.medications.length > 0) {
+            const firstMed = prescription.medications[0];
+            const medKey = `${firstMed.name || 'unknown'}-${firstMed.dosage || 'unknown'}`;
+            
+            if (!seenMedications.has(medKey)) {
+              seenMedications.add(medKey);
+              uniquePrescriptions.push(prescription);
+            }
+          } else {
+            // If no medications, only add one "no medication" prescription
+            if (!seenMedications.has('no-medications')) {
+              seenMedications.add('no-medications');
+              uniquePrescriptions.push(prescription);
+            }
+          }
+        }
+        
+        console.log(`[DEBUG] After deduplication: ${uniquePrescriptions.length} unique prescriptions`);
         
         let response;
-        if (patientPrescriptions.length > 0) {
-          response = `**${patientPrescriptions.length} prescriptions** found for **${foundPatient.firstName} ${foundPatient.lastName}**:\n\n${patientPrescriptions.slice(0, 5).map(p => {
+        if (uniquePrescriptions.length > 0) {
+          response = `**${uniquePrescriptions.length} prescriptions** found for **${foundPatient.firstName} ${foundPatient.lastName}**:\n\n${uniquePrescriptions.slice(0, 5).map(p => {
             const medList = p.medications && p.medications.length > 0 
               ? p.medications.map((med: any) => `${med.name} (${med.dosage || 'standard dose'})`).join(', ')
               : 'No medication details';
@@ -745,7 +771,10 @@ IMPORTANT: You have access to real system data. Use the provided information to 
           parameters: {
             patientId: foundPatient.id,
             patientName: `${foundPatient.firstName} ${foundPatient.lastName}`,
-            prescriptionCount: patientPrescriptions.length
+            prescriptionCount: uniquePrescriptions.length
+          },
+          data: {
+            prescriptions: uniquePrescriptions.slice(0, 5)
           }
         };
       } else {

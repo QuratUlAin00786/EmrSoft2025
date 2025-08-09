@@ -1302,12 +1302,36 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPrescriptionsByOrganization(organizationId: number, limit: number = 50): Promise<Prescription[]> {
-    return await db
+    const allPrescriptions = await db
       .select()
       .from(prescriptions)
       .where(eq(prescriptions.organizationId, organizationId))
-      .orderBy(desc(prescriptions.createdAt))
-      .limit(limit);
+      .orderBy(desc(prescriptions.createdAt));
+
+    // Remove duplicates based on patient + medication name + dosage
+    const uniquePrescriptions = [];
+    const seenCombinations = new Set();
+    
+    for (const prescription of allPrescriptions) {
+      if (prescription.medications && prescription.medications.length > 0) {
+        const firstMed = prescription.medications[0];
+        const key = `${prescription.patientId}-${firstMed.name || 'unknown'}-${firstMed.dosage || 'unknown'}`;
+        
+        if (!seenCombinations.has(key)) {
+          seenCombinations.add(key);
+          uniquePrescriptions.push(prescription);
+        }
+      } else {
+        // For prescriptions without medications, use patient + id
+        const key = `${prescription.patientId}-no-meds-${prescription.id}`;
+        if (!seenCombinations.has(key)) {
+          seenCombinations.add(key);
+          uniquePrescriptions.push(prescription);
+        }
+      }
+    }
+    
+    return uniquePrescriptions.slice(0, limit);
   }
 
   async getPrescriptionsByPatient(patientId: number, organizationId: number): Promise<Prescription[]> {
