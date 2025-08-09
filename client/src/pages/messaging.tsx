@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,11 +30,14 @@ import {
   Trash2,
   Edit,
   Copy,
-  ArrowLeft
+  ArrowLeft,
+  Save,
+  AlertCircle
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, formatISO } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { useLocale } from "@/hooks/use-locale";
 
 interface Message {
   id: string;
@@ -107,6 +110,13 @@ export default function MessagingPage() {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [callTimer, setCallTimer] = useState<NodeJS.Timeout | null>(null);
+  
+  // Enhanced time management and visual feedback
+  const [timeChangePending, setTimeChangePending] = useState(false);
+  const [originalScheduledTime, setOriginalScheduledTime] = useState("");
+  const [activeDropdownHighlight, setActiveDropdownHighlight] = useState<string | null>(null);
+  const timeInputRef = useRef<HTMLInputElement>(null);
+  const { formatTime, formatDate } = useLocale();
   const [newCampaign, setNewCampaign] = useState({
     name: "",
     type: "email" as "email" | "sms" | "both",
@@ -255,6 +265,77 @@ export default function MessagingPage() {
       return response.json();
     }
   });
+
+  // Enhanced time persistence and visual feedback functions
+  const handleTimeChange = (newTime: string) => {
+    if (!originalScheduledTime) {
+      setOriginalScheduledTime(videoCall.scheduledTime);
+    }
+    setVideoCall(prev => ({ ...prev, scheduledTime: newTime }));
+    setTimeChangePending(true);
+  };
+
+  const saveTimeChange = async () => {
+    try {
+      const timeToSave = videoCall.scheduledTime;
+      
+      // Persist time change to backend
+      const response = await fetch('/api/messaging/update-scheduled-time', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`,
+          'X-Tenant-Subdomain': 'demo',
+        },
+        body: JSON.stringify({
+          scheduledTime: timeToSave,
+          conversationId: selectedConversation,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save time change');
+      }
+
+      // Update timestamp consistency across the interface
+      await queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
+      
+      setTimeChangePending(false);
+      setOriginalScheduledTime("");
+      
+      toast({
+        title: "Time Updated",
+        description: `Scheduled time has been saved successfully: ${formatTime(new Date(timeToSave))}`,
+      });
+    } catch (error) {
+      // Revert to original time on failure
+      setVideoCall(prev => ({ ...prev, scheduledTime: originalScheduledTime }));
+      setTimeChangePending(false);
+      
+      toast({
+        title: "Save Failed",
+        description: "Could not save the time change. Previous time has been restored.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const cancelTimeChange = () => {
+    setVideoCall(prev => ({ ...prev, scheduledTime: originalScheduledTime }));
+    setTimeChangePending(false);
+    setOriginalScheduledTime("");
+  };
+
+  const handleDropdownSelect = (value: string, dropdownId: string) => {
+    // Visual feedback with yellow circle highlight
+    setActiveDropdownHighlight(dropdownId);
+    
+    // Remove highlight after 800ms
+    setTimeout(() => {
+      setActiveDropdownHighlight(null);
+    }, 800);
+  };
 
   const resetNewMessage = () => {
     setNewMessage({
@@ -819,22 +900,30 @@ export default function MessagingPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="callDuration">Expected Duration</Label>
-                    <Select 
-                      value={videoCall.duration} 
-                      onValueChange={(value: "15" | "30" | "60" | "90") => 
-                        setVideoCall(prev => ({ ...prev, duration: value }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="15">15 minutes</SelectItem>
-                        <SelectItem value="30">30 minutes</SelectItem>
-                        <SelectItem value="60">1 hour</SelectItem>
-                        <SelectItem value="90">1.5 hours</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="relative">
+                      <Select 
+                        value={videoCall.duration} 
+                        onValueChange={(value: "15" | "30" | "60" | "90") => {
+                          setVideoCall(prev => ({ ...prev, duration: value }));
+                          handleDropdownSelect(value, "duration");
+                        }}
+                      >
+                        <SelectTrigger className={activeDropdownHighlight === "duration" ? "border-yellow-400 bg-yellow-50" : ""}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="15">15 minutes</SelectItem>
+                          <SelectItem value="30">30 minutes</SelectItem>
+                          <SelectItem value="60">1 hour</SelectItem>
+                          <SelectItem value="90">1.5 hours</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {activeDropdownHighlight === "duration" && (
+                        <div className="absolute right-8 top-1/2 transform -translate-y-1/2">
+                          <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -853,12 +942,43 @@ export default function MessagingPage() {
                   {videoCall.scheduled && (
                     <div className="space-y-2">
                       <Label htmlFor="scheduledTime">Scheduled Time</Label>
-                      <Input
-                        id="scheduledTime"
-                        type="datetime-local"
-                        value={videoCall.scheduledTime}
-                        onChange={(e) => setVideoCall(prev => ({ ...prev, scheduledTime: e.target.value }))}
-                      />
+                      <div className="relative">
+                        <Input
+                          ref={timeInputRef}
+                          id="scheduledTime"
+                          type="datetime-local"
+                          value={videoCall.scheduledTime}
+                          onChange={(e) => handleTimeChange(e.target.value)}
+                          className={timeChangePending ? "border-yellow-400 bg-yellow-50" : ""}
+                        />
+                        {timeChangePending && (
+                          <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                            <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
+                          </div>
+                        )}
+                      </div>
+                      {timeChangePending && (
+                        <div className="flex gap-2 mt-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={saveTimeChange}
+                            className="bg-green-50 hover:bg-green-100 border-green-300"
+                          >
+                            <Save className="h-3 w-3 mr-1" />
+                            Save Time
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={cancelTimeChange}
+                            className="bg-red-50 hover:bg-red-100 border-red-300"
+                          >
+                            <AlertCircle className="h-3 w-3 mr-1" />
+                            Cancel
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -917,21 +1037,29 @@ export default function MessagingPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="messageType">Message Type</Label>
-                    <Select 
-                      value={newMessage.type} 
-                      onValueChange={(value: "internal" | "patient" | "broadcast") => 
-                        setNewMessage(prev => ({ ...prev, type: value }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="internal">Internal</SelectItem>
-                        <SelectItem value="patient">Patient</SelectItem>
-                        <SelectItem value="broadcast">Broadcast</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="relative">
+                      <Select 
+                        value={newMessage.type} 
+                        onValueChange={(value: "internal" | "patient" | "broadcast") => {
+                          setNewMessage(prev => ({ ...prev, type: value }));
+                          handleDropdownSelect(value, "messageType");
+                        }}
+                      >
+                        <SelectTrigger className={activeDropdownHighlight === "messageType" ? "border-yellow-400 bg-yellow-50" : ""}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="internal">Internal</SelectItem>
+                          <SelectItem value="patient">Patient</SelectItem>
+                          <SelectItem value="broadcast">Broadcast</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {activeDropdownHighlight === "messageType" && (
+                        <div className="absolute right-8 top-1/2 transform -translate-y-1/2">
+                          <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -947,22 +1075,30 @@ export default function MessagingPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="messagePriority">Priority</Label>
-                    <Select 
-                      value={newMessage.priority} 
-                      onValueChange={(value: "low" | "normal" | "high" | "urgent") => 
-                        setNewMessage(prev => ({ ...prev, priority: value }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="normal">Normal</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="urgent">Urgent</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="relative">
+                      <Select 
+                        value={newMessage.priority} 
+                        onValueChange={(value: "low" | "normal" | "high" | "urgent") => {
+                          setNewMessage(prev => ({ ...prev, priority: value }));
+                          handleDropdownSelect(value, "priority");
+                        }}
+                      >
+                        <SelectTrigger className={activeDropdownHighlight === "priority" ? "border-yellow-400 bg-yellow-50" : ""}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">Low</SelectItem>
+                          <SelectItem value="normal">Normal</SelectItem>
+                          <SelectItem value="high">High</SelectItem>
+                          <SelectItem value="urgent">Urgent</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {activeDropdownHighlight === "priority" && (
+                        <div className="absolute right-8 top-1/2 transform -translate-y-1/2">
+                          <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
                 
@@ -1207,7 +1343,7 @@ export default function MessagingPage() {
                               <div className="flex items-center gap-2 mb-1">
                                 <span className="font-medium text-sm text-gray-900 dark:text-gray-100">{message.senderName}</span>
                                 <span className="text-xs text-gray-500 dark:text-gray-400">
-                                  {format(new Date(message.timestamp), 'MMM d, HH:mm')}
+                                  {formatDate(new Date(message.timestamp))} {formatTime(new Date(message.timestamp))}
                                 </span>
                                 <div className={`w-2 h-2 rounded-full ${getPriorityColor(message.priority)}`}></div>
                               </div>
