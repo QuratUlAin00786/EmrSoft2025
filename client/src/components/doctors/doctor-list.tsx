@@ -81,14 +81,21 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
       });
       // Update the selectedDoctor with the new schedule data immediately
       if (selectedDoctor) {
-        setSelectedDoctor({
+        const updatedDoctor = {
           ...selectedDoctor,
           workingDays: workingDays,
           workingHours: { start: startTime, end: endTime }
-        });
+        };
+        setSelectedDoctor(updatedDoctor);
+        
+        // Keep the dialog open for a moment to show the updated schedule
+        setTimeout(() => {
+          setIsScheduleOpen(false);
+        }, 1000);
+      } else {
+        setIsScheduleOpen(false);
       }
       queryClient.invalidateQueries({ queryKey: ["/api/medical-staff"] });
-      setIsScheduleOpen(false);
     },
     onError: (error: any) => {
       toast({
