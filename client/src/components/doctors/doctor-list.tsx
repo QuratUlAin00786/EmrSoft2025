@@ -74,28 +74,35 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
         workingHours: data.workingHours
       });
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: "Schedule Updated",
         description: "Doctor's schedule has been updated successfully.",
       });
-      // Update the selectedDoctor with the new schedule data immediately
-      if (selectedDoctor) {
-        const updatedDoctor = {
-          ...selectedDoctor,
-          workingDays: workingDays,
-          workingHours: { start: startTime, end: endTime }
-        };
-        setSelectedDoctor(updatedDoctor);
+      
+      // Invalidate and refetch the medical staff data
+      await queryClient.invalidateQueries({ queryKey: ["/api/medical-staff"] });
+      const freshData = await queryClient.refetchQueries({ queryKey: ["/api/medical-staff"] });
+      
+      // Update the selectedDoctor with fresh data from the server
+      if (selectedDoctor && freshData && freshData[0]?.data?.staff) {
+        const updatedDoctor = freshData[0].data.staff.find((staff: Doctor) => staff.id === selectedDoctor.id);
+        if (updatedDoctor) {
+          setSelectedDoctor(updatedDoctor);
+          // Update the form states to match the fresh data
+          setWorkingDays(updatedDoctor.workingDays || []);
+          const hours = updatedDoctor.workingHours as { start?: string; end?: string } || {};
+          setStartTime(hours.start || "09:00");
+          setEndTime(hours.end || "17:00");
+        }
         
-        // Keep the dialog open for a moment to show the updated schedule
+        // Close the dialog after showing the update briefly
         setTimeout(() => {
           setIsScheduleOpen(false);
-        }, 1000);
+        }, 1500);
       } else {
         setIsScheduleOpen(false);
       }
-      queryClient.invalidateQueries({ queryKey: ["/api/medical-staff"] });
     },
     onError: (error: any) => {
       toast({
