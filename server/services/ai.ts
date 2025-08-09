@@ -749,21 +749,18 @@ IMPORTANT: You have access to real system data. Use the provided information to 
           }
         };
       } else {
-        // Show unique patients with prescriptions (completely deduplicated)
-        const uniquePatients = new Set();
+        // Show unique patients with prescriptions (properly deduplicated by patient ID)
+        const uniquePatientIds = new Set();
         const patientPrescriptionSummary = [];
         
         for (const prescription of prescriptions) {
           const patient = patients.find(pt => pt.id === prescription.patientId);
-          if (patient) {
-            const patientKey = `${patient.firstName} ${patient.lastName}`;
-            if (!uniquePatients.has(patientKey)) {
-              uniquePatients.add(patientKey);
-              patientPrescriptionSummary.push({
-                name: patientKey,
-                status: prescription.status
-              });
-            }
+          if (patient && !uniquePatientIds.has(patient.id)) {
+            uniquePatientIds.add(patient.id);
+            patientPrescriptionSummary.push({
+              name: `${patient.firstName} ${patient.lastName}`,
+              status: prescription.status
+            });
           }
         }
         
