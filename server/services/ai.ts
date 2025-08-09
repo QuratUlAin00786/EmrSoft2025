@@ -505,13 +505,19 @@ IMPORTANT: You have access to real system data. Use the provided information to 
       let intent = 'general_inquiry';
       let confidence = 0.8;
       
-      if (aiResponse.toLowerCase().includes('appointment') || aiResponse.toLowerCase().includes('book') || aiResponse.toLowerCase().includes('schedule')) {
+      const lowerMessage = params.message.toLowerCase();
+      
+      if (aiResponse.toLowerCase().includes('appointment') || aiResponse.toLowerCase().includes('book') || aiResponse.toLowerCase().includes('schedule') || 
+          lowerMessage.includes('appointment') || lowerMessage.includes('book') || lowerMessage.includes('schedule')) {
         intent = 'book_appointment';
         confidence = 0.9;
-      } else if (aiResponse.toLowerCase().includes('prescription') || aiResponse.toLowerCase().includes('medication')) {
+      } else if (aiResponse.toLowerCase().includes('prescription') || aiResponse.toLowerCase().includes('medication') || 
+                 lowerMessage.includes('prescription') || lowerMessage.includes('medication') || 
+                 lowerMessage.includes('show me prescription') || lowerMessage.includes('find prescriptions')) {
         intent = 'find_prescriptions';
         confidence = 0.9;
-      } else if (aiResponse.toLowerCase().includes('patient') && (aiResponse.toLowerCase().includes('find') || aiResponse.toLowerCase().includes('search'))) {
+      } else if ((aiResponse.toLowerCase().includes('patient') && (aiResponse.toLowerCase().includes('find') || aiResponse.toLowerCase().includes('search'))) ||
+                 (lowerMessage.includes('patient') && (lowerMessage.includes('find') || lowerMessage.includes('search')))) {
         intent = 'patient_search';
         confidence = 0.8;
       }
@@ -736,24 +742,28 @@ IMPORTANT: You have access to real system data. Use the provided information to 
           }
         };
       } else {
-        // Show recent prescriptions with patient names (deduplicated)
-        const uniquePatients = new Map();
-        const recentPrescriptions = prescriptions.filter(p => {
-          const patient = patients.find(pt => pt.id === p.patientId);
-          if (!patient) return false;
-          
-          const patientKey = `${patient.firstName} ${patient.lastName}`;
-          if (!uniquePatients.has(patientKey)) {
-            uniquePatients.set(patientKey, p);
-            return true;
-          }
-          return false;
-        }).slice(0, 5);
+        // Show unique patients with prescriptions (completely deduplicated)
+        const uniquePatients = new Set();
+        const patientPrescriptionSummary = [];
         
-        let response = `Recent prescriptions:\n${recentPrescriptions.map(p => {
-          const patient = patients.find(pt => pt.id === p.patientId);
-          const patientName = patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown Patient';
-          return `• ${patientName} (${p.status})`;
+        for (const prescription of prescriptions) {
+          const patient = patients.find(pt => pt.id === prescription.patientId);
+          if (patient) {
+            const patientKey = `${patient.firstName} ${patient.lastName}`;
+            if (!uniquePatients.has(patientKey)) {
+              uniquePatients.add(patientKey);
+              patientPrescriptionSummary.push({
+                name: patientKey,
+                status: prescription.status
+              });
+            }
+          }
+        }
+        
+        const displayList = patientPrescriptionSummary.slice(0, 5);
+        
+        let response = `Recent prescriptions:\n${displayList.map(item => {
+          return `• ${item.name} (${item.status})`;
         }).join('\n')}\n\nTell me a patient name to see their prescriptions.`;
         
         return {
