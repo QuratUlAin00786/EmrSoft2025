@@ -15,6 +15,9 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system by 
 - **Fixed appointment time display mismatch**: Resolved critical timing issue where AI chatbot appointments were not displaying at correct suggested times in "All Upcoming Appointments" - appointments now show accurate times matching AI suggestions
 - **Enhanced Medical Staff availability filtering**: Medical Staff list now only shows doctors who are actually available (on duty, not on leave/vacation) based on shift schedules and availability status
 - **Added doctor availability counter**: Medical Staff section now displays "Medical Staff (X/Y Available)" showing available doctors out of total doctors for better appointment booking visibility
+- **Resolved duplicate prescription issue**: Successfully cleaned 386 duplicate prescription records from database and implemented seeding protection to prevent future duplicates
+- **Fixed prescriptions page error**: Corrected "providers.forEach is not a function" error by properly handling API response structure (`data.staff` instead of `data`)
+- **Fixed voice transcription duplication**: Resolved AI chatbot voice recognition bug where speech-to-text was typing transcribed text twice by fixing the speech recognition result processing logic
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.

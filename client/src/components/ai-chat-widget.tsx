@@ -104,8 +104,8 @@ export function AIChatWidget() {
         let finalTranscript = '';
         let interimTranscript = '';
         
-        // Process ALL results from beginning, not just from resultIndex
-        for (let i = 0; i < event.results.length; i++) {
+        // Process only new results from the current event
+        for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
             finalTranscript += transcript;
@@ -114,23 +114,23 @@ export function AIChatWidget() {
           }
         }
         
-        // Update transcript buffer with final results
+        // Update transcript buffer with final results only
         if (finalTranscript) {
           setTranscriptBuffer(prev => (prev + ' ' + finalTranscript).trim());
-          setInput(prev => {
-            const baseText = prev.replace(/\s*\[.*?\]\s*$/, ''); // Remove interim text
-            return (baseText + ' ' + finalTranscript).trim();
-          });
         }
         
-        // Show interim results with accumulated transcript
-        if (interimTranscript) {
-          setInput(prev => {
-            const baseText = prev.replace(/\s*\[.*?\]\s*$/, ''); // Remove previous interim text
-            const fullTranscript = (transcriptBuffer + ' ' + interimTranscript).trim();
-            return (baseText + ' [' + fullTranscript + ']').trim();
-          });
-        }
+        // Update input field with accumulated buffer plus interim results
+        setInput(prev => {
+          const baseText = prev.replace(/\s*\[.*?\]\s*$/, ''); // Remove interim text
+          const currentBuffer = finalTranscript ? transcriptBuffer + ' ' + finalTranscript : transcriptBuffer;
+          const fullText = currentBuffer.trim();
+          
+          if (interimTranscript) {
+            return (fullText + ' [' + interimTranscript + ']').trim();
+          } else {
+            return fullText;
+          }
+        });
       };
       
       recognition.onerror = (event: any) => {
