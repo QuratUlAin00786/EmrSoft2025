@@ -132,6 +132,15 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
         : [...prev, day]
     );
   };
+
+  const formatTime = (time: string): string => {
+    if (!time) return "";
+    const [hours, minutes] = time.split(":");
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
   
   // Filter to show only available staff members
   // Based on backend logic: staff are available if they have no working days set OR if today is in their working days
@@ -372,7 +381,7 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                     <>
                       <p>Days: {selectedDoctor.workingDays.join(", ")}</p>
                       {selectedDoctor.workingHours && (
-                        <p>Hours: {selectedDoctor.workingHours.start} - {selectedDoctor.workingHours.end}</p>
+                        <p>Hours: {formatTime(selectedDoctor.workingHours.start)} - {formatTime(selectedDoctor.workingHours.end)}</p>
                       )}
                     </>
                   ) : (
