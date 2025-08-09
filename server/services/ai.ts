@@ -736,16 +736,25 @@ IMPORTANT: You have access to real system data. Use the provided information to 
           }
         };
       } else {
-        // Show recent prescriptions with patient names
-        const recentPrescriptions = prescriptions.slice(0, 5);
-        let response = `**Recent prescriptions in the system:**\n\n${recentPrescriptions.map(p => {
+        // Show recent prescriptions with patient names (deduplicated)
+        const uniquePatients = new Map();
+        const recentPrescriptions = prescriptions.filter(p => {
+          const patient = patients.find(pt => pt.id === p.patientId);
+          if (!patient) return false;
+          
+          const patientKey = `${patient.firstName} ${patient.lastName}`;
+          if (!uniquePatients.has(patientKey)) {
+            uniquePatients.set(patientKey, p);
+            return true;
+          }
+          return false;
+        }).slice(0, 5);
+        
+        let response = `Recent prescriptions:\n${recentPrescriptions.map(p => {
           const patient = patients.find(pt => pt.id === p.patientId);
           const patientName = patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown Patient';
-          const medList = p.medications && p.medications.length > 0 
-            ? p.medications.map((med: any) => med.name).slice(0, 2).join(', ')
-            : 'No details';
-          return `• **${patientName}** - ${medList} (${p.status})`;
-        }).join('\n')}\n\nTell me a specific patient name to see their prescriptions.`;
+          return `• ${patientName} (${p.status})`;
+        }).join('\n')}\n\nTell me a patient name to see their prescriptions.`;
         
         return {
           response,
@@ -1360,51 +1369,8 @@ IMPORTANT: You have access to real system data. Use the provided information to 
         }
       }
       
-      // Enhanced prescription search logic
-      else if (lowerMessage.includes('prescription') || lowerMessage.includes('medication') || lowerMessage.includes('find') || lowerMessage.includes('search')) {
-        intent = 'find_prescriptions';
-        confidence = 0.9;
-        
-        const patients = await storage.getPatientsByOrganization(params.organizationId, 20);
-        const prescriptions = await storage.getPrescriptionsByOrganization(params.organizationId);
-        
-        // Look for patient names in the message
-        let foundPatient = null;
-        for (const patient of patients) {
-          const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
-          if (lowerMessage.includes(patient.firstName.toLowerCase()) || 
-              lowerMessage.includes(patient.lastName.toLowerCase()) ||
-              lowerMessage.includes(fullName)) {
-            foundPatient = patient;
-            break;
-          }
-        }
-        
-        if (foundPatient) {
-          const patientPrescriptions = prescriptions.filter(p => p.patientId === foundPatient.id);
-          extractedParams = {
-            patientId: foundPatient.id,
-            patientName: `${foundPatient.firstName} ${foundPatient.lastName}`
-          };
-          
-          if (patientPrescriptions.length > 0) {
-            response = `**${patientPrescriptions.length} prescriptions** for **${foundPatient.firstName} ${foundPatient.lastName}**:\n\n${patientPrescriptions.slice(0, 3).map(p => {
-              const medList = p.medications && p.medications.length > 0 
-                ? p.medications.map((med: any) => `${med.name}`).join(', ')
-                : 'No medication details';
-              return `• ${medList} (${p.status})`;
-            }).join('\n')}`;
-          } else {
-            response = `No prescriptions found for **${foundPatient.firstName} ${foundPatient.lastName}**.`;
-          }
-        } else {
-          response = `Recent prescriptions:\n${prescriptions.slice(0, 5).map(p => {
-            const patient = patients.find(pt => pt.id === p.patientId);
-            const patientName = patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown';
-            return `• ${patientName} (${p.status})`;
-          }).join('\n')}\n\nTell me a patient name to see their prescriptions.`;
-        }
-      }
+      // Prescription search is handled by handleAnthropicPrescriptionSearch function
+      // This duplicate logic was removed to prevent prescription data duplication
       
       // Help and general inquiries
       else if (lowerMessage.includes('help') || lowerMessage.includes('what can you do') || lowerMessage.includes('how') || lowerMessage.includes('guide')) {
