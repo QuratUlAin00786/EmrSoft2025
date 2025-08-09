@@ -506,17 +506,24 @@ IMPORTANT: You have access to real system data. Use the provided information to 
       let confidence = 0.8;
       
       const lowerMessage = params.message.toLowerCase();
+      const lowerResponse = aiResponse.toLowerCase();
       
-      if (aiResponse.toLowerCase().includes('appointment') || aiResponse.toLowerCase().includes('book') || aiResponse.toLowerCase().includes('schedule') || 
+      // Check for prescription-related queries first (highest priority)
+      if (lowerMessage.includes('prescription') || lowerMessage.includes('medication') || 
+          lowerMessage.includes('show me prescription') || lowerMessage.includes('find prescriptions') ||
+          lowerMessage.includes('prescription information') || lowerMessage.includes('prescription data') ||
+          lowerResponse.includes('prescription') || lowerResponse.includes('medication')) {
+        intent = 'find_prescriptions';
+        confidence = 0.9;
+      } 
+      // Check for appointment-related queries
+      else if (lowerResponse.includes('appointment') || lowerResponse.includes('book') || lowerResponse.includes('schedule') || 
           lowerMessage.includes('appointment') || lowerMessage.includes('book') || lowerMessage.includes('schedule')) {
         intent = 'book_appointment';
         confidence = 0.9;
-      } else if (aiResponse.toLowerCase().includes('prescription') || aiResponse.toLowerCase().includes('medication') || 
-                 lowerMessage.includes('prescription') || lowerMessage.includes('medication') || 
-                 lowerMessage.includes('show me prescription') || lowerMessage.includes('find prescriptions')) {
-        intent = 'find_prescriptions';
-        confidence = 0.9;
-      } else if ((aiResponse.toLowerCase().includes('patient') && (aiResponse.toLowerCase().includes('find') || aiResponse.toLowerCase().includes('search'))) ||
+      } 
+      // Check for patient search queries
+      else if ((lowerResponse.includes('patient') && (lowerResponse.includes('find') || lowerResponse.includes('search'))) ||
                  (lowerMessage.includes('patient') && (lowerMessage.includes('find') || lowerMessage.includes('search')))) {
         intent = 'patient_search';
         confidence = 0.8;
@@ -920,26 +927,90 @@ IMPORTANT: You have access to real system data. Use the provided information to 
     let extractedParams = null;
 
     try {
-      // Check if this is a continuing appointment booking conversation
-      const isAppointmentContext = params.conversationHistory && params.conversationHistory.some(item => 
-        item.role === 'assistant' && (
-          item.content.includes('Which doctor?') ||
-          item.content.includes('Which patient?') ||
-          item.content.includes('When?') ||
-          item.content.includes('Found patient') ||
-          item.content.includes('Found **Dr.') ||
-          item.content.includes('Ready to book') ||
-          item.content.includes('Tell me:') ||
-          item.content.includes('book an appointment')
-        )
-      );
+      // HIGHEST PRIORITY: Prescription search - check first before appointment logic
+      if (lowerMessage.includes('prescription') || lowerMessage.includes('medication') || 
+          lowerMessage.includes('show me prescription') || lowerMessage.includes('find prescriptions') ||
+          lowerMessage.includes('prescription information') || lowerMessage.includes('prescription data') ||
+          lowerMessage === 'prescription' || lowerMessage.includes('prescriptions') ||
+          lowerMessage.includes('meds') || lowerMessage.includes('medicine')) {
+        intent = 'find_prescriptions';
+        confidence = 0.9;
+        
+        const patients = await storage.getPatientsByOrganization(params.organizationId, 20);
+        const prescriptions = await storage.getPrescriptionsByOrganization(params.organizationId);
+        
+        // Look for patient names in the message
+        let foundPatient = null;
+        for (const patient of patients) {
+          const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
+          if (lowerMessage.includes(patient.firstName.toLowerCase()) || 
+              lowerMessage.includes(patient.lastName.toLowerCase()) ||
+              lowerMessage.includes(fullName)) {
+            foundPatient = patient;
+            break;
+          }
+        }
+        
+        if (foundPatient) {
+          const patientPrescriptions = prescriptions.filter(p => p.patientId === foundPatient.id);
+          
+          if (patientPrescriptions.length > 0) {
+            response = `**${patientPrescriptions.length} prescriptions** found for **${foundPatient.firstName} ${foundPatient.lastName}**:\n\n${patientPrescriptions.slice(0, 5).map(p => {
+              const medList = p.medications && p.medications.length > 0 
+                ? p.medications.map((med: any) => `${med.name} (${med.dosage || 'standard dose'})`).join(', ')
+                : 'No medication details';
+              const createdDate = new Date(p.createdAt).toLocaleDateString();
+              return `• **${medList}** - Status: ${p.status} (${createdDate})`;
+            }).join('\n')}`;
+          } else {
+            response = `No prescriptions found for **${foundPatient.firstName} ${foundPatient.lastName}**.`;
+          }
+        } else {
+          // Show unique patients with prescriptions (completely deduplicated)
+          const uniquePatients = new Set();
+          const patientPrescriptionSummary = [];
+          
+          for (const prescription of prescriptions) {
+            const patient = patients.find(pt => pt.id === prescription.patientId);
+            if (patient) {
+              const patientKey = `${patient.firstName} ${patient.lastName}`;
+              if (!uniquePatients.has(patientKey)) {
+                uniquePatients.add(patientKey);
+                patientPrescriptionSummary.push({
+                  name: patientKey,
+                  status: prescription.status
+                });
+              }
+            }
+          }
+          
+          const displayList = patientPrescriptionSummary.slice(0, 5);
+          response = `Recent prescriptions:\n${displayList.map(item => {
+            return `• ${item.name} (${item.status})`;
+          }).join('\n')}\n\nTell me a patient name to see their prescriptions.`;
+        }
+      }
+      // Check if this is a continuing appointment booking conversation  
+      else if (true) {
+        const isAppointmentContext = params.conversationHistory && params.conversationHistory.some(item => 
+          item.role === 'assistant' && (
+            item.content.includes('Which doctor?') ||
+            item.content.includes('Which patient?') ||
+            item.content.includes('When?') ||
+            item.content.includes('Found patient') ||
+            item.content.includes('Found **Dr.') ||
+            item.content.includes('Ready to book') ||
+            item.content.includes('Tell me:') ||
+            item.content.includes('book an appointment')
+          )
+        );
 
-      // Enhanced appointment booking logic with context persistence
-      const hasAppointmentKeywords = lowerMessage.includes('book') || lowerMessage.includes('schedule') || lowerMessage.includes('appointment');
-      const hasTimeKeywords = lowerMessage.includes('tomorrow') || lowerMessage.includes('today') || lowerMessage.includes('next week') || /\d{1,2}(:\d{2})?\s*(am|pm)/i.test(lowerMessage);
-      const hasDoctorKeywords = lowerMessage.includes('dr.') || lowerMessage.includes('doctor');
-      
-      if (hasAppointmentKeywords || isAppointmentContext) {
+        // Enhanced appointment booking logic with context persistence
+        const hasAppointmentKeywords = lowerMessage.includes('book') || lowerMessage.includes('schedule') || lowerMessage.includes('appointment');
+        const hasTimeKeywords = lowerMessage.includes('tomorrow') || lowerMessage.includes('today') || lowerMessage.includes('next week') || /\d{1,2}(:\d{2})?\s*(am|pm)/i.test(lowerMessage);
+        const hasDoctorKeywords = lowerMessage.includes('dr.') || lowerMessage.includes('doctor');
+        
+        if (hasAppointmentKeywords || isAppointmentContext) {
         intent = 'book_appointment';
         confidence = 0.9;
         
@@ -1377,6 +1448,7 @@ IMPORTANT: You have access to real system data. Use the provided information to 
           
           response = `I'll help you book an appointment. Tell me:\n• Patient name\n• Doctor name\n• Date and time`;
         }
+        }
       }
       
       // Prescription search is handled by handleAnthropicPrescriptionSearch function
@@ -1399,6 +1471,7 @@ IMPORTANT: You have access to real system data. Use the provided information to 
 
 What would you like to do?`;
       }
+
       
       // Patient search and information
       else if (lowerMessage.includes('patient') || lowerMessage.includes('find') || lowerMessage.includes('search')) {
