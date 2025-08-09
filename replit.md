@@ -19,6 +19,7 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system by 
 - **Fixed prescriptions page error**: Corrected "providers.forEach is not a function" error by properly handling API response structure (`data.staff` instead of `data`)
 - **Fixed voice transcription duplication**: Resolved AI chatbot voice recognition bug where speech-to-text was typing transcribed text twice by fixing the speech recognition result processing logic
 - **Fixed schedule editing dialog refresh**: Resolved critical issue where doctor schedule updates were saving to database correctly but dialog wasn't showing updated working hours - now immediately updates selectedDoctor state and shows changes in "Current Schedule" section
+- **Fixed schedule update permissions**: Resolved issue where non-admin users couldn't update their own schedules - modified user update endpoint to allow doctors to update their own working hours and working days while maintaining proper security restrictions
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.

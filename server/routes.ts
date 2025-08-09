@@ -1385,13 +1385,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update user
-  app.patch("/api/users/:id", requireRole(["admin"]), async (req: TenantRequest, res) => {
+  app.patch("/api/users/:id", async (req: TenantRequest, res) => {
     try {
       const userId = parseInt(req.params.id);
       const updates = req.body;
       
-      // Hash password if provided
-      if (updates.password) {
+      // Check if user has permission to update this user
+      const isAdmin = req.user?.role === "admin";
+      const isSelfUpdate = req.user?.id === userId;
+      
+      if (!isAdmin && !isSelfUpdate) {
+        return res.status(403).json({ error: "Permission denied" });
+      }
+
+      // Only allow schedule updates for non-admin users updating themselves
+      if (!isAdmin && isSelfUpdate) {
+        const allowedFields = ['workingDays', 'workingHours'];
+        const hasInvalidField = Object.keys(updates).some(key => !allowedFields.includes(key));
+        if (hasInvalidField) {
+          return res.status(403).json({ error: "Can only update schedule information" });
+        }
+      }
+      
+      // Hash password if provided (admin only)
+      if (updates.password && isAdmin) {
         updates.password = await authService.hashPassword(updates.password);
       }
 
