@@ -373,7 +373,12 @@ export default function AppointmentCalendar() {
                               <div className="font-medium">{isDataLoaded ? (apt.patientName || getPatientName(apt.patientId)) : `Patient ${apt.patientId}`}</div>
                               <div className="text-sm">{apt.type}</div>
                               <div className="text-xs">
-                                {format(new Date(apt.scheduledAt), "h:mm a")} ({apt.duration} min)
+                                {new Date(apt.scheduledAt).toLocaleTimeString('en-US', { 
+                                  hour: 'numeric', 
+                                  minute: '2-digit', 
+                                  hour12: true,
+                                  timeZone: 'UTC'
+                                })} ({apt.duration} min)
                               </div>
                             </div>
                           ))
@@ -433,7 +438,12 @@ export default function AppointmentCalendar() {
                     <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-300">
                       <div className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
-                        {format(new Date(appointment.scheduledAt), "h:mm a")} 
+                        {new Date(appointment.scheduledAt).toLocaleTimeString('en-US', { 
+                          hour: 'numeric', 
+                          minute: '2-digit', 
+                          hour12: true,
+                          timeZone: 'UTC'
+                        })} 
                         ({appointment.duration} min)
                       </div>
                       <div className="flex items-center gap-1">
@@ -479,7 +489,12 @@ export default function AppointmentCalendar() {
                 <div>
                   <h4 className="font-medium text-gray-700 mb-2">Appointment Details</h4>
                   <p className="text-sm"><strong>Date:</strong> {format(new Date(selectedAppointment.scheduledAt), "PPP")}</p>
-                  <p className="text-sm"><strong>Time:</strong> {format(new Date(selectedAppointment.scheduledAt), "h:mm a")}</p>
+                  <p className="text-sm"><strong>Time:</strong> {new Date(selectedAppointment.scheduledAt).toLocaleTimeString('en-US', { 
+                    hour: 'numeric', 
+                    minute: '2-digit', 
+                    hour12: true,
+                    timeZone: 'UTC'
+                  })}</p>
                   <p className="text-sm"><strong>Duration:</strong> {selectedAppointment.duration} minutes</p>
                   <p className="text-sm"><strong>Location:</strong> {selectedAppointment.location}</p>
                   {selectedAppointment.location && selectedAppointment.location.includes('Department') && (
