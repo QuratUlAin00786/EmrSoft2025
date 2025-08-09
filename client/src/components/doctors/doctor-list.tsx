@@ -53,6 +53,9 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
   const medicalStaff = medicalStaffResponse?.staff || [];
   const totalDoctors = medicalStaffResponse?.totalDoctors || 0;
   const availableDoctors = medicalStaffResponse?.availableDoctors || 0;
+  
+  // Filter to show only available staff members
+  const availableStaff = medicalStaff.filter((doctor: Doctor) => doctor.isAvailable);
 
   if (isLoading) {
     return (
@@ -77,7 +80,7 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
     );
   }
 
-  if (medicalStaff.length === 0) {
+  if (availableStaff.length === 0) {
     return (
       <Card>
         <CardHeader>
@@ -89,7 +92,8 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
         <CardContent>
           <div className="text-center py-8 text-gray-500">
             <User className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-            <p>No medical staff found</p>
+            <p>No available medical staff</p>
+            <p className="text-sm text-gray-400 mt-1">All staff are currently off duty</p>
           </div>
         </CardContent>
       </Card>
@@ -106,7 +110,7 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {medicalStaff.map((doctor: Doctor) => (
+          {availableStaff.map((doctor: Doctor) => (
             <div 
               key={doctor.id} 
               className="flex items-start justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
