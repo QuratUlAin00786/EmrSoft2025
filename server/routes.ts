@@ -5519,68 +5519,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }).flat()
       ];
 
-      const context = {
-        availableDoctors,
-        availableTimeSlots,
-        patientInfo: {
-          id: req.user.id,
-          name: `${req.user.firstName} ${req.user.lastName}`,
-          email: req.user.email
-        },
-        organizationId: req.tenant!.id
-      };
+      // Use the enhanced AI service for conversation
+      const lastMessage = messages[messages.length - 1];
+      
+      const result = await aiService.processAgentRequest({
+        message: lastMessage.content,
+        conversationHistory: messages,
+        organizationId: req.tenant!.id,
+        userId: req.user.id,
+        userRole: req.user.role
+      });
 
-      const result = await processAppointmentBookingChat(messages, context);
-
-      // If the AI wants to book an appointment, handle it
-      if (result.intent === 'BOOK_APPOINTMENT' && result.extractedData) {
-        try {
-          const { doctorId, date, time, reason } = result.extractedData;
-          
-          // Find the doctor
-          const doctor = availableDoctors.find(d => d.id === parseInt(doctorId));
-          if (!doctor) {
-            return res.json({
-              response: "I'm sorry, but that doctor is not available. Please choose from the available doctors I mentioned earlier."
-            });
-          }
-
-          // Create the appointment
-          const appointmentDateTime = new Date(`${date}T${time}:00`);
-          
-          const newAppointment = await storage.createAppointment({
-            patientId: req.user.id,
-            doctorId: parseInt(doctorId),
-            appointmentDate: appointmentDateTime,
-            status: 'scheduled',
-            notes: reason || 'Appointment booked via AI chatbot',
-            organizationId: req.tenant!.id
-          });
-
-          if (newAppointment) {
-            const confirmationMessage = await generateAppointmentSummary({
-              doctorName: doctor.name,
-              date: date,
-              time: time,
-              reason: reason || 'General consultation',
-              patientName: context.patientInfo.name
-            });
-
-            return res.json({
-              response: confirmationMessage,
-              appointmentBooked: true,
-              appointmentId: newAppointment.id
-            });
-          }
-        } catch (bookingError) {
-          console.error('Error booking appointment:', bookingError);
-          return res.json({
-            response: "I apologize, but there was an issue booking your appointment. Please try again or contact our support team."
-          });
-        }
-      }
-
-      res.json(result);
+      // The new AI service handles appointment booking internally
+      res.json({ response: result.response });
     } catch (error) {
       console.error("Chatbot error:", error);
       res.status(500).json({ error: "Failed to process chat message" });

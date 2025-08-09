@@ -406,7 +406,7 @@ Please provide a comprehensive safety analysis focusing on clinically significan
     return insights;
   }
 
-  async processAgentRequest(params: {
+  async processWithAnthropicAI(params: {
     message: string;
     conversationHistory: any[];
     organizationId: number;
@@ -418,7 +418,482 @@ Please provide a comprehensive safety analysis focusing on clinically significan
     confidence: number;
     parameters?: any;
   }> {
-    // Use enhanced pattern matching with actual data access
+    try {
+      // Get real system data for context
+      const [allUsers, patients, prescriptions, appointments] = await Promise.all([
+        storage.getUsersByOrganization(params.organizationId),
+        storage.getPatientsByOrganization(params.organizationId, 20),
+        storage.getPrescriptionsByOrganization(params.organizationId),
+        storage.getAppointmentsByOrganization(params.organizationId)
+      ]);
+
+      const doctors = allUsers.filter((user: any) => user.role === 'doctor' && user.isActive);
+      const currentUser = allUsers.find((user: any) => user.id === params.userId);
+
+      // Build system context with real data
+      const systemContext = {
+        currentUser: currentUser ? {
+          name: `${currentUser.firstName} ${currentUser.lastName}`,
+          role: currentUser.role,
+          department: currentUser.department
+        } : null,
+        availableDoctors: doctors.slice(0, 10).map(d => ({
+          name: `Dr. ${d.firstName} ${d.lastName}`,
+          department: d.department,
+          id: d.id
+        })),
+        recentPatients: patients.slice(0, 10).map(p => ({
+          name: `${p.firstName} ${p.lastName}`,
+          id: p.id,
+          patientId: p.patientId
+        })),
+        upcomingAppointments: appointments.filter(a => new Date(a.scheduledAt) > new Date()).length,
+        totalPrescriptions: prescriptions.length
+      };
+
+      const conversationContext = params.conversationHistory.map(msg => 
+        `${msg.role}: ${msg.content}`
+      ).join('\n');
+
+      const response = await anthropic!.messages.create({
+        model: DEFAULT_MODEL_STR,
+        max_tokens: 1000,
+        system: `You are Cura AI Assistant, a healthcare chatbot for the Cura EMR system. You help with:
+
+1. APPOINTMENT BOOKING - Schedule appointments between patients and doctors
+2. PRESCRIPTION SEARCH - Find and display patient prescriptions
+3. PATIENT INFORMATION - Provide patient details and records
+
+CURRENT SYSTEM DATA:
+- Available Doctors: ${JSON.stringify(systemContext.availableDoctors)}
+- Recent Patients: ${JSON.stringify(systemContext.recentPatients)}
+- Current User: ${JSON.stringify(systemContext.currentUser)}
+- Upcoming Appointments: ${systemContext.upcomingAppointments}
+- Total Prescriptions: ${systemContext.totalPrescriptions}
+
+APPOINTMENT BOOKING RULES:
+- Always require: patient name, doctor name, and date/time
+- Appointments must be in the future (at least 1 minute from now)
+- Default duration is 30 minutes
+- Check for conflicts before booking
+- Use natural conversation flow to gather missing information
+
+PRESCRIPTION SEARCH RULES:
+- Search by patient name to find their prescriptions
+- Show medication names, status, and prescribing doctor
+- Limit results to recent/relevant prescriptions
+
+RESPONSE FORMAT:
+- Be conversational and helpful
+- Use markdown formatting for readability
+- Ask for missing information naturally
+- Provide clear next steps
+- Keep responses concise but informative
+
+IMPORTANT: You have access to real system data. Use the provided information to give accurate responses about actual patients, doctors, and appointments in the system.`,
+        messages: [
+          {
+            role: 'user',
+            content: `Conversation History:\n${conversationContext}\n\nCurrent Message: ${params.message}\n\nPlease respond as the Cura AI Assistant and determine the user's intent.`
+          }
+        ]
+      });
+
+      const aiResponse = (response.content[0] as any).text;
+
+      // Parse intent from response or determine based on content
+      let intent = 'general_inquiry';
+      let confidence = 0.8;
+      
+      if (aiResponse.toLowerCase().includes('appointment') || aiResponse.toLowerCase().includes('book') || aiResponse.toLowerCase().includes('schedule')) {
+        intent = 'book_appointment';
+        confidence = 0.9;
+      } else if (aiResponse.toLowerCase().includes('prescription') || aiResponse.toLowerCase().includes('medication')) {
+        intent = 'find_prescriptions';
+        confidence = 0.9;
+      } else if (aiResponse.toLowerCase().includes('patient') && (aiResponse.toLowerCase().includes('find') || aiResponse.toLowerCase().includes('search'))) {
+        intent = 'patient_search';
+        confidence = 0.8;
+      }
+
+      // Enhanced appointment booking with actual booking logic
+      if (intent === 'book_appointment') {
+        return await this.handleAnthropicAppointmentBooking(params, aiResponse, systemContext);
+      }
+
+      // Enhanced prescription search with real data
+      if (intent === 'find_prescriptions') {
+        return await this.handleAnthropicPrescriptionSearch(params, aiResponse, systemContext);
+      }
+
+      return {
+        response: aiResponse,
+        intent,
+        confidence,
+        parameters: null
+      };
+
+    } catch (error) {
+      console.error("Anthropic AI error:", error);
+      // Fallback to pattern matching
+      return await this.processWithPatternMatching(params);
+    }
+  }
+
+  async handleAnthropicAppointmentBooking(params: any, aiResponse: string, systemContext: any): Promise<any> {
+    try {
+      // Extract entities from the user message using pattern matching
+      const lowerMessage = params.message.toLowerCase();
+      
+      // Get real data
+      const allUsers = await storage.getUsersByOrganization(params.organizationId);
+      const doctors = allUsers.filter((user: any) => user.role === 'doctor' && user.isActive);
+      const patients = await storage.getPatientsByOrganization(params.organizationId, 20);
+      
+      // Find patient and doctor mentioned in the message
+      let foundPatient = null;
+      let foundDoctor = null;
+      let scheduledDate = null;
+      
+      // Look for patient names
+      for (const patient of patients) {
+        const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
+        if (lowerMessage.includes(patient.firstName.toLowerCase()) || 
+            lowerMessage.includes(patient.lastName.toLowerCase()) ||
+            lowerMessage.includes(fullName)) {
+          foundPatient = patient;
+          break;
+        }
+      }
+      
+      // Look for doctor names
+      for (const doctor of doctors) {
+        const fullName = `${doctor.firstName} ${doctor.lastName}`.toLowerCase();
+        const drName = `dr. ${doctor.firstName} ${doctor.lastName}`.toLowerCase();
+        if (lowerMessage.includes(doctor.firstName.toLowerCase()) || 
+            lowerMessage.includes(doctor.lastName.toLowerCase()) ||
+            lowerMessage.includes(fullName) || lowerMessage.includes(drName)) {
+          foundDoctor = doctor;
+          break;
+        }
+      }
+      
+      // Parse date/time from message
+      scheduledDate = this.parseDateFromMessage(lowerMessage);
+      
+      // Check if we have all required information
+      if (foundPatient && foundDoctor && scheduledDate) {
+        // Validate future date
+        const currentTime = new Date();
+        const oneMinuteFromNow = new Date(currentTime.getTime() + 60 * 1000);
+        
+        if (scheduledDate <= oneMinuteFromNow) {
+          return {
+            response: `I found the patient and doctor, but the appointment needs to be scheduled for a future time. Please provide a valid future date and time.`,
+            intent: 'book_appointment',
+            confidence: 0.9,
+            parameters: { needsFutureDate: true }
+          };
+        }
+        
+        // Check for conflicts
+        const existingAppointments = await storage.getAppointmentsByProvider(foundDoctor.id, params.organizationId, scheduledDate);
+        const appointmentEndTime = new Date(scheduledDate.getTime() + 30 * 60 * 1000);
+        
+        const hasConflict = existingAppointments.some(appointment => {
+          const existingStart = new Date(appointment.scheduledAt);
+          const existingEnd = new Date(existingStart.getTime() + (appointment.duration || 30) * 60 * 1000);
+          return scheduledDate && (scheduledDate < existingEnd && appointmentEndTime > existingStart);
+        });
+        
+        if (hasConflict) {
+          return {
+            response: `**Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}** already has an appointment at that time. Please choose a different time slot.`,
+            intent: 'book_appointment',
+            confidence: 0.9,
+            parameters: { hasConflict: true }
+          };
+        }
+        
+        // Create the appointment
+        const appointmentTitle = this.getAppointmentTitle(foundDoctor.department || undefined, undefined);
+        const appointmentData = {
+          organizationId: params.organizationId,
+          patientId: foundPatient.id,
+          providerId: foundDoctor.id,
+          title: appointmentTitle,
+          description: 'Appointment booked via AI Assistant',
+          scheduledAt: scheduledDate,
+          duration: 30,
+          status: 'scheduled' as const,
+          type: 'consultation' as const,
+          location: `${foundDoctor.department || 'General'} Department`,
+          isVirtual: false
+        };
+      
+        const newAppointment = await storage.createAppointment(appointmentData);
+        
+        const formattedDate = scheduledDate.toLocaleDateString('en-US', {
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+        const formattedTime = scheduledDate.toLocaleTimeString('en-US', {
+          hour: '2-digit', minute: '2-digit'
+        });
+        
+        return {
+          response: `✅ **Appointment Successfully Booked!**\n\n📅 **Details:**\n• **Patient:** ${foundPatient.firstName} ${foundPatient.lastName}\n• **Doctor:** Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}\n• **Date:** ${formattedDate}\n• **Time:** ${formattedTime}\n• **Duration:** 30 minutes\n• **Location:** ${foundDoctor.department || 'General'} Department\n\n**Appointment ID:** #${newAppointment.id}`,
+          intent: 'book_appointment',
+          confidence: 0.9,
+          parameters: {
+            appointmentId: newAppointment.id,
+            success: true
+          }
+        };
+      }
+      
+      // If missing information, use Anthropic's response but add specific data
+      let response = aiResponse;
+      
+      if (!foundPatient && !foundDoctor) {
+        const doctorsList = doctors.slice(0, 3).map(d => `• **Dr. ${d.firstName} ${d.lastName}**${d.department ? ` (${d.department})` : ''}`).join('\n');
+        const patientsList = patients.slice(0, 3).map(p => `• **${p.firstName} ${p.lastName}**`).join('\n');
+        
+        response = `I'll help you book an appointment. Here are some options:\n\n**Available Doctors:**\n${doctorsList}\n\n**Recent Patients:**\n${patientsList}\n\nPlease tell me the patient name, doctor name, and preferred time.`;
+      } else if (!foundPatient) {
+        const patientsList = patients.slice(0, 4).map(p => `• **${p.firstName} ${p.lastName}**`).join('\n');
+        response = `Found **Dr. ${foundDoctor!.firstName} ${foundDoctor!.lastName}**. Which patient?\n\n${patientsList}`;
+      } else if (!foundDoctor) {
+        const doctorsList = doctors.slice(0, 4).map(d => `• **Dr. ${d.firstName} ${d.lastName}**${d.department ? ` (${d.department})` : ''}`).join('\n');
+        response = `Found patient **${foundPatient!.firstName} ${foundPatient!.lastName}**. Which doctor?\n\n${doctorsList}`;
+      } else if (!scheduledDate) {
+        response = `Ready to book **${foundPatient.firstName} ${foundPatient.lastName}** with **Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}**. When would you like to schedule the appointment?\n\nExamples: "tomorrow at 2pm", "August 12th at 10:30am"`;
+      }
+      
+      return {
+        response,
+        intent: 'book_appointment',
+        confidence: 0.9,
+        parameters: {
+          foundPatient: foundPatient?.id,
+          foundDoctor: foundDoctor?.id,
+          needsDateTime: !scheduledDate
+        }
+      };
+      
+    } catch (error) {
+      console.error("Anthropic appointment booking error:", error);
+      return {
+        response: "I'm having trouble booking the appointment. Please try again or contact support.",
+        intent: 'book_appointment',
+        confidence: 0.5,
+        parameters: { error: true }
+      };
+    }
+  }
+
+  async handleAnthropicPrescriptionSearch(params: any, aiResponse: string, systemContext: any): Promise<any> {
+    try {
+      const lowerMessage = params.message.toLowerCase();
+      const patients = await storage.getPatientsByOrganization(params.organizationId, 20);
+      const prescriptions = await storage.getPrescriptionsByOrganization(params.organizationId);
+      
+      // Look for patient names in the message
+      let foundPatient = null;
+      for (const patient of patients) {
+        const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
+        if (lowerMessage.includes(patient.firstName.toLowerCase()) || 
+            lowerMessage.includes(patient.lastName.toLowerCase()) ||
+            lowerMessage.includes(fullName)) {
+          foundPatient = patient;
+          break;
+        }
+      }
+      
+      if (foundPatient) {
+        const patientPrescriptions = prescriptions.filter(p => p.patientId === foundPatient.id);
+        
+        let response;
+        if (patientPrescriptions.length > 0) {
+          response = `**${patientPrescriptions.length} prescriptions** found for **${foundPatient.firstName} ${foundPatient.lastName}**:\n\n${patientPrescriptions.slice(0, 5).map(p => {
+            const medList = p.medications && p.medications.length > 0 
+              ? p.medications.map((med: any) => `${med.name} (${med.dosage || 'standard dose'})`).join(', ')
+              : 'No medication details';
+            const createdDate = new Date(p.createdAt).toLocaleDateString();
+            return `• **${medList}** - Status: ${p.status} (${createdDate})`;
+          }).join('\n')}`;
+        } else {
+          response = `No prescriptions found for **${foundPatient.firstName} ${foundPatient.lastName}**.`;
+        }
+        
+        return {
+          response,
+          intent: 'find_prescriptions',
+          confidence: 0.9,
+          parameters: {
+            patientId: foundPatient.id,
+            patientName: `${foundPatient.firstName} ${foundPatient.lastName}`,
+            prescriptionCount: patientPrescriptions.length
+          }
+        };
+      } else {
+        // Show recent prescriptions with patient names
+        const recentPrescriptions = prescriptions.slice(0, 5);
+        let response = `**Recent prescriptions in the system:**\n\n${recentPrescriptions.map(p => {
+          const patient = patients.find(pt => pt.id === p.patientId);
+          const patientName = patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown Patient';
+          const medList = p.medications && p.medications.length > 0 
+            ? p.medications.map((med: any) => med.name).slice(0, 2).join(', ')
+            : 'No details';
+          return `• **${patientName}** - ${medList} (${p.status})`;
+        }).join('\n')}\n\nTell me a specific patient name to see their prescriptions.`;
+        
+        return {
+          response,
+          intent: 'find_prescriptions',
+          confidence: 0.8,
+          parameters: {
+            showingGeneral: true,
+            totalPrescriptions: prescriptions.length
+          }
+        };
+      }
+      
+    } catch (error) {
+      console.error("Anthropic prescription search error:", error);
+      return {
+        response: "I'm having trouble searching prescriptions. Please try again or contact support.",
+        intent: 'find_prescriptions',
+        confidence: 0.5,
+        parameters: { error: true }
+      };
+    }
+  }
+
+  private parseDateFromMessage(message: string): Date | null {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    
+    // Enhanced date parsing patterns
+    const datePatterns = [
+      // Tomorrow
+      { pattern: /tomorrow\s+(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i, handler: (match: RegExpMatchArray) => {
+        const tomorrow = new Date(now);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        let hour = parseInt(match[1]);
+        const minute = match[2] ? parseInt(match[2]) : 0;
+        const ampm = match[3]?.toLowerCase();
+        
+        if (ampm === 'pm' && hour < 12) hour += 12;
+        if (ampm === 'am' && hour === 12) hour = 0;
+        if (!ampm && hour < 8) hour += 12; // Default afternoon for times like "2"
+        
+        tomorrow.setHours(hour, minute, 0, 0);
+        return tomorrow;
+      }},
+      
+      // Today
+      { pattern: /today\s+(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i, handler: (match: RegExpMatchArray) => {
+        const today = new Date(now);
+        let hour = parseInt(match[1]);
+        const minute = match[2] ? parseInt(match[2]) : 0;
+        const ampm = match[3]?.toLowerCase();
+        
+        if (ampm === 'pm' && hour < 12) hour += 12;
+        if (ampm === 'am' && hour === 12) hour = 0;
+        if (!ampm && hour < 8) hour += 12;
+        
+        today.setHours(hour, minute, 0, 0);
+        return today;
+      }},
+      
+      // Ordinal dates (7th of August, August 7th, etc.)
+      { pattern: /(\d{1,2})(?:st|nd|rd|th)?\s+(?:of\s+)?(january|february|march|april|may|june|july|august|september|october|november|december)\s+(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i, handler: (match: RegExpMatchArray) => {
+        const day = parseInt(match[1]);
+        const month = match[2];
+        const hour = parseInt(match[3]);
+        const minute = match[4] ? parseInt(match[4]) : 0;
+        const ampm = match[5]?.toLowerCase();
+        
+        const parsedDate = this.parseMonthDate(month, day, currentYear);
+        if (!parsedDate) return null;
+        
+        let finalHour = hour;
+        if (ampm === 'pm' && hour < 12) finalHour += 12;
+        if (ampm === 'am' && hour === 12) finalHour = 0;
+        if (!ampm && hour < 8) finalHour += 12;
+        
+        parsedDate.setHours(finalHour, minute, 0, 0);
+        return parsedDate;
+      }},
+      
+      // Month day format (August 7th at 2pm, July 15 at 10:30am)
+      { pattern: /(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2})(?:st|nd|rd|th)?\s+(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i, handler: (match: RegExpMatchArray) => {
+        const month = match[1];
+        const day = parseInt(match[2]);
+        const hour = parseInt(match[3]);
+        const minute = match[4] ? parseInt(match[4]) : 0;
+        const ampm = match[5]?.toLowerCase();
+        
+        const parsedDate = this.parseMonthDate(month, day, currentYear);
+        if (!parsedDate) return null;
+        
+        let finalHour = hour;
+        if (ampm === 'pm' && hour < 12) finalHour += 12;
+        if (ampm === 'am' && hour === 12) finalHour = 0;
+        if (!ampm && hour < 8) finalHour += 12;
+        
+        parsedDate.setHours(finalHour, minute, 0, 0);
+        return parsedDate;
+      }},
+      
+      // Time only (2pm, 10:30am, 14:30)
+      { pattern: /(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)/i, handler: (match: RegExpMatchArray) => {
+        const today = new Date(now);
+        let hour = parseInt(match[1]);
+        const minute = match[2] ? parseInt(match[2]) : 0;
+        const ampm = match[3]?.toLowerCase();
+        
+        if (ampm === 'pm' && hour < 12) hour += 12;
+        if (ampm === 'am' && hour === 12) hour = 0;
+        
+        today.setHours(hour, minute, 0, 0);
+        
+        // If the time has passed today, schedule for tomorrow
+        if (today <= now) {
+          today.setDate(today.getDate() + 1);
+        }
+        
+        return today;
+      }}
+    ];
+    
+    for (const { pattern, handler } of datePatterns) {
+      const match = message.match(pattern);
+      if (match) {
+        try {
+          return handler(match);
+        } catch (error) {
+          console.error("Date parsing error:", error);
+        }
+      }
+    }
+    
+    return null;
+  }
+
+  async processWithPatternMatching(params: {
+    message: string;
+    conversationHistory: any[];
+    organizationId: number;
+    userId: number;
+    userRole: string;
+  }): Promise<{
+    response: string;
+    intent: string;
+    confidence: number;
+    parameters?: any;
+  }> {
+    // Fallback pattern matching logic
     const lowerMessage = params.message.toLowerCase();
     let intent = 'general_inquiry';
     let confidence = 0.7;
@@ -991,6 +1466,28 @@ What would you like to do?`;
       confidence,
       parameters: extractedParams
     };
+  }
+
+  // Main method called by the chatbot API
+  async processAgentRequest(params: {
+    message: string;
+    conversationHistory: any[];
+    organizationId: number;
+    userId: number;
+    userRole: string;
+  }): Promise<{
+    response: string;
+    intent: string;
+    confidence: number;
+    parameters?: any;
+  }> {
+    // Enhanced AI processing with Anthropic integration
+    if (anthropic) {
+      return await this.processWithAnthropicAI(params);
+    }
+    
+    // Fallback to pattern matching if Anthropic is unavailable
+    return await this.processWithPatternMatching(params);
   }
 }
 
