@@ -865,13 +865,199 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
               </div>
             </div>
 
-            {/* Analysis Controls */}
-            <div className="flex justify-center space-x-4">
+            {/* Comprehensive Treatment Analysis Controls */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+              {/* Muscle Analysis Section */}
+              <Card className="border-2 border-blue-200">
+                <CardHeader>
+                  <CardTitle className="text-lg font-bold text-blue-800">Facial Muscle Analysis</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-700">Target Muscle Group</Label>
+                    <Select>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Select muscle group" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="frontalis">Frontalis (Forehead)</SelectItem>
+                        <SelectItem value="temporalis">Temporalis</SelectItem>
+                        <SelectItem value="corrugator">Corrugator Supercilii</SelectItem>
+                        <SelectItem value="procerus">Procerus</SelectItem>
+                        <SelectItem value="orbicularis_oculi">Orbicularis Oculi</SelectItem>
+                        <SelectItem value="levator_labii">Levator Labii Superioris</SelectItem>
+                        <SelectItem value="zygomaticus_major">Zygomaticus Major</SelectItem>
+                        <SelectItem value="zygomaticus_minor">Zygomaticus Minor</SelectItem>
+                        <SelectItem value="masseter">Masseter</SelectItem>
+                        <SelectItem value="buccinator">Buccinator</SelectItem>
+                        <SelectItem value="orbicularis_oris">Orbicularis Oris</SelectItem>
+                        <SelectItem value="mentalis">Mentalis</SelectItem>
+                        <SelectItem value="depressor_anguli">Depressor Anguli Oris</SelectItem>
+                        <SelectItem value="platysma">Platysma</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-700">Analysis Type</Label>
+                    <Select>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Select analysis type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="muscle_tone">Muscle Tone Assessment</SelectItem>
+                        <SelectItem value="asymmetry">Asymmetry Analysis</SelectItem>
+                        <SelectItem value="movement_range">Range of Movement</SelectItem>
+                        <SelectItem value="tension_points">Tension Point Mapping</SelectItem>
+                        <SelectItem value="nerve_function">Nerve Function Test</SelectItem>
+                        <SelectItem value="weakness_assessment">Weakness Assessment</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Treatment Options Section */}
+              <Card className="border-2 border-green-200">
+                <CardHeader>
+                  <CardTitle className="text-lg font-bold text-green-800">Treatment Options</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-700">Primary Treatment</Label>
+                    <Select>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Select primary treatment" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="botox_injection">Botox Injection Therapy</SelectItem>
+                        <SelectItem value="dermal_fillers">Dermal Filler Treatment</SelectItem>
+                        <SelectItem value="muscle_relaxants">Muscle Relaxant Medication</SelectItem>
+                        <SelectItem value="physical_therapy">Physical Therapy</SelectItem>
+                        <SelectItem value="facial_massage">Therapeutic Facial Massage</SelectItem>
+                        <SelectItem value="nerve_blocks">Nerve Block Procedures</SelectItem>
+                        <SelectItem value="laser_therapy">Laser Therapy</SelectItem>
+                        <SelectItem value="microcurrent">Microcurrent Therapy</SelectItem>
+                        <SelectItem value="ultrasound">Ultrasound Treatment</SelectItem>
+                        <SelectItem value="surgical_intervention">Surgical Intervention</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-700">Treatment Intensity</Label>
+                    <Select>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Select intensity level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="minimal">Minimal (Conservative approach)</SelectItem>
+                        <SelectItem value="moderate">Moderate (Standard treatment)</SelectItem>
+                        <SelectItem value="intensive">Intensive (Aggressive treatment)</SelectItem>
+                        <SelectItem value="maintenance">Maintenance (Follow-up care)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-700">Session Frequency</Label>
+                    <Select>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Select frequency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="weekly">Weekly Sessions</SelectItem>
+                        <SelectItem value="biweekly">Bi-weekly Sessions</SelectItem>
+                        <SelectItem value="monthly">Monthly Sessions</SelectItem>
+                        <SelectItem value="quarterly">Quarterly Sessions</SelectItem>
+                        <SelectItem value="single">Single Session</SelectItem>
+                        <SelectItem value="emergency">Emergency/As Needed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Additional Analysis Tools */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
+              <Card className="border border-purple-200">
+                <CardContent className="p-4">
+                  <h4 className="font-semibold text-purple-800 mb-2">Symptom Assessment</h4>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Primary symptoms" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="facial_pain">Facial Pain</SelectItem>
+                      <SelectItem value="muscle_spasms">Muscle Spasms</SelectItem>
+                      <SelectItem value="asymmetry">Facial Asymmetry</SelectItem>
+                      <SelectItem value="weakness">Muscle Weakness</SelectItem>
+                      <SelectItem value="tension">Chronic Tension</SelectItem>
+                      <SelectItem value="twitching">Muscle Twitching</SelectItem>
+                      <SelectItem value="stiffness">Joint Stiffness</SelectItem>
+                      <SelectItem value="numbness">Numbness/Tingling</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+
+              <Card className="border border-orange-200">
+                <CardContent className="p-4">
+                  <h4 className="font-semibold text-orange-800 mb-2">Severity Scale</h4>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Rate severity" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 - Minimal (Barely noticeable)</SelectItem>
+                      <SelectItem value="2">2 - Mild (Minor discomfort)</SelectItem>
+                      <SelectItem value="3">3 - Moderate (Noticeable symptoms)</SelectItem>
+                      <SelectItem value="4">4 - Severe (Significant impact)</SelectItem>
+                      <SelectItem value="5">5 - Critical (Immediate attention)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+
+              <Card className="border border-teal-200">
+                <CardContent className="p-4">
+                  <h4 className="font-semibold text-teal-800 mb-2">Follow-up Plan</h4>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Follow-up timeline" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1_week">1 Week Follow-up</SelectItem>
+                      <SelectItem value="2_weeks">2 Weeks Follow-up</SelectItem>
+                      <SelectItem value="1_month">1 Month Follow-up</SelectItem>
+                      <SelectItem value="3_months">3 Months Follow-up</SelectItem>
+                      <SelectItem value="6_months">6 Months Follow-up</SelectItem>
+                      <SelectItem value="annual">Annual Review</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-center space-x-4 mt-6">
               <Button 
-                onClick={() => setShowAnatomicalViewer(false)}
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 font-semibold shadow-lg"
+              >
+                Generate Treatment Plan
+              </Button>
+              <Button 
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 font-semibold shadow-lg"
               >
-                Complete Analysis
+                Save Analysis
+              </Button>
+              <Button 
+                onClick={() => setShowAnatomicalViewer(false)}
+                variant="outline"
+                className="px-6 py-3 font-semibold shadow-lg"
+              >
+                Close Analysis
               </Button>
             </div>
           </div>
