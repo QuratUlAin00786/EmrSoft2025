@@ -79,6 +79,14 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
         title: "Schedule Updated",
         description: "Doctor's schedule has been updated successfully.",
       });
+      // Update the selectedDoctor with the new schedule data immediately
+      if (selectedDoctor) {
+        setSelectedDoctor({
+          ...selectedDoctor,
+          workingDays: workingDays,
+          workingHours: { start: startTime, end: endTime }
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ["/api/medical-staff"] });
       setIsScheduleOpen(false);
     },
