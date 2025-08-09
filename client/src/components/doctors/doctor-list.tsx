@@ -55,7 +55,16 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
   const availableDoctors = medicalStaffResponse?.availableDoctors || 0;
   
   // Filter to show only available staff members
-  const availableStaff = medicalStaff.filter((doctor: Doctor) => doctor.isAvailable);
+  // Based on backend logic: staff are available if they have no working days set OR if today is in their working days
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+  const availableStaff = medicalStaff.filter((doctor: Doctor) => {
+    // If no working days are set, staff is considered available (like mobile users)
+    if (!doctor.workingDays || doctor.workingDays.length === 0) {
+      return true;
+    }
+    // If working days are set, check if today is included
+    return doctor.workingDays.includes(today);
+  });
 
   if (isLoading) {
     return (
@@ -128,7 +137,7 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                     <h4 className="font-semibold text-gray-900 dark:text-gray-100">
                       Dr. {doctor.firstName} {doctor.lastName}
                     </h4>
-                    <Badge className={roleColors[doctor.role] || "bg-gray-100 text-gray-800"}>
+                    <Badge className={roleColors[doctor.role as keyof typeof roleColors] || "bg-gray-100 text-gray-800"}>
                       {doctor.role}
                     </Badge>
                   </div>
