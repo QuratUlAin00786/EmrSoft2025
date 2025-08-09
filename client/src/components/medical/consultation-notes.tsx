@@ -62,6 +62,27 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
   const [symmetryRating, setSymmetryRating] = useState<number>(0);
   const [patientSignature, setPatientSignature] = useState<string>('');
   const [ratingType, setRatingType] = useState<string>('Face');
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string>("");
+  const [selectedAnalysisType, setSelectedAnalysisType] = useState<string>("");
+  const [selectedTreatment, setSelectedTreatment] = useState<string>("");
+
+  // Define muscle coordinates for interactive highlighting
+  const muscleCoordinates = {
+    frontalis: { x: 350, y: 180 },
+    temporalis: { x: 280, y: 220 },
+    corrugator: { x: 320, y: 200 },
+    procerus: { x: 350, y: 220 },
+    orbicularis_oculi: { x: 320, y: 240 },
+    levator_labii: { x: 340, y: 280 },
+    zygomaticus_major: { x: 380, y: 310 },
+    zygomaticus_minor: { x: 370, y: 290 },
+    masseter: { x: 400, y: 350 },
+    buccinator: { x: 380, y: 340 },
+    orbicularis_oris: { x: 350, y: 380 },
+    mentalis: { x: 350, y: 420 },
+    depressor_anguli: { x: 370, y: 400 },
+    platysma: { x: 350, y: 450 }
+  };
 
   const [activeTab, setActiveTab] = useState("basic");
   const queryClient = useQueryClient();
@@ -828,6 +849,51 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                   }}
                 />
                 
+                {/* Interactive Yellow Circle Highlights */}
+                {selectedMuscleGroup && muscleCoordinates[selectedMuscleGroup as keyof typeof muscleCoordinates] && (
+                  <div
+                    className="absolute rounded-full border-4 border-yellow-400 bg-yellow-300 bg-opacity-50 animate-pulse"
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      left: `${muscleCoordinates[selectedMuscleGroup as keyof typeof muscleCoordinates].x - 20}px`,
+                      top: `${muscleCoordinates[selectedMuscleGroup as keyof typeof muscleCoordinates].y - 20}px`,
+                      zIndex: 10,
+                      boxShadow: '0 0 20px rgba(255, 235, 59, 0.8)'
+                    }}
+                  >
+                    <div className="absolute inset-0 rounded-full border-2 border-yellow-500 animate-ping"></div>
+                  </div>
+                )}
+                
+                {/* Analysis Type Highlight (different color) */}
+                {selectedAnalysisType && selectedMuscleGroup && muscleCoordinates[selectedMuscleGroup as keyof typeof muscleCoordinates] && (
+                  <div
+                    className="absolute rounded-full border-3 border-blue-400 bg-blue-300 bg-opacity-40"
+                    style={{
+                      width: '60px',
+                      height: '60px',
+                      left: `${muscleCoordinates[selectedMuscleGroup as keyof typeof muscleCoordinates].x - 30}px`,
+                      top: `${muscleCoordinates[selectedMuscleGroup as keyof typeof muscleCoordinates].y - 30}px`,
+                      zIndex: 5
+                    }}
+                  />
+                )}
+                
+                {/* Treatment Highlight (green overlay) */}
+                {selectedTreatment && selectedMuscleGroup && muscleCoordinates[selectedMuscleGroup as keyof typeof muscleCoordinates] && (
+                  <div
+                    className="absolute rounded-full border-2 border-green-400 bg-green-300 bg-opacity-30"
+                    style={{
+                      width: '80px',
+                      height: '80px',
+                      left: `${muscleCoordinates[selectedMuscleGroup as keyof typeof muscleCoordinates].x - 40}px`,
+                      top: `${muscleCoordinates[selectedMuscleGroup as keyof typeof muscleCoordinates].y - 40}px`,
+                      zIndex: 3
+                    }}
+                  />
+                )}
+                
                 {/* Navigation Controls */}
                 <button
                   onClick={() => setCurrentImageIndex(currentImageIndex === 0 ? 1 : 0)}
@@ -875,7 +941,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                 <CardContent className="space-y-4">
                   <div>
                     <Label className="text-sm font-semibold text-gray-700">Target Muscle Group</Label>
-                    <Select>
+                    <Select value={selectedMuscleGroup} onValueChange={setSelectedMuscleGroup}>
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Select muscle group" />
                       </SelectTrigger>
@@ -900,7 +966,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                   
                   <div>
                     <Label className="text-sm font-semibold text-gray-700">Analysis Type</Label>
-                    <Select>
+                    <Select value={selectedAnalysisType} onValueChange={setSelectedAnalysisType}>
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Select analysis type" />
                       </SelectTrigger>
@@ -925,7 +991,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                 <CardContent className="space-y-4">
                   <div>
                     <Label className="text-sm font-semibold text-gray-700">Primary Treatment</Label>
-                    <Select>
+                    <Select value={selectedTreatment} onValueChange={setSelectedTreatment}>
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Select primary treatment" />
                       </SelectTrigger>
