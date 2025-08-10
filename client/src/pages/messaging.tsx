@@ -370,7 +370,17 @@ export default function MessagingPage() {
   };
 
   const handleSendNewMessage = () => {
+    console.log('🔍 FORM VALIDATION - Current newMessage state:', newMessage);
+    console.log('🔍 Recipient value:', `"${newMessage.recipient}"`, 'Length:', newMessage.recipient.length);
+    console.log('🔍 Subject value:', `"${newMessage.subject}"`, 'Length:', newMessage.subject.length);
+    console.log('🔍 Content value:', `"${newMessage.content}"`, 'Length:', newMessage.content.length);
+    
     if (!newMessage.recipient.trim() || !newMessage.subject.trim() || !newMessage.content.trim()) {
+      console.log('❌ VALIDATION FAILED - Missing fields:');
+      if (!newMessage.recipient.trim()) console.log('   - Recipient is empty');
+      if (!newMessage.subject.trim()) console.log('   - Subject is empty');  
+      if (!newMessage.content.trim()) console.log('   - Content is empty');
+      
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields.",
