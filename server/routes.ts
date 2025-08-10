@@ -2189,7 +2189,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Messaging endpoints
   app.get("/api/messaging/conversations", authMiddleware, async (req: TenantRequest, res) => {
     try {
-      const conversations = await storage.getConversations(req.tenant!.id);
+      console.log('🔍 CONVERSATIONS REQUEST - Headers:', JSON.stringify({
+        'x-tenant-subdomain': req.headers['x-tenant-subdomain'],
+        'authorization': req.headers['authorization'] ? 'present' : 'missing'
+      }));
+      console.log('🔍 TENANT INFO:', JSON.stringify(req.tenant));
+      console.log('🔍 USER INFO:', JSON.stringify(req.user));
+      
+      const orgId = req.user?.organizationId || req.tenant?.id || 1; // Fallback to org 1
+      console.log(`🔍 USING ORG ID: ${orgId}`);
+      
+      const conversations = await storage.getConversations(orgId);
+      console.log(`🔍 RETURNED CONVERSATIONS: ${conversations.length}`);
       res.json(conversations);
     } catch (error) {
       console.error("Error fetching conversations:", error);
