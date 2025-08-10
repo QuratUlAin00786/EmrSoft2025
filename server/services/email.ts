@@ -29,8 +29,8 @@ class EmailService {
       port: 465,
       secure: true, // true for 465, false for other ports
       auth: {
-        user: 'no-reply@averox.com',
-        pass: 'Averox@123'
+        user: 'noreply@averox.com',
+        pass: 'Ls7168025'
       },
       tls: {
         rejectUnauthorized: false
@@ -55,7 +55,7 @@ class EmailService {
       });
 
       const mailOptions = {
-        from: options.from || 'Cura EMR <no-reply@averox.com>',
+        from: options.from || 'Cura EMR <noreply@averox.com>',
         to: options.to,
         subject: options.subject,
         text: options.text,
