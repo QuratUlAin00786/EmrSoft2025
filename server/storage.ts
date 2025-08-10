@@ -1095,8 +1095,40 @@ export class DatabaseStorage implements IStorage {
     console.log(`💬 STORED CONVERSATIONS: ${storedConversations.length} found for org ${organizationId}`);
     console.log(`💬 CONVERSATION IDS:`, storedConversations.map(c => c.id));
 
-    // Always return stored conversations (no sample data)
-    return storedConversations;
+    // Update participant names with actual user data
+    const conversationsWithNames = await Promise.all(storedConversations.map(async (conv) => {
+      const updatedParticipants = await Promise.all(conv.participants.map(async (participant: any) => {
+        // Try to get user data by ID first
+        if (typeof participant.id === 'number') {
+          const user = await this.getUser(participant.id, organizationId);
+          if (user && user.firstName && user.lastName) {
+            return {
+              ...participant,
+              name: `${user.firstName} ${user.lastName}`
+            };
+          } else if (user && user.firstName) {
+            return {
+              ...participant,
+              name: user.firstName
+            };
+          } else if (user) {
+            return {
+              ...participant,
+              name: user.email
+            };
+          }
+        }
+        // If it's a patient name string, keep it as is
+        return participant;
+      }));
+      
+      return {
+        ...conv,
+        participants: updatedParticipants
+      };
+    }));
+
+    return conversationsWithNames;
   }
 
   async getMessages(conversationId: string, organizationId: number): Promise<any[]> {
@@ -1152,15 +1184,28 @@ export class DatabaseStorage implements IStorage {
     const messageId = Date.now().toString();
     const timestamp = new Date().toISOString();
     
+    // Get sender's full name if available
+    let senderDisplayName = messageData.senderName || 'Unknown Sender';
+    if (messageData.senderId) {
+      const sender = await this.getUser(messageData.senderId, organizationId);
+      if (sender && sender.firstName && sender.lastName) {
+        senderDisplayName = `${sender.firstName} ${sender.lastName}`;
+      } else if (sender && sender.firstName) {
+        senderDisplayName = sender.firstName;
+      } else if (sender && sender.email) {
+        senderDisplayName = sender.email;
+      }
+    }
+    
     // Create the message object
     const message = {
       id: messageId,
       conversationId: `conv_${messageId}`,
       senderId: messageData.senderId,
-      senderName: messageData.senderName || 'Unknown Sender',
+      senderName: senderDisplayName,
       senderRole: messageData.senderRole || 'user',
       recipientId: messageData.recipientId,
-      recipientName: messageData.recipientId, // Using recipientId as name for now
+      recipientName: messageData.recipientId, // Will be updated below with proper name
       subject: messageData.subject || '',
       content: messageData.content,
       timestamp: timestamp,
@@ -1185,11 +1230,11 @@ export class DatabaseStorage implements IStorage {
     );
 
     if (!existingConversation) {
-      // Create new conversation
+      // Create new conversation with proper participant names
       const newConversation = {
         id: message.conversationId,
         participants: [
-          { id: messageData.senderId, name: messageData.senderName, role: messageData.senderRole },
+          { id: messageData.senderId, name: senderDisplayName, role: messageData.senderRole },
           { id: messageData.recipientId, name: messageData.recipientId, role: 'patient' }
         ],
         lastMessage: {
