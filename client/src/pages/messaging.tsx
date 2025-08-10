@@ -157,7 +157,7 @@ export default function MessagingPage() {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo',
+          'X-Tenant-Subdomain': 'cura',
           'Content-Type': 'application/json'
         },
         credentials: 'include'
@@ -187,7 +187,7 @@ export default function MessagingPage() {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo',
+          'X-Tenant-Subdomain': 'cura',
           'Content-Type': 'application/json'
         },
         credentials: 'include'
@@ -206,7 +206,7 @@ export default function MessagingPage() {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo',
+          'X-Tenant-Subdomain': 'cura',
           'Content-Type': 'application/json'
         },
         credentials: 'include'
@@ -228,7 +228,7 @@ export default function MessagingPage() {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo',
+          'X-Tenant-Subdomain': 'cura',
           'Content-Type': 'application/json'
         },
         credentials: 'include'
@@ -249,7 +249,7 @@ export default function MessagingPage() {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo',
+          'X-Tenant-Subdomain': 'cura',
           'Content-Type': 'application/json'
         },
         credentials: 'include'
@@ -278,7 +278,7 @@ export default function MessagingPage() {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo',
+          'X-Tenant-Subdomain': 'cura',
           'Content-Type': 'application/json'
         },
         credentials: 'include',
@@ -325,7 +325,7 @@ export default function MessagingPage() {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo',
+          'X-Tenant-Subdomain': 'cura',
           'Content-Type': 'application/json'
         },
         credentials: 'include',
@@ -451,7 +451,7 @@ export default function MessagingPage() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': 'cura'
         },
         credentials: 'include',
         body: JSON.stringify(messageData)
