@@ -229,10 +229,7 @@ export default function BillingPage() {
   };
 
   const handleDownloadInvoice = (invoiceId: string) => {
-    console.log("Download Invoice called for ID:", invoiceId);
-    console.log("Available invoices:", invoices);
     const invoice = Array.isArray(invoices) ? invoices.find((inv: any) => inv.id === invoiceId) : null;
-    console.log("Found invoice:", invoice);
     if (invoice) {
       toast({
         title: "Download Invoice",
