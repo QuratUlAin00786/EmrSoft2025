@@ -382,10 +382,11 @@ export default function BillingPage() {
   <div class="invoice-container">
     <div class="header">
       <div class="logo-container">
-        <img src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTAwIDEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojNEY0NkU1O3N0b3Atb3BhY2l0eToxIiAvPgogICAgICA8c3RvcCBvZmZzZXQ9IjUwJSIgc3R5bGU9InN0b3AtY29sb3I6IzdDM0FFRDtzdG9wLW9wYWNpdHk6MSIgLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojRUM0ODk5O3N0b3Atb3BhY2l0eToxIiAvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgCiAgPCEtLSBDaXJjdWxhciBiYWNrZ3JvdW5kIC0tPgogIDxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjQ1IiBmaWxsPSJ1cmwoI2dyYWRpZW50KSIgb3BhY2l0eT0iMC4xIi8+CiAgCiAgPCEtLSBNYWluIHNwaXJhbCBkZXNpZ24gLS0+CiAgPHBhdGggZD0iTSAzMCA1MCBRIDQwIDI1LCA2MCAzNSBRIDc1IDQ1LCA2NSA2NSBRIDU1IDc1LCA0MCA2NSBRIDI1IDU1LCAzNSA0MCBRIDQ1IDMwLCA1NSA0MCBRIDY1IDUwLCA1NSA2MCIgCiAgICAgICAgc3Ryb2tlPSJ1cmwoI2dyYWRpZW50KSIgCiAgICAgICAgc3Ryb2tlLXdpZHRoPSI0IiAKICAgICAgICBmaWxsPSJub25lIiAKICAgICAgICBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8IS0tIENlbnRlciBkb3QgLS0+CiAgPGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iMyIgZmlsbD0idXJsKCNncmFkaWVudCkiLz4KPC9zdmc+" 
+        <img src="/cura-logo.png" 
              class="logo" 
              alt="Cura Logo" 
-             style="width: 60px; height: 60px;" />
+             style="width: 60px; height: 60px;" 
+             onerror="this.style.display='none';" />
       </div>
       <div class="header-info">
         <h1>Cura Medical Practice</h1>
