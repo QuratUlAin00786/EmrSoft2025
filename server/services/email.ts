@@ -42,7 +42,12 @@ class EmailService {
     try {
       const attachments = [...(options.attachments || [])];
       
-      // Add Cura logo as embedded attachment for email footer
+      // Add Cura logos as embedded attachments for email
+      attachments.push({
+        filename: 'cura-new-logo.png',
+        path: './public/cura-new-logo.png',
+        cid: 'cura-new-logo'
+      });
       attachments.push({
         filename: 'cura-email-logo.png',
         path: './public/cura-email-logo.png',
@@ -348,8 +353,11 @@ Cura EMR Team
             flex-shrink: 0;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             margin-right: 20px;
-            position: relative;
-            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            box-sizing: border-box;
           }
           .header-info {
             flex: 1;
@@ -480,7 +488,7 @@ Cura EMR Team
                  <p class="clinic-tagline">Powered by Cura EMR Platform</p>
                </div>` :
               `<div class="fallback-logo">
-                 <img src="cid:cura-email-logo" alt="Cura EMR" style="width: 75px; height: 75px; object-fit: contain; position: absolute; top: 47.5px; left: 47.5px; transform: translate(-50%, -50%); display: block;">
+                 <img src="cid:cura-new-logo" alt="Cura EMR" style="width: 75px; height: 75px; object-fit: contain; max-width: 100%; max-height: 100%;">
                </div>
                <div class="header-info">
                  <h1 class="clinic-name">Cura EMR</h1>
