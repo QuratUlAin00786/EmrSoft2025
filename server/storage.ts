@@ -1068,21 +1068,30 @@ export class DatabaseStorage implements IStorage {
     return { id: ruleId, status: "active", organizationId };
   }
 
-  // Messaging implementations
+  // Messaging implementations - CRITICAL: These must persist across requests
   private static conversationsStore: any[] = [];
   private static messagesStore: any[] = [];
-
-  async getConversations(organizationId: number): Promise<any[]> {
-    // Initialize conversations store if it doesn't exist
+  
+  // Initialize stores if needed
+  private static initializeStores() {
     if (!DatabaseStorage.conversationsStore) {
       DatabaseStorage.conversationsStore = [];
     }
+    if (!DatabaseStorage.messagesStore) {
+      DatabaseStorage.messagesStore = [];
+    }
+  }
+
+  async getConversations(organizationId: number): Promise<any[]> {
+    // Initialize stores
+    DatabaseStorage.initializeStores();
 
     // Get stored conversations for this organization
     const storedConversations = DatabaseStorage.conversationsStore.filter(conv => 
       conv.organizationId === organizationId
     );
 
+    console.log(`💬 GET CONVERSATIONS - Total in store: ${DatabaseStorage.conversationsStore.length}`);
     console.log(`💬 STORED CONVERSATIONS: ${storedConversations.length} found for org ${organizationId}`);
     console.log(`💬 CONVERSATION IDS:`, storedConversations.map(c => c.id));
 
@@ -1135,13 +1144,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async sendMessage(messageData: any, organizationId: number): Promise<any> {
-    // Initialize stores if they don't exist
-    if (!DatabaseStorage.conversationsStore) {
-      DatabaseStorage.conversationsStore = [];
-    }
-    if (!DatabaseStorage.messagesStore) {
-      DatabaseStorage.messagesStore = [];
-    }
+    // Initialize stores
+    DatabaseStorage.initializeStores();
+    
+    console.log(`📋 BEFORE SEND - Conversations: ${DatabaseStorage.conversationsStore.length}, Messages: ${DatabaseStorage.messagesStore.length}`);
 
     const messageId = Date.now().toString();
     const timestamp = new Date().toISOString();
