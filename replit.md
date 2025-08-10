@@ -21,7 +21,7 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system by 
 - **Fixed schedule editing dialog refresh**: Resolved critical issue where doctor schedule updates were saving to database correctly but dialog wasn't showing updated working hours - now immediately updates selectedDoctor state and shows changes in "Current Schedule" section
 - **Fixed schedule update permissions**: Resolved issue where non-admin users couldn't update their own schedules - modified user update endpoint to allow doctors to update their own working hours and working days while maintaining proper security restrictions
 - **Fixed User Management schedule editing**: Resolved form state management issue where working hours changes weren't displaying updated values after successful database saves - form now properly updates with server response data
-- **Enhanced invoice generation with Cura branding**: Updated invoice PDF generation to create professional HTML invoices featuring the Cura logo in the header white box, matching the original design with blue gradient header, proper Cura Medical Practice branding, and comprehensive invoice layout with payment information and service details
+- **Enhanced invoice generation with authentic Cura branding**: Updated invoice PDF generation to create professional HTML invoices featuring the authentic Cura logo (blue gradient spiral design) in the header white box, matching the original design with blue gradient header, proper Cura Medical Practice branding, and comprehensive invoice layout with payment information and service details
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
