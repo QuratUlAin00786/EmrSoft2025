@@ -1086,6 +1086,8 @@ export class DatabaseStorage implements IStorage {
     // Initialize stores
     DatabaseStorage.initializeStores();
 
+    console.log(`💬 DEBUG - Conversation store before filter:`, DatabaseStorage.conversationsStore.map(c => ({ id: c.id, orgId: c.organizationId })));
+    
     // Get stored conversations for this organization
     const storedConversations = DatabaseStorage.conversationsStore.filter(conv => 
       conv.organizationId === organizationId
@@ -1254,6 +1256,7 @@ export class DatabaseStorage implements IStorage {
       DatabaseStorage.conversationsStore.push(newConversation);
       console.log(`✅ Created new conversation: ${message.conversationId} for recipient: ${messageData.recipientId}`);
       console.log(`Total conversations in store: ${DatabaseStorage.conversationsStore.length}`);
+      console.log(`✅ Full conversation store:`, DatabaseStorage.conversationsStore.map(c => ({ id: c.id, orgId: c.organizationId, participants: c.participants.map(p => p.name) })));
     } else {
       // Update existing conversation with latest message
       existingConversation.lastMessage = {
