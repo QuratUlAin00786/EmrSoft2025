@@ -236,31 +236,264 @@ export default function BillingPage() {
         description: `Invoice ${invoiceId} downloaded successfully`,
       });
       
-      // Generate invoice PDF content
+      // Generate professional HTML invoice content with Cura logo
       const invoiceContent = `
-INVOICE
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice ${invoice.id}</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    .invoice-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+      color: white;
+      padding: 30px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .logo-container {
+      width: 80px;
+      height: 80px;
+      background: white;
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .logo {
+      width: 60px;
+      height: 60px;
+    }
+    .header-info {
+      flex: 1;
+    }
+    .header h1 {
+      margin: 0 0 8px 0;
+      font-size: 28px;
+      font-weight: 600;
+    }
+    .header .subtitle {
+      margin: 0;
+      font-size: 14px;
+      opacity: 0.9;
+      font-weight: 300;
+    }
+    .invoice-title {
+      font-size: 32px;
+      font-weight: bold;
+      margin-left: auto;
+    }
+    .content {
+      padding: 30px;
+    }
+    .billing-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 30px;
+    }
+    .section-title {
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 10px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .invoice-details {
+      background: #f8fafc;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+    .payment-info {
+      background: #dbeafe;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 30px;
+      font-size: 14px;
+      color: #1e40af;
+    }
+    .services-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+    }
+    .services-table th {
+      background: #4F46E5;
+      color: white;
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+    }
+    .services-table td {
+      padding: 12px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .services-table tr:nth-child(even) {
+      background: #f9fafb;
+    }
+    .total-section {
+      text-align: right;
+      margin-top: 20px;
+    }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+    }
+    .total-row.final {
+      font-weight: bold;
+      font-size: 18px;
+      border-top: 2px solid #4F46E5;
+      padding-top: 15px;
+      margin-top: 15px;
+    }
+    .footer {
+      background: #f8fafc;
+      padding: 20px 30px;
+      border-top: 1px solid #e5e7eb;
+      text-align: center;
+      font-size: 12px;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+  <div class="invoice-container">
+    <div class="header">
+      <div class="logo-container">
+        <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
+              <stop offset="50%" style="stop-color:#7C3AED;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#EC4899;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <circle cx="50" cy="50" r="45" fill="url(#gradient)" opacity="0.1"/>
+          <path d="M 30 50 Q 40 25, 60 35 Q 75 45, 65 65 Q 55 75, 40 65 Q 25 55, 35 40 Q 45 30, 55 40 Q 65 50, 55 60" 
+                stroke="url(#gradient)" 
+                stroke-width="4" 
+                fill="none" 
+                stroke-linecap="round"/>
+          <circle cx="50" cy="50" r="3" fill="url(#gradient)"/>
+        </svg>
+      </div>
+      <div class="header-info">
+        <h1>Cura Medical Practice</h1>
+        <p class="subtitle">Excellence in Healthcare • Powered by Halo Group</p>
+      </div>
+      <div class="invoice-title">INVOICE</div>
+    </div>
 
-Invoice ID: ${invoice.id}
-Patient: ${invoice.patientName}
-Date of Service: ${new Date(invoice.dateOfService).toLocaleDateString()}
-Due Date: ${new Date(invoice.dueDate).toLocaleDateString()}
+    <div class="content">
+      <div class="billing-details">
+        <div>
+          <div class="section-title">Bill To</div>
+          <div>
+            <strong>${invoice.patientName}</strong><br>
+            Patient ID: ${invoice.patientId}
+          </div>
+        </div>
+        
+        <div>
+          <div class="section-title">Invoice Details</div>
+          <div>
+            <strong>Invoice Number:</strong> ${invoice.id}<br>
+            <strong>Invoice Date:</strong> ${format(new Date(invoice.invoiceDate), 'dd/MM/yyyy')}<br>
+            <strong>Due Date:</strong> ${format(new Date(invoice.dueDate), 'dd/MM/yyyy')}<br>
+            <strong>Payment Terms:</strong> Net 30
+          </div>
+        </div>
+      </div>
 
-SERVICES:
-${invoice.items.map((item: any) => 
-  `${item.code} - ${item.description}
-  Quantity: ${item.quantity} × £${item.unitPrice.toFixed(2)} = £${item.total.toFixed(2)}`
-).join('\n')}
+      <div class="payment-info">
+        <strong>Payment Information</strong><br>
+        Multiple payment options available: Credit Card, Bank Transfer, PayPal, or Cash
+      </div>
 
-TOTAL: £${invoice.totalAmount.toFixed(2)}
-PAID: £${invoice.paidAmount.toFixed(2)}
-BALANCE: £${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}
-`;
+      <table class="services-table">
+        <thead>
+          <tr>
+            <th>Service Description</th>
+            <th style="text-align: center;">Quantity</th>
+            <th style="text-align: right;">Rate</th>
+            <th style="text-align: right;">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${invoice.items.map((item: any) => `
+            <tr>
+              <td>
+                <strong>${item.description}</strong><br>
+                <small style="color: #6b7280;">Professional medical consultation</small>
+              </td>
+              <td style="text-align: center;">${item.quantity}</td>
+              <td style="text-align: right;">£${item.unitPrice.toFixed(2)}</td>
+              <td style="text-align: right;">£${item.total.toFixed(2)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+
+      <div class="total-section">
+        <div class="total-row">
+          <span>Subtotal:</span>
+          <span>£${invoice.totalAmount.toFixed(2)}</span>
+        </div>
+        <div class="total-row">
+          <span>VAT (0%):</span>
+          <span>£0.00</span>
+        </div>
+        <div class="total-row final">
+          <span>Total Amount:</span>
+          <span>£${invoice.totalAmount.toFixed(2)}</span>
+        </div>
+        ${invoice.paidAmount > 0 ? `
+        <div class="total-row" style="color: #059669;">
+          <span>Amount Paid:</span>
+          <span>-£${invoice.paidAmount.toFixed(2)}</span>
+        </div>
+        <div class="total-row final" style="color: ${(invoice.totalAmount - invoice.paidAmount) === 0 ? '#059669' : '#dc2626'};">
+          <span>Balance Due:</span>
+          <span>£${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}</span>
+        </div>
+        ` : ''}
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>Thank you for choosing Cura Medical Practice for your healthcare needs.</p>
+      <p>© 2025 Cura Medical Practice. Powered by Halo Group & Averox Technologies.</p>
+    </div>
+  </div>
+</body>
+</html>`;
       
-      const blob = new Blob([invoiceContent], { type: 'text/plain' });
+      const blob = new Blob([invoiceContent], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `invoice-${invoice.id}.txt`;
+      a.download = `invoice-${invoice.id}.html`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
