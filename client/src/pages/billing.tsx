@@ -381,21 +381,25 @@ export default function BillingPage() {
   <div class="invoice-container">
     <div class="header">
       <div class="logo-container">
-        <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <svg class="logo" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
               <stop offset="50%" style="stop-color:#7C3AED;stop-opacity:1" />
               <stop offset="100%" style="stop-color:#EC4899;stop-opacity:1" />
             </linearGradient>
           </defs>
-          <circle cx="50" cy="50" r="45" fill="url(#gradient)" opacity="0.1"/>
-          <path d="M 30 50 Q 40 25, 60 35 Q 75 45, 65 65 Q 55 75, 40 65 Q 25 55, 35 40 Q 45 30, 55 40 Q 65 50, 55 60" 
-                stroke="url(#gradient)" 
-                stroke-width="4" 
-                fill="none" 
-                stroke-linecap="round"/>
-          <circle cx="50" cy="50" r="3" fill="url(#gradient)"/>
+          
+          <!-- Background circle -->
+          <circle cx="30" cy="40" r="25" fill="url(#brandGradient)" opacity="0.15"/>
+          
+          <!-- Medical cross symbol -->
+          <rect x="25" y="30" width="10" height="20" fill="url(#brandGradient)" rx="2"/>
+          <rect x="20" y="35" width="20" height="10" fill="url(#brandGradient)" rx="2"/>
+          
+          <!-- CURA text -->
+          <text x="65" y="35" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="url(#brandGradient)">CURA</text>
+          <text x="65" y="50" font-family="Arial, sans-serif" font-size="10" fill="#666">Medical Practice</text>
         </svg>
       </div>
       <div class="header-info">
