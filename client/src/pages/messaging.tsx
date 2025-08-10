@@ -682,9 +682,11 @@ export default function MessagingPage() {
     if (messageFilter === "unread" && conv.unreadCount === 0) return false;
     if (messageFilter === "patients" && !conv.isPatientConversation) return false;
     if (messageFilter === "staff" && conv.isPatientConversation) return false;
-    if (searchQuery && !conv.lastMessage.subject.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (searchQuery && conv.lastMessage && !conv.lastMessage.subject?.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
+
+
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
