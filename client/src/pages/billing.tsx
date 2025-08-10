@@ -382,35 +382,10 @@ export default function BillingPage() {
   <div class="invoice-container">
     <div class="header">
       <div class="logo-container">
-        <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
-              <stop offset="50%" style="stop-color:#7C3AED;stop-opacity:1" />
-              <stop offset="100%" style="stop-color:#EC4899;stop-opacity:1" />
-            </linearGradient>
-          </defs>
-          
-          <!-- Circular background -->
-          <circle cx="50" cy="50" r="45" fill="url(#brandGradient)" opacity="0.1"/>
-          
-          <!-- Main spiral design - enhanced visibility -->
-          <path d="M 25 50 Q 35 20, 65 30 Q 85 50, 70 75 Q 50 85, 30 70 Q 15 50, 30 35 Q 45 25, 60 40 Q 70 55, 55 65" 
-                stroke="url(#brandGradient)" 
-                stroke-width="6" 
-                fill="none" 
-                stroke-linecap="round"/>
-          
-          <!-- Additional spiral layer for better visibility -->
-          <path d="M 40 50 Q 50 35, 60 45 Q 65 55, 55 60 Q 45 65, 40 55" 
-                stroke="url(#brandGradient)" 
-                stroke-width="3" 
-                fill="none" 
-                stroke-linecap="round"/>
-          
-          <!-- Center dot -->
-          <circle cx="50" cy="50" r="4" fill="url(#brandGradient)"/>
-        </svg>
+        <img src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTAwIDEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojNEY0NkU1O3N0b3Atb3BhY2l0eToxIiAvPgogICAgICA8c3RvcCBvZmZzZXQ9IjUwJSIgc3R5bGU9InN0b3AtY29sb3I6IzdDM0FFRDtzdG9wLW9wYWNpdHk6MSIgLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojRUM0ODk5O3N0b3Atb3BhY2l0eToxIiAvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgCiAgPCEtLSBDaXJjdWxhciBiYWNrZ3JvdW5kIC0tPgogIDxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjQ1IiBmaWxsPSJ1cmwoI2dyYWRpZW50KSIgb3BhY2l0eT0iMC4xIi8+CiAgCiAgPCEtLSBNYWluIHNwaXJhbCBkZXNpZ24gLS0+CiAgPHBhdGggZD0iTSAzMCA1MCBRIDQwIDI1LCA2MCAzNSBRIDc1IDQ1LCA2NSA2NSBRIDU1IDc1LCA0MCA2NSBRIDI1IDU1LCAzNSA0MCBRIDQ1IDMwLCA1NSA0MCBRIDY1IDUwLCA1NSA2MCIgCiAgICAgICAgc3Ryb2tlPSJ1cmwoI2dyYWRpZW50KSIgCiAgICAgICAgc3Ryb2tlLXdpZHRoPSI0IiAKICAgICAgICBmaWxsPSJub25lIiAKICAgICAgICBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8IS0tIENlbnRlciBkb3QgLS0+CiAgPGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iMyIgZmlsbD0idXJsKCNncmFkaWVudCkiLz4KPC9zdmc+" 
+             class="logo" 
+             alt="Cura Logo" 
+             style="width: 60px; height: 60px;" />
       </div>
       <div class="header-info">
         <h1>Cura Medical Practice</h1>
