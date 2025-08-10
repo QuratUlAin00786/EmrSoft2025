@@ -236,14 +236,15 @@ export default function BillingPage() {
         description: `Invoice ${invoiceId} downloaded successfully`,
       });
       
-      // Generate professional HTML invoice content with Cura logo
+      // Generate professional HTML invoice content with authentic Cura logo
+      const timestamp = new Date().getTime();
       const invoiceContent = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Invoice ${invoice.id}</title>
+  <title>Invoice ${invoice.id} - ${timestamp}</title>
   <style>
     body {
       font-family: 'Arial', sans-serif;
@@ -393,15 +394,22 @@ export default function BillingPage() {
           <!-- Circular background -->
           <circle cx="50" cy="50" r="45" fill="url(#brandGradient)" opacity="0.1"/>
           
-          <!-- Main spiral design -->
-          <path d="M 30 50 Q 40 25, 60 35 Q 75 45, 65 65 Q 55 75, 40 65 Q 25 55, 35 40 Q 45 30, 55 40 Q 65 50, 55 60" 
+          <!-- Main spiral design - enhanced visibility -->
+          <path d="M 25 50 Q 35 20, 65 30 Q 85 50, 70 75 Q 50 85, 30 70 Q 15 50, 30 35 Q 45 25, 60 40 Q 70 55, 55 65" 
                 stroke="url(#brandGradient)" 
-                stroke-width="4" 
+                stroke-width="6" 
+                fill="none" 
+                stroke-linecap="round"/>
+          
+          <!-- Additional spiral layer for better visibility -->
+          <path d="M 40 50 Q 50 35, 60 45 Q 65 55, 55 60 Q 45 65, 40 55" 
+                stroke="url(#brandGradient)" 
+                stroke-width="3" 
                 fill="none" 
                 stroke-linecap="round"/>
           
           <!-- Center dot -->
-          <circle cx="50" cy="50" r="3" fill="url(#brandGradient)"/>
+          <circle cx="50" cy="50" r="4" fill="url(#brandGradient)"/>
         </svg>
       </div>
       <div class="header-info">
