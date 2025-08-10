@@ -327,7 +327,7 @@ Cura EMR Team
             padding: 20px 30px;
             display: flex;
             align-items: center;
-            gap: 25px;
+            gap: 35px;
             position: relative;
           }
           .clinic-logo {
@@ -341,8 +341,8 @@ Cura EMR Team
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
           }
           .fallback-logo {
-            width: 80px;
-            height: 80px;
+            width: 90px;
+            height: 90px;
             background: white;
             border-radius: 12px;
             display: flex;
@@ -350,7 +350,7 @@ Cura EMR Team
             justify-content: center;
             flex-shrink: 0;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            padding: 8px;
+            padding: 10px;
           }
           .header-info {
             flex: 1;
@@ -481,7 +481,7 @@ Cura EMR Team
                  <p class="clinic-tagline">Powered by Cura EMR Platform</p>
                </div>` :
               `<div class="fallback-logo">
-                 <img src="cid:cura-email-logo" alt="Cura EMR" style="width: 64px; height: 64px; object-fit: contain;">
+                 <img src="cid:cura-email-logo" alt="Cura EMR" style="width: 70px; height: 70px; object-fit: contain;">
                </div>
                <div class="header-info">
                  <h1 class="clinic-name">Cura EMR</h1>
@@ -545,7 +545,7 @@ Cura EMR Team
           
           <div class="footer">
             <div class="footer-logo">
-              <img src="cid:cura-email-logo" alt="Cura EMR" style="width: 60px; height: 60px; object-fit: contain;">
+              <img src="cid:cura-email-logo" alt="Cura EMR" style="width: 65px; height: 65px; object-fit: contain;">
             </div>
             <div class="footer-brand">
               <strong>CURA EMR</strong> | Powered by Halo Group & Averox
