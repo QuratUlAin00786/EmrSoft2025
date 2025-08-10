@@ -480,7 +480,7 @@ Cura EMR Team
                  <p class="clinic-tagline">Powered by Cura EMR Platform</p>
                </div>` :
               `<div class="fallback-logo">
-                 <img src="cid:cura-email-logo" alt="Cura EMR" style="width: 80px; height: 80px; object-fit: contain; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 80px; max-height: 80px;">
+                 <img src="cid:cura-email-logo" alt="Cura EMR" style="width: 75px; height: 75px; object-fit: contain; position: absolute; top: 47.5px; left: 47.5px; transform: translate(-50%, -50%); display: block;">
                </div>
                <div class="header-info">
                  <h1 class="clinic-name">Cura EMR</h1>
