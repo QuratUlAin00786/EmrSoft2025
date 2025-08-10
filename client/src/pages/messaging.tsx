@@ -289,9 +289,11 @@ export default function MessagingPage() {
     },
     onSuccess: (data, variables) => {
       console.log('🎯 MESSAGE SENT SUCCESS - invalidating conversations cache');
-      // Force invalidate and refetch conversations
-      queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
-      queryClient.refetchQueries({ queryKey: ['/api/messaging/conversations'] });
+      // Force invalidate and refetch conversations with delay to ensure backend processing
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
+        queryClient.refetchQueries({ queryKey: ['/api/messaging/conversations'] });
+      }, 100); // Small delay to ensure backend has processed
       
       // Only handle new message dialog closing here
       if (!variables.conversationId) {
@@ -473,8 +475,10 @@ export default function MessagingPage() {
       });
       
       // Also force a refetch to ensure we have the latest data
-      queryClient.refetchQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
-      queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
+        queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
+      }, 100);
       
       toast({
         title: "Message Sent",
