@@ -353,9 +353,7 @@ Cura EMR Team
             flex-shrink: 0;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             margin-right: 20px;
-            display: table-cell;
-            vertical-align: middle;
-            text-align: center;
+            position: relative;
           }
           .header-info {
             flex: 1;
@@ -486,7 +484,7 @@ Cura EMR Team
                  <p class="clinic-tagline">Powered by Cura EMR Platform</p>
                </div>` :
               `<div class="fallback-logo">
-                 <img src="cid:cura-new-logo" alt="Cura EMR" style="width: 70px; height: 70px; object-fit: contain; vertical-align: middle;">
+                 <img src="cid:cura-new-logo" alt="Cura EMR" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70px; height: 70px; object-fit: contain;">
                </div>
                <div class="header-info">
                  <h1 class="clinic-name">Cura EMR</h1>
