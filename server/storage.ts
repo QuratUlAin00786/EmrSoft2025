@@ -1070,6 +1070,7 @@ export class DatabaseStorage implements IStorage {
 
   // Messaging implementations
   private static conversationsStore: any[] = [];
+  private static messagesStore: any[] = [];
 
   async getConversations(organizationId: number): Promise<any[]> {
     // Initialize conversations store if it doesn't exist
@@ -1153,13 +1154,89 @@ export class DatabaseStorage implements IStorage {
   }
 
   async sendMessage(messageData: any, organizationId: number): Promise<any> {
-    // Mock implementation
-    return { 
-      id: Date.now().toString(), 
-      ...messageData, 
-      timestamp: new Date().toISOString(),
-      organizationId 
+    // Initialize stores if they don't exist
+    if (!DatabaseStorage.conversationsStore) {
+      DatabaseStorage.conversationsStore = [];
+    }
+    if (!DatabaseStorage.messagesStore) {
+      DatabaseStorage.messagesStore = [];
+    }
+
+    const messageId = Date.now().toString();
+    const timestamp = new Date().toISOString();
+    
+    // Create the message object
+    const message = {
+      id: messageId,
+      conversationId: `conv_${messageId}`,
+      senderId: messageData.senderId,
+      senderName: messageData.senderName || 'Unknown Sender',
+      senderRole: messageData.senderRole || 'user',
+      recipientId: messageData.recipientId,
+      recipientName: messageData.recipientId, // Using recipientId as name for now
+      subject: messageData.subject || '',
+      content: messageData.content,
+      timestamp: timestamp,
+      isRead: false,
+      priority: messageData.priority || 'normal',
+      type: messageData.type || 'internal',
+      isStarred: false,
+      organizationId: organizationId,
+      deliveryStatus: 'pending',
+      phoneNumber: messageData.phoneNumber,
+      messageType: messageData.messageType
     };
+
+    // Store the message
+    DatabaseStorage.messagesStore.push(message);
+    console.log(`Message stored: ${messageId} for conversation ${message.conversationId}`);
+    console.log(`Total messages in store: ${DatabaseStorage.messagesStore.length}`);
+
+    // Check if conversation exists, if not create it
+    const existingConversation = DatabaseStorage.conversationsStore.find(conv => 
+      conv.id === message.conversationId
+    );
+
+    if (!existingConversation) {
+      // Create new conversation
+      const newConversation = {
+        id: message.conversationId,
+        participants: [
+          { id: messageData.senderId, name: messageData.senderName, role: messageData.senderRole },
+          { id: messageData.recipientId, name: messageData.recipientId, role: 'patient' }
+        ],
+        lastMessage: {
+          id: messageId,
+          senderId: messageData.senderId,
+          subject: messageData.subject,
+          content: messageData.content,
+          timestamp: timestamp,
+          priority: messageData.priority || 'normal'
+        },
+        unreadCount: 1,
+        isPatientConversation: true,
+        organizationId: organizationId,
+        createdAt: timestamp
+      };
+
+      DatabaseStorage.conversationsStore.push(newConversation);
+      console.log(`✅ Created new conversation: ${message.conversationId} for recipient: ${messageData.recipientId}`);
+      console.log(`Total conversations in store: ${DatabaseStorage.conversationsStore.length}`);
+    } else {
+      // Update existing conversation with latest message
+      existingConversation.lastMessage = {
+        id: messageId,
+        senderId: messageData.senderId,
+        subject: messageData.subject,
+        content: messageData.content,
+        timestamp: timestamp,
+        priority: messageData.priority || 'normal'
+      };
+      existingConversation.unreadCount += 1;
+      console.log(`✅ Updated existing conversation: ${message.conversationId}`);
+    }
+
+    return message;
   }
 
   async getMessageCampaigns(organizationId: number): Promise<any[]> {
