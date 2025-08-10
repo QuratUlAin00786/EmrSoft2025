@@ -346,14 +346,11 @@ Cura EMR Team
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
           }
           .fallback-logo {
-            width: 95px;
-            height: 95px;
             background: white;
             border-radius: 12px;
             flex-shrink: 0;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            margin-right: 20px;
-            position: relative;
+            border-collapse: collapse;
           }
           .header-info {
             flex: 1;
@@ -483,9 +480,13 @@ Cura EMR Team
                  <h1 class="clinic-name">${organizationName || 'Medical Clinic'}</h1>
                  <p class="clinic-tagline">Powered by Cura EMR Platform</p>
                </div>` :
-              `<div class="fallback-logo">
-                 <img src="cid:cura-new-logo" alt="Cura EMR" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70px; height: 70px; object-fit: contain;">
-               </div>
+              `<table class="fallback-logo" style="width: 95px; height: 95px; margin-right: 20px;">
+                 <tr>
+                   <td style="text-align: center; vertical-align: middle; padding: 12px;">
+                     <img src="cid:cura-new-logo" alt="Cura EMR" style="width: 70px; height: 70px; object-fit: contain; display: block; margin: 0 auto;">
+                   </td>
+                 </tr>
+               </table>
                <div class="header-info">
                  <h1 class="clinic-name">Cura EMR</h1>
                  <p class="clinic-tagline">AI-Powered Healthcare Platform</p>
