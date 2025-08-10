@@ -44,9 +44,9 @@ class EmailService {
       
       // Add Cura logo as embedded attachment for email footer
       attachments.push({
-        filename: 'cura-logo.png',
-        path: './public/cura-logo.png',
-        cid: 'cura-logo'
+        filename: 'cura-email-logo.png',
+        path: './public/cura-email-logo.png',
+        cid: 'cura-email-logo'
       });
 
       const mailOptions = {
@@ -481,7 +481,7 @@ Cura EMR Team
                  <p class="clinic-tagline">Powered by Cura EMR Platform</p>
                </div>` :
               `<div class="fallback-logo">
-                 <img src="cid:cura-logo" alt="Cura EMR" style="width: 64px; height: 64px; object-fit: contain;">
+                 <img src="cid:cura-email-logo" alt="Cura EMR" style="width: 64px; height: 64px; object-fit: contain;">
                </div>
                <div class="header-info">
                  <h1 class="clinic-name">Cura EMR</h1>
@@ -545,7 +545,7 @@ Cura EMR Team
           
           <div class="footer">
             <div class="footer-logo">
-              <img src="cid:cura-logo" alt="Cura EMR" style="width: 60px; height: 60px; object-fit: contain;">
+              <img src="cid:cura-email-logo" alt="Cura EMR" style="width: 60px; height: 60px; object-fit: contain;">
             </div>
             <div class="footer-brand">
               <strong>CURA EMR</strong> | Powered by Halo Group & Averox
