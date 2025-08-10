@@ -147,9 +147,12 @@ export default function MessagingPage() {
 
   const { data: conversations = [], isLoading: conversationsLoading, error: conversationsError } = useQuery({
     queryKey: ['/api/messaging/conversations'],
+    staleTime: 0, // Always refetch
+    cacheTime: 0, // Don't cache
+    refetchOnMount: 'always', // Always refetch when component mounts
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
-      console.log('Fetching conversations with token:', token ? 'present' : 'missing');
+      console.log('🔄 FETCHING CONVERSATIONS with token:', token ? 'present' : 'missing');
       const response = await fetch('/api/messaging/conversations', {
         method: 'GET',
         headers: {
@@ -159,10 +162,10 @@ export default function MessagingPage() {
         },
         credentials: 'include'
       });
-      console.log('Conversations response status:', response.status);
+      console.log('✅ Conversations response status:', response.status);
       if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
       const data = await response.json();
-      console.log('Conversations data received:', data);
+      console.log('📨 CONVERSATIONS DATA RECEIVED:', JSON.stringify(data, null, 2));
       return data;
     }
   });
@@ -285,12 +288,16 @@ export default function MessagingPage() {
       return response.json();
     },
     onSuccess: (data, variables) => {
+      console.log('🎯 MESSAGE SENT SUCCESS - invalidating conversations cache');
+      // Force invalidate and refetch conversations
+      queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
+      queryClient.refetchQueries({ queryKey: ['/api/messaging/conversations'] });
+      
       // Only handle new message dialog closing here
       if (!variables.conversationId) {
         // It's a new message, so close the dialog and reset the form
         setShowNewMessage(false);
         resetNewMessage();
-        queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
         
         // Show different success message based on communication method
         let description = "Your message has been sent successfully.";

@@ -1083,30 +1083,11 @@ export class DatabaseStorage implements IStorage {
       conv.organizationId === organizationId
     );
 
-    // Sample conversation if no stored ones exist
-    const sampleConversations = storedConversations.length === 0 ? [
-      {
-        id: "conv_1",
-        participants: [
-          { id: "user_1", name: "Dr. Sarah Johnson", role: "doctor" },
-          { id: "user_2", name: "John Smith", role: "patient" }
-        ],
-        lastMessage: {
-          id: "msg_1",
-          senderId: "user_2",
-          subject: "Appointment Follow-up",
-          content: "Thank you for the consultation today.",
-          timestamp: "2024-06-26T14:30:00Z",
-          priority: "normal"
-        },
-        unreadCount: 0,
-        isPatientConversation: true,
-        organizationId: organizationId
-      }
-    ] : [];
+    console.log(`💬 STORED CONVERSATIONS: ${storedConversations.length} found for org ${organizationId}`);
+    console.log(`💬 CONVERSATION IDS:`, storedConversations.map(c => c.id));
 
-    console.log(`Returning ${storedConversations.length + sampleConversations.length} conversations for org ${organizationId}`);
-    return [...sampleConversations, ...storedConversations];
+    // Always return stored conversations (no sample data)
+    return storedConversations;
   }
 
   async getMessages(conversationId: string, organizationId: number): Promise<any[]> {
