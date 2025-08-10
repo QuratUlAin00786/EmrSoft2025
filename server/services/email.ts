@@ -322,32 +322,36 @@ Cura EMR Team
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
           }
           .header { 
-            background: #f8f9fa;
-            border-bottom: 3px solid #4F46E5;
-            padding: 15px 20px;
+            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+            color: white;
+            padding: 25px 20px;
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
+            position: relative;
           }
           .clinic-logo {
-            width: 45px;
-            height: 45px;
-            border-radius: 6px;
+            width: 70px;
+            height: 70px;
+            border-radius: 12px;
             object-fit: contain;
             background: white;
-            padding: 4px;
-            border: 1px solid #e9ecef;
+            padding: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
             flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
           }
           .fallback-logo {
-            width: 45px;
-            height: 45px;
-            background: #4F46E5;
-            border-radius: 6px;
+            width: 70px;
+            height: 70px;
+            background: white;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
           }
           .header-info {
             flex: 1;
@@ -356,29 +360,33 @@ Cura EMR Team
             gap: 2px;
           }
           .clinic-name {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1a1a1a;
+            font-size: 22px;
+            font-weight: 700;
+            color: white;
             margin: 0;
             line-height: 1.2;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
           }
           .clinic-tagline {
-            font-size: 11px;
-            color: #6b7280;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.9);
             margin: 0;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
             font-weight: 500;
           }
           .header h1 { 
             margin: 0; 
             font-size: 28px; 
-            font-weight: 600; 
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
           }
           .header p { 
             margin: 5px 0 0; 
             opacity: 0.9; 
-            font-size: 16px; 
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.9);
           }
           .content { 
             padding: 40px 30px; 
@@ -427,10 +435,10 @@ Cura EMR Team
             border-top: 1px solid #e5e7eb;
           }
           .footer-logo {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
-            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 12px;
             margin: 0 auto 15px;
             display: flex;
             align-items: center;
@@ -438,7 +446,9 @@ Cura EMR Team
             font-weight: bold;
             color: white;
             font-size: 18px;
-            box-shadow: 0 2px 10px rgba(79, 70, 229, 0.3);
+            box-shadow: 0 4px 20px rgba(79, 70, 229, 0.3);
+            border: 3px solid #4F46E5;
+            padding: 10px;
           }
           .footer-brand {
             color: #6b7280;
@@ -472,7 +482,7 @@ Cura EMR Team
                  <p class="clinic-tagline">Powered by Cura EMR Platform</p>
                </div>` :
               `<div class="fallback-logo">
-                 <img src="cid:cura-logo" alt="Cura EMR" style="width: 28px; height: auto;">
+                 <img src="cid:cura-logo" alt="Cura EMR" style="width: 50px; height: 50px; object-fit: contain;">
                </div>
                <div class="header-info">
                  <h1 class="clinic-name">Cura EMR</h1>
@@ -536,7 +546,7 @@ Cura EMR Team
           
           <div class="footer">
             <div class="footer-logo">
-              <img src="cid:cura-logo" alt="Cura EMR" style="max-width: 120px; height: auto;">
+              <img src="cid:cura-logo" alt="Cura EMR" style="width: 60px; height: 60px; object-fit: contain;">
             </div>
             <div class="footer-brand">
               <strong>CURA EMR</strong> | Powered by Halo Group & Averox
