@@ -23,6 +23,7 @@ Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system by 
 - **Fixed User Management schedule editing**: Resolved form state management issue where working hours changes weren't displaying updated values after successful database saves - form now properly updates with server response data
 - **Enhanced invoice generation with authentic Cura branding**: Updated invoice PDF generation to create professional HTML invoices featuring the authentic Cura logo (blue gradient spiral design) in the header white box, matching the original design with blue gradient header, proper Cura Medical Practice branding, and comprehensive invoice layout with payment information and service details
 - **Resolved invoice logo display issue**: Fixed corrupted base64 logo data in invoice generation by replacing with proper PNG file path (/cura-spiral-logo.png), ensuring authentic Cura logo displays correctly in all generated invoices
+- **Fixed prescription email logo centering**: Successfully resolved spiral logo positioning issue in prescription email white container by implementing flexbox centering (display: flex, align-items: center, justify-content: center) and updating to user's new spiral logo image, eliminating bottom spacing problems and ensuring perfect center alignment across all email clients
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
