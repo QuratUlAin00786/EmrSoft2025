@@ -148,7 +148,7 @@ export default function MessagingPage() {
   const { data: conversations = [], isLoading: conversationsLoading, error: conversationsError } = useQuery({
     queryKey: ['/api/messaging/conversations'],
     staleTime: 0, // Always refetch
-    cacheTime: 0, // Don't cache
+    gcTime: 0, // Don't cache (TanStack Query v5)
     refetchOnMount: 'always', // Always refetch when component mounts
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
