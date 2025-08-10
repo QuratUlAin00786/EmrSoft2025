@@ -337,7 +337,6 @@ Cura EMR Team
             object-fit: contain;
             background: white;
             padding: 12px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
             flex-shrink: 0;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
           }
@@ -351,7 +350,6 @@ Cura EMR Team
             justify-content: center;
             flex-shrink: 0;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.3);
             padding: 8px;
           }
           .header-info {
