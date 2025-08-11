@@ -1396,17 +1396,23 @@ IMPORTANT: Review the full conversation history and remember all details mention
         let foundPatient = contextPatient;
         let foundDoctor = contextDoctor;
         
-        // Simple patient name matching
+        // Enhanced patient name matching with exact word boundaries
         if (!foundPatient) {
           for (const patient of patients) {
-            const firstName = patient.firstName.toLowerCase();
-            const lastName = patient.lastName.toLowerCase();
-            const fullName = `${firstName} ${lastName}`;
+            const firstName = patient.firstName?.toLowerCase() || '';
+            const lastName = patient.lastName?.toLowerCase() || '';
+            const fullName = `${firstName} ${lastName}`.trim();
             
-            if (lowerMessage.includes(firstName) || 
-                lowerMessage.includes(lastName) ||
-                lowerMessage.includes(fullName)) {
+            // Check for exact word matches to prevent partial matching issues
+            const firstNameRegex = new RegExp(`\\b${firstName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+            const lastNameRegex = new RegExp(`\\b${lastName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+            const fullNameRegex = new RegExp(`\\b${fullName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+            
+            if ((firstName && firstNameRegex.test(lowerMessage)) || 
+                (lastName && lastNameRegex.test(lowerMessage)) ||
+                (fullName && fullNameRegex.test(lowerMessage))) {
               foundPatient = patient;
+              console.log(`[AI] Found patient: ${firstName} ${lastName} from message: "${lowerMessage}"`);
               break;
             }
           }
