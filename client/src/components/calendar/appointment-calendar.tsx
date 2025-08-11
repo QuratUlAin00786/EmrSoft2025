@@ -376,7 +376,8 @@ export default function AppointmentCalendar() {
                                 {new Date(apt.scheduledAt).toLocaleTimeString('en-US', { 
                                   hour: 'numeric', 
                                   minute: '2-digit', 
-                                  hour12: true
+                                  hour12: true,
+                                  timeZone: 'UTC'
                                 })} ({apt.duration} min)
                               </div>
                             </div>
@@ -440,7 +441,8 @@ export default function AppointmentCalendar() {
                         {new Date(appointment.scheduledAt).toLocaleTimeString('en-US', { 
                           hour: 'numeric', 
                           minute: '2-digit', 
-                          hour12: true
+                          hour12: true,
+                          timeZone: 'UTC'
                         })} 
                         ({appointment.duration} min)
                       </div>
