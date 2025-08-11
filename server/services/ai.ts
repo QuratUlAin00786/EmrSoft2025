@@ -321,6 +321,104 @@ Please provide a comprehensive safety analysis focusing on clinically significan
     return false;
   }
 
+  private extractConversationContext(conversationHistory: any[], currentMessage: string): any {
+    // Extract all mentioned patient and doctor names from conversation history
+    const allText = conversationHistory.map(msg => msg.content).join(' ') + ' ' + currentMessage;
+    
+    // Extract patient names mentioned
+    const patientNames = this.extractPatientNamesFromText(allText);
+    
+    // Extract doctor names mentioned
+    const doctorNames = this.extractDoctorNamesFromText(allText);
+    
+    // Extract time/date mentioned
+    const timeContext = this.extractTimeFromText(allText);
+    
+    // Track what information has been provided
+    const providedInfo = {
+      hasPatient: patientNames.length > 0,
+      hasDoctor: doctorNames.length > 0,
+      hasTime: timeContext !== null,
+      patientNames,
+      doctorNames,
+      timeContext
+    };
+    
+    console.log('[AI] Conversation context:', providedInfo);
+    
+    return providedInfo;
+  }
+
+  private extractPatientNamesFromText(text: string): string[] {
+    const patientPatterns = [
+      /(?:patient|for)\s+([A-Z][a-z]+\s+[A-Z][a-z]+)/g,
+      /(?:book|appointment|schedule)\s+(?:for\s+)?([A-Z][a-z]+\s+[A-Z][a-z]+)/g,
+      /([A-Z][a-z]+\s+[A-Z][a-z]+)(?:\s+(?:appointment|consultation))/g
+    ];
+    
+    const names = new Set<string>();
+    
+    for (const pattern of patientPatterns) {
+      const matches = Array.from(text.matchAll(pattern));
+      for (const match of matches) {
+        const name = match[1]?.trim();
+        if (name && this.isValidPersonName(name)) {
+          names.add(name);
+        }
+      }
+    }
+    
+    return Array.from(names);
+  }
+
+  private extractDoctorNamesFromText(text: string): string[] {
+    const doctorPatterns = [
+      /(?:dr\.?\s+|doctor\s+)([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/gi,
+      /(?:with|see|book|appointment)\s+(?:dr\.?\s+)?([A-Z][a-z]+\s+[A-Z][a-z]+)/gi
+    ];
+    
+    const names = new Set<string>();
+    
+    for (const pattern of doctorPatterns) {
+      const matches = Array.from(text.matchAll(pattern));
+      for (const match of matches) {
+        const name = match[1]?.trim();
+        if (name && this.isValidPersonName(name)) {
+          names.add(name);
+        }
+      }
+    }
+    
+    return Array.from(names);
+  }
+
+  private extractTimeFromText(text: string): string | null {
+    const timePatterns = [
+      /(?:at|@)\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm|AM|PM))/g,
+      /(?:tomorrow|today|monday|tuesday|wednesday|thursday|friday|saturday|sunday)/gi,
+      /\d{1,2}\/\d{1,2}\/\d{4}/g,
+      /(?:january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2}/gi
+    ];
+    
+    for (const pattern of timePatterns) {
+      const match = text.match(pattern);
+      if (match) {
+        return match[0];
+      }
+    }
+    
+    return null;
+  }
+
+  private isValidPersonName(name: string): boolean {
+    // Check if it's a valid person name (two words, proper case, not common words)
+    const words = name.split(' ');
+    if (words.length !== 2) return false;
+    
+    const commonWords = ['the', 'and', 'or', 'but', 'for', 'with', 'on', 'at', 'by', 'from', 'to', 'in', 'of'];
+    return !words.some((word: string) => commonWords.includes(word.toLowerCase()));
+  }
+
   private extractDoctorNameFromConversation(conversationText: string): string | null {
     // Look for patterns like "Dr. Name", "Doctor Name", or appointment context
     const doctorPatterns = [
@@ -332,7 +430,7 @@ Please provide a comprehensive safety analysis focusing on clinically significan
     const foundNames = new Set<string>();
     
     for (const pattern of doctorPatterns) {
-      const matches = [...conversationText.matchAll(pattern)];
+      const matches = Array.from(conversationText.matchAll(pattern));
       for (const match of matches) {
         const name = match[1]?.trim();
         if (name && name.includes(' ') && /^[a-z\s]+$/i.test(name)) {
@@ -530,11 +628,22 @@ CURRENT SYSTEM DATA:
 - Upcoming Appointments: ${systemContext.upcomingAppointments}
 - Total Prescriptions: ${systemContext.totalPrescriptions}
 
+CONVERSATION CONTEXT ANALYSIS:
+- Patient Names Already Mentioned: ${conversationContext.patientNames?.join(', ') || 'None'}
+- Doctor Names Already Mentioned: ${conversationContext.doctorNames?.join(', ') || 'None'}
+- Time/Date Mentioned: ${conversationContext.timeContext || 'None'}
+- Has Patient Info: ${conversationContext.hasPatient || false}
+- Has Doctor Info: ${conversationContext.hasDoctor || false}
+- Has Time Info: ${conversationContext.hasTime || false}
+
 CRITICAL CONVERSATION RULES:
-- REMEMBER all patient and doctor names mentioned in previous messages
-- DO NOT ask for information already provided in the conversation
-- MAINTAIN context from previous messages in the conversation
-- When a patient and doctor are already identified, only ask for missing information like time/date
+- CAREFULLY REVIEW conversation history to extract patient names and doctor names already mentioned
+- DO NOT ask for information already provided in previous messages
+- MAINTAIN context - if patient "Salman Mahmood" and doctor "Dr Ali Raza" were mentioned, use them
+- When patient and doctor are identified, ONLY ask for missing time/date information
+- NEVER repeat questions already answered in the conversation
+- BUILD upon previous conversation context progressively
+- USE the conversation context analysis above to determine what information is still needed
 
 APPOINTMENT BOOKING RULES:
 - Always require: patient name, doctor name, and date/time
@@ -620,8 +729,11 @@ IMPORTANT: Review the full conversation history and remember all details mention
       // Extract entities from ALL conversation history, not just current message
       const lowerMessage = params.message.toLowerCase();
       
-      // Build full conversation text for entity extraction
+      // Build full conversation text for entity extraction and context tracking
       const fullConversationText = params.conversationHistory.map((msg: any) => msg.content).join(' ').toLowerCase() + ' ' + lowerMessage;
+      
+      // Extract conversation context to prevent repetitive questions
+      const conversationContext = this.extractConversationContext(params.conversationHistory, params.message);
       
       // Get real data
       const allUsers = await storage.getUsersByOrganization(params.organizationId);
