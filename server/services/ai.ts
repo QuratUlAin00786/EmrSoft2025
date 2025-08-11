@@ -980,17 +980,22 @@ IMPORTANT: Review the full conversation history and remember all details mention
       // Look for patient names in the entire conversation (including current message)
       let foundPatient = null;
       for (const patient of patients) {
-        const firstName = patient.firstName.toLowerCase();
-        const lastName = patient.lastName.toLowerCase();
-        const fullName = `${firstName} ${lastName}`;
+        const firstName = patient.firstName?.toLowerCase().trim() || '';
+        const lastName = patient.lastName?.toLowerCase().trim() || '';
+        const fullName = `${firstName} ${lastName}`.trim();
         
-        // Check if patient name exists in conversation or current message
-        if (fullConversationText.includes(firstName) || 
-            fullConversationText.includes(lastName) ||
-            fullConversationText.includes(fullName) ||
-            lowerMessage.includes(firstName) || 
-            lowerMessage.includes(lastName) ||
-            lowerMessage.includes(fullName)) {
+        // Use exact word boundary matching to prevent partial matches
+        const firstNameRegex = new RegExp(`\\b${firstName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+        const lastNameRegex = new RegExp(`\\b${lastName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+        const fullNameRegex = new RegExp(`\\b${fullName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+        
+        // Check if exact patient name exists in conversation or current message
+        if ((firstName && firstNameRegex.test(fullConversationText)) || 
+            (lastName && lastNameRegex.test(fullConversationText)) ||
+            (fullName && fullNameRegex.test(fullConversationText)) ||
+            (firstName && firstNameRegex.test(lowerMessage)) || 
+            (lastName && lastNameRegex.test(lowerMessage)) ||
+            (fullName && fullNameRegex.test(lowerMessage))) {
           foundPatient = patient;
           console.log(`[AI] Found patient: ${patient.firstName} ${patient.lastName}`);
           break;
@@ -1359,8 +1364,18 @@ IMPORTANT: Review the full conversation history and remember all details mention
                 // Current message should be patient name
                 if (!contextPatient) {
                   for (const patient of patients) {
-                    if (lowerMessage.includes(patient.firstName.toLowerCase()) || 
-                        lowerMessage.includes(patient.lastName.toLowerCase())) {
+                    const firstName = patient.firstName?.toLowerCase().trim() || '';
+                    const lastName = patient.lastName?.toLowerCase().trim() || '';
+                    const fullName = `${firstName} ${lastName}`.trim();
+                    
+                    // Use exact word boundary matching
+                    const firstNameRegex = new RegExp(`\\b${firstName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+                    const lastNameRegex = new RegExp(`\\b${lastName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+                    const fullNameRegex = new RegExp(`\\b${fullName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+                    
+                    if ((firstName && firstNameRegex.test(lowerMessage)) || 
+                        (lastName && lastNameRegex.test(lowerMessage)) ||
+                        (fullName && fullNameRegex.test(lowerMessage))) {
                       contextPatient = patient;
                       break;
                     }
@@ -1377,13 +1392,31 @@ IMPORTANT: Review the full conversation history and remember all details mention
                 // Current message should be doctor name
                 if (!contextDoctor) {
                   for (const doctor of doctors) {
-                    if (lowerMessage.includes(doctor.firstName.toLowerCase()) || 
-                        lowerMessage.includes(doctor.lastName.toLowerCase()) ||
-                        lowerMessage.includes(`dr. ${doctor.firstName.toLowerCase()}`) ||
-                        lowerMessage.includes(`dr ${doctor.firstName.toLowerCase()}`)) {
-                      contextDoctor = doctor;
-                      break;
+                    const firstName = doctor.firstName.toLowerCase();
+                    const lastName = doctor.lastName.toLowerCase();
+                    const fullName = `${firstName} ${lastName}`;
+                    
+                    // Match various patterns with exact word boundaries
+                    const patterns = [
+                      fullName,                           // "ali raza"
+                      `dr. ${fullName}`,                 // "dr. ali raza"
+                      `dr ${fullName}`,                  // "dr ali raza"
+                      `doctor ${fullName}`,              // "doctor ali raza"
+                      `dr. ${firstName}`,                // "dr. ali"
+                      `dr ${firstName}`,                 // "dr ali"
+                      `doctor ${firstName}`              // "doctor ali"
+                    ];
+                    
+                    // Only match if pattern appears as whole words
+                    for (const pattern of patterns) {
+                      const regex = new RegExp(`\\b${pattern.replace(/\s+/g, '\\s+')}\\b`, 'i');
+                      if (regex.test(lowerMessage)) {
+                        contextDoctor = doctor;
+                        break;
+                      }
                     }
+                    
+                    if (contextDoctor) break;
                   }
                 }
                 break;
@@ -1397,23 +1430,39 @@ IMPORTANT: Review the full conversation history and remember all details mention
         let foundDoctor = contextDoctor;
         
         // Enhanced patient name matching with exact word boundaries
+        
         if (!foundPatient) {
+          // First pass: Look for exact full name matches (highest priority)
           for (const patient of patients) {
-            const firstName = patient.firstName?.toLowerCase() || '';
-            const lastName = patient.lastName?.toLowerCase() || '';
+            const firstName = patient.firstName?.toLowerCase().trim() || '';
+            const lastName = patient.lastName?.toLowerCase().trim() || '';
             const fullName = `${firstName} ${lastName}`.trim();
             
-            // Check for exact word matches to prevent partial matching issues
-            const firstNameRegex = new RegExp(`\\b${firstName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-            const lastNameRegex = new RegExp(`\\b${lastName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
             const fullNameRegex = new RegExp(`\\b${fullName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
             
-            if ((firstName && firstNameRegex.test(lowerMessage)) || 
-                (lastName && lastNameRegex.test(lowerMessage)) ||
-                (fullName && fullNameRegex.test(lowerMessage))) {
+            if (fullName && fullNameRegex.test(lowerMessage)) {
               foundPatient = patient;
-              console.log(`[AI] Found patient: ${firstName} ${lastName} from message: "${lowerMessage}"`);
               break;
+            }
+          }
+          
+          // Second pass: Look for first name + last name combination matches
+          if (!foundPatient) {
+            for (const patient of patients) {
+              const firstName = patient.firstName?.toLowerCase().trim() || '';
+              const lastName = patient.lastName?.toLowerCase().trim() || '';
+              
+              const firstNameRegex = new RegExp(`\\b${firstName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+              const lastNameRegex = new RegExp(`\\b${lastName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+              
+              const firstMatch = firstName && firstNameRegex.test(lowerMessage);
+              const lastMatch = lastName && lastNameRegex.test(lowerMessage);
+              
+              // Only match if BOTH first AND last name are found
+              if (firstMatch && lastMatch) {
+                foundPatient = patient;
+                break;
+              }
             }
           }
         }
