@@ -321,6 +321,35 @@ Please provide a comprehensive safety analysis focusing on clinically significan
     return false;
   }
 
+  private extractDoctorNameFromConversation(conversationText: string): string | null {
+    // Look for patterns like "Dr. Name", "Doctor Name", or appointment context
+    const doctorPatterns = [
+      /(?:dr\.?\s+|doctor\s+)([a-z]+(?:\s+[a-z]+)+)/gi,
+      /(?:with|see|book|appointment)\s+(?:dr\.?\s+)?([a-z]+\s+[a-z]+)/gi,
+      /(?:^|\s)([a-z]+\s+[a-z]+)(?:\s|$)/gi
+    ];
+    
+    const foundNames = new Set<string>();
+    
+    for (const pattern of doctorPatterns) {
+      const matches = [...conversationText.matchAll(pattern)];
+      for (const match of matches) {
+        const name = match[1]?.trim();
+        if (name && name.includes(' ') && /^[a-z\s]+$/i.test(name)) {
+          // Normalize the name (title case)
+          const normalizedName = name.toLowerCase()
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+          foundNames.add(normalizedName);
+        }
+      }
+    }
+    
+    // Return the first valid name found
+    return foundNames.size > 0 ? Array.from(foundNames)[0] : null;
+  }
+
   private parseMonthDate(monthName: string, day: number, year: number): Date | null {
     const months = ['january', 'february', 'march', 'april', 'may', 'june', 
                    'july', 'august', 'september', 'october', 'november', 'december'];
@@ -528,7 +557,7 @@ RESPONSE FORMAT:
 - Keep responses concise but informative
 
 IMPORTANT: Review the full conversation history and remember all details mentioned by the user in previous messages.`,
-        messages: conversationMessages
+        messages: conversationMessages as any
       });
 
       const aiResponse = (response.content[0] as any).text;
@@ -615,23 +644,38 @@ IMPORTANT: Review the full conversation history and remember all details mention
         }
       }
       
-      // Look for doctor names in entire conversation
+      // Look for doctor names in entire conversation with EXACT matching
+      console.log('[AI] Searching for doctors in conversation:', fullConversationText);
+      console.log('[AI] Available doctors:', doctors.map(d => `${d.firstName} ${d.lastName}`));
+      
       for (const doctor of doctors) {
-        const fullName = `${doctor.firstName} ${doctor.lastName}`.toLowerCase();
-        const drName = `dr. ${doctor.firstName} ${doctor.lastName}`.toLowerCase();
-        if (fullConversationText.includes(doctor.firstName.toLowerCase()) || 
-            fullConversationText.includes(doctor.lastName.toLowerCase()) ||
-            fullConversationText.includes(fullName) || fullConversationText.includes(drName)) {
+        const fullName = `${doctor.firstName} ${doctor.lastName}`.toLowerCase().trim();
+        const drName = `dr. ${doctor.firstName} ${doctor.lastName}`.toLowerCase().trim();
+        const drShortName = `dr ${doctor.firstName} ${doctor.lastName}`.toLowerCase().trim();
+        
+        console.log(`[AI] Checking doctor: ${fullName}`);
+        
+        // EXACT full name match (highest priority)
+        if (fullConversationText.includes(fullName) || 
+            fullConversationText.includes(drName) || 
+            fullConversationText.includes(drShortName)) {
+          console.log(`[AI] EXACT MATCH found: ${fullName}`);
           foundDoctor = doctor;
           break;
         }
+      }
+      
+      // If no exact match found, check if user mentioned a specific doctor name
+      if (!foundDoctor) {
+        console.log('[AI] No exact doctor match found. Available doctors:');
+        doctors.forEach(d => console.log(`[AI] - Dr. ${d.firstName} ${d.lastName}`));
       }
       
       // Parse date/time from message
       scheduledDate = this.parseDateFromMessage(lowerMessage);
       
       console.log(`[AI] Time parsing - Original: ${lowerMessage}, Parsed hour: ${scheduledDate?.getHours()}, minute: ${scheduledDate?.getMinutes()}`);
-      console.log(`[AI] All information found - Patient: ${foundPatient?.firstName} ${foundPatient?.lastName}, Doctor: ${foundDoctor?.firstName} ${foundDoctor?.lastName}, Date: ${scheduledDate}`);
+      console.log(`[AI] Information found - Patient: ${foundPatient ? `${foundPatient.firstName} ${foundPatient.lastName}` : 'Not found'}, Doctor: ${foundDoctor ? `${foundDoctor.firstName} ${foundDoctor.lastName}` : 'Not found'}, Date: ${scheduledDate}`);
       
       // Check if we have all required information
       if (foundPatient && foundDoctor && scheduledDate) {
@@ -648,24 +692,39 @@ IMPORTANT: Review the full conversation history and remember all details mention
           };
         }
         
-        // Check for conflicts
+        // Check for conflicts with proper logging
+        console.log(`[AI] Checking conflicts for Dr. ${foundDoctor.firstName} ${foundDoctor.lastName} on ${scheduledDate}`);
         const existingAppointments = await storage.getAppointmentsByProvider(foundDoctor.id, params.organizationId, scheduledDate);
+        console.log(`[AI] Found ${existingAppointments.length} existing appointments for this doctor on this date`);
+        
         const appointmentEndTime = new Date(scheduledDate.getTime() + 30 * 60 * 1000);
         
-        const hasConflict = existingAppointments.some(appointment => {
+        const conflictingAppointments = existingAppointments.filter(appointment => {
           const existingStart = new Date(appointment.scheduledAt);
           const existingEnd = new Date(existingStart.getTime() + (appointment.duration || 30) * 60 * 1000);
-          return scheduledDate && (scheduledDate < existingEnd && appointmentEndTime > existingStart);
+          const hasOverlap = scheduledDate < existingEnd && appointmentEndTime > existingStart;
+          
+          if (hasOverlap) {
+            console.log(`[AI] CONFLICT: Existing appointment ${existingStart.toLocaleTimeString()} - ${existingEnd.toLocaleTimeString()}, New: ${scheduledDate.toLocaleTimeString()} - ${appointmentEndTime.toLocaleTimeString()}`);
+          }
+          
+          return hasOverlap;
         });
         
-        if (hasConflict) {
+        if (conflictingAppointments.length > 0) {
+          const conflictTimes = conflictingAppointments.map(apt => 
+            new Date(apt.scheduledAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+          ).join(', ');
+          
           return {
-            response: `**Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}** already has an appointment at that time. Please choose a different time slot.`,
+            response: `**Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}** already has appointments at: ${conflictTimes}. Please choose a different time slot.`,
             intent: 'book_appointment',
             confidence: 0.9,
-            parameters: { hasConflict: true }
+            parameters: { hasConflict: true, conflictTimes }
           };
         }
+        
+        console.log(`[AI] No conflicts found. Proceeding with appointment booking.`);
         
         // Create the appointment
         const appointmentTitle = this.getAppointmentTitle(foundDoctor.department || undefined, undefined);
@@ -715,8 +774,15 @@ IMPORTANT: Review the full conversation history and remember all details mention
         const patientsList = patients.slice(0, 4).map(p => `• **${p.firstName} ${p.lastName}**`).join('\n');
         response = `Found **Dr. ${foundDoctor!.firstName} ${foundDoctor!.lastName}**. Which patient?\n\n${patientsList}`;
       } else if (!foundDoctor) {
+        // Check if user mentioned a specific doctor name that doesn't exist
+        const mentionedDoctorName = this.extractDoctorNameFromConversation(fullConversationText);
         const doctorsList = doctors.slice(0, 4).map(d => `• **Dr. ${d.firstName} ${d.lastName}**${d.department ? ` (${d.department})` : ''}`).join('\n');
-        response = `Found patient **${foundPatient!.firstName} ${foundPatient!.lastName}**. Which doctor?\n\n${doctorsList}`;
+        
+        if (mentionedDoctorName) {
+          response = `I couldn't find a doctor named **${mentionedDoctorName}** in our system. Here are our available doctors:\n\n${doctorsList}\n\nPlease choose from the available doctors listed above.`;
+        } else {
+          response = `Found patient **${foundPatient!.firstName} ${foundPatient!.lastName}**. Which doctor would you like to book with?\n\n${doctorsList}`;
+        }
       } else if (!scheduledDate) {
         response = `Ready to book **${foundPatient.firstName} ${foundPatient.lastName}** with **Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}**. When would you like to schedule the appointment?\n\nExamples: "tomorrow at 2pm", "August 12th at 10:30am"`;
       }
