@@ -11,6 +11,7 @@ interface EmailOptions {
     content?: Buffer;
     path?: string;
     contentType?: string;
+    cid?: string;
   }>;
 }
 
@@ -24,7 +25,7 @@ class EmailService {
   private transporter: nodemailer.Transporter;
 
   constructor() {
-    this.transporter = nodemailer.createTransport({
+    const smtpConfig = {
       host: 'smtp.curampms.ai', // Auto-detect based on domain
       port: 587, // Standard port, will auto-detect if needed
       secure: false, // Let server auto-detect
@@ -35,7 +36,16 @@ class EmailService {
       tls: {
         rejectUnauthorized: false
       }
+    };
+    
+    console.log('[EMAIL] Initializing EmailService with config:', {
+      host: smtpConfig.host,
+      port: smtpConfig.port,
+      user: smtpConfig.auth.user,
+      secure: smtpConfig.secure
     });
+    
+    this.transporter = nodemailer.createTransport(smtpConfig);
   }
 
   async sendEmail(options: EmailOptions): Promise<boolean> {
@@ -62,6 +72,12 @@ class EmailService {
         html: options.html,
         attachments
       };
+
+      console.log('[EMAIL] Sending email with options:', {
+        from: mailOptions.from,
+        to: mailOptions.to,
+        subject: mailOptions.subject
+      });
 
       const result = await this.transporter.sendMail(mailOptions);
       console.log('Email sent successfully:', result.messageId);
