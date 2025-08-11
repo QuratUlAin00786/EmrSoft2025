@@ -102,36 +102,15 @@ export function AIChatWidget() {
       };
       
       recognition.onresult = (event: any) => {
-        let finalTranscript = '';
-        let interimTranscript = '';
+        let fullTranscript = '';
         
-        // Process only new results from the current event
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            finalTranscript += transcript;
-          } else {
-            interimTranscript += transcript;
-          }
+        // Get all results from the beginning to build complete transcript
+        for (let i = 0; i < event.results.length; i++) {
+          fullTranscript += event.results[i][0].transcript;
         }
         
-        // Update transcript buffer with final results only
-        if (finalTranscript) {
-          setTranscriptBuffer(prev => (prev + ' ' + finalTranscript).trim());
-        }
-        
-        // Update input field with accumulated buffer plus interim results
-        setInput(prev => {
-          const baseText = prev.replace(/\s*\[.*?\]\s*$/, ''); // Remove interim text
-          const currentBuffer = finalTranscript ? transcriptBuffer + ' ' + finalTranscript : transcriptBuffer;
-          const fullText = currentBuffer.trim();
-          
-          if (interimTranscript) {
-            return (fullText + ' [' + interimTranscript + ']').trim();
-          } else {
-            return fullText;
-          }
-        });
+        // Simply set the complete transcript as input
+        setInput(fullTranscript.trim());
       };
       
       recognition.onerror = (event: any) => {
@@ -142,11 +121,6 @@ export function AIChatWidget() {
       recognition.onend = () => {
         console.log('Speech recognition ended');
         setIsListening(false);
-        // Ensure final transcript is properly set
-        setInput(prev => {
-          const cleanedText = prev.replace(/\s*\[.*?\]\s*$/, '').trim();
-          return transcriptBuffer ? (cleanedText + ' ' + transcriptBuffer).trim() : cleanedText;
-        });
       };
       
       setRecognition(recognition);
@@ -154,8 +128,8 @@ export function AIChatWidget() {
   }, [toast, transcriptBuffer]);
 
   const handleSendMessage = async () => {
-    // Clean up any interim text and get final message
-    const finalMessage = input.replace(/\s*\[.*?\]\s*$/, '').trim();
+    // Get clean final message
+    const finalMessage = input.trim();
     if (!finalMessage || isLoading) return;
 
     const userMessage: Message = {
@@ -274,7 +248,7 @@ export function AIChatWidget() {
     if (recognition && !isListening) {
       try {
         setTranscriptBuffer("");
-        setInput(prev => prev.replace(/\s*\[.*?\]\s*$/, '').trim()); // Clean any interim text
+        setInput(""); // Clear input completely
         recognition.start();
       } catch (error) {
         console.error("Error starting voice recognition:", error);
