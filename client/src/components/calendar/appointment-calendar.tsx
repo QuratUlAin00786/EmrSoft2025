@@ -161,6 +161,10 @@ export default function AppointmentCalendar() {
   console.log("AppointmentCalendar - Raw appointments count:", rawAppointments?.length || 0);
   console.log("AppointmentCalendar - Filtered appointments count:", appointments?.length || 0);
   console.log("AppointmentCalendar - Appointments:", appointments);
+  
+  // Debug: Check for Test User appointments specifically
+  const testUserAppts = appointments.filter((apt: any) => apt.patientId === 167);
+  console.log("AppointmentCalendar - Test User appointments (patientId 167):", testUserAppts);
 
   const monthStart = startOfMonth(selectedDate);
   const monthEnd = endOfMonth(selectedDate);
