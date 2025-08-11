@@ -1258,8 +1258,17 @@ IMPORTANT: Review the full conversation history and remember all details mention
           }).join('\n')}\n\nTell me a patient name to see their prescriptions.`;
         }
       }
-      // Check if this is a continuing appointment booking conversation  
-      else if (true) {
+      // Handle greetings and general conversation
+      else if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || 
+               lowerMessage.includes('hey') || lowerMessage.includes('help') ||
+               lowerMessage === 'hello' || lowerMessage === 'hi' || 
+               lowerMessage === 'hey' || lowerMessage === 'help') {
+        intent = 'greeting';
+        confidence = 0.9;
+        response = "Hello! I'm your Cura AI Assistant. I can help you:\n\n📅 **Book appointments** - Schedule consultations with doctors\n💊 **Find prescriptions** - Search and view patient medications\n\nHow can I assist you today?";
+      }
+      // Check if this is appointment booking context
+      else {
         const isAppointmentContext = params.conversationHistory && params.conversationHistory.some(item => 
           item.role === 'assistant' && (
             item.content.includes('Which doctor?') ||
@@ -1717,13 +1726,9 @@ IMPORTANT: Review the full conversation history and remember all details mention
           response = `I'll help you book an appointment. Tell me:\n• Patient name\n• Doctor name\n• Date and time`;
         }
         }
-      }
-      
-      // Prescription search is handled by handleAnthropicPrescriptionSearch function
-      // This duplicate logic was removed to prevent prescription data duplication
-      
-      // Help and general inquiries
-      else if (lowerMessage.includes('help') || lowerMessage.includes('what can you do') || lowerMessage.includes('how') || lowerMessage.includes('guide')) {
+        
+        // Help and general inquiries
+        else if (lowerMessage.includes('help') || lowerMessage.includes('what can you do') || lowerMessage.includes('how') || lowerMessage.includes('guide')) {
         intent = 'help';
         confidence = 0.9;
         
@@ -1775,6 +1780,7 @@ What would you like to do?`;
       else {
         response = `Hello! I can help with appointments, prescriptions, and patient information. What do you need?`;
       }
+    }
 
     } catch (error) {
       console.error("AI service error:", error);
