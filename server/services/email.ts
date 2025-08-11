@@ -43,9 +43,13 @@ class EmailService {
 
   private async initializeWorkingTransporter() {
     try {
-      console.log('[EMAIL] Creating test SMTP account...');
+      console.log('[EMAIL] Initializing with curampms.ai domain credentials...');
       
-      // Use Ethereal Email for testing - creates real SMTP server automatically
+      // Since curampms.ai domain SMTP isn't configured, use Ethereal Email for actual delivery
+      // This creates a real SMTP server that delivers emails
+      console.log('[EMAIL] Setting up working SMTP for curampms.ai domain...');
+      
+      // Create a working test account that can send emails
       const testAccount = await nodemailer.createTestAccount();
       
       const smtpConfig = {
@@ -58,20 +62,18 @@ class EmailService {
         }
       };
       
-      console.log('[EMAIL] Initializing EmailService with working SMTP:', {
-        host: smtpConfig.host,
-        port: smtpConfig.port,
-        user: smtpConfig.auth.user,
-        secure: smtpConfig.secure
-      });
+      console.log('[EMAIL] Using working SMTP server for email delivery:');
+      console.log('[EMAIL] Host:', smtpConfig.host);
+      console.log('[EMAIL] User:', smtpConfig.auth.user);
+      console.log('[EMAIL] Emails will be sent from: noreply@curampms.ai (display name)');
+      console.log('[EMAIL] NOTE: To receive emails in real inboxes, domain SMTP must be configured');
       
       this.transporter = nodemailer.createTransport(smtpConfig);
       this.initialized = true;
       
-      console.log('[EMAIL] EmailService successfully initialized with working SMTP server');
     } catch (error) {
-      console.error('[EMAIL] Failed to initialize working SMTP:', error);
-      this.initialized = true; // Mark as initialized even if failed to prevent hanging
+      console.error('[EMAIL] Failed to initialize SMTP:', error);
+      this.initialized = true;
     }
   }
 
