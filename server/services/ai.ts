@@ -1523,8 +1523,16 @@ IMPORTANT: Review the full conversation history and remember all details mention
           
           // Only accept valid 24-hour time
           if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
-            console.log(`[AI] Military time parsing - ${hour}:${minute}`);
-            scheduledDate.setHours(hour, minute, 0, 0);
+            // For appointment scheduling context, assume afternoon for hours 1-7 (common appointment hours)
+            // This prevents "3:0" from being interpreted as 3:00 AM instead of 3:00 PM
+            let finalHour = hour;
+            if (hour >= 1 && hour <= 7) {
+              finalHour = hour + 12; // Convert to PM
+              console.log(`[AI] Military time parsing - ${hour}:${minute} -> Assumed PM: ${finalHour}:${minute}`);
+            } else {
+              console.log(`[AI] Military time parsing - ${hour}:${minute}`);
+            }
+            scheduledDate.setHours(finalHour, minute, 0, 0);
             timeFound = true;
           }
         }
