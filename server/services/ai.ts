@@ -703,11 +703,23 @@ IMPORTANT: Review the full conversation history and remember all details mention
       const lowerMessage = params.message.toLowerCase();
       const lowerResponse = aiResponse.toLowerCase();
       
+      // Check if this is a response to a previous prescription request (conversation context)
+      const recentHistory = params.conversationHistory.slice(-3); // Check last 3 messages
+      const wasPrescriptionRequest = recentHistory.some(msg => 
+        msg.role === 'assistant' && (
+          msg.content.includes('Tell me a patient name to see their prescriptions') ||
+          msg.content.includes('Recent prescriptions:') ||
+          msg.content.includes('prescriptions found for') ||
+          msg.content.includes('prescription information')
+        )
+      );
+      
       // Check for prescription-related queries first (highest priority)
       if (lowerMessage.includes('prescription') || lowerMessage.includes('medication') || 
           lowerMessage.includes('show me prescription') || lowerMessage.includes('find prescriptions') ||
           lowerMessage.includes('prescription information') || lowerMessage.includes('prescription data') ||
-          lowerResponse.includes('prescription') || lowerResponse.includes('medication')) {
+          lowerResponse.includes('prescription') || lowerResponse.includes('medication') ||
+          wasPrescriptionRequest) { // If previous message asked for patient name for prescriptions
         intent = 'find_prescriptions';
         confidence = 0.9;
       } 
@@ -962,14 +974,25 @@ IMPORTANT: Review the full conversation history and remember all details mention
       const patients = await storage.getPatientsByOrganization(params.organizationId, 20);
       const prescriptions = await storage.getPrescriptionsByOrganization(params.organizationId);
       
-      // Look for patient names in the message
+      // Build full conversation text for patient name extraction
+      const fullConversationText = params.conversationHistory.map((msg: any) => msg.content).join(' ').toLowerCase() + ' ' + lowerMessage;
+      
+      // Look for patient names in the entire conversation (including current message)
       let foundPatient = null;
       for (const patient of patients) {
-        const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
-        if (lowerMessage.includes(patient.firstName.toLowerCase()) || 
-            lowerMessage.includes(patient.lastName.toLowerCase()) ||
+        const firstName = patient.firstName.toLowerCase();
+        const lastName = patient.lastName.toLowerCase();
+        const fullName = `${firstName} ${lastName}`;
+        
+        // Check if patient name exists in conversation or current message
+        if (fullConversationText.includes(firstName) || 
+            fullConversationText.includes(lastName) ||
+            fullConversationText.includes(fullName) ||
+            lowerMessage.includes(firstName) || 
+            lowerMessage.includes(lastName) ||
             lowerMessage.includes(fullName)) {
           foundPatient = patient;
+          console.log(`[AI] Found patient: ${patient.firstName} ${patient.lastName}`);
           break;
         }
       }
