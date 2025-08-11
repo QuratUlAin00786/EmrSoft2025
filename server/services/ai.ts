@@ -1486,11 +1486,13 @@ IMPORTANT: Review the full conversation history and remember all details mention
           }
         }
         
-        // Enhanced time parsing to handle more formats
+        // Enhanced time parsing to handle more formats - FIXED VERSION
         let timeFound = false;
-        // Priority order: AM/PM time first (including edge cases like "3:0 AM"), then military time
+        // Priority order: AM/PM time first (including edge cases like "3:0 AM"), then military time  
         const ampmTimeMatch = lowerMessage.match(/(\d{1,2})(?::(\d{1,2}))?\s*(am|pm)/i);
         const militaryTimeMatch = lowerMessage.match(/(\d{1,2}):(\d{1,2})(?!\s*(am|pm))/i); // Exclude AM/PM matches
+        
+        console.log(`[AI] Time parsing - AM/PM match: ${ampmTimeMatch ? ampmTimeMatch[0] : 'none'}, Military match: ${militaryTimeMatch ? militaryTimeMatch[0] : 'none'}`);
         
         if (ampmTimeMatch) {
           // If we found a time but no date yet, default to today
@@ -1523,18 +1525,9 @@ IMPORTANT: Review the full conversation history and remember all details mention
           
           // Only accept valid 24-hour time
           if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
-            // For appointment scheduling context, only assume PM for hours 1-7 if no AM/PM context is found
-            // and the hour makes sense as afternoon appointment
-            let finalHour = hour;
-            if (hour >= 1 && hour <= 7 && !ampmTimeMatch) {
-              // Only convert to PM if this seems like an afternoon appointment time
-              // For now, keep as-is since user expects literal interpretation
-              finalHour = hour; // Keep original hour - don't auto-convert to PM
-              console.log(`[AI] Military time parsing - ${hour}:${minute} (keeping as ${hour < 12 ? 'AM' : 'PM'})`);
-            } else {
-              console.log(`[AI] Military time parsing - ${hour}:${minute}`);
-            }
-            scheduledDate.setHours(finalHour, minute, 0, 0);
+            // FIXED: Don't auto-convert any hours to PM - use literal time interpretation
+            console.log(`[AI] Military time parsing - ${hour}:${minute} (literal interpretation)`);
+            scheduledDate.setHours(hour, minute, 0, 0);
             timeFound = true;
           }
         }
