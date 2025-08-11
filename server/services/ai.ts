@@ -757,8 +757,8 @@ IMPORTANT: Review the full conversation history and remember all details mention
     } catch (error) {
       console.error("[AI] Anthropic AI error:", error);
       console.error("[AI] Error details:", {
-        message: error.message,
-        stack: error.stack,
+        message: (error as Error).message,
+        stack: (error as Error).stack,
         params: {
           message: params.message,
           conversationHistoryLength: params.conversationHistory?.length || 0,
@@ -1523,12 +1523,14 @@ IMPORTANT: Review the full conversation history and remember all details mention
           
           // Only accept valid 24-hour time
           if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
-            // For appointment scheduling context, assume afternoon for hours 1-7 (common appointment hours)
-            // This prevents "3:0" from being interpreted as 3:00 AM instead of 3:00 PM
+            // For appointment scheduling context, only assume PM for hours 1-7 if no AM/PM context is found
+            // and the hour makes sense as afternoon appointment
             let finalHour = hour;
-            if (hour >= 1 && hour <= 7) {
-              finalHour = hour + 12; // Convert to PM
-              console.log(`[AI] Military time parsing - ${hour}:${minute} -> Assumed PM: ${finalHour}:${minute}`);
+            if (hour >= 1 && hour <= 7 && !ampmTimeMatch) {
+              // Only convert to PM if this seems like an afternoon appointment time
+              // For now, keep as-is since user expects literal interpretation
+              finalHour = hour; // Keep original hour - don't auto-convert to PM
+              console.log(`[AI] Military time parsing - ${hour}:${minute} (keeping as ${hour < 12 ? 'AM' : 'PM'})`);
             } else {
               console.log(`[AI] Military time parsing - ${hour}:${minute}`);
             }
