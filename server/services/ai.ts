@@ -451,9 +451,22 @@ Please provide a comprehensive safety analysis focusing on clinically significan
         totalPrescriptions: prescriptions.length
       };
 
-      const conversationContext = params.conversationHistory.map(msg => 
-        `${msg.role}: ${msg.content}`
-      ).join('\n');
+      // Build proper conversation messages for Anthropic
+      const conversationMessages = [];
+      
+      // Add conversation history as separate messages for better context
+      for (const msg of params.conversationHistory) {
+        conversationMessages.push({
+          role: msg.role === 'user' ? 'user' : 'assistant',
+          content: msg.content
+        });
+      }
+      
+      // Add current message
+      conversationMessages.push({
+        role: 'user',
+        content: params.message
+      });
 
       const response = await anthropic!.messages.create({
         model: DEFAULT_MODEL_STR,
@@ -471,12 +484,19 @@ CURRENT SYSTEM DATA:
 - Upcoming Appointments: ${systemContext.upcomingAppointments}
 - Total Prescriptions: ${systemContext.totalPrescriptions}
 
+CRITICAL CONVERSATION RULES:
+- REMEMBER all patient and doctor names mentioned in previous messages
+- DO NOT ask for information already provided in the conversation
+- MAINTAIN context from previous messages in the conversation
+- When a patient and doctor are already identified, only ask for missing information like time/date
+
 APPOINTMENT BOOKING RULES:
 - Always require: patient name, doctor name, and date/time
 - Appointments must be in the future (at least 1 minute from now)
 - Default duration is 30 minutes
 - Check for conflicts before booking
 - Use natural conversation flow to gather missing information
+- CONTEXT MEMORY: If patient and doctor were mentioned earlier, don't ask again
 
 PRESCRIPTION SEARCH RULES:
 - Search by patient name to find their prescriptions
@@ -486,17 +506,12 @@ PRESCRIPTION SEARCH RULES:
 RESPONSE FORMAT:
 - Be conversational and helpful
 - Use markdown formatting for readability
-- Ask for missing information naturally
+- Ask ONLY for missing information that wasn't provided in the conversation
 - Provide clear next steps
 - Keep responses concise but informative
 
-IMPORTANT: You have access to real system data. Use the provided information to give accurate responses about actual patients, doctors, and appointments in the system.`,
-        messages: [
-          {
-            role: 'user',
-            content: `Conversation History:\n${conversationContext}\n\nCurrent Message: ${params.message}\n\nPlease respond as the Cura AI Assistant and determine the user's intent.`
-          }
-        ]
+IMPORTANT: Review the full conversation history and remember all details mentioned by the user in previous messages.`,
+        messages: conversationMessages
       });
 
       const aiResponse = (response.content[0] as any).text;
@@ -555,37 +570,40 @@ IMPORTANT: You have access to real system data. Use the provided information to 
 
   async handleAnthropicAppointmentBooking(params: any, aiResponse: string, systemContext: any): Promise<any> {
     try {
-      // Extract entities from the user message using pattern matching
+      // Extract entities from ALL conversation history, not just current message
       const lowerMessage = params.message.toLowerCase();
+      
+      // Build full conversation text for entity extraction
+      const fullConversationText = params.conversationHistory.map((msg: any) => msg.content).join(' ').toLowerCase() + ' ' + lowerMessage;
       
       // Get real data
       const allUsers = await storage.getUsersByOrganization(params.organizationId);
       const doctors = allUsers.filter((user: any) => user.role === 'doctor' && user.isActive);
       const patients = await storage.getPatientsByOrganization(params.organizationId, 20);
       
-      // Find patient and doctor mentioned in the message
+      // Find patient and doctor mentioned in the ENTIRE conversation
       let foundPatient = null;
       let foundDoctor = null;
       let scheduledDate = null;
       
-      // Look for patient names
+      // Look for patient names in entire conversation
       for (const patient of patients) {
         const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
-        if (lowerMessage.includes(patient.firstName.toLowerCase()) || 
-            lowerMessage.includes(patient.lastName.toLowerCase()) ||
-            lowerMessage.includes(fullName)) {
+        if (fullConversationText.includes(patient.firstName.toLowerCase()) || 
+            fullConversationText.includes(patient.lastName.toLowerCase()) ||
+            fullConversationText.includes(fullName)) {
           foundPatient = patient;
           break;
         }
       }
       
-      // Look for doctor names
+      // Look for doctor names in entire conversation
       for (const doctor of doctors) {
         const fullName = `${doctor.firstName} ${doctor.lastName}`.toLowerCase();
         const drName = `dr. ${doctor.firstName} ${doctor.lastName}`.toLowerCase();
-        if (lowerMessage.includes(doctor.firstName.toLowerCase()) || 
-            lowerMessage.includes(doctor.lastName.toLowerCase()) ||
-            lowerMessage.includes(fullName) || lowerMessage.includes(drName)) {
+        if (fullConversationText.includes(doctor.firstName.toLowerCase()) || 
+            fullConversationText.includes(doctor.lastName.toLowerCase()) ||
+            fullConversationText.includes(fullName) || fullConversationText.includes(drName)) {
           foundDoctor = doctor;
           break;
         }
