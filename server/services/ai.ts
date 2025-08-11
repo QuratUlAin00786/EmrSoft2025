@@ -904,10 +904,12 @@ IMPORTANT: Review the full conversation history and remember all details mention
         const newAppointment = await storage.createAppointment(appointmentData);
         
         const formattedDate = scheduledDate.toLocaleDateString('en-US', {
-          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+          timeZone: 'UTC'
         });
         const formattedTime = scheduledDate.toLocaleTimeString('en-US', {
-          hour: '2-digit', minute: '2-digit'
+          hour: '2-digit', minute: '2-digit',
+          timeZone: 'UTC'
         });
         
         return {

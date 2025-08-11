@@ -441,7 +441,17 @@ export function AIChatWidget() {
             <p className="text-sm">{appointment.patientName}</p>
             <p className="text-sm text-muted-foreground">{appointment.providerName}</p>
             <p className="text-sm font-medium mt-2">
-              {format(new Date(appointment.scheduledAt), 'MMM dd, yyyy - h:mm a')}
+              {new Date(appointment.scheduledAt).toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric',
+                timeZone: 'UTC'
+              })} - {new Date(appointment.scheduledAt).toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true,
+                timeZone: 'UTC'
+              })}
             </p>
             <p className="text-xs text-muted-foreground">Duration: {appointment.duration} minutes</p>
           </CardContent>
