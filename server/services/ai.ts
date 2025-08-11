@@ -1258,16 +1258,7 @@ IMPORTANT: Review the full conversation history and remember all details mention
           }).join('\n')}\n\nTell me a patient name to see their prescriptions.`;
         }
       }
-      // Handle greetings and general conversation
-      else if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || 
-               lowerMessage.includes('hey') || lowerMessage.includes('help') ||
-               lowerMessage === 'hello' || lowerMessage === 'hi' || 
-               lowerMessage === 'hey' || lowerMessage === 'help') {
-        intent = 'greeting';
-        confidence = 0.9;
-        response = "Hello! I'm your Cura AI Assistant. I can help you:\n\n📅 **Book appointments** - Schedule consultations with doctors\n💊 **Find prescriptions** - Search and view patient medications\n\nHow can I assist you today?";
-      }
-      // Check if this is appointment booking context
+      // Check if this is appointment booking context - PRIORITY OVER GREETINGS
       else {
         const isAppointmentContext = params.conversationHistory && params.conversationHistory.some(item => 
           item.role === 'assistant' && (
@@ -1286,6 +1277,8 @@ IMPORTANT: Review the full conversation history and remember all details mention
         const hasAppointmentKeywords = lowerMessage.includes('book') || lowerMessage.includes('schedule') || lowerMessage.includes('appointment');
         const hasTimeKeywords = lowerMessage.includes('tomorrow') || lowerMessage.includes('today') || lowerMessage.includes('next week') || /\d{1,2}(:\d{2})?\s*(am|pm)/i.test(lowerMessage);
         const hasDoctorKeywords = lowerMessage.includes('dr.') || lowerMessage.includes('doctor');
+        
+        console.log(`[AI DEBUG] hasAppointmentKeywords: ${hasAppointmentKeywords}, isAppointmentContext: ${isAppointmentContext}`);
         
         if (hasAppointmentKeywords || isAppointmentContext) {
         intent = 'book_appointment';
@@ -1777,6 +1770,14 @@ What would you like to do?`;
         }
       }
       
+      // Handle greetings - more specific patterns to avoid false matches with names
+      else if (/^(hello|hi|hey|help)(\s|$)/i.test(lowerMessage) || 
+               lowerMessage === 'hello' || lowerMessage === 'hi' || 
+               lowerMessage === 'hey' || lowerMessage === 'help') {
+        intent = 'greeting';
+        confidence = 0.9;
+        response = "Hello! I'm your Cura AI Assistant. I can help you:\n\n📅 **Book appointments** - Schedule consultations with doctors\n💊 **Find prescriptions** - Search and view patient medications\n\nHow can I assist you today?";
+      }
       // Default response - simple and clean
       else {
         response = `Hello! I can help with appointments, prescriptions, and patient information. What do you need?`;
