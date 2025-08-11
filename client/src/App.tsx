@@ -92,8 +92,8 @@ function ProtectedApp() {
 
   // Apply theme when organization data loads and save to localStorage
   useEffect(() => {
-    if (organization?.settings?.theme?.primaryColor) {
-      const themeColor = organization.settings.theme.primaryColor;
+    if (organization && 'settings' in organization && organization.settings && 'theme' in organization.settings && organization.settings.theme && 'primaryColor' in organization.settings.theme) {
+      const themeColor = organization.settings.theme.primaryColor as string;
       applyTheme(themeColor);
       localStorage.setItem('cura-theme', themeColor);
     }

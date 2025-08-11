@@ -262,7 +262,7 @@ export function AIChatWidget() {
       } catch (error) {
         console.error("Error starting voice recognition:", error);
         // If recognition is already started, stop it first then restart
-        if (error.message && error.message.includes('already started')) {
+        if ((error as any).message && (error as any).message.includes('already started')) {
           try {
             recognition.stop();
             setTimeout(() => {
@@ -380,23 +380,30 @@ export function AIChatWidget() {
 
   if (!isOpen) {
     return (
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-6 right-6 z-[9999]">
         <Button
           onClick={() => setIsOpen(true)}
           size="lg"
-          className="rounded-full h-14 w-14 shadow-lg hover:shadow-xl transition-all duration-200"
+          className="rounded-full h-16 w-16 shadow-2xl hover:shadow-3xl transition-all duration-200 bg-primary hover:bg-primary/90 text-white"
+          style={{ 
+            backgroundColor: 'hsl(210, 100%, 46%)', 
+            minHeight: '64px', 
+            minWidth: '64px',
+            position: 'relative',
+            zIndex: 9999
+          }}
         >
-          <Bot className="h-6 w-6" />
+          <Bot className="h-7 w-7" />
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      <Card className={`shadow-2xl transition-all duration-300 ${
+    <div className="fixed bottom-6 right-6 z-[9999]" style={{ zIndex: 9999 }}>
+      <Card className={`shadow-2xl transition-all duration-300 border-2 border-primary/20 ${
         isMinimized ? 'w-80 h-16' : 'w-96 h-[600px]'
-      }`}>
+      }`} style={{ position: 'relative', zIndex: 9999 }}>
         <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
           <div className="flex items-center gap-2">
             <Bot className="h-5 w-5 text-primary" />
