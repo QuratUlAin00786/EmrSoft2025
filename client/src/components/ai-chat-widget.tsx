@@ -105,8 +105,8 @@ export function AIChatWidget() {
         let interimTranscript = '';
         let finalTranscript = '';
         
-        // Properly separate interim and final results
-        for (let i = event.resultIndex; i < event.results.length; i++) {
+        // Process all results to get current transcript
+        for (let i = 0; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
             finalTranscript += transcript;
@@ -115,16 +115,24 @@ export function AIChatWidget() {
           }
         }
         
-        // Update input with accumulated final transcript + interim
-        setInput(prev => {
-          const cleanPrev = prev.replace(/\[.*?\]$/, '').trim(); // Remove any previous interim text
-          const newText = cleanPrev + (finalTranscript ? ' ' + finalTranscript : '');
-          return interimTranscript ? (newText + ' [' + interimTranscript + ']').trim() : newText.trim();
-        });
+        // Combine final and interim transcripts
+        const currentTranscript = (finalTranscript + ' ' + interimTranscript).trim();
         
-        // Store final transcript separately
-        if (finalTranscript) {
-          setTranscriptBuffer(prev => (prev + ' ' + finalTranscript).trim());
+        // Only update if we have new content and aren't duplicating
+        if (currentTranscript && !input.includes(currentTranscript)) {
+          if (interimTranscript) {
+            // Show interim results with brackets
+            setInput(prev => {
+              const withoutBrackets = prev.replace(/\s*\[.*?\]\s*$/, '').trim();
+              return withoutBrackets + (withoutBrackets ? ' ' : '') + '[' + currentTranscript + ']';
+            });
+          } else if (finalTranscript) {
+            // Finalize the transcript without brackets
+            setInput(prev => {
+              const withoutBrackets = prev.replace(/\s*\[.*?\]\s*$/, '').trim();
+              return withoutBrackets + (withoutBrackets ? ' ' : '') + currentTranscript;
+            });
+          }
         }
       };
       
@@ -292,6 +300,8 @@ export function AIChatWidget() {
 
     try {
       setTranscriptBuffer("");
+      // Clear any existing input when starting voice recognition to prevent mixing
+      setInput("");
       recognition.start();
     } catch (error: any) {
       console.error("Error starting voice recognition:", error);
