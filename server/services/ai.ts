@@ -1455,8 +1455,8 @@ IMPORTANT: Review the full conversation history and remember all details mention
         
         // Enhanced time parsing to handle more formats
         let timeFound = false;
-        // Priority order: AM/PM time first, then military time
-        const ampmTimeMatch = lowerMessage.match(/(\d{1,2})(:\d{2})?\s*(am|pm)/i);
+        // Priority order: AM/PM time first (including edge cases like "3:0 AM"), then military time
+        const ampmTimeMatch = lowerMessage.match(/(\d{1,2})(?::(\d{1,2}))?\s*(am|pm)/i);
         const militaryTimeMatch = lowerMessage.match(/(\d{1,2}):(\d{2})(?!\s*(am|pm))/i); // Exclude AM/PM matches
         
         if (ampmTimeMatch) {
@@ -1466,7 +1466,7 @@ IMPORTANT: Review the full conversation history and remember all details mention
           }
           
           let hour = parseInt(ampmTimeMatch[1]);
-          const minute = ampmTimeMatch[2] ? parseInt(ampmTimeMatch[2].substring(1)) : 0;
+          const minute = ampmTimeMatch[2] ? parseInt(ampmTimeMatch[2]) : 0;
           const period = ampmTimeMatch[3].toLowerCase();
           
           // Convert to 24-hour format
