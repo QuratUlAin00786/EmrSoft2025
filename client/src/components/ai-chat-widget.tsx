@@ -171,12 +171,11 @@ export function AIChatWidget() {
     setTranscriptBuffer(""); // Clear transcript buffer
 
     try {
-      const response = await apiRequest("POST", "/api/ai-agent/chat", {
-        message: finalMessage,
-        conversationHistory: messages.slice(-5).map(msg => ({
+      const response = await apiRequest("POST", "/api/chatbot/chat", {
+        messages: [...messages.slice(-5).map(msg => ({
           role: msg.type,
           content: msg.content
-        })) // Send last 5 messages for context in correct format
+        })), { role: 'user', content: finalMessage }] // Send conversation history with current message
       });
 
       const responseData = await response.json();
@@ -184,7 +183,7 @@ export function AIChatWidget() {
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: responseData.message,
+        content: responseData.response || responseData.message || "I apologize, but I didn't receive a proper response. Please try again.",
         timestamp: new Date(),
         data: responseData.data
       };
@@ -228,17 +227,35 @@ export function AIChatWidget() {
 
     } catch (error) {
       console.error("AI Chat error:", error);
+      
+      // More specific error handling
+      let errorContent = "I apologize, but I'm having trouble processing your request right now. Please try again.";
+      let errorTitle = "Connection Error";
+      let errorDescription = "Unable to reach AI assistant. Please check your connection.";
+      
+      if (error instanceof Error) {
+        if (error.message.includes('401')) {
+          errorContent = "Please log in again to continue using the AI assistant.";
+          errorTitle = "Authentication Required";
+          errorDescription = "Your session may have expired.";
+        } else if (error.message.includes('500')) {
+          errorContent = "The AI service is temporarily unavailable. Please try again in a moment.";
+          errorTitle = "Service Unavailable";
+          errorDescription = "AI service is experiencing issues.";
+        }
+      }
+      
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: "I apologize, but I'm having trouble processing your request right now. Please try again.",
+        content: errorContent,
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMessage]);
       
       toast({
-        title: "Connection Error",
-        description: "Unable to reach AI assistant. Please check your connection.",
+        title: errorTitle,
+        description: errorDescription,
         variant: "destructive",
       });
     } finally {
