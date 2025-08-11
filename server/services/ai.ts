@@ -304,6 +304,23 @@ Please provide a comprehensive safety analysis focusing on clinically significan
     return age;
   }
 
+  private hasRecentSuccessfulBooking(conversationHistory: any[]): boolean {
+    // Check if there was a successful appointment booking in the last few messages
+    const recentMessages = conversationHistory.slice(-4); // Check last 4 messages
+    
+    for (const message of recentMessages) {
+      if (message.role === 'assistant' && 
+          (message.content.includes('Appointment Successfully Booked') || 
+           message.content.includes('✅') || 
+           message.content.includes('appointment has been added to the calendar') ||
+           message.content.includes('appointment has been scheduled'))) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+
   private parseMonthDate(monthName: string, day: number, year: number): Date | null {
     const months = ['january', 'february', 'march', 'april', 'may', 'june', 
                    'july', 'august', 'september', 'october', 'november', 'december'];
@@ -531,9 +548,10 @@ IMPORTANT: Review the full conversation history and remember all details mention
         intent = 'find_prescriptions';
         confidence = 0.9;
       } 
-      // Check for appointment-related queries
-      else if (lowerResponse.includes('appointment') || lowerResponse.includes('book') || lowerResponse.includes('schedule') || 
-          lowerMessage.includes('appointment') || lowerMessage.includes('book') || lowerMessage.includes('schedule')) {
+      // Check for appointment-related queries, but avoid re-triggering after successful booking
+      else if ((lowerResponse.includes('appointment') || lowerResponse.includes('book') || lowerResponse.includes('schedule') || 
+          lowerMessage.includes('appointment') || lowerMessage.includes('book') || lowerMessage.includes('schedule')) &&
+          !this.hasRecentSuccessfulBooking(params.conversationHistory)) {
         intent = 'book_appointment';
         confidence = 0.9;
       } 
