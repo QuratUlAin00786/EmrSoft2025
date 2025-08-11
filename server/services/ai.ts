@@ -1210,13 +1210,22 @@ IMPORTANT: Review the full conversation history and remember all details mention
         const patients = await storage.getPatientsByOrganization(params.organizationId, 20);
         const prescriptions = await storage.getPrescriptionsByOrganization(params.organizationId);
         
-        // Look for patient names in the message
+        // Look for patient names in the message - use exact matching to prevent wrong results
         let foundPatient = null;
         for (const patient of patients) {
           const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
-          if (lowerMessage.includes(patient.firstName.toLowerCase()) || 
-              lowerMessage.includes(patient.lastName.toLowerCase()) ||
-              lowerMessage.includes(fullName)) {
+          const firstName = patient.firstName.toLowerCase();
+          const lastName = patient.lastName.toLowerCase();
+          
+          // Check for exact full name match first (highest priority)
+          if (lowerMessage.includes(fullName)) {
+            foundPatient = patient;
+            break;
+          }
+          // Check for first name + last name combination with word boundaries
+          const firstNamePattern = new RegExp(`\\b${firstName}\\b`, 'i');
+          const lastNamePattern = new RegExp(`\\b${lastName}\\b`, 'i');
+          if (firstNamePattern.test(lowerMessage) && lastNamePattern.test(lowerMessage)) {
             foundPatient = patient;
             break;
           }
@@ -1278,8 +1287,7 @@ IMPORTANT: Review the full conversation history and remember all details mention
         const hasTimeKeywords = lowerMessage.includes('tomorrow') || lowerMessage.includes('today') || lowerMessage.includes('next week') || /\d{1,2}(:\d{2})?\s*(am|pm)/i.test(lowerMessage);
         const hasDoctorKeywords = lowerMessage.includes('dr.') || lowerMessage.includes('doctor');
         
-        console.log(`[AI DEBUG] hasAppointmentKeywords: ${hasAppointmentKeywords}, isAppointmentContext: ${isAppointmentContext}`);
-        
+
         if (hasAppointmentKeywords || isAppointmentContext) {
         intent = 'book_appointment';
         confidence = 0.9;
