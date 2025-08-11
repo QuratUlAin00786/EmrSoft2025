@@ -102,19 +102,56 @@ export function AIChatWidget() {
       };
       
       recognition.onresult = (event: any) => {
-        let fullTranscript = '';
+        let interimTranscript = '';
+        let finalTranscript = '';
         
-        // Get all results from the beginning to build complete transcript
-        for (let i = 0; i < event.results.length; i++) {
-          fullTranscript += event.results[i][0].transcript;
+        // Properly separate interim and final results
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript;
+          } else {
+            interimTranscript += transcript;
+          }
         }
         
-        // Simply set the complete transcript as input
-        setInput(fullTranscript.trim());
+        // Update input with accumulated final transcript + interim
+        setInput(prev => {
+          const cleanPrev = prev.replace(/\[.*?\]$/, '').trim(); // Remove any previous interim text
+          const newText = cleanPrev + (finalTranscript ? ' ' + finalTranscript : '');
+          return interimTranscript ? (newText + ' [' + interimTranscript + ']').trim() : newText.trim();
+        });
+        
+        // Store final transcript separately
+        if (finalTranscript) {
+          setTranscriptBuffer(prev => (prev + ' ' + finalTranscript).trim());
+        }
       };
       
       recognition.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
+        
+        // Handle different error types appropriately
+        if (event.error === 'no-speech') {
+          // Don't treat no-speech as a critical error, just stop gracefully
+          console.log('No speech detected, stopping recognition');
+        } else if (event.error === 'aborted') {
+          // Recognition was manually stopped, don't log as error
+          console.log('Speech recognition aborted');
+        } else if (event.error === 'network') {
+          toast({
+            title: "Network Error",
+            description: "Check your internet connection for voice recognition",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Voice Recognition Error",
+            description: `Recognition failed: ${event.error}`,
+            variant: "destructive",
+          });
+        }
+        
         setIsListening(false);
       };
       
@@ -242,8 +279,8 @@ export function AIChatWidget() {
   const startVoiceRecognition = () => {
     if (recognition && !isListening) {
       try {
+        // Don't clear existing input, preserve it
         setTranscriptBuffer("");
-        setInput(""); // Clear input completely
         recognition.start();
       } catch (error) {
         console.error("Error starting voice recognition:", error);
@@ -252,10 +289,17 @@ export function AIChatWidget() {
           try {
             recognition.stop();
             setTimeout(() => {
-              recognition.start();
-            }, 100);
+              if (recognition) {
+                recognition.start();
+              }
+            }, 200); // Increase timeout for better reliability
           } catch (restartError) {
             console.error("Failed to restart recognition:", restartError);
+            toast({
+              title: "Voice Recognition Error",
+              description: "Unable to start voice recognition. Please try again.",
+              variant: "destructive",
+            });
           }
         }
       }
@@ -272,13 +316,21 @@ export function AIChatWidget() {
       } catch (error) {
         console.error("Error stopping voice recognition:", error);
       }
+      
       // Always reset state regardless of current listening status
       setIsListening(false);
-      // Clean up any interim text in brackets and keep final transcript
+      
+      // Clean up any interim text in brackets and finalize transcript
       setInput(prev => {
+        // Remove interim text in brackets and clean up
         const cleanedText = prev.replace(/\s*\[.*?\]\s*$/, '').trim();
-        return transcriptBuffer ? (cleanedText + ' ' + transcriptBuffer).trim() : cleanedText;
+        // Combine with any accumulated transcript buffer
+        const finalText = transcriptBuffer ? 
+          (cleanedText + (cleanedText ? ' ' : '') + transcriptBuffer).trim() : 
+          cleanedText;
+        return finalText;
       });
+      
       setTranscriptBuffer("");
     }
   };

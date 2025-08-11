@@ -595,6 +595,19 @@ Please provide a comprehensive safety analysis focusing on clinically significan
         totalPrescriptions: prescriptions.length
       };
 
+      // Extract conversation context to prevent repetitive questions
+      const conversationContext = this.extractConversationContext(params.conversationHistory, params.message);
+      
+      console.log('[AI] Conversation Context Debug:', {
+        inputHistoryLength: params.conversationHistory?.length || 0,
+        currentMessage: params.message,
+        extractedContext: conversationContext,
+        hasPatient: conversationContext.hasPatient,
+        hasDoctor: conversationContext.hasDoctor,
+        patientNames: conversationContext.patientNames,
+        doctorNames: conversationContext.doctorNames
+      });
+
       // Build proper conversation messages for Anthropic
       const conversationMessages = [];
       
@@ -670,6 +683,11 @@ IMPORTANT: Review the full conversation history and remember all details mention
       });
 
       const aiResponse = (response.content[0] as any).text;
+      console.log('[AI] Anthropic response received:', { 
+        responseLength: aiResponse?.length || 0,
+        hasContent: !!aiResponse,
+        content: aiResponse?.substring(0, 100) + '...'
+      });
 
       // Parse intent from response or determine based on content
       let intent = 'general_inquiry';
@@ -718,7 +736,17 @@ IMPORTANT: Review the full conversation history and remember all details mention
       };
 
     } catch (error) {
-      console.error("Anthropic AI error:", error);
+      console.error("[AI] Anthropic AI error:", error);
+      console.error("[AI] Error details:", {
+        message: error.message,
+        stack: error.stack,
+        params: {
+          message: params.message,
+          conversationHistoryLength: params.conversationHistory?.length || 0,
+          organizationId: params.organizationId,
+          userId: params.userId
+        }
+      });
       // Fallback to pattern matching
       return await this.processWithPatternMatching(params);
     }
