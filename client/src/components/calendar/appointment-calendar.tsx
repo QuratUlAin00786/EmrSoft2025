@@ -136,16 +136,26 @@ export default function AppointmentCalendar() {
   const isDataLoaded = patients.length > 0 && users.length > 0;
   
   // Process appointments to ensure they're properly typed and add patient/provider names when available
-  const appointments = (rawAppointments?.filter((apt: any) => apt && apt.id) || []).map((apt: any) => {
-    // Always include the appointment, but only add names when data is loaded
-    const patientName = isDataLoaded ? getPatientName(apt.patientId) : `Patient ${apt.patientId}`;
-    const providerName = isDataLoaded ? getProviderName(apt.providerId) : `Provider ${apt.providerId}`;
-    return {
-      ...apt,
-      patientName,
-      providerName
-    };
-  });
+  const appointments = (rawAppointments?.filter((apt: any) => apt && apt.id && apt.scheduledAt) || [])
+    .map((apt: any) => {
+      try {
+        // Always include the appointment, but only add names when data is loaded
+        const patientName = isDataLoaded ? getPatientName(apt.patientId) : `Patient ${apt.patientId}`;
+        const providerName = isDataLoaded ? getProviderName(apt.providerId) : `Provider ${apt.providerId}`;
+        return {
+          ...apt,
+          patientName,
+          providerName,
+          // Ensure scheduledAt is valid
+          scheduledAt: apt.scheduledAt
+        };
+      } catch (error) {
+        console.error('Error processing appointment:', apt.id, error);
+        return null;
+      }
+    })
+    .filter((apt: any) => apt !== null)
+    .sort((a: any, b: any) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
   
   // Debug: Log appointments data to console
   console.log("AppointmentCalendar - Raw appointments count:", rawAppointments?.length || 0);
@@ -409,6 +419,7 @@ export default function AppointmentCalendar() {
           ) : (
             <div className="space-y-4 max-h-96 overflow-y-auto">
               {appointments.slice(0, 20)
+                .filter((appointment: any) => appointment && appointment.id)
                 .map((appointment: Appointment) => (
                 <div
                   key={appointment.id}
