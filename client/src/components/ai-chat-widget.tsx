@@ -102,10 +102,10 @@ export function AIChatWidget() {
       };
       
       recognition.onresult = (event: any) => {
-        let interimTranscript = '';
         let finalTranscript = '';
+        let interimTranscript = '';
         
-        // Process all results to get current transcript
+        // Process all results to get the complete transcript
         for (let i = 0; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
@@ -115,24 +115,15 @@ export function AIChatWidget() {
           }
         }
         
-        // Combine final and interim transcripts
-        const currentTranscript = (finalTranscript + ' ' + interimTranscript).trim();
-        
-        // Only update if we have new content and aren't duplicating
-        if (currentTranscript && !input.includes(currentTranscript)) {
-          if (interimTranscript) {
-            // Show interim results with brackets
-            setInput(prev => {
-              const withoutBrackets = prev.replace(/\s*\[.*?\]\s*$/, '').trim();
-              return withoutBrackets + (withoutBrackets ? ' ' : '') + '[' + currentTranscript + ']';
-            });
-          } else if (finalTranscript) {
-            // Finalize the transcript without brackets
-            setInput(prev => {
-              const withoutBrackets = prev.replace(/\s*\[.*?\]\s*$/, '').trim();
-              return withoutBrackets + (withoutBrackets ? ' ' : '') + currentTranscript;
-            });
-          }
+        // Update input field with complete transcript
+        if (finalTranscript) {
+          // Final result: add new transcript to buffer
+          const newBuffer = transcriptBuffer + finalTranscript;
+          setTranscriptBuffer(newBuffer);
+          setInput(newBuffer);
+        } else if (interimTranscript) {
+          // Interim result: show with brackets for preview
+          setInput(transcriptBuffer + '[' + interimTranscript + ']');
         }
       };
       
@@ -357,13 +348,8 @@ export function AIChatWidget() {
     
     // Clean up any interim text in brackets and finalize transcript
     setInput(prev => {
-      // Remove interim text in brackets and clean up
-      const cleanedText = prev.replace(/\s*\[.*?\]\s*$/, '').trim();
-      // Combine with any accumulated transcript buffer
-      const finalText = transcriptBuffer ? 
-        (cleanedText + (cleanedText ? ' ' : '') + transcriptBuffer).trim() : 
-        cleanedText;
-      return finalText;
+      // Remove interim text in brackets and return clean final text
+      return prev.replace(/\s*\[.*?\]\s*$/, '').trim();
     });
     
     setTranscriptBuffer("");
