@@ -1490,7 +1490,7 @@ IMPORTANT: Review the full conversation history and remember all details mention
         let timeFound = false;
         // Priority order: AM/PM time first (including edge cases like "3:0 AM"), then military time
         const ampmTimeMatch = lowerMessage.match(/(\d{1,2})(?::(\d{1,2}))?\s*(am|pm)/i);
-        const militaryTimeMatch = lowerMessage.match(/(\d{1,2}):(\d{2})(?!\s*(am|pm))/i); // Exclude AM/PM matches
+        const militaryTimeMatch = lowerMessage.match(/(\d{1,2}):(\d{1,2})(?!\s*(am|pm))/i); // Exclude AM/PM matches
         
         if (ampmTimeMatch) {
           // If we found a time but no date yet, default to today
