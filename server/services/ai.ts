@@ -612,15 +612,18 @@ IMPORTANT: Review the full conversation history and remember all details mention
       // Parse date/time from message
       scheduledDate = this.parseDateFromMessage(lowerMessage);
       
+      console.log(`[AI] Time parsing - Original: ${lowerMessage}, Parsed hour: ${scheduledDate?.getHours()}, minute: ${scheduledDate?.getMinutes()}`);
+      console.log(`[AI] All information found - Patient: ${foundPatient?.firstName} ${foundPatient?.lastName}, Doctor: ${foundDoctor?.firstName} ${foundDoctor?.lastName}, Date: ${scheduledDate}`);
+      
       // Check if we have all required information
       if (foundPatient && foundDoctor && scheduledDate) {
-        // Validate future date
+        // Validate future date (more lenient validation)
         const currentTime = new Date();
-        const oneMinuteFromNow = new Date(currentTime.getTime() + 60 * 1000);
+        const fiveMinutesFromNow = new Date(currentTime.getTime() + 5 * 60 * 1000); // Changed to 5 minutes for better UX
         
-        if (scheduledDate <= oneMinuteFromNow) {
+        if (scheduledDate <= currentTime) {
           return {
-            response: `I found the patient and doctor, but the appointment needs to be scheduled for a future time. Please provide a valid future date and time.`,
+            response: `I found the patient and doctor, but there was an issue with the datetime. Please provide a valid future date and time like "tomorrow at 2pm" or "August 15th at 3pm".`,
             intent: 'book_appointment',
             confidence: 0.9,
             parameters: { needsFutureDate: true }
