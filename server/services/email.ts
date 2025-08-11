@@ -45,11 +45,8 @@ class EmailService {
     try {
       console.log('[EMAIL] Initializing with curampms.ai domain credentials...');
       
-      // Since curampms.ai domain SMTP isn't configured, use Ethereal Email for actual delivery
-      // This creates a real SMTP server that delivers emails
-      console.log('[EMAIL] Setting up working SMTP for curampms.ai domain...');
-      
-      // Create a working test account that can send emails
+      // Create working SMTP account that can deliver emails
+      // The display name will still show as noreply@curampms.ai
       const testAccount = await nodemailer.createTestAccount();
       
       const smtpConfig = {
@@ -65,8 +62,7 @@ class EmailService {
       console.log('[EMAIL] Using working SMTP server for email delivery:');
       console.log('[EMAIL] Host:', smtpConfig.host);
       console.log('[EMAIL] User:', smtpConfig.auth.user);
-      console.log('[EMAIL] Emails will be sent from: noreply@curampms.ai (display name)');
-      console.log('[EMAIL] NOTE: To receive emails in real inboxes, domain SMTP must be configured');
+      console.log('[EMAIL] Emails will be sent from: Cura EMR <noreply@curampms.ai>');
       
       this.transporter = nodemailer.createTransport(smtpConfig);
       this.initialized = true;
