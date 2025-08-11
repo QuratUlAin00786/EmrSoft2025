@@ -1249,22 +1249,20 @@ IMPORTANT: Review the full conversation history and remember all details mention
         
         // Look for patient names in the message - use exact matching to prevent wrong results
         let foundPatient = null;
+        
+        // EXACT MATCHING ONLY - No partial matches to prevent confusion
         for (const patient of patients) {
-          const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
-          const firstName = patient.firstName.toLowerCase();
-          const lastName = patient.lastName.toLowerCase();
+          const firstName = patient.firstName?.toLowerCase().trim() || '';
+          const lastName = patient.lastName?.toLowerCase().trim() || '';
+          const fullName = `${firstName} ${lastName}`.trim();
           
-          // Check for exact full name match first (highest priority)
-          if (lowerMessage.includes(fullName)) {
-            foundPatient = patient;
-            break;
-          }
-          // Check for first name + last name combination with word boundaries
-          const firstNamePattern = new RegExp(`\\b${firstName}\\b`, 'i');
-          const lastNamePattern = new RegExp(`\\b${lastName}\\b`, 'i');
-          if (firstNamePattern.test(lowerMessage) && lastNamePattern.test(lowerMessage)) {
-            foundPatient = patient;
-            break;
+          // Only check for exact full name match with word boundaries
+          if (fullName && fullName.length > 0) {
+            const exactNameRegex = new RegExp(`\\b${fullName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+            if (exactNameRegex.test(lowerMessage)) {
+              foundPatient = patient;
+              break;
+            }
           }
         }
         
@@ -1431,37 +1429,17 @@ IMPORTANT: Review the full conversation history and remember all details mention
         let foundPatient = contextPatient;
         let foundDoctor = contextDoctor;
         
-        // Enhanced patient name matching with exact word boundaries
-        
+        // Use exact matching only if not found in context
         if (!foundPatient) {
-          // First pass: Look for exact full name matches (highest priority)
           for (const patient of patients) {
             const firstName = patient.firstName?.toLowerCase().trim() || '';
             const lastName = patient.lastName?.toLowerCase().trim() || '';
             const fullName = `${firstName} ${lastName}`.trim();
             
-            const fullNameRegex = new RegExp(`\\b${fullName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-            
-            if (fullName && fullNameRegex.test(lowerMessage)) {
-              foundPatient = patient;
-              break;
-            }
-          }
-          
-          // Second pass: Look for first name + last name combination matches
-          if (!foundPatient) {
-            for (const patient of patients) {
-              const firstName = patient.firstName?.toLowerCase().trim() || '';
-              const lastName = patient.lastName?.toLowerCase().trim() || '';
-              
-              const firstNameRegex = new RegExp(`\\b${firstName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-              const lastNameRegex = new RegExp(`\\b${lastName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-              
-              const firstMatch = firstName && firstNameRegex.test(lowerMessage);
-              const lastMatch = lastName && lastNameRegex.test(lowerMessage);
-              
-              // Only match if BOTH first AND last name are found
-              if (firstMatch && lastMatch) {
+            // Only check for exact full name match with word boundaries
+            if (fullName && fullName.length > 0) {
+              const exactNameRegex = new RegExp(`\\b${fullName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+              if (exactNameRegex.test(lowerMessage)) {
                 foundPatient = patient;
                 break;
               }
