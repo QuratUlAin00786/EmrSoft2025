@@ -91,7 +91,7 @@ export default function AppointmentCalendar() {
       
       return await response.json();
     },
-    staleTime: 300000 // 5 minutes cache
+    staleTime: 60000 // 1 minute cache
   });
 
   // Fetch users data to get provider names
@@ -118,7 +118,7 @@ export default function AppointmentCalendar() {
       
       return await response.json();
     },
-    staleTime: 300000 // 5 minutes cache
+    staleTime: 60000 // 1 minute cache
   });
 
   // Helper functions to get patient and provider names
@@ -132,17 +132,14 @@ export default function AppointmentCalendar() {
     return provider ? `Dr. ${provider.firstName} ${provider.lastName}` : `Provider ID: ${providerId}`;
   };
 
-  // Only process appointments if we have patient and user data loaded
+  // Check if patient and user data is loaded for name resolution
   const isDataLoaded = patients.length > 0 && users.length > 0;
   
-  // Process appointments to ensure they're properly typed and filtered, with patient/provider names
+  // Process appointments to ensure they're properly typed and add patient/provider names when available
   const appointments = (rawAppointments?.filter((apt: any) => apt && apt.id) || []).map((apt: any) => {
-    if (!isDataLoaded) {
-      // Return appointment without names if data isn't loaded yet
-      return apt;
-    }
-    const patientName = getPatientName(apt.patientId);
-    const providerName = getProviderName(apt.providerId);
+    // Always include the appointment, but only add names when data is loaded
+    const patientName = isDataLoaded ? getPatientName(apt.patientId) : `Patient ${apt.patientId}`;
+    const providerName = isDataLoaded ? getProviderName(apt.providerId) : `Provider ${apt.providerId}`;
     return {
       ...apt,
       patientName,
