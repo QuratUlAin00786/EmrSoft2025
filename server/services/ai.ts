@@ -1455,18 +1455,19 @@ IMPORTANT: Review the full conversation history and remember all details mention
         
         // Enhanced time parsing to handle more formats
         let timeFound = false;
-        const timeMatch = lowerMessage.match(/(\d{1,2})(:\d{2})?\s*(am|pm)/i);
-        const militaryTime = lowerMessage.match(/(\d{1,2}):(\d{2})/);
+        // Priority order: AM/PM time first, then military time
+        const ampmTimeMatch = lowerMessage.match(/(\d{1,2})(:\d{2})?\s*(am|pm)/i);
+        const militaryTimeMatch = lowerMessage.match(/(\d{1,2}):(\d{2})(?!\s*(am|pm))/i); // Exclude AM/PM matches
         
-        if (timeMatch) {
+        if (ampmTimeMatch) {
           // If we found a time but no date yet, default to today
           if (!scheduledDate) {
             scheduledDate = new Date(now);
           }
           
-          let hour = parseInt(timeMatch[1]);
-          const minute = timeMatch[2] ? parseInt(timeMatch[2].substring(1)) : 0;
-          const period = timeMatch[3].toLowerCase();
+          let hour = parseInt(ampmTimeMatch[1]);
+          const minute = ampmTimeMatch[2] ? parseInt(ampmTimeMatch[2].substring(1)) : 0;
+          const period = ampmTimeMatch[3].toLowerCase();
           
           // Convert to 24-hour format
           if (period === 'pm' && hour !== 12) {
@@ -1475,17 +1476,17 @@ IMPORTANT: Review the full conversation history and remember all details mention
             hour = 0;
           }
           
-          console.log(`[AI] Time parsing - Original: ${timeMatch[0]}, Parsed hour: ${hour}, minute: ${minute}`);
+          console.log(`[AI] AM/PM time parsing - Original: ${ampmTimeMatch[0]}, Parsed hour: ${hour}, minute: ${minute}`);
           scheduledDate.setHours(hour, minute, 0, 0);
           timeFound = true;
-        } else if (militaryTime && !timeMatch) {
+        } else if (militaryTimeMatch) {
           // Only use military time if no AM/PM time was found
           if (!scheduledDate) {
             scheduledDate = new Date(now);
           }
           
-          const hour = parseInt(militaryTime[1]);
-          const minute = parseInt(militaryTime[2]);
+          const hour = parseInt(militaryTimeMatch[1]);
+          const minute = parseInt(militaryTimeMatch[2]);
           
           // Only accept valid 24-hour time
           if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
