@@ -172,31 +172,26 @@ export function AIChatWidget() {
         });
       }
 
-      // Invalidate appointments cache if appointment was created
-      if (responseData.message && (
-        responseData.message.includes("Appointment Successfully Booked") ||
-        responseData.message.includes("✅") ||
-        responseData.message.includes("appointment has been created") ||
-        responseData.message.includes("Appointment ID")
-      )) {
-        console.log("Invalidating appointments cache due to successful appointment creation");
-        // Force aggressive cache invalidation and refetch
-        await queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
-        await queryClient.refetchQueries({ queryKey: ["/api/appointments"] });
+      // Invalidate caches if appointment was successfully created
+      if ((responseData.response && responseData.response.includes('Appointment Successfully Booked')) ||
+          (responseData.message && (responseData.message.includes("Appointment Successfully Booked") || 
+           responseData.message.includes("✅") || responseData.message.includes("appointment has been created")))) {
         
-        // Additional refetch after delay to ensure UI updates
-        setTimeout(async () => {
-          console.log("Performing delayed refetch for appointments");
-          await queryClient.refetchQueries({ queryKey: ["/api/appointments"] });
-          // Force window refresh if needed for stubborn cache
-          setTimeout(() => {
-            if (window.location.pathname === '/') {
-              window.location.reload();
-            }
-          }, 500);
-        }, 1000);
+        console.log("[AI Chat] Successful appointment detected - invalidating caches");
         
-        console.log("Cache invalidation and refetch completed");
+        // Invalidate all relevant caches immediately
+        queryClient.invalidateQueries({ queryKey: ['/api/appointments'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/patients'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+        
+        // Force refetch key data
+        setTimeout(() => {
+          queryClient.refetchQueries({ queryKey: ['/api/appointments'] });
+          queryClient.refetchQueries({ queryKey: ['/api/dashboard/stats'] });
+        }, 100);
+        
+        console.log("[AI Chat] Cache invalidation completed");
       }
 
     } catch (error) {
