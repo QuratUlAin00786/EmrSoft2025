@@ -224,19 +224,22 @@ export function AIChatWidget() {
         
         console.log("[AI Chat] Successful appointment detected - invalidating caches");
         
-        // Invalidate and refetch all relevant caches immediately
+        // Complete cache reset and refetch with aggressive invalidation
         await Promise.all([
-          queryClient.invalidateQueries({ queryKey: ['/api/appointments'] }),
+          queryClient.removeQueries({ queryKey: ['/api/appointments'] }),
           queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] }),
           queryClient.invalidateQueries({ queryKey: ['/api/patients'] }),
           queryClient.invalidateQueries({ queryKey: ['/api/users'] })
         ]);
         
-        // Force immediate refetch of critical data
-        await Promise.all([
-          queryClient.refetchQueries({ queryKey: ['/api/appointments'], type: 'active' }),
-          queryClient.refetchQueries({ queryKey: ['/api/dashboard/stats'], type: 'active' })
-        ]);
+        // Wait a moment for the appointment to be fully saved, then force refetch
+        setTimeout(async () => {
+          await Promise.all([
+            queryClient.refetchQueries({ queryKey: ['/api/appointments'] }),
+            queryClient.refetchQueries({ queryKey: ['/api/dashboard/stats'] })
+          ]);
+          console.log("[AI Chat] Delayed refetch completed");
+        }, 500);
         
         console.log("[AI Chat] Cache invalidation and refetch completed");
       }
