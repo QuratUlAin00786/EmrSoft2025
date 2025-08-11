@@ -703,6 +703,9 @@ IMPORTANT: Review the full conversation history and remember all details mention
       const lowerMessage = params.message.toLowerCase();
       const lowerResponse = aiResponse.toLowerCase();
       
+      console.log(`[AI] Intent Detection - Message: "${params.message}"`);
+      console.log(`[AI] Intent Detection - Lower Message: "${lowerMessage}"`);
+      
       // Check if this is a response to a previous prescription request (conversation context)
       const recentHistory = params.conversationHistory.slice(-3); // Check last 3 messages
       const wasPrescriptionRequest = recentHistory.some(msg => 
@@ -725,10 +728,14 @@ IMPORTANT: Review the full conversation history and remember all details mention
       } 
       // Check for appointment-related queries, but avoid re-triggering after successful booking
       else if ((lowerResponse.includes('appointment') || lowerResponse.includes('book') || lowerResponse.includes('schedule') || 
-          lowerMessage.includes('appointment') || lowerMessage.includes('book') || lowerMessage.includes('schedule')) &&
+          lowerMessage.includes('appointment') || lowerMessage.includes('book') || lowerMessage.includes('schedule') ||
+          /book\s+\w+\s+with/i.test(lowerMessage) || // "book [patient] with [doctor]"
+          /appointment\s+for/i.test(lowerMessage) ||   // "appointment for [patient]"
+          /schedule\s+\w+\s+with/i.test(lowerMessage)) && // "schedule [patient] with [doctor]"
           !this.hasRecentSuccessfulBooking(params.conversationHistory)) {
         intent = 'book_appointment';
         confidence = 0.9;
+        console.log(`[AI] Intent Detection - APPOINTMENT BOOKING DETECTED`);
       } 
       // Check for patient search queries
       else if ((lowerResponse.includes('patient') && (lowerResponse.includes('find') || lowerResponse.includes('search'))) ||
@@ -738,7 +745,9 @@ IMPORTANT: Review the full conversation history and remember all details mention
       }
 
       // Enhanced appointment booking with actual booking logic
+      console.log(`[AI] Final Intent Selected: ${intent}`);
       if (intent === 'book_appointment') {
+        console.log(`[AI] Calling handleAnthropicAppointmentBooking`);
         return await this.handleAnthropicAppointmentBooking(params, aiResponse, systemContext);
       }
 
