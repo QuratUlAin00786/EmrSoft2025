@@ -1703,16 +1703,31 @@ IMPORTANT: Review the full conversation history and remember all details mention
               response = `I found the patient and doctor, but the date/time needs to be in the future. Please provide a valid future date and time like "tomorrow at 2pm" or "August 8th at 10:30am".`;
             } else {
               // Check for conflicts and create appointment
+              console.log(`[AI] Checking appointments for Dr. ${foundDoctor.firstName} ${foundDoctor.lastName} (ID: ${foundDoctor.id}) on ${scheduledDate.toISOString()}`);
               const existingAppointments = await storage.getAppointmentsByProvider(foundDoctor.id, params.organizationId, scheduledDate);
+              console.log(`[AI] Found ${existingAppointments.length} existing appointments for this doctor on this date:`, existingAppointments.map(a => ({
+                id: a.id,
+                scheduledAt: a.scheduledAt,
+                duration: a.duration
+              })));
+              
               const appointmentEndTime = new Date(scheduledDate.getTime() + 30 * 60 * 1000);
               
-              const hasConflict = existingAppointments.some(appointment => {
+              const conflictingAppointments = existingAppointments.filter(appointment => {
                 const existingStart = new Date(appointment.scheduledAt);
                 const existingEnd = new Date(existingStart.getTime() + (appointment.duration || 30) * 60 * 1000);
-                return scheduledDate && (scheduledDate < existingEnd && appointmentEndTime > existingStart);
+                const hasOverlap = scheduledDate < existingEnd && appointmentEndTime > existingStart;
+                
+                if (hasOverlap) {
+                  console.log(`[AI] CONFLICT DETECTED: Existing appointment ${existingStart.toLocaleTimeString()} - ${existingEnd.toLocaleTimeString()}, New: ${scheduledDate.toLocaleTimeString()} - ${appointmentEndTime.toLocaleTimeString()}`);
+                } else {
+                  console.log(`[AI] NO CONFLICT: Existing appointment ${existingStart.toLocaleTimeString()} - ${existingEnd.toLocaleTimeString()}, New: ${scheduledDate.toLocaleTimeString()} - ${appointmentEndTime.toLocaleTimeString()}`);
+                }
+                
+                return hasOverlap;
               });
               
-              if (hasConflict) {
+              if (conflictingAppointments.length > 0) {
                 response = `**Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}** already has an appointment at that time. Please choose a different time slot.\n\n**Try another time like:**\n• "tomorrow at 3pm"\n• "today at 11am"\n• "August 5th at 2:30pm"`;
               } else {
                 // Create the appointment
