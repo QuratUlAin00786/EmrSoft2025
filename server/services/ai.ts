@@ -323,12 +323,18 @@ Please provide a comprehensive safety analysis focusing on clinically significan
 
   private extractConversationContext(conversationHistory: any[], currentMessage: string): any {
     // Extract all mentioned patient and doctor names from conversation history
-    const allText = conversationHistory.map(msg => msg.content).join(' ') + ' ' + currentMessage;
+    // FIX: Prevent text duplication by properly handling history
+    const historyText = conversationHistory
+      .filter(msg => msg && msg.content && typeof msg.content === 'string')
+      .map(msg => msg.content.trim())
+      .join(' ');
+    
+    const allText = (historyText + ' ' + (currentMessage || '')).trim();
     
     // Extract patient names mentioned
     const patientNames = this.extractPatientNamesFromText(allText);
     
-    // Extract doctor names mentioned
+    // Extract doctor names mentioned  
     const doctorNames = this.extractDoctorNamesFromText(allText);
     
     // Extract time/date mentioned
@@ -339,30 +345,29 @@ Please provide a comprehensive safety analysis focusing on clinically significan
       hasPatient: patientNames.length > 0,
       hasDoctor: doctorNames.length > 0,
       hasTime: timeContext !== null,
-      patientNames,
-      doctorNames,
+      patientNames: patientNames.slice(0, 3), // Limit to prevent repetition
+      doctorNames: doctorNames.slice(0, 3),   // Limit to prevent repetition
       timeContext
     };
-    
-    console.log('[AI] Conversation context:', providedInfo);
     
     return providedInfo;
   }
 
   private extractPatientNamesFromText(text: string): string[] {
+    // FIX: Simplified patterns to prevent repetitive matching
     const patientPatterns = [
-      /(?:patient|for)\s+([A-Z][a-z]+\s+[A-Z][a-z]+)/g,
-      /(?:book|appointment|schedule)\s+(?:for\s+)?([A-Z][a-z]+\s+[A-Z][a-z]+)/g,
-      /([A-Z][a-z]+\s+[A-Z][a-z]+)(?:\s+(?:appointment|consultation))/g
+      /\b([A-Z][a-z]+\s+[A-Z][a-z]+)\b/g  // Simple pattern for full names
     ];
     
     const names = new Set<string>();
+    const cleanText = text.replace(/\*\*/g, '').toLowerCase(); // Remove markdown and normalize
     
     for (const pattern of patientPatterns) {
-      const matches = Array.from(text.matchAll(pattern));
-      for (const match of matches) {
+      let match;
+      const regex = new RegExp(pattern.source, 'gi');
+      while ((match = regex.exec(text)) !== null && names.size < 5) { // Limit to prevent infinite loops
         const name = match[1]?.trim();
-        if (name && this.isValidPersonName(name)) {
+        if (name && this.isValidPersonName(name) && !names.has(name)) {
           names.add(name);
         }
       }
@@ -372,18 +377,20 @@ Please provide a comprehensive safety analysis focusing on clinically significan
   }
 
   private extractDoctorNamesFromText(text: string): string[] {
+    // FIX: Simplified patterns to prevent repetitive matching  
     const doctorPatterns = [
-      /(?:dr\.?\s+|doctor\s+)([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/gi,
-      /(?:with|see|book|appointment)\s+(?:dr\.?\s+)?([A-Z][a-z]+\s+[A-Z][a-z]+)/gi
+      /(?:dr\.?\s+)([A-Z][a-z]+\s+[A-Z][a-z]+)/gi,  // Dr. Name patterns
+      /\b([A-Z][a-z]+\s+[A-Z][a-z]+)\b/g            // General name patterns (will filter for doctors)
     ];
     
     const names = new Set<string>();
     
     for (const pattern of doctorPatterns) {
-      const matches = Array.from(text.matchAll(pattern));
-      for (const match of matches) {
+      let match;
+      const regex = new RegExp(pattern.source, pattern.flags);
+      while ((match = regex.exec(text)) !== null && names.size < 5) { // Limit to prevent infinite loops
         const name = match[1]?.trim();
-        if (name && this.isValidPersonName(name)) {
+        if (name && this.isValidPersonName(name) && !names.has(name)) {
           names.add(name);
         }
       }
@@ -1780,10 +1787,10 @@ What would you like to do?`;
         }
       }
       
-      // Handle greetings - more specific patterns to avoid false matches with names
-      else if (/^(hello|hi|hey|help)(\s|$)/i.test(lowerMessage) || 
-               lowerMessage === 'hello' || lowerMessage === 'hi' || 
-               lowerMessage === 'hey' || lowerMessage === 'help') {
+      // Handle greetings - ONLY exact matches or clear greeting patterns
+      else if (/^(hello|hi|hey|help)(\s+(there|there|you|cura|assistant))?[\s!]*$/i.test(lowerMessage.trim()) ||
+               lowerMessage.trim() === 'hello' || lowerMessage.trim() === 'hi' || 
+               lowerMessage.trim() === 'hey' || lowerMessage.trim() === 'help') {
         intent = 'greeting';
         confidence = 0.9;
         response = "Hello! I'm your Cura AI Assistant. I can help you:\n\n📅 **Book appointments** - Schedule consultations with doctors\n💊 **Find prescriptions** - Search and view patient medications\n\nHow can I assist you today?";
