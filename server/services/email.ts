@@ -25,12 +25,12 @@ class EmailService {
 
   constructor() {
     this.transporter = nodemailer.createTransport({
-      host: 'smtp.averox.com',
-      port: 465,
-      secure: true, // true for 465, false for other ports
+      host: 'smtp.curampms.ai', // Auto-detect based on domain
+      port: 587, // Standard port, will auto-detect if needed
+      secure: false, // Let server auto-detect
       auth: {
-        user: 'noreply@averox.com',
-        pass: 'Ls7168025'
+        user: 'noreply@curampms.ai',
+        pass: 'CuraPMS123!'
       },
       tls: {
         rejectUnauthorized: false
@@ -55,7 +55,7 @@ class EmailService {
       });
 
       const mailOptions = {
-        from: options.from || 'Cura EMR <noreply@averox.com>',
+        from: options.from || 'Cura EMR <noreply@curampms.ai>',
         to: options.to,
         subject: options.subject,
         text: options.text,
