@@ -279,62 +279,82 @@ export function AIChatWidget() {
   };
 
   const startVoiceRecognition = () => {
-    if (recognition && !isListening) {
-      try {
-        // Don't clear existing input, preserve it
-        setTranscriptBuffer("");
-        recognition.start();
-      } catch (error) {
-        console.error("Error starting voice recognition:", error);
-        // If recognition is already started, stop it first then restart
-        if ((error as any).message && (error as any).message.includes('already started')) {
-          try {
-            recognition.stop();
-            setTimeout(() => {
-              if (recognition) {
+    if (!recognition) {
+      console.error("Speech recognition not available");
+      return;
+    }
+
+    // Only start if not already listening
+    if (isListening) {
+      console.log("Speech recognition already active");
+      return;
+    }
+
+    try {
+      setTranscriptBuffer("");
+      recognition.start();
+    } catch (error: any) {
+      console.error("Error starting voice recognition:", error);
+      
+      // Handle specific "already started" error
+      if (error.message && error.message.includes('already started')) {
+        // Force stop and reset state
+        setIsListening(false);
+        try {
+          recognition.stop();
+          // Wait longer before restarting
+          setTimeout(() => {
+            if (recognition && !isListening) {
+              try {
                 recognition.start();
+              } catch (retryError) {
+                console.error("Retry failed:", retryError);
               }
-            }, 200); // Increase timeout for better reliability
-          } catch (restartError) {
-            console.error("Failed to restart recognition:", restartError);
-            toast({
-              title: "Voice Recognition Error",
-              description: "Unable to start voice recognition. Please try again.",
-              variant: "destructive",
-            });
-          }
+            }
+          }, 500);
+        } catch (stopError) {
+          console.error("Failed to stop recognition:", stopError);
         }
+      } else {
+        toast({
+          title: "Voice Recognition Error",
+          description: "Unable to start voice recognition. Please try again.",
+          variant: "destructive",
+        });
       }
     }
   };
 
   const stopVoiceRecognition = () => {
-    if (recognition) {
-      try {
-        if (isListening) {
-          recognition.stop();
-          console.log("Voice recognition stop requested");
-        }
-      } catch (error) {
-        console.error("Error stopping voice recognition:", error);
-      }
-      
-      // Always reset state regardless of current listening status
-      setIsListening(false);
-      
-      // Clean up any interim text in brackets and finalize transcript
-      setInput(prev => {
-        // Remove interim text in brackets and clean up
-        const cleanedText = prev.replace(/\s*\[.*?\]\s*$/, '').trim();
-        // Combine with any accumulated transcript buffer
-        const finalText = transcriptBuffer ? 
-          (cleanedText + (cleanedText ? ' ' : '') + transcriptBuffer).trim() : 
-          cleanedText;
-        return finalText;
-      });
-      
-      setTranscriptBuffer("");
+    if (!recognition) {
+      console.error("Speech recognition not available");
+      return;
     }
+
+    try {
+      if (isListening) {
+        recognition.stop();
+        console.log("Voice recognition stop requested");
+      }
+    } catch (error) {
+      console.error("Error stopping voice recognition:", error);
+    }
+    
+    // Always reset state regardless of current listening status
+    setIsListening(false);
+    
+    // Clean up any interim text in brackets and finalize transcript
+    setInput(prev => {
+      // Remove interim text in brackets and clean up
+      const cleanedText = prev.replace(/\s*\[.*?\]\s*$/, '').trim();
+      // Combine with any accumulated transcript buffer
+      const finalText = transcriptBuffer ? 
+        (cleanedText + (cleanedText ? ' ' : '') + transcriptBuffer).trim() : 
+        cleanedText;
+      return finalText;
+    });
+    
+    setTranscriptBuffer("");
   };
 
   const quickActions = [
