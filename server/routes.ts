@@ -2211,6 +2211,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Reset Twilio client endpoint
+  app.post("/api/messaging/reset-twilio", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const { resetTwilioClient } = await import('./messaging-service');
+      const success = resetTwilioClient();
+      res.json({ 
+        success, 
+        message: success ? 'Twilio client reset successfully' : 'Failed to reset Twilio client - check credentials' 
+      });
+    } catch (error) {
+      console.error("Error resetting Twilio client:", error);
+      res.status(500).json({ error: "Failed to reset Twilio client" });
+    }
+  });
+
   // Messaging endpoints
   app.get("/api/messaging/conversations", authMiddleware, async (req: TenantRequest, res) => {
     try {

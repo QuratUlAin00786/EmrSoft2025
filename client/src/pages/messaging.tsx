@@ -170,12 +170,19 @@ export default function MessagingPage() {
 
   // Helper function to get the other participant (not the current user)
   const getOtherParticipant = (conversation: Conversation) => {
-    if (!currentUser) return conversation.participants[0];
+    if (!currentUser) {
+      return conversation.participants[0];
+    }
     
     // Find the participant that is NOT the current user
-    const otherParticipant = conversation.participants.find(p => 
-      p.id !== currentUser.id && p.name !== currentUser.email
-    );
+    // Check both by ID and by name/email since participant data might use different identifiers
+    const otherParticipant = conversation.participants.find(p => {
+      const isNotCurrentUserById = String(p.id) !== String(currentUser.id);
+      const isNotCurrentUserByEmail = p.name !== currentUser.email;
+      const isNotCurrentUserByName = p.name !== `${currentUser.firstName} ${currentUser.lastName}`.trim();
+      
+      return isNotCurrentUserById && isNotCurrentUserByEmail && isNotCurrentUserByName;
+    });
     
     // If we can't find another participant, return the first one
     return otherParticipant || conversation.participants[0];

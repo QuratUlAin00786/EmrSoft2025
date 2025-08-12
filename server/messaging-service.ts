@@ -4,22 +4,39 @@ import twilio, { Twilio } from 'twilio';
 let client: Twilio | null = null;
 let authenticationFailed = false; // Track if authentication has failed
 
-try {
-  if (process.env.TWILIO_ACCOUNT_SID && 
-      process.env.TWILIO_AUTH_TOKEN && 
-      process.env.TWILIO_PHONE_NUMBER &&
-      process.env.TWILIO_ACCOUNT_SID.startsWith('AC') &&
-      process.env.TWILIO_ACCOUNT_SID.length >= 34) {
-    
-    // Only create client if credentials appear valid
-    client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-    console.log('Twilio client initialized - credentials will be verified on first use');
-  } else {
-    console.warn('Twilio credentials invalid or incomplete - SMS services disabled');
+function initializeTwilioClient() {
+  try {
+    if (process.env.TWILIO_ACCOUNT_SID && 
+        process.env.TWILIO_AUTH_TOKEN && 
+        process.env.TWILIO_PHONE_NUMBER &&
+        process.env.TWILIO_ACCOUNT_SID.startsWith('AC') &&
+        process.env.TWILIO_ACCOUNT_SID.length >= 34) {
+      
+      // Reset authentication flag when reinitializing
+      authenticationFailed = false;
+      
+      // Only create client if credentials appear valid
+      client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+      console.log('Twilio client initialized - credentials will be verified on first use');
+      return true;
+    } else {
+      console.warn('Twilio credentials invalid or incomplete - SMS services disabled');
+      return false;
+    }
+  } catch (error) {
+    console.error('Failed to initialize Twilio client:', error);
+    client = null;
+    return false;
   }
-} catch (error) {
-  console.error('Failed to initialize Twilio client:', error);
-  client = null;
+}
+
+// Initialize on startup
+initializeTwilioClient();
+
+// Export function to reset client with new credentials
+export function resetTwilioClient() {
+  console.log('Resetting Twilio client with new credentials...');
+  return initializeTwilioClient();
 }
 
 export interface MessageOptions {
