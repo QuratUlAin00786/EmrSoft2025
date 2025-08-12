@@ -144,7 +144,12 @@ export function AIChatWidget() {
           console.log('Updated transcript buffer:', newBuffer);
           transcriptBufferRef.current = newBuffer;
           setTranscriptBuffer(newBuffer);
-          setInput(newBuffer); // Set the final transcript directly to input
+          
+          // Force update the input field with the final transcript
+          setTimeout(() => {
+            setInput(newBuffer);
+            console.log('Final transcript set to input:', newBuffer);
+          }, 0);
         } else if (interimTranscript) {
           // Interim result: show current transcript buffer + interim in brackets for preview
           const currentBuffer = transcriptBufferRef.current.trim();
@@ -208,14 +213,20 @@ export function AIChatWidget() {
         console.log('Speech recognition ended naturally');
         setIsListening(false);
         
-        // Clean up any interim text in brackets but preserve the final transcript
-        setInput(prev => {
-          // If we have brackets, clean them up but keep the text before them
-          const cleanText = prev.replace(/\s*\[.*?\]\s*$/, '').trim();
-          console.log('Cleaned final transcript:', cleanText);
-          // If cleanText is empty but we have transcriptBuffer, use that
-          return cleanText || transcriptBufferRef.current.trim();
-        });
+        // Ensure final transcript is preserved in the input field
+        setTimeout(() => {
+          if (transcriptBufferRef.current.trim()) {
+            setInput(transcriptBufferRef.current.trim());
+            console.log('Final transcript preserved on end:', transcriptBufferRef.current.trim());
+          } else {
+            // Clean up any interim text in brackets
+            setInput(prev => {
+              const cleanText = prev.replace(/\s*\[.*?\]\s*$/, '').trim();
+              console.log('Cleaned final transcript:', cleanText);
+              return cleanText;
+            });
+          }
+        }, 100);
       };
       
       setRecognition(recognition);
