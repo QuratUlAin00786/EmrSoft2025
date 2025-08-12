@@ -525,7 +525,7 @@ Cura EMR Team
           }
           .footer { 
             background: #f8fafc;
-            padding: 30px; 
+            padding: 15px 30px 10px; 
             text-align: center; 
             border-top: 1px solid #e5e7eb;
           }
@@ -534,7 +534,7 @@ Cura EMR Team
             height: 80px;
             background: white;
             border-radius: 12px;
-            margin: 0 auto 15px;
+            margin: 0 auto 8px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -548,12 +548,13 @@ Cura EMR Team
           .footer-brand {
             color: #6b7280;
             font-size: 14px;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
           }
           .footer-text {
             color: #9ca3af; 
             font-size: 12px; 
-            line-height: 1.5;
+            line-height: 1.4;
+            margin: 0;
           }
           .btn {
             display: inline-block;
