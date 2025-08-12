@@ -32,6 +32,15 @@ interface Message {
   content: string;
   timestamp: Date;
   data?: any;
+  intent?: string;
+  entities?: any[];
+  confidence?: number;
+  medicalAdviceLevel?: 'none' | 'educational' | 'guidance' | 'referral';
+  disclaimers?: string[];
+  followUpQuestions?: string[];
+  educationalContent?: string[];
+  urgencyLevel?: 'low' | 'medium' | 'high' | 'critical';
+  recommendedSpecialty?: string;
 }
 
 interface Prescription {
@@ -195,7 +204,16 @@ export function AIChatWidget() {
         type: 'assistant',
         content: responseData.response || responseData.message || "I apologize, but I didn't receive a proper response. Please try again.",
         timestamp: new Date(),
-        data: responseData.data
+        data: responseData.data,
+        intent: responseData.intent,
+        entities: responseData.entities,
+        confidence: responseData.confidence,
+        medicalAdviceLevel: responseData.medicalAdviceLevel,
+        disclaimers: responseData.disclaimers,
+        followUpQuestions: responseData.followUpQuestions,
+        educationalContent: responseData.educationalContent,
+        urgencyLevel: responseData.urgencyLevel,
+        recommendedSpecialty: responseData.recommendedSpecialty
       };
 
       setMessages(prev => [...prev, aiMessage]);
@@ -516,6 +534,79 @@ export function AIChatWidget() {
                         {message.type === 'user' && <User className="h-5 w-5 mt-0.5 flex-shrink-0" />}
                         <div className="flex-1">
                           <div className="whitespace-pre-wrap text-sm">{message.content}</div>
+                          
+                          {/* Enhanced Medical Insights Display */}
+                          {message.type === 'assistant' && (
+                            <>
+                              {/* Urgency Level Indicator */}
+                              {message.urgencyLevel && message.urgencyLevel !== 'low' && (
+                                <div className={`mt-2 p-2 rounded-md text-xs font-medium ${
+                                  message.urgencyLevel === 'critical' ? 'bg-red-100 text-red-800 border border-red-200' :
+                                  message.urgencyLevel === 'high' ? 'bg-orange-100 text-orange-800 border border-orange-200' :
+                                  'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                                }`}>
+                                  🚨 Urgency Level: {message.urgencyLevel.toUpperCase()}
+                                </div>
+                              )}
+
+                              {/* Medical Advice Level */}
+                              {message.medicalAdviceLevel && message.medicalAdviceLevel !== 'none' && (
+                                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                                  <div className="text-xs font-medium text-blue-800 mb-1">
+                                    Medical Information Level: {message.medicalAdviceLevel}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Recommended Specialty */}
+                              {message.recommendedSpecialty && (
+                                <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-md">
+                                  <div className="text-xs font-medium text-green-800">
+                                    💡 Recommended Specialty: {message.recommendedSpecialty}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Educational Content */}
+                              {message.educationalContent && message.educationalContent.length > 0 && (
+                                <div className="mt-2 p-2 bg-purple-50 border border-purple-200 rounded-md">
+                                  <div className="text-xs font-medium text-purple-800 mb-1">📚 Educational Information:</div>
+                                  {message.educationalContent.map((content, idx) => (
+                                    <div key={idx} className="text-xs text-purple-700">• {content}</div>
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Follow-up Questions */}
+                              {message.followUpQuestions && message.followUpQuestions.length > 0 && (
+                                <div className="mt-2 p-2 bg-cyan-50 border border-cyan-200 rounded-md">
+                                  <div className="text-xs font-medium text-cyan-800 mb-1">🤔 Follow-up Questions:</div>
+                                  {message.followUpQuestions.map((question, idx) => (
+                                    <div key={idx} className="text-xs text-cyan-700">• {question}</div>
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Medical Disclaimers */}
+                              {message.disclaimers && message.disclaimers.length > 0 && (
+                                <div className="mt-2 p-2 bg-gray-50 border border-gray-200 rounded-md">
+                                  <div className="text-xs font-medium text-gray-700 mb-1">⚠️ Important Disclaimers:</div>
+                                  {message.disclaimers.map((disclaimer, idx) => (
+                                    <div key={idx} className="text-xs text-gray-600">• {disclaimer}</div>
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Intent and Confidence (Development Info) */}
+                              {process.env.NODE_ENV === 'development' && message.intent && (
+                                <div className="mt-2 p-2 bg-slate-100 border border-slate-200 rounded-md">
+                                  <div className="text-xs text-slate-600">
+                                    Intent: {message.intent} | Confidence: {((message.confidence || 0) * 100).toFixed(1)}%
+                                  </div>
+                                </div>
+                              )}
+                            </>
+                          )}
                           
                           {message.data?.prescriptions && renderPrescriptions(message.data.prescriptions)}
                           {message.data?.appointments && renderAppointments(message.data.appointments)}

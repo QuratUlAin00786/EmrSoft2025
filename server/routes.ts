@@ -5590,19 +5590,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }).flat()
       ];
 
-      // Use the enhanced AI service for conversation
+      // Create enhanced conversation context for NLP processing
+      const conversationContext = {
+        conversationId: `conv_${req.user.id}_${Date.now()}`,
+        userId: req.user.id,
+        organizationId: req.tenant!.id,
+        sessionStartTime: new Date(),
+        conversationHistory: messages.map(msg => ({
+          role: msg.type === 'user' ? 'user' as const : 'assistant' as const,
+          content: msg.content,
+          timestamp: new Date(msg.timestamp || Date.now()),
+          intent: msg.intent,
+          entities: msg.entities
+        })),
+        userProfile: {
+          medicalHistory: [], // Could be fetched from patient records if available
+          preferences: {},
+          language: 'en',
+          complexityLevel: 'intermediate' as const
+        },
+        contextualKnowledge: {
+          recentTopics: [],
+          extractedEntities: {},
+          sentimentAnalysis: {
+            overall: 'neutral' as const,
+            confidence: 0.8
+          }
+        }
+      };
+
+      // Process message with enhanced NLP capabilities
       const lastMessage = messages[messages.length - 1];
       
-      const result = await aiService.processAgentRequest({
-        message: lastMessage.content,
-        conversationHistory: messages,
-        organizationId: req.tenant!.id,
-        userId: req.user.id,
-        userRole: req.user.role
-      });
+      // Step 1: Classify medical intent with enhanced NLP
+      const intentClassification = await aiService.classifyMedicalIntent(lastMessage.content, conversationContext);
+      
+      // Step 2: Generate medically-informed response
+      const medicalResponse = await aiService.generateMedicallyInformedResponse(
+        lastMessage.content, 
+        intentClassification, 
+        conversationContext
+      );
 
-      // The new AI service handles appointment booking internally
-      res.json({ response: result.response });
+      // Step 3: Process with comprehensive NLP understanding
+      const nlpResult = await aiService.processConversationWithNLP(lastMessage.content, conversationContext);
+
+      // Step 4: Handle appointment booking if needed (fallback to existing logic)
+      let finalResponse = nlpResult.response;
+      
+      if (intentClassification.primary_intent === 'appointment_booking' || nlpResult.intent === 'appointment_booking') {
+        try {
+          // Use existing appointment booking logic with enhanced context
+          const bookingContext = {
+            availableDoctors,
+            availableTimeSlots,
+            patientInfo: {
+              id: req.user.id,
+              name: `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim(),
+              email: req.user.email || ''
+            },
+            organizationId: req.tenant!.id
+          };
+
+          const bookingResult = await processAppointmentBookingChat(messages, bookingContext);
+          
+          if (bookingResult.intent === 'BOOK_APPOINTMENT' && bookingResult.extractedData) {
+            // Process appointment booking
+            const appointment = await storage.createAppointment({
+              organizationId: req.tenant!.id,
+              patientId: bookingResult.extractedData.patientId || req.user.id,
+              providerId: bookingResult.extractedData.doctorId,
+              title: bookingResult.extractedData.reason || 'Consultation',
+              description: 'Appointment booked via AI Assistant',
+              scheduledAt: new Date(`${bookingResult.extractedData.date}T${bookingResult.extractedData.time}:00.000Z`),
+              duration: bookingResult.extractedData.duration || 30,
+              status: 'scheduled' as const,
+              type: 'consultation' as const,
+              location: bookingResult.extractedData.location || 'Main Office',
+              isVirtual: bookingResult.extractedData.isVirtual || false
+            });
+
+            finalResponse = `${bookingResult.response}\n\n✅ **Appointment Successfully Booked!**\nAppointment ID: ${appointment.id}`;
+          } else {
+            finalResponse = bookingResult.response;
+          }
+        } catch (bookingError) {
+          console.error('Booking process error:', bookingError);
+          finalResponse = nlpResult.response + "\n\nI encountered an issue while trying to book the appointment. Please try again or contact support.";
+        }
+      }
+
+      // Combine enhanced NLP insights with response
+      const enhancedResponse = {
+        response: finalResponse,
+        intent: nlpResult.intent,
+        entities: nlpResult.entities,
+        confidence: nlpResult.confidence,
+        medicalAdviceLevel: medicalResponse.medical_advice_level,
+        disclaimers: medicalResponse.disclaimers,
+        followUpQuestions: medicalResponse.follow_up_questions,
+        educationalContent: medicalResponse.educational_content,
+        urgencyLevel: intentClassification.urgency_level,
+        recommendedSpecialty: intentClassification.recommended_specialty,
+        nextActions: nlpResult.nextActions
+      };
+
+      res.json(enhancedResponse);
     } catch (error) {
       console.error("Chatbot error:", error);
       res.status(500).json({ error: "Failed to process chat message" });

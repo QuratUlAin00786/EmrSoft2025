@@ -38,7 +38,161 @@ export interface AiInsightData {
   };
 }
 
+export interface ConversationContext {
+  conversationId: string;
+  userId: number;
+  organizationId: number;
+  sessionStartTime: Date;
+  conversationHistory: Array<{
+    role: 'user' | 'assistant';
+    content: string;
+    timestamp: Date;
+    intent?: string;
+    entities?: any;
+  }>;
+  userProfile?: {
+    medicalHistory?: string[];
+    preferences?: any;
+    language?: string;
+    complexityLevel?: 'basic' | 'intermediate' | 'advanced';
+  };
+  contextualKnowledge: {
+    recentTopics: string[];
+    extractedEntities: any;
+    sentimentAnalysis?: {
+      overall: 'positive' | 'neutral' | 'negative' | 'anxious' | 'urgent';
+      confidence: number;
+    };
+  };
+}
+
 export class AiService {
+  // Enhanced NLP conversation processing with context awareness
+  async processConversationWithNLP(
+    userMessage: string, 
+    context: ConversationContext
+  ): Promise<{
+    response: string;
+    intent: string;
+    entities: any;
+    confidence: number;
+    nextActions: string[];
+    contextUpdate: Partial<ConversationContext>;
+  }> {
+    if (!anthropic) {
+      throw new Error("Anthropic API not available");
+    }
+
+    try {
+      const conversationHistoryText = context.conversationHistory
+        .slice(-10) // Keep last 10 messages for context
+        .map(msg => `${msg.role}: ${msg.content}`)
+        .join('\n');
+
+      const systemPrompt = `You are CURA AI, an advanced healthcare assistant with sophisticated Natural Language Processing capabilities. Analyze the user's message with deep contextual understanding and provide comprehensive, accurate responses.
+
+CONVERSATION CONTEXT:
+${conversationHistoryText}
+
+USER PROFILE:
+- Medical History: ${context.userProfile?.medicalHistory?.join(', ') || 'Not available'}
+- Language Complexity: ${context.userProfile?.complexityLevel || 'intermediate'}
+- Recent Topics: ${context.contextualKnowledge.recentTopics.join(', ') || 'None'}
+
+CURRENT SENTIMENT: ${context.contextualKnowledge.sentimentAnalysis?.overall || 'neutral'}
+
+ADVANCED NLP ANALYSIS REQUIRED:
+1. INTENT RECOGNITION: Identify primary and secondary intents
+2. ENTITY EXTRACTION: Extract medical entities (symptoms, conditions, medications, time references)
+3. SENTIMENT ANALYSIS: Assess emotional state and urgency
+4. CONTEXT INTEGRATION: Use conversation history for better understanding
+5. KNOWLEDGE APPLICATION: Apply medical knowledge when relevant
+6. RESPONSE OPTIMIZATION: Adapt complexity and tone to user profile
+
+RESPONSE FORMAT - Return JSON with this exact structure:
+{
+  "response": "Your comprehensive response to the user",
+  "intent": "primary_intent_identified",
+  "entities": {
+    "medical_terms": [],
+    "time_references": [],
+    "locations": [],
+    "people": [],
+    "urgency_indicators": []
+  },
+  "confidence": 0.95,
+  "sentiment_analysis": {
+    "emotion": "calm|anxious|urgent|confused|satisfied",
+    "confidence": 0.90
+  },
+  "next_actions": ["suggested_follow_up_actions"],
+  "knowledge_applied": ["medical_facts_used"],
+  "context_updates": {
+    "new_topics": ["topics_to_remember"],
+    "user_preferences": {},
+    "medical_insights": []
+  },
+  "response_reasoning": "Why this response was chosen based on NLP analysis"
+}
+
+Provide intelligent, contextually aware responses that demonstrate advanced language understanding.`;
+
+      const response = await anthropic.messages.create({
+        model: DEFAULT_MODEL_STR,
+        max_tokens: 2048,
+        system: systemPrompt,
+        messages: [
+          ...context.conversationHistory.slice(-5).map(msg => ({
+            role: msg.role,
+            content: msg.content
+          })),
+          {
+            role: 'user',
+            content: userMessage
+          }
+        ],
+      });
+
+      const responseText = (response.content[0] as any).text;
+      
+      // Try to parse JSON response, fallback to text if needed
+      try {
+        const parsedResponse = JSON.parse(responseText);
+        return {
+          response: parsedResponse.response,
+          intent: parsedResponse.intent || 'general_inquiry',
+          entities: parsedResponse.entities || {},
+          confidence: parsedResponse.confidence || 0.8,
+          nextActions: parsedResponse.next_actions || [],
+          contextUpdate: {
+            contextualKnowledge: {
+              ...context.contextualKnowledge,
+              recentTopics: [
+                ...context.contextualKnowledge.recentTopics,
+                ...(parsedResponse.context_updates?.new_topics || [])
+              ].slice(-10),
+              sentimentAnalysis: parsedResponse.sentiment_analysis
+            }
+          }
+        };
+      } catch (e) {
+        // Fallback to basic response parsing
+        return {
+          response: responseText,
+          intent: 'general_inquiry',
+          entities: {},
+          confidence: 0.7,
+          nextActions: [],
+          contextUpdate: {}
+        };
+      }
+    } catch (error) {
+      console.error('Enhanced NLP processing error:', error);
+      throw error;
+    }
+  }
+
+  // Advanced prescription analysis with enhanced context awareness
   async analyzePatientRisk(patient: Patient, medicalHistory: MedicalRecord[]): Promise<AiInsightData[]> {
     try {
       const patientData = {
@@ -288,6 +442,206 @@ Please provide a comprehensive safety analysis focusing on clinically significan
     } catch (error) {
       console.error("Preventive care analysis error:", error);
       return [];
+    }
+  }
+
+  // Enhanced medical knowledge base with comprehensive training
+  async getMedicalKnowledgeBase(): Promise<{
+    specialties: any[];
+    conditions: any[];
+    medications: any[];
+    procedures: any[];
+    symptoms: any[];
+  }> {
+    return {
+      specialties: [
+        { name: 'Cardiology', keywords: ['heart', 'chest pain', 'cardiac', 'hypertension'], urgency_indicators: ['chest pain', 'shortness of breath'] },
+        { name: 'Neurology', keywords: ['headache', 'migraine', 'seizure', 'stroke'], urgency_indicators: ['severe headache', 'loss of consciousness'] },
+        { name: 'Orthopedics', keywords: ['bone', 'joint', 'fracture', 'arthritis'], urgency_indicators: ['severe pain', 'inability to move'] },
+        { name: 'Dermatology', keywords: ['skin', 'rash', 'acne', 'mole'], urgency_indicators: ['rapid changes', 'bleeding'] },
+        { name: 'Gastroenterology', keywords: ['stomach', 'digestive', 'nausea', 'abdominal'], urgency_indicators: ['severe pain', 'blood'] }
+      ],
+      conditions: [
+        { name: 'Hypertension', symptoms: ['headache', 'dizziness'], risk_factors: ['age', 'obesity'] },
+        { name: 'Diabetes', symptoms: ['thirst', 'fatigue', 'frequent urination'], risk_factors: ['family history', 'obesity'] },
+        { name: 'Asthma', symptoms: ['wheezing', 'cough', 'shortness of breath'], triggers: ['allergens', 'exercise'] }
+      ],
+      medications: [
+        { name: 'Aspirin', interactions: ['warfarin'], contraindications: ['bleeding disorders'] },
+        { name: 'Metformin', interactions: ['alcohol'], contraindications: ['kidney disease'] }
+      ],
+      procedures: [
+        { name: 'Blood Test', preparation: 'fasting may be required', duration: '15 minutes' },
+        { name: 'MRI', preparation: 'remove metal objects', duration: '30-60 minutes' }
+      ],
+      symptoms: [
+        { name: 'Chest Pain', urgency: 'high', specialties: ['Cardiology', 'Emergency'] },
+        { name: 'Headache', urgency: 'medium', specialties: ['Neurology', 'Primary Care'] }
+      ]
+    };
+  }
+
+  // Advanced intent classification with medical context
+  async classifyMedicalIntent(
+    message: string,
+    conversationContext: ConversationContext
+  ): Promise<{
+    primary_intent: string;
+    secondary_intents: string[];
+    medical_entities: any[];
+    urgency_level: 'low' | 'medium' | 'high' | 'critical';
+    recommended_specialty: string | null;
+    confidence_score: number;
+  }> {
+    if (!anthropic) {
+      return {
+        primary_intent: 'general_inquiry',
+        secondary_intents: [],
+        medical_entities: [],
+        urgency_level: 'low',
+        recommended_specialty: null,
+        confidence_score: 0.5
+      };
+    }
+
+    const knowledgeBase = await this.getMedicalKnowledgeBase();
+    
+    const systemPrompt = `You are a medical NLP specialist analyzing patient messages. Use the medical knowledge base to classify intents and extract relevant medical information.
+
+MEDICAL KNOWLEDGE BASE:
+Specialties: ${JSON.stringify(knowledgeBase.specialties, null, 2)}
+Common Conditions: ${JSON.stringify(knowledgeBase.conditions, null, 2)}
+Symptom Classifications: ${JSON.stringify(knowledgeBase.symptoms, null, 2)}
+
+CONVERSATION HISTORY:
+${conversationContext.conversationHistory.slice(-5).map(m => `${m.role}: ${m.content}`).join('\n')}
+
+INTENT CLASSIFICATION REQUIREMENTS:
+1. Identify primary intent (appointment_booking, symptom_inquiry, medication_question, general_health, emergency)
+2. Extract medical entities (symptoms, conditions, body parts, medications)
+3. Assess urgency based on symptom severity and patient language
+4. Recommend appropriate medical specialty
+5. Provide confidence scoring
+
+Return JSON with this exact structure:
+{
+  "primary_intent": "intent_name",
+  "secondary_intents": ["secondary_intent1", "secondary_intent2"],
+  "medical_entities": [
+    {
+      "type": "symptom|condition|medication|body_part",
+      "value": "extracted_value",
+      "confidence": 0.95,
+      "severity": "mild|moderate|severe"
+    }
+  ],
+  "urgency_level": "low|medium|high|critical",
+  "recommended_specialty": "specialty_name_or_null",
+  "confidence_score": 0.90,
+  "reasoning": "explanation_of_classification"
+}`;
+
+    try {
+      const response = await anthropic.messages.create({
+        model: DEFAULT_MODEL_STR,
+        max_tokens: 1024,
+        system: systemPrompt,
+        messages: [{
+          role: 'user',
+          content: message
+        }],
+      });
+
+      const responseText = (response.content[0] as any).text;
+      return JSON.parse(responseText);
+    } catch (error) {
+      console.error('Medical intent classification error:', error);
+      return {
+        primary_intent: 'general_inquiry',
+        secondary_intents: [],
+        medical_entities: [],
+        urgency_level: 'low',
+        recommended_specialty: null,
+        confidence_score: 0.5
+      };
+    }
+  }
+
+  // Comprehensive response generation with medical expertise
+  async generateMedicallyInformedResponse(
+    message: string,
+    intentClassification: any,
+    conversationContext: ConversationContext
+  ): Promise<{
+    response: string;
+    medical_advice_level: 'none' | 'educational' | 'guidance' | 'referral';
+    disclaimers: string[];
+    follow_up_questions: string[];
+    educational_content: string[];
+  }> {
+    if (!anthropic) {
+      return {
+        response: "I understand your concern. For the best care, I recommend scheduling an appointment with one of our healthcare providers who can properly assess your situation.",
+        medical_advice_level: 'referral',
+        disclaimers: ["This is not medical advice. Please consult with a healthcare provider."],
+        follow_up_questions: ["Would you like me to help you schedule an appointment?"],
+        educational_content: []
+      };
+    }
+
+    const knowledgeBase = await this.getMedicalKnowledgeBase();
+    
+    const systemPrompt = `You are CURA AI, providing medically-informed responses while maintaining appropriate boundaries. Use medical knowledge to enhance responses but always include proper disclaimers.
+
+INTENT ANALYSIS:
+${JSON.stringify(intentClassification, null, 2)}
+
+MEDICAL KNOWLEDGE BASE:
+${JSON.stringify(knowledgeBase, null, 2)}
+
+CONVERSATION CONTEXT:
+${conversationContext.conversationHistory.slice(-3).map(m => `${m.role}: ${m.content}`).join('\n')}
+
+RESPONSE GUIDELINES:
+1. Provide helpful, accurate information without diagnosing
+2. Include educational content when relevant
+3. Suggest appropriate next steps (appointments, specialists)
+4. Add medical disclaimers when providing health information
+5. Ask clarifying questions to better assist the patient
+
+Return JSON with this structure:
+{
+  "response": "Your comprehensive, medically-informed response",
+  "medical_advice_level": "none|educational|guidance|referral",
+  "disclaimers": ["disclaimer1", "disclaimer2"],
+  "follow_up_questions": ["question1", "question2"],
+  "educational_content": ["educational_fact1", "educational_fact2"],
+  "specialist_recommendation": "specialty_if_applicable",
+  "urgency_guidance": "when_to_seek_care"
+}`;
+
+    try {
+      const response = await anthropic.messages.create({
+        model: DEFAULT_MODEL_STR,
+        max_tokens: 1536,
+        system: systemPrompt,
+        messages: [{
+          role: 'user',
+          content: `Patient message: "${message}"\n\nGenerate a medically-informed response.`
+        }],
+      });
+
+      const responseText = (response.content[0] as any).text;
+      return JSON.parse(responseText);
+    } catch (error) {
+      console.error('Medical response generation error:', error);
+      return {
+        response: "I understand your concern. For the best care, I recommend scheduling an appointment with one of our healthcare providers who can properly assess your situation.",
+        medical_advice_level: 'referral',
+        disclaimers: ["This is not medical advice. Please consult with a healthcare provider."],
+        follow_up_questions: ["Would you like me to help you schedule an appointment?"],
+        educational_content: []
+      };
     }
   }
 
