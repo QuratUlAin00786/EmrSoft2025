@@ -662,14 +662,7 @@ export function AIChatWidget() {
                                 </div>
                               )}
 
-                              {/* Intent and Confidence (Development Info) */}
-                              {process.env.NODE_ENV === 'development' && message.intent && (
-                                <div className="mt-2 p-2 bg-slate-100 border border-slate-200 rounded-md">
-                                  <div className="text-xs text-slate-600">
-                                    Intent: {message.intent} | Confidence: {((message.confidence || 0) * 100).toFixed(1)}%
-                                  </div>
-                                </div>
-                              )}
+
                             </>
                           )}
                           
