@@ -2,20 +2,27 @@ import twilio, { Twilio } from 'twilio';
 
 // Initialize Twilio client with proper error handling and validation
 let client: Twilio | null = null;
+let twilioCredentialsValid = false;
+
 try {
   if (process.env.TWILIO_ACCOUNT_SID && 
       process.env.TWILIO_AUTH_TOKEN && 
       process.env.TWILIO_PHONE_NUMBER &&
       process.env.TWILIO_ACCOUNT_SID.startsWith('AC') &&
       process.env.TWILIO_ACCOUNT_SID.length >= 34) {
+    
+    // Only create client if credentials appear valid, but mark as unverified
     client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-    console.log('Twilio client initialized with credentials');
+    console.log('Twilio client initialized - credentials will be verified on first use');
+    twilioCredentialsValid = false; // Will be verified on first API call
   } else {
     console.warn('Twilio credentials invalid or incomplete - SMS services disabled');
+    twilioCredentialsValid = false;
   }
 } catch (error) {
   console.error('Failed to initialize Twilio client:', error);
   client = null;
+  twilioCredentialsValid = false;
 }
 
 export interface MessageOptions {
@@ -52,7 +59,16 @@ export class MessagingService {
         console.error('Twilio client not configured - missing credentials');
         return {
           success: false,
-          error: 'SMS service not configured. Please check Twilio credentials.'
+          error: 'SMS service not properly configured. Please check Twilio credentials (Account SID, Auth Token, and Phone Number).'
+        };
+      }
+
+      // If credentials have been marked as invalid from previous attempts, don't retry
+      if (twilioCredentialsValid === false && process.env.TWILIO_LAST_AUTH_ERROR) {
+        console.error('SMS blocked - Twilio credentials previously failed authentication');
+        return {
+          success: false,
+          error: 'SMS service not properly configured. Please check Twilio credentials (Account SID, Auth Token, and Phone Number).'
         };
       }
 
@@ -63,15 +79,6 @@ export class MessagingService {
           hasToken: !!process.env.TWILIO_AUTH_TOKEN,
           hasPhone: !!process.env.TWILIO_PHONE_NUMBER
         });
-        return {
-          success: false,
-          error: 'SMS service not properly configured. Please check Twilio credentials (Account SID, Auth Token, and Phone Number).'
-        };
-      }
-
-      // Test basic credential format
-      if (!process.env.TWILIO_ACCOUNT_SID.startsWith('AC')) {
-        console.error('Invalid Twilio Account SID format - should start with AC');
         return {
           success: false,
           error: 'SMS service not properly configured. Please check Twilio credentials (Account SID, Auth Token, and Phone Number).'
@@ -102,12 +109,21 @@ export class MessagingService {
       };
     } catch (error: any) {
       console.error('SMS sending error:', error);
-      // Provide specific error messages for common Twilio authentication issues
-      let errorMessage = error.message || 'Failed to send SMS';
       
+      // Mark credentials as invalid if authentication fails
       if (error.code === 20003 || error.message?.includes('Authentication Error')) {
-        errorMessage = 'SMS service not properly configured. Please check Twilio credentials (Account SID, Auth Token, and Phone Number).';
-      } else if (error.code === 21211) {
+        twilioCredentialsValid = false;
+        process.env.TWILIO_LAST_AUTH_ERROR = 'true';
+        console.error('Twilio authentication failed - marking credentials as invalid');
+        return {
+          success: false,
+          error: 'SMS service not properly configured. Please check Twilio credentials (Account SID, Auth Token, and Phone Number).'
+        };
+      }
+      
+      // Handle other Twilio errors
+      let errorMessage = error.message || 'Failed to send SMS';
+      if (error.code === 21211) {
         errorMessage = 'Invalid phone number format. Please check the recipient phone number.';
       } else if (error.code === 21610) {
         errorMessage = 'Message cannot be sent to unverified number in trial account.';
@@ -130,7 +146,16 @@ export class MessagingService {
         console.error('Twilio client not configured - missing credentials');
         return {
           success: false,
-          error: 'WhatsApp service not configured. Please check Twilio credentials.'
+          error: 'WhatsApp service not properly configured. Please check Twilio credentials (Account SID, Auth Token, and Phone Number).'
+        };
+      }
+
+      // If credentials have been marked as invalid from previous attempts, don't retry
+      if (twilioCredentialsValid === false && process.env.TWILIO_LAST_AUTH_ERROR) {
+        console.error('WhatsApp blocked - Twilio credentials previously failed authentication');
+        return {
+          success: false,
+          error: 'WhatsApp service not properly configured. Please check Twilio credentials (Account SID, Auth Token, and Phone Number).'
         };
       }
 
@@ -152,12 +177,21 @@ export class MessagingService {
       };
     } catch (error: any) {
       console.error('WhatsApp sending error:', error);
-      // Provide specific error messages for common Twilio authentication issues
-      let errorMessage = error.message || 'Failed to send WhatsApp message';
       
+      // Mark credentials as invalid if authentication fails
       if (error.code === 20003 || error.message?.includes('Authentication Error')) {
-        errorMessage = 'WhatsApp service not properly configured. Please check Twilio credentials (Account SID, Auth Token, and Phone Number).';
-      } else if (error.code === 21211) {
+        twilioCredentialsValid = false;
+        process.env.TWILIO_LAST_AUTH_ERROR = 'true';
+        console.error('Twilio authentication failed for WhatsApp - marking credentials as invalid');
+        return {
+          success: false,
+          error: 'WhatsApp service not properly configured. Please check Twilio credentials (Account SID, Auth Token, and Phone Number).'
+        };
+      }
+      
+      // Handle other Twilio errors
+      let errorMessage = error.message || 'Failed to send WhatsApp message';
+      if (error.code === 21211) {
         errorMessage = 'Invalid phone number format. Please check the recipient phone number.';
       } else if (error.code === 21610) {
         errorMessage = 'Message cannot be sent to unverified number in trial account.';
