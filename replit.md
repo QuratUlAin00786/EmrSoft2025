@@ -39,7 +39,7 @@ Preferred communication style: Simple, everyday language.
 ### Key Components
 - **Database Schema**: Organizations, Users (role-based access), Patients, Medical Records (AI integration), Appointments, AI Insights, Subscriptions.
 - **Authentication & Authorization**: JWT (7-day expiration), 6 user roles (admin, doctor, nurse, receptionist, patient, sample_taker) with granular module permissions, dynamic UI based on roles, tenant isolation, secure session management.
-- **AI Integration**: OpenAI GPT-4o for risk assessment, drug interaction, treatment suggestions, preventive care. Includes confidence scoring.
+- **AI Integration**: Local NLP-powered chatbot with intent classification for appointment booking and general healthcare queries. OpenAI GPT-4o available for risk assessment, drug interaction, treatment suggestions, preventive care. Includes confidence scoring.
 
 ### Data Flow
 - Request processing with tenant middleware.
