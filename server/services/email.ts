@@ -645,7 +645,7 @@ Cura EMR Team
           
           <div class="footer">
             <div class="footer-logo">
-              <img src="cid:cura-email-logo" alt="Cura EMR" style="width: 65px; height: 65px; object-fit: contain;">
+              <img src="cid:cura-email-logo" alt="Cura EMR" style="width: 65px; height: 65px; object-fit: contain; display: block; margin: 0 auto;">
             </div>
             <div class="footer-brand">
               <strong>CURA EMR</strong> | Powered by Halo Group & Averox
