@@ -119,6 +119,7 @@ export class MessagingService {
 
       // Validate phone number format
       const phoneNumber = this.formatPhoneNumber(to);
+      console.log(`📱 Phone number formatting: "${to}" -> "${phoneNumber}"`);
       
       const messageOptions: any = {
         body: message,
@@ -344,17 +345,33 @@ This is an urgent medical notification.`;
   private formatPhoneNumber(phoneNumber: string): string {
     // Remove all non-digit characters
     const cleaned = phoneNumber.replace(/\D/g, '');
+    console.log(`🔍 Cleaned number: "${cleaned}", length: ${cleaned.length}`);
     
-    // Add + if not present and assume it's a UK number if no country code
-    if (!cleaned.startsWith('44') && cleaned.length === 10) {
-      return `+44${cleaned}`;
+    // Handle different country formats
+    if (cleaned.startsWith('92')) {
+      // Already has Pakistan country code
+      console.log(`✅ Pakistan country code detected: +${cleaned}`);
+      return `+${cleaned}`;
+    } else if (cleaned.startsWith('03') && cleaned.length === 11) {
+      // Pakistani mobile number (03XXXXXXXX) - convert to international  
+      const formatted = `+92${cleaned.substring(1)}`;
+      console.log(`✅ Pakistani mobile detected: ${cleaned} -> ${formatted}`);
+      return formatted;
     } else if (cleaned.startsWith('44')) {
+      // UK number
       return `+${cleaned}`;
     } else if (cleaned.startsWith('1') && cleaned.length === 11) {
+      // US number
       return `+${cleaned}`;
+    } else if (cleaned.length === 10 && !cleaned.startsWith('0')) {
+      // Assume US number if 10 digits
+      return `+1${cleaned}`;
     }
     
-    return `+${cleaned}`;
+    // Default: add + prefix if not present
+    const result = cleaned.startsWith('+') ? cleaned : `+${cleaned}`;
+    console.log(`⚠️ Default formatting applied: ${cleaned} -> ${result}`);
+    return result;
   }
 
   /**
