@@ -445,13 +445,8 @@ export function AIChatWidget() {
     // Always reset state regardless of current listening status
     setIsListening(false);
     
-    // Clean up any interim text in brackets and finalize transcript
-    setInput(prev => {
-      // Remove interim text in brackets and return clean final text
-      return prev.replace(/\s*\[.*?\]\s*$/, '').trim();
-    });
-    
-    setTranscriptBuffer("");
+    // DON'T clear the transcript buffer or modify input here
+    // Let the onend handler preserve the final transcript
   };
 
   const quickActions = [
