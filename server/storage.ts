@@ -1776,7 +1776,9 @@ export class DatabaseStorage implements IStorage {
       senderName: messageData.senderName || "Current User",
       senderRole: messageData.senderRole || "admin",
       recipientId: messageData.recipientId || "unknown",
-      recipientName: messageData.recipientName || "Unknown",
+      recipientName: messageData.recipientName && messageData.recipientName !== "Unknown" 
+        ? messageData.recipientName 
+        : messageData.recipientId || "Unknown",
       conversationId: messageData.conversationId,
       subject: messageData.subject || "New Message",
       content: messageData.content,
@@ -1829,7 +1831,7 @@ export class DatabaseStorage implements IStorage {
           id: conversationId,
           participants: [
             { id: messageData.senderId || "current_user", name: messageData.senderName || "Current User", role: messageData.senderRole || "staff" },
-            { id: messageData.recipientId, name: messageData.recipientId, role: "patient" }
+            { id: messageData.recipientId, name: messageData.recipientName || messageData.recipientId, role: "patient" }
           ],
           lastMessage: {
             id: messageId,
