@@ -90,6 +90,7 @@ export function AIChatWidget() {
   const transcriptBufferRef = useRef("");
   const isProcessingSpeechRef = useRef(false);
   const speechEndTimeRef = useRef(0);
+  const lastSpeechInputRef = useRef("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -226,6 +227,7 @@ export function AIChatWidget() {
         // Ensure final transcript is preserved in the input field WITHOUT auto-sending
         if (transcriptBufferRef.current.trim()) {
           const finalText = transcriptBufferRef.current.trim();
+          lastSpeechInputRef.current = finalText;
           setInput(finalText);
           console.log('Final transcript preserved on end:', finalText);
         }
@@ -233,8 +235,13 @@ export function AIChatWidget() {
         // Reset speech processing flag after a longer delay to prevent auto-send
         setTimeout(() => {
           isProcessingSpeechRef.current = false;
+          // Clear speech input tracking after delay to allow manual sending
+          setTimeout(() => {
+            lastSpeechInputRef.current = "";
+            console.log('Speech input tracking cleared - manual send now allowed');
+          }, 2000);
           console.log('Speech processing completed, auto-send protection disabled');
-        }, 2000);
+        }, 3000);
       };
       
       setRecognition(recognition);
@@ -372,9 +379,11 @@ export function AIChatWidget() {
       e.preventDefault();
       // Prevent auto-send during speech recognition processing or shortly after speech ends
       const timeSinceSpeechEnd = Date.now() - speechEndTimeRef.current;
-      if (isProcessingSpeechRef.current || timeSinceSpeechEnd < 2000) {
-        console.log('Enter key blocked - speech processing or recent speech end');
-        console.log('Speech processing:', isProcessingSpeechRef.current, 'Time since end:', timeSinceSpeechEnd);
+      const isRecentSpeechInput = input === lastSpeechInputRef.current && input.trim().length > 0;
+      
+      if (isProcessingSpeechRef.current || timeSinceSpeechEnd < 3000 || isRecentSpeechInput) {
+        console.log('Enter key blocked - speech processing, recent speech end, or speech input detected');
+        console.log('Speech processing:', isProcessingSpeechRef.current, 'Time since end:', timeSinceSpeechEnd, 'Is speech input:', isRecentSpeechInput);
         return;
       }
       handleSendMessage();

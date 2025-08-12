@@ -334,10 +334,10 @@ Provide intelligent, contextually aware responses that demonstrate advanced lang
   private async createAutomaticAppointment(appointmentDetails: any, organizationId: number): Promise<void> {
     try {
       // Find patient by name
-      let patient = null;
+      let patient: any = null;
       if (appointmentDetails.patient_name) {
-        const patients = await storage.getPatients(organizationId);
-        patient = patients.find(p => 
+        const patients = await storage.getPatientsByOrganization(organizationId);
+        patient = patients.find((p: any) => 
           p.firstName?.toLowerCase().includes(appointmentDetails.patient_name.toLowerCase()) ||
           p.lastName?.toLowerCase().includes(appointmentDetails.patient_name.toLowerCase()) ||
           `${p.firstName} ${p.lastName}`.toLowerCase().includes(appointmentDetails.patient_name.toLowerCase())
@@ -345,10 +345,10 @@ Provide intelligent, contextually aware responses that demonstrate advanced lang
       }
 
       // Find provider by name or use default
-      let provider = null;
+      let provider: any = null;
       if (appointmentDetails.doctor_preference) {
-        const users = await storage.getAllUsers(organizationId);
-        provider = users.find(u => 
+        const users = await storage.getUsersByOrganization(organizationId);
+        provider = users.find((u: any) => 
           u.role === 'doctor' &&
           (u.firstName?.toLowerCase().includes(appointmentDetails.doctor_preference.toLowerCase()) ||
            u.lastName?.toLowerCase().includes(appointmentDetails.doctor_preference.toLowerCase()) ||
@@ -358,8 +358,8 @@ Provide intelligent, contextually aware responses that demonstrate advanced lang
 
       // Use first available doctor if no specific preference
       if (!provider) {
-        const users = await storage.getAllUsers(organizationId);
-        provider = users.find(u => u.role === 'doctor');
+        const users = await storage.getUsersByOrganization(organizationId);
+        provider = users.find((u: any) => u.role === 'doctor');
       }
 
       // Parse date and time
