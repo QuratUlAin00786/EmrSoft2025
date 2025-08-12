@@ -28,7 +28,9 @@ import {
   Eye,
   Edit,
   Trash2,
-  PenTool
+  PenTool,
+  Paperclip,
+  X
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -186,6 +188,7 @@ export default function PrescriptionsPage() {
   const [showPharmacyDialog, setShowPharmacyDialog] = useState(false);
   const [selectedPrescriptionId, setSelectedPrescriptionId] = useState<string>("");
   const [pharmacyEmail, setPharmacyEmail] = useState<string>("pharmacy@halohealth.co.uk");
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [patients, setPatients] = useState<any[]>([]);
   const [providers, setProviders] = useState<any[]>([]);
   const queryClient = useQueryClient();
@@ -421,7 +424,12 @@ export default function PrescriptionsPage() {
   });
 
   const sendToPharmacyMutation = useMutation({
-    mutationFn: async ({ prescriptionId, pharmacyData, patientName }: { prescriptionId: string, pharmacyData: any, patientName?: string }) => {
+    mutationFn: async ({ prescriptionId, pharmacyData, patientName, attachments }: { 
+      prescriptionId: string, 
+      pharmacyData: any, 
+      patientName?: string,
+      attachments?: File[]
+    }) => {
       const token = localStorage.getItem('auth_token');
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
@@ -441,15 +449,31 @@ export default function PrescriptionsPage() {
       });
       if (!response.ok) throw new Error('Failed to send prescription to pharmacy');
       
-      // Then send the PDF email to the pharmacy
+      // Then send the PDF email to the pharmacy with attachments
+      const formData = new FormData();
+      formData.append('pharmacyEmail', pharmacyData.email);
+      formData.append('pharmacyName', pharmacyData.name);
+      formData.append('patientName', patientName || 'Patient');
+      
+      // Add file attachments if any
+      if (attachments && attachments.length > 0) {
+        attachments.forEach((file, index) => {
+          formData.append(`attachments`, file);
+        });
+      }
+      
+      const emailHeaders: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        emailHeaders['Authorization'] = `Bearer ${token}`;
+      }
+      
       const emailResponse = await fetch(`/api/prescriptions/${prescriptionId}/send-pdf`, {
         method: "POST",
-        headers,
-        body: JSON.stringify({
-          pharmacyEmail: pharmacyData.email,
-          pharmacyName: pharmacyData.name,
-          patientName: patientName
-        }),
+        headers: emailHeaders,
+        body: formData,
         credentials: "include",
       });
       
@@ -622,7 +646,20 @@ export default function PrescriptionsPage() {
 
   const handleSendToPharmacy = (prescriptionId: string) => {
     setSelectedPrescriptionId(prescriptionId);
+    setAttachedFiles([]); // Reset attached files
     setShowPharmacyDialog(true);
+  };
+
+  const handleFileAttachment = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const newFiles = Array.from(files);
+      setAttachedFiles(prev => [...prev, ...newFiles]);
+    }
+  };
+
+  const removeAttachedFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleEditPrescription = (prescription: Prescription) => {
@@ -1522,6 +1559,63 @@ export default function PrescriptionsPage() {
                 />
               </div>
               
+              {/* File Attachment Section */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Optional File Attachments</Label>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => document.getElementById('file-input')?.click()}
+                    className="flex items-center gap-2"
+                  >
+                    <Paperclip className="h-4 w-4" />
+                    Attach Files
+                  </Button>
+                  <input
+                    id="file-input"
+                    type="file"
+                    multiple
+                    onChange={handleFileAttachment}
+                    className="hidden"
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  />
+                  <span className="text-xs text-gray-500">
+                    PDF, DOC, DOCX, JPG, PNG files accepted
+                  </span>
+                </div>
+                
+                {/* Display attached files */}
+                {attachedFiles.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Attached Files:</p>
+                    <div className="space-y-1">
+                      {attachedFiles.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded border">
+                          <div className="flex items-center gap-2">
+                            <Paperclip className="h-3 w-3 text-gray-500" />
+                            <span className="text-sm text-gray-700">{file.name}</span>
+                            <span className="text-xs text-gray-500">
+                              ({(file.size / 1024).toFixed(1)} KB)
+                            </span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeAttachedFile(index)}
+                            className="h-6 w-6 p-0 hover:bg-red-100"
+                          >
+                            <X className="h-3 w-3 text-red-500" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
               <div className="flex items-center gap-2 text-sm">
                 <FileText className="h-4 w-4 text-blue-600" />
                 <span>PDF prescription will be generated automatically</span>
@@ -1550,7 +1644,8 @@ export default function PrescriptionsPage() {
                   sendToPharmacyMutation.mutate({ 
                     prescriptionId: selectedPrescriptionId, 
                     pharmacyData,
-                    patientName: prescription?.patientName || "Patient"
+                    patientName: prescription?.patientName || "Patient",
+                    attachments: attachedFiles.length > 0 ? attachedFiles : undefined
                   });
                 }}
                 disabled={sendToPharmacyMutation.isPending || !pharmacyEmail.trim()}

@@ -16,9 +16,36 @@ import { insertGdprConsentSchema, insertGdprDataRequestSchema } from "../shared/
 import { processAppointmentBookingChat, generateAppointmentSummary } from "./anthropic";
 import { inventoryService } from "./services/inventory";
 import { emailService } from "./services/email";
+import multer from "multer";
 
 // In-memory storage for voice notes - persistent across server restarts
 let voiceNotes: any[] = [];
+
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+    files: 5 // Maximum 5 files
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept PDF, DOC, DOCX, JPG, PNG files
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'image/jpeg',
+      'image/jpg',
+      'image/png'
+    ];
+    
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only PDF, DOC, DOCX, JPG, PNG files are allowed.'));
+    }
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize Multi-Tenant Core Package
@@ -4512,25 +4539,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // PDF Email endpoint for prescriptions
-  app.post("/api/prescriptions/:id/send-pdf", authMiddleware, async (req: TenantRequest, res) => {
+  // PDF Email endpoint for prescriptions with file attachments
+  app.post("/api/prescriptions/:id/send-pdf", authMiddleware, upload.array('attachments', 5), async (req: TenantRequest, res) => {
     try {
       const prescriptionId = parseInt(req.params.id);
-      const emailData = z.object({
-        pharmacyEmail: z.string().email(),
-        pharmacyName: z.string().optional(),
-        patientName: z.string().optional()
-      }).parse(req.body);
+      
+      // Parse form data fields
+      const pharmacyEmail = req.body.pharmacyEmail;
+      const pharmacyName = req.body.pharmacyName || 'Pharmacy Team';
+      let patientName = req.body.patientName;
+
+      // Validate required fields
+      if (!pharmacyEmail || !pharmacyEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+        return res.status(400).json({ error: "Valid pharmacy email is required" });
+      }
 
       console.log('Email request data:', {
         prescriptionId,
-        pharmacyEmail: emailData.pharmacyEmail,
-        pharmacyName: emailData.pharmacyName,
-        patientName: emailData.patientName
+        pharmacyEmail,
+        pharmacyName,
+        patientName,
+        attachmentsCount: req.files?.length || 0
       });
 
       // If no patient name provided, try to get it from the prescription record
-      let patientName = emailData.patientName;
       if (!patientName) {
         try {
           const prescription = await storage.getPrescription(prescriptionId, req.organizationId);
@@ -4556,42 +4588,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate professional HTML email template with clinic logo and branding
       const emailTemplate = emailService.generatePrescriptionEmail(
         patientName || 'Patient',
-        emailData.pharmacyName || 'Pharmacy Team',
+        pharmacyName,
         undefined, // prescriptionData - not needed for this basic email
         clinicLogoUrl,
         organizationName
       );
 
-      // In a real implementation, you would generate and attach the PDF here
-      // For now, we'll send the professional HTML email without attachment
+      // Prepare attachments array including user uploaded files
+      const attachments: any[] = [];
+
+      // Add user-uploaded file attachments
+      if (req.files && Array.isArray(req.files)) {
+        req.files.forEach((file: Express.Multer.File, index: number) => {
+          attachments.push({
+            filename: file.originalname,
+            content: file.buffer,
+            contentType: file.mimetype
+          });
+          console.log(`Added attachment ${index + 1}: ${file.originalname} (${file.size} bytes)`);
+        });
+      }
+
+      // TODO: In a real implementation, generate and add prescription PDF here
+      // For now, we'll send the professional HTML email with user attachments
       const success = await emailService.sendEmail({
-        to: emailData.pharmacyEmail,
+        to: pharmacyEmail,
         subject: emailTemplate.subject,
         html: emailTemplate.html,
         text: emailTemplate.text,
-        // Future: Add PDF attachment here
-        // attachments: [{
-        //   filename: `prescription-${emailData.patientName || 'patient'}.pdf`,
-        //   content: pdfBuffer,
-        //   contentType: 'application/pdf'
-        // }]
+        attachments: attachments.length > 0 ? attachments : undefined
       });
 
       if (success) {
+        const attachmentInfo = attachments.length > 0 
+          ? ` with ${attachments.length} attachment(s)`
+          : '';
         res.json({ 
           success: true, 
-          message: `Prescription PDF sent successfully to ${emailData.pharmacyEmail}` 
+          message: `Prescription email sent successfully to ${pharmacyEmail}${attachmentInfo}`,
+          attachmentsCount: attachments.length
         });
       } else {
-        res.status(500).json({ error: "Failed to send prescription PDF" });
+        res.status(500).json({ error: "Failed to send prescription email" });
       }
     } catch (error) {
       console.error("Error sending prescription PDF:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          error: "Validation failed", 
-          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
-        });
+      if (error.message?.includes('Invalid file type')) {
+        return res.status(400).json({ error: error.message });
       }
       res.status(500).json({ error: "Failed to send prescription PDF" });
     }
