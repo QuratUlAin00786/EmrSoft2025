@@ -95,11 +95,19 @@ export function AIChatWidget() {
 
   // Initialize speech recognition
   useEffect(() => {
-    if (typeof window !== 'undefined' && ((window as any).webkitSpeechRecognition || (window as any).SpeechRecognition)) {
+    if (typeof window !== 'undefined') {
+      // Check for both webkit and standard versions
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      
+      if (!SpeechRecognition) {
+        console.warn('Speech recognition not supported in this browser');
+        return;
+      }
+
       const recognition = new SpeechRecognition();
       
-      recognition.continuous = true;
+      // Configure recognition settings
+      recognition.continuous = false; // Changed to false for better control
       recognition.interimResults = true;
       recognition.lang = 'en-US';
       recognition.maxAlternatives = 1;
@@ -111,28 +119,34 @@ export function AIChatWidget() {
       };
       
       recognition.onresult = (event: any) => {
+        console.log('Speech recognition result received');
         let finalTranscript = '';
         let interimTranscript = '';
         
         // Process all results to get the complete transcript
-        for (let i = 0; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript.trim();
           if (event.results[i].isFinal) {
-            finalTranscript += transcript;
+            finalTranscript += transcript + ' ';
+            console.log('Final transcript segment:', transcript);
           } else {
-            interimTranscript += transcript;
+            interimTranscript += transcript + ' ';
+            console.log('Interim transcript segment:', transcript);
           }
         }
         
         // Update input field with complete transcript
         if (finalTranscript) {
-          // Final result: add new transcript to buffer
-          const newBuffer = transcriptBuffer + finalTranscript;
+          // Final result: accumulate in buffer
+          const newBuffer = (transcriptBuffer + finalTranscript).trim();
           setTranscriptBuffer(newBuffer);
           setInput(newBuffer);
+          console.log('Updated transcript buffer:', newBuffer);
         } else if (interimTranscript) {
-          // Interim result: show with brackets for preview
-          setInput(transcriptBuffer + '[' + interimTranscript + ']');
+          // Interim result: show current buffer + interim in brackets
+          const currentBuffer = transcriptBuffer.trim();
+          const preview = currentBuffer + (currentBuffer ? ' ' : '') + '[' + interimTranscript.trim() + ']';
+          setInput(preview);
         }
       };
       
@@ -140,37 +154,68 @@ export function AIChatWidget() {
         console.error('Speech recognition error:', event.error);
         
         // Handle different error types appropriately
-        if (event.error === 'no-speech') {
-          // Don't treat no-speech as a critical error, just stop gracefully
-          console.log('No speech detected, stopping recognition');
-        } else if (event.error === 'aborted') {
-          // Recognition was manually stopped, don't log as error
-          console.log('Speech recognition aborted');
-        } else if (event.error === 'network') {
-          toast({
-            title: "Network Error",
-            description: "Check your internet connection for voice recognition",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Voice Recognition Error",
-            description: `Recognition failed: ${event.error}`,
-            variant: "destructive",
-          });
+        switch (event.error) {
+          case 'no-speech':
+            console.log('No speech detected, stopping gracefully');
+            // Don't show error for no speech - this is normal
+            break;
+          case 'aborted':
+            console.log('Speech recognition was stopped by user');
+            break;
+          case 'audio-capture':
+            toast({
+              title: "Microphone Error",
+              description: "Unable to access microphone. Please check your settings.",
+              variant: "destructive",
+            });
+            break;
+          case 'not-allowed':
+            toast({
+              title: "Permission Denied",
+              description: "Please allow microphone access to use voice recognition.",
+              variant: "destructive",
+            });
+            break;
+          case 'network':
+            toast({
+              title: "Network Error",
+              description: "Check your internet connection for voice recognition.",
+              variant: "destructive",
+            });
+            break;
+          case 'service-not-allowed':
+            toast({
+              title: "Service Unavailable",
+              description: "Speech recognition service is not available.",
+              variant: "destructive",
+            });
+            break;
+          default:
+            toast({
+              title: "Voice Recognition Error",
+              description: `Recognition failed: ${event.error}`,
+              variant: "destructive",
+            });
         }
         
         setIsListening(false);
       };
       
       recognition.onend = () => {
-        console.log('Speech recognition ended');
+        console.log('Speech recognition ended naturally');
         setIsListening(false);
+        
+        // Clean up any interim text in brackets when recognition ends
+        setInput(prev => {
+          const cleanText = prev.replace(/\s*\[.*?\]\s*$/, '').trim();
+          console.log('Cleaned final transcript:', cleanText);
+          return cleanText;
+        });
       };
       
       setRecognition(recognition);
     }
-  }, [toast, transcriptBuffer]);
+  }, [toast]); // Removed transcriptBuffer dependency to prevent re-initialization
 
   const handleSendMessage = async () => {
     // Get clean final message
@@ -190,11 +235,12 @@ export function AIChatWidget() {
     setTranscriptBuffer(""); // Clear transcript buffer
 
     try {
-      const response = await apiRequest("POST", "/api/chatbot/chat", {
-        messages: [...messages.slice(-5).map(msg => ({
-          role: msg.type,
+      const response = await apiRequest("POST", "/api/ai-agent/chat", {
+        message: finalMessage,
+        conversationHistory: messages.slice(-5).map(msg => ({
+          role: msg.type === 'user' ? 'user' : 'assistant',
           content: msg.content
-        })), { role: 'user', content: finalMessage }] // Send conversation history with current message
+        }))
       });
 
       const responseData = await response.json();
@@ -299,40 +345,59 @@ export function AIChatWidget() {
 
   const startVoiceRecognition = () => {
     if (!recognition) {
-      console.error("Speech recognition not available");
+      toast({
+        title: "Voice Recognition Not Supported",
+        description: "Your browser doesn't support voice recognition. Please type your message instead.",
+        variant: "destructive",
+      });
       return;
     }
 
     // Only start if not already listening
     if (isListening) {
-      console.log("Speech recognition already active");
+      console.log("Speech recognition already active, skipping start request");
       return;
     }
 
     try {
-      setTranscriptBuffer("");
-      // Clear any existing input when starting voice recognition to prevent mixing
-      setInput("");
-      recognition.start();
+      // Request microphone permissions explicitly
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(() => {
+          console.log('Microphone access granted, starting speech recognition');
+          setTranscriptBuffer("");
+          setInput("");
+          recognition.start();
+        })
+        .catch((permissionError) => {
+          console.error('Microphone permission denied:', permissionError);
+          toast({
+            title: "Microphone Access Required",
+            description: "Please allow microphone access to use voice recognition.",
+            variant: "destructive",
+          });
+        });
     } catch (error: any) {
       console.error("Error starting voice recognition:", error);
       
-      // Handle specific "already started" error
-      if (error.message && error.message.includes('already started')) {
-        // Force stop and reset state
+      if (error.name === 'InvalidStateError') {
+        // Recognition already started, stop and restart
         setIsListening(false);
         try {
           recognition.stop();
-          // Wait longer before restarting
           setTimeout(() => {
-            if (recognition && !isListening) {
+            if (!isListening) {
               try {
                 recognition.start();
               } catch (retryError) {
                 console.error("Retry failed:", retryError);
+                toast({
+                  title: "Voice Recognition Error",
+                  description: "Unable to restart voice recognition.",
+                  variant: "destructive",
+                });
               }
             }
-          }, 500);
+          }, 1000);
         } catch (stopError) {
           console.error("Failed to stop recognition:", stopError);
         }

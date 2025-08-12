@@ -6,7 +6,7 @@ interface SpeechRecognition extends EventTarget {
   lang: string;
   maxAlternatives: number;
   serviceURI: string;
-  grammars: SpeechGrammarList;
+  grammars?: SpeechGrammarList;
   
   start(): void;
   stop(): void;
