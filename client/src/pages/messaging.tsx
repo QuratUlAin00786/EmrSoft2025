@@ -229,8 +229,12 @@ export default function MessagingPage() {
   const { data: messages = [], isLoading: messagesLoading } = useQuery({
     queryKey: ['/api/messaging/messages', selectedConversation],
     enabled: !!selectedConversation,
+    staleTime: 0, // Always refetch
+    gcTime: 0, // Don't cache (TanStack Query v5)
+    refetchOnMount: 'always', // Always refetch when component mounts
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
+      console.log('🔥 FETCHING MESSAGES for conversation:', selectedConversation);
       const response = await fetch(`/api/messaging/messages/${selectedConversation}`, {
         method: 'GET',
         headers: {
@@ -240,8 +244,11 @@ export default function MessagingPage() {
         },
         credentials: 'include'
       });
+      console.log('🔥 MESSAGES RESPONSE STATUS:', response.status);
       if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
-      return response.json();
+      const data = await response.json();
+      console.log('🔥 MESSAGES DATA RECEIVED:', data.length, 'messages');
+      return data;
     }
   });
 
@@ -530,12 +537,14 @@ export default function MessagingPage() {
       const responseData = await response.json();
       console.log('🔥 CONVERSATION MESSAGE RESPONSE:', responseData);
       
-      // Immediately invalidate and refetch messages to show the new message
-      queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
-      queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
-      
-      // Force immediate refetch to show the message
-      await queryClient.refetchQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
+      // Force immediate cache invalidation and refetch
+      console.log('🔥 STARTING CACHE INVALIDATION for conversation:', selectedConversation);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] }),
+        queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] }),
+        queryClient.refetchQueries({ queryKey: ['/api/messaging/messages', selectedConversation] })
+      ]);
+      console.log('🔥 CACHE INVALIDATION COMPLETED');
       
       toast({
         title: "Message Sent",
