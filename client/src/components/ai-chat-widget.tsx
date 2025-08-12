@@ -82,6 +82,7 @@ export function AIChatWidget() {
   const [isListening, setIsListening] = useState(false);
   const [recognition, setRecognition] = useState<CustomSpeechRecognition | null>(null);
   const [transcriptBuffer, setTranscriptBuffer] = useState("");
+  const transcriptBufferRef = useRef("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -116,6 +117,7 @@ export function AIChatWidget() {
         console.log('Speech recognition started successfully');
         setIsListening(true);
         setTranscriptBuffer("");
+        transcriptBufferRef.current = "";
       };
       
       recognition.onresult = (event: any) => {
@@ -137,21 +139,17 @@ export function AIChatWidget() {
         
         // Update input field with complete transcript
         if (finalTranscript) {
-          // Final result: accumulate in buffer and set immediately to input
-          setTranscriptBuffer(prev => {
-            const newBuffer = (prev + finalTranscript).trim();
-            console.log('Updated transcript buffer:', newBuffer);
-            setInput(newBuffer); // Set the final transcript directly to input
-            return newBuffer;
-          });
+          // Final result: accumulate in buffer and set to input
+          const newBuffer = (transcriptBufferRef.current + finalTranscript).trim();
+          console.log('Updated transcript buffer:', newBuffer);
+          transcriptBufferRef.current = newBuffer;
+          setTranscriptBuffer(newBuffer);
+          setInput(newBuffer); // Set the final transcript directly to input
         } else if (interimTranscript) {
           // Interim result: show current transcript buffer + interim in brackets for preview
-          setInput(prev => {
-            // Get current buffer without brackets
-            const cleanPrev = prev.replace(/\s*\[.*?\]\s*$/, '').trim();
-            const preview = cleanPrev + (cleanPrev ? ' ' : '') + '[' + interimTranscript.trim() + ']';
-            return preview;
-          });
+          const currentBuffer = transcriptBufferRef.current.trim();
+          const preview = currentBuffer + (currentBuffer ? ' ' : '') + '[' + interimTranscript.trim() + ']';
+          setInput(preview);
         }
       };
       
@@ -210,11 +208,13 @@ export function AIChatWidget() {
         console.log('Speech recognition ended naturally');
         setIsListening(false);
         
-        // Clean up any interim text in brackets when recognition ends
+        // Clean up any interim text in brackets but preserve the final transcript
         setInput(prev => {
+          // If we have brackets, clean them up but keep the text before them
           const cleanText = prev.replace(/\s*\[.*?\]\s*$/, '').trim();
           console.log('Cleaned final transcript:', cleanText);
-          return cleanText;
+          // If cleanText is empty but we have transcriptBuffer, use that
+          return cleanText || transcriptBufferRef.current.trim();
         });
       };
       
