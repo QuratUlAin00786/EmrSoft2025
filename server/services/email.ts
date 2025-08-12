@@ -62,7 +62,8 @@ class EmailService {
       console.log('[EMAIL] Using Gmail SMTP for real email delivery:');
       console.log('[EMAIL] Host:', smtpConfig.host);
       console.log('[EMAIL] User:', smtpConfig.auth.user);
-      console.log('[EMAIL] Emails will be sent from: Cura EMR <noreply@curampms.ai>');
+      console.log('[EMAIL] Automated notifications from: Cura EMR <noreply@curapms.ai>');
+      console.log('[EMAIL] Communication & replies from: Cura EMR <info@curapms.ai>');
       
       this.transporter = nodemailer.createTransport(smtpConfig);
       this.initialized = true;
@@ -89,8 +90,22 @@ class EmailService {
         cid: 'cura-email-logo'
       });
 
+      // Determine which email to use based on message type
+      let fromAddress = options.from;
+      if (!fromAddress) {
+        // Use info@curapms.ai for communication & replies, noreply@curapms.ai for automated notifications
+        if (options.subject?.toLowerCase().includes('reminder') || 
+            options.subject?.toLowerCase().includes('notification') ||
+            options.subject?.toLowerCase().includes('alert') ||
+            options.subject?.toLowerCase().includes('confirmation')) {
+          fromAddress = 'Cura EMR <noreply@curapms.ai>';
+        } else {
+          fromAddress = 'Cura EMR <info@curapms.ai>';
+        }
+      }
+
       const mailOptions = {
-        from: options.from || 'Cura EMR <noreply@curampms.ai>',
+        from: fromAddress,
         to: options.to,
         subject: options.subject,
         text: options.text,
