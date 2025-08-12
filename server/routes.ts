@@ -2276,19 +2276,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Update message with delivery status
             message.deliveryStatus = 'sent';
             message.externalMessageId = result.messageId;
+            res.json(message);
           } else {
             console.error(`${messageType.toUpperCase()} sending failed:`, result.error);
             message.deliveryStatus = 'failed';
             message.error = result.error;
+            // Return error response for failed delivery
+            return res.status(400).json({ 
+              error: `Failed to send ${messageType.toUpperCase()}: ${result.error}`,
+              message: message
+            });
           }
-        } catch (twilioError) {
+        } catch (twilioError: any) {
           console.error('Twilio API error:', twilioError);
           message.deliveryStatus = 'failed';
           message.error = 'Failed to send via Twilio';
+          // Return error response for Twilio failures
+          return res.status(400).json({ 
+            error: `SMS/WhatsApp delivery failed: ${twilioError.message || 'Twilio authentication error'}`,
+            message: message
+          });
         }
+      } else {
+        // For internal messages or emails, return success
+        res.json(message);
       }
-      
-      res.json(message);
     } catch (error) {
       console.error("Error sending message:", error);
       res.status(500).json({ error: "Failed to send message" });

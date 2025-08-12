@@ -284,7 +284,12 @@ export default function MessagingPage() {
         credentials: 'include',
         body: JSON.stringify(messageData),
       });
-      if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
+      
+      if (!response.ok) {
+        // Parse error response for SMS/WhatsApp delivery failures
+        const errorData = await response.json().catch(() => ({ error: response.statusText }));
+        throw new Error(errorData.error || `${response.status}: ${response.statusText}`);
+      }
       return response.json();
     },
     onSuccess: (data, variables) => {
@@ -315,6 +320,14 @@ export default function MessagingPage() {
         });
       }
       // Conversation message success is handled in handleSendConversationMessage
+    },
+    onError: (error: any) => {
+      console.error('Message sending failed:', error);
+      toast({
+        title: "Message Failed",
+        description: error.message || "Failed to send message. Please check your configuration and try again.",
+        variant: "destructive"
+      });
     }
   });
 
