@@ -287,13 +287,22 @@ Provide intelligent, contextually aware responses that demonstrate advanced lang
       try {
         const parsedResponse = JSON.parse(responseText);
         
+        // Debug appointment creation logic
+        console.log('AI Response parsed:', JSON.stringify(parsedResponse, null, 2));
+        console.log('Create appointment flag:', parsedResponse.create_appointment);
+        console.log('Appointment details:', parsedResponse.appointment_details);
+        
         // Check if appointment should be created automatically
         if (parsedResponse.create_appointment && parsedResponse.appointment_details) {
+          console.log('Attempting to create automatic appointment...');
           try {
             await this.createAutomaticAppointment(parsedResponse.appointment_details, context.organizationId);
+            console.log('Automatic appointment creation completed successfully');
           } catch (error) {
             console.error('Failed to create automatic appointment:', error);
           }
+        } else {
+          console.log('Appointment creation skipped - flag:', parsedResponse.create_appointment, 'details present:', !!parsedResponse.appointment_details);
         }
         
         return {
@@ -333,15 +342,22 @@ Provide intelligent, contextually aware responses that demonstrate advanced lang
   // Automatic appointment creation when sufficient information is gathered
   private async createAutomaticAppointment(appointmentDetails: any, organizationId: number): Promise<void> {
     try {
+      console.log('=== AUTOMATIC APPOINTMENT CREATION ===');
+      console.log('Appointment Details:', appointmentDetails);
+      console.log('Organization ID:', organizationId);
+      
       // Find patient by name
       let patient: any = null;
       if (appointmentDetails.patient_name) {
+        console.log('Searching for patient with name:', appointmentDetails.patient_name);
         const patients = await storage.getPatientsByOrganization(organizationId);
+        console.log('Total patients found:', patients.length);
         patient = patients.find((p: any) => 
           p.firstName?.toLowerCase().includes(appointmentDetails.patient_name.toLowerCase()) ||
           p.lastName?.toLowerCase().includes(appointmentDetails.patient_name.toLowerCase()) ||
           `${p.firstName} ${p.lastName}`.toLowerCase().includes(appointmentDetails.patient_name.toLowerCase())
         );
+        console.log('Patient found:', patient ? `${patient.firstName} ${patient.lastName}` : 'None');
       }
 
       // Find provider by name or use default

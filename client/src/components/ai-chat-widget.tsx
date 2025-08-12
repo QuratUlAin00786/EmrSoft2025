@@ -377,15 +377,22 @@ export function AIChatWidget() {
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      // Prevent auto-send during speech recognition processing or shortly after speech ends
-      const timeSinceSpeechEnd = Date.now() - speechEndTimeRef.current;
+      
+      // More aggressive protection - check if this is a rapid input change (typical of speech recognition)
+      const currentTime = Date.now();
+      const timeSinceSpeechEnd = currentTime - speechEndTimeRef.current;
       const isRecentSpeechInput = input === lastSpeechInputRef.current && input.trim().length > 0;
       
-      if (isProcessingSpeechRef.current || timeSinceSpeechEnd < 3000 || isRecentSpeechInput) {
-        console.log('Enter key blocked - speech processing, recent speech end, or speech input detected');
-        console.log('Speech processing:', isProcessingSpeechRef.current, 'Time since end:', timeSinceSpeechEnd, 'Is speech input:', isRecentSpeechInput);
+      // Check if input contains multi-line content typical of speech recognition
+      const hasMultilineContent = input.includes('\n') && input.split('\n').length > 1;
+      
+      // Block if any of these conditions are true
+      if (isProcessingSpeechRef.current || timeSinceSpeechEnd < 5000 || isRecentSpeechInput || hasMultilineContent) {
+        console.log('Enter key blocked - speech processing, recent speech end, speech input, or multiline content');
+        console.log('Speech processing:', isProcessingSpeechRef.current, 'Time since end:', timeSinceSpeechEnd, 'Is speech input:', isRecentSpeechInput, 'Has multiline:', hasMultilineContent);
         return;
       }
+      
       handleSendMessage();
     }
   };
