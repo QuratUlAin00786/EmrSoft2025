@@ -134,11 +134,52 @@ export default function MessagingPage() {
 
   // Authentication token and headers
   const [authToken, setAuthToken] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
     setAuthToken(token);
   }, []);
+
+  // Fetch current user information
+  const { data: user } = useQuery({
+    queryKey: ['/api/auth/validate'],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/auth/validate', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'cura',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
+      const data = await response.json();
+      return data.user;
+    }
+  });
+
+  // Update current user when user data changes
+  useEffect(() => {
+    if (user) {
+      setCurrentUser(user);
+    }
+  }, [user]);
+
+  // Helper function to get the other participant (not the current user)
+  const getOtherParticipant = (conversation: Conversation) => {
+    if (!currentUser) return conversation.participants[0];
+    
+    // Find the participant that is NOT the current user
+    const otherParticipant = conversation.participants.find(p => 
+      p.id !== currentUser.id && p.name !== currentUser.email
+    );
+    
+    // If we can't find another participant, return the first one
+    return otherParticipant || conversation.participants[0];
+  };
 
   // Clear message content when conversation changes
   useEffect(() => {
@@ -1123,17 +1164,17 @@ export default function MessagingPage() {
                           <div className="flex items-start gap-3">
                             <Avatar className="h-10 w-10">
                               <AvatarFallback>
-                                {conversation.participants[0]?.name?.charAt(0) || 'U'}
+                                {getOtherParticipant(conversation)?.name?.charAt(0) || 'U'}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between mb-1">
                                 <p className="font-medium text-sm truncate text-gray-900 dark:text-gray-100">
-                                  {conversation.participants[0]?.name}
+                                  {getOtherParticipant(conversation)?.name}
                                 </p>
                                 <div className="flex items-center gap-1">
                                   <Badge variant="secondary" className="text-xs">
-                                    {conversation.participants[0]?.role}
+                                    {getOtherParticipant(conversation)?.role}
                                   </Badge>
                                   {conversation.unreadCount > 0 && (
                                     <Badge variant="destructive" className="text-xs">
@@ -1191,18 +1232,24 @@ export default function MessagingPage() {
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10">
                         <AvatarFallback>
-                          {conversations.find((c: Conversation) => c.id === selectedConversation)
-                            ?.participants[0]?.name?.charAt(0) || 'U'}
+                          {(() => {
+                            const conv = conversations.find((c: Conversation) => c.id === selectedConversation);
+                            return conv ? getOtherParticipant(conv)?.name?.charAt(0) || 'U' : 'U';
+                          })()}
                         </AvatarFallback>
                       </Avatar>
                       <div>
                         <h3 className="font-medium text-gray-900 dark:text-gray-100">
-                          {conversations.find((c: Conversation) => c.id === selectedConversation)
-                            ?.participants[0]?.name}
+                          {(() => {
+                            const conv = conversations.find((c: Conversation) => c.id === selectedConversation);
+                            return conv ? getOtherParticipant(conv)?.name : '';
+                          })()}
                         </h3>
                         <p className="text-sm text-gray-600 dark:text-gray-300">
-                          {conversations.find((c: Conversation) => c.id === selectedConversation)
-                            ?.participants[0]?.role}
+                          {(() => {
+                            const conv = conversations.find((c: Conversation) => c.id === selectedConversation);
+                            return conv ? getOtherParticipant(conv)?.role : '';
+                          })()}
                         </p>
                       </div>
                     </div>
