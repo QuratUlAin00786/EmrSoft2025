@@ -6,25 +6,43 @@ let authenticationFailed = false; // Track if authentication has failed
 
 function initializeTwilioClient() {
   try {
-    if (process.env.TWILIO_ACCOUNT_SID && 
-        process.env.TWILIO_AUTH_TOKEN && 
-        process.env.TWILIO_PHONE_NUMBER &&
-        process.env.TWILIO_ACCOUNT_SID.startsWith('AC') &&
-        process.env.TWILIO_ACCOUNT_SID.length >= 34) {
+    const accountSid = process.env.TWILIO_ACCOUNT_SID?.trim();
+    const authToken = process.env.TWILIO_AUTH_TOKEN?.trim();
+    const phoneNumber = process.env.TWILIO_PHONE_NUMBER?.trim();
+    
+    console.log('🔧 Twilio Initialization Debug:', {
+      hasSID: !!accountSid,
+      sidFormat: accountSid ? `${accountSid.substring(0, 5)}...` : 'missing',
+      sidLength: accountSid?.length || 0,
+      hasToken: !!authToken,
+      tokenLength: authToken?.length || 0,
+      hasPhone: !!phoneNumber,
+      phoneFormat: phoneNumber || 'missing'
+    });
+    
+    if (accountSid && 
+        authToken && 
+        phoneNumber &&
+        accountSid.startsWith('AC') &&
+        accountSid.length >= 34) {
       
       // Reset authentication flag when reinitializing
       authenticationFailed = false;
       
       // Only create client if credentials appear valid
-      client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-      console.log('Twilio client initialized - credentials will be verified on first use');
+      client = twilio(accountSid, authToken);
+      console.log('✅ Twilio client initialized - credentials will be verified on first use');
       return true;
     } else {
-      console.warn('Twilio credentials invalid or incomplete - SMS services disabled');
+      console.warn('❌ Twilio credentials invalid or incomplete:', {
+        hasValidSID: accountSid?.startsWith('AC') && accountSid?.length >= 34,
+        hasToken: !!authToken,
+        hasPhone: !!phoneNumber
+      });
       return false;
     }
   } catch (error) {
-    console.error('Failed to initialize Twilio client:', error);
+    console.error('❌ Failed to initialize Twilio client:', error);
     client = null;
     return false;
   }
