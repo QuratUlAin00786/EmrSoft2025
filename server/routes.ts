@@ -2820,14 +2820,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Message is required" });
       }
 
-      // Use Anthropic AI to understand the user's intent and perform actions
-      const aiResponse = await aiService.processAgentRequest({
-        message,
-        conversationHistory,
-        organizationId: req.tenant!.id,
+      // Use local NLP to understand the user's intent and perform actions
+      const conversationContext = {
+        conversationId: `conv_${req.user.id}_${Date.now()}`,
         userId: req.user.id,
-        userRole: req.user.role
-      });
+        organizationId: req.tenant!.id,
+        sessionStartTime: new Date(),
+        conversationHistory: conversationHistory.map((msg: any) => ({
+          role: msg.role || 'user',
+          content: msg.content || msg.message,
+          timestamp: new Date(msg.timestamp || Date.now()),
+          intent: msg.intent,
+          entities: msg.entities
+        })),
+        userProfile: {
+          medicalHistory: [],
+          preferences: {},
+          language: 'en',
+          complexityLevel: 'intermediate' as const
+        },
+        contextualKnowledge: {
+          recentTopics: [],
+          extractedEntities: {},
+          sentimentAnalysis: {
+            overall: 'neutral' as const,
+            confidence: 0.8
+          }
+        }
+      };
+      
+      const nlpResult = await (aiService as any).processWithLocalNLP(message, conversationContext);
+      
+      // Convert local NLP result to agent response format
+      const aiResponse = {
+        intent: nlpResult.intent,
+        response: nlpResult.response,
+        confidence: nlpResult.confidence,
+        parameters: null
+      };
 
       // Perform actions based on AI analysis
       let actionResult = null;
@@ -5619,79 +5649,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       };
 
-      // Process message with enhanced NLP capabilities
+      // Use local NLP processing directly
       const lastMessage = messages[messages.length - 1];
       
-      // Step 1: Classify medical intent with enhanced NLP
-      const intentClassification = await aiService.classifyMedicalIntent(lastMessage.content, conversationContext);
+      // Process with local NLP fallback (call private method through a workaround)
+      const nlpResult = await (aiService as any).processWithLocalNLP(lastMessage.content, conversationContext);
       
-      // Step 2: Generate medically-informed response
-      const medicalResponse = await aiService.generateMedicallyInformedResponse(
-        lastMessage.content, 
-        intentClassification, 
-        conversationContext
-      );
-
-      // Step 3: Process with comprehensive NLP understanding
-      const nlpResult = await aiService.processConversationWithNLP(lastMessage.content, conversationContext);
-
-      // Step 4: Handle appointment booking if needed (fallback to existing logic)
+      // Use the response from local NLP directly
       let finalResponse = nlpResult.response;
-      
-      if (intentClassification.primary_intent === 'appointment_booking' || nlpResult.intent === 'appointment_booking') {
-        try {
-          // Use existing appointment booking logic with enhanced context
-          const bookingContext = {
-            availableDoctors,
-            availableTimeSlots,
-            patientInfo: {
-              id: req.user.id,
-              name: `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim(),
-              email: req.user.email || ''
-            },
-            organizationId: req.tenant!.id
-          };
 
-          const bookingResult = await processAppointmentBookingChat(messages, bookingContext);
-          
-          if (bookingResult.intent === 'BOOK_APPOINTMENT' && bookingResult.extractedData) {
-            // Process appointment booking
-            const appointment = await storage.createAppointment({
-              organizationId: req.tenant!.id,
-              patientId: bookingResult.extractedData.patientId || req.user.id,
-              providerId: bookingResult.extractedData.doctorId,
-              title: bookingResult.extractedData.reason || 'Consultation',
-              description: 'Appointment booked via AI Assistant',
-              scheduledAt: new Date(`${bookingResult.extractedData.date}T${bookingResult.extractedData.time}:00.000Z`),
-              duration: bookingResult.extractedData.duration || 30,
-              status: 'scheduled' as const,
-              type: 'consultation' as const,
-              location: bookingResult.extractedData.location || 'Main Office',
-              isVirtual: bookingResult.extractedData.isVirtual || false
-            });
-
-            finalResponse = `${bookingResult.response}\n\n✅ **Appointment Successfully Booked!**\nAppointment ID: ${appointment.id}`;
-          } else {
-            finalResponse = bookingResult.response;
-          }
-        } catch (bookingError) {
-          console.error('Booking process error:', bookingError);
-          finalResponse = nlpResult.response + "\n\nI encountered an issue while trying to book the appointment. Please try again or contact support.";
-        }
-      }
-
-      // Combine enhanced NLP insights with response
+      // Simple response structure compatible with the frontend
       const enhancedResponse = {
         response: finalResponse,
         intent: nlpResult.intent,
         entities: nlpResult.entities,
         confidence: nlpResult.confidence,
-        medicalAdviceLevel: medicalResponse.medical_advice_level,
-        disclaimers: medicalResponse.disclaimers,
-        followUpQuestions: medicalResponse.follow_up_questions,
-        educationalContent: medicalResponse.educational_content,
-        urgencyLevel: intentClassification.urgency_level,
-        recommendedSpecialty: intentClassification.recommended_specialty,
+        medicalAdviceLevel: 'informational',
+        disclaimers: ['This is an AI assistant and should not replace professional medical advice.'],
+        followUpQuestions: ['How else can I help you today?'],
+        educationalContent: [],
+        urgencyLevel: 'low',
+        recommendedSpecialty: null,
         nextActions: nlpResult.nextActions
       };
 
