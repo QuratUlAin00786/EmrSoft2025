@@ -43,23 +43,23 @@ class EmailService {
 
   private async initializeWorkingTransporter() {
     try {
-      console.log('[EMAIL] Initializing with curampms.ai domain credentials...');
+      console.log('[EMAIL] Initializing Gmail SMTP for real email delivery...');
       
-      // Create working SMTP account that can deliver emails
-      // The display name will still show as noreply@curampms.ai
-      const testAccount = await nodemailer.createTestAccount();
-      
+      // Use Gmail SMTP with working credentials for real email delivery
       const smtpConfig = {
-        host: testAccount.smtp.host,
-        port: testAccount.smtp.port,
-        secure: testAccount.smtp.secure,
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
         auth: {
-          user: testAccount.user,
-          pass: testAccount.pass
+          user: 'noreply@curapms.ai',
+          pass: 'jwtvqwwcnopfgndt'
+        },
+        tls: {
+          rejectUnauthorized: false
         }
       };
       
-      console.log('[EMAIL] Using working SMTP server for email delivery:');
+      console.log('[EMAIL] Using Gmail SMTP for real email delivery:');
       console.log('[EMAIL] Host:', smtpConfig.host);
       console.log('[EMAIL] User:', smtpConfig.auth.user);
       console.log('[EMAIL] Emails will be sent from: Cura EMR <noreply@curampms.ai>');
