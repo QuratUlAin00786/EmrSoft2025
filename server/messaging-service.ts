@@ -2,7 +2,7 @@ import twilio, { Twilio } from 'twilio';
 
 // Initialize Twilio client with proper error handling and validation
 let client: Twilio | null = null;
-let twilioCredentialsValid = false;
+let authenticationFailed = false; // Track if authentication has failed
 
 try {
   if (process.env.TWILIO_ACCOUNT_SID && 
@@ -11,18 +11,15 @@ try {
       process.env.TWILIO_ACCOUNT_SID.startsWith('AC') &&
       process.env.TWILIO_ACCOUNT_SID.length >= 34) {
     
-    // Only create client if credentials appear valid, but mark as unverified
+    // Only create client if credentials appear valid
     client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
     console.log('Twilio client initialized - credentials will be verified on first use');
-    twilioCredentialsValid = false; // Will be verified on first API call
   } else {
     console.warn('Twilio credentials invalid or incomplete - SMS services disabled');
-    twilioCredentialsValid = false;
   }
 } catch (error) {
   console.error('Failed to initialize Twilio client:', error);
   client = null;
-  twilioCredentialsValid = false;
 }
 
 export interface MessageOptions {
@@ -63,8 +60,8 @@ export class MessagingService {
         };
       }
 
-      // If credentials have been marked as invalid from previous attempts, don't retry
-      if (twilioCredentialsValid === false && process.env.TWILIO_LAST_AUTH_ERROR) {
+      // If authentication has failed before, block further attempts
+      if (authenticationFailed) {
         console.error('SMS blocked - Twilio credentials previously failed authentication');
         return {
           success: false,
@@ -112,8 +109,7 @@ export class MessagingService {
       
       // Mark credentials as invalid if authentication fails
       if (error.code === 20003 || error.message?.includes('Authentication Error')) {
-        twilioCredentialsValid = false;
-        process.env.TWILIO_LAST_AUTH_ERROR = 'true';
+        authenticationFailed = true;
         console.error('Twilio authentication failed - marking credentials as invalid');
         return {
           success: false,
@@ -150,8 +146,8 @@ export class MessagingService {
         };
       }
 
-      // If credentials have been marked as invalid from previous attempts, don't retry
-      if (twilioCredentialsValid === false && process.env.TWILIO_LAST_AUTH_ERROR) {
+      // If authentication has failed before, block further attempts
+      if (authenticationFailed) {
         console.error('WhatsApp blocked - Twilio credentials previously failed authentication');
         return {
           success: false,
@@ -180,8 +176,7 @@ export class MessagingService {
       
       // Mark credentials as invalid if authentication fails
       if (error.code === 20003 || error.message?.includes('Authentication Error')) {
-        twilioCredentialsValid = false;
-        process.env.TWILIO_LAST_AUTH_ERROR = 'true';
+        authenticationFailed = true;
         console.error('Twilio authentication failed for WhatsApp - marking credentials as invalid');
         return {
           success: false,
