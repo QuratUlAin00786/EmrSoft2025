@@ -240,6 +240,13 @@ export function AIChatWidget() {
   }, [toast]); // Removed transcriptBuffer dependency to prevent re-initialization
 
   const handleSendMessage = async () => {
+    // Debug: Track what triggered this function
+    console.log('=== SEND MESSAGE TRIGGERED ===');
+    console.log('Current input:', input);
+    console.log('Is speech processing:', isProcessingSpeechRef.current);
+    console.log('Stack trace:', new Error().stack);
+    console.log('===============================');
+    
     // Get clean final message
     const finalMessage = input.trim();
     if (!finalMessage || isLoading) return;
