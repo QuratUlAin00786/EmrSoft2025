@@ -149,10 +149,10 @@ export class AiService {
 
   private extractEntities(message: string): any {
     const entities = {
-      symptoms: [],
-      medications: [],
-      timeReferences: [],
-      specialties: []
+      symptoms: [] as string[],
+      medications: [] as string[],
+      timeReferences: [] as string[],
+      specialties: [] as string[]
     };
     
     // Simple entity extraction based on common medical terms
@@ -2189,12 +2189,12 @@ IMPORTANT: Review the full conversation history and remember all details mention
               const conflictingAppointments = existingAppointments.filter(appointment => {
                 const existingStart = new Date(appointment.scheduledAt);
                 const existingEnd = new Date(existingStart.getTime() + (appointment.duration || 30) * 60 * 1000);
-                const hasOverlap = scheduledDate < existingEnd && appointmentEndTime > existingStart;
+                const hasOverlap = scheduledDate! < existingEnd && appointmentEndTime > existingStart;
                 
                 if (hasOverlap) {
-                  console.log(`[AI] CONFLICT DETECTED: Existing appointment ${existingStart.toLocaleTimeString()} - ${existingEnd.toLocaleTimeString()}, New: ${scheduledDate.toLocaleTimeString()} - ${appointmentEndTime.toLocaleTimeString()}`);
+                  console.log(`[AI] CONFLICT DETECTED: Existing appointment ${existingStart.toLocaleTimeString()} - ${existingEnd.toLocaleTimeString()}, New: ${scheduledDate!.toLocaleTimeString()} - ${appointmentEndTime.toLocaleTimeString()}`);
                 } else {
-                  console.log(`[AI] NO CONFLICT: Existing appointment ${existingStart.toLocaleTimeString()} - ${existingEnd.toLocaleTimeString()}, New: ${scheduledDate.toLocaleTimeString()} - ${appointmentEndTime.toLocaleTimeString()}`);
+                  console.log(`[AI] NO CONFLICT: Existing appointment ${existingStart.toLocaleTimeString()} - ${existingEnd.toLocaleTimeString()}, New: ${scheduledDate!.toLocaleTimeString()} - ${appointmentEndTime.toLocaleTimeString()}`);
                 }
                 
                 return hasOverlap;
