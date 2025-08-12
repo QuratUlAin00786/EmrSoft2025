@@ -47,12 +47,8 @@ export default function AppointmentCalendar() {
         headers['Authorization'] = `Bearer ${token}`;
       }
       
-      const response = await fetch(`/api/appointments?_t=${Date.now()}`, {
-        headers: {
-          ...headers,
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        },
+      const response = await fetch('/api/appointments', {
+        headers,
         credentials: 'include'
       });
       
@@ -64,7 +60,7 @@ export default function AppointmentCalendar() {
       return data || [];
     },
     staleTime: 30000,
-    refetchOnWindowFocus: true
+    refetchOnWindowFocus: false
   });
 
   // Fetch patients data to get patient names
