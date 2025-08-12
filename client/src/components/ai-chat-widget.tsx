@@ -88,6 +88,7 @@ export function AIChatWidget() {
   const [recognition, setRecognition] = useState<CustomSpeechRecognition | null>(null);
   const [transcriptBuffer, setTranscriptBuffer] = useState("");
   const transcriptBufferRef = useRef("");
+  const isProcessingSpeechRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -123,6 +124,7 @@ export function AIChatWidget() {
         setIsListening(true);
         setTranscriptBuffer("");
         transcriptBufferRef.current = "";
+        isProcessingSpeechRef.current = true;
       };
       
       recognition.onresult = (event: any) => {
@@ -219,11 +221,18 @@ export function AIChatWidget() {
         console.log('Speech recognition ended naturally');
         setIsListening(false);
         
-        // Ensure final transcript is preserved in the input field  
+        // Ensure final transcript is preserved in the input field WITHOUT auto-sending
         if (transcriptBufferRef.current.trim()) {
-          setInput(transcriptBufferRef.current.trim());
-          console.log('Final transcript preserved on end:', transcriptBufferRef.current.trim());
+          const finalText = transcriptBufferRef.current.trim();
+          setInput(finalText);
+          console.log('Final transcript preserved on end:', finalText);
         }
+        
+        // Reset speech processing flag after a delay to prevent auto-send
+        setTimeout(() => {
+          isProcessingSpeechRef.current = false;
+          console.log('Speech processing completed, auto-send protection disabled');
+        }, 500);
       };
       
       setRecognition(recognition);
@@ -352,6 +361,11 @@ export function AIChatWidget() {
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
+      // Prevent auto-send during speech recognition processing
+      if (isProcessingSpeechRef.current) {
+        console.log('Enter key blocked during speech processing');
+        return;
+      }
       handleSendMessage();
     }
   };
