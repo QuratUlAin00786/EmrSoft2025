@@ -67,6 +67,115 @@ export interface ConversationContext {
 }
 
 export class AiService {
+  // Local NLP fallback when Anthropic API is not available
+  private async processWithLocalNLP(
+    userMessage: string, 
+    context: ConversationContext
+  ): Promise<{
+    response: string;
+    intent: string;
+    entities: any;
+    confidence: number;
+    nextActions: string[];
+    contextUpdate: Partial<ConversationContext>;
+  }> {
+    // Simple intent classification based on keywords
+    const intent = this.classifyIntent(userMessage);
+    const entities = this.extractEntities(userMessage);
+    const confidence = 0.8; // Default confidence for local processing
+    
+    let response = "I understand your request. ";
+    let nextActions: string[] = [];
+    
+    // Generate appropriate response based on intent
+    switch (intent) {
+      case 'appointment_booking':
+        response = "I can help you book an appointment. Please provide the patient name, preferred date and time, and type of appointment needed.";
+        nextActions = ['collect_patient_info', 'schedule_appointment'];
+        break;
+      case 'prescription_inquiry':
+        response = "I can help you find prescription information. Please specify the patient name or medication you're looking for.";
+        nextActions = ['search_prescriptions'];
+        break;
+      case 'medical_question':
+        response = "For medical questions, I recommend consulting with a healthcare professional. I can help you schedule an appointment with the appropriate specialist.";
+        nextActions = ['recommend_consultation'];
+        break;
+      case 'greeting':
+        response = "Hello! I'm your Cura AI Assistant. I can help you book appointments, find prescriptions, and answer general healthcare questions. How can I assist you today?";
+        nextActions = ['await_user_intent'];
+        break;
+      default:
+        response = "I can help you with booking appointments, finding prescriptions, and general healthcare queries. What would you like to do?";
+        nextActions = ['clarify_intent'];
+    }
+    
+    return {
+      response,
+      intent,
+      entities,
+      confidence,
+      nextActions,
+      contextUpdate: {
+        contextualKnowledge: {
+          recentTopics: [...(context.contextualKnowledge.recentTopics || []), intent].slice(-5),
+          extractedEntities: entities,
+          sentimentAnalysis: {
+            overall: 'neutral',
+            confidence: 0.7
+          }
+        }
+      }
+    };
+  }
+
+  private classifyIntent(message: string): string {
+    const lowerMessage = message.toLowerCase();
+    
+    if (lowerMessage.includes('book') || lowerMessage.includes('schedule') || lowerMessage.includes('appointment')) {
+      return 'appointment_booking';
+    }
+    if (lowerMessage.includes('prescription') || lowerMessage.includes('medication') || lowerMessage.includes('medicine')) {
+      return 'prescription_inquiry';
+    }
+    if (lowerMessage.includes('symptom') || lowerMessage.includes('pain') || lowerMessage.includes('sick') || lowerMessage.includes('health')) {
+      return 'medical_question';
+    }
+    if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('help')) {
+      return 'greeting';
+    }
+    return 'general_inquiry';
+  }
+
+  private extractEntities(message: string): any {
+    const entities = {
+      symptoms: [],
+      medications: [],
+      timeReferences: [],
+      specialties: []
+    };
+    
+    // Simple entity extraction based on common medical terms
+    const symptoms = ['pain', 'fever', 'headache', 'nausea', 'fatigue', 'cough', 'shortness of breath'];
+    const specialties = ['cardiology', 'dermatology', 'neurology', 'psychiatry', 'orthopedic'];
+    
+    const lowerMessage = message.toLowerCase();
+    
+    symptoms.forEach(symptom => {
+      if (lowerMessage.includes(symptom)) {
+        entities.symptoms.push(symptom);
+      }
+    });
+    
+    specialties.forEach(specialty => {
+      if (lowerMessage.includes(specialty)) {
+        entities.specialties.push(specialty);
+      }
+    });
+    
+    return entities;
+  }
+
   // Enhanced NLP conversation processing with context awareness
   async processConversationWithNLP(
     userMessage: string, 
@@ -80,7 +189,8 @@ export class AiService {
     contextUpdate: Partial<ConversationContext>;
   }> {
     if (!anthropic) {
-      throw new Error("Anthropic API not available");
+      // Fallback to local NLP processing when Anthropic API is not available
+      return this.processWithLocalNLP(userMessage, context);
     }
 
     try {
