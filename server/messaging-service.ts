@@ -67,9 +67,20 @@ export class MessagingService {
       };
     } catch (error: any) {
       console.error('SMS sending error:', error);
+      // Provide specific error messages for common Twilio authentication issues
+      let errorMessage = error.message || 'Failed to send SMS';
+      
+      if (error.code === 20003 || error.message?.includes('Authentication Error')) {
+        errorMessage = 'SMS service not properly configured. Please check Twilio credentials (Account SID, Auth Token, and Phone Number).';
+      } else if (error.code === 21211) {
+        errorMessage = 'Invalid phone number format. Please check the recipient phone number.';
+      } else if (error.code === 21610) {
+        errorMessage = 'Message cannot be sent to unverified number in trial account.';
+      }
+      
       return {
         success: false,
-        error: error.message || 'Failed to send SMS'
+        error: errorMessage
       };
     }
   }
@@ -106,9 +117,20 @@ export class MessagingService {
       };
     } catch (error: any) {
       console.error('WhatsApp sending error:', error);
+      // Provide specific error messages for common Twilio authentication issues
+      let errorMessage = error.message || 'Failed to send WhatsApp message';
+      
+      if (error.code === 20003 || error.message?.includes('Authentication Error')) {
+        errorMessage = 'WhatsApp service not properly configured. Please check Twilio credentials (Account SID, Auth Token, and Phone Number).';
+      } else if (error.code === 21211) {
+        errorMessage = 'Invalid phone number format. Please check the recipient phone number.';
+      } else if (error.code === 21610) {
+        errorMessage = 'Message cannot be sent to unverified number in trial account.';
+      }
+      
       return {
         success: false,
-        error: error.message || 'Failed to send WhatsApp message'
+        error: errorMessage
       };
     }
   }
