@@ -219,10 +219,19 @@ ADVANCED NLP ANALYSIS REQUIRED:
 5. KNOWLEDGE APPLICATION: Apply medical knowledge when relevant
 6. RESPONSE OPTIMIZATION: Adapt complexity and tone to user profile
 
+APPOINTMENT BOOKING INTELLIGENCE:
+When the user provides appointment booking information, assess if you have enough details to create an appointment:
+- Patient name (extracted from conversation)
+- Doctor/Provider preference (if mentioned)
+- Date/Time preference (if mentioned)
+- Appointment type/reason (if mentioned)
+
+If sufficient information is available, set "create_appointment": true and extract appointment details.
+
 RESPONSE FORMAT - Return JSON with this exact structure:
 {
   "response": "Your comprehensive response to the user",
-  "intent": "primary_intent_identified",
+  "intent": "primary_intent_identified", 
   "entities": {
     "medical_terms": [],
     "time_references": [],
@@ -241,6 +250,15 @@ RESPONSE FORMAT - Return JSON with this exact structure:
     "new_topics": ["topics_to_remember"],
     "user_preferences": {},
     "medical_insights": []
+  },
+  "create_appointment": false,
+  "appointment_details": {
+    "patient_name": "",
+    "doctor_preference": "",
+    "date": "",
+    "time": "",
+    "appointment_type": "",
+    "reason": ""
   },
   "response_reasoning": "Why this response was chosen based on NLP analysis"
 }
@@ -268,6 +286,16 @@ Provide intelligent, contextually aware responses that demonstrate advanced lang
       // Try to parse JSON response, fallback to text if needed
       try {
         const parsedResponse = JSON.parse(responseText);
+        
+        // Check if appointment should be created automatically
+        if (parsedResponse.create_appointment && parsedResponse.appointment_details) {
+          try {
+            await this.createAutomaticAppointment(parsedResponse.appointment_details, context.organizationId);
+          } catch (error) {
+            console.error('Failed to create automatic appointment:', error);
+          }
+        }
+        
         return {
           response: parsedResponse.response,
           intent: parsedResponse.intent || 'general_inquiry',
@@ -300,6 +328,110 @@ Provide intelligent, contextually aware responses that demonstrate advanced lang
       console.error('Enhanced NLP processing error:', error);
       throw error;
     }
+  }
+
+  // Automatic appointment creation when sufficient information is gathered
+  private async createAutomaticAppointment(appointmentDetails: any, organizationId: number): Promise<void> {
+    try {
+      // Find patient by name
+      let patient = null;
+      if (appointmentDetails.patient_name) {
+        const patients = await storage.getPatients(organizationId);
+        patient = patients.find(p => 
+          p.firstName?.toLowerCase().includes(appointmentDetails.patient_name.toLowerCase()) ||
+          p.lastName?.toLowerCase().includes(appointmentDetails.patient_name.toLowerCase()) ||
+          `${p.firstName} ${p.lastName}`.toLowerCase().includes(appointmentDetails.patient_name.toLowerCase())
+        );
+      }
+
+      // Find provider by name or use default
+      let provider = null;
+      if (appointmentDetails.doctor_preference) {
+        const users = await storage.getAllUsers(organizationId);
+        provider = users.find(u => 
+          u.role === 'doctor' &&
+          (u.firstName?.toLowerCase().includes(appointmentDetails.doctor_preference.toLowerCase()) ||
+           u.lastName?.toLowerCase().includes(appointmentDetails.doctor_preference.toLowerCase()) ||
+           `${u.firstName} ${u.lastName}`.toLowerCase().includes(appointmentDetails.doctor_preference.toLowerCase()))
+        );
+      }
+
+      // Use first available doctor if no specific preference
+      if (!provider) {
+        const users = await storage.getAllUsers(organizationId);
+        provider = users.find(u => u.role === 'doctor');
+      }
+
+      // Parse date and time
+      let scheduledAt = new Date();
+      if (appointmentDetails.date && appointmentDetails.time) {
+        // Parse relative dates like "tomorrow"
+        if (appointmentDetails.date.toLowerCase().includes('tomorrow')) {
+          scheduledAt = new Date();
+          scheduledAt.setDate(scheduledAt.getDate() + 1);
+        } else if (appointmentDetails.date.toLowerCase().includes('today')) {
+          scheduledAt = new Date();
+        }
+        
+        // Parse time like "11 AM", "2:30 PM"
+        if (appointmentDetails.time) {
+          const timeMatch = appointmentDetails.time.match(/(\d+)(?::(\d+))?\s*(AM|PM)/i);
+          if (timeMatch) {
+            let hours = parseInt(timeMatch[1]);
+            const minutes = parseInt(timeMatch[2]) || 0;
+            const ampm = timeMatch[3].toUpperCase();
+            
+            if (ampm === 'PM' && hours !== 12) hours += 12;
+            if (ampm === 'AM' && hours === 12) hours = 0;
+            
+            scheduledAt.setHours(hours, minutes, 0, 0);
+          }
+        }
+      } else {
+        // Default to next available slot (tomorrow at 9 AM)
+        scheduledAt.setDate(scheduledAt.getDate() + 1);
+        scheduledAt.setHours(9, 0, 0, 0);
+      }
+
+      // Create appointment if we have patient and provider
+      if (patient && provider) {
+        const appointmentData = {
+          organizationId,
+          patientId: patient.id,
+          providerId: provider.id,
+          title: appointmentDetails.appointment_type || appointmentDetails.reason || 'General Consultation',
+          description: `Appointment booked via AI Assistant. Reason: ${appointmentDetails.reason || 'General consultation'}`,
+          scheduledAt,
+          duration: 30, // Default 30 minutes
+          status: 'scheduled' as const,
+          type: 'consultation' as const,
+          location: this.getLocationForAppointmentType(appointmentDetails.appointment_type),
+          isVirtual: false
+        };
+
+        await storage.createAppointment(appointmentData);
+        console.log('Automatic appointment created successfully:', appointmentData.title, 'for', patient.firstName, patient.lastName, 'with', provider.firstName, provider.lastName);
+      } else {
+        console.log('Could not create automatic appointment - missing patient or provider');
+      }
+    } catch (error) {
+      console.error('Error creating automatic appointment:', error);
+      throw error;
+    }
+  }
+
+  private getLocationForAppointmentType(appointmentType?: string): string {
+    if (!appointmentType) return 'General Consultation Room';
+    
+    const type = appointmentType.toLowerCase();
+    if (type.includes('cardio')) return 'Cardiology Department';
+    if (type.includes('psych')) return 'Psychologist Department';
+    if (type.includes('dental')) return 'Dental Department';
+    if (type.includes('ortho')) return 'Orthopedic Department';
+    if (type.includes('pediatric')) return 'Pediatric Department';
+    if (type.includes('gyneco')) return 'Gynecology Department';
+    
+    return 'General Consultation Room';
   }
 
   // Advanced prescription analysis with enhanced context awareness

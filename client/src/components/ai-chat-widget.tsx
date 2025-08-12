@@ -89,6 +89,7 @@ export function AIChatWidget() {
   const [transcriptBuffer, setTranscriptBuffer] = useState("");
   const transcriptBufferRef = useRef("");
   const isProcessingSpeechRef = useRef(false);
+  const speechEndTimeRef = useRef(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -220,6 +221,7 @@ export function AIChatWidget() {
       recognition.onend = () => {
         console.log('Speech recognition ended naturally');
         setIsListening(false);
+        speechEndTimeRef.current = Date.now();
         
         // Ensure final transcript is preserved in the input field WITHOUT auto-sending
         if (transcriptBufferRef.current.trim()) {
@@ -228,11 +230,11 @@ export function AIChatWidget() {
           console.log('Final transcript preserved on end:', finalText);
         }
         
-        // Reset speech processing flag after a delay to prevent auto-send
+        // Reset speech processing flag after a longer delay to prevent auto-send
         setTimeout(() => {
           isProcessingSpeechRef.current = false;
           console.log('Speech processing completed, auto-send protection disabled');
-        }, 500);
+        }, 2000);
       };
       
       setRecognition(recognition);
@@ -368,9 +370,11 @@ export function AIChatWidget() {
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      // Prevent auto-send during speech recognition processing
-      if (isProcessingSpeechRef.current) {
-        console.log('Enter key blocked during speech processing');
+      // Prevent auto-send during speech recognition processing or shortly after speech ends
+      const timeSinceSpeechEnd = Date.now() - speechEndTimeRef.current;
+      if (isProcessingSpeechRef.current || timeSinceSpeechEnd < 2000) {
+        console.log('Enter key blocked - speech processing or recent speech end');
+        console.log('Speech processing:', isProcessingSpeechRef.current, 'Time since end:', timeSinceSpeechEnd);
         return;
       }
       handleSendMessage();
