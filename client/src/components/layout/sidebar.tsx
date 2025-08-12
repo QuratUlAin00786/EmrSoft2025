@@ -177,17 +177,17 @@ export function Sidebar() {
           {filteredNavigation.map((item) => {
             const isActive = location === item.href;
             return (
-              <Link key={item.name} href={item.href}>
-                <a 
-                  className={cn(
-                    "sidebar-nav-item",
-                    isActive && "active"
-                  )}
-                  onClick={isMobile ? closeMobileMenu : undefined}
-                >
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.name}</span>
-                </a>
+              <Link 
+                key={item.name} 
+                href={item.href}
+                className={cn(
+                  "sidebar-nav-item",
+                  isActive && "active"
+                )}
+                onClick={isMobile ? closeMobileMenu : undefined}
+              >
+                <item.icon className="h-5 w-5" />
+                <span>{item.name}</span>
               </Link>
             );
           })}
@@ -207,17 +207,17 @@ export function Sidebar() {
                 {filteredAdminNavigation.map((item) => {
                   const isActive = location === item.href;
                   return (
-                    <Link key={item.name} href={item.href}>
-                      <a 
-                        className={cn(
-                          "sidebar-nav-item",
-                          isActive && "active"
-                        )}
-                        onClick={isMobile ? closeMobileMenu : undefined}
-                      >
-                        <item.icon className="h-5 w-5" />
-                        <span>{item.name}</span>
-                      </a>
+                    <Link 
+                      key={item.name} 
+                      href={item.href}
+                      className={cn(
+                        "sidebar-nav-item",
+                        isActive && "active"
+                      )}
+                      onClick={isMobile ? closeMobileMenu : undefined}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      <span>{item.name}</span>
                     </Link>
                   );
                 })}
