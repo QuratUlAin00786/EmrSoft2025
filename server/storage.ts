@@ -1799,32 +1799,56 @@ export class DatabaseStorage implements IStorage {
       DatabaseStorage.conversationsStore = [];
     }
 
-    // If this is a new conversation (recipientId but no conversationId), create a conversation
+    // Check if conversation already exists between sender and recipient
     if (messageData.recipientId && !messageData.conversationId) {
-      const conversationId = `conv_${Date.now()}`;
-      const newConversation = {
-        id: conversationId,
-        participants: [
-          { id: messageData.senderId || "current_user", name: messageData.senderName || "Current User", role: messageData.senderRole || "staff" },
-          { id: messageData.recipientId, name: messageData.recipientId, role: "patient" }
-        ],
-        lastMessage: {
+      // Look for existing conversation between these participants
+      const existingConversation = DatabaseStorage.conversationsStore.find(conv => 
+        conv.organizationId === organizationId &&
+        conv.participants.some(p => p.id === (messageData.senderId || "current_user")) &&
+        conv.participants.some(p => p.id === messageData.recipientId)
+      );
+      
+      if (existingConversation) {
+        // Use existing conversation
+        message.conversationId = existingConversation.id;
+        // Update last message
+        existingConversation.lastMessage = {
           id: messageId,
           senderId: messageData.senderId || "current_user",
           subject: messageData.subject || "New Message",
           content: messageData.content,
           timestamp: new Date().toISOString(),
           priority: messageData.priority || "normal"
-        },
-        unreadCount: 0,
-        isPatientConversation: true,
-        organizationId: organizationId
-      };
+        };
+        existingConversation.unreadCount = (existingConversation.unreadCount || 0) + 1;
+        console.log(`🔄 Using existing conversation: ${existingConversation.id} between ${messageData.senderName} and ${messageData.recipientId}`);
+      } else {
+        // Create new conversation only if none exists
+        const conversationId = `conv_${Date.now()}`;
+        const newConversation = {
+          id: conversationId,
+          participants: [
+            { id: messageData.senderId || "current_user", name: messageData.senderName || "Current User", role: messageData.senderRole || "staff" },
+            { id: messageData.recipientId, name: messageData.recipientId, role: "patient" }
+          ],
+          lastMessage: {
+            id: messageId,
+            senderId: messageData.senderId || "current_user",
+            subject: messageData.subject || "New Message",
+            content: messageData.content,
+            timestamp: new Date().toISOString(),
+            priority: messageData.priority || "normal"
+          },
+          unreadCount: 1,
+          isPatientConversation: true,
+          organizationId: organizationId
+        };
 
-      // Add conversation to storage
-      DatabaseStorage.conversationsStore.push(newConversation);
-      message.conversationId = conversationId;
-      console.log(`✅ Created new conversation: ${conversationId} for recipient: ${messageData.recipientId}`);
+        // Add conversation to storage
+        DatabaseStorage.conversationsStore.push(newConversation);
+        message.conversationId = conversationId;
+        console.log(`✅ Created new conversation: ${conversationId} between ${messageData.senderName} and ${messageData.recipientId}`);
+      }
     }
     
     // Store the message
