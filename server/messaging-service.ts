@@ -1,9 +1,22 @@
-import twilio from 'twilio';
+import twilio, { Twilio } from 'twilio';
 
-// Initialize Twilio client with proper error handling
-const client = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN 
-  ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
-  : null;
+// Initialize Twilio client with proper error handling and validation
+let client: Twilio | null = null;
+try {
+  if (process.env.TWILIO_ACCOUNT_SID && 
+      process.env.TWILIO_AUTH_TOKEN && 
+      process.env.TWILIO_PHONE_NUMBER &&
+      process.env.TWILIO_ACCOUNT_SID.startsWith('AC') &&
+      process.env.TWILIO_ACCOUNT_SID.length >= 34) {
+    client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+    console.log('Twilio client initialized with credentials');
+  } else {
+    console.warn('Twilio credentials invalid or incomplete - SMS services disabled');
+  }
+} catch (error) {
+  console.error('Failed to initialize Twilio client:', error);
+  client = null;
+}
 
 export interface MessageOptions {
   to: string;
@@ -40,6 +53,28 @@ export class MessagingService {
         return {
           success: false,
           error: 'SMS service not configured. Please check Twilio credentials.'
+        };
+      }
+
+      // Additional validation for Twilio configuration
+      if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN || !process.env.TWILIO_PHONE_NUMBER) {
+        console.error('Twilio credentials incomplete:', {
+          hasSID: !!process.env.TWILIO_ACCOUNT_SID,
+          hasToken: !!process.env.TWILIO_AUTH_TOKEN,
+          hasPhone: !!process.env.TWILIO_PHONE_NUMBER
+        });
+        return {
+          success: false,
+          error: 'SMS service not properly configured. Please check Twilio credentials (Account SID, Auth Token, and Phone Number).'
+        };
+      }
+
+      // Test basic credential format
+      if (!process.env.TWILIO_ACCOUNT_SID.startsWith('AC')) {
+        console.error('Invalid Twilio Account SID format - should start with AC');
+        return {
+          success: false,
+          error: 'SMS service not properly configured. Please check Twilio credentials (Account SID, Auth Token, and Phone Number).'
         };
       }
 
