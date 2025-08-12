@@ -530,16 +530,12 @@ export default function MessagingPage() {
       const responseData = await response.json();
       console.log('🔥 CONVERSATION MESSAGE RESPONSE:', responseData);
       
-      // Optimistically update the cache with the new message
-      queryClient.setQueryData(['/api/messaging/messages', selectedConversation], (oldMessages: any[]) => {
-        return [...(oldMessages || []), responseData];
-      });
+      // Immediately invalidate and refetch messages to show the new message
+      queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
+      queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
       
-      // Also force a refetch to ensure we have the latest data
-      setTimeout(() => {
-        queryClient.refetchQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
-        queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
-      }, 100);
+      // Force immediate refetch to show the message
+      await queryClient.refetchQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
       
       toast({
         title: "Message Sent",
