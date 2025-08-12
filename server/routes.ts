@@ -2271,12 +2271,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             priority: priority || 'normal'
           });
           
+          console.log(`${messageType.toUpperCase()} delivery result:`, result);
+          
           if (result.success) {
             console.log(`${messageType.toUpperCase()} sent successfully:`, result.messageId);
             // Update message with delivery status
             message.deliveryStatus = 'sent';
             message.externalMessageId = result.messageId;
-            res.json(message);
+            return res.json(message);
           } else {
             console.error(`${messageType.toUpperCase()} sending failed:`, result.error);
             message.deliveryStatus = 'failed';
