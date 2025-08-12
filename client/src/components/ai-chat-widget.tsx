@@ -137,16 +137,21 @@ export function AIChatWidget() {
         
         // Update input field with complete transcript
         if (finalTranscript) {
-          // Final result: accumulate in buffer
-          const newBuffer = (transcriptBuffer + finalTranscript).trim();
-          setTranscriptBuffer(newBuffer);
-          setInput(newBuffer);
-          console.log('Updated transcript buffer:', newBuffer);
+          // Final result: accumulate in buffer and set immediately to input
+          setTranscriptBuffer(prev => {
+            const newBuffer = (prev + finalTranscript).trim();
+            console.log('Updated transcript buffer:', newBuffer);
+            setInput(newBuffer); // Set the final transcript directly to input
+            return newBuffer;
+          });
         } else if (interimTranscript) {
-          // Interim result: show current buffer + interim in brackets
-          const currentBuffer = transcriptBuffer.trim();
-          const preview = currentBuffer + (currentBuffer ? ' ' : '') + '[' + interimTranscript.trim() + ']';
-          setInput(preview);
+          // Interim result: show current transcript buffer + interim in brackets for preview
+          setInput(prev => {
+            // Get current buffer without brackets
+            const cleanPrev = prev.replace(/\s*\[.*?\]\s*$/, '').trim();
+            const preview = cleanPrev + (cleanPrev ? ' ' : '') + '[' + interimTranscript.trim() + ']';
+            return preview;
+          });
         }
       };
       
