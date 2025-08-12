@@ -157,10 +157,7 @@ export default function AppointmentCalendar() {
     .filter((apt: any) => apt !== null)
     .sort((a: any, b: any) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
   
-  // Debug: Log appointments data to console
-  console.log("AppointmentCalendar - Raw appointments count:", rawAppointments?.length || 0);
-  console.log("AppointmentCalendar - Filtered appointments count:", appointments?.length || 0);
-  console.log("AppointmentCalendar - Appointments:", appointments);
+  // Data processing complete
 
   const monthStart = startOfMonth(selectedDate);
   const monthEnd = endOfMonth(selectedDate);

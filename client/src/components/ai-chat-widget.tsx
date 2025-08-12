@@ -78,11 +78,6 @@ export function AIChatWidget() {
     }
   ]);
   const [input, setInput] = useState("");
-  
-  // Debug useEffect to track input changes
-  useEffect(() => {
-    console.log('INPUT VALUE CHANGED TO:', `"${input}"`);
-  }, [input]);
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [recognition, setRecognition] = useState<CustomSpeechRecognition | null>(null);
@@ -160,11 +155,13 @@ export function AIChatWidget() {
           console.log('Input state updated to:', newBuffer);
           console.log('========================');
         } else if (interimTranscript) {
-          // Interim result: show current transcript buffer + interim in brackets for preview
+          // Interim result: only update if significantly different to prevent excessive renders
           const currentBuffer = transcriptBufferRef.current.trim();
           const preview = currentBuffer + (currentBuffer ? ' ' : '') + '[' + interimTranscript.trim() + ']';
-          console.log('Setting interim preview:', preview);
-          setInput(preview);
+          // Only update if the preview has changed significantly
+          if (preview !== input) {
+            setInput(preview);
+          }
         }
       };
       
