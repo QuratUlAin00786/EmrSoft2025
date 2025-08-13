@@ -500,18 +500,16 @@ export default function MessagingPage() {
         if (data.type === 'new_message') {
           // Refetch messages and conversations when new message received
           console.log('🔄 New message received via WebSocket, refreshing UI');
-          queryClient.invalidateQueries({ queryKey: [`/api/messaging/messages/${selectedConversation}`] });
+          // Invalidate all message queries to ensure any open conversation updates
+          queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages'] });
           queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
           console.log('🔥 REFETCH COMPLETED - UI should update immediately');
           
-          // Show notification if message is for current conversation
-          // The server sends conversationId directly, not nested in data
-          if (data.conversationId === selectedConversation) {
-            toast({
-              title: "New Message",
-              description: `New message: ${data.message?.content || 'Message received'}`,
-            });
-          }
+          // Show notification for new messages
+          toast({
+            title: "New Message",
+            description: `New message: ${data.message?.content || 'Message received'}`,
+          });
         }
       } catch (error) {
         console.error('Error parsing WebSocket message:', error);
@@ -530,7 +528,7 @@ export default function MessagingPage() {
     return () => {
       socket.close();
     };
-  }, [currentUser, selectedConversation, toast]);
+  }, [currentUser, toast]);
 
   const handleSendNewMessage = () => {
     // Validate required fields
