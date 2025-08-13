@@ -230,11 +230,16 @@ export default function MessagingPage() {
     staleTime: 0, // Always refetch
     gcTime: 0, // Don't cache (TanStack Query v5)
     refetchOnMount: 'always', // Always refetch when component mounts
+    networkMode: 'always', // Always make network requests
+    retry: false, // Don't retry on failure
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       console.log('🔥 FETCHING MESSAGES for conversation:', selectedConversation);
+      console.log('🔥 QUERY TIMESTAMP:', new Date().toISOString());
       const response = await apiRequest('GET', `/api/messaging/messages/${selectedConversation}`);
       const data = await response.json();
       console.log('🔥 MESSAGES DATA RECEIVED:', data.length, 'messages');
+      console.log('🔥 MESSAGE IDS:', data.map((m: any) => m.id));
       return data;
     }
   });

@@ -2344,6 +2344,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } else {
         // For internal messages, broadcast to other users via WebSocket
+        // Add delay to ensure database transaction is fully committed across all connections
+        await new Promise(resolve => setTimeout(resolve, 150));
+        
         const broadcastMessage = req.app.get('broadcastMessage');
         console.log(`🔍 DEBUG - broadcastMessage function exists:`, !!broadcastMessage);
         console.log(`🔍 DEBUG - messageDataWithUser.recipientId:`, messageDataWithUser.recipientId);
