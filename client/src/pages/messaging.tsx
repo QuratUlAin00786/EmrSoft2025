@@ -72,7 +72,7 @@ interface Message {
 interface Conversation {
   id: string;
   participants: Array<{
-    id: string;
+    id: string | number;
     name: string;
     role: string;
     avatar?: string;
@@ -193,8 +193,13 @@ export default function MessagingPage() {
       return isNotCurrentUserById && isNotCurrentUserByEmail && isNotCurrentUserByName;
     });
     
-    // If we can't find another participant, return the first one
-    return otherParticipant || conversation.participants[0];
+    // If we can't find another participant, return the first one that's not the current user
+    if (!otherParticipant) {
+      const fallbackParticipant = conversation.participants.find(p => String(p.id) !== String(currentUser.id));
+      return fallbackParticipant || conversation.participants[0];
+    }
+    
+    return otherParticipant;
   };
 
   // Clear message content when conversation changes
@@ -1295,18 +1300,18 @@ export default function MessagingPage() {
                         >
                           <div className="flex items-start gap-3">
                             <Avatar className="h-10 w-10">
-                              <AvatarFallback>
-                                {getOtherParticipant(conversation)?.name?.charAt(0) || 'U'}
+                              <AvatarFallback className="bg-green-500 text-white">
+                                {getOtherParticipant(conversation)?.name?.charAt(0)?.toUpperCase() || 'U'}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between mb-1">
                                 <p className="font-medium text-sm truncate text-gray-900 dark:text-gray-100">
-                                  {getOtherParticipant(conversation)?.name}
+                                  {getOtherParticipant(conversation)?.name || `User ${getOtherParticipant(conversation)?.id}`}
                                 </p>
                                 <div className="flex items-center gap-1">
                                   <Badge variant="secondary" className="text-xs">
-                                    {getOtherParticipant(conversation)?.role}
+                                    {getOtherParticipant(conversation)?.role || 'user'}
                                   </Badge>
                                   {conversation.unreadCount > 0 && (
                                     <Badge variant="destructive" className="text-xs">
