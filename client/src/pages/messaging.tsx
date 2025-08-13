@@ -1493,16 +1493,14 @@ export default function MessagingPage() {
                                           console.log('🗑️ MESSAGES BEFORE DELETE:', currentMessages.length);
                                           console.log('🗑️ MESSAGES AFTER DELETE:', updatedMessages.length);
                                           
-                                          // CRITICAL FIX: Force immediate UI update by directly re-triggering the query
+                                          // CRITICAL FIX: Force immediate UI update using direct refetch methods
                                           console.log('🗑️ FORCE RE-RENDER: Triggering immediate refetch after delete');
                                           
-                                          // Immediately refetch the data from server
-                                          const queryKey = ['/api/messaging/messages', selectedConversation];
-                                          await queryClient.refetchQueries({ 
-                                            queryKey,
-                                            type: 'active',
-                                            exact: true
-                                          });
+                                          // Refetch both messages and conversations to ensure UI updates immediately
+                                          await Promise.all([
+                                            refetchMessages(),
+                                            refetchConversations()
+                                          ]);
                                           
                                           console.log('🗑️ REFETCH COMPLETED - deleted message should disappear immediately');
                                           
