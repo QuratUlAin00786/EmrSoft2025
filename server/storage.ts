@@ -1203,6 +1203,90 @@ export class DatabaseStorage implements IStorage {
     console.log(`✅ Consolidated ${duplicateConversations.length} duplicate conversations into ${keepConversation.id}`);
   }
 
+  async consolidateAllDuplicateConversations(organizationId: number): Promise<void> {
+    console.log(`🔄 CONSOLIDATING ALL duplicate conversations for organization ${organizationId}`);
+    
+    // Get all conversations for this organization
+    const allConversations = await db.select()
+      .from(conversations)
+      .where(eq(conversations.organizationId, organizationId));
+    
+    console.log(`🔄 Found ${allConversations.length} total conversations to analyze`);
+    
+    // Group conversations by participants (unique pairs)
+    const conversationGroups = new Map<string, any[]>();
+    
+    for (const conv of allConversations) {
+      const participants = conv.participants as Array<{id: string | number; name: string; role: string}>;
+      
+      // Create a consistent key for the participant pair (sorted to ensure consistency)
+      const participantIds = participants.map(p => p.id?.toString() || p.name?.toString() || '').sort();
+      const groupKey = participantIds.join('|');
+      
+      if (!conversationGroups.has(groupKey)) {
+        conversationGroups.set(groupKey, []);
+      }
+      conversationGroups.get(groupKey)!.push(conv);
+    }
+    
+    let totalConsolidated = 0;
+    
+    // Process each group that has duplicates
+    for (const [groupKey, conversations] of conversationGroups) {
+      if (conversations.length > 1) {
+        console.log(`🔄 Found ${conversations.length} duplicate conversations for participant group: ${groupKey}`);
+        
+        // Sort by creation date to keep the oldest one
+        conversations.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        const keepConversation = conversations[0];
+        const duplicateConversations = conversations.slice(1);
+        
+        // Move all messages from duplicate conversations to the main one
+        for (const dupConv of duplicateConversations) {
+          console.log(`🔄 Moving messages from ${dupConv.id} to ${keepConversation.id}`);
+          
+          // Update all messages to point to the main conversation
+          await db.update(messages)
+            .set({ conversationId: keepConversation.id })
+            .where(eq(messages.conversationId, dupConv.id));
+          
+          // Delete the duplicate conversation
+          await db.delete(conversations)
+            .where(eq(conversations.id, dupConv.id));
+          
+          console.log(`🔄 Deleted duplicate conversation ${dupConv.id}`);
+          totalConsolidated++;
+        }
+        
+        // Update the main conversation's lastMessage and unreadCount
+        const allMessagesInConv = await db.select()
+          .from(messages)
+          .where(eq(messages.conversationId, keepConversation.id))
+          .orderBy(asc(messages.timestamp));
+        
+        if (allMessagesInConv.length > 0) {
+          const lastMessage = allMessagesInConv[allMessagesInConv.length - 1];
+          await db.update(conversations)
+            .set({
+              lastMessage: {
+                id: lastMessage.id,
+                senderId: lastMessage.senderId,
+                subject: lastMessage.subject,
+                content: lastMessage.content,
+                timestamp: lastMessage.timestamp.toISOString(),
+                priority: lastMessage.priority || 'normal'
+              },
+              unreadCount: allMessagesInConv.filter(m => !m.isRead).length,
+              updatedAt: new Date()
+            })
+            .where(eq(conversations.id, keepConversation.id));
+        }
+      }
+    }
+    
+    console.log(`✅ Consolidated ${totalConsolidated} duplicate conversations total`);
+  }
+
   async sendMessage(messageData: any, organizationId: number): Promise<any> {
     const messageId = `msg_${Date.now()}`;
     // Use existing conversation ID if provided, otherwise create new one

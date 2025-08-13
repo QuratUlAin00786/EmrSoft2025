@@ -2258,6 +2258,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint to fix existing duplicate conversations
+  app.post("/api/messaging/consolidate", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      console.log("🔄 Manual consolidation triggered");
+      await storage.consolidateAllDuplicateConversations(req.tenant!.id);
+      res.json({ success: true, message: "Duplicate conversations consolidated" });
+    } catch (error) {
+      console.error("Error consolidating conversations:", error);
+      res.status(500).json({ error: "Failed to consolidate conversations" });
+    }
+  });
+
   app.post("/api/messaging/send", authMiddleware, async (req: TenantRequest, res) => {
     try {
       console.log("Received message data:", JSON.stringify(req.body, null, 2));
