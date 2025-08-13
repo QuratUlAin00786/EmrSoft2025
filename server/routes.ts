@@ -2258,11 +2258,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint to debug conversations
+  app.get("/api/messaging/debug", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const conversations = await storage.getConversations(req.tenant!.id);
+      console.log("🔍 DEBUG - Raw conversations:", JSON.stringify(conversations, null, 2));
+      res.json({ conversations, count: conversations.length });
+    } catch (error) {
+      console.error("Error debugging conversations:", error);
+      res.status(500).json({ error: "Failed to debug conversations" });
+    }
+  });
+
   // Endpoint to fix existing duplicate conversations
   app.post("/api/messaging/consolidate", authMiddleware, async (req: TenantRequest, res) => {
     try {
       console.log("🔄 Manual consolidation triggered");
-      await storage.consolidateAllDuplicateConversations(req.tenant!.id);
+      await storage.fixZahraConversations(req.tenant!.id);
       res.json({ success: true, message: "Duplicate conversations consolidated" });
     } catch (error) {
       console.error("Error consolidating conversations:", error);

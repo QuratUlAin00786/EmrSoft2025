@@ -1219,9 +1219,22 @@ export class DatabaseStorage implements IStorage {
     for (const conv of allConversations) {
       const participants = conv.participants as Array<{id: string | number; name: string; role: string}>;
       
-      // Create a consistent key for the participant pair (sorted to ensure consistency)
-      const participantIds = participants.map(p => p.id?.toString() || p.name?.toString() || '').sort();
-      const groupKey = participantIds.join('|');
+      // Extract admin and patient IDs with better matching logic
+      let adminId = '';
+      let patientIdentifier = '';
+      
+      for (const p of participants) {
+        if (p.role === 'admin' || p.role === 'doctor' || p.role === 'nurse') {
+          adminId = p.id?.toString() || '';
+        } else if (p.role === 'patient') {
+          // Use name as identifier if id is missing, or use id if available
+          patientIdentifier = p.id?.toString() || p.name?.toString() || '';
+        }
+      }
+      
+      // Create a consistent key for the participant pair
+      const groupKey = [adminId, patientIdentifier].filter(id => id !== '').sort().join('|');
+      console.log(`🔍 Conversation ${conv.id} has participants: ${JSON.stringify(participants)} -> adminId: ${adminId}, patientId: ${patientIdentifier} -> key: ${groupKey}`);
       
       if (!conversationGroups.has(groupKey)) {
         conversationGroups.set(groupKey, []);
@@ -1285,6 +1298,120 @@ export class DatabaseStorage implements IStorage {
     }
     
     console.log(`✅ Consolidated ${totalConsolidated} duplicate conversations total`);
+  }
+
+  async fixZahraConversations(organizationId: number): Promise<void> {
+    console.log(`🔧 FIXING Zahra conversations for organization ${organizationId}`);
+    
+    // Get all conversations for this organization
+    const allConversations = await db.select()
+      .from(conversations)
+      .where(eq(conversations.organizationId, organizationId));
+    
+    console.log(`🔧 Found ${allConversations.length} total conversations`);
+    
+    // Find conversations with Zahra
+    const zahraConversations = [];
+    for (const conv of allConversations) {
+      const participants = conv.participants as Array<{id: string | number; name: string; role: string}>;
+      const hasZahra = participants.some(p => 
+        p.name === "Zahra Qureshi" || 
+        p.id === "Zahra Qureshi" ||
+        (p.role === "patient" && (!p.id || !p.name)) // incomplete patient data
+      );
+      
+      if (hasZahra) {
+        zahraConversations.push(conv);
+        console.log(`🔧 Found Zahra conversation: ${conv.id}, participants: ${JSON.stringify(participants)}`);
+      }
+    }
+    
+    if (zahraConversations.length <= 1) {
+      console.log(`🔧 No duplicate Zahra conversations found (found ${zahraConversations.length})`);
+      return;
+    }
+    
+    console.log(`🔧 Found ${zahraConversations.length} Zahra conversations, consolidating...`);
+    
+    // Sort by creation date to keep the oldest one with complete data
+    zahraConversations.sort((a, b) => {
+      const aComplete = (a.participants as any[]).some(p => p.name === "Zahra Qureshi");
+      const bComplete = (b.participants as any[]).some(p => p.name === "Zahra Qureshi");
+      
+      // Prefer conversations with complete data, then by creation date
+      if (aComplete && !bComplete) return -1;
+      if (!aComplete && bComplete) return 1;
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    });
+    
+    const keepConversation = zahraConversations[0];
+    const duplicateConversations = zahraConversations.slice(1);
+    
+    // Ensure the kept conversation has proper participant data
+    const participants = keepConversation.participants as Array<{id: string | number; name: string; role: string}>;
+    const hasCompleteZahra = participants.some(p => p.name === "Zahra Qureshi");
+    
+    if (!hasCompleteZahra) {
+      // Fix the participant data
+      const updatedParticipants = participants.map(p => {
+        if (p.role === "patient" && (!p.id || !p.name)) {
+          return {
+            id: "Zahra Qureshi",
+            name: "Zahra Qureshi", 
+            role: "patient"
+          };
+        }
+        return p;
+      });
+      
+      await db.update(conversations)
+        .set({ participants: updatedParticipants })
+        .where(eq(conversations.id, keepConversation.id));
+      
+      console.log(`🔧 Fixed participant data for conversation ${keepConversation.id}`);
+    }
+    
+    // Move all messages from duplicate conversations to the main one
+    for (const dupConv of duplicateConversations) {
+      console.log(`🔧 Moving messages from ${dupConv.id} to ${keepConversation.id}`);
+      
+      // Update all messages to point to the main conversation
+      await db.update(messages)
+        .set({ conversationId: keepConversation.id })
+        .where(eq(messages.conversationId, dupConv.id));
+      
+      // Delete the duplicate conversation
+      await db.delete(conversations)
+        .where(eq(conversations.id, dupConv.id));
+      
+      console.log(`🔧 Deleted duplicate conversation ${dupConv.id}`);
+    }
+    
+    // Update the main conversation's lastMessage and unreadCount
+    const allMessagesInConv = await db.select()
+      .from(messages)
+      .where(eq(messages.conversationId, keepConversation.id))
+      .orderBy(asc(messages.timestamp));
+    
+    if (allMessagesInConv.length > 0) {
+      const lastMessage = allMessagesInConv[allMessagesInConv.length - 1];
+      await db.update(conversations)
+        .set({
+          lastMessage: {
+            id: lastMessage.id,
+            senderId: lastMessage.senderId,
+            subject: lastMessage.subject,
+            content: lastMessage.content,
+            timestamp: lastMessage.timestamp.toISOString(),
+            priority: lastMessage.priority || 'normal'
+          },
+          unreadCount: allMessagesInConv.filter(m => !m.isRead).length,
+          updatedAt: new Date()
+        })
+        .where(eq(conversations.id, keepConversation.id));
+    }
+    
+    console.log(`✅ Fixed Zahra conversations - consolidated ${duplicateConversations.length} duplicates into ${keepConversation.id}`);
   }
 
   async sendMessage(messageData: any, organizationId: number): Promise<any> {
