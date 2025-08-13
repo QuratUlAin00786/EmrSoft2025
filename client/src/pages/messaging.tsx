@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -224,25 +224,38 @@ export default function MessagingPage() {
     }
   }, [conversations, selectedConversation]);
 
-  const { data: messages = [], isLoading: messagesLoading, refetch: refetchMessages } = useQuery({
-    queryKey: ['/api/messaging/messages', selectedConversation],
-    enabled: !!selectedConversation,
-    staleTime: 0, // Always refetch
-    gcTime: 0, // Don't cache (TanStack Query v5)
-    refetchOnMount: 'always', // Always refetch when component mounts
-    networkMode: 'always', // Always make network requests
-    retry: false, // Don't retry on failure
-    refetchOnWindowFocus: true,
-    queryFn: async () => {
-      console.log('🔥 FETCHING MESSAGES for conversation:', selectedConversation);
-      console.log('🔥 QUERY TIMESTAMP:', new Date().toISOString());
-      const response = await apiRequest('GET', `/api/messaging/messages/${selectedConversation}`);
+  // Bypass React Query completely for messages to avoid cache issues
+  const [messages, setMessages] = useState<any[]>([]);
+  const [messagesLoading, setMessagesLoading] = useState(false);
+  
+  const fetchMessages = useCallback(async (conversationId: string) => {
+    if (!conversationId) return;
+    
+    setMessagesLoading(true);
+    try {
+      console.log('🔥 DIRECT FETCH MESSAGES for conversation:', conversationId);
+      console.log('🔥 FETCH TIMESTAMP:', new Date().toISOString());
+      const response = await apiRequest('GET', `/api/messaging/messages/${conversationId}`);
       const data = await response.json();
-      console.log('🔥 MESSAGES DATA RECEIVED:', data.length, 'messages');
+      console.log('🔥 DIRECT FETCH COMPLETED:', data.length, 'messages');
       console.log('🔥 MESSAGE IDS:', data.map((m: any) => m.id));
-      return data;
+      setMessages(data);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      setMessages([]);
+    } finally {
+      setMessagesLoading(false);
     }
-  });
+  }, []);
+  
+  // Fetch messages when conversation changes
+  useEffect(() => {
+    if (selectedConversation) {
+      fetchMessages(selectedConversation);
+    } else {
+      setMessages([]);
+    }
+  }, [selectedConversation, fetchMessages]);
 
   const { data: campaigns = [], isLoading: campaignsLoading, error: campaignsError } = useQuery({
     queryKey: ['/api/messaging/campaigns'],
@@ -491,13 +504,23 @@ export default function MessagingPage() {
           
           // Force refetch the current conversation if it matches
           if (selectedConversation && messageConversationId === selectedConversation) {
-            console.log('🔄 Force refetching current conversation messages');
-            refetchMessages().catch(error => console.error('Error refetching messages:', error));
+            console.log('🔄 Force refetching current conversation messages using direct fetch');
+            console.log('🔍 fetchMessages function available:', typeof fetchMessages);
+            console.log('🔍 selectedConversation:', selectedConversation);
+            if (fetchMessages) {
+              fetchMessages(selectedConversation);
+            } else {
+              console.error('❌ fetchMessages function not available in WebSocket context');
+            }
           }
           
           // Also invalidate all message queries and conversations
           queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages'] });
           queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
+          
+          // Force complete cache reset for messaging data
+          queryClient.removeQueries({ queryKey: ['/api/messaging/messages'] });
+          queryClient.removeQueries({ queryKey: ['/api/messaging/conversations'] });
           
           console.log('🔥 REFETCH COMPLETED - UI should update immediately');
           
@@ -524,7 +547,7 @@ export default function MessagingPage() {
     return () => {
       socket.close();
     };
-  }, [currentUser, toast]);
+  }, [currentUser, toast, selectedConversation, fetchMessages]);
 
   const handleSendNewMessage = () => {
     // Validate required fields
