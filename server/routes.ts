@@ -2345,6 +2345,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         // For internal messages, broadcast to other users via WebSocket
         const broadcastMessage = req.app.get('broadcastMessage');
+        console.log(`🔍 DEBUG - broadcastMessage function exists:`, !!broadcastMessage);
+        console.log(`🔍 DEBUG - messageDataWithUser.recipientId:`, messageDataWithUser.recipientId);
+        console.log(`🔍 DEBUG - messageDataWithUser.conversationId:`, messageDataWithUser.conversationId);
         if (broadcastMessage && messageDataWithUser.recipientId) {
           // Try to find recipient user ID if recipientId is a name
           if (typeof messageDataWithUser.recipientId === 'string') {
@@ -2378,16 +2381,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         // Also broadcast to any other users who might be viewing the same conversation
+        console.log(`🔍 DEBUG CONVERSATION - broadcastMessage exists:`, !!broadcastMessage);
+        console.log(`🔍 DEBUG CONVERSATION - conversationId:`, messageDataWithUser.conversationId);
         if (broadcastMessage && messageDataWithUser.conversationId) {
           try {
             // Get conversation data to find all participants
+            console.log(`🔍 DEBUG - Getting conversations for org: ${req.organizationId}`);
             const conversations = await storage.getConversations(req.organizationId!);
+            console.log(`🔍 DEBUG - Found ${conversations.length} conversations`);
             const currentConversation = conversations.find(c => c.id === messageDataWithUser.conversationId);
+            console.log(`🔍 DEBUG - Current conversation found:`, currentConversation ? 'YES' : 'NO');
+            console.log(`🔍 DEBUG - Current conversation participants:`, currentConversation?.participants);
             
             if (currentConversation && currentConversation.participants) {
               // Get unique participant IDs from conversation participants
               const participantIds = new Set();
+              console.log(`🔍 DEBUG - Processing ${currentConversation.participants.length} participants`);
+              console.log(`🔍 DEBUG - Current sender user ID:`, req.user!.id);
               for (const participant of currentConversation.participants) {
+                console.log(`🔍 DEBUG - Processing participant:`, participant);
+                console.log(`🔍 DEBUG - Participant ID type:`, typeof participant.id, 'Value:', participant.id);
                 let participantId: number | null = null;
                 
                 if (typeof participant.id === 'number') {
@@ -2395,8 +2408,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 } else if (typeof participant.id === 'string') {
                   // Try to map string participant names to actual user IDs
                   const allUsers = await storage.getUsersByOrganization(req.organizationId!);
+                  console.log(`🔍 DEBUG - Looking for participant "${participant.id}" among ${allUsers.length} users`);
+                  console.log(`🔍 DEBUG - Available users:`, allUsers.map(u => ({ id: u.id, firstName: u.firstName, lastName: u.lastName, email: u.email })));
+                  
                   const matchedUser = allUsers.find(user => {
                     const fullName = `${user.firstName} ${user.lastName}`.trim();
+                    console.log(`🔍 DEBUG - Comparing "${participant.id}" with "${fullName}", "${user.firstName}", "${user.email}"`);
                     return fullName === participant.id || 
                            user.firstName === participant.id ||
                            user.email === participant.id;
@@ -2406,6 +2423,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     participantId = matchedUser.id;
                     console.log(`🔧 Mapped participant "${participant.id}" to user ID ${matchedUser.id}`);
                   } else {
+                    console.log(`❌ No user found for participant "${participant.id}"`);
                     // Try to parse as number
                     const parsed = parseInt(participant.id);
                     if (!isNaN(parsed)) {
@@ -2415,8 +2433,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 }
                 
                 // Only add valid numeric IDs that aren't the current sender
+                console.log(`🔍 DEBUG - Participant processing result: participantId=${participantId}, sender=${req.user!.id}, shouldAdd=${participantId && participantId !== req.user!.id}`);
                 if (participantId && participantId !== req.user!.id) {
                   participantIds.add(participantId);
+                  console.log(`🔍 DEBUG - Added participant ${participantId} to broadcast list`);
                 }
               }
               
@@ -6223,7 +6243,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Export function to broadcast messages to specific users
   app.set('broadcastMessage', (targetUserId: number, messageData: any) => {
     const targetClient = connectedClients.get(targetUserId);
-    if (targetClient && targetClient.readyState === 1) { // WebSocket.OPEN = 1
+    if (targetClient && targetClient.readyState === WebSocket.OPEN) {
       targetClient.send(JSON.stringify({
         type: 'new_message',
         data: messageData
