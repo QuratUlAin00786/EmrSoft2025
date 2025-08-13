@@ -546,17 +546,17 @@ export default function MessagingPage() {
       const responseData = await response.json();
       console.log('🔥 CONVERSATION MESSAGE RESPONSE:', responseData);
       
-      // Immediately invalidate cache and refetch - database operation is already complete
-      console.log('🔥 STARTING IMMEDIATE CACHE INVALIDATION for conversation:', selectedConversation);
+      // Force immediate UI update by removing cache and refetching
+      console.log('🔥 STARTING IMMEDIATE CACHE REFRESH for conversation:', selectedConversation);
       
-      // Invalidate and refetch immediately since server response confirms success
-      await queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
+      // Remove cache completely and force refetch since server response confirms success
+      queryClient.removeQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
       await queryClient.refetchQueries({ 
         queryKey: ['/api/messaging/messages', selectedConversation],
-        exact: true 
+        type: 'active'
       });
       
-      console.log('🔥 CACHE INVALIDATION COMPLETED - UI should update immediately');
+      console.log('🔥 CACHE REFRESH COMPLETED - UI should update immediately');
       
       toast({
         title: "Message Sent",
@@ -1374,11 +1374,11 @@ export default function MessagingPage() {
                                             throw new Error(`${response.status}: ${response.statusText}`);
                                           }
                                           
-                                          // Immediately refresh the messages
-                                          await queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
+                                          // Force immediate UI update by removing cache and refetching
+                                          queryClient.removeQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
                                           await queryClient.refetchQueries({ 
                                             queryKey: ['/api/messaging/messages', selectedConversation],
-                                            exact: true 
+                                            type: 'active'
                                           });
                                           
                                           toast({ 
