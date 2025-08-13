@@ -2251,7 +2251,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/messaging/messages/:conversationId", authMiddleware, async (req: TenantRequest, res) => {
     try {
+      // Add cache-busting headers to prevent stale reads
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+      
       const messages = await storage.getMessages(req.params.conversationId, req.tenant!.id);
+      console.log(`🔍 API GET MESSAGES - Returning ${messages.length} messages for conversation ${req.params.conversationId}`);
       res.json(messages);
     } catch (error) {
       console.error("Error fetching messages:", error);
@@ -2345,7 +2353,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         // For internal messages, broadcast to other users via WebSocket
         // Add delay to ensure database transaction is fully committed across all connections
-        await new Promise(resolve => setTimeout(resolve, 150));
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Verify the message exists in database before broadcasting
+        const verifyMessage = await storage.getMessages(messageDataWithUser.conversationId, req.organizationId!);
+        console.log(`🔍 VERIFICATION - Database contains ${verifyMessage.length} messages before broadcast`);
         
         const broadcastMessage = req.app.get('broadcastMessage');
         console.log(`🔍 DEBUG - broadcastMessage function exists:`, !!broadcastMessage);

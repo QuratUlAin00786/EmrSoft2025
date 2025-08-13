@@ -1489,6 +1489,14 @@ export class DatabaseStorage implements IStorage {
     
     const [createdMessage] = await db.insert(messages).values(messageInsertData).returning();
     console.log(`✅ MESSAGE INSERTED:`, createdMessage?.id);
+    
+    // Force database synchronization by immediately reading back all messages
+    const verifyMessages = await db.select().from(messages)
+      .where(and(
+        eq(messages.conversationId, conversationId),
+        eq(messages.organizationId, organizationId)
+      ));
+    console.log(`🔍 POST-INSERT VERIFICATION: ${verifyMessages.length} messages exist for conversation ${conversationId}`);
 
     // Check if conversation exists, if not create it
     let existingConversation = await db.select()
