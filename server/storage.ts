@@ -1096,8 +1096,26 @@ export class DatabaseStorage implements IStorage {
               name: user.email
             };
           }
+        } else if (typeof participant.id === 'string') {
+          // If it's a patient name string, try to find the actual user ID
+          const allUsers = await this.getUsersByOrganization(organizationId);
+          const matchedUser = allUsers.find(user => {
+            const fullName = `${user.firstName} ${user.lastName}`.trim();
+            return fullName === participant.id || 
+                   user.firstName === participant.id ||
+                   user.email === participant.id;
+          });
+          
+          if (matchedUser) {
+            console.log(`🔧 Fixed participant mapping: "${participant.id}" -> ${matchedUser.id} (${matchedUser.firstName} ${matchedUser.lastName})`);
+            return {
+              id: matchedUser.id, // Use actual numeric user ID
+              name: `${matchedUser.firstName} ${matchedUser.lastName}`,
+              role: matchedUser.role
+            };
+          }
         }
-        // If it's a patient name string, keep it as is
+        // If it's a patient name string and no match found, keep it as is
         return participant;
       }));
       

@@ -2387,13 +2387,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (currentConversation && currentConversation.participants) {
               // Get unique participant IDs from conversation participants
               const participantIds = new Set();
-              currentConversation.participants.forEach(participant => {
-                // Convert string IDs to numbers and exclude current sender
-                const participantId = typeof participant.id === 'string' ? parseInt(participant.id) : participant.id;
-                if (participantId && participantId !== req.user!.id && !isNaN(participantId)) {
+              for (const participant of currentConversation.participants) {
+                let participantId: number | null = null;
+                
+                if (typeof participant.id === 'number') {
+                  participantId = participant.id;
+                } else if (typeof participant.id === 'string') {
+                  // Try to map string participant names to actual user IDs
+                  const allUsers = await storage.getUsersByOrganization(req.tenant!.id);
+                  const matchedUser = allUsers.find(user => {
+                    const fullName = `${user.firstName} ${user.lastName}`.trim();
+                    return fullName === participant.id || 
+                           user.firstName === participant.id ||
+                           user.email === participant.id;
+                  });
+                  
+                  if (matchedUser) {
+                    participantId = matchedUser.id;
+                    console.log(`🔧 Mapped participant "${participant.id}" to user ID ${matchedUser.id}`);
+                  } else {
+                    // Try to parse as number
+                    const parsed = parseInt(participant.id);
+                    if (!isNaN(parsed)) {
+                      participantId = parsed;
+                    }
+                  }
+                }
+                
+                // Only add valid numeric IDs that aren't the current sender
+                if (participantId && participantId !== req.user!.id) {
                   participantIds.add(participantId);
                 }
-              });
+              }
               
               console.log(`📨 Broadcasting to ${participantIds.size} conversation participants:`, Array.from(participantIds));
               
