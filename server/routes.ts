@@ -2350,7 +2350,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (typeof messageDataWithUser.recipientId === 'string') {
             try {
               // Look up user by name for WebSocket broadcasting
-              const allUsers = await storage.getUsers(req.tenant!.id);
+              const allUsers = await storage.getUsersByOrganization(req.organizationId!);
               const recipientUser = allUsers.find(user => 
                 user.firstName + ' ' + user.lastName === messageDataWithUser.recipientId ||
                 user.email === messageDataWithUser.recipientId
@@ -2381,7 +2381,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (broadcastMessage && messageDataWithUser.conversationId) {
           try {
             // Get conversation data to find all participants
-            const conversations = await storage.getConversations(req.tenant!.id);
+            const conversations = await storage.getConversations(req.organizationId!);
             const currentConversation = conversations.find(c => c.id === messageDataWithUser.conversationId);
             
             if (currentConversation && currentConversation.participants) {
@@ -2394,7 +2394,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   participantId = participant.id;
                 } else if (typeof participant.id === 'string') {
                   // Try to map string participant names to actual user IDs
-                  const allUsers = await storage.getUsersByOrganization(req.tenant!.id);
+                  const allUsers = await storage.getUsersByOrganization(req.organizationId!);
                   const matchedUser = allUsers.find(user => {
                     const fullName = `${user.firstName} ${user.lastName}`.trim();
                     return fullName === participant.id || 
