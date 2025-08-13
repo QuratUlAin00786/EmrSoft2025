@@ -1298,27 +1298,27 @@ export default function MessagingPage() {
                             setSelectedConversation(conversation.id);
                           }}
                         >
-                          <div className="flex items-start gap-3">
-                            <Avatar className="h-10 w-10">
-                              <AvatarFallback className="bg-green-500 text-white">
-                                {getOtherParticipant(conversation)?.name?.charAt(0)?.toUpperCase() || 'U'}
-                              </AvatarFallback>
-                            </Avatar>
+                          <div className="flex items-start gap-3 relative">
+                            <div className="relative">
+                              <Avatar className="h-10 w-10">
+                                <AvatarFallback className="bg-green-500 text-white">
+                                  {getOtherParticipant(conversation)?.name?.charAt(0)?.toUpperCase() || 'U'}
+                                </AvatarFallback>
+                              </Avatar>
+                              {conversation.unreadCount > 0 && (
+                                <Badge variant="destructive" className="absolute -top-1 -right-1 text-xs min-w-[20px] h-5 flex items-center justify-center p-1">
+                                  {conversation.unreadCount}
+                                </Badge>
+                              )}
+                            </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between mb-1">
                                 <p className="font-medium text-sm truncate text-gray-900 dark:text-gray-100">
                                   {getOtherParticipant(conversation)?.name || `User ${getOtherParticipant(conversation)?.id}`}
                                 </p>
-                                <div className="flex items-center gap-1">
-                                  <Badge variant="secondary" className="text-xs">
-                                    {getOtherParticipant(conversation)?.role || 'user'}
-                                  </Badge>
-                                  {conversation.unreadCount > 0 && (
-                                    <Badge variant="destructive" className="text-xs">
-                                      {conversation.unreadCount}
-                                    </Badge>
-                                  )}
-                                </div>
+                                <Badge variant="secondary" className="text-xs">
+                                  {getOtherParticipant(conversation)?.role || 'user'}
+                                </Badge>
                               </div>
                               <p className="text-xs text-gray-600 dark:text-gray-300 truncate">
                                 {conversation.lastMessage?.content || "No messages yet"}
