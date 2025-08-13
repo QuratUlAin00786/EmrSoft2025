@@ -550,8 +550,8 @@ export default function MessagingPage() {
       console.log('🔥 STARTING IMMEDIATE CACHE INVALIDATION for conversation:', selectedConversation);
       
       // Invalidate and refetch immediately since server response confirms success
-      queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
-      queryClient.refetchQueries({ 
+      await queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
+      await queryClient.refetchQueries({ 
         queryKey: ['/api/messaging/messages', selectedConversation],
         exact: true 
       });
