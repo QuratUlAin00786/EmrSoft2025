@@ -202,7 +202,7 @@ export default function MessagingPage() {
     setNewMessageContent("");
   }, [selectedConversation]);
 
-  const { data: conversations = [], isLoading: conversationsLoading, error: conversationsError } = useQuery({
+  const { data: conversations = [], isLoading: conversationsLoading, error: conversationsError, refetch: refetchConversations } = useQuery({
     queryKey: ['/api/messaging/conversations'],
     staleTime: 0, // Always refetch
     gcTime: 0, // Don't cache (TanStack Query v5)
@@ -235,7 +235,7 @@ export default function MessagingPage() {
     }
   }, [conversations, selectedConversation]);
 
-  const { data: messages = [], isLoading: messagesLoading } = useQuery({
+  const { data: messages = [], isLoading: messagesLoading, refetch: refetchMessages } = useQuery({
     queryKey: ['/api/messaging/messages', selectedConversation],
     enabled: !!selectedConversation,
     staleTime: 0, // Always refetch
@@ -600,16 +600,14 @@ export default function MessagingPage() {
       console.log('🔥 MESSAGES BEFORE SEND:', currentMessages.length);
       console.log('🔥 MESSAGES AFTER SEND:', updatedMessages.length);
       
-      // CRITICAL FIX: Force immediate UI update by directly re-triggering the query
+      // CRITICAL FIX: Force immediate UI update using direct refetch methods
       console.log('🔥 FORCE RE-RENDER: Triggering immediate refetch');
       
-      // First, immediately refetch the data from server
-      const queryKey = ['/api/messaging/messages', selectedConversation];
-      await queryClient.refetchQueries({ 
-        queryKey,
-        type: 'active',
-        exact: true
-      });
+      // Refetch both messages and conversations to ensure UI updates immediately
+      await Promise.all([
+        refetchMessages(),
+        refetchConversations()
+      ]);
       
       console.log('🔥 REFETCH COMPLETED - UI should update immediately');
       
