@@ -1179,9 +1179,8 @@ export class DatabaseStorage implements IStorage {
       .where(eq(conversations.id, conversationId))
       .limit(1);
 
-    // If no conversation found by ID and we're creating a new conversation,
-    // check if there's already a conversation between these participants
-    if (existingConversation.length === 0 && !messageData.conversationId && messageData.recipientId) {
+    // If no conversation found by ID, check if there's already a conversation between these participants
+    if (existingConversation.length === 0 && messageData.recipientId) {
       console.log(`🔍 Searching for existing conversation between sender ${messageData.senderId} and recipient ${messageData.recipientId}`);
       
       const allConversations = await db.select()
@@ -1192,17 +1191,26 @@ export class DatabaseStorage implements IStorage {
       for (const conv of allConversations) {
         const participants = conv.participants as Array<{id: string | number; name: string; role: string}>;
         const hasSender = participants.some(p => p.id == messageData.senderId);
-        const hasRecipient = participants.some(p => p.id == messageData.recipientId);
+        
+        // For recipient matching, check both ID and name since recipientId could be a name
+        const hasRecipient = participants.some(p => 
+          p.id == messageData.recipientId || 
+          p.name == messageData.recipientId ||
+          (typeof p.id === 'string' && p.id === messageData.recipientId)
+        );
         
         if (hasSender && hasRecipient) {
           console.log(`🔍 Found existing conversation: ${conv.id} between these participants`);
           // Update the conversationId to use the existing one
+          const oldConversationId = conversationId;
           conversationId = conv.id;
+          
           // Update the message's conversationId
           await db.update(messages)
             .set({ conversationId: conv.id })
             .where(eq(messages.id, messageId));
           
+          console.log(`🔍 Updated message ${messageId} from conversation ${oldConversationId} to ${conv.id}`);
           existingConversation = [conv];
           break;
         }
