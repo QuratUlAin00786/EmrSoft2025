@@ -331,6 +331,8 @@ export default function MessagingPage() {
     });
   };
 
+
+
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
       const token = localStorage.getItem('auth_token');
