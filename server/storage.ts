@@ -1066,7 +1066,7 @@ export class DatabaseStorage implements IStorage {
   // Messaging implementations - PERSISTENT DATABASE STORAGE
   async getConversations(organizationId: number): Promise<any[]> {
     // Get conversations from database instead of in-memory storage
-    const storedConversations = await this.db.select()
+    const storedConversations = await db.select()
       .from(conversations)
       .where(eq(conversations.organizationId, organizationId))
       .orderBy(desc(conversations.updatedAt));
@@ -1112,7 +1112,7 @@ export class DatabaseStorage implements IStorage {
 
   async getMessages(conversationId: string, organizationId: number): Promise<any[]> {
     // Get messages from database instead of in-memory storage
-    const storedMessages = await this.db.select()
+    const storedMessages = await db.select()
       .from(messages)
       .where(and(
         eq(messages.conversationId, conversationId),
@@ -1143,7 +1143,7 @@ export class DatabaseStorage implements IStorage {
     }
     
     // Create message in database
-    const [createdMessage] = await this.db.insert(messages).values({
+    const [createdMessage] = await db.insert(messages).values({
       id: messageId,
       organizationId: organizationId,
       conversationId: conversationId,
@@ -1164,14 +1164,14 @@ export class DatabaseStorage implements IStorage {
     }).returning();
 
     // Check if conversation exists, if not create it
-    const existingConversation = await this.db.select()
+    const existingConversation = await db.select()
       .from(conversations)
       .where(eq(conversations.id, conversationId))
       .limit(1);
 
     if (existingConversation.length === 0) {
       // Create new conversation
-      await this.db.insert(conversations).values({
+      await db.insert(conversations).values({
         id: conversationId,
         organizationId: organizationId,
         participants: [
@@ -1193,7 +1193,7 @@ export class DatabaseStorage implements IStorage {
       console.log(`✅ Created new conversation: ${conversationId} and message: ${messageId}`);
     } else {
       // Update existing conversation
-      await this.db.update(conversations)
+      await db.update(conversations)
         .set({
           lastMessage: {
             id: messageId,
