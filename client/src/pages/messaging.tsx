@@ -502,12 +502,14 @@ export default function MessagingPage() {
           console.log('🔄 New message received via WebSocket, refreshing UI');
           refetchMessages();
           refetchConversations();
+          console.log('🔥 REFETCH COMPLETED - UI should update immediately');
           
           // Show notification if message is for current conversation
-          if (data.data.conversationId === selectedConversation) {
+          // The server sends conversationId directly, not nested in data
+          if (data.conversationId === selectedConversation) {
             toast({
               title: "New Message",
-              description: "A new message has been received.",
+              description: `New message: ${data.message?.content || 'Message received'}`,
             });
           }
         }
@@ -528,7 +530,7 @@ export default function MessagingPage() {
     return () => {
       socket.close();
     };
-  }, [currentUser, selectedConversation, refetchMessages, refetchConversations]);
+  }, [currentUser, selectedConversation, toast]);
 
   const handleSendNewMessage = () => {
     // Validate required fields
