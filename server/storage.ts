@@ -1143,11 +1143,13 @@ export class DatabaseStorage implements IStorage {
     }
     
     // Create message in database
-    const [createdMessage] = await db.insert(messages).values({
+    console.log(`🔍 DEBUG - About to insert message with senderId: ${messageData.senderId} (type: ${typeof messageData.senderId})`);
+    
+    const messageInsertData = {
       id: messageId,
       organizationId: organizationId,
       conversationId: conversationId,
-      senderId: messageData.senderId,
+      senderId: parseInt(messageData.senderId.toString()), // Ensure it's an integer
       senderName: senderDisplayName,
       senderRole: messageData.senderRole || 'user',
       recipientId: messageData.recipientId,
@@ -1161,7 +1163,12 @@ export class DatabaseStorage implements IStorage {
       phoneNumber: messageData.phoneNumber,
       messageType: messageData.messageType,
       deliveryStatus: 'pending'
-    }).returning();
+    };
+    
+    console.log(`🔍 DEBUG - Message insert data:`, JSON.stringify(messageInsertData, null, 2));
+    
+    const [createdMessage] = await db.insert(messages).values(messageInsertData).returning();
+    console.log(`✅ MESSAGE INSERTED:`, createdMessage?.id);
 
     // Check if conversation exists, if not create it
     const existingConversation = await db.select()
@@ -1171,16 +1178,16 @@ export class DatabaseStorage implements IStorage {
 
     if (existingConversation.length === 0) {
       // Create new conversation
-      await db.insert(conversations).values({
+      const conversationInsertData = {
         id: conversationId,
         organizationId: organizationId,
         participants: [
-          { id: messageData.senderId, name: senderDisplayName, role: messageData.senderRole },
+          { id: parseInt(messageData.senderId.toString()), name: senderDisplayName, role: messageData.senderRole },
           { id: messageData.recipientId, name: messageData.recipientId, role: 'patient' }
         ],
         lastMessage: {
           id: messageId,
-          senderId: messageData.senderId,
+          senderId: parseInt(messageData.senderId.toString()),
           subject: messageData.subject,
           content: messageData.content,
           timestamp: timestamp.toISOString(),
@@ -1188,7 +1195,12 @@ export class DatabaseStorage implements IStorage {
         },
         unreadCount: 1,
         isPatientConversation: true
-      });
+      };
+      
+      console.log(`🔍 DEBUG - Conversation insert data:`, JSON.stringify(conversationInsertData, null, 2));
+      
+      const [createdConversation] = await db.insert(conversations).values(conversationInsertData).returning();
+      console.log(`✅ CONVERSATION INSERTED:`, createdConversation?.id);
       
       console.log(`✅ Created new conversation: ${conversationId} and message: ${messageId}`);
     } else {
