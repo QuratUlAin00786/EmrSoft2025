@@ -549,16 +549,19 @@ export default function MessagingPage() {
       // Force immediate cache invalidation and refetch
       console.log('🔥 STARTING CACHE INVALIDATION for conversation:', selectedConversation);
       
-      // First invalidate all related queries
-      await queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages'] });
-      await queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
+      // Invalidate and immediately refetch messages for current conversation
+      queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
+      queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
       
-      // Force immediate refetch without delay
-      await queryClient.refetchQueries({ 
+      // Force immediate refetch without await to trigger UI update
+      queryClient.refetchQueries({ 
         queryKey: ['/api/messaging/messages', selectedConversation],
         exact: true 
       });
-      console.log('🔥 IMMEDIATE REFETCH COMPLETED for:', selectedConversation);
+      queryClient.refetchQueries({ 
+        queryKey: ['/api/messaging/conversations'],
+        exact: true 
+      });
       
       console.log('🔥 CACHE INVALIDATION COMPLETED');
       
