@@ -544,14 +544,12 @@ export default function MessagingPage() {
       await queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages'] });
       await queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
       
-      // Then force an immediate refetch with a small delay to ensure the new message is saved
-      setTimeout(async () => {
-        await queryClient.refetchQueries({ 
-          queryKey: ['/api/messaging/messages', selectedConversation],
-          exact: true 
-        });
-        console.log('🔥 DELAYED REFETCH COMPLETED for:', selectedConversation);
-      }, 100);
+      // Force immediate refetch without delay
+      await queryClient.refetchQueries({ 
+        queryKey: ['/api/messaging/messages', selectedConversation],
+        exact: true 
+      });
+      console.log('🔥 IMMEDIATE REFETCH COMPLETED for:', selectedConversation);
       
       console.log('🔥 CACHE INVALIDATION COMPLETED');
       
@@ -1290,44 +1288,52 @@ export default function MessagingPage() {
                   {/* Messages */}
                   <ScrollArea className="flex-1 p-4">
                     <div className="space-y-4">
+                      {(() => {
+                        console.log('🔥 RENDERING MESSAGES - Count:', messages.length);
+                        console.log('🔥 RENDERING MESSAGES - Data:', JSON.stringify(messages, null, 2));
+                        return null;
+                      })()}
                       {messages.length === 0 ? (
                         <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                           <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
                           <p>No messages in this conversation</p>
                         </div>
                       ) : (
-                        messages.map((message: Message) => (
-                          <div key={message.id} className="flex gap-3">
-                            <Avatar className="h-8 w-8">
-                              <AvatarFallback className="text-xs">
-                                {message.senderName.charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="font-medium text-sm text-gray-900 dark:text-gray-100">{message.senderName}</span>
-                                <span className="text-xs text-gray-500 dark:text-gray-400">
-                                  {format(new Date(message.timestamp), 'MMM d, HH:mm')}
-                                </span>
-                                <div className={`w-2 h-2 rounded-full ${getPriorityColor(message.priority)}`}></div>
-                              </div>
-                              <div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3">
-                                <p className="text-sm text-gray-900 dark:text-gray-100">{message.content}</p>
-                                {message.attachments && message.attachments.length > 0 && (
-                                  <div className="mt-2 space-y-1">
-                                    {message.attachments.map((attachment) => (
-                                      <div key={attachment.id} className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300">
-                                        <Paperclip className="h-3 w-3" />
-                                        <span>{attachment.name}</span>
-                                        <span className="text-gray-500 dark:text-gray-400">({(attachment.size / 1024).toFixed(1)} KB)</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
+                        messages.map((message: Message, index: number) => {
+                          console.log(`🔥 RENDERING MESSAGE ${index}:`, message.id, message.content);
+                          return (
+                            <div key={message.id} className="flex gap-3 border-l-4 border-blue-200 pl-2 py-2" style={{ backgroundColor: '#f8f9fa', minHeight: '60px' }}>
+                              <Avatar className="h-8 w-8">
+                                <AvatarFallback className="text-xs bg-blue-500 text-white">
+                                  {message.senderName?.charAt(0) || 'U'}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="font-medium text-sm text-gray-900 dark:text-gray-100">{message.senderName}</span>
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    {format(new Date(message.timestamp), 'MMM d, HH:mm')}
+                                  </span>
+                                  <div className={`w-2 h-2 rounded-full ${getPriorityColor(message.priority)}`}></div>
+                                </div>
+                                <div className="bg-blue-50 dark:bg-slate-700 rounded-lg p-3 border border-blue-200">
+                                  <p className="text-sm text-gray-900 dark:text-gray-100 font-medium">{message.content}</p>
+                                  {message.attachments && message.attachments.length > 0 && (
+                                    <div className="mt-2 space-y-1">
+                                      {message.attachments.map((attachment) => (
+                                        <div key={attachment.id} className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300">
+                                          <Paperclip className="h-3 w-3" />
+                                          <span>{attachment.name}</span>
+                                          <span className="text-gray-500 dark:text-gray-400">({(attachment.size / 1024).toFixed(1)} KB)</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))
+                          )
+                        })
                       )}
                     </div>
                   </ScrollArea>
