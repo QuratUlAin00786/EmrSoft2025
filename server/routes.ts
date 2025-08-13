@@ -2380,15 +2380,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Also broadcast to any other users who might be viewing the same conversation
         if (broadcastMessage && messageDataWithUser.conversationId) {
           try {
-            const conversationMessages = await storage.getMessages(messageDataWithUser.conversationId, req.tenant!.id);
-            if (conversationMessages.length > 0) {
-              // Get unique participant IDs from conversation
+            // Get conversation data to find all participants
+            const conversations = await storage.getConversations(req.tenant!.id);
+            const currentConversation = conversations.find(c => c.id === messageDataWithUser.conversationId);
+            
+            if (currentConversation && currentConversation.participants) {
+              // Get unique participant IDs from conversation participants
               const participantIds = new Set();
-              conversationMessages.forEach(msg => {
-                if (msg.senderId !== req.user!.id) {
-                  participantIds.add(msg.senderId);
+              currentConversation.participants.forEach(participant => {
+                // Convert string IDs to numbers and exclude current sender
+                const participantId = typeof participant.id === 'string' ? parseInt(participant.id) : participant.id;
+                if (participantId && participantId !== req.user!.id && !isNaN(participantId)) {
+                  participantIds.add(participantId);
                 }
               });
+              
+              console.log(`📨 Broadcasting to ${participantIds.size} conversation participants:`, Array.from(participantIds));
               
               // Broadcast to all conversation participants
               participantIds.forEach(userId => {
