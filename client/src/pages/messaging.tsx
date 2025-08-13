@@ -213,19 +213,8 @@ export default function MessagingPage() {
     gcTime: 0, // Don't cache (TanStack Query v5)
     refetchOnMount: 'always', // Always refetch when component mounts
     queryFn: async () => {
-      const token = localStorage.getItem('auth_token');
-      console.log('🔄 FETCHING CONVERSATIONS with token:', token ? 'present' : 'missing');
-      const response = await fetch('/api/messaging/conversations', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'cura',
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include'
-      });
-      console.log('✅ Conversations response status:', response.status);
-      if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
+      console.log('🔄 FETCHING CONVERSATIONS');
+      const response = await apiRequest('GET', '/api/messaging/conversations');
       const data = await response.json();
       console.log('📨 CONVERSATIONS DATA RECEIVED:', JSON.stringify(data, null, 2));
       return data;
@@ -247,19 +236,8 @@ export default function MessagingPage() {
     gcTime: 0, // Don't cache (TanStack Query v5)
     refetchOnMount: 'always', // Always refetch when component mounts
     queryFn: async () => {
-      const token = localStorage.getItem('auth_token');
       console.log('🔥 FETCHING MESSAGES for conversation:', selectedConversation);
-      const response = await fetch(`/api/messaging/messages/${selectedConversation}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'cura',
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include'
-      });
-      console.log('🔥 MESSAGES RESPONSE STATUS:', response.status);
-      if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
+      const response = await apiRequest('GET', `/api/messaging/messages/${selectedConversation}`);
       const data = await response.json();
       console.log('🔥 MESSAGES DATA RECEIVED:', data.length, 'messages');
       return data;
@@ -500,9 +478,27 @@ export default function MessagingPage() {
         if (data.type === 'new_message') {
           // Refetch messages and conversations when new message received
           console.log('🔄 New message received via WebSocket, refreshing UI');
-          // Invalidate all message queries to ensure any open conversation updates
+          console.log('🔍 WebSocket data structure:', JSON.stringify(data, null, 2));
+          
+          // Invalidate specific conversation messages and all conversations
+          const messageConversationId = data.data?.conversationId || data.message?.conversationId || data.conversationId;
+          console.log('🔍 Extracted conversationId:', messageConversationId);
+          if (messageConversationId) {
+            // Invalidate the specific conversation messages
+            queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', messageConversationId] });
+            console.log('🔄 Invalidated specific conversation:', messageConversationId);
+          }
+          
+          // Force refetch the current conversation if it matches
+          if (selectedConversation && messageConversationId === selectedConversation) {
+            console.log('🔄 Force refetching current conversation messages');
+            refetchMessages().catch(error => console.error('Error refetching messages:', error));
+          }
+          
+          // Also invalidate all message queries and conversations
           queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages'] });
           queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
+          
           console.log('🔥 REFETCH COMPLETED - UI should update immediately');
           
           // Show notification for new messages
@@ -602,7 +598,8 @@ export default function MessagingPage() {
       console.log('🔥 Selected conversation ID:', selectedConversation);
       
       // Use the same apiRequest method that works for other API calls
-      const responseData = await apiRequest('POST', '/api/messaging/send', messageData);
+      const response = await apiRequest('POST', '/api/messaging/send', messageData);
+      const responseData = await response.json();
       console.log('🔥 CONVERSATION MESSAGE RESPONSE:', responseData);
       
       // Message sent successfully - WebSocket will handle the real-time UI update
