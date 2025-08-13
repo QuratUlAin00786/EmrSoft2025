@@ -470,19 +470,27 @@ export default function MessagingPage() {
 
   // WebSocket connection for real-time messaging
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      console.log('🔗 WebSocket: No currentUser, skipping connection');
+      return;
+    }
 
+    console.log('🔗 WebSocket: Attempting to connect for user:', currentUser.id);
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}/ws`;
+    console.log('🔗 WebSocket: URL:', wsUrl);
+    
     const socket = new WebSocket(wsUrl);
 
     socket.onopen = () => {
-      console.log('🔗 WebSocket connected');
+      console.log('🔗 WebSocket connected successfully');
       // Authenticate with the server
-      socket.send(JSON.stringify({
+      const authMessage = {
         type: 'auth',
         userId: currentUser.id
-      }));
+      };
+      console.log('🔗 WebSocket: Sending authentication:', authMessage);
+      socket.send(JSON.stringify(authMessage));
     };
 
     socket.onmessage = (event) => {
@@ -533,20 +541,21 @@ export default function MessagingPage() {
           });
         }
       } catch (error) {
-        console.error('Error parsing WebSocket message:', error);
+        console.error('❌ Error parsing WebSocket message:', error);
       }
     };
 
-    socket.onclose = () => {
-      console.log('🔗 WebSocket disconnected');
+    socket.onclose = (event) => {
+      console.log('🔗 WebSocket disconnected:', event.code, event.reason);
     };
 
     socket.onerror = (error) => {
-      console.error('WebSocket error:', error);
+      console.error('❌ WebSocket connection error:', error);
     };
 
     // Cleanup on unmount
     return () => {
+      console.log('🔗 WebSocket: Cleaning up connection');
       socket.close();
     };
   }, [currentUser, toast, selectedConversation, fetchMessages]);
