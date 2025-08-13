@@ -2432,9 +2432,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   }
                 }
                 
-                // Only add valid numeric IDs that aren't the current sender
-                console.log(`🔍 DEBUG - Participant processing result: participantId=${participantId}, sender=${req.user!.id}, shouldAdd=${participantId && participantId !== req.user!.id}`);
-                if (participantId && participantId !== req.user!.id) {
+                // Add all valid numeric IDs including the current sender for real-time UI updates
+                console.log(`🔍 DEBUG - Participant processing result: participantId=${participantId}, sender=${req.user!.id}, shouldAdd=${!!participantId}`);
+                if (participantId) {
                   participantIds.add(participantId);
                   console.log(`🔍 DEBUG - Added participant ${participantId} to broadcast list`);
                 }
