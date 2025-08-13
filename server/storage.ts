@@ -1074,7 +1074,7 @@ export class DatabaseStorage implements IStorage {
     console.log(`💬 GET CONVERSATIONS - Database: ${storedConversations.length} found for org ${organizationId}`);
     console.log(`💬 CONVERSATION IDS:`, storedConversations.map(c => c.id));
 
-    // Update participant names with actual user data
+    // Update participant names with actual user data and calculate real unread count
     const conversationsWithNames = await Promise.all(storedConversations.map(async (conv) => {
       const updatedParticipants = await Promise.all(conv.participants.map(async (participant: any) => {
         // Try to get user data by ID first
@@ -1101,9 +1101,18 @@ export class DatabaseStorage implements IStorage {
         return participant;
       }));
       
+      // Calculate actual unread count based on isRead status of messages
+      const unreadMessages = await db.select()
+        .from(messages)
+        .where(and(
+          eq(messages.conversationId, conv.id),
+          eq(messages.isRead, false)
+        ));
+      
       return {
         ...conv,
-        participants: updatedParticipants
+        participants: updatedParticipants,
+        unreadCount: unreadMessages.length // Use actual unread count
       };
     }));
 
@@ -1524,7 +1533,7 @@ export class DatabaseStorage implements IStorage {
           timestamp: timestamp.toISOString(),
           priority: messageData.priority || 'normal'
         },
-        unreadCount: 1,
+        unreadCount: 0, // Will be calculated accurately in getConversations
         isPatientConversation: true
       };
       
@@ -1535,7 +1544,7 @@ export class DatabaseStorage implements IStorage {
       
       console.log(`✅ Created new conversation: ${conversationId} and message: ${messageId}`);
     } else {
-      // Update existing conversation
+      // Update existing conversation (unreadCount will be calculated in getConversations)
       await db.update(conversations)
         .set({
           lastMessage: {
@@ -1546,7 +1555,6 @@ export class DatabaseStorage implements IStorage {
             timestamp: timestamp.toISOString(),
             priority: messageData.priority || 'normal'
           },
-          unreadCount: existingConversation[0].unreadCount + 1,
           updatedAt: timestamp
         })
         .where(eq(conversations.id, conversationId));
