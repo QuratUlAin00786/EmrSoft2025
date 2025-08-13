@@ -1557,6 +1557,22 @@ export class DatabaseStorage implements IStorage {
     return createdMessage;
   }
 
+  async deleteMessage(messageId: string, organizationId: number): Promise<boolean> {
+    try {
+      const result = await db.delete(messages)
+        .where(and(
+          eq(messages.id, messageId),
+          eq(messages.organizationId, organizationId)
+        ));
+      
+      console.log(`🗑️ DELETE RESULT for message ${messageId}:`, result);
+      return true; // Drizzle doesn't return affected rows count in the same way
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      return false;
+    }
+  }
+
   async getMessageCampaigns(organizationId: number): Promise<any[]> {
     // Mock campaigns data
     return [

@@ -1357,8 +1357,42 @@ export default function MessagingPage() {
                                       Tag
                                     </DropdownMenuItem>
                                     <DropdownMenuItem 
-                                      onClick={() => {
-                                        toast({ title: "Delete", description: `Deleting message: ${message.content.substring(0, 30)}...`, variant: "destructive" });
+                                      onClick={async () => {
+                                        try {
+                                          const token = localStorage.getItem('auth_token');
+                                          const response = await fetch(`/api/messaging/messages/${message.id}`, {
+                                            method: 'DELETE',
+                                            headers: {
+                                              'Authorization': `Bearer ${token}`,
+                                              'X-Tenant-Subdomain': 'cura',
+                                              'Content-Type': 'application/json'
+                                            },
+                                            credentials: 'include'
+                                          });
+                                          
+                                          if (!response.ok) {
+                                            throw new Error(`${response.status}: ${response.statusText}`);
+                                          }
+                                          
+                                          // Immediately refresh the messages
+                                          await queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
+                                          await queryClient.refetchQueries({ 
+                                            queryKey: ['/api/messaging/messages', selectedConversation],
+                                            exact: true 
+                                          });
+                                          
+                                          toast({ 
+                                            title: "Message Deleted", 
+                                            description: "Message has been deleted successfully" 
+                                          });
+                                        } catch (error) {
+                                          console.error('Delete error:', error);
+                                          toast({ 
+                                            title: "Error", 
+                                            description: "Failed to delete message", 
+                                            variant: "destructive" 
+                                          });
+                                        }
                                       }}
                                       className="text-red-600 dark:text-red-400"
                                     >

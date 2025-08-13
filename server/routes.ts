@@ -2500,6 +2500,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/messaging/messages/:messageId", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const messageId = req.params.messageId;
+      console.log(`🗑️ DELETE MESSAGE REQUEST - ID: ${messageId}, Org: ${req.tenant!.id}`);
+      
+      const deleted = await storage.deleteMessage(messageId, req.tenant!.id);
+      
+      if (deleted) {
+        console.log(`✅ MESSAGE DELETED - ID: ${messageId}`);
+        res.json({ success: true, message: "Message deleted successfully" });
+      } else {
+        console.log(`❌ MESSAGE NOT FOUND - ID: ${messageId}`);
+        res.status(404).json({ error: "Message not found" });
+      }
+    } catch (error) {
+      console.error("Error deleting message:", error);
+      res.status(500).json({ error: "Failed to delete message" });
+    }
+  });
+
   app.get("/api/messaging/account-info", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
     try {
       const accountInfo = await messagingService.getAccountInfo();
