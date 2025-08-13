@@ -127,11 +127,15 @@ export class MessagingService {
         to: phoneNumber,
       };
 
-      // Set priority (affects delivery speed)
-      if (priority === 'high') {
-        messageOptions.statusCallback = process.env.TWILIO_STATUS_CALLBACK_URL;
-        messageOptions.statusCallbackMethod = 'POST';
-      }
+      // Set status callback for all messages to track delivery
+      const baseUrl = process.env.REPLIT_DOMAINS ? 
+        `https://${process.env.REPLIT_DOMAINS.split(',')[0]}` : 
+        'http://localhost:5000';
+      
+      messageOptions.statusCallback = `${baseUrl}/api/webhooks/twilio/status`;
+      messageOptions.statusCallbackMethod = 'POST';
+      
+      console.log('📱 SMS statusCallback URL:', messageOptions.statusCallback);
 
       const twilioMessage = await client.messages.create(messageOptions);
 
@@ -199,6 +203,16 @@ export class MessagingService {
         from: this.whatsappFromNumber,
         to: whatsappTo,
       };
+
+      // Set status callback for all WhatsApp messages to track delivery
+      const baseUrl = process.env.REPLIT_DOMAINS ? 
+        `https://${process.env.REPLIT_DOMAINS.split(',')[0]}` : 
+        'http://localhost:5000';
+      
+      messageOptions.statusCallback = `${baseUrl}/api/webhooks/twilio/status`;
+      messageOptions.statusCallbackMethod = 'POST';
+      
+      console.log('📱 WhatsApp statusCallback URL:', messageOptions.statusCallback);
 
       const twilioMessage = await client.messages.create(messageOptions);
 

@@ -1607,6 +1607,78 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Message delivery status tracking methods
+  async updateMessageDeliveryStatus(externalMessageId: string, status: string, errorCode?: string, errorMessage?: string): Promise<void> {
+    try {
+      const updateData: any = {
+        deliveryStatus: status,
+        updatedAt: new Date()
+      };
+
+      if (errorCode) updateData.errorCode = errorCode;
+      if (errorMessage) updateData.errorMessage = errorMessage;
+
+      await db.update(messages)
+        .set(updateData)
+        .where(eq(messages.externalMessageId, externalMessageId));
+
+      console.log(`📱 Updated delivery status for message ${externalMessageId}: ${status}`);
+    } catch (error) {
+      console.error(`❌ Failed to update delivery status for message ${externalMessageId}:`, error);
+    }
+  }
+
+  async getMessageByExternalId(externalMessageId: string, organizationId: number): Promise<any> {
+    try {
+      const result = await db.select()
+        .from(messages)
+        .where(and(
+          eq(messages.externalMessageId, externalMessageId),
+          eq(messages.organizationId, organizationId)
+        ))
+        .limit(1);
+
+      return result[0] || null;
+    } catch (error) {
+      console.error(`❌ Failed to get message by external ID ${externalMessageId}:`, error);
+      return null;
+    }
+  }
+
+  async getMessage(messageId: string, organizationId: number): Promise<any> {
+    try {
+      const result = await db.select()
+        .from(messages)
+        .where(and(
+          eq(messages.id, messageId),
+          eq(messages.organizationId, organizationId)
+        ))
+        .limit(1);
+
+      return result[0] || null;
+    } catch (error) {
+      console.error(`❌ Failed to get message ${messageId}:`, error);
+      return null;
+    }
+  }
+
+  async updateMessage(messageId: string, organizationId: number, updateData: any): Promise<boolean> {
+    try {
+      await db.update(messages)
+        .set(updateData)
+        .where(and(
+          eq(messages.id, messageId),
+          eq(messages.organizationId, organizationId)
+        ));
+
+      console.log(`📱 Updated message ${messageId} with data:`, updateData);
+      return true;
+    } catch (error) {
+      console.error(`❌ Failed to update message ${messageId}:`, error);
+      return false;
+    }
+  }
+
   async getMessageCampaigns(organizationId: number): Promise<any[]> {
     // Mock campaigns data
     return [

@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { z } from "zod";
@@ -3713,6 +3713,161 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error uploading photo:", error);
       res.status(500).json({ error: "Failed to upload photo" });
+    }
+  });
+
+  // ======================
+  // TWILIO WEBHOOK HANDLERS & MESSAGE STATUS TRACKING
+  // ======================
+
+  // Twilio webhook to receive delivery status updates
+  app.post("/api/webhooks/twilio/status", express.raw({ type: 'application/x-www-form-urlencoded' }), async (req, res) => {
+    try {
+      console.log('📱 Twilio webhook received:', req.body.toString());
+      
+      // Parse form data from Twilio
+      const params = new URLSearchParams(req.body.toString());
+      const messageId = params.get('MessageSid');
+      const messageStatus = params.get('MessageStatus');
+      const errorCode = params.get('ErrorCode');
+      const errorMessage = params.get('ErrorMessage');
+      
+      console.log('📱 Twilio status update:', {
+        messageId,
+        messageStatus,
+        errorCode,
+        errorMessage
+      });
+
+      if (messageId && messageStatus) {
+        // Update message status in database
+        await storage.updateMessageDeliveryStatus(messageId, messageStatus, errorCode, errorMessage);
+        console.log(`📱 Updated message ${messageId} status to: ${messageStatus}`);
+      }
+
+      res.status(200).send('OK');
+    } catch (error) {
+      console.error('❌ Twilio webhook error:', error);
+      res.status(500).send('Webhook processing failed');
+    }
+  });
+
+  // API endpoint to check message delivery status
+  app.get("/api/messaging/status/:messageId", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const messageId = req.params.messageId;
+      
+      // First check database for cached status
+      const dbMessage = await storage.getMessageByExternalId(messageId, req.tenant!.id);
+      if (dbMessage) {
+        return res.json({
+          messageId,
+          status: dbMessage.deliveryStatus,
+          lastUpdated: dbMessage.updatedAt,
+          cached: true
+        });
+      }
+
+      // If not in database, query Twilio directly
+      const twilioStatus = await messagingService.getMessageStatus(messageId);
+      
+      if (twilioStatus) {
+        res.json({
+          messageId,
+          status: twilioStatus.status,
+          dateCreated: twilioStatus.dateCreated,
+          dateSent: twilioStatus.dateSent,
+          price: twilioStatus.price,
+          errorCode: twilioStatus.errorCode,
+          errorMessage: twilioStatus.errorMessage,
+          cached: false
+        });
+      } else {
+        res.status(404).json({ error: "Message status not found" });
+      }
+    } catch (error) {
+      console.error("Error checking message status:", error);
+      res.status(500).json({ error: "Failed to check message status" });
+    }
+  });
+
+  // API endpoint to retry failed messages
+  app.post("/api/messaging/retry/:messageId", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const messageId = req.params.messageId;
+      
+      // Get original message from database
+      const originalMessage = await storage.getMessage(messageId, req.tenant!.id);
+      if (!originalMessage || !originalMessage.phoneNumber) {
+        return res.status(404).json({ error: "Original message not found or missing phone number" });
+      }
+
+      // Only retry failed messages
+      if (originalMessage.deliveryStatus !== 'failed' && originalMessage.deliveryStatus !== 'undelivered') {
+        return res.status(400).json({ error: "Message is not in a failed state" });
+      }
+
+      const result = await messagingService.sendMessage({
+        to: originalMessage.phoneNumber,
+        message: originalMessage.content,
+        type: originalMessage.messageType as 'sms' | 'whatsapp' || 'sms',
+        priority: originalMessage.priority as 'low' | 'normal' | 'high' || 'normal'
+      });
+
+      if (result.success) {
+        // Update original message with new delivery attempt
+        await storage.updateMessage(messageId, req.tenant!.id, {
+          deliveryStatus: 'queued',
+          externalMessageId: result.messageId,
+          updatedAt: new Date()
+        });
+        
+        res.json({
+          success: true,
+          message: "Message retry initiated",
+          newMessageId: result.messageId
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          error: result.error
+        });
+      }
+    } catch (error) {
+      console.error("Error retrying message:", error);
+      res.status(500).json({ error: "Failed to retry message" });
+    }
+  });
+
+  // API endpoint to get Twilio account info and verify credentials
+  app.get("/api/messaging/twilio/status", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const accountInfo = await messagingService.getAccountInfo();
+      
+      if (accountInfo) {
+        res.json({
+          configured: true,
+          balance: accountInfo.balance,
+          accountSid: process.env.TWILIO_ACCOUNT_SID?.substring(0, 8) + '...',
+          phoneNumber: process.env.TWILIO_PHONE_NUMBER,
+          status: 'active'
+        });
+      } else {
+        res.json({
+          configured: false,
+          error: "Twilio credentials not configured or invalid"
+        });
+      }
+    } catch (error) {
+      console.error("Error checking Twilio status:", error);
+      res.status(500).json({ 
+        configured: false,
+        error: "Failed to verify Twilio configuration" 
+      });
     }
   });
 
