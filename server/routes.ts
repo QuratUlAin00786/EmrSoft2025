@@ -2380,7 +2380,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Also broadcast to any other users who might be viewing the same conversation
         if (broadcastMessage && messageDataWithUser.conversationId) {
           try {
-            const conversationMessages = await storage.getConversationMessages(messageDataWithUser.conversationId, req.tenant!.id);
+            const conversationMessages = await storage.getMessages(messageDataWithUser.conversationId, req.tenant!.id);
             if (conversationMessages.length > 0) {
               // Get unique participant IDs from conversation
               const participantIds = new Set();
