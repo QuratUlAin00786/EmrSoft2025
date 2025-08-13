@@ -11,6 +11,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { 
   Send, 
@@ -30,7 +36,10 @@ import {
   Trash2,
   Edit,
   Copy,
-  ArrowLeft
+  ArrowLeft,
+  MoreVertical,
+  Forward,
+  Tag
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -1330,6 +1339,38 @@ export default function MessagingPage() {
                                     </div>
                                   )}
                                 </div>
+                              </div>
+                              <div className="flex-shrink-0">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                      <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => {
+                                      toast({ title: "Forward", description: `Forwarding message: ${message.content.substring(0, 30)}...` });
+                                    }}>
+                                      <Forward className="mr-2 h-4 w-4" />
+                                      Forward
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => {
+                                      toast({ title: "Tag", description: `Tagging message: ${message.content.substring(0, 30)}...` });
+                                    }}>
+                                      <Tag className="mr-2 h-4 w-4" />
+                                      Tag
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem 
+                                      onClick={() => {
+                                        toast({ title: "Delete", description: `Deleting message: ${message.content.substring(0, 30)}...`, variant: "destructive" });
+                                      }}
+                                      className="text-red-600 dark:text-red-400"
+                                    >
+                                      <Trash2 className="mr-2 h-4 w-4" />
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               </div>
                             </div>
                           )
