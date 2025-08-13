@@ -1359,6 +1359,8 @@ export default function MessagingPage() {
                                     <DropdownMenuItem 
                                       onClick={async () => {
                                         try {
+                                          console.log('🗑️ DELETING MESSAGE:', message.id);
+                                          
                                           const token = localStorage.getItem('auth_token');
                                           const response = await fetch(`/api/messaging/messages/${message.id}`, {
                                             method: 'DELETE',
@@ -1374,15 +1376,28 @@ export default function MessagingPage() {
                                             throw new Error(`${response.status}: ${response.statusText}`);
                                           }
                                           
-                                          // Force immediate UI update with aggressive cache clearing
-                                          queryClient.removeQueries({ queryKey: ['/api/messaging/messages'] });
-                                          queryClient.removeQueries({ queryKey: ['/api/messaging/conversations'] });
+                                          console.log('🗑️ DELETE SUCCESS - forcing complete cache reset');
                                           
-                                          // Force refetch all message-related queries
-                                          await queryClient.invalidateQueries({ queryKey: ['/api/messaging'] });
-                                          await queryClient.refetchQueries({ 
-                                            queryKey: ['/api/messaging/messages', selectedConversation]
-                                          });
+                                          // Complete cache reset approach - clear everything and manually update data
+                                          queryClient.clear();
+                                          
+                                          // Manually set updated data without the deleted message
+                                          const currentMessages = queryClient.getQueryData(['/api/messaging/messages', selectedConversation]) as any[] || [];
+                                          const updatedMessages = currentMessages.filter(msg => msg.id !== message.id);
+                                          
+                                          console.log('🗑️ MESSAGES BEFORE DELETE:', currentMessages.length);
+                                          console.log('🗑️ MESSAGES AFTER DELETE:', updatedMessages.length);
+                                          
+                                          // Set the new data immediately
+                                          queryClient.setQueryData(['/api/messaging/messages', selectedConversation], updatedMessages);
+                                          
+                                          // Force a fresh fetch from server
+                                          setTimeout(async () => {
+                                            await queryClient.refetchQueries({ 
+                                              queryKey: ['/api/messaging/messages', selectedConversation],
+                                              type: 'active'
+                                            });
+                                          }, 100);
                                           
                                           toast({ 
                                             title: "Message Deleted", 
