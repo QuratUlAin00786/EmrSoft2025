@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -598,78 +598,15 @@ export default function MessagingPage() {
         priority: 'normal',
         type: 'internal'
       };
-      // Check auth token before making request
-      const token = localStorage.getItem('auth_token');
-      console.log('🔥 Auth token exists:', !!token);
       console.log('🔥 CONVERSATION MESSAGE DATA:', messageData);
       console.log('🔥 Selected conversation ID:', selectedConversation);
       
-      // Direct fetch implementation to bypass potential apiRequest issues
-      const response = await fetch('/api/messaging/send', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'cura'
-        },
-        credentials: 'include',
-        body: JSON.stringify(messageData)
-      });
-      
-      console.log('🔥 DIRECT FETCH RESPONSE STATUS:', response.status);
-      console.log('🔥 DIRECT FETCH RESPONSE OK:', response.ok);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('🔥 FETCH ERROR TEXT:', errorText);
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
-      }
-      
-      const responseData = await response.json();
+      // Use the same apiRequest method that works for other API calls
+      const responseData = await apiRequest('POST', '/api/messaging/send', messageData);
       console.log('🔥 CONVERSATION MESSAGE RESPONSE:', responseData);
       
-      // Force immediate UI update by adding the new message to existing data
-      console.log('🔥 STARTING IMMEDIATE UI UPDATE for conversation:', selectedConversation);
-      
-      // Get current messages and add the new one
-      const currentMessages = messages as any[] || [];
-      const newMessageData = {
-        id: responseData.id,
-        organizationId: responseData.organizationId,
-        conversationId: responseData.conversationId,
-        senderId: responseData.senderId || currentUser?.id,
-        senderName: responseData.senderName || currentUser?.firstName + ' ' + currentUser?.lastName || 'Unknown',
-        senderRole: responseData.senderRole || currentUser?.role || 'user',
-        recipientId: responseData.recipientId,
-        recipientName: responseData.recipientName,
-        subject: responseData.subject || '',
-        content: responseData.content,
-        timestamp: responseData.timestamp || new Date().toISOString(),
-        isRead: false,
-        priority: responseData.priority || 'normal',
-        type: responseData.type || 'internal',
-        isStarred: false,
-        phoneNumber: responseData.phoneNumber,
-        messageType: responseData.messageType,
-        deliveryStatus: responseData.deliveryStatus || 'pending',
-        externalMessageId: responseData.externalMessageId,
-        createdAt: responseData.createdAt || new Date().toISOString()
-      };
-      const updatedMessages = [...currentMessages, newMessageData];
-      
-      console.log('🔥 MESSAGES BEFORE SEND:', currentMessages.length);
-      console.log('🔥 MESSAGES AFTER SEND:', updatedMessages.length);
-      
-      // CRITICAL FIX: Force immediate UI update using direct refetch methods
-      console.log('🔥 FORCE RE-RENDER: Triggering immediate refetch');
-      
-      // Refetch both messages and conversations to ensure UI updates immediately
-      await Promise.all([
-        refetchMessages(),
-        refetchConversations()
-      ]);
-      
-      console.log('🔥 REFETCH COMPLETED - UI should update immediately');
+      // Message sent successfully - WebSocket will handle the real-time UI update
+      console.log('🔥 MESSAGE SENT - WebSocket will update UI automatically');
       
       toast({
         title: "Message Sent",
