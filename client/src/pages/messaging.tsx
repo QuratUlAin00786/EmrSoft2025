@@ -1374,11 +1374,14 @@ export default function MessagingPage() {
                                             throw new Error(`${response.status}: ${response.statusText}`);
                                           }
                                           
-                                          // Force immediate UI update by removing cache and refetching
-                                          queryClient.removeQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
+                                          // Force immediate UI update with aggressive cache clearing
+                                          queryClient.removeQueries({ queryKey: ['/api/messaging/messages'] });
+                                          queryClient.removeQueries({ queryKey: ['/api/messaging/conversations'] });
+                                          
+                                          // Force refetch all message-related queries
+                                          await queryClient.invalidateQueries({ queryKey: ['/api/messaging'] });
                                           await queryClient.refetchQueries({ 
-                                            queryKey: ['/api/messaging/messages', selectedConversation],
-                                            type: 'active'
+                                            queryKey: ['/api/messaging/messages', selectedConversation]
                                           });
                                           
                                           toast({ 
