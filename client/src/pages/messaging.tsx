@@ -625,8 +625,19 @@ export default function MessagingPage() {
       const responseData = await response.json();
       console.log('🔥 CONVERSATION MESSAGE RESPONSE:', responseData);
       
-      // Message sent successfully - WebSocket will handle the real-time UI update
+      // Message sent successfully - trigger immediate UI update using direct fetch
       console.log('🔥 MESSAGE SENT - WebSocket will update UI automatically');
+      
+      // CRITICAL FIX: Force immediate UI update using direct fetch to ensure message appears
+      console.log('🔥 FORCE IMMEDIATE UI UPDATE: Triggering direct fetch after send');
+      if (selectedConversation && fetchMessages) {
+        console.log('🔥 Using direct fetch for immediate message visibility');
+        await fetchMessages(selectedConversation);
+        console.log('🔥 DIRECT FETCH COMPLETED after message send');
+      }
+      
+      // Also refetch conversations to update last message info
+      await refetchConversations();
       
       toast({
         title: "Message Sent",
