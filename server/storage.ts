@@ -1127,7 +1127,9 @@ export class DatabaseStorage implements IStorage {
   async sendMessage(messageData: any, organizationId: number): Promise<any> {
     const messageId = `msg_${Date.now()}`;
     // Use existing conversation ID if provided, otherwise create new one
+    console.log(`🔍 DEBUG - messageData.conversationId: ${messageData.conversationId}`);
     const conversationId = messageData.conversationId || `conv_${Date.now()}`;
+    console.log(`🔍 DEBUG - Using conversationId: ${conversationId}`);
     const timestamp = new Date();
     
     // Get sender's full name if available
