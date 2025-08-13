@@ -546,24 +546,26 @@ export default function MessagingPage() {
       const responseData = await response.json();
       console.log('🔥 CONVERSATION MESSAGE RESPONSE:', responseData);
       
-      // Force immediate cache invalidation and refetch
-      console.log('🔥 STARTING CACHE INVALIDATION for conversation:', selectedConversation);
-      
-      // Invalidate and immediately refetch messages for current conversation
-      queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
-      queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
-      
-      // Force immediate refetch without await to trigger UI update
-      queryClient.refetchQueries({ 
-        queryKey: ['/api/messaging/messages', selectedConversation],
-        exact: true 
-      });
-      queryClient.refetchQueries({ 
-        queryKey: ['/api/messaging/conversations'],
-        exact: true 
-      });
-      
-      console.log('🔥 CACHE INVALIDATION COMPLETED');
+      // Allow database operations to complete before invalidating cache
+      setTimeout(() => {
+        console.log('🔥 STARTING CACHE INVALIDATION for conversation:', selectedConversation);
+        
+        // Invalidate and immediately refetch messages for current conversation
+        queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
+        queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
+        
+        // Force immediate refetch to trigger UI update
+        queryClient.refetchQueries({ 
+          queryKey: ['/api/messaging/messages', selectedConversation],
+          exact: true 
+        });
+        queryClient.refetchQueries({ 
+          queryKey: ['/api/messaging/conversations'],
+          exact: true 
+        });
+        
+        console.log('🔥 CACHE INVALIDATION COMPLETED');
+      }, 200); // Small delay to ensure database operations complete
       
       toast({
         title: "Message Sent",
