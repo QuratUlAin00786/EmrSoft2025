@@ -357,12 +357,34 @@ export default function MessagingPage() {
       return response.json();
     },
     onSuccess: (data, variables) => {
-      console.log('🎯 MESSAGE SENT SUCCESS - invalidating conversations cache');
-      // Force invalidate and refetch conversations with delay to ensure backend processing
-      setTimeout(() => {
+      console.log('🎯 MESSAGE SENT SUCCESS - updating conversations cache immediately');
+      
+      // Force immediate UI update for conversations list
+      const currentConversations = queryClient.getQueryData(['/api/messaging/conversations']) as any[] || [];
+      
+      // Check if this creates a new conversation or updates existing
+      if (data.conversationId && !variables.conversationId) {
+        // New conversation created - we should refresh conversations
         queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
-        queryClient.refetchQueries({ queryKey: ['/api/messaging/conversations'] });
-      }, 100); // Small delay to ensure backend has processed
+      } else {
+        // Existing conversation - update the last message info
+        const updatedConversations = currentConversations.map(conv => {
+          if (conv.id === data.conversationId) {
+            return {
+              ...conv,
+              lastMessage: {
+                id: data.id,
+                content: data.content,
+                timestamp: data.timestamp || new Date().toISOString(),
+                senderId: data.senderId
+              },
+              updatedAt: new Date().toISOString()
+            };
+          }
+          return conv;
+        });
+        queryClient.setQueryData(['/api/messaging/conversations'], updatedConversations);
+      }
       
       // Only handle new message dialog closing here
       if (!variables.conversationId) {
@@ -546,17 +568,27 @@ export default function MessagingPage() {
       const responseData = await response.json();
       console.log('🔥 CONVERSATION MESSAGE RESPONSE:', responseData);
       
-      // Force immediate UI update by removing cache and refetching
-      console.log('🔥 STARTING IMMEDIATE CACHE REFRESH for conversation:', selectedConversation);
+      // Force immediate UI update by adding the new message to existing data
+      console.log('🔥 STARTING IMMEDIATE UI UPDATE for conversation:', selectedConversation);
       
-      // Remove cache completely and force refetch since server response confirms success
-      queryClient.removeQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
-      await queryClient.refetchQueries({ 
-        queryKey: ['/api/messaging/messages', selectedConversation],
-        type: 'active'
-      });
+      // Get current messages and add the new one
+      const currentMessages = messages as any[] || [];
+      const newMessageData = {
+        ...responseData,
+        timestamp: new Date().toISOString()
+      };
+      const updatedMessages = [...currentMessages, newMessageData];
       
-      console.log('🔥 CACHE REFRESH COMPLETED - UI should update immediately');
+      console.log('🔥 MESSAGES BEFORE SEND:', currentMessages.length);
+      console.log('🔥 MESSAGES AFTER SEND:', updatedMessages.length);
+      
+      // Set the updated data immediately
+      queryClient.setQueryData(['/api/messaging/messages', selectedConversation], updatedMessages);
+      
+      // Also invalidate to ensure server consistency
+      queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
+      
+      console.log('🔥 UI UPDATE COMPLETED - new message should appear immediately');
       
       toast({
         title: "Message Sent",
