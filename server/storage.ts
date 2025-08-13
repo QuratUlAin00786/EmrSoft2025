@@ -1174,10 +1174,40 @@ export class DatabaseStorage implements IStorage {
     console.log(`✅ MESSAGE INSERTED:`, createdMessage?.id);
 
     // Check if conversation exists, if not create it
-    const existingConversation = await db.select()
+    let existingConversation = await db.select()
       .from(conversations)
       .where(eq(conversations.id, conversationId))
       .limit(1);
+
+    // If no conversation found by ID and we're creating a new conversation,
+    // check if there's already a conversation between these participants
+    if (existingConversation.length === 0 && !messageData.conversationId && messageData.recipientId) {
+      console.log(`🔍 Searching for existing conversation between sender ${messageData.senderId} and recipient ${messageData.recipientId}`);
+      
+      const allConversations = await db.select()
+        .from(conversations)
+        .where(eq(conversations.organizationId, organizationId));
+      
+      // Look for conversation that includes both participants
+      for (const conv of allConversations) {
+        const participants = conv.participants as Array<{id: string | number; name: string; role: string}>;
+        const hasSender = participants.some(p => p.id == messageData.senderId);
+        const hasRecipient = participants.some(p => p.id == messageData.recipientId);
+        
+        if (hasSender && hasRecipient) {
+          console.log(`🔍 Found existing conversation: ${conv.id} between these participants`);
+          // Update the conversationId to use the existing one
+          conversationId = conv.id;
+          // Update the message's conversationId
+          await db.update(messages)
+            .set({ conversationId: conv.id })
+            .where(eq(messages.id, messageId));
+          
+          existingConversation = [conv];
+          break;
+        }
+      }
+    }
 
     if (existingConversation.length === 0) {
       // Create new conversation
