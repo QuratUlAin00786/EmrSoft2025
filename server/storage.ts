@@ -1,5 +1,5 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities,
+  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations, messages,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Role, type InsertRole,
@@ -24,7 +24,9 @@ import {
   type GdprConsent, type InsertGdprConsent,
   type GdprDataRequest, type InsertGdprDataRequest,
   type GdprAuditTrail, type InsertGdprAuditTrail,
-  type GdprProcessingActivity, type InsertGdprProcessingActivity
+  type GdprProcessingActivity, type InsertGdprProcessingActivity,
+  type Conversation, type InsertConversation,
+  type Message, type InsertMessage
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, count, not, sql, gte, lt, lte } from "drizzle-orm";
@@ -1061,33 +1063,15 @@ export class DatabaseStorage implements IStorage {
     return { id: ruleId, status: "active", organizationId };
   }
 
-  // Messaging implementations - CRITICAL: These must persist across requests
-  private static conversationsStore: any[] = [];
-  private static messagesStore: any[] = [];
-  
-  // Initialize stores if needed
-  private static initializeStores() {
-    if (!DatabaseStorage.conversationsStore) {
-      DatabaseStorage.conversationsStore = [];
-    }
-    if (!DatabaseStorage.messagesStore) {
-      DatabaseStorage.messagesStore = [];
-    }
-  }
-
+  // Messaging implementations - PERSISTENT DATABASE STORAGE
   async getConversations(organizationId: number): Promise<any[]> {
-    // Initialize stores
-    DatabaseStorage.initializeStores();
+    // Get conversations from database instead of in-memory storage
+    const storedConversations = await this.db.select()
+      .from(conversations)
+      .where(eq(conversations.organizationId, organizationId))
+      .orderBy(desc(conversations.updatedAt));
 
-    console.log(`💬 DEBUG - Conversation store before filter:`, DatabaseStorage.conversationsStore.map(c => ({ id: c.id, orgId: c.organizationId })));
-    
-    // Get stored conversations for this organization
-    const storedConversations = DatabaseStorage.conversationsStore.filter(conv => 
-      conv.organizationId === organizationId
-    );
-
-    console.log(`💬 GET CONVERSATIONS - Total in store: ${DatabaseStorage.conversationsStore.length}`);
-    console.log(`💬 STORED CONVERSATIONS: ${storedConversations.length} found for org ${organizationId}`);
+    console.log(`💬 GET CONVERSATIONS - Database: ${storedConversations.length} found for org ${organizationId}`);
     console.log(`💬 CONVERSATION IDS:`, storedConversations.map(c => c.id));
 
     // Update participant names with actual user data
@@ -1127,57 +1111,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMessages(conversationId: string, organizationId: number): Promise<any[]> {
-    // Initialize store if it doesn't exist
-    if (!DatabaseStorage.messagesStore) {
-      DatabaseStorage.messagesStore = [];
-    }
+    // Get messages from database instead of in-memory storage
+    const storedMessages = await this.db.select()
+      .from(messages)
+      .where(and(
+        eq(messages.conversationId, conversationId),
+        eq(messages.organizationId, organizationId)
+      ))
+      .orderBy(asc(messages.timestamp));
 
-    // Get stored messages for this conversation
-    const storedMessages = DatabaseStorage.messagesStore.filter(msg => 
-      msg.conversationId === conversationId && msg.organizationId === organizationId
-    );
-
-    // Log for debugging
-    console.log(`Getting messages for conversation ${conversationId}:`);
-    console.log(`Total stored messages: ${DatabaseStorage.messagesStore.length}`);
-    console.log(`Filtered messages for this conversation: ${storedMessages.length}`);
-
-    // Mock messages data (initial conversation messages)
-    const mockMessages = [
-      {
-        id: "msg_1",
-        senderId: "user_2",
-        senderName: "John Smith",
-        senderRole: "patient",
-        recipientId: "user_1",
-        recipientName: "Dr. Sarah Johnson",
-        subject: "Appointment Follow-up",
-        content: "Thank you for the consultation today. I have a follow-up question about the medication you prescribed.",
-        timestamp: "2024-06-26T14:30:00Z",
-        isRead: true,
-        priority: "normal",
-        type: "patient",
-        isStarred: false
-      }
-    ];
-
-    // Combine mock messages with stored messages and sort by timestamp
-    const allMessages = [...mockMessages, ...storedMessages].sort((a, b) => 
-      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-    );
-
-    console.log(`Returning ${allMessages.length} total messages`);
-    return allMessages;
+    console.log(`💬 GET MESSAGES - Database: ${storedMessages.length} found for conversation ${conversationId}`);
+    return storedMessages;
   }
 
   async sendMessage(messageData: any, organizationId: number): Promise<any> {
-    // Initialize stores
-    DatabaseStorage.initializeStores();
-    
-    console.log(`📋 BEFORE SEND - Conversations: ${DatabaseStorage.conversationsStore.length}, Messages: ${DatabaseStorage.messagesStore.length}`);
-
-    const messageId = Date.now().toString();
-    const timestamp = new Date().toISOString();
+    const messageId = `msg_${Date.now()}`;
+    const conversationId = `conv_${Date.now()}`;
+    const timestamp = new Date();
     
     // Get sender's full name if available
     let senderDisplayName = messageData.senderName || 'Unknown Sender';
@@ -1192,42 +1142,38 @@ export class DatabaseStorage implements IStorage {
       }
     }
     
-    // Create the message object
-    const message = {
+    // Create message in database
+    const [createdMessage] = await this.db.insert(messages).values({
       id: messageId,
-      conversationId: `conv_${messageId}`,
+      organizationId: organizationId,
+      conversationId: conversationId,
       senderId: messageData.senderId,
       senderName: senderDisplayName,
       senderRole: messageData.senderRole || 'user',
       recipientId: messageData.recipientId,
-      recipientName: messageData.recipientId, // Will be updated below with proper name
+      recipientName: messageData.recipientId,
       subject: messageData.subject || '',
       content: messageData.content,
-      timestamp: timestamp,
       isRead: false,
       priority: messageData.priority || 'normal',
       type: messageData.type || 'internal',
       isStarred: false,
-      organizationId: organizationId,
-      deliveryStatus: 'pending',
       phoneNumber: messageData.phoneNumber,
-      messageType: messageData.messageType
-    };
-
-    // Store the message
-    DatabaseStorage.messagesStore.push(message);
-    console.log(`Message stored: ${messageId} for conversation ${message.conversationId}`);
-    console.log(`Total messages in store: ${DatabaseStorage.messagesStore.length}`);
+      messageType: messageData.messageType,
+      deliveryStatus: 'pending'
+    }).returning();
 
     // Check if conversation exists, if not create it
-    const existingConversation = DatabaseStorage.conversationsStore.find(conv => 
-      conv.id === message.conversationId
-    );
+    const existingConversation = await this.db.select()
+      .from(conversations)
+      .where(eq(conversations.id, conversationId))
+      .limit(1);
 
-    if (!existingConversation) {
-      // Create new conversation with proper participant names
-      const newConversation = {
-        id: message.conversationId,
+    if (existingConversation.length === 0) {
+      // Create new conversation
+      await this.db.insert(conversations).values({
+        id: conversationId,
+        organizationId: organizationId,
         participants: [
           { id: messageData.senderId, name: senderDisplayName, role: messageData.senderRole },
           { id: messageData.recipientId, name: messageData.recipientId, role: 'patient' }
@@ -1237,34 +1183,35 @@ export class DatabaseStorage implements IStorage {
           senderId: messageData.senderId,
           subject: messageData.subject,
           content: messageData.content,
-          timestamp: timestamp,
+          timestamp: timestamp.toISOString(),
           priority: messageData.priority || 'normal'
         },
         unreadCount: 1,
-        isPatientConversation: true,
-        organizationId: organizationId,
-        createdAt: timestamp
-      };
-
-      DatabaseStorage.conversationsStore.push(newConversation);
-      console.log(`✅ Created new conversation: ${message.conversationId} for recipient: ${messageData.recipientId}`);
-      console.log(`Total conversations in store: ${DatabaseStorage.conversationsStore.length}`);
-      console.log(`✅ Full conversation store:`, DatabaseStorage.conversationsStore.map(c => ({ id: c.id, orgId: c.organizationId, participants: c.participants.map(p => p.name) })));
+        isPatientConversation: true
+      });
+      
+      console.log(`✅ Created new conversation: ${conversationId} and message: ${messageId}`);
     } else {
-      // Update existing conversation with latest message
-      existingConversation.lastMessage = {
-        id: messageId,
-        senderId: messageData.senderId,
-        subject: messageData.subject,
-        content: messageData.content,
-        timestamp: timestamp,
-        priority: messageData.priority || 'normal'
-      };
-      existingConversation.unreadCount += 1;
-      console.log(`✅ Updated existing conversation: ${message.conversationId}`);
+      // Update existing conversation
+      await this.db.update(conversations)
+        .set({
+          lastMessage: {
+            id: messageId,
+            senderId: messageData.senderId,
+            subject: messageData.subject,
+            content: messageData.content,
+            timestamp: timestamp.toISOString(),
+            priority: messageData.priority || 'normal'
+          },
+          unreadCount: existingConversation[0].unreadCount + 1,
+          updatedAt: timestamp
+        })
+        .where(eq(conversations.id, conversationId));
+      
+      console.log(`✅ Updated existing conversation: ${conversationId} with message: ${messageId}`);
     }
 
-    return message;
+    return createdMessage;
   }
 
   async getMessageCampaigns(organizationId: number): Promise<any[]> {

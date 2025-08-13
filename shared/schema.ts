@@ -867,6 +867,53 @@ export const inventoryStockAlerts = pgTable("inventory_stock_alerts", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Conversations - Database table for persistent messaging
+export const conversations = pgTable("conversations", {
+  id: varchar("id", { length: 50 }).primaryKey(), // using string IDs like conv_xxx
+  organizationId: integer("organization_id").notNull(),
+  participants: jsonb("participants").$type<Array<{
+    id: string | number;
+    name: string;
+    role: string;
+  }>>().notNull(),
+  lastMessage: jsonb("last_message").$type<{
+    id: string;
+    senderId: string | number;
+    subject: string;
+    content: string;
+    timestamp: string;
+    priority: string;
+  }>(),
+  unreadCount: integer("unread_count").notNull().default(0),
+  isPatientConversation: boolean("is_patient_conversation").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Messages - Database table for persistent message storage
+export const messages = pgTable("messages", {
+  id: varchar("id", { length: 50 }).primaryKey(), // using string IDs like msg_xxx
+  organizationId: integer("organization_id").notNull(),
+  conversationId: varchar("conversation_id", { length: 50 }).notNull(),
+  senderId: integer("sender_id").notNull(), // references users.id
+  senderName: text("sender_name").notNull(),
+  senderRole: varchar("sender_role", { length: 20 }).notNull(),
+  recipientId: text("recipient_id"), // can be string or number
+  recipientName: text("recipient_name"),
+  subject: text("subject").notNull(),
+  content: text("content").notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  isRead: boolean("is_read").notNull().default(false),
+  priority: varchar("priority", { length: 10 }).notNull().default("normal"), // low, normal, high, urgent
+  type: varchar("type", { length: 20 }).notNull().default("internal"), // internal, patient, broadcast
+  isStarred: boolean("is_starred").notNull().default(false),
+  phoneNumber: varchar("phone_number", { length: 20 }),
+  messageType: varchar("message_type", { length: 10 }), // sms, email, internal
+  deliveryStatus: varchar("delivery_status", { length: 20 }).notNull().default("pending"), // pending, sent, delivered, failed
+  externalMessageId: text("external_message_id"), // Twilio message ID
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Relations
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   users: many(users),
@@ -1326,6 +1373,31 @@ export const inventoryStockAlertsRelations = relations(inventoryStockAlerts, ({ 
   }),
 }));
 
+// Conversations Relations
+export const conversationsRelations = relations(conversations, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [conversations.organizationId],
+    references: [organizations.id],
+  }),
+  messages: many(messages),
+}));
+
+// Messages Relations
+export const messagesRelations = relations(messages, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [messages.organizationId],
+    references: [organizations.id],
+  }),
+  conversation: one(conversations, {
+    fields: [messages.conversationId],
+    references: [conversations.id],
+  }),
+  sender: one(users, {
+    fields: [messages.senderId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertOrganizationSchema = createInsertSchema(organizations).omit({
   id: true,
@@ -1521,6 +1593,16 @@ export const insertInventoryStockAlertSchema = createInsertSchema(inventoryStock
   createdAt: true,
 });
 
+// Messaging Insert Schemas
+export const insertConversationSchema = createInsertSchema(conversations).omit({
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertMessageSchema = createInsertSchema(messages).omit({
+  createdAt: true,
+});
+
 // Types
 export type Organization = typeof organizations.$inferSelect;
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
@@ -1629,4 +1711,9 @@ export type InsertInventoryStockMovement = z.infer<typeof insertInventoryStockMo
 export type InventoryStockAlert = typeof inventoryStockAlerts.$inferSelect;
 export type InsertInventoryStockAlert = z.infer<typeof insertInventoryStockAlertSchema>;
 
+// Messaging Types
+export type Conversation = typeof conversations.$inferSelect;
+export type InsertConversation = z.infer<typeof insertConversationSchema>;
 
+export type Message = typeof messages.$inferSelect;
+export type InsertMessage = z.infer<typeof insertMessageSchema>;
