@@ -1443,6 +1443,18 @@ export default function MessagingPage() {
                                           });
                                           
                                           if (!response.ok) {
+                                            if (response.status === 404) {
+                                              console.log('🗑️ Message already deleted or not found');
+                                              toast({ 
+                                                title: "Message Already Deleted", 
+                                                description: "This message has already been deleted" 
+                                              });
+                                              // Still trigger UI refresh to clean up any stale UI state
+                                              if (selectedConversation && fetchMessages) {
+                                                await fetchMessages(selectedConversation);
+                                              }
+                                              return;
+                                            }
                                             throw new Error(`${response.status}: ${response.statusText}`);
                                           }
                                           
@@ -1455,14 +1467,17 @@ export default function MessagingPage() {
                                           console.log('🗑️ MESSAGES BEFORE DELETE:', currentMessages.length);
                                           console.log('🗑️ MESSAGES AFTER DELETE:', updatedMessages.length);
                                           
-                                          // CRITICAL FIX: Force immediate UI update using direct refetch methods
-                                          console.log('🗑️ FORCE RE-RENDER: Triggering immediate refetch after delete');
+                                          // CRITICAL FIX: Force immediate UI update using direct fetch bypass
+                                          console.log('🗑️ FORCE RE-RENDER: Triggering direct fetch after delete');
                                           
-                                          // Refetch both messages and conversations to ensure UI updates immediately
-                                          await Promise.all([
-                                            refetchMessages(),
-                                            refetchConversations()
-                                          ]);
+                                          // Use direct fetch approach to bypass React Query cache completely
+                                          if (selectedConversation && fetchMessages) {
+                                            console.log('🗑️ Using direct fetch for immediate UI update');
+                                            await fetchMessages(selectedConversation);
+                                          }
+                                          
+                                          // Also force refetch conversations 
+                                          await refetchConversations();
                                           
                                           console.log('🗑️ REFETCH COMPLETED - deleted message should disappear immediately');
                                           
