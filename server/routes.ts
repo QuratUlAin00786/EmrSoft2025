@@ -2273,6 +2273,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         senderRole: req.user!.role
       };
       
+      // Consolidate any duplicate conversations before sending the message
+      await storage.consolidateDuplicateConversations(messageDataWithUser.senderId, messageDataWithUser.recipientId, req.tenant!.id);
+      
       // Store the message in the database
       const message = await storage.sendMessage(messageDataWithUser, req.tenant!.id);
       
