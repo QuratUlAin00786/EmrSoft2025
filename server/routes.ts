@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import { z } from "zod";
 import Stripe from "stripe";
 import crypto from "crypto";
@@ -2342,7 +2343,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       } else {
-        // For internal messages or emails, return success
+        // For internal messages, broadcast to other users via WebSocket
+        const broadcastMessage = req.app.get('broadcastMessage');
+        if (broadcastMessage && messageDataWithUser.recipientId) {
+          // Try to find recipient user ID if recipientId is a name
+          if (typeof messageDataWithUser.recipientId === 'string') {
+            try {
+              // Look up user by name for WebSocket broadcasting
+              const allUsers = await storage.getUsers(req.tenant!.id);
+              const recipientUser = allUsers.find(user => 
+                user.firstName + ' ' + user.lastName === messageDataWithUser.recipientId ||
+                user.email === messageDataWithUser.recipientId
+              );
+              if (recipientUser) {
+                broadcastMessage(recipientUser.id, {
+                  type: 'new_message',
+                  message: message,
+                  conversationId: messageDataWithUser.conversationId
+                });
+                console.log(`📨 Broadcasted message to recipient user ID: ${recipientUser.id}`);
+              }
+            } catch (error) {
+              console.error('Error finding recipient for WebSocket broadcast:', error);
+            }
+          } else if (typeof messageDataWithUser.recipientId === 'number') {
+            // Direct user ID broadcast
+            broadcastMessage(messageDataWithUser.recipientId, {
+              type: 'new_message', 
+              message: message,
+              conversationId: messageDataWithUser.conversationId
+            });
+            console.log(`📨 Broadcasted message to recipient user ID: ${messageDataWithUser.recipientId}`);
+          }
+        }
+        
+        // Also broadcast to any other users who might be viewing the same conversation
+        if (broadcastMessage && messageDataWithUser.conversationId) {
+          try {
+            const conversationMessages = await storage.getConversationMessages(messageDataWithUser.conversationId, req.tenant!.id);
+            if (conversationMessages.length > 0) {
+              // Get unique participant IDs from conversation
+              const participantIds = new Set();
+              conversationMessages.forEach(msg => {
+                if (msg.senderId !== req.user!.id) {
+                  participantIds.add(msg.senderId);
+                }
+              });
+              
+              // Broadcast to all conversation participants
+              participantIds.forEach(userId => {
+                broadcastMessage(userId, {
+                  type: 'new_message',
+                  message: message,
+                  conversationId: messageDataWithUser.conversationId
+                });
+                console.log(`📨 Broadcasted to conversation participant: ${userId}`);
+              });
+            }
+          } catch (error) {
+            console.error('Error broadcasting to conversation participants:', error);
+          }
+        }
+        
         res.json(message);
       }
     } catch (error) {
@@ -6093,5 +6155,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+  
+  // Add WebSocket support for real-time messaging
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  // Store connected clients by user ID for message broadcasting
+  const connectedClients = new Map();
+  
+  wss.on('connection', (ws: any, req: any) => {
+    console.log('🔗 WebSocket client connected');
+    
+    ws.on('message', (message: Buffer) => {
+      try {
+        const data = JSON.parse(message.toString());
+        
+        // Handle client authentication and registration
+        if (data.type === 'auth' && data.userId) {
+          connectedClients.set(data.userId, ws);
+          ws.userId = data.userId;
+          console.log(`👤 User ${data.userId} authenticated via WebSocket`);
+        }
+      } catch (error) {
+        console.error('WebSocket message parsing error:', error);
+      }
+    });
+    
+    ws.on('close', () => {
+      if (ws.userId) {
+        connectedClients.delete(ws.userId);
+        console.log(`👤 User ${ws.userId} disconnected from WebSocket`);
+      }
+    });
+  });
+  
+  // Export function to broadcast messages to specific users
+  app.set('broadcastMessage', (targetUserId: number, messageData: any) => {
+    const targetClient = connectedClients.get(targetUserId);
+    if (targetClient && targetClient.readyState === 1) { // WebSocket.OPEN = 1
+      targetClient.send(JSON.stringify({
+        type: 'new_message',
+        data: messageData
+      }));
+      console.log(`📨 Message broadcasted to user ${targetUserId}`);
+      return true;
+    }
+    return false;
+  });
+  
   return httpServer;
 }

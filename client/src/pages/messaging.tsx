@@ -470,6 +470,61 @@ export default function MessagingPage() {
     });
   };
 
+  // WebSocket connection for real-time messaging
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const socket = new WebSocket(wsUrl);
+
+    socket.onopen = () => {
+      console.log('🔗 WebSocket connected');
+      // Authenticate with the server
+      socket.send(JSON.stringify({
+        type: 'auth',
+        userId: currentUser.id
+      }));
+    };
+
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log('📨 WebSocket message received:', data);
+        
+        if (data.type === 'new_message') {
+          // Refetch messages and conversations when new message received
+          console.log('🔄 New message received via WebSocket, refreshing UI');
+          refetchMessages();
+          refetchConversations();
+          
+          // Show notification if message is for current conversation
+          if (data.data.conversationId === selectedConversation) {
+            toast({
+              title: "New Message",
+              description: "A new message has been received.",
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    };
+
+    socket.onclose = () => {
+      console.log('🔗 WebSocket disconnected');
+    };
+
+    socket.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    // Cleanup on unmount
+    return () => {
+      socket.close();
+    };
+  }, [currentUser, selectedConversation, refetchMessages, refetchConversations]);
+
   const handleSendNewMessage = () => {
     // Validate required fields
     const missingFields = [];
