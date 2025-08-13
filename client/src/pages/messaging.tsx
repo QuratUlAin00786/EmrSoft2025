@@ -154,18 +154,10 @@ export default function MessagingPage() {
   const { data: user } = useQuery({
     queryKey: ['/api/auth/validate'],
     queryFn: async () => {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch('/api/auth/validate', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'cura',
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
+      console.log('🔐 FETCHING USER AUTH DATA for WebSocket connection');
+      const response = await apiRequest('GET', '/api/auth/validate');
       const data = await response.json();
+      console.log('🔐 USER AUTH DATA RECEIVED:', data.user);
       return data.user;
     }
   });
@@ -173,7 +165,10 @@ export default function MessagingPage() {
   // Update current user when user data changes
   useEffect(() => {
     if (user) {
+      console.log('🔐 SETTING CURRENT USER for WebSocket:', user);
       setCurrentUser(user);
+    } else {
+      console.log('🔐 NO USER DATA - WebSocket cannot connect');
     }
   }, [user]);
 
