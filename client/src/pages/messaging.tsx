@@ -574,21 +574,44 @@ export default function MessagingPage() {
       // Get current messages and add the new one
       const currentMessages = messages as any[] || [];
       const newMessageData = {
-        ...responseData,
-        timestamp: new Date().toISOString()
+        id: responseData.id,
+        organizationId: responseData.organizationId,
+        conversationId: responseData.conversationId,
+        senderId: responseData.senderId || currentUser?.id,
+        senderName: responseData.senderName || currentUser?.firstName + ' ' + currentUser?.lastName || 'Unknown',
+        senderRole: responseData.senderRole || currentUser?.role || 'user',
+        recipientId: responseData.recipientId,
+        recipientName: responseData.recipientName,
+        subject: responseData.subject || '',
+        content: responseData.content,
+        timestamp: responseData.timestamp || new Date().toISOString(),
+        isRead: false,
+        priority: responseData.priority || 'normal',
+        type: responseData.type || 'internal',
+        isStarred: false,
+        phoneNumber: responseData.phoneNumber,
+        messageType: responseData.messageType,
+        deliveryStatus: responseData.deliveryStatus || 'pending',
+        externalMessageId: responseData.externalMessageId,
+        createdAt: responseData.createdAt || new Date().toISOString()
       };
       const updatedMessages = [...currentMessages, newMessageData];
       
       console.log('🔥 MESSAGES BEFORE SEND:', currentMessages.length);
       console.log('🔥 MESSAGES AFTER SEND:', updatedMessages.length);
       
-      // Set the updated data immediately
-      queryClient.setQueryData(['/api/messaging/messages', selectedConversation], updatedMessages);
+      // CRITICAL FIX: Force immediate UI update by directly re-triggering the query
+      console.log('🔥 FORCE RE-RENDER: Triggering immediate refetch');
       
-      // Also invalidate to ensure server consistency
-      queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
+      // First, immediately refetch the data from server
+      const queryKey = ['/api/messaging/messages', selectedConversation];
+      await queryClient.refetchQueries({ 
+        queryKey,
+        type: 'active',
+        exact: true
+      });
       
-      console.log('🔥 UI UPDATE COMPLETED - new message should appear immediately');
+      console.log('🔥 REFETCH COMPLETED - UI should update immediately');
       
       toast({
         title: "Message Sent",
@@ -1417,11 +1440,18 @@ export default function MessagingPage() {
                                           console.log('🗑️ MESSAGES BEFORE DELETE:', currentMessages.length);
                                           console.log('🗑️ MESSAGES AFTER DELETE:', updatedMessages.length);
                                           
-                                          // Set the updated data immediately
-                                          queryClient.setQueryData(['/api/messaging/messages', selectedConversation], updatedMessages);
+                                          // CRITICAL FIX: Force immediate UI update by directly re-triggering the query
+                                          console.log('🗑️ FORCE RE-RENDER: Triggering immediate refetch after delete');
                                           
-                                          // Also invalidate to ensure fresh data eventually
-                                          queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
+                                          // Immediately refetch the data from server
+                                          const queryKey = ['/api/messaging/messages', selectedConversation];
+                                          await queryClient.refetchQueries({ 
+                                            queryKey,
+                                            type: 'active',
+                                            exact: true
+                                          });
+                                          
+                                          console.log('🗑️ REFETCH COMPLETED - deleted message should disappear immediately');
                                           
                                           toast({ 
                                             title: "Message Deleted", 
