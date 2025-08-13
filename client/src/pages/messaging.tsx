@@ -546,22 +546,17 @@ export default function MessagingPage() {
       const responseData = await response.json();
       console.log('🔥 CONVERSATION MESSAGE RESPONSE:', responseData);
       
-      // Allow database operations to complete before invalidating cache
-      setTimeout(async () => {
-        console.log('🔥 STARTING CACHE INVALIDATION for conversation:', selectedConversation);
-        
-        // Invalidate queries first
-        await queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
-        await queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
-        
-        // Then force refetch to ensure fresh data
-        await queryClient.refetchQueries({ 
-          queryKey: ['/api/messaging/messages', selectedConversation],
-          exact: true 
-        });
-        
-        console.log('🔥 CACHE INVALIDATION COMPLETED - UI should update now');
-      }, 250); // Slightly longer delay to ensure database operations complete
+      // Immediately invalidate cache and refetch - database operation is already complete
+      console.log('🔥 STARTING IMMEDIATE CACHE INVALIDATION for conversation:', selectedConversation);
+      
+      // Invalidate and refetch immediately since server response confirms success
+      queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', selectedConversation] });
+      queryClient.refetchQueries({ 
+        queryKey: ['/api/messaging/messages', selectedConversation],
+        exact: true 
+      });
+      
+      console.log('🔥 CACHE INVALIDATION COMPLETED - UI should update immediately');
       
       toast({
         title: "Message Sent",
