@@ -6231,16 +6231,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   wss.on('connection', (ws: any, req: any) => {
     console.log('🔗 WebSocket client connected');
+    console.log('🔍 Current connected clients count:', connectedClients.size);
     
     ws.on('message', (message: Buffer) => {
       try {
         const data = JSON.parse(message.toString());
+        console.log('📥 WebSocket message received from client:', data);
         
         // Handle client authentication and registration
         if (data.type === 'auth' && data.userId) {
           connectedClients.set(data.userId, ws);
           ws.userId = data.userId;
           console.log(`👤 User ${data.userId} authenticated via WebSocket`);
+          console.log('🔍 Total authenticated clients:', connectedClients.size);
+          console.log('🔍 Authenticated client IDs:', Array.from(connectedClients.keys()));
         }
       } catch (error) {
         console.error('WebSocket message parsing error:', error);
@@ -6251,6 +6255,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (ws.userId) {
         connectedClients.delete(ws.userId);
         console.log(`👤 User ${ws.userId} disconnected from WebSocket`);
+        console.log('🔍 Remaining connected clients:', connectedClients.size);
+      } else {
+        console.log('🔗 WebSocket client disconnected (unauthenticated)');
       }
     });
   });
