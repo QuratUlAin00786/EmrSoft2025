@@ -500,8 +500,8 @@ export default function MessagingPage() {
         if (data.type === 'new_message') {
           // Refetch messages and conversations when new message received
           console.log('🔄 New message received via WebSocket, refreshing UI');
-          refetchMessages();
-          refetchConversations();
+          queryClient.invalidateQueries({ queryKey: [`/api/messaging/messages/${selectedConversation}`] });
+          queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
           console.log('🔥 REFETCH COMPLETED - UI should update immediately');
           
           // Show notification if message is for current conversation
