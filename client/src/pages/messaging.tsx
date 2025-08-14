@@ -412,6 +412,53 @@ export default function MessagingPage() {
     }
   });
 
+  const deleteConversationMutation = useMutation({
+    mutationFn: async (conversationId: string) => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/messaging/conversations/${conversationId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'cura',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: response.statusText }));
+        throw new Error(errorData.error || `${response.status}: ${response.statusText}`);
+      }
+      return response.json();
+    },
+    onSuccess: (data, conversationId) => {
+      console.log('🗑️ CONVERSATION DELETED SUCCESS:', conversationId);
+      
+      // Remove from conversations cache
+      const currentConversations = queryClient.getQueryData(['/api/messaging/conversations']) as any[] || [];
+      const updatedConversations = currentConversations.filter(conv => conv.id !== conversationId);
+      queryClient.setQueryData(['/api/messaging/conversations'], updatedConversations);
+      
+      // If we're currently viewing this conversation, go back to conversations list
+      if (selectedConversation?.id === conversationId) {
+        setSelectedConversation(null);
+      }
+      
+      toast({
+        title: "Conversation Deleted",
+        description: "The conversation has been permanently deleted.",
+      });
+    },
+    onError: (error: any) => {
+      console.error('Conversation deletion failed:', error);
+      toast({
+        title: "Delete Failed",
+        description: error.message || "Failed to delete conversation. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   const createCampaignMutation = useMutation({
     mutationFn: async (campaignData: any) => {
       const token = localStorage.getItem('auth_token');
@@ -843,6 +890,11 @@ export default function MessagingPage() {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Delete conversation function
+  const handleDeleteConversation = (conversationId: string) => {
+    deleteConversationMutation.mutate(conversationId);
   };
 
   const filteredConversations = (conversations || []).filter((conv: Conversation) => {
@@ -1301,9 +1353,24 @@ export default function MessagingPage() {
                                     return 'Unknown User';
                                   })()}
                                 </p>
-                                <Badge variant="secondary" className="text-xs">
-                                  {getOtherParticipant(conversation)?.role || 'user'}
-                                </Badge>
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="secondary" className="text-xs">
+                                    {getOtherParticipant(conversation)?.role || 'user'}
+                                  </Badge>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (window.confirm(`Delete conversation with ${getOtherParticipant(conversation)?.name || 'Unknown User'}? This action cannot be undone.`)) {
+                                        handleDeleteConversation(conversation.id);
+                                      }
+                                    }}
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
                               </div>
                               <p className="text-xs text-gray-600 dark:text-gray-300 truncate">
                                 {conversation.lastMessage?.content || "No messages yet"}

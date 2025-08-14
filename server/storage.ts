@@ -149,6 +149,7 @@ export interface IStorage {
   getConversations(organizationId: number): Promise<any[]>;
   getMessages(conversationId: string, organizationId: number): Promise<any[]>;
   sendMessage(messageData: any, organizationId: number): Promise<any>;
+  deleteConversation(conversationId: string, organizationId: number): Promise<boolean>;
   getMessageCampaigns(organizationId: number): Promise<any[]>;
   createMessageCampaign(campaignData: any, organizationId: number): Promise<any>;
   
@@ -1732,6 +1733,34 @@ export class DatabaseStorage implements IStorage {
     }
 
     return createdMessage;
+  }
+
+  async deleteConversation(conversationId: string, organizationId: number): Promise<boolean> {
+    try {
+      console.log(`🗑️ DELETING CONVERSATION: ${conversationId} for org ${organizationId}`);
+      
+      // First delete all messages in the conversation
+      const deleteMessagesResult = await db.delete(messages)
+        .where(and(
+          eq(messages.conversationId, conversationId),
+          eq(messages.organizationId, organizationId)
+        ));
+      
+      console.log(`🗑️ DELETED MESSAGES for conversation ${conversationId}`);
+      
+      // Then delete the conversation itself
+      const deleteConversationResult = await db.delete(conversations)
+        .where(and(
+          eq(conversations.id, conversationId),
+          eq(conversations.organizationId, organizationId)
+        ));
+      
+      console.log(`🗑️ DELETED CONVERSATION ${conversationId}`);
+      return true;
+    } catch (error) {
+      console.error(`🗑️ ERROR DELETING CONVERSATION ${conversationId}:`, error);
+      return false;
+    }
   }
 
   async deleteMessage(messageId: string, organizationId: number): Promise<boolean> {

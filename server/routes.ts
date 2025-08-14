@@ -2505,6 +2505,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete conversation endpoint
+  app.delete("/api/messaging/conversations/:conversationId", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const conversationId = req.params.conversationId;
+      console.log(`🗑️ DELETE CONVERSATION REQUEST: ${conversationId}`);
+      
+      const result = await storage.deleteConversation(conversationId, req.tenant!.id);
+      
+      if (result) {
+        console.log(`🗑️ CONVERSATION DELETED SUCCESSFULLY: ${conversationId}`);
+        res.json({ success: true, message: "Conversation deleted successfully" });
+      } else {
+        console.log(`🗑️ CONVERSATION NOT FOUND: ${conversationId}`);
+        res.status(404).json({ error: "Conversation not found" });
+      }
+    } catch (error) {
+      console.error("🗑️ ERROR DELETING CONVERSATION:", error);
+      res.status(500).json({ error: "Failed to delete conversation" });
+    }
+  });
+
   app.get("/api/messaging/campaigns", authMiddleware, async (req: TenantRequest, res) => {
     try {
       const campaigns = await storage.getMessageCampaigns(req.tenant!.id);
