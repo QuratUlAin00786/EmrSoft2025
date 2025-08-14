@@ -434,10 +434,8 @@ export default function MessagingPage() {
     onSuccess: (data, conversationId) => {
       console.log('🗑️ CONVERSATION DELETED SUCCESS:', conversationId);
       
-      // Remove from conversations cache
-      const currentConversations = queryClient.getQueryData(['/api/messaging/conversations']) as any[] || [];
-      const updatedConversations = currentConversations.filter(conv => conv.id !== conversationId);
-      queryClient.setQueryData(['/api/messaging/conversations'], updatedConversations);
+      // Invalidate and refetch conversations to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
       
       // If we're currently viewing this conversation, go back to conversations list
       if (selectedConversation === conversationId) {
