@@ -2494,6 +2494,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Fix conversation participants endpoint
+  app.post("/api/messaging/fix-participants", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      await storage.fixAllConversationParticipants(req.tenant!.id);
+      res.json({ success: true, message: "All conversation participants have been fixed" });
+    } catch (error) {
+      console.error("Error fixing conversation participants:", error);
+      res.status(500).json({ error: "Failed to fix conversation participants" });
+    }
+  });
+
   app.get("/api/messaging/campaigns", authMiddleware, async (req: TenantRequest, res) => {
     try {
       const campaigns = await storage.getMessageCampaigns(req.tenant!.id);

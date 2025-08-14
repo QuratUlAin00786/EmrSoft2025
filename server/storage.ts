@@ -1151,6 +1151,100 @@ export class DatabaseStorage implements IStorage {
     return storedMessages;
   }
 
+  async fixAllConversationParticipants(organizationId: number): Promise<void> {
+    console.log(`🔧 FIXING ALL CONVERSATION PARTICIPANTS for organization ${organizationId}`);
+    
+    // Get all conversations for this organization
+    const allConversations = await db.select()
+      .from(conversations)
+      .where(eq(conversations.organizationId, organizationId));
+    
+    console.log(`🔧 Found ${allConversations.length} conversations to check`);
+    
+    for (const conv of allConversations) {
+      let needsUpdate = false;
+      const participants = conv.participants as Array<{id: string | number; name: string; role: string}>;
+      const updatedParticipants = [];
+      
+      for (const participant of participants) {
+        // Check if participant needs fixing
+        if (typeof participant.id === 'number') {
+          // Get actual user data
+          const user = await this.getUser(participant.id, organizationId);
+          if (user && user.firstName && user.lastName) {
+            const correctName = `${user.firstName} ${user.lastName}`;
+            if (participant.name !== correctName) {
+              console.log(`🔧 Fixing participant ${participant.id}: "${participant.name}" -> "${correctName}"`);
+              updatedParticipants.push({
+                id: participant.id,
+                name: correctName,
+                role: user.role || participant.role
+              });
+              needsUpdate = true;
+            } else {
+              updatedParticipants.push(participant);
+            }
+          } else {
+            updatedParticipants.push(participant);
+          }
+        } else if (typeof participant.id === 'string') {
+          // Try to resolve string ID to actual user first, then patient
+          const allUsers = await this.getUsersByOrganization(organizationId);
+          const matchedUser = allUsers.find(user => {
+            const fullName = `${user.firstName} ${user.lastName}`.trim();
+            return fullName === participant.id || 
+                   user.firstName === participant.id ||
+                   user.email === participant.id;
+          });
+          
+          if (matchedUser) {
+            console.log(`🔧 Resolving string participant "${participant.id}" -> ${matchedUser.id} (${matchedUser.firstName} ${matchedUser.lastName})`);
+            updatedParticipants.push({
+              id: matchedUser.id,
+              name: `${matchedUser.firstName} ${matchedUser.lastName}`,
+              role: matchedUser.role
+            });
+            needsUpdate = true;
+          } else {
+            // Try to find in patients table
+            const allPatients = await this.getPatientsByOrganization(organizationId);
+            const matchedPatient = allPatients.find(patient => {
+              const fullName = `${patient.firstName} ${patient.lastName}`.trim();
+              return fullName === participant.id || 
+                     fullName.replace(/\s+/g, ' ') === participant.id ||
+                     patient.firstName === participant.id;
+            });
+            
+            if (matchedPatient) {
+              console.log(`🔧 Resolving string participant "${participant.id}" -> patient ID ${matchedPatient.id} (${matchedPatient.firstName} ${matchedPatient.lastName})`);
+              updatedParticipants.push({
+                id: matchedPatient.id,
+                name: `${matchedPatient.firstName} ${matchedPatient.lastName}`,
+                role: 'patient'
+              });
+              needsUpdate = true;
+            } else {
+              console.log(`⚠️ Could not resolve string participant: "${participant.id}"`);
+              updatedParticipants.push(participant);
+            }
+          }
+        } else {
+          updatedParticipants.push(participant);
+        }
+      }
+      
+      // Update conversation if needed
+      if (needsUpdate) {
+        await db.update(conversations)
+          .set({ participants: updatedParticipants })
+          .where(eq(conversations.id, conv.id));
+        console.log(`🔧 Updated conversation ${conv.id} with correct participant names`);
+      }
+    }
+    
+    console.log(`🔧 COMPLETED fixing conversation participants`);
+  }
+
   async consolidateDuplicateConversations(senderId: number, recipientId: string, organizationId: number): Promise<void> {
     console.log(`🔄 CONSOLIDATING conversations between sender ${senderId} and recipient ${recipientId}`);
     
@@ -1557,7 +1651,7 @@ export class DatabaseStorage implements IStorage {
           recipientRole = recipientUser.role || 'patient';
         }
       } else if (typeof messageData.recipientId === 'string') {
-        // If recipientId is a string (name), try to find matching user
+        // If recipientId is a string (name), try to find matching user first, then patient
         const allUsers = await this.getUsersByOrganization(organizationId);
         const matchedUser = allUsers.find(user => {
           const fullName = `${user.firstName} ${user.lastName}`.trim();
@@ -1569,9 +1663,25 @@ export class DatabaseStorage implements IStorage {
         if (matchedUser) {
           recipientDisplayName = `${matchedUser.firstName} ${matchedUser.lastName}`;
           recipientRole = matchedUser.role || 'patient';
+          messageData.recipientId = matchedUser.id; // Update to use actual user ID
         } else {
-          // Keep the original name if no user match found
-          recipientDisplayName = messageData.recipientId;
+          // Try to find in patients table
+          const allPatients = await this.getPatients(organizationId);
+          const matchedPatient = allPatients.find(patient => {
+            const fullName = `${patient.firstName} ${patient.lastName}`.trim();
+            return fullName === messageData.recipientId || 
+                   fullName.replace(/\s+/g, ' ') === messageData.recipientId ||
+                   patient.firstName === messageData.recipientId;
+          });
+          
+          if (matchedPatient) {
+            recipientDisplayName = `${matchedPatient.firstName} ${matchedPatient.lastName}`;
+            recipientRole = 'patient';
+            messageData.recipientId = matchedPatient.id; // Update to use actual patient ID
+          } else {
+            // Keep the original name if no match found
+            recipientDisplayName = messageData.recipientId;
+          }
         }
       }
       
