@@ -440,7 +440,7 @@ export default function MessagingPage() {
       queryClient.setQueryData(['/api/messaging/conversations'], updatedConversations);
       
       // If we're currently viewing this conversation, go back to conversations list
-      if (selectedConversation?.id === conversationId) {
+      if (selectedConversation === conversationId) {
         setSelectedConversation(null);
       }
       
@@ -1341,7 +1341,7 @@ export default function MessagingPage() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between mb-1">
-                                <p className="font-medium text-sm truncate text-gray-900 dark:text-gray-100">
+                                <p className="font-medium text-sm truncate text-gray-900 dark:text-gray-100 mr-2">
                                   {(() => {
                                     const otherParticipant = getOtherParticipant(conversation);
                                     if (otherParticipant?.name && otherParticipant.name !== 'undefined') {
@@ -1353,14 +1353,14 @@ export default function MessagingPage() {
                                     return 'Unknown User';
                                   })()}
                                 </p>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 shrink-0">
                                   <Badge variant="secondary" className="text-xs">
                                     {getOtherParticipant(conversation)?.role || 'user'}
                                   </Badge>
                                   <Button
-                                    variant="ghost"
+                                    variant="outline"
                                     size="sm"
-                                    className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30"
+                                    className="h-8 w-8 p-0 text-red-600 border-red-300 hover:text-white hover:bg-red-600 hover:border-red-600 dark:text-red-400 dark:border-red-600 dark:hover:bg-red-700 dark:hover:text-white shrink-0"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       if (window.confirm(`Delete conversation with ${getOtherParticipant(conversation)?.name || 'Unknown User'}? This action cannot be undone.`)) {
@@ -1368,7 +1368,7 @@ export default function MessagingPage() {
                                       }
                                     }}
                                   >
-                                    <Trash2 className="h-3 w-3" />
+                                    <Trash2 className="h-4 w-4" />
                                   </Button>
                                 </div>
                               </div>
