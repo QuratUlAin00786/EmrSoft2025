@@ -180,23 +180,12 @@ export default function MessagingPage() {
       return validParticipant || conversation.participants[0];
     }
     
-    // Find the participant that is NOT the current user
-    // Check both by ID and by name/email since participant data might use different identifiers
-    const otherParticipant = conversation.participants.find(p => {
-      const isNotCurrentUserById = String(p.id) !== String(currentUser.id);
-      const isNotCurrentUserByEmail = p.name !== currentUser.email;
-      const isNotCurrentUserByName = p.name !== `${currentUser.firstName} ${currentUser.lastName}`.trim();
-      
-      return isNotCurrentUserById && isNotCurrentUserByEmail && isNotCurrentUserByName;
-    });
+    // Find the participant that is NOT the current user (simple ID comparison)
+    const otherParticipant = conversation.participants.find(p => 
+      String(p.id) !== String(currentUser.id)
+    );
     
-    // If we can't find another participant, return the first one that's not the current user
-    if (!otherParticipant) {
-      const fallbackParticipant = conversation.participants.find(p => String(p.id) !== String(currentUser.id));
-      return fallbackParticipant || conversation.participants[0];
-    }
-    
-    return otherParticipant;
+    return otherParticipant || conversation.participants[0];
   };
 
   // Clear message content when conversation changes
