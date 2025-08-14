@@ -358,9 +358,14 @@ export default function MessagingPage() {
       const currentConversations = queryClient.getQueryData(['/api/messaging/conversations']) as any[] || [];
       
       // Check if this creates a new conversation or updates existing
-      if (data.conversationId && !variables.conversationId) {
-        // New conversation created - we should refresh conversations
+      const existingConversation = currentConversations.find(conv => conv.id === data.conversationId);
+      
+      if (!existingConversation) {
+        // New conversation created - invalidate to fetch fresh data
+        console.log('🔄 NEW CONVERSATION DETECTED - invalidating conversations cache');
         queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
+        // Also refetch immediately
+        refetchConversations();
       } else {
         // Existing conversation - update the last message info
         const updatedConversations = currentConversations.map(conv => {
