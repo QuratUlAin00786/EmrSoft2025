@@ -175,7 +175,9 @@ export default function MessagingPage() {
   // Helper function to get the other participant (not the current user)
   const getOtherParticipant = (conversation: Conversation) => {
     if (!currentUser) {
-      return conversation.participants[0];
+      // Return first participant with a valid name, or first participant
+      const validParticipant = conversation.participants.find(p => p.name && p.name !== 'undefined');
+      return validParticipant || conversation.participants[0];
     }
     
     // Find the participant that is NOT the current user
@@ -1293,7 +1295,16 @@ export default function MessagingPage() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between mb-1">
                                 <p className="font-medium text-sm truncate text-gray-900 dark:text-gray-100">
-                                  {getOtherParticipant(conversation)?.name || `User ${getOtherParticipant(conversation)?.id}`}
+                                  {(() => {
+                                    const otherParticipant = getOtherParticipant(conversation);
+                                    if (otherParticipant?.name && otherParticipant.name !== 'undefined') {
+                                      return otherParticipant.name;
+                                    }
+                                    if (otherParticipant?.id && otherParticipant.id !== 'undefined') {
+                                      return `User ${otherParticipant.id}`;
+                                    }
+                                    return 'Unknown User';
+                                  })()}
                                 </p>
                                 <Badge variant="secondary" className="text-xs">
                                   {getOtherParticipant(conversation)?.role || 'user'}
