@@ -474,14 +474,6 @@ export default function MessagingPage() {
     onSettled: () => {
       // Always refetch after mutation settles
       queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
-    },
-    onError: (error: any) => {
-      console.error('Conversation deletion failed:', error);
-      toast({
-        title: "Delete Failed",
-        description: error.message || "Failed to delete conversation. Please try again.",
-        variant: "destructive"
-      });
     }
   });
 
