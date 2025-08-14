@@ -174,17 +174,23 @@ export default function MessagingPage() {
 
   // Helper function to get the other participant (not the current user)
   const getOtherParticipant = (conversation: Conversation) => {
+    console.log('🔍 GET OTHER PARTICIPANT - Conversation:', conversation.id);
+    console.log('🔍 PARTICIPANTS:', conversation.participants);
+    console.log('🔍 CURRENT USER:', currentUser?.id);
+    
     if (!currentUser) {
       // Return first participant with a valid name, or first participant
-      const validParticipant = conversation.participants.find(p => p.name && p.name !== 'undefined');
+      const validParticipant = conversation.participants.find(p => p.name && p.name !== 'undefined' && p.id);
+      console.log('🔍 NO CURRENT USER - Valid participant:', validParticipant);
       return validParticipant || conversation.participants[0];
     }
     
     // Find the participant that is NOT the current user (simple ID comparison)
     const otherParticipant = conversation.participants.find(p => 
-      String(p.id) !== String(currentUser.id)
+      p.id && String(p.id) !== String(currentUser.id)
     );
     
+    console.log('🔍 OTHER PARTICIPANT FOUND:', otherParticipant);
     return otherParticipant || conversation.participants[0];
   };
 
