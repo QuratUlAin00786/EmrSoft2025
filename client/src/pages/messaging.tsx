@@ -431,16 +431,16 @@ export default function MessagingPage() {
       }
       return response.json();
     },
-    onSuccess: (data, conversationId) => {
+    onSuccess: async (data, conversationId) => {
       console.log('🗑️ CONVERSATION DELETED SUCCESS:', conversationId);
-      
-      // Invalidate and refetch conversations to ensure fresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
       
       // If we're currently viewing this conversation, go back to conversations list
       if (selectedConversation === conversationId) {
         setSelectedConversation(null);
       }
+      
+      // Force refetch conversations to ensure UI updates immediately
+      await queryClient.refetchQueries({ queryKey: ['/api/messaging/conversations'] });
       
       toast({
         title: "Conversation Deleted",
