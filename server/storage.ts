@@ -1543,13 +1543,44 @@ export class DatabaseStorage implements IStorage {
     }
 
     if (existingConversation.length === 0) {
-      // Create new conversation
+      // Create new conversation - properly resolve recipient name
+      let recipientDisplayName = messageData.recipientId;
+      let recipientRole = 'patient';
+      
+      // Try to resolve recipient name from user data
+      if (typeof messageData.recipientId === 'number') {
+        const recipientUser = await this.getUser(messageData.recipientId, organizationId);
+        if (recipientUser) {
+          recipientDisplayName = recipientUser.firstName && recipientUser.lastName 
+            ? `${recipientUser.firstName} ${recipientUser.lastName}`
+            : recipientUser.firstName || recipientUser.email || messageData.recipientId;
+          recipientRole = recipientUser.role || 'patient';
+        }
+      } else if (typeof messageData.recipientId === 'string') {
+        // If recipientId is a string (name), try to find matching user
+        const allUsers = await this.getUsersByOrganization(organizationId);
+        const matchedUser = allUsers.find(user => {
+          const fullName = `${user.firstName} ${user.lastName}`.trim();
+          return fullName === messageData.recipientId || 
+                 user.firstName === messageData.recipientId ||
+                 user.email === messageData.recipientId;
+        });
+        
+        if (matchedUser) {
+          recipientDisplayName = `${matchedUser.firstName} ${matchedUser.lastName}`;
+          recipientRole = matchedUser.role || 'patient';
+        } else {
+          // Keep the original name if no user match found
+          recipientDisplayName = messageData.recipientId;
+        }
+      }
+      
       const conversationInsertData = {
         id: conversationId,
         organizationId: organizationId,
         participants: [
           { id: parseInt(messageData.senderId.toString()), name: senderDisplayName, role: messageData.senderRole },
-          { id: messageData.recipientId, name: messageData.recipientId, role: 'patient' }
+          { id: messageData.recipientId, name: recipientDisplayName, role: recipientRole }
         ],
         lastMessage: {
           id: messageId,
