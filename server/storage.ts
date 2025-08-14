@@ -1172,7 +1172,7 @@ export class DatabaseStorage implements IStorage {
           // Get actual user data
           const user = await this.getUser(participant.id, organizationId);
           if (user && user.firstName && user.lastName) {
-            const correctName = `${user.firstName} ${user.lastName}`;
+            const correctName = `${user.firstName.trim()} ${user.lastName.trim()}`;
             if (participant.name !== correctName) {
               console.log(`🔧 Fixing participant ${participant.id}: "${participant.name}" -> "${correctName}"`);
               updatedParticipants.push({
@@ -1198,10 +1198,11 @@ export class DatabaseStorage implements IStorage {
           });
           
           if (matchedUser) {
-            console.log(`🔧 Resolving string participant "${participant.id}" -> ${matchedUser.id} (${matchedUser.firstName} ${matchedUser.lastName})`);
+            const cleanName = `${matchedUser.firstName.trim()} ${matchedUser.lastName.trim()}`;
+            console.log(`🔧 Resolving string participant "${participant.id}" -> ${matchedUser.id} (${cleanName})`);
             updatedParticipants.push({
               id: matchedUser.id,
-              name: `${matchedUser.firstName} ${matchedUser.lastName}`,
+              name: cleanName,
               role: matchedUser.role
             });
             needsUpdate = true;
@@ -1216,10 +1217,11 @@ export class DatabaseStorage implements IStorage {
             });
             
             if (matchedPatient) {
-              console.log(`🔧 Resolving string participant "${participant.id}" -> patient ID ${matchedPatient.id} (${matchedPatient.firstName} ${matchedPatient.lastName})`);
+              const cleanName = `${matchedPatient.firstName.trim()} ${matchedPatient.lastName.trim()}`;
+              console.log(`🔧 Resolving string participant "${participant.id}" -> patient ID ${matchedPatient.id} (${cleanName})`);
               updatedParticipants.push({
                 id: matchedPatient.id,
-                name: `${matchedPatient.firstName} ${matchedPatient.lastName}`,
+                name: cleanName,
                 role: 'patient'
               });
               needsUpdate = true;
