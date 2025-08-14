@@ -201,9 +201,11 @@ export default function MessagingPage() {
 
   const { data: conversations = [], isLoading: conversationsLoading, error: conversationsError, refetch: refetchConversations } = useQuery({
     queryKey: ['/api/messaging/conversations'],
-    staleTime: 0, // Always refetch
-    gcTime: 0, // Don't cache (TanStack Query v5)
+    staleTime: 0, // Always consider stale
+    gcTime: 0, // Don't cache (TanStack Query v5)  
     refetchOnMount: 'always', // Always refetch when component mounts
+    refetchOnWindowFocus: true, // Refetch when window gains focus
+    refetchInterval: false, // Don't poll
     queryFn: async () => {
       console.log('🔄 FETCHING CONVERSATIONS');
       const response = await apiRequest('GET', '/api/messaging/conversations');
@@ -361,11 +363,14 @@ export default function MessagingPage() {
       const existingConversation = currentConversations.find(conv => conv.id === data.conversationId);
       
       if (!existingConversation) {
-        // New conversation created - invalidate to fetch fresh data
-        console.log('🔄 NEW CONVERSATION DETECTED - invalidating conversations cache');
+        // New conversation created - force complete cache refresh
+        console.log('🔄 NEW CONVERSATION DETECTED - forcing complete refresh');
+        queryClient.removeQueries({ queryKey: ['/api/messaging/conversations'] });
         queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
-        // Also refetch immediately
-        refetchConversations();
+        // Force immediate refetch
+        setTimeout(() => {
+          refetchConversations();
+        }, 100);
       } else {
         // Existing conversation - update the last message info
         const updatedConversations = currentConversations.map(conv => {
@@ -477,8 +482,12 @@ export default function MessagingPage() {
       });
     },
     onSettled: () => {
-      // Always refetch after mutation settles
+      // Always refetch after mutation settles - force complete refresh
+      queryClient.removeQueries({ queryKey: ['/api/messaging/conversations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
+      setTimeout(() => {
+        refetchConversations();
+      }, 50);
     }
   });
 
