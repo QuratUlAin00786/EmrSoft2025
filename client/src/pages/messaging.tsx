@@ -431,21 +431,49 @@ export default function MessagingPage() {
       }
       return response.json();
     },
-    onSuccess: async (data, conversationId) => {
-      console.log('🗑️ CONVERSATION DELETED SUCCESS:', conversationId);
-      
+    onMutate: async (conversationId) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['/api/messaging/conversations'] });
+
+      // Snapshot the previous value
+      const previousConversations = queryClient.getQueryData(['/api/messaging/conversations']);
+
+      // Optimistically update to remove the conversation
+      const currentConversations = (previousConversations as any[]) || [];
+      const updatedConversations = currentConversations.filter(conv => conv.id !== conversationId);
+      queryClient.setQueryData(['/api/messaging/conversations'], updatedConversations);
+
       // If we're currently viewing this conversation, go back to conversations list
       if (selectedConversation === conversationId) {
         setSelectedConversation(null);
       }
-      
-      // Force refetch conversations to ensure UI updates immediately
-      await queryClient.refetchQueries({ queryKey: ['/api/messaging/conversations'] });
+
+      return { previousConversations };
+    },
+    onSuccess: (data, conversationId) => {
+      console.log('🗑️ CONVERSATION DELETED SUCCESS:', conversationId);
       
       toast({
         title: "Conversation Deleted",
         description: "The conversation has been permanently deleted.",
       });
+    },
+    onError: (err, conversationId, context) => {
+      // Rollback on error
+      if (context?.previousConversations) {
+        queryClient.setQueryData(['/api/messaging/conversations'], context.previousConversations);
+      }
+      
+      console.error('Conversation deletion failed:', err);
+      toast({
+        title: "Delete Failed",
+        description: err.message || "Failed to delete conversation. Please try again.",
+        variant: "destructive"
+      });
+    },
+    onSettled: () => {
+      // Always refetch after mutation settles
+      queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
     },
     onError: (error: any) => {
       console.error('Conversation deletion failed:', error);
