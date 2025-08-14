@@ -1339,38 +1339,38 @@ export default function MessagingPage() {
                                 </Badge>
                               )}
                             </div>
-                            <div className="flex-1 min-w-0">
+                            <div className="flex-1 min-w-0 pr-2">
                               <div className="flex items-center justify-between mb-1">
-                                <p className="font-medium text-sm truncate text-gray-900 dark:text-gray-100 mr-2">
-                                  {(() => {
-                                    const otherParticipant = getOtherParticipant(conversation);
-                                    if (otherParticipant?.name && otherParticipant.name !== 'undefined') {
-                                      return otherParticipant.name;
-                                    }
-                                    if (otherParticipant?.id && otherParticipant.id !== 'undefined') {
-                                      return `User ${otherParticipant.id}`;
-                                    }
-                                    return 'Unknown User';
-                                  })()}
-                                </p>
-                                <div className="flex items-center gap-2 shrink-0">
-                                  <Badge variant="secondary" className="text-xs">
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-sm truncate text-gray-900 dark:text-gray-100">
+                                    {(() => {
+                                      const otherParticipant = getOtherParticipant(conversation);
+                                      if (otherParticipant?.name && otherParticipant.name !== 'undefined') {
+                                        return otherParticipant.name;
+                                      }
+                                      if (otherParticipant?.id && otherParticipant.id !== 'undefined') {
+                                        return `User ${otherParticipant.id}`;
+                                      }
+                                      return 'Unknown User';
+                                    })()}
+                                  </p>
+                                  <Badge variant="secondary" className="text-xs mt-1">
                                     {getOtherParticipant(conversation)?.role || 'user'}
                                   </Badge>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-8 w-8 p-0 text-red-600 border-red-300 hover:text-white hover:bg-red-600 hover:border-red-600 dark:text-red-400 dark:border-red-600 dark:hover:bg-red-700 dark:hover:text-white shrink-0"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      if (window.confirm(`Delete conversation with ${getOtherParticipant(conversation)?.name || 'Unknown User'}? This action cannot be undone.`)) {
-                                        handleDeleteConversation(conversation.id);
-                                      }
-                                    }}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
                                 </div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 ml-2 text-red-600 border-red-300 hover:text-white hover:bg-red-600 hover:border-red-600 dark:text-red-400 dark:border-red-600 dark:hover:bg-red-700 dark:hover:text-white flex-shrink-0"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (window.confirm(`Delete conversation with ${getOtherParticipant(conversation)?.name || 'Unknown User'}? This action cannot be undone.`)) {
+                                      handleDeleteConversation(conversation.id);
+                                    }
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
                               </div>
                               <p className="text-xs text-gray-600 dark:text-gray-300 truncate">
                                 {conversation.lastMessage?.content || "No messages yet"}
