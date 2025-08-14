@@ -1669,7 +1669,7 @@ export class DatabaseStorage implements IStorage {
           messageData.recipientId = matchedUser.id; // Update to use actual user ID
         } else {
           // Try to find in patients table
-          const allPatients = await this.getPatients(organizationId);
+          const allPatients = await this.getPatientsByOrganization(organizationId);
           const matchedPatient = allPatients.find(patient => {
             const fullName = `${patient.firstName} ${patient.lastName}`.trim();
             return fullName === messageData.recipientId || 
