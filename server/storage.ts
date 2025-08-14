@@ -1542,7 +1542,7 @@ export class DatabaseStorage implements IStorage {
     const messageId = `msg_${Date.now()}`;
     // Use existing conversation ID if provided, otherwise create new one
     console.log(`🔍 DEBUG - messageData.conversationId: ${messageData.conversationId}`);
-    const conversationId = messageData.conversationId || `conv_${Date.now()}`;
+    let conversationId = messageData.conversationId || `conv_${Date.now()}`;
     console.log(`🔍 DEBUG - Using conversationId: ${conversationId}`);
     const timestamp = new Date();
     
