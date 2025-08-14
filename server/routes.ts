@@ -2326,9 +2326,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           if (result.success) {
             console.log(`${messageType.toUpperCase()} sent successfully:`, result.messageId);
-            // Update message with delivery status
+            // Update message with delivery status and external ID
             message.deliveryStatus = 'sent';
             message.externalMessageId = result.messageId;
+            
+            // Start polling for delivery status after a short delay
+            setTimeout(async () => {
+              try {
+                const status = await messagingService.getMessageStatus(result.messageId!);
+                if (status) {
+                  await storage.updateMessageDeliveryStatus(result.messageId!, status.status, status.errorCode, status.errorMessage);
+                  console.log(`📱 Updated message ${result.messageId} status to: ${status.status}`);
+                }
+              } catch (error) {
+                console.error('📱 Error polling message status:', error);
+              }
+            }, 5000); // Poll after 5 seconds
+            
             return res.json(message);
           } else {
             console.error(`${messageType.toUpperCase()} sending failed:`, result.error);
@@ -3840,6 +3854,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error retrying message:", error);
       res.status(500).json({ error: "Failed to retry message" });
+    }
+  });
+
+  // API endpoint to manually check and update delivery status for recent messages
+  app.post("/api/messaging/check-delivery-status", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      // Get recent messages with external IDs that need status updates
+      const recentMessages = await storage.getRecentMessagesWithExternalIds(req.tenant!.id, 10);
+      const updates = [];
+      
+      for (const message of recentMessages) {
+        if (message.externalMessageId && (message.deliveryStatus === 'sent' || message.deliveryStatus === 'queued')) {
+          try {
+            const status = await messagingService.getMessageStatus(message.externalMessageId);
+            if (status && status.status !== message.deliveryStatus) {
+              await storage.updateMessageDeliveryStatus(message.externalMessageId, status.status, status.errorCode, status.errorMessage);
+              updates.push({
+                messageId: message.id,
+                externalId: message.externalMessageId,
+                oldStatus: message.deliveryStatus,
+                newStatus: status.status,
+                errorCode: status.errorCode,
+                errorMessage: status.errorMessage
+              });
+              console.log(`📱 Updated message ${message.externalMessageId} status: ${message.deliveryStatus} -> ${status.status}`);
+            }
+          } catch (error) {
+            console.error(`📱 Error checking status for message ${message.externalMessageId}:`, error);
+          }
+        }
+      }
+      
+      res.json({
+        success: true,
+        messagesChecked: recentMessages.length,
+        statusUpdates: updates.length,
+        updates
+      });
+    } catch (error) {
+      console.error("Error checking delivery status:", error);
+      res.status(500).json({ error: "Failed to check delivery status" });
     }
   });
 

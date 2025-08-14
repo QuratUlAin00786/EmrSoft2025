@@ -127,15 +127,9 @@ export class MessagingService {
         to: phoneNumber,
       };
 
-      // Set status callback for all messages to track delivery
-      const baseUrl = process.env.REPLIT_DOMAINS ? 
-        `https://${process.env.REPLIT_DOMAINS.split(',')[0]}` : 
-        'http://localhost:5000';
-      
-      messageOptions.statusCallback = `${baseUrl}/api/webhooks/twilio/status`;
-      messageOptions.statusCallbackMethod = 'POST';
-      
-      console.log('📱 SMS statusCallback URL:', messageOptions.statusCallback);
+      // Note: Development environment cannot receive webhooks from Twilio
+      // Status tracking will be done via direct API polling instead
+      console.log('📱 SMS sent without webhook (dev environment) - will poll status directly');
 
       const twilioMessage = await client.messages.create(messageOptions);
 
@@ -204,15 +198,9 @@ export class MessagingService {
         to: whatsappTo,
       };
 
-      // Set status callback for all WhatsApp messages to track delivery
-      const baseUrl = process.env.REPLIT_DOMAINS ? 
-        `https://${process.env.REPLIT_DOMAINS.split(',')[0]}` : 
-        'http://localhost:5000';
-      
-      messageOptions.statusCallback = `${baseUrl}/api/webhooks/twilio/status`;
-      messageOptions.statusCallbackMethod = 'POST';
-      
-      console.log('📱 WhatsApp statusCallback URL:', messageOptions.statusCallback);
+      // Note: Development environment cannot receive webhooks from Twilio
+      // Status tracking will be done via direct API polling instead
+      console.log('📱 WhatsApp sent without webhook (dev environment) - will poll status directly');
 
       const twilioMessage = await client.messages.create(messageOptions);
 

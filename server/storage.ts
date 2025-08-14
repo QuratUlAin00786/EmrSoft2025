@@ -29,7 +29,7 @@ import {
   type Message, type InsertMessage
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, count, not, sql, gte, lt, lte } from "drizzle-orm";
+import { eq, and, desc, asc, count, not, sql, gte, lt, lte, isNotNull } from "drizzle-orm";
 
 export interface IStorage {
   // Organizations
@@ -1642,6 +1642,25 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error(`❌ Failed to get message by external ID ${externalMessageId}:`, error);
       return null;
+    }
+  }
+
+  async getRecentMessagesWithExternalIds(organizationId: number, limit: number = 10): Promise<any[]> {
+    try {
+      const result = await db.select()
+        .from(messages)
+        .where(and(
+          eq(messages.organizationId, organizationId),
+          isNotNull(messages.externalMessageId)
+        ))
+        .orderBy(desc(messages.createdAt))
+        .limit(limit);
+
+      console.log(`📱 Found ${result.length} messages with external IDs for organization ${organizationId}`);
+      return result;
+    } catch (error) {
+      console.error(`❌ Failed to get recent messages with external IDs:`, error);
+      return [];
     }
   }
 

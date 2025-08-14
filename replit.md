@@ -41,6 +41,7 @@ Preferred communication style: Simple, everyday language.
 - **Authentication & Authorization**: JWT (7-day expiration), 6 user roles (admin, doctor, nurse, receptionist, patient, sample_taker) with granular module permissions, dynamic UI based on roles, tenant isolation, secure session management.
 - **AI Integration**: Local NLP-powered chatbot with intent classification for appointment booking and general healthcare queries. OpenAI GPT-4o available for risk assessment, drug interaction, treatment suggestions, preventive care. Includes confidence scoring.
 - **Real-time Messaging**: WebSocket-powered messaging system with React Query cache bypass for reliable real-time synchronization (resolved Aug 13, 2025).
+- **Message Delivery Tracking**: Polling-based delivery status system for SMS/WhatsApp messages with automatic status updates and manual status checking endpoints (implemented Aug 14, 2025).
 
 ### Data Flow
 - Request processing with tenant middleware.
