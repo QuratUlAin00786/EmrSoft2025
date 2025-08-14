@@ -1305,7 +1305,7 @@ export default function MessagingPage() {
                 </Select>
               </div>
 
-              <ScrollArea className="h-[580px]">
+              <ScrollArea className="h-[550px]">
                 <div className="p-2">
                   {/* New Conversation Option */}
                   {/* Show existing conversations first */}
@@ -1315,10 +1315,10 @@ export default function MessagingPage() {
                       {filteredConversations.map((conversation: Conversation) => (
                         <div
                           key={conversation.id}
-                          className={`p-3 rounded-lg cursor-pointer mb-2 transition-colors border-2 ${
+                          className={`p-4 rounded-xl cursor-pointer mb-3 transition-all duration-200 border-2 shadow-sm ${
                             selectedConversation === conversation.id
-                              ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-500 ring-4 ring-blue-200 dark:ring-blue-800 shadow-lg'
-                              : 'hover:bg-green-50 dark:hover:bg-green-900/30 border-green-300 dark:border-green-700 hover:border-green-500 dark:hover:border-green-500 bg-green-25 dark:bg-slate-700'
+                              ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-500 ring-2 ring-blue-200 dark:ring-blue-800 shadow-md'
+                              : 'hover:bg-green-50 dark:hover:bg-green-900/30 border-green-300 dark:border-green-700 hover:border-green-500 dark:hover:border-green-500 bg-white dark:bg-slate-700 hover:shadow-md'
                           }`}
                           onClick={() => {
                             console.log('🔥 CONVERSATION SELECTED:', conversation.id);
@@ -1326,23 +1326,23 @@ export default function MessagingPage() {
                             setSelectedConversation(conversation.id);
                           }}
                         >
-                          <div className="flex items-start gap-3 relative">
-                            <div className="relative">
-                              <Avatar className="h-10 w-10">
-                                <AvatarFallback className="bg-green-500 text-white">
+                          <div className="flex items-start gap-4 relative">
+                            <div className="relative flex-shrink-0">
+                              <Avatar className="h-12 w-12 border-2 border-white dark:border-slate-600 shadow-sm">
+                                <AvatarFallback className="bg-green-500 text-white text-lg font-semibold">
                                   {getOtherParticipant(conversation)?.name?.charAt(0)?.toUpperCase() || 'U'}
                                 </AvatarFallback>
                               </Avatar>
                               {conversation.unreadCount > 0 && (
-                                <Badge variant="destructive" className="absolute -top-1 -right-1 text-xs min-w-[20px] h-5 flex items-center justify-center p-1">
+                                <Badge variant="destructive" className="absolute -top-2 -right-2 text-xs min-w-[22px] h-6 flex items-center justify-center p-1 shadow-sm">
                                   {conversation.unreadCount}
                                 </Badge>
                               )}
                             </div>
-                            <div className="flex-1 min-w-0 pr-2">
-                              <div className="flex items-center justify-between mb-1">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between mb-2">
                                 <div className="flex-1 min-w-0">
-                                  <p className="font-medium text-sm truncate text-gray-900 dark:text-gray-100">
+                                  <h4 className="font-semibold text-base text-gray-900 dark:text-gray-100 truncate leading-tight">
                                     {(() => {
                                       const otherParticipant = getOtherParticipant(conversation);
                                       if (otherParticipant?.name && otherParticipant.name !== 'undefined') {
@@ -1353,15 +1353,20 @@ export default function MessagingPage() {
                                       }
                                       return 'Unknown User';
                                     })()}
-                                  </p>
-                                  <Badge variant="secondary" className="text-xs mt-1">
-                                    {getOtherParticipant(conversation)?.role || 'user'}
-                                  </Badge>
+                                  </h4>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <Badge variant="secondary" className="text-xs px-2 py-1">
+                                      {getOtherParticipant(conversation)?.role || 'user'}
+                                    </Badge>
+                                    <span className="text-xs text-gray-400 dark:text-gray-500">
+                                      {conversation.lastMessage?.timestamp ? new Date(conversation.lastMessage.timestamp).toLocaleDateString() : ''}
+                                    </span>
+                                  </div>
                                 </div>
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="h-8 w-8 p-0 ml-2 text-red-600 border-red-300 hover:text-white hover:bg-red-600 hover:border-red-600 dark:text-red-400 dark:border-red-600 dark:hover:bg-red-700 dark:hover:text-white flex-shrink-0"
+                                  className="h-8 w-8 p-0 ml-3 text-red-600 border-red-300 hover:text-white hover:bg-red-600 hover:border-red-600 dark:text-red-400 dark:border-red-600 dark:hover:bg-red-700 dark:hover:text-white flex-shrink-0 opacity-70 hover:opacity-100 transition-opacity"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     if (window.confirm(`Delete conversation with ${getOtherParticipant(conversation)?.name || 'Unknown User'}? This action cannot be undone.`)) {
@@ -1372,11 +1377,8 @@ export default function MessagingPage() {
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
-                              <p className="text-xs text-gray-600 dark:text-gray-300 truncate">
+                              <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 leading-relaxed">
                                 {conversation.lastMessage?.content || "No messages yet"}
-                              </p>
-                              <p className="text-xs text-gray-400 dark:text-gray-400 mt-1">
-                                {conversation.lastMessage?.timestamp ? new Date(conversation.lastMessage.timestamp).toLocaleDateString() : ''}
                               </p>
                             </div>
                           </div>
