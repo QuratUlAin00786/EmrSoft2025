@@ -555,14 +555,28 @@ export default function MessagingPage() {
     });
   };
 
-  // WebSocket connection for real-time messaging
+  // Polling-based real-time messaging as WebSocket fallback
   useEffect(() => {
     if (!currentUser) {
-      console.log('🔗 WebSocket: No currentUser, skipping connection');
+      console.log('🔗 Real-time: No currentUser, skipping connection');
       return;
     }
 
-    console.log('🔗 WebSocket: Attempting to connect for user:', currentUser.id);
+    console.log('🔗 Setting up polling-based real-time messaging for user:', currentUser.id);
+    
+    // Polling interval for message updates
+    const messagePollingInterval = setInterval(() => {
+      if (selectedConversation && fetchMessages) {
+        console.log('🔄 Polling: Checking for new messages in conversation', selectedConversation);
+        fetchMessages(selectedConversation);
+      }
+      
+      // Always refresh conversations to catch new messages
+      console.log('🔄 Polling: Refreshing conversations');
+      refetchConversations();
+    }, 2000); // Check every 2 seconds
+    
+    // Also attempt WebSocket as primary method
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}/ws`;
     console.log('🔗 WebSocket: URL:', wsUrl);
@@ -586,51 +600,27 @@ export default function MessagingPage() {
         console.log('📨 WebSocket message received:', data);
         
         if (data.type === 'new_message') {
-          // Refetch messages and conversations when new message received
-          console.log('🔄 New message received via WebSocket, refreshing UI');
-          console.log('🔍 WebSocket data structure:', JSON.stringify(data, null, 2));
+          console.log('📨 WebSocket message received:', data);
+          console.log('🔄 New message received via WebSocket, refreshing UI immediately');
           
-          // Invalidate specific conversation messages and all conversations
+          // Extract conversationId from different possible locations
           const messageConversationId = data.data?.conversationId || data.message?.conversationId || data.conversationId;
-          console.log('🔍 Extracted conversationId:', messageConversationId);
-          if (messageConversationId) {
-            // Invalidate the specific conversation messages
-            queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages', messageConversationId] });
-            console.log('🔄 Invalidated specific conversation:', messageConversationId);
+          console.log('🔍 Extracted conversationId for WebSocket:', messageConversationId);
+          
+          // Force immediate refresh of current conversation if it matches
+          if (selectedConversation && messageConversationId === selectedConversation && fetchMessages) {
+            console.log('🔥 IMMEDIATE REFETCH - Current conversation matches WebSocket message');
+            fetchMessages(selectedConversation);
           }
           
-          // Force refetch the current conversation if it matches
-          if (selectedConversation && messageConversationId === selectedConversation) {
-            console.log('🔄 Force refetching current conversation messages using direct fetch');
-            console.log('🔍 fetchMessages function available:', typeof fetchMessages);
-            console.log('🔍 selectedConversation:', selectedConversation);
-            if (fetchMessages) {
-              fetchMessages(selectedConversation);
-            } else {
-              console.error('❌ fetchMessages function not available in WebSocket context');
-            }
-          }
+          // Always refresh conversations to update sidebar
+          console.log('🔥 FORCE REFETCH ALL CONVERSATIONS - WebSocket triggered');
+          refetchConversations();
           
-          // Also invalidate all message queries and conversations
-          queryClient.invalidateQueries({ queryKey: ['/api/messaging/messages'] });
-          queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
-          
-          // Force complete cache reset for messaging data
-          queryClient.removeQueries({ queryKey: ['/api/messaging/messages'] });
-          queryClient.removeQueries({ queryKey: ['/api/messaging/conversations'] });
-          
-          // Force immediate refetch of conversations to update the left sidebar
-          setTimeout(() => {
-            console.log('🔥 FORCE REFETCH CONVERSATIONS - WebSocket triggered');
-            refetchConversations();
-          }, 100);
-          
-          console.log('🔥 REFETCH COMPLETED - UI should update immediately');
-          
-          // Show notification for new messages
+          // Show toast notification
           toast({
             title: "New Message",
-            description: `New message: ${data.message?.content || 'Message received'}`,
+            description: `New message received`,
           });
         }
       } catch (error) {
@@ -640,6 +630,15 @@ export default function MessagingPage() {
 
     socket.onclose = (event) => {
       console.log('🔗 WebSocket disconnected:', event.code, event.reason);
+      // Immediate reconnection for abnormal closures (like 1006)
+      if (event.code === 1006 && currentUser) {
+        console.log('🔄 Abnormal WebSocket closure detected, reconnecting immediately...');
+        setTimeout(() => {
+          console.log('🔗 Attempting WebSocket reconnection...');
+          // Force a page refresh to re-establish connection properly
+          window.location.reload();
+        }, 1000);
+      }
     };
 
     socket.onerror = (error) => {
@@ -648,7 +647,8 @@ export default function MessagingPage() {
 
     // Cleanup on unmount
     return () => {
-      console.log('🔗 WebSocket: Cleaning up connection');
+      console.log('🔗 Real-time: Cleaning up polling and WebSocket connection');
+      clearInterval(messagePollingInterval);
       socket.close();
     };
   }, [currentUser, toast, selectedConversation, fetchMessages]);
