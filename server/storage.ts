@@ -1098,23 +1098,23 @@ export class DatabaseStorage implements IStorage {
             };
           }
         } else if (typeof participant.id === 'string') {
-          // If it's a patient name string, try to find the actual user ID
-          const allUsers = await this.getUsersByOrganization(organizationId);
-          const matchedUser = allUsers.find(user => {
-            const fullName = `${user.firstName} ${user.lastName}`.trim();
-            return fullName === participant.id || 
-                   user.firstName === participant.id ||
-                   user.email === participant.id;
-          });
-          
-          if (matchedUser) {
-            console.log(`🔧 Fixed participant mapping: "${participant.id}" -> ${matchedUser.id} (${matchedUser.firstName} ${matchedUser.lastName})`);
-            return {
-              id: matchedUser.id, // Use actual numeric user ID
-              name: `${matchedUser.firstName} ${matchedUser.lastName}`,
-              role: matchedUser.role
-            };
+          // If it's a patient name string, preserve it as-is unless it's clearly a user email
+          // Only try to match if it looks like an email address to avoid overwriting patient names
+          if (participant.id.includes('@')) {
+            const allUsers = await this.getUsersByOrganization(organizationId);
+            const matchedUser = allUsers.find(user => user.email === participant.id);
+            
+            if (matchedUser) {
+              console.log(`🔧 Fixed participant mapping: "${participant.id}" -> ${matchedUser.id} (${matchedUser.firstName} ${matchedUser.lastName})`);
+              return {
+                id: matchedUser.id, // Use actual numeric user ID
+                name: `${matchedUser.firstName} ${matchedUser.lastName}`,
+                role: matchedUser.role
+              };
+            }
           }
+          // For patient names (non-email strings), preserve them exactly as they are
+          console.log(`✅ Preserving patient name: "${participant.id}"`);
         }
         // If it's a patient name string and no match found, keep it as is
         return participant;
