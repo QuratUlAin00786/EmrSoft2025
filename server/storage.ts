@@ -1540,11 +1540,33 @@ export class DatabaseStorage implements IStorage {
 
   async sendMessage(messageData: any, organizationId: number): Promise<any> {
     const messageId = `msg_${Date.now()}`;
+    const timestamp = new Date();
+    
     // Use existing conversation ID if provided, otherwise create new one
     console.log(`🔍 DEBUG - messageData.conversationId: ${messageData.conversationId}`);
-    let conversationId = messageData.conversationId || `conv_${Date.now()}`;
-    console.log(`🔍 DEBUG - Using conversationId: ${conversationId}`);
-    const timestamp = new Date();
+    let conversationId = messageData.conversationId;
+    
+    // If conversationId is provided, verify it exists in the database
+    if (conversationId) {
+      const existingConv = await db.select()
+        .from(conversations)
+        .where(and(
+          eq(conversations.id, conversationId),
+          eq(conversations.organizationId, organizationId)
+        ))
+        .limit(1);
+      
+      if (existingConv.length === 0) {
+        console.log(`⚠️ WARNING - Provided conversationId ${conversationId} does not exist, creating new one`);
+        conversationId = `conv_${Date.now()}`;
+      } else {
+        console.log(`✅ Using existing conversation: ${conversationId}`);
+      }
+    } else {
+      conversationId = `conv_${Date.now()}`;
+    }
+    
+    console.log(`🔍 DEBUG - Final conversationId: ${conversationId}`);
     
     // Get sender's full name if available
     let senderDisplayName = messageData.senderName || 'Unknown Sender';

@@ -2322,10 +2322,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/messaging/send", authMiddleware, async (req: TenantRequest, res) => {
     try {
       console.log("Received message data:", JSON.stringify(req.body, null, 2));
-      const { recipientId, content, message: messageText, type, priority, phoneNumber, messageType } = req.body;
+      const { conversationId, recipientId, content, message: messageText, type, priority, phoneNumber, messageType } = req.body;
       
       // Add authenticated user information to message data
       const messageDataWithUser = {
+        conversationId, // Include conversationId from request
         recipientId,
         content: content || messageText, // Handle both content and message fields
         type,
@@ -2403,14 +2404,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Add delay to ensure database transaction is fully committed across all connections
         await new Promise(resolve => setTimeout(resolve, 300));
         
+        // Use the message's conversationId from the storage response, not messageDataWithUser
+        const actualConversationId = message.conversationId;
+        console.log(`🔍 DEBUG - Using actual conversationId from message: ${actualConversationId}`);
+        
         // Verify the message exists in database before broadcasting
-        const verifyMessage = await storage.getMessages(messageDataWithUser.conversationId, req.organizationId!);
+        const verifyMessage = await storage.getMessages(actualConversationId, req.organizationId!);
         console.log(`🔍 VERIFICATION - Database contains ${verifyMessage.length} messages before broadcast`);
         
         const broadcastMessage = req.app.get('broadcastMessage');
         console.log(`🔍 DEBUG - broadcastMessage function exists:`, !!broadcastMessage);
         console.log(`🔍 DEBUG - messageDataWithUser.recipientId:`, messageDataWithUser.recipientId);
-        console.log(`🔍 DEBUG - messageDataWithUser.conversationId:`, messageDataWithUser.conversationId);
+        console.log(`🔍 DEBUG - actual conversationId:`, actualConversationId);
         if (broadcastMessage && messageDataWithUser.recipientId) {
           // Try to find recipient user ID if recipientId is a name
           if (typeof messageDataWithUser.recipientId === 'string') {
@@ -2425,7 +2430,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 broadcastMessage(recipientUser.id, {
                   type: 'new_message',
                   message: message,
-                  conversationId: messageDataWithUser.conversationId
+                  conversationId: actualConversationId
                 });
                 console.log(`📨 Broadcasted message to recipient user ID: ${recipientUser.id}`);
               }
@@ -2437,7 +2442,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             broadcastMessage(messageDataWithUser.recipientId, {
               type: 'new_message', 
               message: message,
-              conversationId: messageDataWithUser.conversationId
+              conversationId: actualConversationId
             });
             console.log(`📨 Broadcasted message to recipient user ID: ${messageDataWithUser.recipientId}`);
           }
@@ -2445,14 +2450,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Also broadcast to any other users who might be viewing the same conversation
         console.log(`🔍 DEBUG CONVERSATION - broadcastMessage exists:`, !!broadcastMessage);
-        console.log(`🔍 DEBUG CONVERSATION - conversationId:`, messageDataWithUser.conversationId);
-        if (broadcastMessage && messageDataWithUser.conversationId) {
+        console.log(`🔍 DEBUG CONVERSATION - conversationId:`, actualConversationId);
+        if (broadcastMessage && actualConversationId) {
           try {
             // Get conversation data to find all participants
             console.log(`🔍 DEBUG - Getting conversations for org: ${req.organizationId}`);
             const conversations = await storage.getConversations(req.organizationId!);
             console.log(`🔍 DEBUG - Found ${conversations.length} conversations`);
-            const currentConversation = conversations.find(c => c.id === messageDataWithUser.conversationId);
+            const currentConversation = conversations.find(c => c.id === actualConversationId);
             console.log(`🔍 DEBUG - Current conversation found:`, currentConversation ? 'YES' : 'NO');
             console.log(`🔍 DEBUG - Current conversation participants:`, currentConversation?.participants);
             
