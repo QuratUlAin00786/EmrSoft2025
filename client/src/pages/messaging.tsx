@@ -372,7 +372,7 @@ export default function MessagingPage() {
           refetchConversations();
         }, 100);
       } else {
-        // Existing conversation - update the last message info
+        // Existing conversation - update the last message info immediately
         const updatedConversations = currentConversations.map(conv => {
           if (conv.id === data.conversationId) {
             return {
@@ -380,6 +380,8 @@ export default function MessagingPage() {
               lastMessage: {
                 id: data.id,
                 content: data.content,
+                subject: data.subject || "",
+                priority: data.priority || "normal",
                 timestamp: data.timestamp || new Date().toISOString(),
                 senderId: data.senderId
               },
@@ -388,7 +390,16 @@ export default function MessagingPage() {
           }
           return conv;
         });
+        
+        // Update the cache immediately
         queryClient.setQueryData(['/api/messaging/conversations'], updatedConversations);
+        
+        // Force invalidation and refetch to ensure consistency
+        queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
+        setTimeout(() => {
+          console.log('🔄 EXISTING CONVERSATION UPDATED - forcing refetch');
+          refetchConversations();
+        }, 50);
       }
       
       // Only handle new message dialog closing here
@@ -607,6 +618,12 @@ export default function MessagingPage() {
           // Force complete cache reset for messaging data
           queryClient.removeQueries({ queryKey: ['/api/messaging/messages'] });
           queryClient.removeQueries({ queryKey: ['/api/messaging/conversations'] });
+          
+          // Force immediate refetch of conversations to update the left sidebar
+          setTimeout(() => {
+            console.log('🔥 FORCE REFETCH CONVERSATIONS - WebSocket triggered');
+            refetchConversations();
+          }, 100);
           
           console.log('🔥 REFETCH COMPLETED - UI should update immediately');
           
