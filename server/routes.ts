@@ -4013,6 +4013,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Force delivery status update for pending messages
+  app.post("/api/messaging/update-delivery-status", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      console.log('🔄 Manual delivery status update requested');
+      
+      // Get all pending messages for this organization
+      const pendingMessages = await storage.getPendingMessages(req.tenant!.id);
+      console.log(`📱 Found ${pendingMessages.length} pending messages to update`);
+      
+      const updateResults = [];
+      
+      for (const message of pendingMessages) {
+        try {
+          // For messages without external ID, mark as failed to send
+          if (!message.externalMessageId && message.messageType && (message.messageType === 'sms' || message.messageType === 'whatsapp')) {
+            console.log(`❌ Message ${message.id} has no external ID - marking as failed`);
+            await storage.updateMessageDeliveryStatus(message.id, 'failed', null, 'No external message ID - SMS/WhatsApp send failed');
+            updateResults.push({
+              messageId: message.id,
+              oldStatus: 'pending',
+              newStatus: 'failed',
+              reason: 'No external message ID'
+            });
+          } else if (message.externalMessageId) {
+            // Check Twilio status for messages with external ID
+            const status = await messagingService.getMessageStatus(message.externalMessageId);
+            if (status) {
+              await storage.updateMessageDeliveryStatus(message.externalMessageId, status.status, status.errorCode, status.errorMessage);
+              console.log(`📱 Updated message ${message.externalMessageId} status to: ${status.status}`);
+              updateResults.push({
+                messageId: message.id,
+                externalId: message.externalMessageId,
+                oldStatus: 'pending',
+                newStatus: status.status
+              });
+            }
+          } else {
+            // Internal messages should be marked as delivered
+            console.log(`✅ Internal message ${message.id} - marking as delivered`);
+            await storage.updateMessageDeliveryStatus(message.id, 'delivered', null, null);
+            updateResults.push({
+              messageId: message.id,
+              oldStatus: 'pending',
+              newStatus: 'delivered',
+              reason: 'Internal message'
+            });
+          }
+        } catch (error) {
+          console.error(`❌ Error updating message ${message.id}:`, error);
+          updateResults.push({
+            messageId: message.id,
+            error: (error as Error).message
+          });
+        }
+      }
+      
+      res.json({
+        success: true,
+        updatedCount: updateResults.length,
+        results: updateResults
+      });
+      
+    } catch (error) {
+      console.error("Error updating delivery status:", error);
+      res.status(500).json({ error: "Failed to update delivery status" });
+    }
+  });
+
   // API endpoint to retry failed messages
   app.post("/api/messaging/retry/:messageId", authMiddleware, async (req: TenantRequest, res) => {
     try {

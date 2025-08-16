@@ -31,6 +31,7 @@ import {
   Smartphone,
   Clock,
   CheckCheck,
+  RefreshCw,
   Star,
   Archive,
   Trash2,
@@ -499,6 +500,50 @@ export default function MessagingPage() {
       setTimeout(() => {
         refetchConversations();
       }, 50);
+    }
+  });
+
+  const updateDeliveryStatusMutation = useMutation({
+    mutationFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/messaging/update-delivery-status', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'cura',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({})
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: response.statusText }));
+        throw new Error(errorData.error || `${response.status}: ${response.statusText}`);
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      console.log('🔄 DELIVERY STATUS UPDATE SUCCESS:', data);
+      
+      // Refresh messages and conversations to show updated delivery statuses
+      if (selectedConversation) {
+        fetchMessages(selectedConversation);
+      }
+      refetchConversations();
+      
+      toast({
+        title: "Delivery Status Updated",
+        description: `Updated delivery status for ${data.updatedCount || 0} pending messages.`,
+      });
+    },
+    onError: (error: any) => {
+      console.error('Delivery status update failed:', error);
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update delivery status. Please try again.",
+        variant: "destructive"
+      });
     }
   });
 
@@ -1065,6 +1110,20 @@ export default function MessagingPage() {
               💊 Prescription Ready
             </Button>
           </div>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => updateDeliveryStatusMutation.mutate()}
+            disabled={updateDeliveryStatusMutation.isPending}
+            title="Update delivery status for pending messages"
+          >
+            {updateDeliveryStatusMutation.isPending ? (
+              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4 mr-2" />
+            )}
+            Update Delivery Status
+          </Button>
           <Dialog open={showVideoCall} onOpenChange={setShowVideoCall}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm">

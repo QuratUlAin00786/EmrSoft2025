@@ -1802,7 +1802,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Message delivery status tracking methods
-  async updateMessageDeliveryStatus(externalMessageId: string, status: string, errorCode?: string, errorMessage?: string): Promise<void> {
+  async updateMessageDeliveryStatus(messageIdentifier: string, status: string, errorCode?: string, errorMessage?: string): Promise<void> {
     try {
       const updateData: any = {
         deliveryStatus: status,
@@ -1812,13 +1812,21 @@ export class DatabaseStorage implements IStorage {
       if (errorCode) updateData.errorCode = errorCode;
       if (errorMessage) updateData.errorMessage = errorMessage;
 
-      await db.update(messages)
+      // Try to update by external message ID first, then by internal message ID
+      const externalResult = await db.update(messages)
         .set(updateData)
-        .where(eq(messages.externalMessageId, externalMessageId));
+        .where(eq(messages.externalMessageId, messageIdentifier));
 
-      console.log(`📱 Updated delivery status for message ${externalMessageId}: ${status}`);
+      if (externalResult.rowCount === 0) {
+        // If no rows affected, try updating by internal message ID
+        await db.update(messages)
+          .set(updateData)
+          .where(eq(messages.id, messageIdentifier));
+      }
+
+      console.log(`📱 Updated delivery status for message ${messageIdentifier}: ${status}`);
     } catch (error) {
-      console.error(`❌ Failed to update delivery status for message ${externalMessageId}:`, error);
+      console.error(`❌ Failed to update delivery status for message ${messageIdentifier}:`, error);
     }
   }
 
@@ -1836,6 +1844,24 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error(`❌ Failed to get message by external ID ${externalMessageId}:`, error);
       return null;
+    }
+  }
+
+  async getPendingMessages(organizationId: number): Promise<any[]> {
+    try {
+      const result = await db.select()
+        .from(messages)
+        .where(and(
+          eq(messages.organizationId, organizationId),
+          eq(messages.deliveryStatus, 'pending')
+        ))
+        .orderBy(desc(messages.createdAt));
+
+      console.log(`📱 Found ${result.length} pending messages for organization ${organizationId}`);
+      return result;
+    } catch (error) {
+      console.error(`❌ Failed to get pending messages for organization ${organizationId}:`, error);
+      return [];
     }
   }
 
