@@ -342,9 +342,15 @@ This is an urgent medical notification.`;
   }
 
   /**
-   * Format phone number for Twilio
+   * Format phone number for Twilio (E.164 format)
    */
   private formatPhoneNumber(phoneNumber: string): string {
+    // If already properly formatted in E.164, return as-is
+    if (/^\+[1-9]\d{1,14}$/.test(phoneNumber)) {
+      console.log(`✅ Already E.164 compliant: ${phoneNumber}`);
+      return phoneNumber;
+    }
+    
     // Remove all non-digit characters
     const cleaned = phoneNumber.replace(/\D/g, '');
     console.log(`🔍 Cleaned number: "${cleaned}", length: ${cleaned.length}`);
@@ -363,15 +369,22 @@ This is an urgent medical notification.`;
       // UK number
       return `+${cleaned}`;
     } else if (cleaned.startsWith('1') && cleaned.length === 11) {
-      // US number
+      // US number with country code
       return `+${cleaned}`;
     } else if (cleaned.length === 10 && !cleaned.startsWith('0')) {
-      // Assume US number if 10 digits
+      // US number without country code
       return `+1${cleaned}`;
     }
     
+    // If starts with + but digits were removed, try to reconstruct
+    if (phoneNumber.startsWith('+')) {
+      const result = `+${cleaned}`;
+      console.log(`✅ Reconstructed E.164: ${phoneNumber} -> ${result}`);
+      return result;
+    }
+    
     // Default: add + prefix if not present
-    const result = cleaned.startsWith('+') ? cleaned : `+${cleaned}`;
+    const result = `+${cleaned}`;
     console.log(`⚠️ Default formatting applied: ${cleaned} -> ${result}`);
     return result;
   }
@@ -405,17 +418,40 @@ This is an urgent medical notification.`;
   async getAccountInfo(): Promise<any> {
     try {
       if (!client || !process.env.TWILIO_ACCOUNT_SID) {
-        return null;
+        return {
+          accountType: 'unknown',
+          balance: 'unknown',
+          status: 'not configured',
+          verifiedNumbers: []
+        };
       }
+      
       const account = await client.api.accounts(process.env.TWILIO_ACCOUNT_SID).fetch();
+      
+      // Try to get verified numbers (for trial account diagnostics)
+      let verifiedNumbers = [];
+      try {
+        const outgoingCallerIds = await client.outgoingCallerIds.list();
+        verifiedNumbers = outgoingCallerIds.map(id => id.phoneNumber);
+      } catch (error) {
+        console.log('Could not fetch verified numbers:', error.message);
+      }
+      
       return {
+        accountType: account.type === 'Trial' ? 'trial' : 'paid',
         balance: account.balance,
         status: account.status,
-        subresourceUris: account.subresourceUris
+        verifiedNumbers: verifiedNumbers
       };
     } catch (error) {
       console.error('Error fetching account info:', error);
-      return null;
+      return {
+        accountType: 'error',
+        balance: 'error',
+        status: 'authentication failed',
+        verifiedNumbers: [],
+        error: error.message
+      };
     }
   }
 

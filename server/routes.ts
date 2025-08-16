@@ -2291,14 +2291,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Twilio configuration diagnostic endpoint
+  app.get("/api/messaging/twilio-config", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const config = {
+        phoneNumber: process.env.TWILIO_PHONE_NUMBER || null,
+        accountSid: process.env.TWILIO_ACCOUNT_SID ? process.env.TWILIO_ACCOUNT_SID.substring(0, 10) + '...' : null,
+        authToken: process.env.TWILIO_AUTH_TOKEN ? 'Configured' : null,
+        isConfigured: !!(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_PHONE_NUMBER)
+      };
+      res.json(config);
+    } catch (error) {
+      console.error("Error checking Twilio config:", error);
+      res.status(500).json({ error: "Failed to check configuration" });
+    }
+  });
+
+  // Twilio account information endpoint
+  app.get("/api/messaging/account-info", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const messagingService = new MessagingService();
+      const accountInfo = await messagingService.getAccountInfo();
+      res.json(accountInfo);
+    } catch (error) {
+      console.error("Error getting account info:", error);
+      res.status(500).json({ error: "Failed to get account information" });
+    }
+  });
+
   app.post("/api/messaging/send", authMiddleware, async (req: TenantRequest, res) => {
     try {
       console.log("Received message data:", JSON.stringify(req.body, null, 2));
-      const { recipientId, content, type, priority, phoneNumber, messageType } = req.body;
+      const { recipientId, content, message: messageText, type, priority, phoneNumber, messageType } = req.body;
       
       // Add authenticated user information to message data
       const messageDataWithUser = {
-        ...req.body,
+        recipientId,
+        content: content || messageText, // Handle both content and message fields
+        type,
+        priority,
+        phoneNumber,
+        messageType,
         senderId: req.user!.id,
         senderName: req.user!.firstName && req.user!.lastName 
           ? `${req.user!.firstName} ${req.user!.lastName}` 
@@ -2312,12 +2345,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Store the message in the database
       const message = await storage.sendMessage(messageDataWithUser, req.tenant!.id);
       
-      // If phone number is provided, send via SMS or WhatsApp
-      if (phoneNumber && (messageType === 'sms' || messageType === 'whatsapp')) {
+      // If phone number is provided, send via SMS or WhatsApp  
+      const recipientPhone = phoneNumber || req.body.recipient;
+      if (recipientPhone && (messageType === 'sms' || messageType === 'whatsapp')) {
         try {
           const result = await messagingService.sendMessage({
-            to: phoneNumber,
-            message: content,
+            to: recipientPhone,
+            message: messageDataWithUser.content,
             type: messageType,
             priority: priority || 'normal'
           });
@@ -2692,6 +2726,143 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting message:", error);
       res.status(500).json({ error: "Failed to delete message" });
+    }
+  });
+
+  // Comprehensive Twilio delivery diagnostic endpoint  
+  app.get("/api/messaging/delivery-diagnostic", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      console.log('🔍 DELIVERY DIAGNOSTIC - Checking Twilio configuration and recent messages');
+      
+      // 1. Check Twilio credentials configuration
+      const twilioConfig = {
+        hasAccountSID: !!process.env.TWILIO_ACCOUNT_SID,
+        hasSIDFormat: process.env.TWILIO_ACCOUNT_SID?.startsWith('AC') && process.env.TWILIO_ACCOUNT_SID?.length >= 34,
+        hasAuthToken: !!process.env.TWILIO_AUTH_TOKEN,
+        hasPhoneNumber: !!process.env.TWILIO_PHONE_NUMBER,
+        phoneNumberFormat: process.env.TWILIO_PHONE_NUMBER || 'missing',
+        authenticationFailed: false // Will be checked below
+      };
+      
+      // 2. Get recent SMS/WhatsApp messages from database
+      const allMessages = await storage.getConversationMessages("", req.tenant!.id);
+      const recentMessages = allMessages
+        .filter(msg => msg.messageType === 'sms' || msg.messageType === 'whatsapp')
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, 10);
+      console.log(`🔍 Found ${recentMessages.length} recent external messages to check`);
+      
+      const messageStatusChecks = [];
+      
+      // 3. Check delivery status for recent messages with Twilio Message SIDs
+      for (const message of recentMessages.slice(0, 5)) { // Check last 5 messages
+        if (message.externalMessageId) {
+          try {
+            console.log(`🔍 Checking status for Twilio SID: ${message.externalMessageId}`);
+            const status = await messagingService.getMessageStatus(message.externalMessageId);
+            
+            messageStatusChecks.push({
+              messageId: message.id,
+              twilioSid: message.externalMessageId,
+              phoneNumber: message.phoneNumber,
+              messageType: message.messageType,
+              content: message.content.substring(0, 50) + (message.content.length > 50 ? '...' : ''),
+              sentAt: message.timestamp,
+              twilioStatus: status?.status || 'unknown',
+              errorCode: status?.errorCode || null,
+              errorMessage: status?.errorMessage || null,
+              price: status?.price || null,
+              dateDelivered: status?.dateDelivered || null,
+              isDelivered: status?.status === 'delivered',
+              isPending: ['queued', 'sending', 'sent'].includes(status?.status),
+              isFailed: ['failed', 'undelivered'].includes(status?.status)
+            });
+          } catch (error: any) {
+            console.error(`❌ Error checking message ${message.externalMessageId}:`, error);
+            messageStatusChecks.push({
+              messageId: message.id,
+              twilioSid: message.externalMessageId,
+              phoneNumber: message.phoneNumber,
+              messageType: message.messageType,
+              content: message.content.substring(0, 50) + (message.content.length > 50 ? '...' : ''),
+              sentAt: message.timestamp,
+              twilioStatus: 'error',
+              errorCode: error.code || null,
+              errorMessage: error.message || 'Failed to fetch status',
+              checkError: true
+            });
+          }
+        } else {
+          messageStatusChecks.push({
+            messageId: message.id,
+            phoneNumber: message.phoneNumber,
+            messageType: message.messageType,
+            content: message.content.substring(0, 50) + (message.content.length > 50 ? '...' : ''),
+            sentAt: message.timestamp,
+            twilioStatus: 'no_sid',
+            errorMessage: 'No Twilio Message SID recorded'
+          });
+        }
+      }
+      
+      // 4. Analyze common issues from the user's list
+      const diagnosticSummary = {
+        credentialsValid: twilioConfig.hasAccountSID && twilioConfig.hasSIDFormat && twilioConfig.hasAuthToken && twilioConfig.hasPhoneNumber,
+        totalMessagesChecked: messageStatusChecks.length,
+        deliveredCount: messageStatusChecks.filter(m => m.isDelivered).length,
+        pendingCount: messageStatusChecks.filter(m => m.isPending).length,
+        failedCount: messageStatusChecks.filter(m => m.isFailed).length,
+        unknownCount: messageStatusChecks.filter(m => m.twilioStatus === 'unknown' || m.twilioStatus === 'error').length,
+        commonIssues: []
+      };
+      
+      // Check for common issues
+      const errorCodes = messageStatusChecks.map(m => m.errorCode).filter(Boolean);
+      if (errorCodes.includes(21211)) {
+        diagnosticSummary.commonIssues.push('Issue #4: Invalid phone number format detected (Error 21211)');
+      }
+      if (errorCodes.includes(21610)) {
+        diagnosticSummary.commonIssues.push('Issue #4: Messages to unverified numbers in trial account (Error 21610)');
+      }
+      if (errorCodes.includes(30003)) {
+        diagnosticSummary.commonIssues.push('Issue #1: Unreachable destination handset (Error 30003)');
+      }
+      if (errorCodes.includes(20003)) {
+        diagnosticSummary.commonIssues.push('Issue #4: Twilio authentication failed (Error 20003)');
+      }
+      
+      // Check for phone number format issues
+      const phoneNumbers = messageStatusChecks.map(m => m.phoneNumber).filter(Boolean);
+      const invalidFormats = phoneNumbers.filter(phone => !phone.startsWith('+') || phone.replace(/\D/g, '').length < 10);
+      if (invalidFormats.length > 0) {
+        diagnosticSummary.commonIssues.push(`Issue #1: ${invalidFormats.length} messages with incorrect phone number format`);
+      }
+      
+      // Check for stuck messages (sent but not delivered for >1 hour)
+      const stuckMessages = messageStatusChecks.filter(m => 
+        m.twilioStatus === 'sent' && 
+        new Date().getTime() - new Date(m.sentAt).getTime() > 3600000 // 1 hour
+      );
+      if (stuckMessages.length > 0) {
+        diagnosticSummary.commonIssues.push(`Issue #3: ${stuckMessages.length} messages stuck in 'sent' status (carrier/network issues)`);
+      }
+
+      res.json({
+        twilioConfig,
+        diagnosticSummary,
+        messageStatusChecks,
+        recommendations: [
+          "1. Verify phone numbers are in E.164 format (+country_code_phone_number)",
+          "2. Check Twilio Console for detailed error messages and delivery receipts",
+          "3. For WhatsApp: Ensure recipient has WhatsApp and template messages are approved",
+          "4. Consider carrier restrictions and regional regulations",
+          "5. Monitor delivery status changes over time (some carriers have delays)"
+        ]
+      });
+      
+    } catch (error) {
+      console.error("Error running delivery diagnostic:", error);
+      res.status(500).json({ error: "Failed to run delivery diagnostic" });
     }
   });
 
