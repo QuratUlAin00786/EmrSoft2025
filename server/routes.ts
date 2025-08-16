@@ -6686,6 +6686,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (targetClient && targetClient.readyState === WebSocket.OPEN) {
       targetClient.send(JSON.stringify({
         type: 'new_message',
+        message: messageData.message || messageData,
+        conversationId: messageData.conversationId,
         data: messageData
       }));
       console.log(`📨 Message broadcasted to user ${targetUserId}`);
