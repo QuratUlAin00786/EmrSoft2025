@@ -2400,6 +2400,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       } else {
+        // For internal messages, mark as delivered immediately since they don't go through SMS/WhatsApp
+        await storage.updateMessageDeliveryStatus(message.id, 'delivered', null, null);
+        console.log(`✅ Internal message ${message.id} marked as delivered`);
+        
         // For internal messages, broadcast to other users via WebSocket
         // Add delay to ensure database transaction is fully committed across all connections
         await new Promise(resolve => setTimeout(resolve, 300));
