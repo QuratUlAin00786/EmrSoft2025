@@ -400,9 +400,9 @@ export default function MessagingPage() {
         // Show different success message based on communication method
         let description = "Your message has been sent successfully.";
         if (variables.messageType === 'sms') {
-          description = "Your SMS message has been sent successfully via Twilio.";
+          description = `SMS delivered successfully to ${variables.phoneNumber} via Twilio. The recipient will receive it on their phone.`;
         } else if (variables.messageType === 'whatsapp') {
-          description = "Your WhatsApp message has been sent successfully via Twilio.";
+          description = `WhatsApp message delivered successfully to ${variables.phoneNumber} via Twilio. The recipient will receive it on WhatsApp.`;
         }
         
         toast({
