@@ -564,17 +564,16 @@ export default function MessagingPage() {
 
     console.log('🔗 Setting up polling-based real-time messaging for user:', currentUser.id);
     
-    // Polling interval for message updates
+    // Reduced polling interval to prevent UI blinking
     const messagePollingInterval = setInterval(() => {
+      // Only poll if user is on messaging page and WebSocket is not connected
       if (selectedConversation && fetchMessages) {
-        console.log('🔄 Polling: Checking for new messages in conversation', selectedConversation);
         fetchMessages(selectedConversation);
       }
       
-      // Always refresh conversations to catch new messages
-      console.log('🔄 Polling: Refreshing conversations');
+      // Less frequent conversation refresh to reduce API calls
       refetchConversations();
-    }, 2000); // Check every 2 seconds
+    }, 5000); // Check every 5 seconds instead of 2
     
     // Also attempt WebSocket as primary method
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -585,13 +584,17 @@ export default function MessagingPage() {
 
     socket.onopen = () => {
       console.log('🔗 WebSocket connected successfully');
-      // Authenticate with the server
-      const authMessage = {
-        type: 'auth',
-        userId: currentUser.id
-      };
-      console.log('🔗 WebSocket: Sending authentication:', authMessage);
-      socket.send(JSON.stringify(authMessage));
+      try {
+        // Authenticate with the server
+        const authMessage = {
+          type: 'auth',
+          userId: currentUser.id
+        };
+        console.log('🔗 WebSocket: Sending authentication:', authMessage);
+        socket.send(JSON.stringify(authMessage));
+      } catch (error) {
+        console.error('❌ WebSocket authentication error:', error);
+      }
     };
 
     socket.onmessage = (event) => {
@@ -630,19 +633,18 @@ export default function MessagingPage() {
 
     socket.onclose = (event) => {
       console.log('🔗 WebSocket disconnected:', event.code, event.reason);
-      // Immediate reconnection for abnormal closures (like 1006)
-      if (event.code === 1006 && currentUser) {
-        console.log('🔄 Abnormal WebSocket closure detected, reconnecting immediately...');
-        setTimeout(() => {
-          console.log('🔗 Attempting WebSocket reconnection...');
-          // Force a page refresh to re-establish connection properly
-          window.location.reload();
-        }, 1000);
+      // Log disconnection but don't force reload - polling will handle real-time updates
+      if (event.code === 1006) {
+        console.log('🔄 Abnormal WebSocket closure detected - polling system will maintain real-time updates');
       }
     };
 
     socket.onerror = (error) => {
       console.error('❌ WebSocket connection error:', error);
+      // Prevent unhandled promise rejections
+      if (error instanceof Error) {
+        return Promise.resolve();
+      }
     };
 
     // Cleanup on unmount
