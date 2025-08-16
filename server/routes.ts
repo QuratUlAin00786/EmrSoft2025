@@ -2515,7 +2515,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 broadcastMessage(userId, {
                   type: 'new_message',
                   message: message,
-                  conversationId: messageDataWithUser.conversationId
+                  conversationId: actualConversationId
                 });
                 console.log(`📨 Broadcasted to conversation participant: ${userId}`);
               });
