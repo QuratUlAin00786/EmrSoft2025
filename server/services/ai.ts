@@ -855,16 +855,25 @@ Provide intelligent, contextually aware responses that demonstrate advanced lang
           return;
         }
 
+        // Ensure pattern compliance for appointment creation
+        const validatedType = this.validateAppointmentType(appointmentDetails.appointment_type);
+        const validatedDuration = this.validateAppointmentDuration(appointmentDetails.duration);
+        const patternCompliantTitle = this.formatAppointmentTitle(
+          appointmentDetails.appointment_type || appointmentDetails.reason || 'General Consultation',
+          patient.firstName,
+          patient.lastName
+        );
+
         const appointmentData = {
           organizationId,
           patientId: patient.id,
           providerId: provider.id,
-          title: appointmentDetails.appointment_type || appointmentDetails.reason || 'General Consultation',
-          description: `Appointment booked via AI Assistant. Reason: ${appointmentDetails.reason || 'General consultation'}`,
+          title: patternCompliantTitle,
+          description: `Appointment booked via AI Assistant. Patient: ${patient.firstName} ${patient.lastName}. Reason: ${appointmentDetails.reason || 'General consultation'}`,
           scheduledAt,
-          duration: 30, // Default 30 minutes
+          duration: validatedDuration,
           status: 'scheduled' as const,
-          type: 'consultation' as const,
+          type: validatedType,
           location: this.getLocationForAppointmentType(appointmentDetails.appointment_type),
           isVirtual: false
         };
@@ -894,6 +903,59 @@ Provide intelligent, contextually aware responses that demonstrate advanced lang
     if (type.includes('gyneco')) return 'Gynecology Department';
     
     return 'General Consultation Room';
+  }
+
+  // Pattern validation helpers for appointment creation
+  private validateAppointmentType(appointmentType?: string): 'consultation' | 'follow_up' | 'procedure' | 'emergency' | 'routine_checkup' {
+    if (!appointmentType) return 'consultation';
+    
+    const type = appointmentType.toLowerCase();
+    if (type.includes('follow') || type.includes('follow-up')) return 'follow_up';
+    if (type.includes('procedure') || type.includes('surgery') || type.includes('operation')) return 'procedure';
+    if (type.includes('emergency') || type.includes('urgent')) return 'emergency';
+    if (type.includes('routine') || type.includes('checkup') || type.includes('check-up')) return 'routine_checkup';
+    
+    return 'consultation'; // Default
+  }
+
+  private validateAppointmentDuration(duration?: string | number): number {
+    // Valid durations: 15, 30, 45, 60, 90, 120 minutes
+    const validDurations = [15, 30, 45, 60, 90, 120];
+    
+    if (!duration) return 30; // Default
+    
+    const numericDuration = typeof duration === 'string' ? parseInt(duration) : duration;
+    
+    // Find the closest valid duration
+    if (validDurations.includes(numericDuration)) return numericDuration;
+    
+    // Round to nearest valid duration
+    const closest = validDurations.reduce((prev, curr) => 
+      Math.abs(curr - numericDuration) < Math.abs(prev - numericDuration) ? curr : prev
+    );
+    
+    console.log(`Duration ${numericDuration} rounded to valid duration: ${closest}`);
+    return closest;
+  }
+
+  private formatAppointmentTitle(title: string, patientFirstName: string, patientLastName: string): string {
+    if (!title || title.trim().length === 0) {
+      return `General Consultation - ${patientFirstName} ${patientLastName}`;
+    }
+    
+    // Ensure title follows pattern: [Type] - [Patient Name] format
+    const cleanTitle = title.trim();
+    const patientName = `${patientFirstName} ${patientLastName}`;
+    
+    // If title already contains patient name, use as is (but limit length)
+    if (cleanTitle.toLowerCase().includes(patientFirstName.toLowerCase()) || 
+        cleanTitle.toLowerCase().includes(patientLastName.toLowerCase())) {
+      return cleanTitle.length > 200 ? cleanTitle.substring(0, 197) + '...' : cleanTitle;
+    }
+    
+    // Add patient name to title
+    const formattedTitle = `${cleanTitle} - ${patientName}`;
+    return formattedTitle.length > 200 ? formattedTitle.substring(0, 197) + '...' : formattedTitle;
   }
 
   // Advanced prescription analysis with enhanced context awareness

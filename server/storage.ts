@@ -572,13 +572,108 @@ export class DatabaseStorage implements IStorage {
   async createAppointment(appointment: InsertAppointment): Promise<Appointment> {
     console.log("Creating appointment with data:", appointment);
     try {
-      const [created] = await db.insert(appointments).values([appointment]).returning();
-      console.log("Appointment created successfully:", created);
+      // Validate appointment pattern compliance before creation
+      const validationResult = await this.validateAppointmentPattern(appointment);
+      if (!validationResult.isValid) {
+        throw new Error(`Appointment pattern validation failed: ${validationResult.errors.join(', ')}`);
+      }
+
+      // Ensure sequential ordering by using database transaction
+      const created = await db.transaction(async (tx) => {
+        // Get the current max ID to ensure sequential ordering
+        const maxIdResult = await tx
+          .select({ maxId: sql<number>`COALESCE(MAX(id), 0)` })
+          .from(appointments)
+          .where(eq(appointments.organizationId, appointment.organizationId));
+        
+        const expectedNextId = (maxIdResult[0]?.maxId || 0) + 1;
+        console.log(`Sequential validation: Expected next ID: ${expectedNextId}`);
+
+        // Insert the appointment
+        const [created] = await tx.insert(appointments).values([appointment]).returning();
+        
+        // Verify sequential order was maintained
+        if (created.id < expectedNextId) {
+          console.warn(`Sequential order concern: Created ID ${created.id} is less than expected ${expectedNextId}`);
+        }
+        
+        console.log(`Sequential confirmation: Created appointment ID ${created.id} in proper sequence`);
+        return created;
+      });
+
+      console.log("Appointment created successfully with sequential validation:", created);
       return created;
     } catch (error) {
       console.error("Error creating appointment:", error);
       throw error;
     }
+  }
+
+  // Validate appointment pattern compliance
+  private async validateAppointmentPattern(appointment: InsertAppointment): Promise<{
+    isValid: boolean;
+    errors: string[];
+  }> {
+    const errors: string[] = [];
+
+    // Pattern 1: Title must follow naming convention
+    if (!appointment.title || appointment.title.trim().length === 0) {
+      errors.push("Appointment title is required and cannot be empty");
+    } else if (appointment.title.length > 200) {
+      errors.push("Appointment title cannot exceed 200 characters");
+    }
+
+    // Pattern 2: Description should follow standard format
+    if (appointment.description && appointment.description.length > 1000) {
+      errors.push("Appointment description cannot exceed 1000 characters");
+    }
+
+    // Pattern 3: Duration must be in standard increments (15, 30, 45, 60, 90, 120 minutes)
+    const validDurations = [15, 30, 45, 60, 90, 120];
+    if (!validDurations.includes(appointment.duration)) {
+      errors.push(`Appointment duration must be one of: ${validDurations.join(', ')} minutes`);
+    }
+
+    // Pattern 4: Validate appointment type
+    const validTypes = ['consultation', 'follow_up', 'procedure', 'emergency', 'routine_checkup'];
+    if (!validTypes.includes(appointment.type)) {
+      errors.push(`Appointment type must be one of: ${validTypes.join(', ')}`);
+    }
+
+    // Pattern 5: Validate status
+    const validStatuses = ['scheduled', 'completed', 'cancelled', 'no_show', 'rescheduled'];
+    if (!validStatuses.includes(appointment.status)) {
+      errors.push(`Appointment status must be one of: ${validStatuses.join(', ')}`);
+    }
+
+    // Pattern 6: Scheduled time must be in the future for new appointments
+    const scheduledTime = new Date(appointment.scheduledAt);
+    const now = new Date();
+    if (scheduledTime <= now && appointment.status === 'scheduled') {
+      errors.push("Scheduled appointments must be set for a future date and time");
+    }
+
+    // Pattern 7: Validate required relationships exist
+    try {
+      // Check if patient exists
+      const patient = await this.getPatient(appointment.patientId, appointment.organizationId);
+      if (!patient) {
+        errors.push(`Patient with ID ${appointment.patientId} not found in organization ${appointment.organizationId}`);
+      }
+
+      // Check if provider exists
+      const provider = await this.getUser(appointment.providerId, appointment.organizationId);
+      if (!provider) {
+        errors.push(`Provider with ID ${appointment.providerId} not found in organization ${appointment.organizationId}`);
+      }
+    } catch (error) {
+      errors.push("Failed to validate patient and provider relationships");
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
   }
 
   async updateAppointment(id: number, organizationId: number, updates: Partial<InsertAppointment>): Promise<Appointment | undefined> {

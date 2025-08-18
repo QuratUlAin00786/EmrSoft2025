@@ -232,8 +232,8 @@ export const appointments = pgTable("appointments", {
   description: text("description"),
   scheduledAt: timestamp("scheduled_at").notNull(),
   duration: integer("duration").notNull().default(30), // minutes
-  status: varchar("status", { length: 20 }).notNull().default("scheduled"), // scheduled, completed, cancelled, no_show
-  type: varchar("type", { length: 20 }).notNull().default("consultation"), // consultation, follow_up, procedure
+  status: varchar("status", { length: 20 }).notNull().default("scheduled"), // scheduled, completed, cancelled, no_show, rescheduled
+  type: varchar("type", { length: 20 }).notNull().default("consultation"), // consultation, follow_up, procedure, emergency, routine_checkup
   location: text("location"),
   isVirtual: boolean("is_virtual").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
