@@ -403,12 +403,18 @@ export function AIChatWidget() {
     setTranscriptBuffer(""); // Clear transcript buffer
 
     try {
+      // Include the complete conversation history (including all previous messages)
+      const conversationHistory = messages.slice(-5).map(msg => ({
+        role: msg.type === 'user' ? 'user' : 'assistant',
+        content: msg.content
+      }));
+
+      console.log("[AI Chat] Sending conversation history:", conversationHistory);
+      console.log("[AI Chat] Current message:", messageText);
+
       const response = await apiRequest("POST", "/api/ai-agent/chat", {
         message: messageText,
-        conversationHistory: messages.slice(-5).map(msg => ({
-          role: msg.type === 'user' ? 'user' : 'assistant',
-          content: msg.content
-        }))
+        conversationHistory: conversationHistory
       });
 
       const responseData = await response.json();
