@@ -910,7 +910,7 @@ Provide intelligent, contextually aware responses that demonstrate advanced lang
 
         if (conflictingAppointment) {
           console.log('Appointment already exists - skipping creation to prevent duplicate');
-          return;
+          throw new Error('APPOINTMENT_ALREADY_EXISTS');
         }
 
         // Ensure pattern compliance for appointment creation
@@ -942,6 +942,12 @@ Provide intelligent, contextually aware responses that demonstrate advanced lang
         console.log('Automatic appointment created successfully:', appointmentData.title, 'for', patient.firstName, patient.lastName, 'with', provider.firstName, provider.lastName);
       } else {
         console.log('Could not create automatic appointment - missing patient or provider');
+        if (!patient) {
+          throw new Error(`PATIENT_NOT_FOUND: ${appointmentDetails.patient_name}`);
+        }
+        if (!provider) {
+          throw new Error(`PROVIDER_NOT_FOUND: ${appointmentDetails.doctor_preference}`);
+        }
       }
     } catch (error) {
       console.error('Error creating automatic appointment:', error);
@@ -2100,14 +2106,32 @@ IMPORTANT: Review the full conversation history and remember all details mention
       let scheduledDate = null;
       
       // Look for patient names in entire conversation
+      console.log(`[AI] Searching for patients in conversation: "${fullConversationText}"`);
+      console.log(`[AI] Available patients:`, patients.map(p => `${p.firstName} ${p.lastName}`));
+      
       for (const patient of patients) {
-        const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
-        if (fullConversationText.includes(patient.firstName.toLowerCase()) || 
-            fullConversationText.includes(patient.lastName.toLowerCase()) ||
-            fullConversationText.includes(fullName)) {
+        const firstName = patient.firstName?.toLowerCase().trim() || '';
+        const lastName = patient.lastName?.toLowerCase().trim() || '';
+        const fullName = `${firstName} ${lastName}`.trim();
+        
+        // More precise matching - require full name match or both first+last name to avoid false matches
+        const hasFullName = fullConversationText.includes(fullName);
+        const hasFirstAndLast = firstName && lastName && 
+          fullConversationText.includes(firstName) && fullConversationText.includes(lastName);
+        
+        console.log(`[AI] Checking patient: ${patient.firstName} ${patient.lastName}`);
+        console.log(`[AI] - Full name match (${fullName}): ${hasFullName}`);
+        console.log(`[AI] - First+Last match (${firstName}, ${lastName}): ${hasFirstAndLast}`);
+        
+        if (hasFullName || hasFirstAndLast) {
+          console.log(`[AI] PATIENT MATCH FOUND: ${patient.firstName} ${patient.lastName}`);
           foundPatient = patient;
           break;
         }
+      }
+      
+      if (!foundPatient) {
+        console.log(`[AI] NO PATIENT MATCH FOUND in conversation text`);
       }
       
       // Look for doctor names in entire conversation with EXACT matching
