@@ -2214,25 +2214,48 @@ IMPORTANT: Review the full conversation history and remember all details mention
       
       // Look for patient names in the entire conversation (including current message)
       let foundPatient = null;
+      console.log(`[PRESCRIPTION_SEARCH] Looking for patient in message: "${lowerMessage}"`);
+      console.log(`[PRESCRIPTION_SEARCH] Available patients:`, patients.map(p => `${p.firstName} ${p.lastName}`));
+      
       for (const patient of patients) {
         const firstName = patient.firstName?.toLowerCase().trim() || '';
         const lastName = patient.lastName?.toLowerCase().trim() || '';
         const fullName = `${firstName} ${lastName}`.trim();
         
-        // Use exact word boundary matching to prevent partial matches
-        const firstNameRegex = new RegExp(`\\b${firstName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-        const lastNameRegex = new RegExp(`\\b${lastName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-        const fullNameRegex = new RegExp(`\\b${fullName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+        // Enhanced patient name matching - more flexible for variations
+        const nameVariations = [
+          fullName,
+          `${firstName} ${lastName}`,
+          `${lastName} ${firstName}`,
+          firstName,
+          lastName
+        ].filter(name => name && name.length > 2);
         
-        // Check if exact patient name exists in conversation or current message
-        if ((firstName && firstNameRegex.test(fullConversationText)) || 
-            (lastName && lastNameRegex.test(fullConversationText)) ||
-            (fullName && fullNameRegex.test(fullConversationText)) ||
-            (firstName && firstNameRegex.test(lowerMessage)) || 
-            (lastName && lastNameRegex.test(lowerMessage)) ||
-            (fullName && fullNameRegex.test(lowerMessage))) {
+        let isMatch = false;
+        for (const variation of nameVariations) {
+          if (fullConversationText.includes(variation) || lowerMessage.includes(variation)) {
+            isMatch = true;
+            console.log(`[PRESCRIPTION_SEARCH] Found match for "${variation}" with patient ${patient.firstName} ${patient.lastName}`);
+            break;
+          }
+        }
+        
+        // Additional fuzzy matching for common name patterns
+        if (!isMatch && (firstName.length > 2 && lastName.length > 2)) {
+          // Check if message contains both first and last name words (order independent)
+          const messageWords = lowerMessage.split(/\s+/);
+          const hasFirstName = messageWords.some(word => word.includes(firstName) || firstName.includes(word));
+          const hasLastName = messageWords.some(word => word.includes(lastName) || lastName.includes(word));
+          
+          if (hasFirstName && hasLastName) {
+            isMatch = true;
+            console.log(`[PRESCRIPTION_SEARCH] Found fuzzy match for ${patient.firstName} ${patient.lastName}`);
+          }
+        }
+        
+        if (isMatch) {
           foundPatient = patient;
-          console.log(`[AI] Found patient: ${patient.firstName} ${patient.lastName}`);
+          console.log(`[PRESCRIPTION_SEARCH] Selected patient: ${patient.firstName} ${patient.lastName}`);
           break;
         }
       }
@@ -2268,13 +2291,23 @@ IMPORTANT: Review the full conversation history and remember all details mention
         
         let response;
         if (uniquePrescriptions.length > 0) {
-          response = `**${uniquePrescriptions.length} prescriptions** found for **${foundPatient.firstName} ${foundPatient.lastName}**:\n\n${uniquePrescriptions.slice(0, 5).map(p => {
-            const medList = p.medications && p.medications.length > 0 
-              ? p.medications.map((med: any) => `${med.name} (${med.dosage || 'standard dose'})`).join(', ')
-              : 'No medication details';
-            const createdDate = new Date(p.createdAt).toLocaleDateString();
-            return `• **${medList}** - Status: ${p.status} (${createdDate})`;
-          }).join('\n')}`;
+          // Check if prescriptions have actual medication data
+          const prescriptionsWithMeds = uniquePrescriptions.filter(p => p.medications && p.medications.length > 0);
+          const prescriptionsWithoutMeds = uniquePrescriptions.filter(p => !p.medications || p.medications.length === 0);
+          
+          response = `**${uniquePrescriptions.length} prescription record${uniquePrescriptions.length > 1 ? 's' : ''}** found for **${foundPatient.firstName} ${foundPatient.lastName}**:\n\n`;
+          
+          if (prescriptionsWithMeds.length > 0) {
+            response += prescriptionsWithMeds.slice(0, 5).map(p => {
+              const medList = p.medications.map((med: any) => `${med.name} (${med.dosage || 'standard dose'})`).join(', ');
+              const createdDate = new Date(p.createdAt).toLocaleDateString();
+              return `• **${medList}** - Status: ${p.status} (${createdDate})`;
+            }).join('\n');
+          }
+          
+          if (prescriptionsWithoutMeds.length > 0) {
+            response += `\n\n**Note:** ${prescriptionsWithoutMeds.length} prescription record${prescriptionsWithoutMeds.length > 1 ? 's' : ''} found but ${prescriptionsWithoutMeds.length > 1 ? 'do' : 'does'} not contain detailed medication information.`;
+          }
         } else {
           response = `No prescriptions found for **${foundPatient.firstName} ${foundPatient.lastName}**.`;
         }
@@ -2293,6 +2326,8 @@ IMPORTANT: Review the full conversation history and remember all details mention
           }
         };
       } else {
+        console.log(`[PRESCRIPTION_SEARCH] No patient found for search. Showing available options.`);
+        
         // Show unique patients with prescriptions (properly deduplicated by patient ID)
         const uniquePatientIds = new Set();
         const patientPrescriptionSummary = [];
@@ -2308,11 +2343,16 @@ IMPORTANT: Review the full conversation history and remember all details mention
           }
         }
         
-        const displayList = patientPrescriptionSummary.slice(0, 5);
+        const displayList = patientPrescriptionSummary.slice(0, 8); // Show more options
         
-        let response = `Recent prescriptions:\n${displayList.map(item => {
-          return `• ${item.name} (${item.status})`;
-        }).join('\n')}\n\nTell me a patient name to see their prescriptions.`;
+        let response;
+        if (displayList.length > 0) {
+          response = `I couldn't find a patient with that exact name. Here are patients with prescriptions:\n\n${displayList.map(item => {
+            return `• ${item.name} (${item.status})`;
+          }).join('\n')}\n\nPlease specify the exact patient name from the list above.`;
+        } else {
+          response = `No prescriptions found in the system. Please check if prescriptions have been created for patients.`;
+        }
         
         return {
           response,
@@ -2320,7 +2360,8 @@ IMPORTANT: Review the full conversation history and remember all details mention
           confidence: 0.8,
           parameters: {
             showingGeneral: true,
-            totalPrescriptions: prescriptions.length
+            totalPrescriptions: prescriptions.length,
+            availablePatients: displayList.length
           }
         };
       }
