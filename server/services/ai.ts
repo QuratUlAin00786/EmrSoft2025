@@ -191,18 +191,36 @@ export class AiService {
         }
         break;
       case 'prescription_inquiry':
-        // Handle prescription search directly in the fallback method
+        // Handle prescription search directly - context-aware prescription handling
         try {
           console.log(`[LOCAL_NLP] Processing prescription inquiry: "${userMessage}"`);
           console.log(`[LOCAL_NLP] Organization ID: ${context.organizationId}, User ID: ${context.userId}`);
           
-          const prescriptionResult = await this.processWithPatternMatching({
+          // First try pattern matching with explicit prescription keywords
+          let prescriptionResult = await this.processWithPatternMatching({
             message: userMessage,
             conversationHistory: context.conversationHistory,
             organizationId: context.organizationId,
             userId: context.userId,
-            userRole: 'admin' // Default role for search
+            userRole: 'admin'
           });
+          
+          // If pattern matching doesn't find prescriptions but we have prescription context,
+          // try to search for patient names directly
+          if (prescriptionResult.intent !== 'find_prescriptions') {
+            console.log(`[LOCAL_NLP] Pattern matching failed, trying direct patient search for: "${userMessage}"`);
+            
+            // Force prescription search by adding "prescription" to the message
+            const enhancedMessage = `prescription ${userMessage}`;
+            prescriptionResult = await this.processWithPatternMatching({
+              message: enhancedMessage,
+              conversationHistory: context.conversationHistory,
+              organizationId: context.organizationId,
+              userId: context.userId,
+              userRole: 'admin'
+            });
+            console.log(`[LOCAL_NLP] Enhanced message prescription search result: ${prescriptionResult.intent}`);
+          }
           
           console.log(`[LOCAL_NLP] Prescription search result intent: ${prescriptionResult.intent}`);
           console.log(`[LOCAL_NLP] Prescription search response: ${prescriptionResult.response.substring(0, 100)}...`);
@@ -257,20 +275,42 @@ export class AiService {
   private classifyIntent(message: string, conversationHistory?: any[]): string {
     const lowerMessage = message.toLowerCase();
     
-    // Enhanced context-aware intent classification
+    // PRIORITY 1: Direct prescription keywords - always classify as prescription inquiry
+    if (/\b(prescription|medication|medicine|drug|pills|refill|pharmacy|find.*prescription|show.*prescription|get.*prescription)\b/.test(lowerMessage)) {
+      return 'prescription_inquiry';
+    }
+    
+    // PRIORITY 2: Direct appointment keywords
+    if (/\b(book|schedule|appointment|reserve|set up)\b/.test(lowerMessage)) {
+      return 'appointment_booking';
+    }
+    
+    // PRIORITY 3: Context-aware classification (only if no direct keywords found)
     if (conversationHistory && conversationHistory.length > 0) {
       const recentMessages = conversationHistory.slice(-4).map(msg => msg.content.toLowerCase()).join(' ');
+      // Check for prescription context first (including variations)
+      const hasPrescriptionContext = recentMessages.includes('prescription') || 
+                                     recentMessages.includes('medication') ||
+                                     recentMessages.includes('medicine') ||
+                                     recentMessages.includes('drug') ||
+                                     recentMessages.includes('pills') ||
+                                     recentMessages.includes('recent prescriptions') ||
+                                     recentMessages.includes('show prescriptions') ||
+                                     /prescription.*information|prescription.*data/.test(recentMessages);
       
-      // Check for appointment booking context with broader keywords
+      if (hasPrescriptionContext && this.looksLikePatientName(message)) {
+        return 'prescription_inquiry';
+      }
+      
+      // Check for appointment booking context only if no prescription context
       const hasAppointmentContext = recentMessages.includes('appointment') || 
                                    recentMessages.includes('book') || 
                                    recentMessages.includes('schedule') ||
-                                   recentMessages.includes('patient name') ||
                                    recentMessages.includes('date and time') ||
                                    recentMessages.includes('preferred date') ||
                                    recentMessages.includes('preferred time');
       
-      if (hasAppointmentContext) {
+      if (hasAppointmentContext && !hasPrescriptionContext) {
         // Broader detection for appointment continuation
         if (this.looksLikePatientName(message) || 
             this.looksLikeDateTime(message) || 
@@ -282,16 +322,6 @@ export class AiService {
           return 'appointment_booking';
         }
       }
-    }
-    
-    // Direct appointment keywords
-    if (/\b(book|schedule|appointment|reserve|set up)\b/.test(lowerMessage)) {
-      return 'appointment_booking';
-    }
-    
-    // Prescription-related keywords
-    if (/\b(prescription|medication|medicine|drug|pills|refill|pharmacy)\b/.test(lowerMessage)) {
-      return 'prescription_inquiry';
     }
     
     // Medical question keywords
