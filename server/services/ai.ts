@@ -191,8 +191,36 @@ export class AiService {
         }
         break;
       case 'prescription_inquiry':
-        response = "I can help you find prescription information. Please specify the patient name or medication you're looking for.";
-        nextActions = ['search_prescriptions'];
+        // Handle prescription search directly in the fallback method
+        try {
+          console.log(`[LOCAL_NLP] Processing prescription inquiry: "${userMessage}"`);
+          console.log(`[LOCAL_NLP] Organization ID: ${context.organizationId}, User ID: ${context.userId}`);
+          
+          const prescriptionResult = await this.processWithPatternMatching({
+            message: userMessage,
+            conversationHistory: context.conversationHistory,
+            organizationId: context.organizationId,
+            userId: context.userId,
+            userRole: 'admin' // Default role for search
+          });
+          
+          console.log(`[LOCAL_NLP] Prescription search result intent: ${prescriptionResult.intent}`);
+          console.log(`[LOCAL_NLP] Prescription search response: ${prescriptionResult.response.substring(0, 100)}...`);
+          
+          if (prescriptionResult.intent === 'find_prescriptions') {
+            response = prescriptionResult.response;
+            nextActions = ['prescription_search_completed'];
+            console.log(`[LOCAL_NLP] Using prescription search response`);
+          } else {
+            response = "I can help you find prescription information. Please specify the patient name or medication you're looking for.";
+            nextActions = ['search_prescriptions'];
+            console.log(`[LOCAL_NLP] Using fallback response - intent was: ${prescriptionResult.intent}`);
+          }
+        } catch (error) {
+          console.error('[LOCAL_NLP] Prescription search error:', error);
+          response = "I can help you find prescription information. Please specify the patient name or medication you're looking for.";
+          nextActions = ['search_prescriptions'];
+        }
         break;
       case 'medical_question':
         response = "For medical questions, I recommend consulting with a healthcare professional. I can help you schedule an appointment with the appropriate specialist.";
@@ -2537,20 +2565,54 @@ IMPORTANT: Review the full conversation history and remember all details mention
         const patients = await storage.getPatientsByOrganization(params.organizationId, 20);
         const prescriptions = await storage.getPrescriptionsByOrganization(params.organizationId);
         
-        // Look for patient names in the message - use exact matching to prevent wrong results
+        // Look for patient names in the message - enhanced fuzzy matching
         let foundPatient = null;
+        console.log(`[PRESCRIPTION_SEARCH] Searching for patient in message: "${params.message}"`);
+        console.log(`[PRESCRIPTION_SEARCH] Found ${patients.length} patients in organization`);
         
-        // EXACT MATCHING ONLY - No partial matches to prevent confusion
         for (const patient of patients) {
           const firstName = patient.firstName?.toLowerCase().trim() || '';
           const lastName = patient.lastName?.toLowerCase().trim() || '';
           const fullName = `${firstName} ${lastName}`.trim();
           
-          // Only check for exact full name match with word boundaries
+          console.log(`[PRESCRIPTION_SEARCH] Checking patient: ${patient.firstName} ${patient.lastName} (ID: ${patient.id})`);
+          
           if (fullName && fullName.length > 0) {
+            let isMatch = false;
+            
+            // Method 1: Exact full name match
             const exactNameRegex = new RegExp(`\\b${fullName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
             if (exactNameRegex.test(lowerMessage)) {
+              isMatch = true;
+              console.log(`[PRESCRIPTION_SEARCH] Found exact match for ${patient.firstName} ${patient.lastName}`);
+            }
+            
+            // Method 2: Both names present anywhere in message (order independent)
+            if (!isMatch && firstName.length > 1 && lastName.length > 1) {
+              const hasFirstName = lowerMessage.includes(firstName);
+              const hasLastName = lowerMessage.includes(lastName);
+              
+              if (hasFirstName && hasLastName) {
+                isMatch = true;
+                console.log(`[PRESCRIPTION_SEARCH] Found both names match for ${patient.firstName} ${patient.lastName}`);
+              }
+            }
+            
+            // Method 3: Fuzzy matching for common name patterns
+            if (!isMatch && (firstName.length > 2 && lastName.length > 2)) {
+              const messageWords = lowerMessage.split(/\s+/);
+              const hasFirstName = messageWords.some((word: string) => word.includes(firstName) || firstName.includes(word));
+              const hasLastName = messageWords.some((word: string) => word.includes(lastName) || lastName.includes(word));
+              
+              if (hasFirstName && hasLastName) {
+                isMatch = true;
+                console.log(`[PRESCRIPTION_SEARCH] Found fuzzy match for ${patient.firstName} ${patient.lastName}`);
+              }
+            }
+            
+            if (isMatch) {
               foundPatient = patient;
+              console.log(`[PRESCRIPTION_SEARCH] Selected patient: ${patient.firstName} ${patient.lastName} (ID: ${patient.id})`);
               break;
             }
           }
