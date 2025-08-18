@@ -1942,13 +1942,29 @@ IMPORTANT: Review the full conversation history and remember all details mention
       );
       
       // Check for prescription-related queries first (highest priority)
-      if (lowerMessage.includes('prescription') || lowerMessage.includes('medication') || 
-          lowerMessage.includes('show me prescription') || lowerMessage.includes('find prescriptions') ||
-          lowerMessage.includes('prescription information') || lowerMessage.includes('prescription data') ||
-          lowerResponse.includes('prescription') || lowerResponse.includes('medication') ||
-          wasPrescriptionRequest) { // If previous message asked for patient name for prescriptions
+      const prescriptionKeywords = [
+        'prescription', 'medication', 'medicine', 'drug', 'pills',
+        'show me prescription', 'find prescription', 'find prescriptions',
+        'prescription information', 'prescription data', 'prescription of',
+        'get prescription', 'view prescription', 'see prescription',
+        'patient prescription', 'prescriptions for'
+      ];
+      
+      const isPrescriptionRequest = prescriptionKeywords.some(keyword => 
+        lowerMessage.includes(keyword) || lowerResponse.includes(keyword)
+      ) || wasPrescriptionRequest;
+      
+      console.log(`[AI] Intent Detection - Checking prescription keywords:`, {
+        message: lowerMessage,
+        foundKeywords: prescriptionKeywords.filter(keyword => lowerMessage.includes(keyword)),
+        wasPrescriptionRequest,
+        isPrescriptionRequest
+      });
+      
+      if (isPrescriptionRequest) {
         intent = 'find_prescriptions';
         confidence = 0.9;
+        console.log(`[AI] Intent Detection - PRESCRIPTION SEARCH DETECTED`);
       } 
       // Check for appointment-related queries, but avoid re-triggering after successful booking
       else if ((lowerResponse.includes('appointment') || lowerResponse.includes('book') || lowerResponse.includes('schedule') || 
@@ -2244,8 +2260,8 @@ IMPORTANT: Review the full conversation history and remember all details mention
         if (!isMatch && (firstName.length > 2 && lastName.length > 2)) {
           // Check if message contains both first and last name words (order independent)
           const messageWords = lowerMessage.split(/\s+/);
-          const hasFirstName = messageWords.some(word => word.includes(firstName) || firstName.includes(word));
-          const hasLastName = messageWords.some(word => word.includes(lastName) || lastName.includes(word));
+          const hasFirstName = messageWords.some((word: string) => word.includes(firstName) || firstName.includes(word));
+          const hasLastName = messageWords.some((word: string) => word.includes(lastName) || lastName.includes(word));
           
           if (hasFirstName && hasLastName) {
             isMatch = true;
@@ -2299,7 +2315,7 @@ IMPORTANT: Review the full conversation history and remember all details mention
           
           if (prescriptionsWithMeds.length > 0) {
             response += prescriptionsWithMeds.slice(0, 5).map(p => {
-              const medList = p.medications.map((med: any) => `${med.name} (${med.dosage || 'standard dose'})`).join(', ');
+              const medList = (p.medications || []).map((med: any) => `${med.name} (${med.dosage || 'standard dose'})`).join(', ');
               const createdDate = new Date(p.createdAt).toLocaleDateString();
               return `• **${medList}** - Status: ${p.status} (${createdDate})`;
             }).join('\n');
