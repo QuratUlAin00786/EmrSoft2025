@@ -425,17 +425,24 @@ export function AIChatWidget() {
       console.log("[AI Chat] Message content:", responseData.message);
       console.log("[AI Chat] Response content:", responseData.response);
 
-      // Extract the actual message content from the response
+      // Extract the actual message content from the response - ensure it's a string
       let messageContent = "";
-      if (responseData.message) {
-        messageContent = responseData.message;
-      } else if (responseData.response) {
-        messageContent = responseData.response;
+      
+      if (typeof responseData.message === 'string' && responseData.message.trim()) {
+        messageContent = responseData.message.trim();
+      } else if (typeof responseData.response === 'string' && responseData.response.trim()) {
+        messageContent = responseData.response.trim();
+      } else if (typeof responseData === 'string') {
+        // Handle case where entire response is a string
+        messageContent = responseData.trim();
       } else {
-        messageContent = "I apologize, but I didn't receive a proper response. Please try again.";
+        // If we still have an object, something went wrong - show error
+        console.error("[AI Chat] Invalid response format:", responseData);
+        messageContent = "I apologize, but I received an invalid response format. Please try again.";
       }
 
       console.log("[AI Chat] Final message content to display:", messageContent);
+      console.log("[AI Chat] Message content type:", typeof messageContent);
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
