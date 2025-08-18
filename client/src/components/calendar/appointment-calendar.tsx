@@ -57,10 +57,12 @@ export default function AppointmentCalendar() {
       }
       
       const data = await response.json();
+      console.log("[Calendar] Fetched appointments:", data);
       return data || [];
     },
-    staleTime: 30000,
-    refetchOnWindowFocus: false
+    staleTime: 0, // Reduced stale time to ensure fresh data
+    refetchOnWindowFocus: true, // Enable refetch on window focus
+    refetchInterval: 10000 // Refetch every 10 seconds to ensure real-time updates
   });
 
   // Fetch patients data to get patient names
@@ -132,26 +134,37 @@ export default function AppointmentCalendar() {
   const isDataLoaded = patients.length > 0 && users.length > 0;
   
   // Process appointments to ensure they're properly typed and add patient/provider names when available
-  const appointments = (rawAppointments?.filter((apt: any) => apt && apt.id && apt.scheduledAt) || [])
+  const appointments = (rawAppointments?.filter((apt: any) => {
+    const isValid = apt && apt.id && apt.scheduledAt;
+    if (!isValid) {
+      console.log("[Calendar] Filtering out invalid appointment:", apt);
+    }
+    return isValid;
+  }) || [])
     .map((apt: any) => {
       try {
         // Always include the appointment, but only add names when data is loaded
         const patientName = isDataLoaded ? getPatientName(apt.patientId) : `Patient ${apt.patientId}`;
         const providerName = isDataLoaded ? getProviderName(apt.providerId) : `Provider ${apt.providerId}`;
-        return {
+        const processed = {
           ...apt,
           patientName,
           providerName,
           // Ensure scheduledAt is valid
           scheduledAt: apt.scheduledAt
         };
+        console.log("[Calendar] Processed appointment:", processed.id, processed.title, processed.scheduledAt);
+        return processed;
       } catch (error) {
-        console.error('Error processing appointment:', apt.id, error);
+        console.error('[Calendar] Error processing appointment:', apt.id, error);
         return null;
       }
     })
     .filter((apt: any) => apt !== null)
     .sort((a: any, b: any) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
+  
+  console.log("[Calendar] Final processed appointments count:", appointments.length);
+  console.log("[Calendar] All appointments:", appointments.map(apt => ({ id: apt.id, title: apt.title, scheduledAt: apt.scheduledAt })));
   
   // Data processing complete
 
@@ -192,6 +205,17 @@ export default function AppointmentCalendar() {
               Appointment Calendar
             </CardTitle>
             <div className="flex items-center gap-1 flex-wrap">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  console.log("[Calendar] Manual refresh triggered");
+                  refetch();
+                }}
+                className="text-xs sm:text-sm"
+              >
+                Refresh
+              </Button>
               <Button
                 variant={viewMode === "month" ? "default" : "outline"}
                 size="sm"
