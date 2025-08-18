@@ -263,6 +263,20 @@ export class AiService {
         response = "Hello! I'm your Cura AI Assistant. I can help you book appointments, find prescriptions, and answer general healthcare questions. How can I assist you today?";
         nextActions = ['await_user_intent'];
         break;
+      case 'general_inquiry':
+        // Handle open-ended questions and general inquiries more intelligently
+        const lowerMessage = userMessage.toLowerCase();
+        if (/\b(ask.*anything|ask.*question|tell.*about|what.*can.*do|help.*with)\b/i.test(userMessage)) {
+          response = "I'm here to help with all your healthcare needs! I can:\n\n📅 **Book Appointments** - Schedule with doctors, specialists\n💊 **Find Prescriptions** - Search patient medications\n🩺 **Healthcare Questions** - General medical information\n📋 **Patient Information** - Access records and history\n💬 **General Assistance** - Answer questions about our services\n\nWhat would you like to know more about?";
+        } else if (/\b(thank|thanks|appreciate)\b/.test(lowerMessage)) {
+          response = "You're welcome! I'm always here to help with your healthcare needs. Is there anything else I can assist you with?";
+        } else if (/\b(how.*work|what.*do|capabilities|features)\b/.test(lowerMessage)) {
+          response = "I'm an AI assistant designed to help healthcare professionals and patients. I can:\n\n• Schedule and manage appointments\n• Search for prescription information\n• Provide general healthcare guidance\n• Access patient records\n• Answer questions about medical services\n\nWhat specific area would you like help with?";
+        } else {
+          response = "I'm here to help! I can assist with appointments, prescriptions, healthcare questions, and more. What would you like to know?";
+        }
+        nextActions = ['clarify_intent'];
+        break;
       default:
         response = "I can help you with booking appointments, finding prescriptions, and general healthcare queries. What would you like to do?";
         nextActions = ['clarify_intent'];
@@ -347,6 +361,16 @@ export class AiService {
     // Greeting keywords
     if (/\b(hello|hi|hey|good morning|good afternoon|good evening|help me)\b/.test(lowerMessage)) {
       return 'greeting';
+    }
+    
+    // General questions and open-ended inquiries
+    if (/\b(ask.*anything|ask.*question|tell.*about|what.*can.*do|help.*with|how.*work|capabilities|features|what.*is|explain|information|about)\b/.test(lowerMessage)) {
+      return 'general_inquiry';
+    }
+    
+    // Thank you messages
+    if (/\b(thank|thanks|appreciate|grateful)\b/.test(lowerMessage)) {
+      return 'general_inquiry';
     }
     
     return 'general_inquiry';
