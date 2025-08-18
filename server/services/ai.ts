@@ -176,6 +176,168 @@ export class AiService {
     return entities;
   }
 
+  // OpenAI-powered comprehensive chatbot for appointments, prescriptions, and general queries
+  async processComprehensiveChatWithOpenAI(
+    userMessage: string,
+    context: ConversationContext,
+    organizationId: number
+  ): Promise<{
+    response: string;
+    intent: string;
+    entities: any;
+    confidence: number;
+    nextActions: string[];
+    contextUpdate: Partial<ConversationContext>;
+    appointmentData?: any;
+    prescriptionData?: any;
+  }> {
+    if (!process.env.OPENAI_API_KEY) {
+      // Fallback to local NLP when OpenAI is not available
+      return this.processWithLocalNLP(userMessage, context);
+    }
+
+    try {
+      // Get context data from database
+      const [patients, users, prescriptions] = await Promise.all([
+        storage.getPatientsByOrganization(organizationId),
+        storage.getUsersByOrganization(organizationId),
+        storage.getAllPrescriptions(organizationId)
+      ]);
+
+      const doctors = users.filter(u => u.role === 'doctor' || u.role === 'admin');
+      
+      const conversationHistoryText = context.conversationHistory
+        .slice(-8)
+        .map(msg => `${msg.role}: ${msg.content}`)
+        .join('\n');
+
+      const systemPrompt = `You are CURA AI, an advanced healthcare assistant powered by OpenAI GPT-4o with comprehensive capabilities for appointments, prescriptions, and general healthcare queries.
+
+AVAILABLE DOCTORS:
+${doctors.map(d => `- Dr. ${d.firstName} ${d.lastName} (${d.role}) - ID: ${d.id}`).join('\n')}
+
+RECENT CONVERSATION:
+${conversationHistoryText}
+
+USER CONTEXT:
+- Organization ID: ${organizationId}
+- User ID: ${context.userId}
+- Recent Topics: ${context.contextualKnowledge.recentTopics.join(', ') || 'None'}
+
+CORE CAPABILITIES:
+1. APPOINTMENT BOOKING: Schedule appointments with available doctors, check availability, handle rescheduling
+2. PRESCRIPTION MANAGEMENT: Search prescriptions, explain medications, check drug interactions, refill requests
+3. GENERAL HEALTHCARE: Answer medical questions, provide health information, symptom guidance
+4. PATIENT SUPPORT: Address concerns, provide reassurance, guide through processes
+
+RESPONSE INTELLIGENCE:
+- Analyze user intent (appointment_booking, prescription_inquiry, medical_question, general_inquiry)
+- Extract relevant entities (patient names, dates, symptoms, medications)
+- Provide contextually appropriate responses
+- Suggest next steps and actions
+- Maintain conversation continuity
+
+APPOINTMENT BOOKING RULES:
+- If user wants to book appointment, collect: patient name, preferred doctor, date/time, reason
+- Suggest available doctors if none specified
+- Provide general availability information
+- Create booking intent when sufficient details available
+
+PRESCRIPTION HANDLING:
+- Help find existing prescriptions by patient name or medication
+- Explain medication purposes, dosages, side effects
+- Suggest consulting doctor for new prescriptions
+- Check for potential interactions
+
+GENERAL MEDICAL QUERIES:
+- Provide accurate, helpful health information
+- Always recommend consulting healthcare professionals for diagnosis
+- Offer to schedule appointments for concerning symptoms
+- Maintain professional, empathetic tone
+
+Return JSON response with this structure:
+{
+  "response": "Your helpful response to the user",
+  "intent": "appointment_booking|prescription_inquiry|medical_question|general_inquiry",
+  "entities": {
+    "patient_names": [],
+    "doctors": [],
+    "medications": [],
+    "symptoms": [],
+    "dates": [],
+    "urgency_level": "low|medium|high"
+  },
+  "confidence": 0.95,
+  "next_actions": ["suggested_actions"],
+  "appointment_data": {
+    "should_book": false,
+    "patient_name": "",
+    "doctor_preference": "",
+    "date": "",
+    "time": "",
+    "reason": "",
+    "urgency": "routine"
+  },
+  "prescription_data": {
+    "search_query": "",
+    "patient_name": "",
+    "medication_name": ""
+  },
+  "medical_advice": {
+    "recommend_consultation": false,
+    "urgency": "routine",
+    "specialty_needed": ""
+  }
+}`;
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userMessage }
+        ],
+        max_tokens: 1500,
+        temperature: 0.7
+      });
+
+      const responseText = completion.choices[0].message.content;
+      let aiResponse;
+      
+      try {
+        aiResponse = JSON.parse(responseText || '{}');
+      } catch (e) {
+        // Fallback if response is not valid JSON
+        aiResponse = {
+          response: responseText || "I understand your request. How can I help you today?",
+          intent: "general_inquiry",
+          entities: {},
+          confidence: 0.8,
+          next_actions: ["clarify_request"]
+        };
+      }
+
+      return {
+        response: aiResponse.response,
+        intent: aiResponse.intent || 'general_inquiry',
+        entities: aiResponse.entities || {},
+        confidence: aiResponse.confidence || 0.8,
+        nextActions: aiResponse.next_actions || [],
+        contextUpdate: {
+          contextualKnowledge: {
+            recentTopics: [aiResponse.intent],
+            extractedEntities: aiResponse.entities
+          }
+        },
+        appointmentData: aiResponse.appointment_data,
+        prescriptionData: aiResponse.prescription_data
+      };
+
+    } catch (error) {
+      console.error('OpenAI API error:', error);
+      return this.processWithLocalNLP(userMessage, context);
+    }
+  }
+
   // Enhanced NLP conversation processing with context awareness
   async processConversationWithNLP(
     userMessage: string, 

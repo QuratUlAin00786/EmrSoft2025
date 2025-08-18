@@ -3249,7 +3249,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Message is required" });
       }
 
-      // Use local NLP to understand the user's intent and perform actions
+      // Use enhanced OpenAI-powered comprehensive chatbot for appointments, prescriptions, and general queries
       const conversationContext = {
         conversationId: `conv_${req.user.id}_${Date.now()}`,
         userId: req.user.id,
@@ -3278,43 +3278,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       };
       
-      const nlpResult = await (aiService as any).processWithLocalNLP(message, conversationContext);
+      // Use OpenAI-powered comprehensive chatbot if available, fallback to local NLP
+      let nlpResult;
+      try {
+        nlpResult = await (aiService as any).processComprehensiveChatWithOpenAI(message, conversationContext, req.tenant!.id);
+      } catch (error) {
+        console.log('OpenAI chatbot failed, falling back to local NLP:', error);
+        nlpResult = await (aiService as any).processWithLocalNLP(message, conversationContext);
+      }
       
-      // Convert local NLP result to agent response format
+      // Convert result to agent response format
       const aiResponse = {
         intent: nlpResult.intent,
         response: nlpResult.response,
         confidence: nlpResult.confidence,
-        parameters: null
+        parameters: null,
+        appointmentData: nlpResult.appointmentData,
+        prescriptionData: nlpResult.prescriptionData
       };
 
       // Perform actions based on AI analysis
       let actionResult = null;
       let responseData = null;
 
-      if (aiResponse.intent === 'book_appointment') {
-        // Appointment booking is handled directly in the AI service
-        if (aiResponse.parameters && aiResponse.parameters.success) {
-          actionResult = {
-            action: 'appointment_booked',
-            actionDescription: `Appointment scheduled successfully for ${aiResponse.parameters.patientName}`,
-            data: { appointmentId: aiResponse.parameters.appointmentId }
-          };
-          responseData = { appointmentBooked: true, appointmentId: aiResponse.parameters.appointmentId };
+      if (aiResponse.intent === 'appointment_booking' && aiResponse.appointmentData?.should_book) {
+        // Handle appointment booking with OpenAI data
+        try {
+          const appointmentDetails = aiResponse.appointmentData;
+          
+          // Find patient by name if provided
+          let patient = null;
+          if (appointmentDetails.patient_name) {
+            const patients = await storage.getPatientsByOrganization(req.tenant!.id);
+            patient = patients.find(p => 
+              `${p.firstName} ${p.lastName}`.toLowerCase().includes(appointmentDetails.patient_name.toLowerCase()) ||
+              p.firstName?.toLowerCase().includes(appointmentDetails.patient_name.toLowerCase()) ||
+              p.lastName?.toLowerCase().includes(appointmentDetails.patient_name.toLowerCase())
+            );
+          }
+
+          if (patient && appointmentDetails.doctor_preference && appointmentDetails.date) {
+            // Find doctor by name
+            const users = await storage.getUsersByOrganization(req.tenant!.id);
+            const doctor = users.find(u => 
+              (u.role === 'doctor' || u.role === 'admin') &&
+              `${u.firstName} ${u.lastName}`.toLowerCase().includes(appointmentDetails.doctor_preference.toLowerCase())
+            );
+
+            if (doctor) {
+              // Create appointment
+              const appointmentData = {
+                organizationId: req.tenant!.id,
+                patientId: patient.id,
+                providerId: doctor.id,
+                appointmentDate: new Date(appointmentDetails.date),
+                appointmentTime: appointmentDetails.time || '10:00',
+                appointmentType: appointmentDetails.appointment_type || 'consultation',
+                reason: appointmentDetails.reason || 'General consultation',
+                status: 'scheduled' as const,
+                duration: 30,
+                notes: `Booked via AI Assistant`
+              };
+
+              const newAppointment = await storage.createAppointment(appointmentData);
+              
+              actionResult = {
+                action: 'appointment_booked',
+                actionDescription: `Appointment scheduled for ${patient.firstName} ${patient.lastName} with Dr. ${doctor.firstName} ${doctor.lastName}`,
+                data: { appointmentId: newAppointment.id }
+              };
+              responseData = { 
+                appointmentBooked: true, 
+                appointmentId: newAppointment.id,
+                appointmentDetails: {
+                  patient: `${patient.firstName} ${patient.lastName}`,
+                  doctor: `Dr. ${doctor.firstName} ${doctor.lastName}`,
+                  date: appointmentDetails.date,
+                  time: appointmentDetails.time
+                }
+              };
+            }
+          }
+        } catch (error) {
+          console.error('Error creating appointment from AI:', error);
         }
-      } else if (aiResponse.intent === 'find_prescriptions') {
-        // Handle prescription search
+      } else if (aiResponse.intent === 'prescription_inquiry' && aiResponse.prescriptionData?.search_query) {
+        // Handle prescription search with OpenAI data
         try {
           let prescriptions = [];
+          const prescriptionData = aiResponse.prescriptionData;
           
-          if (aiResponse.parameters?.patientId) {
-            prescriptions = await storage.getPrescriptionsByPatient(aiResponse.parameters.patientId, req.tenant!.id);
-          } else if (aiResponse.parameters?.patientName) {
+          if (prescriptionData.patient_name) {
             // Search by patient name
             const patients = await storage.getPatientsByOrganization(req.tenant!.id, 100);
             const matchingPatients = patients.filter(p => 
-              p.firstName.toLowerCase().includes(aiResponse.parameters.patientName.toLowerCase()) ||
-              p.lastName.toLowerCase().includes(aiResponse.parameters.patientName.toLowerCase())
+              `${p.firstName} ${p.lastName}`.toLowerCase().includes(prescriptionData.patient_name.toLowerCase()) ||
+              p.firstName.toLowerCase().includes(prescriptionData.patient_name.toLowerCase()) ||
+              p.lastName.toLowerCase().includes(prescriptionData.patient_name.toLowerCase())
             );
             
             if (matchingPatients.length > 0) {
@@ -3323,9 +3383,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 matchingPatients.some(patient => patient.id === p.patientId)
               );
             }
+          } else if (prescriptionData.medication_name) {
+            // Search by medication name
+            const allPrescriptions = await storage.getPrescriptionsByOrganization(req.tenant!.id);
+            prescriptions = allPrescriptions.filter(p => 
+              p.medicationName?.toLowerCase().includes(prescriptionData.medication_name.toLowerCase()) ||
+              p.instructions?.toLowerCase().includes(prescriptionData.medication_name.toLowerCase())
+            );
           } else {
-            // Get all prescriptions if no specific patient
-            prescriptions = await storage.getPrescriptionsByOrganization(req.tenant!.id);
+            // General prescription search based on search query
+            const allPrescriptions = await storage.getPrescriptionsByOrganization(req.tenant!.id);
+            prescriptions = allPrescriptions.filter(p => 
+              p.medicationName?.toLowerCase().includes(prescriptionData.search_query.toLowerCase()) ||
+              p.instructions?.toLowerCase().includes(prescriptionData.search_query.toLowerCase())
+            );
           }
 
           // Get patient names for prescriptions
@@ -3338,10 +3409,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             };
           });
 
-          responseData = { prescriptions: prescriptionsWithNames };
+          responseData = { 
+            prescriptions: prescriptionsWithNames,
+            searchQuery: prescriptionData.search_query,
+            patientName: prescriptionData.patient_name,
+            medicationName: prescriptionData.medication_name
+          };
           actionResult = {
             action: 'prescriptions_found',
-            actionDescription: `Found ${prescriptions.length} prescription(s)`
+            actionDescription: `Found ${prescriptions.length} prescription(s) matching your query`
           };
         } catch (error) {
           console.error("Error finding prescriptions:", error);
