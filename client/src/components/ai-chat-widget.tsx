@@ -443,6 +443,13 @@ export function AIChatWidget() {
 
       console.log("[AI Chat] Final message content to display:", messageContent);
       console.log("[AI Chat] Message content type:", typeof messageContent);
+      console.log("[AI Chat] Message content length:", messageContent.length);
+
+      // Safeguard against JSON stringification leaking into content
+      if (messageContent.startsWith('{') && messageContent.includes('"intent"')) {
+        console.error("[AI Chat] DETECTED JSON LEAK! Raw response leaked into message content");
+        messageContent = "I found your prescription information. Let me format that properly for you.";
+      }
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -661,7 +668,9 @@ export function AIChatWidget() {
                         {message.type === 'assistant' && <Bot className="h-5 w-5 mt-0.5 flex-shrink-0" />}
                         {message.type === 'user' && <User className="h-5 w-5 mt-0.5 flex-shrink-0" />}
                         <div className="flex-1">
-                          <div className="whitespace-pre-wrap text-sm">{message.content}</div>
+                          <div className="whitespace-pre-wrap text-sm">
+                            {typeof message.content === 'string' ? message.content : 'Error: Invalid message format'}
+                          </div>
                           
                           {/* Enhanced Medical Insights Display */}
                           {message.type === 'assistant' && (
