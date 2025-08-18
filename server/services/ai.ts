@@ -79,8 +79,8 @@ export class AiService {
     nextActions: string[];
     contextUpdate: Partial<ConversationContext>;
   }> {
-    // Simple intent classification based on keywords
-    const intent = this.classifyIntent(userMessage);
+    // Simple intent classification based on keywords and conversation history
+    const intent = this.classifyIntent(userMessage, context.conversationHistory);
     const entities = this.extractEntities(userMessage);
     const confidence = 0.8; // Default confidence for local processing
     
@@ -93,11 +93,26 @@ export class AiService {
         // Try to extract appointment details from the message
         const appointmentDetails = this.extractAppointmentDetails(userMessage);
         
+        // Check conversation history for previously mentioned details
+        const conversationHistory = context.conversationHistory || [];
+        const allMessages = conversationHistory.map(msg => msg.content).join(' ') + ' ' + userMessage;
+        const historicalDetails = this.extractAppointmentDetails(allMessages);
+        
+        // Merge current and historical details
+        const combinedDetails = {
+          patient_name: appointmentDetails.patient_name || historicalDetails.patient_name,
+          date: appointmentDetails.date || historicalDetails.date,
+          time: appointmentDetails.time || historicalDetails.time,
+          appointment_type: appointmentDetails.appointment_type || historicalDetails.appointment_type,
+          doctor_preference: appointmentDetails.doctor_preference || historicalDetails.doctor_preference,
+          reason: appointmentDetails.reason || historicalDetails.reason
+        };
+        
         // If we have enough details, try to create the appointment
-        if (appointmentDetails.patient_name && (appointmentDetails.date || appointmentDetails.time)) {
+        if (combinedDetails.patient_name && (combinedDetails.date || combinedDetails.time)) {
           try {
-            await this.createAutomaticAppointment(appointmentDetails, context.organizationId || 1);
-            response = `✅ Appointment Successfully Booked!\n\nPatient: ${appointmentDetails.patient_name}\nDate: ${appointmentDetails.date || 'Tomorrow'}\nTime: ${appointmentDetails.time || '9:00 AM'}\nType: ${appointmentDetails.appointment_type || 'General Consultation'}\n\nThe appointment has been created in your system.`;
+            await this.createAutomaticAppointment(combinedDetails, context.organizationId || 1);
+            response = `✅ Appointment Successfully Booked!\n\nPatient: ${combinedDetails.patient_name}\nDate: ${combinedDetails.date || 'Tomorrow'}\nTime: ${combinedDetails.time || '9:00 AM'}\nType: ${combinedDetails.appointment_type || 'General Consultation'}\n\nThe appointment has been created in your system.`;
             nextActions = ['appointment_confirmation'];
           } catch (error) {
             console.error('Local appointment creation failed:', error);
@@ -105,7 +120,20 @@ export class AiService {
             nextActions = ['manual_booking_required'];
           }
         } else {
-          response = "I can help you book an appointment. Please provide the patient name, preferred date and time, and type of appointment needed.";
+          // Progressive information gathering - ask for what's missing
+          const missingInfo = [];
+          if (!combinedDetails.patient_name) missingInfo.push('patient name');
+          if (!combinedDetails.date && !combinedDetails.time) missingInfo.push('preferred date and time');
+          else if (!combinedDetails.date) missingInfo.push('preferred date');
+          else if (!combinedDetails.time) missingInfo.push('preferred time');
+          
+          if (missingInfo.length === 0) {
+            response = "I can help you book an appointment. Please provide the patient name, preferred date and time, and type of appointment needed.";
+          } else if (missingInfo.length === 1) {
+            response = `Great! I have most of the details. I just need the ${missingInfo[0]} to complete the appointment booking.`;
+          } else {
+            response = `I can help you book that appointment. I still need the ${missingInfo.join(' and ')} to proceed.`;
+          }
           nextActions = ['collect_patient_info', 'schedule_appointment'];
         }
         break;
@@ -145,9 +173,25 @@ export class AiService {
     };
   }
 
-  private classifyIntent(message: string): string {
+  private classifyIntent(message: string, conversationHistory?: any[]): string {
     const lowerMessage = message.toLowerCase();
     
+    // Check if we're in the middle of an appointment booking conversation
+    if (conversationHistory && conversationHistory.length > 0) {
+      const recentMessages = conversationHistory.slice(-3).map(msg => msg.content.toLowerCase()).join(' ');
+      
+      // If recent conversation mentions appointment booking, treat this as continuation
+      if (recentMessages.includes('appointment') || recentMessages.includes('book') || recentMessages.includes('schedule')) {
+        // If current message looks like patient name, date, time, or appointment type
+        if (this.looksLikePatientName(message) || 
+            this.looksLikeDateTime(message) || 
+            this.looksLikeAppointmentType(message)) {
+          return 'appointment_booking';
+        }
+      }
+    }
+    
+    // Standard intent classification
     if (lowerMessage.includes('book') || lowerMessage.includes('schedule') || lowerMessage.includes('appointment')) {
       return 'appointment_booking';
     }
@@ -161,6 +205,28 @@ export class AiService {
       return 'greeting';
     }
     return 'general_inquiry';
+  }
+  
+  private looksLikePatientName(message: string): boolean {
+    // Check if message looks like a person's name (2 words, capitalized)
+    const words = message.trim().split(/\s+/);
+    if (words.length === 2) {
+      return words.every(word => /^[A-Z][a-z]+$/.test(word));
+    }
+    return false;
+  }
+  
+  private looksLikeDateTime(message: string): boolean {
+    const lowerMessage = message.toLowerCase();
+    return /\b(today|tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/.test(lowerMessage) ||
+           /\b\d{1,2}(:\d{2})?\s*(am|pm)\b/.test(lowerMessage) ||
+           /\b\d{1,2}\/\d{1,2}\b/.test(message) ||
+           /\b(morning|afternoon|evening)\b/.test(lowerMessage);
+  }
+  
+  private looksLikeAppointmentType(message: string): boolean {
+    const lowerMessage = message.toLowerCase();
+    return /\b(checkup|consultation|followup|follow-up|physical|screening|exam)\b/.test(lowerMessage);
   }
 
   private extractEntities(message: string): any {
@@ -1092,16 +1158,24 @@ Return JSON with this structure:
     };
 
     // Extract patient names (look for common name patterns)
-    const simplePatterns = [
+    const patientNamePatterns = [
       /(?:for|appointment for)\s+([A-Z][a-z]+\s+[A-Z][a-z]+)/i,
-      /book.*?for\s+([A-Z][a-z]+\s+[A-Z][a-z]+)/i
+      /book.*?for\s+([A-Z][a-z]+\s+[A-Z][a-z]+)/i,
+      // Pattern for standalone patient name (Two capitalized words)
+      /^([A-Z][a-z]+\s+[A-Z][a-z]+)$/i,
+      // Pattern within sentence
+      /\b([A-Z][a-z]+\s+[A-Z][a-z]+)\b/i
     ];
     
-    for (const pattern of simplePatterns) {
+    for (const pattern of patientNamePatterns) {
       const match = message.match(pattern);
       if (match && match[1]) {
-        details.patient_name = match[1].trim();
-        break;
+        // Validate it's actually a name (not common words)
+        const potentialName = match[1].trim();
+        if (this.looksLikePatientName(potentialName)) {
+          details.patient_name = potentialName;
+          break;
+        }
       }
     }
 
