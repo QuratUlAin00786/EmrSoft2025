@@ -162,7 +162,22 @@ export class AiService {
             nextActions = ['appointment_confirmation'];
           } catch (error) {
             console.error('Local appointment creation failed:', error);
-            response = "I found the appointment details but couldn't create it automatically. Please try booking through the appointment calendar.";
+            
+            // Provide specific error messages based on the error type
+            const errorMessage = (error as Error).message;
+            
+            if (errorMessage.startsWith('PATIENT_NOT_FOUND:')) {
+              const patientName = errorMessage.split(': ')[1];
+              response = `❌ **Patient Not Found**\n\nI couldn't find a patient named "${patientName}" in the system.\n\nPlease:\n• Check the spelling of the patient's name\n• Use the appointment calendar to see available patients\n• Register the patient first if they're new`;
+            } else if (errorMessage.startsWith('PROVIDER_NOT_FOUND:')) {
+              const providerName = errorMessage.split(': ')[1];
+              response = `❌ **Doctor Not Found**\n\nI couldn't find a doctor named "${providerName}" in the system.\n\nPlease check the doctor's name and try again.`;
+            } else if (errorMessage.includes('APPOINTMENT_ALREADY_EXISTS')) {
+              response = `❌ **Appointment Conflict**\n\nAn appointment already exists for this time slot.\n\nPlease choose a different time.`;
+            } else {
+              response = "I found the appointment details but couldn't create it automatically. Please try booking through the appointment calendar.";
+            }
+            
             nextActions = ['manual_booking_required'];
           }
         } else {
