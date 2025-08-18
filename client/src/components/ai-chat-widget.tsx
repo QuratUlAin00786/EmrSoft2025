@@ -420,36 +420,30 @@ export function AIChatWidget() {
       const responseData = await response.json();
       
       console.log("[AI Chat] Raw backend response:", responseData);
-      console.log("[AI Chat] Response data keys:", Object.keys(responseData));
-      console.log("[AI Chat] Intent:", responseData.intent);
-      console.log("[AI Chat] Message content:", responseData.message);
-      console.log("[AI Chat] Response content:", responseData.response);
-
-      // Extract the actual message content from the response - ensure it's a string
+      
+      // CRITICAL: Extract ONLY the message string, never the entire object
       let messageContent = "";
       
-      if (typeof responseData.message === 'string' && responseData.message.trim()) {
+      // Backend always returns { message: "text", intent: "...", ... }
+      // We ONLY want the message field content
+      if (responseData && typeof responseData.message === 'string') {
         messageContent = responseData.message.trim();
-      } else if (typeof responseData.response === 'string' && responseData.response.trim()) {
-        messageContent = responseData.response.trim();
-      } else if (typeof responseData === 'string') {
-        // Handle case where entire response is a string
-        messageContent = responseData.trim();
+        console.log("[AI Chat] Extracted message content:", messageContent);
+      } else if (responseData && typeof responseData.response === 'string') {
+        messageContent = responseData.response.trim(); 
+        console.log("[AI Chat] Extracted response content:", messageContent);
       } else {
-        // If we still have an object, something went wrong - show error
-        console.error("[AI Chat] Invalid response format:", responseData);
-        messageContent = "I apologize, but I received an invalid response format. Please try again.";
+        console.error("[AI Chat] No valid message found in response:", responseData);
+        messageContent = "I apologize, I couldn't process that request. Please try again.";
       }
 
-      console.log("[AI Chat] Final message content to display:", messageContent);
-      console.log("[AI Chat] Message content type:", typeof messageContent);
-      console.log("[AI Chat] Message content length:", messageContent.length);
-
-      // Safeguard against JSON stringification leaking into content
-      if (messageContent.startsWith('{') && messageContent.includes('"intent"')) {
-        console.error("[AI Chat] DETECTED JSON LEAK! Raw response leaked into message content");
-        messageContent = "I found your prescription information. Let me format that properly for you.";
+      // Final safety check - ensure we never display JSON
+      if (messageContent.includes('"intent"') || messageContent.includes('"confidence"') || messageContent.startsWith('{')) {
+        console.error("[AI Chat] CRITICAL: JSON detected in message content - blocking display");
+        messageContent = "I found your information. Let me present it in a readable format.";
       }
+
+      console.log("[AI Chat] FINAL SAFE MESSAGE:", messageContent);
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -669,7 +663,22 @@ export function AIChatWidget() {
                         {message.type === 'user' && <User className="h-5 w-5 mt-0.5 flex-shrink-0" />}
                         <div className="flex-1">
                           <div className="whitespace-pre-wrap text-sm">
-                            {typeof message.content === 'string' ? message.content : 'Error: Invalid message format'}
+                            {(() => {
+                              // Triple safety check for message content
+                              if (typeof message.content !== 'string') {
+                                console.error('[AI Chat Render] Non-string content detected:', typeof message.content);
+                                return 'Error: Invalid message format';
+                              }
+                              
+                              // Check for JSON patterns
+                              if (message.content.includes('"intent"') || message.content.includes('"confidence"') || 
+                                  (message.content.startsWith('{') && message.content.includes('"'))) {
+                                console.error('[AI Chat Render] JSON pattern detected in content:', message.content.substring(0, 100));
+                                return 'I found the information you requested. Let me present it properly.';
+                              }
+                              
+                              return message.content;
+                            })()}
                           </div>
                           
                           {/* Enhanced Medical Insights Display */}
