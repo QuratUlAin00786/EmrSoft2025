@@ -418,6 +418,12 @@ export function AIChatWidget() {
       });
 
       const responseData = await response.json();
+      
+      console.log("[AI Chat] Raw backend response:", responseData);
+      console.log("[AI Chat] Response data keys:", Object.keys(responseData));
+      console.log("[AI Chat] Intent:", responseData.intent);
+      console.log("[AI Chat] Message content:", responseData.message);
+      console.log("[AI Chat] Response content:", responseData.response);
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
