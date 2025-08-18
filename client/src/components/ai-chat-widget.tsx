@@ -425,10 +425,22 @@ export function AIChatWidget() {
       console.log("[AI Chat] Message content:", responseData.message);
       console.log("[AI Chat] Response content:", responseData.response);
 
+      // Extract the actual message content from the response
+      let messageContent = "";
+      if (responseData.message) {
+        messageContent = responseData.message;
+      } else if (responseData.response) {
+        messageContent = responseData.response;
+      } else {
+        messageContent = "I apologize, but I didn't receive a proper response. Please try again.";
+      }
+
+      console.log("[AI Chat] Final message content to display:", messageContent);
+
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: responseData.response || responseData.message || "I apologize, but I didn't receive a proper response. Please try again.",
+        content: messageContent,
         timestamp: new Date(),
         data: responseData.data,
         intent: responseData.intent,
