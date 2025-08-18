@@ -90,8 +90,24 @@ export class AiService {
     // Generate appropriate response based on intent
     switch (intent) {
       case 'appointment_booking':
-        response = "I can help you book an appointment. Please provide the patient name, preferred date and time, and type of appointment needed.";
-        nextActions = ['collect_patient_info', 'schedule_appointment'];
+        // Try to extract appointment details from the message
+        const appointmentDetails = this.extractAppointmentDetails(userMessage);
+        
+        // If we have enough details, try to create the appointment
+        if (appointmentDetails.patient_name && (appointmentDetails.date || appointmentDetails.time)) {
+          try {
+            await this.createAutomaticAppointment(appointmentDetails, context.organizationId || 1);
+            response = `✅ Appointment Successfully Booked!\n\nPatient: ${appointmentDetails.patient_name}\nDate: ${appointmentDetails.date || 'Tomorrow'}\nTime: ${appointmentDetails.time || '9:00 AM'}\nType: ${appointmentDetails.appointment_type || 'General Consultation'}\n\nThe appointment has been created in your system.`;
+            nextActions = ['appointment_confirmation'];
+          } catch (error) {
+            console.error('Local appointment creation failed:', error);
+            response = "I found the appointment details but couldn't create it automatically. Please try booking through the appointment calendar.";
+            nextActions = ['manual_booking_required'];
+          }
+        } else {
+          response = "I can help you book an appointment. Please provide the patient name, preferred date and time, and type of appointment needed.";
+          nextActions = ['collect_patient_info', 'schedule_appointment'];
+        }
         break;
       case 'prescription_inquiry':
         response = "I can help you find prescription information. Please specify the patient name or medication you're looking for.";
@@ -1063,6 +1079,91 @@ Return JSON with this structure:
         educational_content: []
       };
     }
+  }
+
+  private extractAppointmentDetails(message: string): any {
+    const details = {
+      patient_name: "",
+      doctor_preference: "",
+      date: "",
+      time: "",
+      appointment_type: "",
+      reason: ""
+    };
+
+    // Extract patient names (look for common name patterns)
+    const simplePatterns = [
+      /(?:for|appointment for)\s+([A-Z][a-z]+\s+[A-Z][a-z]+)/i,
+      /book.*?for\s+([A-Z][a-z]+\s+[A-Z][a-z]+)/i
+    ];
+    
+    for (const pattern of simplePatterns) {
+      const match = message.match(pattern);
+      if (match && match[1]) {
+        details.patient_name = match[1].trim();
+        break;
+      }
+    }
+
+    // Extract doctor preferences
+    const doctorPatterns = [
+      /(?:dr\.?|doctor)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/gi,
+      /with\s+([A-Z][a-z]+\s+[A-Z][a-z]+)(?:\s+(?:tomorrow|today|at))/gi
+    ];
+    
+    for (const pattern of doctorPatterns) {
+      const matches = message.match(pattern);
+      if (matches && matches[0]) {
+        details.doctor_preference = matches[0].replace(/^(?:dr\.?|doctor|with)\s+/i, '').trim();
+        break;
+      }
+    }
+
+    // Extract dates
+    const datePatterns = [
+      /\b(?:tomorrow|today)\b/gi,
+      /\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/gi,
+      /\b\d{1,2}[-\/]\d{1,2}(?:[-\/]\d{2,4})?\b/gi
+    ];
+    
+    for (const pattern of datePatterns) {
+      const match = message.match(pattern);
+      if (match) {
+        details.date = match[0].toLowerCase();
+        break;
+      }
+    }
+
+    // Extract times
+    const timePatterns = [
+      /\b\d{1,2}(?::\d{2})?\s*(?:am|pm)\b/gi,
+      /\bat\s+(\d{1,2}(?::\d{2})?)\b/gi
+    ];
+    
+    for (const pattern of timePatterns) {
+      const match = message.match(pattern);
+      if (match) {
+        details.time = match[0].replace(/^at\s+/i, '').trim();
+        break;
+      }
+    }
+
+    // Extract appointment type/reason
+    const reasonPatterns = [
+      /(?:for|appointment for)\s+(a\s+)?([a-z]+(?:\s+[a-z]+)*)/gi,
+      /\b(checkup|consultation|follow[- ]?up|physical|exam|surgery|therapy)\b/gi
+    ];
+    
+    for (const pattern of reasonPatterns) {
+      const match = message.match(pattern);
+      if (match) {
+        details.reason = match[match.length - 1].replace(/^(?:for|appointment for)\s+(?:a\s+)?/i, '').trim();
+        details.appointment_type = details.reason;
+        break;
+      }
+    }
+
+    return details;
   }
 
   private calculateAge(dateOfBirth: Date): number {
