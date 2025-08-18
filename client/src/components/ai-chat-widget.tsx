@@ -246,129 +246,9 @@ export function AIChatWidget() {
   }, [toast]); // Removed transcriptBuffer dependency to prevent re-initialization
 
   const handleSendMessage = async () => {
-    // Debug: Track what triggered this function
-    console.log('=== SEND MESSAGE TRIGGERED ===');
-    console.log('Current input:', input);
-    console.log('Is speech processing:', isProcessingSpeechRef.current);
-    console.log('Stack trace:', new Error().stack);
-    console.log('===============================');
-    
-    // Get clean final message
     const finalMessage = input.trim();
     if (!finalMessage || isLoading) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      type: 'user',
-      content: finalMessage,
-      timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInput("");
-    setIsLoading(true);
-    setTranscriptBuffer(""); // Clear transcript buffer
-
-    try {
-      const response = await apiRequest("POST", "/api/ai-agent/chat", {
-        message: finalMessage,
-        conversationHistory: messages.slice(-5).map(msg => ({
-          role: msg.type === 'user' ? 'user' : 'assistant',
-          content: msg.content
-        }))
-      });
-
-      const responseData = await response.json();
-
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'assistant',
-        content: responseData.response || responseData.message || "I apologize, but I didn't receive a proper response. Please try again.",
-        timestamp: new Date(),
-        data: responseData.data,
-        intent: responseData.intent,
-        entities: responseData.entities,
-        confidence: responseData.confidence,
-        medicalAdviceLevel: responseData.medicalAdviceLevel,
-        disclaimers: responseData.disclaimers,
-        followUpQuestions: responseData.followUpQuestions,
-        educationalContent: responseData.educationalContent,
-        urgencyLevel: responseData.urgencyLevel,
-        recommendedSpecialty: responseData.recommendedSpecialty
-      };
-
-      setMessages(prev => [...prev, aiMessage]);
-
-      // Show success toast for actions
-      if (responseData.action) {
-        toast({
-          title: "Action Completed",
-          description: responseData.actionDescription,
-        });
-      }
-
-      // Invalidate caches if appointment was successfully created
-      if ((responseData.response && responseData.response.includes('Appointment Successfully Booked')) ||
-          (responseData.message && (responseData.message.includes("Appointment Successfully Booked") || 
-           responseData.message.includes("✅") || responseData.message.includes("appointment has been created")))) {
-        
-        console.log("[AI Chat] Successful appointment detected - invalidating caches");
-        
-        // Complete cache reset and refetch with aggressive invalidation
-        await Promise.all([
-          queryClient.removeQueries({ queryKey: ['/api/appointments'] }),
-          queryClient.removeQueries({ queryKey: ['/api/patients'] }),
-          queryClient.removeQueries({ queryKey: ['/api/users'] }),
-          queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] })
-        ]);
-        
-        // Force immediate refetch of all dependencies
-        await Promise.all([
-          queryClient.refetchQueries({ queryKey: ['/api/appointments'] }),
-          queryClient.refetchQueries({ queryKey: ['/api/patients'] }),
-          queryClient.refetchQueries({ queryKey: ['/api/users'] }),
-          queryClient.refetchQueries({ queryKey: ['/api/dashboard/stats'] })
-        ]);
-        
-        console.log("[AI Chat] Complete cache invalidation and refetch completed");
-      }
-
-    } catch (error) {
-      console.error("AI Chat error:", error);
-      
-      // More specific error handling
-      let errorContent = "I apologize, but I'm having trouble processing your request right now. Please try again.";
-      let errorTitle = "Connection Error";
-      let errorDescription = "Unable to reach AI assistant. Please check your connection.";
-      
-      if (error instanceof Error) {
-        if (error.message.includes('401')) {
-          errorContent = "Please log in again to continue using the AI assistant.";
-          errorTitle = "Authentication Required";
-          errorDescription = "Your session may have expired.";
-        } else if (error.message.includes('500')) {
-          errorContent = "The AI service is temporarily unavailable. Please try again in a moment.";
-          errorTitle = "Service Unavailable";
-          errorDescription = "AI service is experiencing issues.";
-        }
-      }
-      
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'assistant',
-        content: errorContent,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
-      
-      toast({
-        title: errorTitle,
-        description: errorDescription,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    await sendMessageWithText(finalMessage);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -499,7 +379,113 @@ export function AIChatWidget() {
 
   const handleQuickAction = (message: string) => {
     setInput(message);
-    handleSendMessage();
+    // Use setTimeout to ensure state update completes before sending
+    setTimeout(() => {
+      if (message.trim()) {
+        sendMessageWithText(message.trim());
+      }
+    }, 0);
+  };
+
+  const sendMessageWithText = async (messageText: string) => {
+    if (!messageText || isLoading) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: messageText,
+      timestamp: new Date(),
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInput("");
+    setIsLoading(true);
+    setTranscriptBuffer(""); // Clear transcript buffer
+
+    try {
+      const response = await apiRequest("POST", "/api/ai-agent/chat", {
+        message: messageText,
+        conversationHistory: messages.slice(-5).map(msg => ({
+          role: msg.type === 'user' ? 'user' : 'assistant',
+          content: msg.content
+        }))
+      });
+
+      const responseData = await response.json();
+
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: responseData.response || responseData.message || "I apologize, but I didn't receive a proper response. Please try again.",
+        timestamp: new Date(),
+        data: responseData.data,
+        intent: responseData.intent,
+        entities: responseData.entities,
+        confidence: responseData.confidence,
+        medicalAdviceLevel: responseData.medicalAdviceLevel,
+        disclaimers: responseData.disclaimers,
+        followUpQuestions: responseData.followUpQuestions,
+        educationalContent: responseData.educationalContent,
+        urgencyLevel: responseData.urgencyLevel,
+        recommendedSpecialty: responseData.recommendedSpecialty
+      };
+
+      setMessages(prev => [...prev, aiMessage]);
+
+      // Show success toast for actions
+      if (responseData.action) {
+        toast({
+          title: "Action Completed",
+          description: responseData.actionDescription,
+        });
+      }
+
+      // Invalidate caches if appointment was successfully created
+      if ((responseData.response && responseData.response.includes('Appointment Successfully Booked')) ||
+          (responseData.message && (responseData.message.includes("Appointment Successfully Booked") || 
+           responseData.message.includes("✅") || responseData.message.includes("appointment has been created")))) {
+        
+        console.log("[AI Chat] Successful appointment detected - invalidating caches");
+        await queryClient.invalidateQueries({ queryKey: ['/api/appointments'] });
+        await queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] });
+      }
+
+      // Invalidate prescription caches if prescription was found
+      if (responseData.data?.prescriptions || 
+          (responseData.message && responseData.message.includes("prescription"))) {
+        console.log("[AI Chat] Prescription query detected - invalidating prescription caches");
+        await queryClient.invalidateQueries({ queryKey: ['/api/prescriptions'] });
+      }
+
+    } catch (error: any) {
+      console.error("AI Chat error:", error);
+      const errorMessage = error.message || "Unable to process your request. Please try again.";
+      const errorTitle = "AI Assistant Error";
+      let errorDescription = errorMessage;
+
+      if (errorMessage.includes('Network Error') || errorMessage.includes('Failed to fetch')) {
+        errorDescription = "Connection issue. Please check your internet and try again.";
+      } else if (errorMessage.includes('500')) {
+        errorDescription = "Server error. Please try again in a moment.";
+      }
+
+      const errorResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: errorDescription,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, errorResponse]);
+      
+      toast({
+        title: errorTitle,
+        description: errorDescription,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const renderPrescriptions = (prescriptions: Prescription[]) => (

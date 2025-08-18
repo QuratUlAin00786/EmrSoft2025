@@ -201,7 +201,7 @@ export class AiService {
       const [patients, users, prescriptions] = await Promise.all([
         storage.getPatientsByOrganization(organizationId),
         storage.getUsersByOrganization(organizationId),
-        storage.getAllPrescriptions(organizationId)
+        storage.getPrescriptionsByOrganization(organizationId)
       ]);
 
       const doctors = users.filter(u => u.role === 'doctor' || u.role === 'admin');
