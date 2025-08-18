@@ -688,12 +688,100 @@ Provide intelligent, contextually aware responses that demonstrate advanced lang
         console.log('Searching for patient with name:', appointmentDetails.patient_name);
         const patients = await storage.getPatientsByOrganization(organizationId);
         console.log('Total patients found:', patients.length);
-        patient = patients.find((p: any) => 
-          p.firstName?.toLowerCase().includes(appointmentDetails.patient_name.toLowerCase()) ||
-          p.lastName?.toLowerCase().includes(appointmentDetails.patient_name.toLowerCase()) ||
-          `${p.firstName} ${p.lastName}`.toLowerCase().includes(appointmentDetails.patient_name.toLowerCase())
-        );
+        
+        // Enhanced patient search with fuzzy matching
+        const searchName = appointmentDetails.patient_name.toLowerCase().trim();
+        const searchWords = searchName.split(/\s+/);
+        
+        patient = patients.find((p: any) => {
+          const firstName = (p.firstName || '').toLowerCase().trim();
+          const lastName = (p.lastName || '').toLowerCase().trim();
+          const fullName = `${firstName} ${lastName}`.toLowerCase().trim();
+          
+          // Try multiple matching strategies
+          const exactMatch = fullName === searchName;
+          const includesMatch = fullName.includes(searchName) || searchName.includes(fullName);
+          const firstNameMatch = firstName.includes(searchWords[0]) || searchWords.some((word: string) => firstName.includes(word));
+          const lastNameMatch = lastName.includes(searchWords[searchWords.length - 1]) || searchWords.some((word: string) => lastName.includes(word));
+          const wordMatch = searchWords.every((word: string) => fullName.includes(word));
+          
+          // More flexible matching - allow partial matches on names with spelling variations
+          const lastSearchWord = searchWords[searchWords.length - 1] || '';
+          
+          // Improved fuzzy matching for similar names
+          const calculateSimilarity = (str1: string, str2: string): number => {
+            const s1 = str1.toLowerCase().trim();
+            const s2 = str2.toLowerCase().trim();
+            
+            // Exact match
+            if (s1 === s2) return 1.0;
+            
+            // Check if one contains the other
+            if (s1.includes(s2) || s2.includes(s1)) return 0.8;
+            
+            // Check first 3 characters
+            if (s1.slice(0, 3) === s2.slice(0, 3) && s1.length >= 3 && s2.length >= 3) return 0.7;
+            
+            // Phonetic similarity for common spelling variations
+            const phonetics = [
+              ['younus', 'yunas'], ['younas', 'yunus'], ['yousuf', 'yusuf'], 
+              ['mohammed', 'muhammad'], ['ahmad', 'ahmed'], ['hassan', 'hasan']
+            ];
+            
+            for (const [variant1, variant2] of phonetics) {
+              if ((s1.includes(variant1) && s2.includes(variant2)) || 
+                  (s1.includes(variant2) && s2.includes(variant1))) {
+                return 0.9;
+              }
+            }
+            
+            // Edit distance based similarity
+            const editDistance = (a: string, b: string): number => {
+              const matrix = Array(a.length + 1).fill(null).map(() => Array(b.length + 1).fill(null));
+              for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
+              for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
+              for (let i = 1; i <= a.length; i++) {
+                for (let j = 1; j <= b.length; j++) {
+                  if (a[i-1] === b[j-1]) {
+                    matrix[i][j] = matrix[i-1][j-1];
+                  } else {
+                    matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, matrix[i][j-1] + 1, matrix[i-1][j] + 1);
+                  }
+                }
+              }
+              return matrix[a.length][b.length];
+            };
+            
+            const maxLen = Math.max(s1.length, s2.length);
+            if (maxLen === 0) return 1.0;
+            const similarity = (maxLen - editDistance(s1, s2)) / maxLen;
+            return similarity > 0.6 ? similarity : 0;
+          };
+          
+          const lastNameSimilarity = calculateSimilarity(lastName, lastSearchWord);
+          const fuzzyLastNameMatch = lastNameSimilarity >= 0.7;
+          
+          const partialMatch = firstNameMatch && (lastNameMatch || fuzzyLastNameMatch);
+          const similarLastName = lastNameSimilarity >= 0.7;
+          
+          // Log detailed matching attempts for debugging
+          console.log(`Checking patient: ${firstName} ${lastName} against search: ${searchName}`);
+          if (firstName.toLowerCase().includes('rashida') || lastName.toLowerCase().includes('yun') || searchName.includes('rashida')) {
+            console.log(`Patient match attempt for: ${firstName} ${lastName}`);
+            console.log(`Search name: ${searchName}, Words: [${searchWords.join(', ')}]`);
+            console.log(`lastName: "${lastName}", lastSearchWord: "${lastSearchWord}"`);
+            console.log(`lastNameSimilarity: ${lastNameSimilarity}, fuzzyLastNameMatch: ${fuzzyLastNameMatch}`);
+            console.log(`partialMatch: ${partialMatch}, similarLastName: ${similarLastName}`);
+            console.log(`Matches - exact: ${exactMatch}, includes: ${includesMatch}, firstName: ${firstNameMatch}, lastName: ${lastNameMatch}, wordMatch: ${wordMatch}`);
+          }
+          
+          return exactMatch || includesMatch || (firstNameMatch && lastNameMatch) || wordMatch || partialMatch || (firstNameMatch && similarLastName);
+        });
+        
         console.log('Patient found:', patient ? `${patient.firstName} ${patient.lastName}` : 'None');
+        if (!patient) {
+          console.log('Available patients:', patients.map(p => `${p.firstName} ${p.lastName}`));
+        }
       }
 
       // Find provider by name or use default
