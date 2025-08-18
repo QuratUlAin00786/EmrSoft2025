@@ -90,15 +90,55 @@ export class AiService {
     // Generate appropriate response based on intent
     switch (intent) {
       case 'appointment_booking':
-        // Try to extract appointment details from the message
+        // Try to extract appointment details from the current message
         const appointmentDetails = this.extractAppointmentDetails(userMessage);
+        console.log('Current message appointment details:', appointmentDetails);
         
         // Check conversation history for previously mentioned details
         const conversationHistory = context.conversationHistory || [];
-        const allMessages = conversationHistory.map(msg => msg.content).join(' ') + ' ' + userMessage;
-        const historicalDetails = this.extractAppointmentDetails(allMessages);
         
-        // Merge current and historical details
+        // Extract details from each message in history and merge them
+        let historicalDetails = {
+          patient_name: "",
+          doctor_preference: "",
+          date: "",
+          time: "",
+          appointment_type: "",
+          reason: ""
+        };
+        
+        // Process conversation history to find appointment details
+        for (const msg of conversationHistory) {
+          if (msg.role === 'user') {
+            console.log('Processing historical message:', msg.content);
+            const msgDetails = this.extractAppointmentDetails(msg.content);
+            console.log('Extracted from history:', msgDetails);
+            
+            // Merge details, keeping first non-empty value found
+            if (!historicalDetails.patient_name && msgDetails.patient_name) {
+              historicalDetails.patient_name = msgDetails.patient_name;
+              console.log('Found patient name in history:', msgDetails.patient_name);
+            }
+            if (!historicalDetails.date && msgDetails.date) {
+              historicalDetails.date = msgDetails.date;
+            }
+            if (!historicalDetails.time && msgDetails.time) {
+              historicalDetails.time = msgDetails.time;
+            }
+            if (!historicalDetails.appointment_type && msgDetails.appointment_type) {
+              historicalDetails.appointment_type = msgDetails.appointment_type;
+            }
+            if (!historicalDetails.doctor_preference && msgDetails.doctor_preference) {
+              historicalDetails.doctor_preference = msgDetails.doctor_preference;
+            }
+            if (!historicalDetails.reason && msgDetails.reason) {
+              historicalDetails.reason = msgDetails.reason;
+            }
+          }
+        }
+        console.log('Historical appointment details:', historicalDetails);
+        
+        // Merge current and historical details with priority to current message
         const combinedDetails = {
           patient_name: appointmentDetails.patient_name || historicalDetails.patient_name,
           date: appointmentDetails.date || historicalDetails.date,
@@ -108,8 +148,14 @@ export class AiService {
           reason: appointmentDetails.reason || historicalDetails.reason
         };
         
-        // If we have enough details, try to create the appointment
-        if (combinedDetails.patient_name && (combinedDetails.date || combinedDetails.time)) {
+        // Enhanced appointment booking logic with better validation
+        const hasPatientName = !!(combinedDetails.patient_name && combinedDetails.patient_name.length > 0);
+        const hasDateTime = !!(combinedDetails.date || combinedDetails.time);
+        
+        console.log('Combined appointment details:', combinedDetails);
+        console.log('Has patient name:', hasPatientName, 'Has date/time:', hasDateTime);
+        
+        if (hasPatientName && hasDateTime) {
           try {
             await this.createAutomaticAppointment(combinedDetails, context.organizationId || 1);
             response = `✅ Appointment Successfully Booked!\n\nPatient: ${combinedDetails.patient_name}\nDate: ${combinedDetails.date || 'Tomorrow'}\nTime: ${combinedDetails.time || '9:00 AM'}\nType: ${combinedDetails.appointment_type || 'General Consultation'}\n\nThe appointment has been created in your system.`;
@@ -120,21 +166,28 @@ export class AiService {
             nextActions = ['manual_booking_required'];
           }
         } else {
-          // Progressive information gathering - ask for what's missing
+          // Progressive information gathering with better context awareness
           const missingInfo = [];
-          if (!combinedDetails.patient_name) missingInfo.push('patient name');
-          if (!combinedDetails.date && !combinedDetails.time) missingInfo.push('preferred date and time');
-          else if (!combinedDetails.date) missingInfo.push('preferred date');
-          else if (!combinedDetails.time) missingInfo.push('preferred time');
+          if (!hasPatientName) missingInfo.push('patient name');
+          if (!hasDateTime) missingInfo.push('preferred date and time');
           
-          if (missingInfo.length === 0) {
-            response = "I can help you book an appointment. Please provide the patient name, preferred date and time, and type of appointment needed.";
-          } else if (missingInfo.length === 1) {
-            response = `Great! I have most of the details. I just need the ${missingInfo[0]} to complete the appointment booking.`;
-          } else {
-            response = `I can help you book that appointment. I still need the ${missingInfo.join(' and ')} to proceed.`;
+          // Check if we just received a patient name
+          if (hasPatientName && !hasDateTime) {
+            response = `Perfect! I have the patient name (${combinedDetails.patient_name}). Now I just need the preferred date and time for the appointment.`;
+          } 
+          // Check if we just received date/time but missing patient name
+          else if (hasDateTime && !hasPatientName) {
+            response = `Great! I have the date and time details. I just need the patient name to complete the booking.`;
           }
-          nextActions = ['collect_patient_info', 'schedule_appointment'];
+          // Initial appointment booking request
+          else if (missingInfo.length === 2) {
+            response = "I can help you book an appointment. Please provide the patient name and preferred date/time.";
+          }
+          // Fallback
+          else {
+            response = `I need ${missingInfo.join(' and ')} to complete the appointment booking.`;
+          }
+          nextActions = ['collect_appointment_details'];
         }
         break;
       case 'prescription_inquiry':
@@ -176,43 +229,82 @@ export class AiService {
   private classifyIntent(message: string, conversationHistory?: any[]): string {
     const lowerMessage = message.toLowerCase();
     
-    // Check if we're in the middle of an appointment booking conversation
+    // Enhanced context-aware intent classification
     if (conversationHistory && conversationHistory.length > 0) {
-      const recentMessages = conversationHistory.slice(-3).map(msg => msg.content.toLowerCase()).join(' ');
+      const recentMessages = conversationHistory.slice(-4).map(msg => msg.content.toLowerCase()).join(' ');
       
-      // If recent conversation mentions appointment booking, treat this as continuation
-      if (recentMessages.includes('appointment') || recentMessages.includes('book') || recentMessages.includes('schedule')) {
-        // If current message looks like patient name, date, time, or appointment type
+      // Check for appointment booking context with broader keywords
+      const hasAppointmentContext = recentMessages.includes('appointment') || 
+                                   recentMessages.includes('book') || 
+                                   recentMessages.includes('schedule') ||
+                                   recentMessages.includes('patient name') ||
+                                   recentMessages.includes('date and time') ||
+                                   recentMessages.includes('preferred date') ||
+                                   recentMessages.includes('preferred time');
+      
+      if (hasAppointmentContext) {
+        // Broader detection for appointment continuation
         if (this.looksLikePatientName(message) || 
             this.looksLikeDateTime(message) || 
-            this.looksLikeAppointmentType(message)) {
+            this.looksLikeAppointmentType(message) ||
+            /\b(tomorrow|today|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/.test(lowerMessage) ||
+            /\b\d{1,2}(:\d{2})?\s*(am|pm)\b/.test(lowerMessage) ||
+            /\b\d{1,2}[-\/]\d{1,2}\b/.test(message) ||
+            /\b(morning|afternoon|evening|noon)\b/.test(lowerMessage)) {
           return 'appointment_booking';
         }
       }
     }
     
-    // Standard intent classification
-    if (lowerMessage.includes('book') || lowerMessage.includes('schedule') || lowerMessage.includes('appointment')) {
+    // Direct appointment keywords
+    if (/\b(book|schedule|appointment|reserve|set up)\b/.test(lowerMessage)) {
       return 'appointment_booking';
     }
-    if (lowerMessage.includes('prescription') || lowerMessage.includes('medication') || lowerMessage.includes('medicine')) {
+    
+    // Prescription-related keywords
+    if (/\b(prescription|medication|medicine|drug|pills|refill|pharmacy)\b/.test(lowerMessage)) {
       return 'prescription_inquiry';
     }
-    if (lowerMessage.includes('symptom') || lowerMessage.includes('pain') || lowerMessage.includes('sick') || lowerMessage.includes('health')) {
+    
+    // Medical question keywords
+    if (/\b(symptom|pain|fever|sick|illness|health|medical|doctor|treatment)\b/.test(lowerMessage)) {
       return 'medical_question';
     }
-    if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('help')) {
+    
+    // Greeting keywords
+    if (/\b(hello|hi|hey|good morning|good afternoon|good evening|help me)\b/.test(lowerMessage)) {
       return 'greeting';
     }
+    
     return 'general_inquiry';
   }
   
-  private looksLikePatientName(message: string): boolean {
-    // Check if message looks like a person's name (2 words, capitalized)
-    const words = message.trim().split(/\s+/);
-    if (words.length === 2) {
-      return words.every(word => /^[A-Z][a-z]+$/.test(word));
+  private looksLikePatientName(name: string): boolean {
+    // Improved patient name validation
+    const trimmedName = name.trim();
+    
+    // Skip common non-name phrases
+    const nonNamePhrases = [
+      'book appointment', 'new appointment', 'schedule appointment',
+      'tomorrow today', 'next week', 'doctor appointment', 'medical checkup',
+      'general consultation', 'follow up', 'checkup appointment', 'urgent care'
+    ];
+    
+    if (nonNamePhrases.some(phrase => trimmedName.toLowerCase().includes(phrase))) {
+      return false;
     }
+    
+    // Check if it's a proper name (2 words, each starting with capital letter)
+    const words = trimmedName.split(/\s+/);
+    if (words.length === 2) {
+      return words.every(word => /^[A-Z][a-z]{2,}$/.test(word) && word.length >= 3);
+    }
+    
+    // Allow single names that are clearly patient names (3+ characters, capitalized)
+    if (words.length === 1 && /^[A-Z][a-z]{2,}$/.test(words[0]) && words[0].length >= 3) {
+      return true;
+    }
+    
     return false;
   }
   
@@ -1157,25 +1249,36 @@ Return JSON with this structure:
       reason: ""
     };
 
-    // Extract patient names (look for common name patterns)
+    // Enhanced patient name extraction with better context awareness
     const patientNamePatterns = [
+      // Explicit patterns with "for" keyword
       /(?:for|appointment for)\s+([A-Z][a-z]+\s+[A-Z][a-z]+)/i,
       /book.*?for\s+([A-Z][a-z]+\s+[A-Z][a-z]+)/i,
-      // Pattern for standalone patient name (Two capitalized words)
+      /patient\s+(?:is\s+)?([A-Z][a-z]+\s+[A-Z][a-z]+)/i,
+      // Standalone patient name patterns
       /^([A-Z][a-z]+\s+[A-Z][a-z]+)$/i,
-      // Pattern within sentence
+      /^([A-Z][a-z]{2,})$/i, // Single name like "Salman"
+      // Names within sentences
       /\b([A-Z][a-z]+\s+[A-Z][a-z]+)\b/i
     ];
     
+    // Try to extract patient name using multiple strategies
     for (const pattern of patientNamePatterns) {
       const match = message.match(pattern);
       if (match && match[1]) {
-        // Validate it's actually a name (not common words)
         const potentialName = match[1].trim();
         if (this.looksLikePatientName(potentialName)) {
           details.patient_name = potentialName;
           break;
         }
+      }
+    }
+    
+    // If no patient name found with patterns, check if the entire message is just a name
+    if (!details.patient_name) {
+      const trimmedMessage = message.trim();
+      if (this.looksLikePatientName(trimmedMessage)) {
+        details.patient_name = trimmedMessage;
       }
     }
 
