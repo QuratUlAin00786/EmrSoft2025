@@ -747,6 +747,26 @@ Provide intelligent, contextually aware responses that demonstrate advanced lang
 
       // Create appointment if we have patient and provider
       if (patient && provider) {
+        // Check for existing appointments to prevent duplicates
+        const existingAppointments = await storage.getAppointmentsByOrganization(organizationId);
+        const conflictingAppointment = existingAppointments.find((apt: any) => {
+          // Check if there's already an appointment with the same patient, provider, and time slot
+          const existingTime = new Date(apt.scheduledAt);
+          const timeDifference = Math.abs(existingTime.getTime() - scheduledAt.getTime());
+          
+          return (
+            apt.patientId === patient.id &&
+            apt.providerId === provider.id &&
+            apt.status === 'scheduled' &&
+            timeDifference < 3600000 // Within 1 hour of each other
+          );
+        });
+
+        if (conflictingAppointment) {
+          console.log('Appointment already exists - skipping creation to prevent duplicate');
+          return;
+        }
+
         const appointmentData = {
           organizationId,
           patientId: patient.id,
@@ -761,7 +781,9 @@ Provide intelligent, contextually aware responses that demonstrate advanced lang
           isVirtual: false
         };
 
-        await storage.createAppointment(appointmentData);
+        console.log('Creating appointment with data:', appointmentData);
+        const createdAppointment = await storage.createAppointment(appointmentData);
+        console.log('Appointment created successfully:', createdAppointment);
         console.log('Automatic appointment created successfully:', appointmentData.title, 'for', patient.firstName, patient.lastName, 'with', provider.firstName, provider.lastName);
       } else {
         console.log('Could not create automatic appointment - missing patient or provider');
