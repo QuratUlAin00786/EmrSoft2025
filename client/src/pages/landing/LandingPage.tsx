@@ -319,10 +319,11 @@ export default function LandingPage() {
                 Transforming healthcare with intelligent EMR solutions.
               </p>
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                <div>Halo Group Ltd</div>
-                <div>123 Healthcare Street</div>
-                <div>Manchester, M1 2AB</div>
-                <div>United Kingdom</div>
+                <div>Cura Software Limited</div>
+                <div>Ground Floor Unit 2, Drayton Court</div>
+                <div>Drayton Road, Solihull</div>
+                <div>England B90 4NG</div>
+                <div>Company No: 16556912</div>
               </div>
             </div>
 
@@ -342,7 +343,7 @@ export default function LandingPage() {
                 <li><Link href="/landing/about" className="hover:text-blue-600 dark:hover:text-white">About Us</Link></li>
                 <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">Careers</a></li>
                 <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">Contact</a></li>
-                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">Press</a></li>
+                <li><Link href="/legal/press" className="hover:text-blue-600 dark:hover:text-white">Press</Link></li>
               </ul>
             </div>
 
@@ -350,15 +351,15 @@ export default function LandingPage() {
               <h4 className="font-semibold mb-4">Support</h4>
               <ul className="space-y-2 text-gray-600 dark:text-gray-400">
                 <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">Help Center</a></li>
-                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">GDPR Compliance</a></li>
+                <li><Link href="/legal/privacy" className="hover:text-blue-600 dark:hover:text-white">Privacy Policy</Link></li>
+                <li><Link href="/legal/terms" className="hover:text-blue-600 dark:hover:text-white">Terms of Service</Link></li>
+                <li><Link href="/legal/gdpr" className="hover:text-blue-600 dark:hover:text-white">GDPR Compliance</Link></li>
               </ul>
             </div>
           </div>
 
           <div className="border-t border-gray-300 dark:border-gray-600 mt-12 pt-8 text-center text-gray-600 dark:text-gray-400">
-            <p>&copy; 2025 Halo Group Ltd. All rights reserved.</p>
+            <p>&copy; 2025 Cura Software Limited. All rights reserved. Company No: 16556912</p>
           </div>
         </div>
       </footer>

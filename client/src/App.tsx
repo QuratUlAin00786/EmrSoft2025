@@ -58,6 +58,12 @@ import FeaturesPage from "@/pages/landing/FeaturesPage";
 import PricingPage from "@/pages/landing/PricingPage";
 import LoginPage from "@/pages/auth/LoginPage";
 
+// Legal Pages
+import PrivacyPolicy from "@/pages/legal/PrivacyPolicy";
+import TermsOfService from "@/pages/legal/TermsOfService";
+import GDPRCompliancePage from "@/pages/legal/GDPRCompliance";
+import Press from "@/pages/legal/Press";
+
 function ProtectedApp() {
   // Load and apply theme from organization settings
   const { data: organization } = useQuery({
@@ -173,6 +179,7 @@ function AppRouter() {
 
     const isLandingPage = location.startsWith('/landing') || 
                          location.startsWith('/auth/login') || 
+                         location.startsWith('/legal') || 
                          location === '/';
 
     // If user is authenticated and on a public page, redirect to dashboard
@@ -194,6 +201,7 @@ function AppRouter() {
 
   const isLandingPage = location.startsWith('/landing') || 
                        location.startsWith('/auth/login') || 
+                       location.startsWith('/legal') || 
                        location === '/';
 
   // Render public pages for unauthenticated users
@@ -206,6 +214,10 @@ function AppRouter() {
         <Route path="/landing/features" component={FeaturesPage} />
         <Route path="/landing/pricing" component={PricingPage} />
         <Route path="/auth/login" component={LoginPage} />
+        <Route path="/legal/privacy" component={PrivacyPolicy} />
+        <Route path="/legal/terms" component={TermsOfService} />
+        <Route path="/legal/gdpr" component={GDPRCompliancePage} />
+        <Route path="/legal/press" component={Press} />
         <Route component={LandingPage} />
       </Switch>
     );
