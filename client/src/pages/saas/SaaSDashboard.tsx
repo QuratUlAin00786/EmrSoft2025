@@ -191,6 +191,8 @@ export default function SaaSDashboard({ onLogout }: SaaSDashboardProps) {
                           <div className="flex-shrink-0">
                             {activity.icon === 'building' ? (
                               <Building2 className="h-5 w-5 text-blue-600" />
+                            ) : activity.icon === 'user' ? (
+                              <Users className="h-5 w-5 text-purple-600" />
                             ) : (
                               <CreditCard className="h-5 w-5 text-green-600" />
                             )}

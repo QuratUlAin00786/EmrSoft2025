@@ -3443,52 +3443,92 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getRecentActivity(): Promise<any[]> {
-    // Get recent customer registrations
-    const recentCustomers = await db.select({
-      id: organizations.id,
-      name: organizations.name,
-      createdAt: organizations.createdAt,
-      type: sql<string>`'customer_created'`
-    })
-    .from(organizations)
-    .orderBy(desc(organizations.createdAt))
-    .limit(5);
+    const activities = [];
+    
+    try {
+      // Get recent customer registrations
+      const recentCustomers = await db.select({
+        id: organizations.id,
+        name: organizations.name,
+        createdAt: organizations.createdAt,
+      })
+      .from(organizations)
+      .orderBy(desc(organizations.createdAt))
+      .limit(10);
 
-    // Get recent subscription changes
-    const recentSubscriptions = await db.select({
-      orgId: subscriptions.organizationId,
-      orgName: organizations.name,
-      plan: subscriptions.plan,
-      status: subscriptions.status,
-      createdAt: subscriptions.startDate,
-      type: sql<string>`'subscription_updated'`
-    })
-    .from(subscriptions)
-    .innerJoin(organizations, eq(subscriptions.organizationId, organizations.id))
-    .orderBy(desc(subscriptions.startDate))
-    .limit(5);
+      // Add customer creation activities
+      recentCustomers.forEach(c => {
+        activities.push({
+          id: `customer_${c.id}`,
+          type: 'customer_created',
+          title: 'New Customer Registered',
+          description: `${c.name} joined the platform`,
+          timestamp: c.createdAt,
+          icon: 'building'
+        });
+      });
 
-    // Combine and sort activities
-    const activities = [
-      ...recentCustomers.map(c => ({
-        id: `customer_${c.id}`,
-        type: c.type,
-        title: `New customer registered`,
-        description: `${c.name} joined the platform`,
-        timestamp: c.createdAt,
-        icon: 'building'
-      })),
-      ...recentSubscriptions.map(s => ({
-        id: `subscription_${s.orgId}`,
-        type: s.type,
-        title: `Subscription ${s.status}`,
-        description: `${s.orgName} - ${s.plan} plan`,
-        timestamp: s.createdAt,
-        icon: 'credit-card'
-      }))
-    ];
+      // Get recent user registrations
+      const recentUsers = await db.select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        organizationId: users.organizationId,
+        createdAt: users.createdAt,
+        orgName: organizations.name
+      })
+      .from(users)
+      .innerJoin(organizations, eq(users.organizationId, organizations.id))
+      .orderBy(desc(users.createdAt))
+      .limit(10);
 
-    return activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 10);
+      // Add user creation activities
+      recentUsers.forEach(u => {
+        activities.push({
+          id: `user_${u.id}`,
+          type: 'user_created',
+          title: 'New User Added',
+          description: `${u.firstName} ${u.lastName} joined ${u.orgName}`,
+          timestamp: u.createdAt,
+          icon: 'user'
+        });
+      });
+
+      // Get subscription updates
+      const subscriptionUpdates = await db.select({
+        id: subscriptions.id,
+        plan: subscriptions.plan,
+        status: subscriptions.status,
+        startDate: subscriptions.startDate,
+        organizationId: subscriptions.organizationId,
+        orgName: organizations.name
+      })
+      .from(subscriptions)
+      .innerJoin(organizations, eq(subscriptions.organizationId, organizations.id))
+      .orderBy(desc(subscriptions.startDate))
+      .limit(10);
+
+      // Add subscription activities
+      subscriptionUpdates.forEach(s => {
+        activities.push({
+          id: `subscription_${s.id}`,
+          type: 'subscription_updated',
+          title: `Subscription ${s.status}`,
+          description: `${s.orgName} - ${s.plan} plan`,
+          timestamp: s.startDate,
+          icon: 'credit-card'
+        });
+      });
+
+    } catch (error) {
+      console.error('Error fetching activity data:', error);
+    }
+
+    // Sort by timestamp and return latest 15 activities
+    return activities
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 15);
   }
 
   async getSystemAlerts(): Promise<any[]> {
