@@ -3231,6 +3231,12 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(saasPackages).orderBy(desc(saasPackages.createdAt));
   }
 
+  async getWebsiteVisiblePackages(): Promise<SaaSPackage[]> {
+    return await db.select().from(saasPackages)
+      .where(and(eq(saasPackages.isActive, true), eq(saasPackages.showOnWebsite, true)))
+      .orderBy(asc(saasPackages.price));
+  }
+
   async createPackage(packageData: InsertSaaSPackage): Promise<SaaSPackage> {
     const [saasPackage] = await db
       .insert(saasPackages)

@@ -356,6 +356,17 @@ export function registerSaaSRoutes(app: Express) {
     }
   });
 
+  // Get website-visible packages (public endpoint for pricing section)
+  app.get('/api/website/packages', async (req: Request, res: Response) => {
+    try {
+      const packages = await storage.getWebsiteVisiblePackages();
+      res.json(packages);
+    } catch (error) {
+      console.error('Error getting website packages:', error);
+      res.status(500).json({ message: 'Failed to get website packages' });
+    }
+  });
+
   app.post('/api/saas/packages', verifySaaSToken, async (req: Request, res: Response) => {
     try {
       const packageData = req.body;

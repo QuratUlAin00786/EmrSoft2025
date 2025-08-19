@@ -123,6 +123,7 @@ export default function SaaSPackages() {
         apiCallsPerMonth: pkg?.features?.apiCallsPerMonth || 1000,
       },
       isActive: pkg?.isActive ?? true,
+      showOnWebsite: pkg?.showOnWebsite ?? false,
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -191,6 +192,21 @@ export default function SaaSPackages() {
               <span className="text-sm">{formData.isActive ? 'Active' : 'Inactive'}</span>
             </div>
           </div>
+        </div>
+
+        {/* Website Integration */}
+        <div className="space-y-2">
+          <Label htmlFor="website">Website Integration</Label>
+          <div className="flex items-center space-x-2 pt-2">
+            <Switch
+              checked={formData.showOnWebsite}
+              onCheckedChange={(checked) => setFormData({ ...formData, showOnWebsite: checked })}
+            />
+            <span className="text-sm">{formData.showOnWebsite ? 'Live on Website' : 'Hidden from Website'}</span>
+          </div>
+          <p className="text-sm text-gray-500">
+            When enabled, this package will appear in the website's pricing section for customer sign-up.
+          </p>
         </div>
 
         {/* Features */}
@@ -336,9 +352,16 @@ export default function SaaSPackages() {
                       <Crown className="h-5 w-5 text-yellow-600" />
                       <CardTitle className="text-lg">{pkg.name}</CardTitle>
                     </div>
-                    <Badge variant={pkg.isActive ? "default" : "secondary"}>
-                      {pkg.isActive ? "Active" : "Inactive"}
-                    </Badge>
+                    <div className="flex space-x-2">
+                      <Badge variant={pkg.isActive ? "default" : "secondary"}>
+                        {pkg.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                      {pkg.showOnWebsite && (
+                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                          Live on Website
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                   <p className="text-2xl font-bold">
                     £{pkg.price}

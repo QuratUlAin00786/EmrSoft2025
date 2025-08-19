@@ -37,6 +37,7 @@ export const saasPackages = pgTable("saas_packages", {
     apiCallsPerMonth?: number;
   }>().default({}),
   isActive: boolean("is_active").notNull().default(true),
+  showOnWebsite: boolean("show_on_website").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
