@@ -43,6 +43,7 @@ export interface IStorage {
   getUserByEmail(email: string, organizationId: number): Promise<User | undefined>;
   getUserByUsername(username: string, organizationId: number): Promise<User | undefined>;
   getUsersByOrganization(organizationId: number): Promise<User[]>;
+  getUsersByRole(role: string, organizationId: number): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, organizationId: number, updates: Partial<InsertUser>): Promise<User | undefined>;
   deleteUser(id: number, organizationId: number): Promise<boolean>;
@@ -58,6 +59,7 @@ export interface IStorage {
   getPatient(id: number, organizationId: number): Promise<Patient | undefined>;
   getPatientByPatientId(patientId: string, organizationId: number): Promise<Patient | undefined>;
   getPatientByUserId(userId: number, organizationId: number): Promise<Patient | undefined>;
+  getPatientByEmail(email: string, organizationId: number): Promise<Patient | undefined>;
   getPatientsByOrganization(organizationId: number, limit?: number): Promise<Patient[]>;
   createPatient(patient: InsertPatient): Promise<Patient>;
   updatePatient(id: number, organizationId: number, updates: Partial<InsertPatient>): Promise<Patient | undefined>;
@@ -300,6 +302,13 @@ export class DatabaseStorage implements IStorage {
     return uniqueResults;
   }
 
+  async getUsersByRole(role: string, organizationId: number): Promise<User[]> {
+    const results = await db.select().from(users)
+      .where(and(eq(users.role, role), eq(users.organizationId, organizationId)));
+    
+    return results;
+  }
+
   async createUser(user: InsertUser): Promise<User> {
     const [created] = await db.insert(users).values([user]).returning();
     return created;
@@ -400,6 +409,12 @@ export class DatabaseStorage implements IStorage {
     const [patient] = await db.select().from(patients)
       .where(and(eq(patients.organizationId, organizationId), eq(patients.isActive, true)))
       .limit(1);
+    return patient || undefined;
+  }
+
+  async getPatientByEmail(email: string, organizationId: number): Promise<Patient | undefined> {
+    const [patient] = await db.select().from(patients)
+      .where(and(eq(patients.email, email), eq(patients.organizationId, organizationId)));
     return patient || undefined;
   }
 

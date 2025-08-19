@@ -707,6 +707,227 @@ Powered by Halo Group & Averox
 
     return { subject, html, text };
   }
+
+  // Send appointment confirmation
+  async sendAppointmentConfirmation(options: {
+    patientEmail: string;
+    patientName: string;
+    appointmentDate: string;
+    appointmentTime: string;
+    doctorName: string;
+    appointmentType: string;
+  }): Promise<boolean> {
+    const { patientEmail, patientName, appointmentDate, appointmentTime, doctorName, appointmentType } = options;
+    
+    const subject = `Appointment Confirmation - ${appointmentDate}`;
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #4F46E5; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background-color: #f9f9f9; }
+          .appointment-details { background-color: white; padding: 15px; border-radius: 5px; margin: 20px 0; }
+          .success-badge { background-color: #10B981; color: white; padding: 5px 10px; border-radius: 20px; font-size: 12px; }
+          .footer { text-align: center; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Cura EMR</h1>
+            <h2>Appointment Confirmed</h2>
+            <span class="success-badge">✓ CONFIRMED</span>
+          </div>
+          <div class="content">
+            <p>Dear ${patientName},</p>
+            <p>Your appointment has been successfully booked through our website chatbot!</p>
+            
+            <div class="appointment-details">
+              <h3>📅 Appointment Details</h3>
+              <p><strong>Date:</strong> ${appointmentDate}</p>
+              <p><strong>Time:</strong> ${appointmentTime}</p>
+              <p><strong>Doctor:</strong> ${doctorName}</p>
+              <p><strong>Type:</strong> ${appointmentType}</p>
+              <p><strong>Status:</strong> <span style="color: #10B981; font-weight: bold;">Pending Confirmation</span></p>
+            </div>
+            
+            <div style="background-color: #FEF3C7; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #F59E0B;">
+              <h4 style="margin: 0 0 10px 0; color: #92400E;">📋 Next Steps:</h4>
+              <p style="margin: 0; color: #92400E;">Our medical team will review your appointment request and confirm the exact time within 24 hours. You'll receive another email with the final confirmation.</p>
+            </div>
+            
+            <p><strong>Important:</strong></p>
+            <ul>
+              <li>Please arrive 15 minutes early for check-in</li>
+              <li>Bring a valid ID and insurance information</li>
+              <li>If you need to reschedule, please contact us at least 24 hours in advance</li>
+            </ul>
+            
+            <p>If you have any questions, please contact our support team.</p>
+            
+            <p>Best regards,<br>Cura EMR Team<br>Powered by Halo Group</p>
+          </div>
+          <div class="footer">
+            <p>© 2025 Cura EMR by Halo Group. All rights reserved.</p>
+            <p>This appointment was booked through our AI-powered website chatbot.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    const text = `
+Dear ${patientName},
+
+Your appointment has been successfully booked through our website chatbot!
+
+APPOINTMENT DETAILS:
+Date: ${appointmentDate}
+Time: ${appointmentTime}
+Doctor: ${doctorName}
+Type: ${appointmentType}
+Status: Pending Confirmation
+
+NEXT STEPS:
+Our medical team will review your appointment request and confirm the exact time within 24 hours. You'll receive another email with the final confirmation.
+
+IMPORTANT:
+- Please arrive 15 minutes early for check-in
+- Bring a valid ID and insurance information
+- If you need to reschedule, please contact us at least 24 hours in advance
+
+If you have any questions, please contact our support team.
+
+Best regards,
+Cura EMR Team
+Powered by Halo Group
+
+© 2025 Cura EMR by Halo Group. All rights reserved.
+This appointment was booked through our AI-powered website chatbot.
+    `;
+
+    return this.sendEmail({
+      to: patientEmail,
+      subject,
+      html,
+      text
+    });
+  }
+
+  // Send prescription request confirmation
+  async sendPrescriptionRequestConfirmation(options: {
+    patientEmail: string;
+    patientName: string;
+    medication: string;
+    doctorName: string;
+    requestReason: string;
+  }): Promise<boolean> {
+    const { patientEmail, patientName, medication, doctorName, requestReason } = options;
+    
+    const subject = `Prescription Request Received - ${medication}`;
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #10B981; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background-color: #f9f9f9; }
+          .prescription-details { background-color: white; padding: 15px; border-radius: 5px; margin: 20px 0; }
+          .pending-badge { background-color: #F59E0B; color: white; padding: 5px 10px; border-radius: 20px; font-size: 12px; }
+          .footer { text-align: center; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Cura EMR</h1>
+            <h2>Prescription Request Received</h2>
+            <span class="pending-badge">⏳ UNDER REVIEW</span>
+          </div>
+          <div class="content">
+            <p>Dear ${patientName},</p>
+            <p>We have received your prescription request submitted through our website chatbot.</p>
+            
+            <div class="prescription-details">
+              <h3>💊 Request Details</h3>
+              <p><strong>Medication:</strong> ${medication}</p>
+              <p><strong>Reviewing Doctor:</strong> ${doctorName}</p>
+              <p><strong>Request Reason:</strong> ${requestReason}</p>
+              <p><strong>Submitted:</strong> ${new Date().toLocaleDateString()}</p>
+              <p><strong>Status:</strong> <span style="color: #F59E0B; font-weight: bold;">Pending Review</span></p>
+            </div>
+            
+            <div style="background-color: #DBEAFE; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #3B82F6;">
+              <h4 style="margin: 0 0 10px 0; color: #1E40AF;">📋 What's Next:</h4>
+              <p style="margin: 0; color: #1E40AF;">Our licensed physician will review your prescription request within 24 hours. You'll receive another email once the review is complete with further instructions.</p>
+            </div>
+            
+            <div style="background-color: #FEF3C7; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #F59E0B;">
+              <h4 style="margin: 0 0 10px 0; color: #92400E;">⚠️ Important Notes:</h4>
+              <ul style="margin: 10px 0; color: #92400E;">
+                <li>This is not yet a valid prescription</li>
+                <li>Do not purchase medication until you receive our approval</li>
+                <li>Our doctor may contact you for additional information</li>
+                <li>Emergency cases should contact your local emergency services</li>
+              </ul>
+            </div>
+            
+            <p>If you have any urgent medical concerns or questions about your request, please contact our support team immediately.</p>
+            
+            <p>Best regards,<br>Cura EMR Medical Team<br>Powered by Halo Group</p>
+          </div>
+          <div class="footer">
+            <p>© 2025 Cura EMR by Halo Group. All rights reserved.</p>
+            <p>This prescription request was submitted through our AI-powered website chatbot.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    const text = `
+Dear ${patientName},
+
+We have received your prescription request submitted through our website chatbot.
+
+REQUEST DETAILS:
+Medication: ${medication}
+Reviewing Doctor: ${doctorName}
+Request Reason: ${requestReason}
+Submitted: ${new Date().toLocaleDateString()}
+Status: Pending Review
+
+WHAT'S NEXT:
+Our licensed physician will review your prescription request within 24 hours. You'll receive another email once the review is complete with further instructions.
+
+IMPORTANT NOTES:
+- This is not yet a valid prescription
+- Do not purchase medication until you receive our approval
+- Our doctor may contact you for additional information
+- Emergency cases should contact your local emergency services
+
+If you have any urgent medical concerns or questions about your request, please contact our support team immediately.
+
+Best regards,
+Cura EMR Medical Team
+Powered by Halo Group
+
+© 2025 Cura EMR by Halo Group. All rights reserved.
+This prescription request was submitted through our AI-powered website chatbot.
+    `;
+
+    return this.sendEmail({
+      to: patientEmail,
+      subject,
+      html,
+      text
+    });
+  }
 }
 
 export const emailService = new EmailService();

@@ -4431,6 +4431,237 @@ export async function registerRoutes(app: Express): Promise<Server> {
     await capturePaypalOrder(req, res);
   });
 
+  // Website Chatbot API Endpoints - for appointment booking and prescription requests
+  app.post("/api/website/book-appointment", async (req, res) => {
+    try {
+      const { patientName, patientEmail, patientPhone, appointmentType, preferredDate, preferredTime, notes } = req.body;
+      
+      console.log("Website appointment booking request:", req.body);
+      
+      // For demo purposes, we'll use the default tenant 'cura'
+      const tenant = await storage.getOrganizationBySubdomain('cura');
+      if (!tenant) {
+        return res.status(400).json({ error: "Organization not found" });
+      }
+
+      // Check if patient exists by email, if not create a new one
+      let patient = await storage.getPatientByEmail(patientEmail, tenant.id);
+      
+      if (!patient) {
+        // Extract first and last name from full name
+        const nameParts = patientName.trim().split(' ');
+        const firstName = nameParts[0] || patientName;
+        const lastName = nameParts.slice(1).join(' ') || '';
+        
+        // Create new patient
+        const patientData = {
+          firstName,
+          lastName,
+          email: patientEmail,
+          phone: patientPhone,
+          organizationId: tenant.id,
+          patientId: `P${String(Date.now()).slice(-6)}`, // Generate patient ID
+          dateOfBirth: new Date().toISOString(), // Default date
+          gender: 'other',
+          address: '',
+          emergencyContact: patientPhone,
+          medicalHistory: '',
+          allergies: ''
+        };
+        
+        patient = await storage.createPatient(patientData);
+        console.log("Created new patient:", patient);
+      }
+
+      // Get available providers (doctors)
+      const providers = await storage.getUsersByRole('doctor', tenant.id);
+      if (providers.length === 0) {
+        return res.status(400).json({ error: "No doctors available" });
+      }
+      
+      // Use first available doctor
+      const provider = providers[0];
+      
+      // Create appointment
+      const scheduledDateTime = new Date(`${preferredDate}T${preferredTime || '09:00'}`);
+      
+      const appointmentData = {
+        patientId: patient.id,
+        providerId: provider.id,
+        organizationId: tenant.id,
+        title: `${appointmentType || 'General consultation'} - ${patientName}`,
+        description: notes || `Website booking: ${appointmentType}`,
+        scheduledAt: scheduledDateTime.toISOString(),
+        duration: 30,
+        type: appointmentType === 'emergency' ? 'emergency' : 'consultation',
+        status: 'pending',
+        location: 'Main Clinic',
+        isVirtual: appointmentType === 'virtual' || appointmentType === 'telemedicine'
+      };
+      
+      const appointment = await storage.createAppointment(appointmentData);
+      
+      // Send confirmation email
+      try {
+        await emailService.sendAppointmentConfirmation({
+          patientEmail,
+          patientName,
+          appointmentDate: scheduledDateTime.toLocaleDateString(),
+          appointmentTime: scheduledDateTime.toLocaleTimeString(),
+          doctorName: `Dr. ${provider.firstName} ${provider.lastName}`,
+          appointmentType: appointmentType || 'consultation'
+        });
+      } catch (emailError) {
+        console.error("Failed to send confirmation email:", emailError);
+      }
+      
+      res.status(201).json({
+        success: true,
+        message: "Appointment booked successfully",
+        appointment: {
+          id: appointment.id,
+          date: scheduledDateTime.toLocaleDateString(),
+          time: scheduledDateTime.toLocaleTimeString(),
+          doctor: `Dr. ${provider.firstName} ${provider.lastName}`,
+          type: appointmentType,
+          status: 'pending'
+        }
+      });
+      
+    } catch (error) {
+      console.error("Website appointment booking error:", error);
+      res.status(500).json({ error: "Failed to book appointment" });
+    }
+  });
+
+  app.post("/api/website/request-prescription", async (req, res) => {
+    try {
+      const { patientName, patientEmail, patientPhone, medication, dosage, reason, currentMedications, allergies } = req.body;
+      
+      console.log("Website prescription request:", req.body);
+      
+      // For demo purposes, we'll use the default tenant 'cura'
+      const tenant = await storage.getOrganizationBySubdomain('cura');
+      if (!tenant) {
+        return res.status(400).json({ error: "Organization not found" });
+      }
+
+      // Check if patient exists by email, if not create a new one
+      let patient = await storage.getPatientByEmail(patientEmail, tenant.id);
+      
+      if (!patient) {
+        // Extract first and last name from full name
+        const nameParts = patientName.trim().split(' ');
+        const firstName = nameParts[0] || patientName;
+        const lastName = nameParts.slice(1).join(' ') || '';
+        
+        // Create new patient
+        const patientData = {
+          firstName,
+          lastName,
+          email: patientEmail,
+          phone: patientPhone,
+          organizationId: tenant.id,
+          patientId: `P${String(Date.now()).slice(-6)}`, // Generate patient ID
+          dateOfBirth: new Date().toISOString(), // Default date
+          gender: 'other',
+          address: '',
+          emergencyContact: patientPhone,
+          medicalHistory: currentMedications || '',
+          allergies: allergies || ''
+        };
+        
+        patient = await storage.createPatient(patientData);
+        console.log("Created new patient for prescription:", patient);
+      }
+
+      // Get available providers (doctors)
+      const providers = await storage.getUsersByRole('doctor', tenant.id);
+      if (providers.length === 0) {
+        return res.status(400).json({ error: "No doctors available" });
+      }
+      
+      // Use first available doctor
+      const provider = providers[0];
+      
+      // Create prescription request (pending status)
+      const prescriptionData = {
+        patientId: patient.id,
+        providerId: provider.id,
+        organizationId: tenant.id,
+        medication: medication || 'Medication to be determined',
+        dosage: dosage || 'To be determined',
+        frequency: 'As prescribed',
+        duration: 'As prescribed',
+        instructions: `Website prescription request: ${reason}\n\nCurrent medications: ${currentMedications || 'None'}\nAllergies: ${allergies || 'None'}`,
+        status: 'pending',
+        prescriptionDate: new Date().toISOString()
+      };
+      
+      const prescription = await storage.createPrescription(prescriptionData);
+      
+      // Send confirmation email
+      try {
+        await emailService.sendPrescriptionRequestConfirmation({
+          patientEmail,
+          patientName,
+          medication: medication || 'To be determined',
+          doctorName: `Dr. ${provider.firstName} ${provider.lastName}`,
+          requestReason: reason
+        });
+      } catch (emailError) {
+        console.error("Failed to send prescription confirmation email:", emailError);
+      }
+      
+      res.status(201).json({
+        success: true,
+        message: "Prescription request submitted successfully",
+        prescription: {
+          id: prescription.id,
+          medication: medication || 'To be determined',
+          doctor: `Dr. ${provider.firstName} ${provider.lastName}`,
+          status: 'pending',
+          requestDate: new Date().toLocaleDateString()
+        }
+      });
+      
+    } catch (error) {
+      console.error("Website prescription request error:", error);
+      res.status(500).json({ error: "Failed to submit prescription request" });
+    }
+  });
+
+  app.get("/api/website/available-slots", async (req, res) => {
+    try {
+      const { date } = req.query;
+      
+      // For demo purposes, return available time slots
+      const selectedDate = new Date(date as string);
+      const today = new Date();
+      
+      if (selectedDate < today) {
+        return res.status(400).json({ error: "Cannot book appointments in the past" });
+      }
+      
+      // Generate available slots (9 AM to 5 PM, excluding lunch 12-1 PM)
+      const slots = [];
+      for (let hour = 9; hour < 17; hour++) {
+        if (hour !== 12) { // Skip lunch hour
+          slots.push(`${hour.toString().padStart(2, '0')}:00`);
+          if (hour < 16) { // Don't add 30min slot for 4:30 PM
+            slots.push(`${hour.toString().padStart(2, '0')}:30`);
+          }
+        }
+      }
+      
+      res.json({ availableSlots: slots });
+      
+    } catch (error) {
+      console.error("Error fetching available slots:", error);
+      res.status(500).json({ error: "Failed to fetch available slots" });
+    }
+  });
+
   // Document API routes
   app.get("/api/documents", authMiddleware, async (req: TenantRequest, res) => {
     try {
@@ -6476,6 +6707,160 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching chatbot context:", error);
       res.status(500).json({ error: "Failed to fetch chatbot context" });
+    }
+  });
+
+  // Chatbot appointment booking endpoint
+  app.post("/api/chatbot/book-appointment", async (req: TenantRequest, res) => {
+    try {
+      const { email, name, phone, appointmentType, preferredDate, preferredTime, reason } = req.body;
+
+      // Get organization by subdomain
+      const organization = await storage.getOrganizationBySubdomain('cura');
+      if (!organization) {
+        return res.status(404).json({ error: "Organization not found" });
+      }
+
+      // Find or create patient by email
+      let patient = await storage.getPatientByEmail(email, organization.id);
+      
+      if (!patient) {
+        // Create new patient
+        const patientData = {
+          organizationId: organization.id,
+          firstName: name.split(' ')[0] || '',
+          lastName: name.split(' ').slice(1).join(' ') || '',
+          email: email,
+          phone: phone,
+          patientId: `P${Date.now()}`,
+          isActive: true
+        };
+        patient = await storage.createPatient(patientData);
+      }
+
+      // Get available doctors
+      const doctors = await storage.getUsersByRole('doctor', organization.id);
+      const assignedDoctor = doctors.find(d => d.isActive) || doctors[0];
+
+      if (!assignedDoctor) {
+        return res.status(400).json({ error: "No doctors available" });
+      }
+
+      // Create appointment
+      const appointmentData = {
+        organizationId: organization.id,
+        patientId: patient.id,
+        providerId: assignedDoctor.id,
+        appointmentType: appointmentType || 'consultation',
+        status: 'pending',
+        notes: reason || '',
+        scheduledFor: new Date(`${preferredDate} ${preferredTime}`),
+        duration: 30
+      };
+
+      const appointment = await storage.createAppointment(appointmentData);
+
+      // Send confirmation email
+      await emailService.sendAppointmentConfirmation({
+        patientEmail: email,
+        patientName: name,
+        appointmentDate: preferredDate,
+        appointmentTime: preferredTime,
+        doctorName: `${assignedDoctor.firstName} ${assignedDoctor.lastName}`,
+        appointmentType: appointmentType || 'consultation'
+      });
+
+      res.json({
+        success: true,
+        message: "Appointment booked successfully! You'll receive a confirmation email shortly.",
+        appointmentId: appointment.id,
+        doctorName: `${assignedDoctor.firstName} ${assignedDoctor.lastName}`,
+        scheduledFor: appointmentData.scheduledFor
+      });
+
+    } catch (error) {
+      console.error("Error booking appointment through chatbot:", error);
+      res.status(500).json({ error: "Failed to book appointment" });
+    }
+  });
+
+  // Chatbot prescription request endpoint
+  app.post("/api/chatbot/request-prescription", async (req: TenantRequest, res) => {
+    try {
+      const { email, name, phone, medication, reason, medicalHistory } = req.body;
+
+      // Get organization by subdomain
+      const organization = await storage.getOrganizationBySubdomain('cura');
+      if (!organization) {
+        return res.status(404).json({ error: "Organization not found" });
+      }
+
+      // Find or create patient by email
+      let patient = await storage.getPatientByEmail(email, organization.id);
+      
+      if (!patient) {
+        // Create new patient
+        const patientData = {
+          organizationId: organization.id,
+          firstName: name.split(' ')[0] || '',
+          lastName: name.split(' ').slice(1).join(' ') || '',
+          email: email,
+          phone: phone,
+          patientId: `P${Date.now()}`,
+          isActive: true
+        };
+        patient = await storage.createPatient(patientData);
+      }
+
+      // Get available doctors
+      const doctors = await storage.getUsersByRole('doctor', organization.id);
+      const reviewingDoctor = doctors.find(d => d.isActive) || doctors[0];
+
+      if (!reviewingDoctor) {
+        return res.status(400).json({ error: "No doctors available" });
+      }
+
+      // Create prescription request (pending status)
+      const prescriptionData = {
+        organizationId: organization.id,
+        patientId: patient.id,
+        providerId: reviewingDoctor.id,
+        prescriptionNumber: `RX${Date.now()}`,
+        status: 'pending',
+        medications: [{
+          name: medication,
+          dosage: '',
+          frequency: '',
+          duration: '',
+          quantity: 0,
+          refills: 0,
+          instructions: reason,
+          genericAllowed: true
+        }]
+      };
+
+      const prescription = await storage.createPrescription(prescriptionData);
+
+      // Send confirmation email
+      await emailService.sendPrescriptionRequestConfirmation({
+        patientEmail: email,
+        patientName: name,
+        medication: medication,
+        doctorName: `${reviewingDoctor.firstName} ${reviewingDoctor.lastName}`,
+        requestReason: reason
+      });
+
+      res.json({
+        success: true,
+        message: "Prescription request submitted successfully! Our medical team will review it within 24 hours.",
+        requestId: prescription.id,
+        reviewingDoctor: `${reviewingDoctor.firstName} ${reviewingDoctor.lastName}`,
+        status: 'pending_review'
+      });
+
+    } catch (error) {
+      console.error("Error requesting prescription through chatbot:", error);
+      res.status(500).json({ error: "Failed to request prescription" });
     }
   });
 
