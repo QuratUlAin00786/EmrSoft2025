@@ -28,33 +28,37 @@ import {
   Pill
 } from "lucide-react";
 import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
+import { AppStoreBadge } from "@/components/AppStoreBadge";
+import { PlayStoreBadge } from "@/components/PlayStoreBadge";
 
 export default function FeaturesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
       {/* Navigation */}
-      <nav className="border-b bg-white/80 backdrop-blur-sm dark:bg-gray-900/80 sticky top-0 z-50">
+      <nav className="border-b bg-white/95 backdrop-blur-md dark:bg-gray-900/95 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/landing" className="flex items-center space-x-2">
+          <div className="flex justify-between items-center h-20">
+            <Link href="/landing" className="flex items-center space-x-3">
               <img 
                 src={curaLogoPath} 
                 alt="Cura EMR" 
-                className="h-8 w-auto"
+                className="h-12 w-auto"
               />
-              <span className="text-sm text-gray-500">by Halo Group</span>
+              <div className="flex flex-col">
+                <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">by Halo Group</span>
+              </div>
             </Link>
             
             <div className="flex items-center space-x-4">
-              <Link href="/landing" className="flex items-center text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400">
+              <Link href="/landing" className="flex items-center text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 font-medium transition-colors">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Home
               </Link>
-              <Link href="/landing/about" className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400">
+              <Link href="/landing/about" className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 font-medium transition-colors">
                 About Us
               </Link>
               <Link href="/auth/login">
-                <Button className="bg-blue-600 hover:bg-blue-700">
+                <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md px-6 py-2">
                   Login to Portal
                 </Button>
               </Link>
@@ -311,7 +315,7 @@ export default function FeaturesPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <ul className="space-y-3">
+                <ul className="space-y-3 mb-6">
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-600 mr-3" />Medical history access</li>
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-600 mr-3" />Prescription management</li>
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-600 mr-3" />Appointment booking</li>
@@ -321,6 +325,18 @@ export default function FeaturesPage() {
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-600 mr-3" />Secure messaging</li>
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-600 mr-3" />Offline sync capability</li>
                 </ul>
+                
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Download for:</p>
+                  <div className="flex space-x-3">
+                    <a href="#" className="hover:opacity-80 transition-opacity">
+                      <AppStoreBadge className="h-10 w-auto" />
+                    </a>
+                    <a href="#" className="hover:opacity-80 transition-opacity">
+                      <PlayStoreBadge className="h-10 w-auto" />
+                    </a>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
@@ -335,7 +351,7 @@ export default function FeaturesPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <ul className="space-y-3">
+                <ul className="space-y-3 mb-6">
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-600 mr-3" />Dashboard overview</li>
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-600 mr-3" />Patient record access</li>
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-600 mr-3" />Appointment management</li>
@@ -345,6 +361,18 @@ export default function FeaturesPage() {
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-600 mr-3" />Team communication</li>
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-600 mr-3" />Emergency protocols</li>
                 </ul>
+                
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Download for:</p>
+                  <div className="flex space-x-3">
+                    <a href="#" className="hover:opacity-80 transition-opacity">
+                      <AppStoreBadge className="h-10 w-auto" />
+                    </a>
+                    <a href="#" className="hover:opacity-80 transition-opacity">
+                      <PlayStoreBadge className="h-10 w-auto" />
+                    </a>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
