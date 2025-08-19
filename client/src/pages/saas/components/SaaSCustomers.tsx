@@ -63,6 +63,14 @@ export default function SaaSCustomers() {
   // Fetch all organizations/customers
   const { data: customers, isLoading } = useQuery({
     queryKey: ['/api/saas/customers', searchTerm, selectedStatus],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (selectedStatus && selectedStatus !== 'all') params.append('status', selectedStatus);
+      
+      const response = await saasApiRequest('GET', `/api/saas/customers?${params.toString()}`);
+      return response.json();
+    },
   });
 
   // Fetch available billing packages

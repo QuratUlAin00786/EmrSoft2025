@@ -3265,8 +3265,25 @@ export class DatabaseStorage implements IStorage {
     .leftJoin(saasPackages, eq(subscriptions.plan, saasPackages.name))
     .groupBy(organizations.id, organizations.features, saasPackages.name, saasPackages.id);
 
+    // Apply filters
+    const whereConditions = [];
+    
     if (status && status !== 'all') {
-      query = query.where(eq(organizations.subscriptionStatus, status));
+      whereConditions.push(eq(organizations.subscriptionStatus, status));
+    }
+
+    if (search && search.trim() !== '') {
+      whereConditions.push(
+        or(
+          ilike(organizations.name, `%${search}%`),
+          ilike(organizations.brandName, `%${search}%`),
+          ilike(organizations.subdomain, `%${search}%`)
+        )
+      );
+    }
+
+    if (whereConditions.length > 0) {
+      query = query.where(and(...whereConditions));
     }
 
     return await query.orderBy(desc(organizations.createdAt));
