@@ -219,6 +219,12 @@ export function registerSaaSRoutes(app: Express) {
   app.patch('/api/saas/customers/status', verifySaaSToken, async (req: Request, res: Response) => {
     try {
       const { organizationId, status } = req.body;
+      console.log('Status update request:', { organizationId, status });
+      
+      if (!organizationId || !status) {
+        return res.status(400).json({ message: 'Organization ID and status are required' });
+      }
+      
       const result = await storage.updateCustomerStatus(organizationId, status);
       res.json(result);
     } catch (error) {

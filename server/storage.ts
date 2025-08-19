@@ -3137,6 +3137,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateCustomerOrganization(organizationId: number, customerData: any): Promise<any> {
+    console.log('Updating customer organization:', { organizationId, customerData });
+    
     const updateData: any = {};
     
     if (customerData.name) updateData.name = customerData.name;
@@ -3144,19 +3146,39 @@ export class DatabaseStorage implements IStorage {
     if (customerData.subscriptionStatus) updateData.subscriptionStatus = customerData.subscriptionStatus;
     if (customerData.features) updateData.features = JSON.stringify(customerData.features);
     
+    console.log('Update data prepared:', updateData);
+    
+    if (Object.keys(updateData).length === 0) {
+      throw new Error('No valid fields to update');
+    }
+    
     const [organization] = await db.update(organizations)
       .set(updateData)
       .where(eq(organizations.id, organizationId))
       .returning();
 
+    if (!organization) {
+      throw new Error('Organization not found');
+    }
+
     return { success: true, organization };
   }
 
   async updateCustomerStatus(organizationId: number, status: string): Promise<any> {
+    console.log('Updating customer status:', { organizationId, status });
+    
+    if (!status || typeof status !== 'string') {
+      throw new Error('Invalid status provided');
+    }
+    
     const [organization] = await db.update(organizations)
       .set({ subscriptionStatus: status })
       .where(eq(organizations.id, organizationId))
       .returning();
+
+    if (!organization) {
+      throw new Error('Organization not found');
+    }
 
     return { success: true, organization };
   }
