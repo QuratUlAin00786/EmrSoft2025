@@ -68,7 +68,7 @@ export default function SaaSCustomers() {
       const response = await saasApiRequest('POST', '/api/saas/customers', customerData);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/saas/customers'] });
       setIsAddDialogOpen(false);
       setNewCustomer({
@@ -80,8 +80,8 @@ export default function SaaSCustomers() {
         }
       });
       toast({
-        title: "Customer Created",
-        description: "New customer organization created successfully",
+        title: "Customer Created Successfully",
+        description: `Organization: ${data.organization.name} | Admin Password: ${data.adminUser.tempPassword}`,
       });
     },
     onError: (error: any) => {
