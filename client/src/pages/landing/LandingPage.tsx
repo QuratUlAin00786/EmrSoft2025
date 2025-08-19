@@ -16,6 +16,7 @@ import {
   ArrowRight
 } from "lucide-react";
 import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
+import dashboardScreenshot from "@assets/Screenshot 2025-08-19 at 12.12.03_1755587692183.png";
 
 export default function LandingPage() {
   return (
@@ -91,40 +92,19 @@ export default function LandingPage() {
             </div>
             
             <div className="relative">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6">
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Dashboard Overview</h3>
-                    <div className="flex space-x-2">
-                      <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                      <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                      <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
-                      <div className="flex items-center space-x-3">
-                        <Calendar className="h-5 w-5 text-blue-600" />
-                        <span className="text-sm">Today's Appointments</span>
-                      </div>
-                      <span className="font-semibold text-blue-600">12</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded">
-                      <div className="flex items-center space-x-3">
-                        <Users className="h-5 w-5 text-green-600" />
-                        <span className="text-sm">Active Patients</span>
-                      </div>
-                      <span className="font-semibold text-green-600">1,247</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/20 rounded">
-                      <div className="flex items-center space-x-3">
-                        <Brain className="h-5 w-5 text-purple-600" />
-                        <span className="text-sm">AI Insights</span>
-                      </div>
-                      <span className="font-semibold text-purple-600">8 New</span>
-                    </div>
-                  </div>
+              <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-1 shadow-2xl">
+                <div className="bg-white dark:bg-gray-900 rounded-xl overflow-hidden">
+                  <img 
+                    src={dashboardScreenshot} 
+                    alt="Cura EMR Dashboard Interface"
+                    className="w-full h-auto"
+                  />
                 </div>
+              </div>
+              
+              {/* Floating badge */}
+              <div className="absolute -top-4 -right-4 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+                Live Demo
               </div>
             </div>
           </div>

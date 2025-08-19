@@ -95,69 +95,6 @@ export default function FeaturesPage() {
         </div>
       </section>
 
-      {/* Dashboard Showcase */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              See Cura EMR in Action
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              Experience our intuitive dashboard that puts all essential healthcare management tools at your fingertips. 
-              Real-time insights, appointment management, and AI-powered assistance in one seamless interface.
-            </p>
-          </div>
-          
-          <div className="relative">
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-1 shadow-2xl">
-              <div className="bg-white dark:bg-gray-900 rounded-xl overflow-hidden">
-                <img 
-                  src={dashboardScreenshot} 
-                  alt="Cura EMR Dashboard Interface"
-                  className="w-full h-auto"
-                />
-              </div>
-            </div>
-            
-            {/* Feature callouts */}
-            <div className="absolute -left-4 top-1/4 hidden lg:block">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 max-w-xs">
-                <div className="flex items-center space-x-2 text-blue-600 mb-2">
-                  <BarChart3 className="h-5 w-5" />
-                  <span className="font-semibold">Real-time Analytics</span>
-                </div>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Live patient metrics and revenue tracking
-                </p>
-              </div>
-            </div>
-            
-            <div className="absolute -right-4 top-1/3 hidden lg:block">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 max-w-xs">
-                <div className="flex items-center space-x-2 text-purple-600 mb-2">
-                  <Brain className="h-5 w-5" />
-                  <span className="font-semibold">AI Insights</span>
-                </div>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Intelligent recommendations and patient insights
-                </p>
-              </div>
-            </div>
-            
-            <div className="absolute -left-4 bottom-1/4 hidden lg:block">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 max-w-xs">
-                <div className="flex items-center space-x-2 text-green-600 mb-2">
-                  <Calendar className="h-5 w-5" />
-                  <span className="font-semibold">Smart Scheduling</span>
-                </div>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Integrated calendar with appointment management
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Core Features */}
       <section className="py-20 bg-gray-50 dark:bg-gray-800">
