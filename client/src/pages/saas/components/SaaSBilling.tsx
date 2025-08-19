@@ -165,6 +165,7 @@ export default function SaaSBilling() {
   const handleViewInvoice = (payment: any) => {
     setSelectedInvoice({
       ...payment,
+      organizationAddress: `${payment.organizationName}\nHealthcare Organization\nUnited Kingdom`, // Default address format
       lineItems: [
         {
           description: payment.description || 'Cura EMR Software Subscription',
@@ -630,11 +631,14 @@ function CreatePaymentForm({ onSubmit, isLoading }: CreatePaymentFormProps) {
     e.preventDefault();
     const selectedOrg = organizations?.find((org: any) => org.id.toString() === formData.organizationId);
     onSubmit({
-      ...formData,
       organizationId: parseInt(formData.organizationId),
       organizationName: selectedOrg?.name || '',
-      amount: parseFloat(formData.amount),
-      dueDate: new Date(formData.dueDate),
+      amount: parseFloat(formData.amount).toString(),
+      currency: formData.currency,
+      paymentMethod: formData.paymentMethod,
+      description: formData.description,
+      dueDate: formData.dueDate,
+      paymentStatus: 'pending'
     });
   };
 

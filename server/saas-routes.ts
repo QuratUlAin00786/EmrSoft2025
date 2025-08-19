@@ -9,7 +9,7 @@ const SAAS_JWT_SECRET = process.env.SAAS_JWT_SECRET || "saas-super-secret-key-ch
 // Email configuration for customer notifications
 async function sendWelcomeEmail(organization: any, adminUser: any) {
   try {
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
       port: 587,
       secure: false,
@@ -488,15 +488,28 @@ export function registerSaaSRoutes(app: Express) {
         });
       }
 
-      // Set default values
-      const payment = await storage.createPayment({
-        ...paymentData,
+      // Ensure dates are properly formatted
+      const currentTime = new Date();
+      const dueDateObj = paymentData.dueDate ? new Date(paymentData.dueDate) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+      // Set payment data with proper date handling
+      const processedPaymentData = {
+        organizationId: parseInt(paymentData.organizationId),
         invoiceNumber: paymentData.invoiceNumber || `INV-${Date.now()}`,
+        amount: paymentData.amount.toString(),
         currency: paymentData.currency || 'GBP',
-        paymentStatus: 'pending',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
+        paymentMethod: paymentData.paymentMethod,
+        paymentStatus: paymentData.paymentStatus || 'pending',
+        description: paymentData.description || 'Payment for Cura EMR Services',
+        dueDate: dueDateObj,
+        paymentDate: paymentData.paymentStatus === 'completed' ? currentTime : null,
+        periodStart: currentTime,
+        periodEnd: new Date(currentTime.getTime() + 30 * 24 * 60 * 60 * 1000),
+        paymentProvider: paymentData.paymentMethod,
+        metadata: paymentData.metadata || {}
+      };
+
+      const payment = await storage.createPayment(processedPaymentData);
 
       res.status(201).json(payment);
     } catch (error) {
