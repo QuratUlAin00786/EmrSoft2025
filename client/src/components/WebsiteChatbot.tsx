@@ -626,7 +626,7 @@ export function WebsiteChatbot() {
       <div className="fixed bottom-6 right-6 z-50">
         <Button
           onClick={() => setIsOpen(!isOpen)}
-          className="rounded-full h-16 w-16 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-xl border-2 border-white"
+          className="rounded-full h-16 w-16 bg-gradient-to-r from-blue-300 to-blue-400 hover:from-blue-400 hover:to-blue-500 shadow-xl border-2 border-white"
         >
           {isOpen ? (
             <X className="h-6 w-6 text-white" />
@@ -635,8 +635,9 @@ export function WebsiteChatbot() {
               <img 
                 src="/cura-logo-chatbot.png" 
                 alt="Cura Chat" 
-                className="h-8 w-8 mb-1"
+                className="h-6 w-6 mb-0.5"
               />
+              <span className="text-xs text-white font-medium">Chat</span>
             </div>
           )}
         </Button>

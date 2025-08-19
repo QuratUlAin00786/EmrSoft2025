@@ -56,6 +56,7 @@ import LandingPage from "@/pages/landing/LandingPage";
 import AboutPage from "@/pages/landing/AboutPage";
 import FeaturesPage from "@/pages/landing/FeaturesPage";
 import PricingPage from "@/pages/landing/PricingPage";
+import HelpCentre from "@/pages/landing/HelpCentre";
 import LoginPage from "@/pages/auth/LoginPage";
 
 // Legal Pages
@@ -213,6 +214,7 @@ function AppRouter() {
         <Route path="/landing/about" component={AboutPage} />
         <Route path="/landing/features" component={FeaturesPage} />
         <Route path="/landing/pricing" component={PricingPage} />
+        <Route path="/landing/help" component={HelpCentre} />
         <Route path="/auth/login" component={LoginPage} />
         <Route path="/legal/privacy" component={PrivacyPolicy} />
         <Route path="/legal/terms" component={TermsOfService} />

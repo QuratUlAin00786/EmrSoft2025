@@ -332,8 +332,8 @@ export default function LandingPage() {
               <ul className="space-y-2 text-gray-600 dark:text-gray-400">
                 <li><Link href="/landing/features" className="hover:text-blue-600 dark:hover:text-white">Features</Link></li>
                 <li><Link href="/auth/login" className="hover:text-blue-600 dark:hover:text-white">Login</Link></li>
-                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">Pricing</a></li>
-                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">API Documentation</a></li>
+                <li><Link href="/landing/pricing" className="hover:text-blue-600 dark:hover:text-white">Pricing</Link></li>
+                <li><Link href="/landing/features#integrations" className="hover:text-blue-600 dark:hover:text-white">API Documentation</Link></li>
               </ul>
             </div>
 
@@ -341,8 +341,8 @@ export default function LandingPage() {
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-gray-600 dark:text-gray-400">
                 <li><Link href="/landing/about" className="hover:text-blue-600 dark:hover:text-white">About Us</Link></li>
-                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">Careers</a></li>
-                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">Contact</a></li>
+                <li><a href="mailto:careers@curapms.ai" className="hover:text-blue-600 dark:hover:text-white">Careers</a></li>
+                <li><a href="mailto:info@curapms.ai" className="hover:text-blue-600 dark:hover:text-white">Contact</a></li>
                 <li><Link href="/legal/press" className="hover:text-blue-600 dark:hover:text-white">Press</Link></li>
               </ul>
             </div>
@@ -350,7 +350,7 @@ export default function LandingPage() {
             <div>
               <h4 className="font-semibold mb-4">Support</h4>
               <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">Help Center</a></li>
+                <li><Link href="/landing/help" className="hover:text-blue-600 dark:hover:text-white">Help Centre</Link></li>
                 <li><Link href="/legal/privacy" className="hover:text-blue-600 dark:hover:text-white">Privacy Policy</Link></li>
                 <li><Link href="/legal/terms" className="hover:text-blue-600 dark:hover:text-white">Terms of Service</Link></li>
                 <li><Link href="/legal/gdpr" className="hover:text-blue-600 dark:hover:text-white">GDPR Compliance</Link></li>
