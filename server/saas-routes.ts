@@ -210,6 +210,28 @@ export function registerSaaSRoutes(app: Express) {
     }
   });
 
+  // Recent Activity
+  app.get('/api/saas/activity', verifySaaSToken, async (req: Request, res: Response) => {
+    try {
+      const activity = await storage.getRecentActivity();
+      res.json(activity);
+    } catch (error) {
+      console.error('Error fetching recent activity:', error);
+      res.status(500).json({ message: 'Failed to fetch activity' });
+    }
+  });
+
+  // System Alerts
+  app.get('/api/saas/alerts', verifySaaSToken, async (req: Request, res: Response) => {
+    try {
+      const alerts = await storage.getSystemAlerts();
+      res.json(alerts);
+    } catch (error) {
+      console.error('Error fetching alerts:', error);
+      res.status(500).json({ message: 'Failed to fetch alerts' });
+    }
+  });
+
   // Users Management
   app.get('/api/saas/users', verifySaaSToken, async (req: Request, res: Response) => {
     try {

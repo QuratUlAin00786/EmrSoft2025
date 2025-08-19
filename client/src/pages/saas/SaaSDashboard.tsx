@@ -35,22 +35,36 @@ export default function SaaSDashboard({ onLogout }: SaaSDashboardProps) {
     queryKey: ['/api/saas/stats'],
   });
 
+  // Fetch recent activity
+  const { data: recentActivity } = useQuery({
+    queryKey: ['/api/saas/activity'],
+  });
+
+  // Fetch system alerts
+  const { data: systemAlerts } = useQuery({
+    queryKey: ['/api/saas/alerts'],
+  });
+
   const handleLogout = () => {
     localStorage.removeItem('saas_token');
     onLogout();
   };
 
-  const StatCard = ({ title, value, icon: Icon, trend, trendValue }: any) => (
+  const StatCard = ({ title, value, icon: Icon, breakdown }: any) => (
     <Card>
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</p>
             <p className="text-3xl font-bold text-gray-900 dark:text-white">{value}</p>
-            {trend && (
-              <div className="flex items-center mt-2">
-                <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
-                <span className="text-sm text-green-600">{trendValue}</span>
+            {breakdown && title === "Total Customers" && (
+              <div className="mt-2 space-y-1">
+                {Object.entries(breakdown).map(([status, data]: [string, any]) => (
+                  <div key={status} className="flex items-center justify-between text-xs">
+                    <span className="capitalize text-gray-600 dark:text-gray-400">{status}:</span>
+                    <span className="text-gray-900 dark:text-white">{data.count} ({data.percentage}%)</span>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -132,52 +146,132 @@ export default function SaaSDashboard({ onLogout }: SaaSDashboardProps) {
                 title="Total Customers"
                 value={stats?.totalCustomers || 0}
                 icon={Building2}
-                trend={true}
-                trendValue="+12% this month"
+                trend={false}
+                breakdown={stats?.customerStatusBreakdown}
               />
               <StatCard
                 title="Active Users"
                 value={stats?.activeUsers || 0}
                 icon={Users}
-                trend={true}
-                trendValue="+8% this month"
+                trend={false}
               />
               <StatCard
                 title="Monthly Revenue"
                 value={`£${stats?.monthlyRevenue || 0}`}
                 icon={CreditCard}
-                trend={true}
-                trendValue="+15% this month"
+                trend={false}
               />
               <StatCard
                 title="Active Packages"
                 value={stats?.activePackages || 0}
                 icon={Package}
+                trend={false}
               />
             </div>
 
-            {/* Recent Activity */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <AlertTriangle className="h-5 w-5 text-orange-600" />
-                  <span>Recent Activity & Alerts</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {isLoading ? (
-                    <div className="flex items-center justify-center py-8">
-                      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                      No recent activity to display
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            {/* Recent Activity and Alerts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Recent Activity */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Activity className="h-5 w-5 text-blue-600" />
+                    <span>Recent Activity</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {!recentActivity || recentActivity.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        No recent activity
+                      </div>
+                    ) : (
+                      recentActivity.slice(0, 5).map((activity: any) => (
+                        <div key={activity.id} className="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                          <div className="flex-shrink-0">
+                            {activity.icon === 'building' ? (
+                              <Building2 className="h-5 w-5 text-blue-600" />
+                            ) : (
+                              <CreditCard className="h-5 w-5 text-green-600" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              {activity.title}
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              {activity.description}
+                            </p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500">
+                              {new Date(activity.timestamp).toLocaleDateString()} {new Date(activity.timestamp).toLocaleTimeString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* System Alerts */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <AlertTriangle className="h-5 w-5 text-orange-600" />
+                    <span>System Alerts</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {!systemAlerts || systemAlerts.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                        All systems operational
+                      </div>
+                    ) : (
+                      systemAlerts.map((alert: any) => (
+                        <div key={alert.id} className={`p-3 border rounded-lg ${
+                          alert.type === 'error' ? 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800' :
+                          alert.type === 'warning' ? 'bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800' :
+                          'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800'
+                        }`}>
+                          <div className="flex items-start space-x-3">
+                            <div className="flex-shrink-0">
+                              <AlertTriangle className={`h-5 w-5 ${
+                                alert.type === 'error' ? 'text-red-600' :
+                                alert.type === 'warning' ? 'text-orange-600' :
+                                'text-blue-600'
+                              }`} />
+                            </div>
+                            <div className="flex-1">
+                              <p className={`text-sm font-medium ${
+                                alert.type === 'error' ? 'text-red-900 dark:text-red-100' :
+                                alert.type === 'warning' ? 'text-orange-900 dark:text-orange-100' :
+                                'text-blue-900 dark:text-blue-100'
+                              }`}>
+                                {alert.title}
+                              </p>
+                              <p className={`text-sm ${
+                                alert.type === 'error' ? 'text-red-700 dark:text-red-200' :
+                                alert.type === 'warning' ? 'text-orange-700 dark:text-orange-200' :
+                                'text-blue-700 dark:text-blue-200'
+                              }`}>
+                                {alert.description}
+                              </p>
+                              {alert.actionRequired && (
+                                <Badge variant="outline" className="mt-2 text-xs">
+                                  Action Required
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="users">

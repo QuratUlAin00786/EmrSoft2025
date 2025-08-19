@@ -3029,15 +3029,48 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSaaSStats(): Promise<any> {
+    // Get basic counts
     const [totalCustomers] = await db.select({ count: count() }).from(organizations);
     const [activeUsers] = await db.select({ count: count() }).from(users).where(eq(users.isActive, true));
     const [activePackages] = await db.select({ count: count() }).from(saasPackages).where(eq(saasPackages.isActive, true));
     
+    // Get customer status breakdown
+    const customersByStatus = await db.select({
+      status: organizations.subscriptionStatus,
+      count: count()
+    }).from(organizations).groupBy(organizations.subscriptionStatus);
+    
+    // Calculate customer status percentages
+    const statusBreakdown = customersByStatus.reduce((acc, item) => {
+      acc[item.status] = {
+        count: item.count,
+        percentage: totalCustomers.count > 0 ? Math.round((item.count / totalCustomers.count) * 100) : 0
+      };
+      return acc;
+    }, {} as any);
+    
+    // Calculate monthly revenue from active subscriptions
+    const activeSubscriptions = await db.select({
+      packageName: saasPackages.name,
+      price: saasPackages.price,
+      count: count()
+    })
+    .from(subscriptions)
+    .innerJoin(saasPackages, eq(subscriptions.plan, saasPackages.name))
+    .where(eq(subscriptions.status, 'active'))
+    .groupBy(saasPackages.name, saasPackages.price);
+    
+    const monthlyRevenue = activeSubscriptions.reduce((total, sub) => {
+      return total + (sub.price * sub.count);
+    }, 0);
+    
     return {
       totalCustomers: totalCustomers.count,
       activeUsers: activeUsers.count,
-      monthlyRevenue: 0, // Placeholder for billing calculation
+      monthlyRevenue: monthlyRevenue,
       activePackages: activePackages.count,
+      customerStatusBreakdown: statusBreakdown,
+      revenueBreakdown: activeSubscriptions
     };
   }
 
@@ -3407,6 +3440,134 @@ export class DatabaseStorage implements IStorage {
   async testEmailSettings(): Promise<any> {
     // Test email configuration - placeholder implementation
     return { success: true, message: 'Email test completed' };
+  }
+
+  async getRecentActivity(): Promise<any[]> {
+    // Get recent customer registrations
+    const recentCustomers = await db.select({
+      id: organizations.id,
+      name: organizations.name,
+      createdAt: organizations.createdAt,
+      type: sql<string>`'customer_created'`
+    })
+    .from(organizations)
+    .orderBy(desc(organizations.createdAt))
+    .limit(5);
+
+    // Get recent subscription changes
+    const recentSubscriptions = await db.select({
+      orgId: subscriptions.organizationId,
+      orgName: organizations.name,
+      plan: subscriptions.plan,
+      status: subscriptions.status,
+      createdAt: subscriptions.startDate,
+      type: sql<string>`'subscription_updated'`
+    })
+    .from(subscriptions)
+    .innerJoin(organizations, eq(subscriptions.organizationId, organizations.id))
+    .orderBy(desc(subscriptions.startDate))
+    .limit(5);
+
+    // Combine and sort activities
+    const activities = [
+      ...recentCustomers.map(c => ({
+        id: `customer_${c.id}`,
+        type: c.type,
+        title: `New customer registered`,
+        description: `${c.name} joined the platform`,
+        timestamp: c.createdAt,
+        icon: 'building'
+      })),
+      ...recentSubscriptions.map(s => ({
+        id: `subscription_${s.orgId}`,
+        type: s.type,
+        title: `Subscription ${s.status}`,
+        description: `${s.orgName} - ${s.plan} plan`,
+        timestamp: s.createdAt,
+        icon: 'credit-card'
+      }))
+    ];
+
+    return activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 10);
+  }
+
+  async getSystemAlerts(): Promise<any[]> {
+    const alerts = [];
+    
+    // Check for suspended customers
+    const [suspendedCustomers] = await db.select({ count: count() })
+      .from(organizations)
+      .where(eq(organizations.subscriptionStatus, 'suspended'));
+    
+    if (suspendedCustomers.count > 0) {
+      alerts.push({
+        id: 'suspended_customers',
+        type: 'warning',
+        title: 'Suspended Customers',
+        description: `${suspendedCustomers.count} customer${suspendedCustomers.count > 1 ? 's' : ''} currently suspended`,
+        actionRequired: true,
+        priority: 'medium'
+      });
+    }
+
+    // Check for cancelled customers
+    const [cancelledCustomers] = await db.select({ count: count() })
+      .from(organizations)
+      .where(eq(organizations.subscriptionStatus, 'cancelled'));
+    
+    if (cancelledCustomers.count > 0) {
+      alerts.push({
+        id: 'cancelled_customers',
+        type: 'error',
+        title: 'Cancelled Customers',
+        description: `${cancelledCustomers.count} customer${cancelledCustomers.count > 1 ? 's' : ''} cancelled subscription`,
+        actionRequired: true,
+        priority: 'high'
+      });
+    }
+
+    // Check for trial customers nearing expiration (simulate based on creation date)
+    const trialCutoffDate = new Date();
+    trialCutoffDate.setDate(trialCutoffDate.getDate() - 12); // 12 days ago (trial period is typically 14 days)
+    
+    const [expiringTrials] = await db.select({ count: count() })
+      .from(organizations)
+      .where(and(
+        eq(organizations.subscriptionStatus, 'trial'),
+        lt(organizations.createdAt, trialCutoffDate)
+      ));
+    
+    if (expiringTrials.count > 0) {
+      alerts.push({
+        id: 'expiring_trials',
+        type: 'warning',
+        title: 'Trials Expiring Soon',
+        description: `${expiringTrials.count} trial${expiringTrials.count > 1 ? 's' : ''} expiring within 2 days`,
+        actionRequired: true,
+        priority: 'medium'
+      });
+    }
+
+    // Check for inactive packages
+    const [inactivePackages] = await db.select({ count: count() })
+      .from(saasPackages)
+      .where(eq(saasPackages.isActive, false));
+    
+    if (inactivePackages.count > 0) {
+      alerts.push({
+        id: 'inactive_packages',
+        type: 'info',
+        title: 'Inactive Packages',
+        description: `${inactivePackages.count} billing package${inactivePackages.count > 1 ? 's' : ''} currently inactive`,
+        actionRequired: false,
+        priority: 'low'
+      });
+    }
+
+    return alerts.sort((a, b) => {
+      const priorityOrder = { high: 3, medium: 2, low: 1 };
+      return (priorityOrder[b.priority as keyof typeof priorityOrder] || 0) - (priorityOrder[a.priority as keyof typeof priorityOrder] || 0);
+    });
   }
 }
 
