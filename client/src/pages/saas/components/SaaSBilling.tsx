@@ -1,244 +1,652 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import { useQuery } from '@tanstack/react-query';
-import { 
-  Search, 
-  CreditCard, 
-  TrendingUp,
-  DollarSign,
-  Calendar,
-  Download,
-  Eye,
-  AlertTriangle
-} from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import { Loader2, CreditCard, DollarSign, AlertTriangle, TrendingUp, Plus, Filter, Download, Eye, Edit, Trash2 } from "lucide-react";
+import { queryClient, saasApiRequest } from "@/lib/saasQueryClient";
+import { useToast } from "@/hooks/use-toast";
+
+// Payment status colors and icons
+const getPaymentStatusBadge = (status: string) => {
+  switch (status.toLowerCase()) {
+    case 'completed':
+      return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">Completed</Badge>;
+    case 'pending':
+      return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100">Pending</Badge>;
+    case 'failed':
+      return <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100">Failed</Badge>;
+    case 'cancelled':
+      return <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100">Cancelled</Badge>;
+    case 'refunded':
+      return <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100">Refunded</Badge>;
+    default:
+      return <Badge variant="secondary">{status}</Badge>;
+  }
+};
+
+const getPaymentMethodIcon = (method: string) => {
+  switch (method.toLowerCase()) {
+    case 'stripe':
+      return <CreditCard className="w-4 h-4" />;
+    case 'paypal':
+      return <DollarSign className="w-4 h-4" />;
+    case 'bank_transfer':
+      return <TrendingUp className="w-4 h-4" />;
+    case 'cash':
+      return <DollarSign className="w-4 h-4" />;
+    default:
+      return <CreditCard className="w-4 h-4" />;
+  }
+};
+
+interface BillingStats {
+  totalRevenue: number;
+  monthlyRecurring: number;
+  activeSubscriptions: number;
+  pendingPayments: number;
+  overduePayments: number;
+  paymentMethods: {
+    stripe: number;
+    paypal: number;
+    bankTransfer: number;
+    cash: number;
+  };
+}
 
 export default function SaaSBilling() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [dateRange, setDateRange] = useState('30');
+  const [dateRange, setDateRange] = useState("30");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState("overview");
+  const [showCreatePayment, setShowCreatePayment] = useState(false);
+  const { toast } = useToast();
 
-  // Fetch billing data
-  const { data: billingData, isLoading } = useQuery({
-    queryKey: ['/api/saas/billing', searchTerm, dateRange],
-  });
-
-  const { data: billingStats } = useQuery({
+  // Fetch billing statistics
+  const { data: billingStats, isLoading: statsLoading, refetch: refetchStats } = useQuery<BillingStats>({
     queryKey: ['/api/saas/billing/stats', dateRange],
+    queryFn: async () => {
+      const response = await saasApiRequest('GET', `/api/saas/billing/stats?dateRange=${dateRange}`);
+      if (!response.ok) throw new Error('Failed to fetch billing stats');
+      return response.json();
+    },
   });
 
-  const getStatusBadgeColor = (status: string) => {
-    switch (status) {
-      case 'paid': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'overdue': return 'bg-red-100 text-red-800';
-      case 'failed': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
+  // Fetch billing data (invoices/payments)
+  const { data: billingData, isLoading: dataLoading, refetch: refetchData } = useQuery({
+    queryKey: ['/api/saas/billing/data', searchTerm, dateRange],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (dateRange) params.append('dateRange', dateRange);
+      
+      const response = await saasApiRequest('GET', `/api/saas/billing/data?${params.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch billing data');
+      return response.json();
+    },
+  });
 
-  const formatCurrency = (amount: number) => {
+  // Fetch overdue invoices
+  const { data: overdueInvoices, isLoading: overdueLoading } = useQuery({
+    queryKey: ['/api/saas/billing/overdue'],
+    queryFn: async () => {
+      const response = await saasApiRequest('GET', '/api/saas/billing/overdue');
+      if (!response.ok) throw new Error('Failed to fetch overdue invoices');
+      return response.json();
+    },
+  });
+
+  // Create payment mutation
+  const createPaymentMutation = useMutation({
+    mutationFn: async (paymentData: any) => {
+      const response = await saasApiRequest('POST', '/api/saas/billing/payments', paymentData);
+      if (!response.ok) throw new Error('Failed to create payment');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Success", description: "Payment created successfully" });
+      refetchData();
+      refetchStats();
+      setShowCreatePayment(false);
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  // Update payment status mutation
+  const updatePaymentStatusMutation = useMutation({
+    mutationFn: async ({ paymentId, status, transactionId }: { paymentId: number; status: string; transactionId?: string }) => {
+      const response = await saasApiRequest('PUT', `/api/saas/billing/payments/${paymentId}/status`, {
+        status,
+        transactionId
+      });
+      if (!response.ok) throw new Error('Failed to update payment status');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Success", description: "Payment status updated successfully" });
+      refetchData();
+      refetchStats();
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  // Suspend unpaid subscriptions mutation
+  const suspendUnpaidMutation = useMutation({
+    mutationFn: async () => {
+      const response = await saasApiRequest('POST', '/api/saas/billing/suspend-unpaid');
+      if (!response.ok) throw new Error('Failed to suspend unpaid subscriptions');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Success", description: "Unpaid subscriptions suspended successfully" });
+      refetchData();
+      refetchStats();
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const formatCurrency = (amount: number, currency: string = 'GBP') => {
     return new Intl.NumberFormat('en-GB', {
       style: 'currency',
-      currency: 'GBP',
+      currency: currency,
     }).format(amount);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString('en-GB', {
       year: 'numeric',
+      month: 'short',
+      day: 'numeric',
     });
   };
 
-  if (isLoading) {
-    return (
-      <Card>
-        <CardContent className="flex items-center justify-center py-8">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      {/* Billing Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                <p className="text-3xl font-bold text-green-600">
-                  {formatCurrency(billingStats?.totalRevenue || 0)}
-                </p>
-              </div>
-              <DollarSign className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Monthly Recurring</p>
-                <p className="text-3xl font-bold text-blue-600">
-                  {formatCurrency(billingStats?.monthlyRecurring || 0)}
-                </p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Overdue Amount</p>
-                <p className="text-3xl font-bold text-red-600">
-                  {formatCurrency(billingStats?.overdueAmount || 0)}
-                </p>
-              </div>
-              <AlertTriangle className="h-8 w-8 text-red-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Active Subscriptions</p>
-                <p className="text-3xl font-bold text-gray-900">
-                  {billingStats?.activeSubscriptions || 0}
-                </p>
-              </div>
-              <CreditCard className="h-8 w-8 text-gray-600" />
-            </div>
-          </CardContent>
-        </Card>
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Billing & Payments</h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Comprehensive billing system with multi-payment method support
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <Button onClick={() => suspendUnpaidMutation.mutate()} variant="outline" className="gap-2">
+            <AlertTriangle className="w-4 h-4" />
+            Suspend Unpaid
+          </Button>
+          <Dialog open={showCreatePayment} onOpenChange={setShowCreatePayment}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="w-4 h-4" />
+                Create Payment
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Create New Payment</DialogTitle>
+              </DialogHeader>
+              <CreatePaymentForm 
+                onSubmit={(data) => createPaymentMutation.mutate(data)}
+                isLoading={createPaymentMutation.isPending}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
-      {/* Billing Management */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center space-x-2">
-              <CreditCard className="h-5 w-5 text-blue-600" />
-              <span>Billing & Invoices</span>
-            </CardTitle>
-            <div className="flex items-center space-x-2">
-              <Button size="sm" variant="outline">
-                <Download className="h-4 w-4 mr-2" />
-                Export
-              </Button>
-            </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="payments">Payments</TabsTrigger>
+          <TabsTrigger value="overdue">Overdue</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6">
+          {/* Key Metrics */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {statsLoading ? (
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  ) : (
+                    formatCurrency(billingStats?.totalRevenue || 0)
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">Last {dateRange} days</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Monthly Recurring</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {statsLoading ? (
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  ) : (
+                    formatCurrency(billingStats?.monthlyRecurring || 0)
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">MRR estimate</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Pending Payments</CardTitle>
+                <AlertTriangle className="h-4 w-4 text-amber-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {statsLoading ? (
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  ) : (
+                    formatCurrency(billingStats?.pendingPayments || 0)
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">Awaiting payment</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Overdue</CardTitle>
+                <AlertTriangle className="h-4 w-4 text-red-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {statsLoading ? (
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  ) : (
+                    formatCurrency(billingStats?.overduePayments || 0)
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">Past due</p>
+              </CardContent>
+            </Card>
           </div>
-        </CardHeader>
-        
-        <CardContent className="space-y-6">
+
+          {/* Payment Methods Breakdown */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Payment Methods</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {billingStats?.paymentMethods?.stripe || 0}
+                  </div>
+                  <p className="text-sm text-gray-600">Stripe</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-yellow-600">
+                    {billingStats?.paymentMethods?.paypal || 0}
+                  </div>
+                  <p className="text-sm text-gray-600">PayPal</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">
+                    {billingStats?.paymentMethods?.bankTransfer || 0}
+                  </div>
+                  <p className="text-sm text-gray-600">Bank Transfer</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-600">
+                    {billingStats?.paymentMethods?.cash || 0}
+                  </div>
+                  <p className="text-sm text-gray-600">Cash</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="payments" className="space-y-6">
           {/* Filters */}
           <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <div className="flex-1">
+              <Label htmlFor="search">Search Payments</Label>
               <Input
-                placeholder="Search by customer, invoice number..."
+                id="search"
+                placeholder="Search by customer, invoice, or description..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="mt-1"
               />
             </div>
-            <select
-              value={dateRange}
-              onChange={(e) => setDateRange(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="7">Last 7 days</option>
-              <option value="30">Last 30 days</option>
-              <option value="90">Last 90 days</option>
-              <option value="365">Last year</option>
-            </select>
-          </div>
-
-          {/* Billing Table */}
-          <div className="border rounded-lg overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Invoice</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Package</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {billingData?.invoices?.map((invoice: any) => (
-                  <TableRow key={invoice.id}>
-                    <TableCell>
-                      <div className="font-medium">#{invoice.invoiceNumber}</div>
-                      <div className="text-sm text-gray-500">
-                        {formatDate(invoice.createdAt)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{invoice.customerName}</div>
-                        <div className="text-sm text-gray-500">{invoice.customerEmail}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {invoice.packageName}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {formatCurrency(invoice.amount)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getStatusBadgeColor(invoice.status)}>
-                        {invoice.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {formatDate(invoice.dueDate)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Button size="sm" variant="outline">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-
-          {billingData?.invoices?.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              No billing records found for the selected period
+            <div className="w-full sm:w-48">
+              <Label htmlFor="dateRange">Date Range</Label>
+              <Select value={dateRange} onValueChange={setDateRange}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7">Last 7 days</SelectItem>
+                  <SelectItem value="30">Last 30 days</SelectItem>
+                  <SelectItem value="90">Last 90 days</SelectItem>
+                  <SelectItem value="365">Last year</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </div>
+
+          {/* Payments Table */}
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>All Payments</CardTitle>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Download className="w-4 h-4" />
+                  Export
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {dataLoading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left py-2 px-3">Invoice</th>
+                        <th className="text-left py-2 px-3">Customer</th>
+                        <th className="text-left py-2 px-3">Amount</th>
+                        <th className="text-left py-2 px-3">Method</th>
+                        <th className="text-left py-2 px-3">Status</th>
+                        <th className="text-left py-2 px-3">Date</th>
+                        <th className="text-left py-2 px-3">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {billingData?.invoices?.length > 0 ? (
+                        billingData.invoices.map((payment: any) => (
+                          <tr key={payment.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
+                            <td className="py-3 px-3">
+                              <span className="font-mono text-sm">{payment.invoiceNumber}</span>
+                            </td>
+                            <td className="py-3 px-3">{payment.organizationName || 'Unknown'}</td>
+                            <td className="py-3 px-3 font-semibold">
+                              {formatCurrency(parseFloat(payment.amount), payment.currency)}
+                            </td>
+                            <td className="py-3 px-3">
+                              <div className="flex items-center gap-2">
+                                {getPaymentMethodIcon(payment.paymentMethod)}
+                                <span className="capitalize">{payment.paymentMethod.replace('_', ' ')}</span>
+                              </div>
+                            </td>
+                            <td className="py-3 px-3">
+                              {getPaymentStatusBadge(payment.paymentStatus)}
+                            </td>
+                            <td className="py-3 px-3 text-sm text-gray-600">
+                              {formatDate(payment.createdAt)}
+                            </td>
+                            <td className="py-3 px-3">
+                              <div className="flex items-center gap-2">
+                                <Button variant="ghost" size="sm">
+                                  <Eye className="w-4 h-4" />
+                                </Button>
+                                {payment.paymentStatus === 'pending' && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={() => updatePaymentStatusMutation.mutate({
+                                      paymentId: payment.id,
+                                      status: 'completed'
+                                    })}
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={7} className="text-center py-8 text-gray-500">
+                            No payments found
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="overdue" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-red-500" />
+                Overdue Invoices
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {overdueLoading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left py-2 px-3">Invoice</th>
+                        <th className="text-left py-2 px-3">Customer</th>
+                        <th className="text-left py-2 px-3">Amount</th>
+                        <th className="text-left py-2 px-3">Due Date</th>
+                        <th className="text-left py-2 px-3">Days Overdue</th>
+                        <th className="text-left py-2 px-3">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {overdueInvoices?.length > 0 ? (
+                        overdueInvoices.map((invoice: any) => (
+                          <tr key={invoice.id} className="border-b hover:bg-red-50 dark:hover:bg-red-900/10">
+                            <td className="py-3 px-3">
+                              <span className="font-mono text-sm">{invoice.invoiceNumber}</span>
+                            </td>
+                            <td className="py-3 px-3">{invoice.organizationName}</td>
+                            <td className="py-3 px-3 font-semibold text-red-600">
+                              {formatCurrency(parseFloat(invoice.amount))}
+                            </td>
+                            <td className="py-3 px-3 text-sm">{formatDate(invoice.dueDate)}</td>
+                            <td className="py-3 px-3">
+                              <Badge variant="destructive">{invoice.daysPastDue} days</Badge>
+                            </td>
+                            <td className="py-3 px-3">
+                              <div className="flex items-center gap-2">
+                                <Button variant="outline" size="sm">
+                                  Send Reminder
+                                </Button>
+                                <Button variant="ghost" size="sm">
+                                  <Eye className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={6} className="text-center py-8 text-gray-500">
+                            No overdue invoices
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Revenue Trend</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8 text-gray-500">
+                  Revenue chart will be implemented with a charting library
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Payment Methods Distribution</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8 text-gray-500">
+                  Payment method pie chart will be implemented
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
+  );
+}
+
+// Create Payment Form Component
+interface CreatePaymentFormProps {
+  onSubmit: (data: any) => void;
+  isLoading: boolean;
+}
+
+function CreatePaymentForm({ onSubmit, isLoading }: CreatePaymentFormProps) {
+  const [formData, setFormData] = useState({
+    organizationId: '',
+    amount: '',
+    currency: 'GBP',
+    paymentMethod: 'stripe',
+    description: '',
+    dueDate: '',
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit({
+      ...formData,
+      organizationId: parseInt(formData.organizationId),
+      amount: parseFloat(formData.amount),
+      dueDate: new Date(formData.dueDate),
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="organizationId">Organization ID</Label>
+        <Input
+          id="organizationId"
+          type="number"
+          value={formData.organizationId}
+          onChange={(e) => setFormData({ ...formData, organizationId: e.target.value })}
+          required
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="amount">Amount</Label>
+          <Input
+            id="amount"
+            type="number"
+            step="0.01"
+            value={formData.amount}
+            onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="currency">Currency</Label>
+          <Select value={formData.currency} onValueChange={(value) => setFormData({ ...formData, currency: value })}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="GBP">GBP (£)</SelectItem>
+              <SelectItem value="USD">USD ($)</SelectItem>
+              <SelectItem value="EUR">EUR (€)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="paymentMethod">Payment Method</Label>
+        <Select value={formData.paymentMethod} onValueChange={(value) => setFormData({ ...formData, paymentMethod: value })}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="stripe">Stripe</SelectItem>
+            <SelectItem value="paypal">PayPal</SelectItem>
+            <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+            <SelectItem value="cash">Cash</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label htmlFor="dueDate">Due Date</Label>
+        <Input
+          id="dueDate"
+          type="date"
+          value={formData.dueDate}
+          onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+          required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          placeholder="Payment description..."
+        />
+      </div>
+
+      <div className="flex justify-end gap-3 pt-4">
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+          Create Payment
+        </Button>
+      </div>
+    </form>
   );
 }

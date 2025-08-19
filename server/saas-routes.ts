@@ -425,7 +425,35 @@ export function registerSaaSRoutes(app: Express) {
     }
   });
 
-  // Billing Management
+  // ============================================
+  // COMPREHENSIVE BILLING & PAYMENT MANAGEMENT
+  // ============================================
+
+  // Get billing statistics
+  app.get('/api/saas/billing/stats', verifySaaSToken, async (req: Request, res: Response) => {
+    try {
+      const { dateRange } = req.query;
+      const stats = await storage.getBillingStats(dateRange as string);
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching billing stats:', error);
+      res.status(500).json({ message: 'Failed to fetch billing statistics' });
+    }
+  });
+
+  // Get billing data (payments/invoices) - Updated endpoint
+  app.get('/api/saas/billing/data', verifySaaSToken, async (req: Request, res: Response) => {
+    try {
+      const { search, dateRange } = req.query;
+      const billingData = await storage.getBillingData(search as string, dateRange as string);
+      res.json(billingData);
+    } catch (error) {
+      console.error('Error fetching billing data:', error);
+      res.status(500).json({ message: 'Failed to fetch billing data' });
+    }
+  });
+
+  // Legacy billing endpoint for backwards compatibility
   app.get('/api/saas/billing', verifySaaSToken, async (req: Request, res: Response) => {
     try {
       const { search, dateRange } = req.query;
@@ -437,14 +465,181 @@ export function registerSaaSRoutes(app: Express) {
     }
   });
 
-  app.get('/api/saas/billing/stats', verifySaaSToken, async (req: Request, res: Response) => {
+  // Get overdue invoices
+  app.get('/api/saas/billing/overdue', verifySaaSToken, async (req: Request, res: Response) => {
     try {
-      const { dateRange } = req.query;
-      const stats = await storage.getBillingStats(dateRange as string);
-      res.json(stats);
+      const overdueInvoices = await storage.getOverdueInvoices();
+      res.json(overdueInvoices);
     } catch (error) {
-      console.error('Error fetching billing stats:', error);
-      res.status(500).json({ message: 'Failed to fetch billing stats' });
+      console.error('Error fetching overdue invoices:', error);
+      res.status(500).json({ message: 'Failed to fetch overdue invoices' });
+    }
+  });
+
+  // Create a new payment
+  app.post('/api/saas/billing/payments', verifySaaSToken, async (req: Request, res: Response) => {
+    try {
+      const paymentData = req.body;
+      
+      // Validate required fields
+      if (!paymentData.organizationId || !paymentData.amount || !paymentData.paymentMethod) {
+        return res.status(400).json({ 
+          message: 'Organization ID, amount, and payment method are required' 
+        });
+      }
+
+      // Set default values
+      const payment = await storage.createPayment({
+        ...paymentData,
+        invoiceNumber: paymentData.invoiceNumber || `INV-${Date.now()}`,
+        currency: paymentData.currency || 'GBP',
+        paymentStatus: 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+
+      res.status(201).json(payment);
+    } catch (error) {
+      console.error('Error creating payment:', error);
+      res.status(500).json({ message: 'Failed to create payment' });
+    }
+  });
+
+  // Update payment status
+  app.put('/api/saas/billing/payments/:paymentId/status', verifySaaSToken, async (req: Request, res: Response) => {
+    try {
+      const { paymentId } = req.params;
+      const { status, transactionId } = req.body;
+
+      if (!status) {
+        return res.status(400).json({ message: 'Status is required' });
+      }
+
+      // Validate status values
+      const validStatuses = ['pending', 'completed', 'failed', 'cancelled', 'refunded'];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ 
+          message: `Invalid status. Must be one of: ${validStatuses.join(', ')}` 
+        });
+      }
+
+      const payment = await storage.updatePaymentStatus(
+        parseInt(paymentId), 
+        status, 
+        transactionId
+      );
+
+      res.json(payment);
+    } catch (error) {
+      console.error('Error updating payment status:', error);
+      res.status(500).json({ message: 'Failed to update payment status' });
+    }
+  });
+
+  // Create invoice
+  app.post('/api/saas/billing/invoices', verifySaaSToken, async (req: Request, res: Response) => {
+    try {
+      const invoiceData = req.body;
+      
+      if (!invoiceData.organizationId || !invoiceData.amount) {
+        return res.status(400).json({ 
+          message: 'Organization ID and amount are required' 
+        });
+      }
+
+      const invoice = await storage.createInvoice({
+        ...invoiceData,
+        invoiceNumber: invoiceData.invoiceNumber || `INV-${Date.now()}`,
+        currency: invoiceData.currency || 'GBP',
+        status: invoiceData.status || 'draft',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+
+      res.status(201).json(invoice);
+    } catch (error) {
+      console.error('Error creating invoice:', error);
+      res.status(500).json({ message: 'Failed to create invoice' });
+    }
+  });
+
+  // Suspend unpaid subscriptions
+  app.post('/api/saas/billing/suspend-unpaid', verifySaaSToken, async (req: Request, res: Response) => {
+    try {
+      await storage.suspendUnpaidSubscriptions();
+      res.json({ 
+        success: true, 
+        message: 'Unpaid subscriptions have been suspended successfully' 
+      });
+    } catch (error) {
+      console.error('Error suspending unpaid subscriptions:', error);
+      res.status(500).json({ message: 'Failed to suspend unpaid subscriptions' });
+    }
+  });
+
+  // Monthly recurring revenue calculation endpoint
+  app.get('/api/saas/billing/mrr', verifySaaSToken, async (req: Request, res: Response) => {
+    try {
+      const mrr = await storage.calculateMonthlyRecurring();
+      res.json({ 
+        monthlyRecurringRevenue: mrr,
+        currency: 'GBP',
+        calculatedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error calculating MRR:', error);
+      res.status(500).json({ message: 'Failed to calculate monthly recurring revenue' });
+    }
+  });
+
+  // Generate payment report (CSV export)
+  app.get('/api/saas/billing/export', verifySaaSToken, async (req: Request, res: Response) => {
+    try {
+      const { dateRange, format = 'csv' } = req.query;
+      
+      // Get billing data for export
+      const billingData = await storage.getBillingData('', dateRange as string);
+      
+      if (format === 'csv') {
+        // Generate CSV content
+        const headers = [
+          'Invoice Number',
+          'Customer',
+          'Amount',
+          'Currency',
+          'Payment Method', 
+          'Status',
+          'Created Date',
+          'Due Date',
+          'Description'
+        ];
+        
+        let csvContent = headers.join(',') + '\n';
+        
+        billingData.invoices.forEach((invoice: any) => {
+          const row = [
+            invoice.invoiceNumber,
+            invoice.organizationName || 'Unknown',
+            invoice.amount,
+            invoice.currency,
+            invoice.paymentMethod.replace('_', ' '),
+            invoice.paymentStatus,
+            new Date(invoice.createdAt).toLocaleDateString(),
+            invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : '',
+            invoice.description || ''
+          ];
+          csvContent += row.map(field => `"${field}"`).join(',') + '\n';
+        });
+        
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="billing-report-${new Date().toISOString().split('T')[0]}.csv"`);
+        res.send(csvContent);
+      } else {
+        res.status(400).json({ message: 'Unsupported export format' });
+      }
+    } catch (error) {
+      console.error('Error exporting billing data:', error);
+      res.status(500).json({ message: 'Failed to export billing data' });
     }
   });
 

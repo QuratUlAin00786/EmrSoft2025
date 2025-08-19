@@ -62,6 +62,63 @@ export const saasSubscriptions = pgTable("saas_subscriptions", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// SaaS Payments - Track all payment methods and transactions
+export const saasPayments = pgTable("saas_payments", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  subscriptionId: integer("subscription_id"),
+  invoiceNumber: varchar("invoice_number", { length: 50 }).notNull().unique(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).notNull().default("GBP"),
+  paymentMethod: varchar("payment_method", { length: 20 }).notNull(), // cash, stripe, paypal, bank_transfer
+  paymentStatus: varchar("payment_status", { length: 20 }).notNull().default("pending"), // pending, completed, failed, refunded
+  paymentDate: timestamp("payment_date"),
+  dueDate: timestamp("due_date").notNull(),
+  periodStart: timestamp("period_start").notNull(),
+  periodEnd: timestamp("period_end").notNull(),
+  paymentProvider: varchar("payment_provider", { length: 50 }), // stripe_payment_intent_id, paypal_order_id, etc.
+  providerTransactionId: text("provider_transaction_id"), // External payment ID
+  description: text("description"),
+  metadata: jsonb("metadata").$type<{
+    stripePaymentIntentId?: string;
+    paypalOrderId?: string;
+    bankTransferDetails?: {
+      accountNumber?: string;
+      sortCode?: string;
+      reference?: string;
+    };
+    cashReceiptNumber?: string;
+    notes?: string;
+  }>().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// SaaS Invoices - Track billing invoices
+export const saasInvoices = pgTable("saas_invoices", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  subscriptionId: integer("subscription_id").notNull(),
+  invoiceNumber: varchar("invoice_number", { length: 50 }).notNull().unique(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).notNull().default("GBP"),
+  status: varchar("status", { length: 20 }).notNull().default("draft"), // draft, sent, paid, overdue, cancelled
+  issueDate: timestamp("issue_date").notNull(),
+  dueDate: timestamp("due_date").notNull(),
+  paidDate: timestamp("paid_date"),
+  periodStart: timestamp("period_start").notNull(),
+  periodEnd: timestamp("period_end").notNull(),
+  lineItems: jsonb("line_items").$type<{
+    description: string;
+    quantity: number;
+    rate: number;
+    amount: number;
+  }[]>().default([]),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Organizations (Tenants)
 export const organizations = pgTable("organizations", {
   id: serial("id").primaryKey(),
@@ -982,11 +1039,49 @@ export const messages = pgTable("messages", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// SaaS Relations
+export const saasSubscriptionsRelations = relations(saasSubscriptions, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [saasSubscriptions.organizationId],
+    references: [organizations.id],
+  }),
+  package: one(saasPackages, {
+    fields: [saasSubscriptions.packageId],
+    references: [saasPackages.id],
+  }),
+  payments: many(saasPayments),
+  invoices: many(saasInvoices),
+}));
+
+export const saasPaymentsRelations = relations(saasPayments, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [saasPayments.organizationId],
+    references: [organizations.id],
+  }),
+  subscription: one(saasSubscriptions, {
+    fields: [saasPayments.subscriptionId],
+    references: [saasSubscriptions.id],
+  }),
+}));
+
+export const saasInvoicesRelations = relations(saasInvoices, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [saasInvoices.organizationId],
+    references: [organizations.id],
+  }),
+  subscription: one(saasSubscriptions, {
+    fields: [saasInvoices.subscriptionId],
+    references: [saasSubscriptions.id],
+  }),
+}));
+
 // Relations
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   users: many(users),
   patients: many(patients),
   subscription: many(subscriptions),
+  saasPayments: many(saasPayments),
+  saasInvoices: many(saasInvoices),
 }));
 
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -1786,6 +1881,19 @@ export type InsertConversation = z.infer<typeof insertConversationSchema>;
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 
+// SaaS Insert Schemas
+export const insertSaaSPaymentSchema = createInsertSchema(saasPayments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSaaSInvoiceSchema = createInsertSchema(saasInvoices).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // SaaS Types
 export type SaaSOwner = typeof saasOwners.$inferSelect;
 export type InsertSaaSOwner = typeof saasOwners.$inferInsert;
@@ -1795,3 +1903,9 @@ export type InsertSaaSPackage = typeof saasPackages.$inferInsert;
 
 export type SaaSSubscription = typeof saasSubscriptions.$inferSelect;
 export type InsertSaaSSubscription = typeof saasSubscriptions.$inferInsert;
+
+export type SaaSPayment = typeof saasPayments.$inferSelect;
+export type InsertSaaSPayment = z.infer<typeof insertSaaSPaymentSchema>;
+
+export type SaaSInvoice = typeof saasInvoices.$inferSelect;
+export type InsertSaaSInvoice = z.infer<typeof insertSaaSInvoiceSchema>;

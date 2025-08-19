@@ -1,5 +1,5 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations, messages, saasOwners, saasPackages, saasSubscriptions,
+  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations, messages, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Role, type InsertRole,
@@ -29,10 +29,12 @@ import {
   type Message, type InsertMessage,
   type SaaSOwner, type InsertSaaSOwner,
   type SaaSPackage, type InsertSaaSPackage,
-  type SaaSSubscription, type InsertSaaSSubscription
+  type SaaSSubscription, type InsertSaaSSubscription,
+  type SaaSPayment, type InsertSaaSPayment,
+  type SaaSInvoice, type InsertSaaSInvoice
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, count, not, sql, gte, lt, lte, isNotNull } from "drizzle-orm";
+import { eq, and, desc, asc, count, not, sql, gte, lt, lte, isNotNull, or, ilike } from "drizzle-orm";
 
 export interface IStorage {
   // Organizations
@@ -257,8 +259,14 @@ export interface IStorage {
   createPackage(packageData: InsertSaaSPackage): Promise<SaaSPackage>;
   updatePackage(id: number, packageData: Partial<InsertSaaSPackage>): Promise<SaaSPackage>;
   deletePackage(id: number): Promise<any>;
-  getBillingData(search?: string, dateRange?: string): Promise<any>;
+  getBillingData(searchTerm?: string, dateRange?: string): Promise<{ invoices: any[], total: number }>;
   getBillingStats(dateRange?: string): Promise<any>;
+  createPayment(paymentData: any): Promise<any>;
+  updatePaymentStatus(paymentId: number, status: string, transactionId?: string): Promise<any>;
+  suspendUnpaidSubscriptions(): Promise<void>;
+  createInvoice(invoiceData: any): Promise<any>;
+  getOverdueInvoices(): Promise<any[]>;
+  calculateMonthlyRecurring(): Promise<number>;
   getSaaSSettings(): Promise<any>;
   updateSaaSSettings(settings: any): Promise<any>;
   testEmailSettings(): Promise<any>;
@@ -3381,22 +3389,278 @@ export class DatabaseStorage implements IStorage {
     return { success: true };
   }
 
-  async getBillingData(search?: string, dateRange?: string): Promise<any> {
-    // Placeholder for billing data - would integrate with payment processor
+  // Comprehensive Billing System with All Payment Methods
+  
+  async getBillingData(searchTerm?: string, dateRange?: string): Promise<{ invoices: any[], total: number }> {
+    const daysBack = dateRange ? parseInt(dateRange) : 30;
+    const dateFilter = new Date();
+    dateFilter.setDate(dateFilter.getDate() - daysBack);
+    
+    let query = db.select({
+      id: saasPayments.id,
+      organizationName: organizations.name,
+      invoiceNumber: saasPayments.invoiceNumber,
+      amount: saasPayments.amount,
+      currency: saasPayments.currency,
+      paymentMethod: saasPayments.paymentMethod,
+      paymentStatus: saasPayments.paymentStatus,
+      paymentDate: saasPayments.paymentDate,
+      dueDate: saasPayments.dueDate,
+      description: saasPayments.description,
+      metadata: saasPayments.metadata,
+      createdAt: saasPayments.createdAt
+    })
+    .from(saasPayments)
+    .leftJoin(organizations, eq(saasPayments.organizationId, organizations.id));
+
+    // Apply date filter
+    query = query.where(gte(saasPayments.createdAt, dateFilter));
+
+    // Apply search filter
+    if (searchTerm && searchTerm.trim() !== '') {
+      query = query.where(
+        or(
+          ilike(organizations.name, `%${searchTerm}%`),
+          ilike(saasPayments.invoiceNumber, `%${searchTerm}%`),
+          ilike(saasPayments.description, `%${searchTerm}%`)
+        )
+      );
+    }
+
+    const results = await query.orderBy(desc(saasPayments.createdAt));
+    
     return {
-      invoices: [],
-      total: 0,
+      invoices: results,
+      total: results.length
     };
   }
 
   async getBillingStats(dateRange?: string): Promise<any> {
-    // Placeholder for billing stats
-    return {
-      totalRevenue: 0,
-      monthlyRecurring: 0,
-      overdueAmount: 0,
-      activeSubscriptions: 0,
+    const daysBack = dateRange ? parseInt(dateRange) : 30;
+    const dateFilter = new Date();
+    dateFilter.setDate(dateFilter.getDate() - daysBack);
+    
+    try {
+      // Get all payments in date range
+      const payments = await db.select()
+        .from(saasPayments)
+        .where(gte(saasPayments.createdAt, dateFilter));
+      
+      // Calculate statistics
+      const totalRevenue = payments
+        .filter(p => p.paymentStatus === 'completed')
+        .reduce((sum, p) => sum + parseFloat(p.amount), 0);
+      
+      const pendingPayments = payments
+        .filter(p => p.paymentStatus === 'pending')
+        .reduce((sum, p) => sum + parseFloat(p.amount), 0);
+      
+      const overduePayments = payments
+        .filter(p => p.paymentStatus === 'pending' && new Date(p.dueDate) < new Date())
+        .reduce((sum, p) => sum + parseFloat(p.amount), 0);
+      
+      // Count active subscriptions
+      const activeSubscriptions = await db.select({ count: count() })
+        .from(saasSubscriptions)
+        .where(eq(saasSubscriptions.status, 'active'));
+      
+      // Payment method breakdown
+      const paymentMethods = {
+        stripe: payments.filter(p => p.paymentMethod === 'stripe').length,
+        paypal: payments.filter(p => p.paymentMethod === 'paypal').length,
+        bankTransfer: payments.filter(p => p.paymentMethod === 'bank_transfer').length,
+        cash: payments.filter(p => p.paymentMethod === 'cash').length
+      };
+      
+      // Monthly recurring revenue (estimate based on active subscriptions)
+      const monthlyRecurring = await this.calculateMonthlyRecurring();
+      
+      return {
+        totalRevenue: Math.round(totalRevenue * 100) / 100,
+        monthlyRecurring: Math.round(monthlyRecurring * 100) / 100,
+        activeSubscriptions: activeSubscriptions[0]?.count || 0,
+        pendingPayments: Math.round(pendingPayments * 100) / 100,
+        overduePayments: Math.round(overduePayments * 100) / 100,
+        paymentMethods
+      };
+    } catch (error) {
+      console.error('Error fetching billing stats:', error);
+      return {
+        totalRevenue: 0,
+        monthlyRecurring: 0,
+        activeSubscriptions: 0,
+        pendingPayments: 0,
+        overduePayments: 0,
+        paymentMethods: { stripe: 0, paypal: 0, bankTransfer: 0, cash: 0 }
+      };
+    }
+  }
+  
+  async calculateMonthlyRecurring(): Promise<number> {
+    try {
+      const activeSubscriptions = await db.select({
+        packageId: saasSubscriptions.packageId,
+        packagePrice: saasPackages.price
+      })
+      .from(saasSubscriptions)
+      .leftJoin(saasPackages, eq(saasSubscriptions.packageId, saasPackages.id))
+      .where(eq(saasSubscriptions.status, 'active'));
+      
+      return activeSubscriptions.reduce((total, sub) => {
+        const price = parseFloat(sub.packagePrice || '0');
+        return total + price;
+      }, 0);
+    } catch (error) {
+      console.error('Error calculating monthly recurring revenue:', error);
+      return 0;
+    }
+  }
+
+  // Payment Management Methods
+  
+  async createPayment(paymentData: any): Promise<any> {
+    const [payment] = await db.insert(saasPayments).values({
+      organizationId: paymentData.organizationId,
+      subscriptionId: paymentData.subscriptionId,
+      invoiceNumber: paymentData.invoiceNumber || `INV-${Date.now()}`,
+      amount: paymentData.amount,
+      currency: paymentData.currency || 'GBP',
+      paymentMethod: paymentData.paymentMethod,
+      paymentStatus: paymentData.paymentStatus || 'pending',
+      paymentDate: paymentData.paymentDate,
+      dueDate: paymentData.dueDate,
+      periodStart: paymentData.periodStart,
+      periodEnd: paymentData.periodEnd,
+      paymentProvider: paymentData.paymentProvider,
+      providerTransactionId: paymentData.providerTransactionId,
+      description: paymentData.description,
+      metadata: paymentData.metadata || {}
+    }).returning();
+    
+    return payment;
+  }
+  
+  async updatePaymentStatus(paymentId: number, status: string, transactionId?: string): Promise<any> {
+    const updateData: any = { 
+      paymentStatus: status,
+      updatedAt: new Date()
     };
+    
+    if (status === 'completed') {
+      updateData.paymentDate = new Date();
+    }
+    
+    if (transactionId) {
+      updateData.providerTransactionId = transactionId;
+    }
+    
+    const [payment] = await db.update(saasPayments)
+      .set(updateData)
+      .where(eq(saasPayments.id, paymentId))
+      .returning();
+    
+    // If payment is completed, update subscription status if needed
+    if (status === 'completed' && payment?.subscriptionId) {
+      await this.updateSubscriptionAfterPayment(payment.subscriptionId);
+    }
+    
+    return payment;
+  }
+  
+  async updateSubscriptionAfterPayment(subscriptionId: number): Promise<void> {
+    // Reactivate subscription if it was suspended due to non-payment
+    await db.update(saasSubscriptions)
+      .set({ 
+        status: 'active',
+        updatedAt: new Date()
+      })
+      .where(
+        and(
+          eq(saasSubscriptions.id, subscriptionId),
+          eq(saasSubscriptions.status, 'past_due')
+        )
+      );
+      
+    // Also update organization status
+    const subscription = await db.select()
+      .from(saasSubscriptions)
+      .where(eq(saasSubscriptions.id, subscriptionId))
+      .limit(1);
+      
+    if (subscription.length > 0) {
+      await db.update(organizations)
+        .set({ subscriptionStatus: 'active' })
+        .where(eq(organizations.id, subscription[0].organizationId));
+    }
+  }
+  
+  async suspendUnpaidSubscriptions(): Promise<void> {
+    // Find overdue payments
+    const overduePayments = await db.select({
+      subscriptionId: saasPayments.subscriptionId,
+      organizationId: saasPayments.organizationId
+    })
+    .from(saasPayments)
+    .where(
+      and(
+        eq(saasPayments.paymentStatus, 'pending'),
+        lt(saasPayments.dueDate, new Date())
+      )
+    );
+    
+    // Suspend subscriptions and organizations
+    for (const payment of overduePayments) {
+      if (payment.subscriptionId) {
+        await db.update(saasSubscriptions)
+          .set({ status: 'past_due' })
+          .where(eq(saasSubscriptions.id, payment.subscriptionId));
+      }
+      
+      await db.update(organizations)
+        .set({ subscriptionStatus: 'suspended' })
+        .where(eq(organizations.id, payment.organizationId));
+    }
+  }
+  
+  // Invoice Management
+  
+  async createInvoice(invoiceData: any): Promise<any> {
+    const [invoice] = await db.insert(saasInvoices).values({
+      organizationId: invoiceData.organizationId,
+      subscriptionId: invoiceData.subscriptionId,
+      invoiceNumber: invoiceData.invoiceNumber || `INV-${Date.now()}`,
+      amount: invoiceData.amount,
+      currency: invoiceData.currency || 'GBP',
+      status: invoiceData.status || 'draft',
+      issueDate: invoiceData.issueDate || new Date(),
+      dueDate: invoiceData.dueDate,
+      periodStart: invoiceData.periodStart,
+      periodEnd: invoiceData.periodEnd,
+      lineItems: invoiceData.lineItems || [],
+      notes: invoiceData.notes
+    }).returning();
+    
+    return invoice;
+  }
+  
+  async getOverdueInvoices(): Promise<any[]> {
+    return await db.select({
+      id: saasInvoices.id,
+      organizationName: organizations.name,
+      invoiceNumber: saasInvoices.invoiceNumber,
+      amount: saasInvoices.amount,
+      dueDate: saasInvoices.dueDate,
+      daysPastDue: sql<number>`EXTRACT(day FROM NOW() - ${saasInvoices.dueDate})`
+    })
+    .from(saasInvoices)
+    .leftJoin(organizations, eq(saasInvoices.organizationId, organizations.id))
+    .where(
+      and(
+        eq(saasInvoices.status, 'sent'),
+        lt(saasInvoices.dueDate, new Date())
+      )
+    )
+    .orderBy(desc(saasInvoices.dueDate));
   }
 
   async getSaaSSettings(): Promise<any> {
