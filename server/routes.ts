@@ -1040,7 +1040,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const dayOfWeek = today.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
       
       // Get all staff shifts for today
-      let todayShifts = [];
+      let todayShifts: any[] = [];
       try {
         todayShifts = await storage.getStaffShiftsByOrganization(req.tenant!.id, today.toISOString().split('T')[0]);
       } catch (error) {
@@ -1079,7 +1079,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             } else {
               // No shift found - check working days to see if they normally work today
               const hasWorkingDays = user.workingDays && user.workingDays.length > 0;
-              const worksToday = hasWorkingDays && user.workingDays.includes(dayOfWeek);
+              const worksToday = hasWorkingDays && user.workingDays!.includes(dayOfWeek);
               
               console.log(`  - No shift found. Working days: ${user.workingDays || 'none'}`);
               console.log(`  - Works today (${dayOfWeek}): ${worksToday}`);
@@ -2310,7 +2310,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Twilio account information endpoint
   app.get("/api/messaging/account-info", authMiddleware, async (req: TenantRequest, res) => {
     try {
-      const messagingService = new MessagingService();
       const accountInfo = await messagingService.getAccountInfo();
       res.json(accountInfo);
     } catch (error) {
@@ -2334,9 +2333,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         phoneNumber,
         messageType,
         senderId: req.user!.id,
-        senderName: req.user!.firstName && req.user!.lastName 
-          ? `${req.user!.firstName} ${req.user!.lastName}` 
-          : req.user!.email,
+        senderName: req.user!.email, // Using email as fallback since firstName/lastName might not be available
         senderRole: req.user!.role
       };
       
@@ -2754,7 +2751,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       // 2. Get recent SMS/WhatsApp messages from database
-      const allMessages = await storage.getConversationMessages("", req.tenant!.id);
+      const allMessages = await storage.getMessages(req.tenant!.id);
       const recentMessages = allMessages
         .filter(msg => msg.messageType === 'sms' || msg.messageType === 'whatsapp')
         .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
@@ -3365,7 +3362,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else if (aiResponse.intent === 'prescription_inquiry' && aiResponse.prescriptionData?.search_query) {
         // Handle prescription search with OpenAI data
         try {
-          let prescriptions = [];
+          let prescriptions: any[] = [];
           const prescriptionData = aiResponse.prescriptionData;
           
           if (prescriptionData.patient_name) {
@@ -4461,7 +4458,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           phone: patientPhone,
           organizationId: tenant.id,
           patientId: `P${String(Date.now()).slice(-6)}`, // Generate patient ID
-          dateOfBirth: new Date().toISOString(), // Default date
+          dateOfBirth: new Date(), // Default date
           gender: 'other',
           address: '',
           emergencyContact: patientPhone,
@@ -4491,7 +4488,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         organizationId: tenant.id,
         title: `${appointmentType || 'General consultation'} - ${patientName}`,
         description: notes || `Website booking: ${appointmentType}`,
-        scheduledAt: scheduledDateTime.toISOString(),
+        scheduledAt: scheduledDateTime,
         duration: 30,
         type: appointmentType === 'emergency' ? 'emergency' : 'consultation',
         status: 'pending',
@@ -4563,7 +4560,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           phone: patientPhone,
           organizationId: tenant.id,
           patientId: `P${String(Date.now()).slice(-6)}`, // Generate patient ID
-          dateOfBirth: new Date().toISOString(), // Default date
+          dateOfBirth: new Date(), // Default date
           gender: 'other',
           address: '',
           emergencyContact: patientPhone,
