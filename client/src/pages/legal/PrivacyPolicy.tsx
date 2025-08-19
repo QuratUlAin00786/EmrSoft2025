@@ -17,7 +17,7 @@ export default function PrivacyPolicy() {
                 className="h-12 w-auto"
               />
               <div className="flex flex-col">
-                <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">by Averox Ltd</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">by Cura Software Ltd</span>
               </div>
             </Link>
             
@@ -47,10 +47,12 @@ export default function PrivacyPolicy() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">1. Company Information</h2>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
-              This Privacy Policy is provided by Averox Ltd, Registration: TBD, Address: [To be provided by Averox Ltd].
+              This Privacy Policy is provided by Cura Software Limited, a company incorporated in England & Wales 
+              under registration number 16556912, whose registered office is situated at Ground Floor Unit 2, 
+              Drayton Court, Drayton Road, Solihull, England B90 4NG.
             </p>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
-              Averox Ltd operates the Cura EMR platform.
+              Cura Software Limited operates the Cura EMR platform.
             </p>
           </section>
 

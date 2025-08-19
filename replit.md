@@ -1,14 +1,14 @@
 # Cura EMR System
 
 ## Overview
-Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system by Averox Ltd. It provides patient management, appointment scheduling, AI-powered clinical insights, telemedicine, and workflow automation. The system focuses on healthcare compliance (including GDPR) and aims to streamline operations with advanced technology, enhancing healthcare delivery through AI and efficient digital tools for a broad market of healthcare organizations.
+Cura is a comprehensive multi-tenant Electronic Medical Records (EMR) system by Cura Software Limited. It provides patient management, appointment scheduling, AI-powered clinical insights, telemedicine, and workflow automation. The system focuses on healthcare compliance (including GDPR) and aims to streamline operations with advanced technology, enhancing healthcare delivery through AI and efficient digital tools for a broad market of healthcare organizations.
 
 ## Recent Legal Framework Implementation (January 2025)
-Complete legal framework implemented for Averox Ltd:
-- **Company Information**: Averox Ltd, Registration: TBD, Address: [To be provided by Averox Ltd]
+Complete legal framework implemented for Cura Software Limited:
+- **Company Information**: Cura Software Limited, Registration: 16556912, Address: Ground Floor Unit 2, Drayton Court, Drayton Road, Solihull, England B90 4NG
 - **Legal Pages**: Privacy Policy, Terms of Service, GDPR Compliance, Press & Media Centre
 - **UK Compliance**: Full UK GDPR compliance framework with detailed data protection measures
-- **Company Branding**: Updated footer and legal pages with official Averox Ltd details
+- **Company Branding**: Updated footer and legal pages with official Cura Software Limited details
 - **Navigation**: Proper routing structure for all legal pages accessible from landing page footer
 
 ## User Preferences

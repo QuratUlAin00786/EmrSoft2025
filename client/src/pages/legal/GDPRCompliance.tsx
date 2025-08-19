@@ -17,7 +17,7 @@ export default function GDPRCompliance() {
                 className="h-12 w-auto"
               />
               <div className="flex flex-col">
-                <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">by Averox Ltd</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">by Cura Software Ltd</span>
               </div>
             </Link>
             
@@ -39,7 +39,7 @@ export default function GDPRCompliance() {
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white">GDPR Compliance</h1>
           </div>
           <p className="text-gray-600 dark:text-gray-300 text-lg">
-            How Averox Ltd ensures full compliance with UK GDPR and data protection regulations
+            How Cura Software Limited ensures full compliance with UK GDPR and data protection regulations
           </p>
         </div>
 
@@ -47,7 +47,7 @@ export default function GDPRCompliance() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">Our Commitment to Data Protection</h2>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
-              Averox Ltd is fully committed to protecting your personal data and respecting your privacy rights. 
+              Cura Software Limited is fully committed to protecting your personal data and respecting your privacy rights. 
               As a healthcare technology company processing sensitive medical information, we maintain the highest standards 
               of data protection compliance.
             </p>

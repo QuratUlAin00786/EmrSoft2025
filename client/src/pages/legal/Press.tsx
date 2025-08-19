@@ -9,7 +9,7 @@ export default function Press() {
   const pressReleases = [
     {
       id: 1,
-      title: "Averox Ltd Launches Revolutionary AI-Powered EMR Platform",
+      title: "Cura Software Limited Launches Revolutionary AI-Powered EMR Platform",
       date: "15th January 2025",
       summary: "Cura EMR introduces cutting-edge artificial intelligence capabilities to streamline healthcare workflows and improve patient outcomes across the UK.",
       category: "Product Launch",
@@ -17,9 +17,9 @@ export default function Press() {
     },
     {
       id: 2,
-      title: "Averox Ltd Expands Healthcare Technology Portfolio with Cura EMR",
+      title: "Cura Software Limited Expands Healthcare Technology Portfolio with Cura EMR",
       date: "8th December 2024",
-      summary: "Strategic investment in healthcare technology demonstrates Averox Ltd's commitment to transforming medical practice management.",
+      summary: "Strategic investment in healthcare technology demonstrates Cura Software Limited's commitment to transforming medical practice management.",
       category: "Company News",
       featured: false
     },
@@ -67,7 +67,7 @@ export default function Press() {
                 className="h-12 w-auto"
               />
               <div className="flex flex-col">
-                <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">by Averox Ltd</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">by Cura Software Ltd</span>
               </div>
             </Link>
             
