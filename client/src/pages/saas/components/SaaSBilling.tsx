@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,9 +10,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, CreditCard, DollarSign, AlertTriangle, TrendingUp, Plus, Filter, Download, Eye, Edit, Trash2 } from "lucide-react";
+import { Loader2, CreditCard, DollarSign, AlertTriangle, TrendingUp, Plus, Filter, Download, Eye, Edit, Trash2, FileText, Printer } from "lucide-react";
 import { queryClient, saasApiRequest } from "@/lib/saasQueryClient";
 import { useToast } from "@/hooks/use-toast";
+import InvoiceTemplate from "./InvoiceTemplate";
 
 // Payment status colors and icons
 const getPaymentStatusBadge = (status: string) => {
@@ -66,7 +67,10 @@ export default function SaaSBilling() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
   const [showCreatePayment, setShowCreatePayment] = useState(false);
+  const [showInvoiceDialog, setShowInvoiceDialog] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const { toast } = useToast();
+  const invoiceRef = useRef<HTMLDivElement>(null);
 
   // Fetch billing statistics
   const { data: billingStats, isLoading: statsLoading, refetch: refetchStats } = useQuery<BillingStats>({
@@ -157,6 +161,33 @@ export default function SaaSBilling() {
     },
   });
 
+  // Handle invoice viewing and printing
+  const handleViewInvoice = (payment: any) => {
+    setSelectedInvoice({
+      ...payment,
+      lineItems: [
+        {
+          description: payment.description || 'Cura EMR Software Subscription',
+          quantity: 1,
+          unitPrice: parseFloat(payment.amount),
+          total: parseFloat(payment.amount)
+        }
+      ]
+    });
+    setShowInvoiceDialog(true);
+  };
+
+  const handlePrintInvoice = () => {
+    if (invoiceRef.current) {
+      const printContent = invoiceRef.current.innerHTML;
+      const originalContent = document.body.innerHTML;
+      document.body.innerHTML = printContent;
+      window.print();
+      document.body.innerHTML = originalContent;
+      window.location.reload();
+    }
+  };
+
   const formatCurrency = (amount: number, currency: string = 'GBP') => {
     return new Intl.NumberFormat('en-GB', {
       style: 'currency',
@@ -206,6 +237,29 @@ export default function SaaSBilling() {
           </Dialog>
         </div>
       </div>
+
+      {/* Invoice Viewer Dialog */}
+      <Dialog open={showInvoiceDialog} onOpenChange={setShowInvoiceDialog}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex justify-between items-center">
+              <DialogTitle>Invoice #{selectedInvoice?.invoiceNumber}</DialogTitle>
+              <div className="flex gap-2">
+                <Button onClick={handlePrintInvoice} variant="outline" size="sm" className="gap-2">
+                  <Printer className="w-4 h-4" />
+                  Print
+                </Button>
+                <Button onClick={() => setShowInvoiceDialog(false)} variant="outline" size="sm">
+                  Close
+                </Button>
+              </div>
+            </div>
+          </DialogHeader>
+          {selectedInvoice && (
+            <InvoiceTemplate ref={invoiceRef} invoice={selectedInvoice} />
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
@@ -407,8 +461,13 @@ export default function SaaSBilling() {
                             </td>
                             <td className="py-3 px-3">
                               <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="sm">
-                                  <Eye className="w-4 h-4" />
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => handleViewInvoice(payment)}
+                                  title="View Invoice"
+                                >
+                                  <FileText className="w-4 h-4" />
                                 </Button>
                                 {payment.paymentStatus === 'pending' && (
                                   <Button 
@@ -418,6 +477,7 @@ export default function SaaSBilling() {
                                       paymentId: payment.id,
                                       status: 'completed'
                                     })}
+                                    title="Mark as Completed"
                                   >
                                     <Edit className="w-4 h-4" />
                                   </Button>
@@ -548,6 +608,7 @@ interface CreatePaymentFormProps {
 function CreatePaymentForm({ onSubmit, isLoading }: CreatePaymentFormProps) {
   const [formData, setFormData] = useState({
     organizationId: '',
+    organizationName: '',
     amount: '',
     currency: 'GBP',
     paymentMethod: 'stripe',
@@ -555,11 +616,23 @@ function CreatePaymentForm({ onSubmit, isLoading }: CreatePaymentFormProps) {
     dueDate: '',
   });
 
+  // Fetch organizations for dropdown
+  const { data: organizations } = useQuery({
+    queryKey: ['/api/saas/organizations'],
+    queryFn: async () => {
+      const response = await saasApiRequest('GET', '/api/saas/organizations');
+      if (!response.ok) throw new Error('Failed to fetch organizations');
+      return response.json();
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const selectedOrg = organizations?.find((org: any) => org.id.toString() === formData.organizationId);
     onSubmit({
       ...formData,
       organizationId: parseInt(formData.organizationId),
+      organizationName: selectedOrg?.name || '',
       amount: parseFloat(formData.amount),
       dueDate: new Date(formData.dueDate),
     });
@@ -568,14 +641,22 @@ function CreatePaymentForm({ onSubmit, isLoading }: CreatePaymentFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <Label htmlFor="organizationId">Organization ID</Label>
-        <Input
-          id="organizationId"
-          type="number"
-          value={formData.organizationId}
-          onChange={(e) => setFormData({ ...formData, organizationId: e.target.value })}
-          required
-        />
+        <Label htmlFor="organizationId">Organization</Label>
+        <Select 
+          value={formData.organizationId} 
+          onValueChange={(value) => setFormData({ ...formData, organizationId: value })}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select organization..." />
+          </SelectTrigger>
+          <SelectContent>
+            {organizations?.map((org: any) => (
+              <SelectItem key={org.id} value={org.id.toString()}>
+                {org.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
