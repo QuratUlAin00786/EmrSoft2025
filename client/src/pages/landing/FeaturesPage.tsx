@@ -52,9 +52,8 @@ export default function FeaturesPage() {
             </Link>
             
             <div className="flex items-center space-x-4">
-              <Link href="/landing" className="flex items-center text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 font-medium transition-colors">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Home
+              <Link href="/" className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 font-medium transition-colors">
+                Home
               </Link>
               <Link href="/landing/pricing" className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 font-medium transition-colors">
                 Pricing
@@ -135,7 +134,7 @@ export default function FeaturesPage() {
               <CardContent>
                 <p className="text-gray-600 dark:text-gray-300 mb-4">
                   Intelligent scheduling system with automated conflict detection, 
-                  resource optimization, and seamless calendar integration.
+                  resource optimisation, and seamless calendar integration.
                 </p>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-600 mr-2" />Multi-provider scheduling</li>
@@ -281,7 +280,7 @@ export default function FeaturesPage() {
                     <h4 className="font-semibold mb-2">Automated Appointment Booking</h4>
                     <p className="text-gray-600 dark:text-gray-300">
                       Patients can book appointments through natural conversation, 
-                      with automatic provider matching and scheduling optimization.
+                      with automatic provider matching and scheduling optimisation.
                     </p>
                   </div>
                 </div>

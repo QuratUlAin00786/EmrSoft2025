@@ -38,6 +38,9 @@ export default function LandingPage() {
             </div>
             
             <div className="hidden md:flex items-center space-x-8">
+              <Link href="/" className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 font-medium transition-colors">
+                Home
+              </Link>
               <Link href="/landing/features" className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 font-medium transition-colors">
                 Features
               </Link>
@@ -76,7 +79,7 @@ export default function LandingPage() {
                 <span className="text-blue-600"> Intelligent EMR</span>
               </h1>
               <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-                Cura EMR revolutionizes healthcare management with AI-powered insights, 
+                Cura EMR revolutionises healthcare management with AI-powered insights, 
                 seamless patient care, and comprehensive practice management tools designed 
                 for the modern healthcare professional.
               </p>

@@ -64,7 +64,7 @@ export function WebsiteChatbot() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
-      text: "Hi! I'm your Cura EMR assistant. I can help you with:\n\n• Book real appointments with doctors\n• Request prescription renewals\n• Schedule a system demo\n• Answer questions about features\n• Connect you with sales\n\nHow can I help you today?",
+      text: "Hello! I'm your Cura EMR assistant. I can help you with:\n\n• Book real appointments with doctors\n• Request prescription renewals\n• Schedule a system demo\n• Answer questions about features\n• Connect you with sales\n\nHow may I assist you today?",
       isUser: false,
       timestamp: new Date(),
       quickActions: [

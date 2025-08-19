@@ -33,9 +33,8 @@ export default function AboutPage() {
             </Link>
             
             <div className="flex items-center space-x-4">
-              <Link href="/landing" className="flex items-center text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 font-medium transition-colors">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Home
+              <Link href="/" className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 font-medium transition-colors">
+                Home
               </Link>
               <Link href="/landing/features" className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 font-medium transition-colors">
                 Features
@@ -60,7 +59,7 @@ export default function AboutPage() {
             About <span className="text-blue-600">Halo Group</span>
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-            We're on a mission to revolutionize healthcare through intelligent technology, 
+            We're on a mission to revolutionise healthcare through intelligent technology, 
             making quality care accessible, efficient, and intuitive for healthcare professionals worldwide.
           </p>
         </div>
@@ -111,7 +110,7 @@ export default function AboutPage() {
               Founded in Manchester, United Kingdom, Halo Group emerged from a simple yet powerful observation: 
               healthcare professionals were spending more time navigating complex software systems than caring 
               for their patients. Our founders, a team of healthcare professionals and technology experts, 
-              recognized that the industry needed a fundamental shift in how medical software is designed and implemented.
+              recognised that the industry needed a fundamental shift in how medical software is designed and implemented.
             </p>
             
             <p>
