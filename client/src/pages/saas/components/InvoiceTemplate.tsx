@@ -2,6 +2,7 @@ import { forwardRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import curaLogo from "@assets/Cura Logo Main AI_1755605903988.png";
 
 interface InvoiceTemplateProps {
   invoice: {
@@ -65,9 +66,13 @@ const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(({ invo
       {/* Company Header */}
       <div className="flex justify-between items-start mb-8">
         <div className="flex items-center space-x-4">
-          {/* Cura Logo */}
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-xl">C</span>
+          {/* Official Cura Logo */}
+          <div className="w-20 h-16">
+            <img 
+              src={curaLogo} 
+              alt="Cura Logo" 
+              className="w-full h-full object-contain"
+            />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Cura Software Limited</h1>
