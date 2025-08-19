@@ -14,7 +14,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { saasApiRequest } from '@/lib/saasQueryClient';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Package, 
@@ -41,7 +41,7 @@ export default function SaaSPackages() {
 
   const createPackageMutation = useMutation({
     mutationFn: async (packageData: any) => {
-      const response = await apiRequest('POST', '/api/saas/packages', packageData);
+      const response = await saasApiRequest('POST', '/api/saas/packages', packageData);
       return response.json();
     },
     onSuccess: () => {
@@ -63,7 +63,7 @@ export default function SaaSPackages() {
 
   const updatePackageMutation = useMutation({
     mutationFn: async ({ id, ...packageData }: any) => {
-      const response = await apiRequest('PUT', `/api/saas/packages/${id}`, packageData);
+      const response = await saasApiRequest('PUT', `/api/saas/packages/${id}`, packageData);
       return response.json();
     },
     onSuccess: () => {
@@ -85,7 +85,7 @@ export default function SaaSPackages() {
 
   const deletePackageMutation = useMutation({
     mutationFn: async (packageId: number) => {
-      const response = await apiRequest('DELETE', `/api/saas/packages/${packageId}`);
+      const response = await saasApiRequest('DELETE', `/api/saas/packages/${packageId}`);
       return response.json();
     },
     onSuccess: () => {

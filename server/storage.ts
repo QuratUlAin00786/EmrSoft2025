@@ -3065,8 +3065,10 @@ export class DatabaseStorage implements IStorage {
 
   async resetUserPassword(userId: number): Promise<any> {
     // Generate a temporary password and send email
-    const tempPassword = Math.random().toString(36).slice(-8);
-    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+    const crypto = await import('crypto');
+    const tempPassword = crypto.randomBytes(4).toString('hex');
+    const bcryptModule = await import('bcrypt');
+    const hashedPassword = await bcryptModule.hash(tempPassword, 10);
     
     await db.update(users)
       .set({ password: hashedPassword })
@@ -3129,6 +3131,28 @@ export class DatabaseStorage implements IStorage {
 
   async getAllPackages(): Promise<SaaSPackage[]> {
     return await db.select().from(saasPackages).orderBy(desc(saasPackages.createdAt));
+  }
+
+  async createPackage(packageData: InsertSaaSPackage): Promise<SaaSPackage> {
+    const [saasPackage] = await db
+      .insert(saasPackages)
+      .values(packageData)
+      .returning();
+    return saasPackage;
+  }
+
+  async updatePackage(packageId: number, packageData: Partial<InsertSaaSPackage>): Promise<SaaSPackage> {
+    const [saasPackage] = await db
+      .update(saasPackages)
+      .set(packageData)
+      .where(eq(saasPackages.id, packageId))
+      .returning();
+    return saasPackage;
+  }
+
+  async deletePackage(packageId: number): Promise<{ success: boolean }> {
+    await db.delete(saasPackages).where(eq(saasPackages.id, packageId));
+    return { success: true };
   }
 
   async createPackage(packageData: InsertSaaSPackage): Promise<SaaSPackage> {

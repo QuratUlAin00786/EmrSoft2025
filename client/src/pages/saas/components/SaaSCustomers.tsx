@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { 
   Table, 
@@ -106,10 +107,34 @@ export default function SaaSCustomers() {
               <Badge variant="secondary">
                 {customers?.length || 0} Total Customers
               </Badge>
-              <Button size="sm" className="flex items-center space-x-2">
-                <Plus className="h-4 w-4" />
-                <span>Add Customer</span>
-              </Button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="flex items-center space-x-2">
+                    <Plus className="h-4 w-4" />
+                    <span>Add Customer</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Add New Customer</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="name">Organization Name</Label>
+                      <Input id="name" placeholder="Enter organization name" />
+                    </div>
+                    <div>
+                      <Label htmlFor="subdomain">Subdomain</Label>
+                      <Input id="subdomain" placeholder="Enter subdomain" />
+                    </div>
+                    <div>
+                      <Label htmlFor="email">Admin Email</Label>
+                      <Input id="email" type="email" placeholder="Enter admin email" />
+                    </div>
+                    <Button className="w-full">Create Customer</Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </CardHeader>
@@ -186,12 +211,58 @@ export default function SaaSCustomers() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
-                        <Button size="sm" variant="outline">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Settings className="h-4 w-4" />
-                        </Button>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button size="sm" variant="outline">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-2xl">
+                            <DialogHeader>
+                              <DialogTitle>Customer Details - {customer.name}</DialogTitle>
+                            </DialogHeader>
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                              <div><strong>Name:</strong> {customer.name}</div>
+                              <div><strong>Brand:</strong> {customer.brandName}</div>
+                              <div><strong>Subdomain:</strong> {customer.subdomain}</div>
+                              <div><strong>Status:</strong> {customer.subscriptionStatus}</div>
+                              <div><strong>Users:</strong> {customer.userCount}</div>
+                              <div><strong>Created:</strong> {formatDate(customer.createdAt)}</div>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button size="sm" variant="outline">
+                              <Settings className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-md">
+                            <DialogHeader>
+                              <DialogTitle>Customer Settings - {customer.name}</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4">
+                              <div>
+                                <Label>Organization Name</Label>
+                                <Input defaultValue={customer.name} />
+                              </div>
+                              <div>
+                                <Label>Brand Name</Label>
+                                <Input defaultValue={customer.brandName} />
+                              </div>
+                              <div>
+                                <Label>Subscription Status</Label>
+                                <select className="w-full px-3 py-2 border rounded">
+                                  <option value="trial" selected={customer.subscriptionStatus === 'trial'}>Trial</option>
+                                  <option value="active" selected={customer.subscriptionStatus === 'active'}>Active</option>
+                                  <option value="suspended" selected={customer.subscriptionStatus === 'suspended'}>Suspended</option>
+                                  <option value="cancelled" selected={customer.subscriptionStatus === 'cancelled'}>Cancelled</option>
+                                </select>
+                              </div>
+                              <Button className="w-full">Update Customer</Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
                         <select
                           value={customer.subscriptionStatus}
                           onChange={(e) => updateStatusMutation.mutate({
