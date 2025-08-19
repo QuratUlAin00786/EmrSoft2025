@@ -26,7 +26,20 @@ export default function SaaSSettings() {
   // Fetch SaaS settings with proper authentication
   const { data: settings, isLoading } = useQuery({
     queryKey: ['/api/saas/settings'],
-    queryFn: saasQueryFn,
+    queryFn: async () => {
+      const token = localStorage.getItem('saasToken');
+      const response = await fetch('/api/saas/settings', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch settings');
+      }
+      
+      return response.json();
+    },
   });
 
   const [formData, setFormData] = useState({

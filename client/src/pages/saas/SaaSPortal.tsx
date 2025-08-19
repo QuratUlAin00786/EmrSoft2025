@@ -10,7 +10,7 @@ export function SaaSPortal() {
 
   useEffect(() => {
     // Check if user is already authenticated
-    const token = localStorage.getItem('saas_token');
+    const token = localStorage.getItem('saasToken');
     if (token) {
       // Verify token validity (optional)
       setIsAuthenticated(true);

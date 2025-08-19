@@ -43,7 +43,7 @@ export default function SaaSLogin({ onLoginSuccess }: SaaSLoginProps) {
     },
     onSuccess: (result) => {
       if (result.success) {
-        localStorage.setItem('saas_token', result.token);
+        localStorage.setItem('saasToken', result.token);
         localStorage.setItem('saas_owner', JSON.stringify(result.owner));
         onLoginSuccess(result.token);
         toast({

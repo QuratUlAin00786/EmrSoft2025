@@ -12,7 +12,7 @@ export async function saasApiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const token = localStorage.getItem('saas_token');
+  const token = localStorage.getItem('saasToken');
   const headers: Record<string, string> = {};
   
   if (data) {
@@ -34,7 +34,7 @@ export async function saasApiRequest(
 }
 
 export const getSaaSQueryFn: QueryFunction = async ({ queryKey }) => {
-  const token = localStorage.getItem('saas_token');
+  const token = localStorage.getItem('saasToken');
   const headers: Record<string, string> = {};
 
   if (token) {

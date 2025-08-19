@@ -43,7 +43,7 @@ export default function SaaSDashboard({ onLogout }: SaaSDashboardProps) {
     queryFn: async () => {
       const response = await fetch(`/api/saas/activity?page=${activityPage}&limit=${activityLimit}`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('saas_token')}`
+          Authorization: `Bearer ${localStorage.getItem('saasToken')}`
         }
       });
       return response.json();
@@ -56,7 +56,7 @@ export default function SaaSDashboard({ onLogout }: SaaSDashboardProps) {
   });
 
   const handleLogout = () => {
-    localStorage.removeItem('saas_token');
+    localStorage.removeItem('saasToken');
     onLogout();
   };
 
