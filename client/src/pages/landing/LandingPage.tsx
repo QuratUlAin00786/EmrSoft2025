@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
 import dashboardScreenshot from "@assets/Screenshot 2025-08-19 at 12.12.03_1755587692183.png";
+import { WebsiteChatbot } from "@/components/WebsiteChatbot";
 
 export default function LandingPage() {
   return (
@@ -39,6 +40,9 @@ export default function LandingPage() {
             <div className="hidden md:flex items-center space-x-8">
               <Link href="/landing/features" className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 font-medium transition-colors">
                 Features
+              </Link>
+              <Link href="/landing/pricing" className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 font-medium transition-colors">
+                Pricing
               </Link>
               <Link href="/landing/about" className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 font-medium transition-colors">
                 About Us
@@ -355,6 +359,9 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+      
+      {/* Website Chatbot */}
+      <WebsiteChatbot />
     </div>
   );
 }

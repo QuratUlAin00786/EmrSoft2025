@@ -12,6 +12,7 @@ import {
   ArrowLeft
 } from "lucide-react";
 import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
+import { WebsiteChatbot } from "@/components/WebsiteChatbot";
 
 export default function AboutPage() {
   return (
@@ -35,6 +36,12 @@ export default function AboutPage() {
               <Link href="/landing" className="flex items-center text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 font-medium transition-colors">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Home
+              </Link>
+              <Link href="/landing/features" className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 font-medium transition-colors">
+                Features
+              </Link>
+              <Link href="/landing/pricing" className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 font-medium transition-colors">
+                Pricing
               </Link>
               <Link href="/auth/login">
                 <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md px-6 py-2">
@@ -364,6 +371,9 @@ export default function AboutPage() {
           </div>
         </div>
       </footer>
+      
+      {/* Website Chatbot */}
+      <WebsiteChatbot />
     </div>
   );
 }

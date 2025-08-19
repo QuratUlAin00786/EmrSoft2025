@@ -55,6 +55,7 @@ import Login from "@/pages/login";
 import LandingPage from "@/pages/landing/LandingPage";
 import AboutPage from "@/pages/landing/AboutPage";
 import FeaturesPage from "@/pages/landing/FeaturesPage";
+import PricingPage from "@/pages/landing/PricingPage";
 import LoginPage from "@/pages/auth/LoginPage";
 
 function ProtectedApp() {
@@ -203,6 +204,7 @@ function AppRouter() {
         <Route path="/landing" component={LandingPage} />
         <Route path="/landing/about" component={AboutPage} />
         <Route path="/landing/features" component={FeaturesPage} />
+        <Route path="/landing/pricing" component={PricingPage} />
         <Route path="/auth/login" component={LoginPage} />
         <Route component={LandingPage} />
       </Switch>

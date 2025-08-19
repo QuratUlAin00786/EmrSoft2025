@@ -31,6 +31,7 @@ import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
 import dashboardScreenshot from "@assets/Screenshot 2025-08-19 at 12.12.03_1755587692183.png";
 import { AppStoreBadge } from "@/components/AppStoreBadge";
 import { PlayStoreBadge } from "@/components/PlayStoreBadge";
+import { WebsiteChatbot } from "@/components/WebsiteChatbot";
 
 export default function FeaturesPage() {
   return (
@@ -54,6 +55,9 @@ export default function FeaturesPage() {
               <Link href="/landing" className="flex items-center text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 font-medium transition-colors">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Home
+              </Link>
+              <Link href="/landing/pricing" className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 font-medium transition-colors">
+                Pricing
               </Link>
               <Link href="/landing/about" className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 font-medium transition-colors">
                 About Us
@@ -594,6 +598,9 @@ export default function FeaturesPage() {
           </div>
         </div>
       </footer>
+      
+      {/* Website Chatbot */}
+      <WebsiteChatbot />
     </div>
   );
 }
