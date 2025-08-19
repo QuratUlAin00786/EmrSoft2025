@@ -3442,7 +3442,7 @@ export class DatabaseStorage implements IStorage {
     return { success: true, message: 'Email test completed' };
   }
 
-  async getRecentActivity(): Promise<any[]> {
+  async getRecentActivity(page: number = 1, limit: number = 10): Promise<{ activities: any[], total: number, totalPages: number }> {
     const activities = [];
     
     try {
@@ -3525,10 +3525,20 @@ export class DatabaseStorage implements IStorage {
       console.error('Error fetching activity data:', error);
     }
 
-    // Sort by timestamp and return latest 15 activities
-    return activities
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      .slice(0, 15);
+    // Sort by timestamp
+    const sortedActivities = activities
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    
+    const total = sortedActivities.length;
+    const totalPages = Math.ceil(total / limit);
+    const offset = (page - 1) * limit;
+    const paginatedActivities = sortedActivities.slice(offset, offset + limit);
+    
+    return {
+      activities: paginatedActivities,
+      total,
+      totalPages
+    };
   }
 
   async getSystemAlerts(): Promise<any[]> {

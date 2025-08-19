@@ -29,6 +29,8 @@ interface SaaSDashboardProps {
 
 export default function SaaSDashboard({ onLogout }: SaaSDashboardProps) {
   const [activeTab, setActiveTab] = useState('overview');
+  const [activityPage, setActivityPage] = useState(1);
+  const [activityLimit] = useState(5);
 
   // Fetch dashboard stats
   const { data: stats, isLoading } = useQuery({
@@ -36,8 +38,16 @@ export default function SaaSDashboard({ onLogout }: SaaSDashboardProps) {
   });
 
   // Fetch recent activity
-  const { data: recentActivity } = useQuery({
-    queryKey: ['/api/saas/activity'],
+  const { data: activityData } = useQuery({
+    queryKey: ['/api/saas/activity', activityPage, activityLimit],
+    queryFn: async () => {
+      const response = await fetch(`/api/saas/activity?page=${activityPage}&limit=${activityLimit}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('saas_token')}`
+        }
+      });
+      return response.json();
+    },
   });
 
   // Fetch system alerts
@@ -181,35 +191,67 @@ export default function SaaSDashboard({ onLogout }: SaaSDashboardProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {!recentActivity || recentActivity.length === 0 ? (
+                    {!activityData?.activities || activityData.activities.length === 0 ? (
                       <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                         No recent activity
                       </div>
                     ) : (
-                      recentActivity.slice(0, 5).map((activity: any) => (
-                        <div key={activity.id} className="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
-                          <div className="flex-shrink-0">
-                            {activity.icon === 'building' ? (
-                              <Building2 className="h-5 w-5 text-blue-600" />
-                            ) : activity.icon === 'user' ? (
-                              <Users className="h-5 w-5 text-purple-600" />
-                            ) : (
-                              <CreditCard className="h-5 w-5 text-green-600" />
-                            )}
+                      <>
+                        {activityData.activities.map((activity: any) => (
+                          <div key={activity.id} className="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                            <div className="flex-shrink-0">
+                              {activity.icon === 'building' ? (
+                                <Building2 className="h-5 w-5 text-blue-600" />
+                              ) : activity.icon === 'user' ? (
+                                <Users className="h-5 w-5 text-purple-600" />
+                              ) : (
+                                <CreditCard className="h-5 w-5 text-green-600" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                {activity.title}
+                              </p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                {activity.description}
+                              </p>
+                              <p className="text-xs text-gray-400 dark:text-gray-500">
+                                {new Date(activity.timestamp).toLocaleDateString()} {new Date(activity.timestamp).toLocaleTimeString()}
+                              </p>
+                            </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                              {activity.title}
-                            </p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                              {activity.description}
-                            </p>
-                            <p className="text-xs text-gray-400 dark:text-gray-500">
-                              {new Date(activity.timestamp).toLocaleDateString()} {new Date(activity.timestamp).toLocaleTimeString()}
-                            </p>
+                        ))}
+                        
+                        {/* Pagination Controls */}
+                        {activityData.totalPages > 1 && (
+                          <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              Showing {((activityPage - 1) * activityLimit) + 1} to {Math.min(activityPage * activityLimit, activityData.total)} of {activityData.total} activities
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setActivityPage(prev => Math.max(prev - 1, 1))}
+                                disabled={activityPage === 1}
+                              >
+                                Previous
+                              </Button>
+                              <span className="text-sm text-gray-600 dark:text-gray-400">
+                                Page {activityPage} of {activityData.totalPages}
+                              </span>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setActivityPage(prev => Math.min(prev + 1, activityData.totalPages))}
+                                disabled={activityPage === activityData.totalPages}
+                              >
+                                Next
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                      ))
+                        )}
+                      </>
                     )}
                   </div>
                 </CardContent>

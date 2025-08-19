@@ -213,7 +213,9 @@ export function registerSaaSRoutes(app: Express) {
   // Recent Activity
   app.get('/api/saas/activity', verifySaaSToken, async (req: Request, res: Response) => {
     try {
-      const activity = await storage.getRecentActivity();
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const activity = await storage.getRecentActivity(page, limit);
       res.json(activity);
     } catch (error) {
       console.error('Error fetching recent activity:', error);
