@@ -208,6 +208,15 @@ export function registerSaaSRoutes(app: Express) {
       const customerId = parseInt(req.params.id);
       const customerData = req.body;
       
+      console.log('Customer update request:', { customerId, customerData });
+      
+      // Check if this is a status-only update and redirect to proper endpoint
+      if (customerData.organizationId && customerData.status && Object.keys(customerData).length === 2) {
+        console.log('Redirecting to status update');
+        const result = await storage.updateCustomerStatus(customerData.organizationId, customerData.status);
+        return res.json(result);
+      }
+      
       const result = await storage.updateCustomerOrganization(customerId, customerData);
       res.json(result);
     } catch (error) {

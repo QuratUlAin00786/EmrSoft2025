@@ -119,6 +119,7 @@ export default function SaaSCustomers() {
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ organizationId, status }: { organizationId: number; status: string }) => {
+      console.log('Status mutation called with:', { organizationId, status });
       const response = await saasApiRequest('PATCH', '/api/saas/customers/status', { organizationId, status });
       return response.json();
     },
@@ -129,10 +130,11 @@ export default function SaaSCustomers() {
         description: "Customer status changed successfully",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Status update error:', error);
       toast({
         title: "Error",
-        description: "Failed to update customer status",
+        description: error.message || "Failed to update customer status",
         variant: "destructive",
       });
     },
