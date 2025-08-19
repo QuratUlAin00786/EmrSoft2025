@@ -47,14 +47,21 @@ export function registerSaaSRoutes(app: Express) {
 
       const owner = await storage.getSaaSOwnerByUsername(username);
       
+      console.log('Login attempt for username:', username);
+      console.log('Owner found:', !!owner);
+      
       if (!owner) {
+        console.log('No owner found with username:', username);
         return res.status(401).json({ 
           success: false, 
           message: 'Invalid credentials' 
         });
       }
 
+      console.log('Comparing password for owner:', owner.username);
+      console.log('Stored hash:', owner.password);
       const isValidPassword = await bcrypt.compare(password, owner.password);
+      console.log('Password valid:', isValidPassword);
       
       if (!isValidPassword) {
         return res.status(401).json({ 
