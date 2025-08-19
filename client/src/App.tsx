@@ -51,6 +51,12 @@ import QuickBooks from "@/pages/quickbooks";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 
+// Landing Pages
+import LandingPage from "@/pages/landing/LandingPage";
+import AboutPage from "@/pages/landing/AboutPage";
+import FeaturesPage from "@/pages/landing/FeaturesPage";
+import LoginPage from "@/pages/auth/LoginPage";
+
 function ProtectedApp() {
   // Load and apply theme from organization settings
   const { data: organization } = useQuery({
@@ -92,12 +98,15 @@ function ProtectedApp() {
 
   // Apply theme when organization data loads and save to localStorage
   useEffect(() => {
-    if (organization && 'settings' in organization && organization.settings && 'theme' in organization.settings && organization.settings.theme && 'primaryColor' in organization.settings.theme) {
-      const themeColor = organization.settings.theme.primaryColor as string;
-      applyTheme(themeColor);
-      localStorage.setItem('cura-theme', themeColor);
+    if (organization && typeof organization === 'object' && organization !== null && 'settings' in organization) {
+      const settings = (organization as any).settings;
+      if (settings && typeof settings === 'object' && 'theme' in settings && settings.theme && 'primaryColor' in settings.theme) {
+        const themeColor = settings.theme.primaryColor as string;
+        applyTheme(themeColor);
+        localStorage.setItem('cura-theme', themeColor);
+      }
     }
-  }, [organization?.settings?.theme?.primaryColor]);
+  }, [organization]);
 
   return (
     <div className="flex h-screen bg-neutral-50 dark:bg-background">
@@ -157,24 +166,47 @@ function AppRouter() {
   const { isAuthenticated, loading } = useAuth();
   const [location, setLocation] = useLocation();
 
+  // Handle redirects in useEffect to avoid setting state during render
+  useEffect(() => {
+    if (loading) return;
+
+    const isLandingPage = location.startsWith('/landing') || 
+                         location.startsWith('/auth/login') || 
+                         location === '/';
+
+    // If user is authenticated and on a public page, redirect to dashboard
+    if (isAuthenticated && isLandingPage) {
+      setLocation('/dashboard');
+      return;
+    }
+
+    // If user is not authenticated and not on a public page, redirect to landing
+    if (!isAuthenticated && !isLandingPage) {
+      setLocation('/landing');
+      return;
+    }
+  }, [isAuthenticated, loading, location, setLocation]);
+
   if (loading) {
     return <LoadingPage />;
   }
 
-  // Redirect authenticated users away from login page
-  if (isAuthenticated && location === '/login') {
-    setLocation('/dashboard');
-    return <LoadingPage />;
-  }
+  const isLandingPage = location.startsWith('/landing') || 
+                       location.startsWith('/auth/login') || 
+                       location === '/';
 
-  // Redirect unauthenticated users to login page
-  if (!isAuthenticated && location !== '/login') {
-    setLocation('/login');
-    return <LoadingPage />;
-  }
-
+  // Render public pages for unauthenticated users
   if (!isAuthenticated) {
-    return <Login />;
+    return (
+      <Switch>
+        <Route path="/" component={LandingPage} />
+        <Route path="/landing" component={LandingPage} />
+        <Route path="/landing/about" component={AboutPage} />
+        <Route path="/landing/features" component={FeaturesPage} />
+        <Route path="/auth/login" component={LoginPage} />
+        <Route component={LandingPage} />
+      </Switch>
+    );
   }
 
   return <ProtectedApp />;
