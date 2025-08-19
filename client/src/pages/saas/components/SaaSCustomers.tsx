@@ -46,7 +46,7 @@ export default function SaaSCustomers() {
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ organizationId, status }: { organizationId: number; status: string }) => {
-      const response = await apiRequest('PATCH', '/api/saas/customers/status', { organizationId, status });
+      const response = await saasApiRequest('PATCH', '/api/saas/customers/status', { organizationId, status });
       return response.json();
     },
     onSuccess: () => {

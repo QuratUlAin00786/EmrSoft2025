@@ -177,7 +177,7 @@ export function registerSaaSRoutes(app: Express) {
   app.patch('/api/saas/customers/status', verifySaaSToken, async (req: Request, res: Response) => {
     try {
       const { organizationId, status } = req.body;
-      const result = await storage.updateOrganizationStatus(organizationId, status);
+      const result = await storage.updateCustomerStatus(organizationId, status);
       res.json(result);
     } catch (error) {
       console.error('Error updating customer status:', error);

@@ -3066,7 +3066,7 @@ export class DatabaseStorage implements IStorage {
   async resetUserPassword(userId: number): Promise<any> {
     // Generate a temporary password and send email
     const tempPassword = Math.random().toString(36).slice(-8);
-    const hashedPassword = await require('bcrypt').hash(tempPassword, 10);
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
     
     await db.update(users)
       .set({ password: hashedPassword })
@@ -3086,6 +3086,15 @@ export class DatabaseStorage implements IStorage {
 
   async getAllOrganizations(): Promise<Organization[]> {
     return await db.select().from(organizations).orderBy(desc(organizations.createdAt));
+  }
+
+  async updateCustomerStatus(organizationId: number, status: string): Promise<any> {
+    const [organization] = await db.update(organizations)
+      .set({ subscriptionStatus: status })
+      .where(eq(organizations.id, organizationId))
+      .returning();
+
+    return { success: true, organization };
   }
 
   async getAllCustomers(search?: string, status?: string): Promise<any[]> {
