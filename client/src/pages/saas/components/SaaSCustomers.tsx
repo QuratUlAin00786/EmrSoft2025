@@ -47,6 +47,7 @@ export default function SaaSCustomers() {
     adminFirstName: '',
     adminLastName: '',
     accessLevel: 'full', // full, limited
+    billingPackageId: '',
     features: {
       maxUsers: 10,
       maxPatients: 100,
@@ -64,6 +65,11 @@ export default function SaaSCustomers() {
     queryKey: ['/api/saas/customers', searchTerm, selectedStatus],
   });
 
+  // Fetch available billing packages
+  const { data: billingPackages } = useQuery({
+    queryKey: ['/api/saas/packages'],
+  });
+
   const createCustomerMutation = useMutation({
     mutationFn: async (customerData: any) => {
       const response = await saasApiRequest('POST', '/api/saas/customers', customerData);
@@ -74,7 +80,7 @@ export default function SaaSCustomers() {
       setIsAddDialogOpen(false);
       setNewCustomer({
         name: '', brandName: '', subdomain: '', adminEmail: '', 
-        adminFirstName: '', adminLastName: '', accessLevel: 'full',
+        adminFirstName: '', adminLastName: '', accessLevel: 'full', billingPackageId: '',
         features: {
           maxUsers: 10, maxPatients: 100, aiEnabled: true, 
           telemedicineEnabled: true, billingEnabled: true, analyticsEnabled: true
@@ -229,6 +235,25 @@ export default function SaaSCustomers() {
                         </p>
                         <p className="text-xs text-amber-600 mt-1">
                           Note: Subdomain must be unique across all customers
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <Label>Billing Package</Label>
+                        <select 
+                          className="w-full px-3 py-2 border rounded"
+                          value={newCustomer.billingPackageId}
+                          onChange={(e) => setNewCustomer({...newCustomer, billingPackageId: e.target.value})}
+                        >
+                          <option value="">Select a billing package (optional)</option>
+                          {billingPackages?.map((pkg: any) => (
+                            <option key={pkg.id} value={pkg.id}>
+                              {pkg.name} - ${pkg.price}/{pkg.billingCycle}
+                            </option>
+                          ))}
+                        </select>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Leave empty for trial customers or manual billing setup
                         </p>
                       </div>
                     </div>

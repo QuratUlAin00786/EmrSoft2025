@@ -2,8 +2,100 @@ import type { Express, Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { storage } from "./storage";
+import nodemailer from 'nodemailer';
 
 const SAAS_JWT_SECRET = process.env.SAAS_JWT_SECRET || "saas-super-secret-key-change-in-production";
+
+// Email configuration for customer notifications
+async function sendWelcomeEmail(organization: any, adminUser: any) {
+  try {
+    const transporter = nodemailer.createTransporter({
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.GMAIL_USER || 'noreply@curapms.ai',
+        pass: process.env.GMAIL_APP_PASSWORD,
+      },
+    });
+
+    const mailOptions = {
+      from: 'Cura EMR <noreply@curapms.ai>',
+      to: adminUser.email,
+      subject: `Welcome to Cura EMR - Your Account is Ready`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .credentials { background: #fff; padding: 20px; border-left: 4px solid #667eea; margin: 20px 0; border-radius: 5px; }
+            .button { display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
+            .security-note { background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ffc107; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>🏥 Welcome to Cura EMR</h1>
+            <p>Your healthcare management system is ready!</p>
+          </div>
+          
+          <div class="content">
+            <h2>Hello ${adminUser.firstName} ${adminUser.lastName},</h2>
+            
+            <p>Congratulations! Your organization <strong>"${organization.name}"</strong> has been successfully set up in the Cura EMR system.</p>
+            
+            <div class="credentials">
+              <h3>🔐 Your Administrator Credentials</h3>
+              <p><strong>Login URL:</strong> https://${organization.subdomain}</p>
+              <p><strong>Email:</strong> ${adminUser.email}</p>
+              <p><strong>Temporary Password:</strong> <code style="background:#f0f0f0;padding:2px 6px;border-radius:3px;">${adminUser.tempPassword}</code></p>
+            </div>
+            
+            <div class="security-note">
+              <h4>🛡️ Important Security Notice</h4>
+              <p>For security reasons, you must change your password on first login. This temporary password will expire after your initial login session.</p>
+            </div>
+            
+            <p>Your Cura EMR system includes:</p>
+            <ul>
+              <li>✅ Patient Management System</li>
+              <li>✅ Appointment Scheduling</li>
+              <li>✅ Medical Records Management</li>
+              <li>✅ Real-time Messaging</li>
+              <li>✅ AI-Powered Clinical Insights</li>
+              <li>✅ Comprehensive Reporting</li>
+            </ul>
+            
+            <a href="https://${organization.subdomain}" class="button">Access Your EMR System</a>
+            
+            <p style="margin-top: 30px;">If you have any questions or need assistance getting started, our support team is here to help.</p>
+            
+            <p>Best regards,<br>
+            <strong>The Cura EMR Team</strong><br>
+            Cura Software Limited</p>
+          </div>
+          
+          <div class="footer">
+            <p>This email was sent to ${adminUser.email} regarding your new Cura EMR account.</p>
+            <p>Cura Software Limited | Ground Floor Unit 2, Drayton Court, Drayton Road, Solihull, England B90 4NG</p>
+            <p>Registration: 16556912 | For support, contact: info@curapms.ai</p>
+          </div>
+        </body>
+        </html>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`Welcome email sent to ${adminUser.email} for organization ${organization.name}`);
+  } catch (error) {
+    console.error('Error sending welcome email:', error);
+    throw error;
+  }
+}
 
 // Middleware to verify SaaS owner token
 interface SaaSRequest extends Request {
@@ -190,6 +282,17 @@ export function registerSaaSRoutes(app: Express) {
       }
       
       const result = await storage.createCustomerOrganization(customerData);
+      
+      // Send welcome email with credentials
+      if (result.success && result.adminUser) {
+        try {
+          await sendWelcomeEmail(result.organization, result.adminUser);
+        } catch (emailError) {
+          console.error('Failed to send welcome email:', emailError);
+          // Don't fail the customer creation if email fails
+        }
+      }
+      
       res.json(result);
     } catch (error: any) {
       console.error('Error creating customer:', error);

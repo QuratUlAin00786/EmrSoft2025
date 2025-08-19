@@ -3091,6 +3091,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCustomerOrganization(customerData: any): Promise<any> {
+    console.log('Creating customer with billing package:', customerData.billingPackageId);
     const bcryptModule = await import('bcrypt');
     
     // Create organization
@@ -3099,7 +3100,7 @@ export class DatabaseStorage implements IStorage {
         name: customerData.name,
         brandName: customerData.brandName || customerData.name,
         subdomain: customerData.subdomain,
-        subscriptionStatus: 'trial',
+        subscriptionStatus: customerData.billingPackageId ? 'active' : 'trial',
         theme: 'blue',
         features: JSON.stringify(customerData.features),
         accessLevel: customerData.accessLevel || 'full'
@@ -3125,12 +3126,25 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
 
+    // Create billing subscription if package selected
+    if (customerData.billingPackageId) {
+      await db.insert(subscriptions).values({
+        organizationId: organization.id,
+        planName: 'Custom Package',
+        status: 'active',
+        startDate: new Date(),
+        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+      });
+    }
+
     return { 
       success: true, 
       organization, 
       adminUser: {
         id: adminUser.id,
         email: adminUser.email,
+        firstName: adminUser.firstName,
+        lastName: adminUser.lastName,
         tempPassword
       }
     };
