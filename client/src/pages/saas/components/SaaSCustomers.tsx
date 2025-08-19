@@ -85,9 +85,10 @@ export default function SaaSCustomers() {
       });
     },
     onError: (error: any) => {
+      const errorMessage = error.message || "Failed to create customer";
       toast({
-        title: "Error",
-        description: error.message || "Failed to create customer",
+        title: "Customer Creation Failed",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -200,6 +201,9 @@ export default function SaaSCustomers() {
                         />
                         <p className="text-xs text-gray-500 mt-1">
                           Will be: {newCustomer.subdomain || 'subdomain'}.cura.local
+                        </p>
+                        <p className="text-xs text-amber-600 mt-1">
+                          Note: Subdomain must be unique across all customers
                         </p>
                       </div>
                     </div>
@@ -365,7 +369,7 @@ export default function SaaSCustomers() {
                       </Button>
                       <Button 
                         onClick={() => createCustomerMutation.mutate(newCustomer)}
-                        disabled={createCustomerMutation.isPending}
+                        disabled={createCustomerMutation.isPending || !newCustomer.name || !newCustomer.subdomain || !newCustomer.adminEmail || !newCustomer.adminFirstName || !newCustomer.adminLastName}
                         className="flex-1"
                       >
                         {createCustomerMutation.isPending ? 'Creating...' : 'Create Customer'}

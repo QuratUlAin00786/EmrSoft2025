@@ -182,11 +182,23 @@ export function registerSaaSRoutes(app: Express) {
       if (!customerData.name || !customerData.subdomain || !customerData.adminEmail) {
         return res.status(400).json({ message: 'Name, subdomain, and admin email are required' });
       }
+
+      // Check if subdomain already exists
+      const existingOrg = await storage.getOrganizationBySubdomain(customerData.subdomain);
+      if (existingOrg) {
+        return res.status(400).json({ message: `Subdomain '${customerData.subdomain}' is already taken. Please choose a different subdomain.` });
+      }
       
       const result = await storage.createCustomerOrganization(customerData);
       res.json(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating customer:', error);
+      
+      // Handle specific database errors
+      if (error.code === '23505' && error.detail?.includes('subdomain')) {
+        return res.status(400).json({ message: `Subdomain '${req.body.subdomain}' is already taken. Please choose a different subdomain.` });
+      }
+      
       res.status(500).json({ message: 'Failed to create customer' });
     }
   });
