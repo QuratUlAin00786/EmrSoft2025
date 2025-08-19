@@ -288,7 +288,7 @@ export default function LandingPage() {
               </Button>
             </Link>
             <Link href="/landing/features">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600 text-lg px-8 py-3">
+              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600 text-lg px-8 py-3 bg-transparent">
                 Learn More
               </Button>
             </Link>
