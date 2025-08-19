@@ -3136,6 +3136,20 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
+  async updateCustomerOrganization(organizationId: number, customerData: any): Promise<any> {
+    const [organization] = await db.update(organizations)
+      .set({
+        name: customerData.name,
+        brandName: customerData.brandName,
+        subscriptionStatus: customerData.subscriptionStatus,
+        features: JSON.stringify(customerData.features),
+      })
+      .where(eq(organizations.id, organizationId))
+      .returning();
+
+    return { success: true, organization };
+  }
+
   async updateCustomerStatus(organizationId: number, status: string): Promise<any> {
     const [organization] = await db.update(organizations)
       .set({ subscriptionStatus: status })

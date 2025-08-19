@@ -38,6 +38,7 @@ export default function SaaSCustomers() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<any>(null);
   const [newCustomer, setNewCustomer] = useState({
     name: '',
     brandName: '',
@@ -89,6 +90,28 @@ export default function SaaSCustomers() {
       toast({
         title: "Customer Creation Failed",
         description: errorMessage,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateCustomerMutation = useMutation({
+    mutationFn: async (customerData: any) => {
+      const response = await saasApiRequest('PATCH', `/api/saas/customers/${customerData.id}`, customerData);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saas/customers'] });
+      setEditingCustomer(null);
+      toast({
+        title: "Customer Updated",
+        description: "Customer information updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update customer",
         variant: "destructive",
       });
     },
@@ -474,36 +497,176 @@ export default function SaaSCustomers() {
                             </div>
                           </DialogContent>
                         </Dialog>
-                        <Dialog>
+                        <Dialog open={editingCustomer?.id === customer.id} onOpenChange={(open) => !open && setEditingCustomer(null)}>
                           <DialogTrigger asChild>
-                            <Button size="sm" variant="outline">
+                            <Button size="sm" variant="outline" onClick={() => setEditingCustomer({
+                              id: customer.id,
+                              name: customer.name,
+                              brandName: customer.brandName,
+                              subdomain: customer.subdomain,
+                              subscriptionStatus: customer.subscriptionStatus,
+                              features: {
+                                maxUsers: 10,
+                                maxPatients: 100,
+                                aiEnabled: true,
+                                telemedicineEnabled: true,
+                                billingEnabled: true,
+                                analyticsEnabled: true,
+                              }
+                            })}>
                               <Settings className="h-4 w-4" />
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="max-w-md">
+                          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                             <DialogHeader>
-                              <DialogTitle>Customer Settings - {customer.name}</DialogTitle>
+                              <DialogTitle>Edit Customer - {customer.name}</DialogTitle>
                             </DialogHeader>
-                            <div className="space-y-4">
-                              <div>
-                                <Label>Organization Name</Label>
-                                <Input defaultValue={customer.name} />
+                            {editingCustomer && (
+                              <div className="space-y-6">
+                                {/* Basic Information */}
+                                <div className="space-y-4">
+                                  <h3 className="font-semibold text-sm text-gray-700">Organization Information</h3>
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <Label>Organization Name</Label>
+                                      <Input 
+                                        value={editingCustomer.name}
+                                        onChange={(e) => setEditingCustomer({...editingCustomer, name: e.target.value})}
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label>Brand Name</Label>
+                                      <Input 
+                                        value={editingCustomer.brandName}
+                                        onChange={(e) => setEditingCustomer({...editingCustomer, brandName: e.target.value})}
+                                      />
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <Label>Subdomain</Label>
+                                    <Input 
+                                      value={editingCustomer.subdomain}
+                                      onChange={(e) => setEditingCustomer({...editingCustomer, subdomain: e.target.value})}
+                                      disabled
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">Subdomain cannot be changed after creation</p>
+                                  </div>
+                                </div>
+
+                                {/* Subscription Status */}
+                                <div className="space-y-4">
+                                  <h3 className="font-semibold text-sm text-gray-700">Subscription</h3>
+                                  <div>
+                                    <Label>Status</Label>
+                                    <select 
+                                      className="w-full px-3 py-2 border rounded"
+                                      value={editingCustomer.subscriptionStatus}
+                                      onChange={(e) => setEditingCustomer({...editingCustomer, subscriptionStatus: e.target.value})}
+                                    >
+                                      <option value="trial">Trial</option>
+                                      <option value="active">Active</option>
+                                      <option value="suspended">Suspended</option>
+                                      <option value="cancelled">Cancelled</option>
+                                    </select>
+                                  </div>
+                                </div>
+
+                                {/* Feature Controls */}
+                                <div className="space-y-4">
+                                  <h3 className="font-semibold text-sm text-gray-700">Feature Configuration</h3>
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <Label>Maximum Users</Label>
+                                      <Input 
+                                        type="number" 
+                                        min="1"
+                                        value={editingCustomer.features.maxUsers}
+                                        onChange={(e) => setEditingCustomer({
+                                          ...editingCustomer, 
+                                          features: {...editingCustomer.features, maxUsers: parseInt(e.target.value) || 1}
+                                        })}
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label>Maximum Patients</Label>
+                                      <Input 
+                                        type="number" 
+                                        min="1"
+                                        value={editingCustomer.features.maxPatients}
+                                        onChange={(e) => setEditingCustomer({
+                                          ...editingCustomer, 
+                                          features: {...editingCustomer.features, maxPatients: parseInt(e.target.value) || 1}
+                                        })}
+                                      />
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div className="flex items-center justify-between">
+                                      <Label>AI Features</Label>
+                                      <input 
+                                        type="checkbox" 
+                                        checked={editingCustomer.features.aiEnabled}
+                                        onChange={(e) => setEditingCustomer({
+                                          ...editingCustomer, 
+                                          features: {...editingCustomer.features, aiEnabled: e.target.checked}
+                                        })}
+                                      />
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                      <Label>Telemedicine</Label>
+                                      <input 
+                                        type="checkbox" 
+                                        checked={editingCustomer.features.telemedicineEnabled}
+                                        onChange={(e) => setEditingCustomer({
+                                          ...editingCustomer, 
+                                          features: {...editingCustomer.features, telemedicineEnabled: e.target.checked}
+                                        })}
+                                      />
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                      <Label>Billing Module</Label>
+                                      <input 
+                                        type="checkbox" 
+                                        checked={editingCustomer.features.billingEnabled}
+                                        onChange={(e) => setEditingCustomer({
+                                          ...editingCustomer, 
+                                          features: {...editingCustomer.features, billingEnabled: e.target.checked}
+                                        })}
+                                      />
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                      <Label>Analytics & Reports</Label>
+                                      <input 
+                                        type="checkbox" 
+                                        checked={editingCustomer.features.analyticsEnabled}
+                                        onChange={(e) => setEditingCustomer({
+                                          ...editingCustomer, 
+                                          features: {...editingCustomer.features, analyticsEnabled: e.target.checked}
+                                        })}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="flex space-x-2">
+                                  <Button 
+                                    variant="outline" 
+                                    onClick={() => setEditingCustomer(null)}
+                                    className="flex-1"
+                                  >
+                                    Cancel
+                                  </Button>
+                                  <Button 
+                                    onClick={() => updateCustomerMutation.mutate(editingCustomer)}
+                                    disabled={updateCustomerMutation.isPending}
+                                    className="flex-1"
+                                  >
+                                    {updateCustomerMutation.isPending ? 'Updating...' : 'Update Customer'}
+                                  </Button>
+                                </div>
                               </div>
-                              <div>
-                                <Label>Brand Name</Label>
-                                <Input defaultValue={customer.brandName} />
-                              </div>
-                              <div>
-                                <Label>Subscription Status</Label>
-                                <select className="w-full px-3 py-2 border rounded">
-                                  <option value="trial" selected={customer.subscriptionStatus === 'trial'}>Trial</option>
-                                  <option value="active" selected={customer.subscriptionStatus === 'active'}>Active</option>
-                                  <option value="suspended" selected={customer.subscriptionStatus === 'suspended'}>Suspended</option>
-                                  <option value="cancelled" selected={customer.subscriptionStatus === 'cancelled'}>Cancelled</option>
-                                </select>
-                              </div>
-                              <Button className="w-full">Update Customer</Button>
-                            </div>
+                            )}
                           </DialogContent>
                         </Dialog>
                         <select

@@ -203,6 +203,19 @@ export function registerSaaSRoutes(app: Express) {
     }
   });
 
+  app.patch('/api/saas/customers/:id', verifySaaSToken, async (req: Request, res: Response) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const customerData = req.body;
+      
+      const result = await storage.updateCustomerOrganization(customerId, customerData);
+      res.json(result);
+    } catch (error) {
+      console.error('Error updating customer:', error);
+      res.status(500).json({ message: 'Failed to update customer' });
+    }
+  });
+
   app.patch('/api/saas/customers/status', verifySaaSToken, async (req: Request, res: Response) => {
     try {
       const { organizationId, status } = req.body;
