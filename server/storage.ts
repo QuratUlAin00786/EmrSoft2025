@@ -3090,6 +3090,51 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(organizations).orderBy(desc(organizations.createdAt));
   }
 
+  async createCustomerOrganization(customerData: any): Promise<any> {
+    const bcryptModule = await import('bcrypt');
+    
+    // Create organization
+    const [organization] = await db.insert(organizations)
+      .values({
+        name: customerData.name,
+        brandName: customerData.brandName || customerData.name,
+        subdomain: customerData.subdomain,
+        subscriptionStatus: 'trial',
+        theme: 'blue',
+        features: JSON.stringify(customerData.features),
+        accessLevel: customerData.accessLevel || 'full'
+      })
+      .returning();
+
+    // Generate temporary password for admin user
+    const crypto = await import('crypto');
+    const tempPassword = crypto.randomBytes(4).toString('hex');
+    const hashedPassword = await bcryptModule.hash(tempPassword, 10);
+
+    // Create admin user
+    const [adminUser] = await db.insert(users)
+      .values({
+        organizationId: organization.id,
+        email: customerData.adminEmail,
+        password: hashedPassword,
+        firstName: customerData.adminFirstName,
+        lastName: customerData.adminLastName,
+        role: 'admin',
+        isActive: true
+      })
+      .returning();
+
+    return { 
+      success: true, 
+      organization, 
+      adminUser: {
+        id: adminUser.id,
+        email: adminUser.email,
+        tempPassword
+      }
+    };
+  }
+
   async updateCustomerStatus(organizationId: number, status: string): Promise<any> {
     const [organization] = await db.update(organizations)
       .set({ subscriptionStatus: status })

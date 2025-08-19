@@ -37,12 +37,60 @@ import {
 export default function SaaSCustomers() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [newCustomer, setNewCustomer] = useState({
+    name: '',
+    brandName: '',
+    subdomain: '',
+    adminEmail: '',
+    adminFirstName: '',
+    adminLastName: '',
+    accessLevel: 'full', // full, limited
+    features: {
+      maxUsers: 10,
+      maxPatients: 100,
+      aiEnabled: true,
+      telemedicineEnabled: true,
+      billingEnabled: true,
+      analyticsEnabled: true,
+    }
+  });
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Fetch all organizations/customers
   const { data: customers, isLoading } = useQuery({
     queryKey: ['/api/saas/customers', searchTerm, selectedStatus],
+  });
+
+  const createCustomerMutation = useMutation({
+    mutationFn: async (customerData: any) => {
+      const response = await saasApiRequest('POST', '/api/saas/customers', customerData);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saas/customers'] });
+      setIsAddDialogOpen(false);
+      setNewCustomer({
+        name: '', brandName: '', subdomain: '', adminEmail: '', 
+        adminFirstName: '', adminLastName: '', accessLevel: 'full',
+        features: {
+          maxUsers: 10, maxPatients: 100, aiEnabled: true, 
+          telemedicineEnabled: true, billingEnabled: true, analyticsEnabled: true
+        }
+      });
+      toast({
+        title: "Customer Created",
+        description: "New customer organization created successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create customer",
+        variant: "destructive",
+      });
+    },
   });
 
   const updateStatusMutation = useMutation({
@@ -107,31 +155,222 @@ export default function SaaSCustomers() {
               <Badge variant="secondary">
                 {customers?.length || 0} Total Customers
               </Badge>
-              <Dialog>
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm" className="flex items-center space-x-2">
                     <Plus className="h-4 w-4" />
                     <span>Add Customer</span>
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-md">
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle>Add New Customer</DialogTitle>
+                    <DialogTitle>Add New Customer Organization</DialogTitle>
                   </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="name">Organization Name</Label>
-                      <Input id="name" placeholder="Enter organization name" />
+                  <div className="space-y-6">
+                    {/* Organization Details */}
+                    <div className="space-y-4">
+                      <h3 className="font-semibold text-sm text-gray-700">Organization Details</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="name">Organization Name *</Label>
+                          <Input 
+                            id="name" 
+                            placeholder="e.g., Metro Medical Center" 
+                            value={newCustomer.name}
+                            onChange={(e) => setNewCustomer({...newCustomer, name: e.target.value})}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="brandName">Brand Name</Label>
+                          <Input 
+                            id="brandName" 
+                            placeholder="e.g., Metro Health" 
+                            value={newCustomer.brandName}
+                            onChange={(e) => setNewCustomer({...newCustomer, brandName: e.target.value})}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="subdomain">Subdomain *</Label>
+                        <Input 
+                          id="subdomain" 
+                          placeholder="e.g., metro-medical" 
+                          value={newCustomer.subdomain}
+                          onChange={(e) => setNewCustomer({...newCustomer, subdomain: e.target.value})}
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Will be: {newCustomer.subdomain || 'subdomain'}.cura.local
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <Label htmlFor="subdomain">Subdomain</Label>
-                      <Input id="subdomain" placeholder="Enter subdomain" />
+
+                    {/* Admin User Details */}
+                    <div className="space-y-4">
+                      <h3 className="font-semibold text-sm text-gray-700">Administrator Account</h3>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <Label htmlFor="adminFirstName">First Name *</Label>
+                          <Input 
+                            id="adminFirstName" 
+                            placeholder="John" 
+                            value={newCustomer.adminFirstName}
+                            onChange={(e) => setNewCustomer({...newCustomer, adminFirstName: e.target.value})}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="adminLastName">Last Name *</Label>
+                          <Input 
+                            id="adminLastName" 
+                            placeholder="Smith" 
+                            value={newCustomer.adminLastName}
+                            onChange={(e) => setNewCustomer({...newCustomer, adminLastName: e.target.value})}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="adminEmail">Email *</Label>
+                          <Input 
+                            id="adminEmail" 
+                            type="email" 
+                            placeholder="admin@example.com" 
+                            value={newCustomer.adminEmail}
+                            onChange={(e) => setNewCustomer({...newCustomer, adminEmail: e.target.value})}
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <Label htmlFor="email">Admin Email</Label>
-                      <Input id="email" type="email" placeholder="Enter admin email" />
+
+                    {/* Access Level */}
+                    <div className="space-y-4">
+                      <h3 className="font-semibold text-sm text-gray-700">Access Level</h3>
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <input 
+                            type="radio" 
+                            id="full-access" 
+                            name="accessLevel"
+                            checked={newCustomer.accessLevel === 'full'}
+                            onChange={() => setNewCustomer({...newCustomer, accessLevel: 'full'})}
+                          />
+                          <Label htmlFor="full-access" className="cursor-pointer">
+                            <span className="font-medium">Full Access</span> - Complete access to all EMR features
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <input 
+                            type="radio" 
+                            id="limited-access" 
+                            name="accessLevel"
+                            checked={newCustomer.accessLevel === 'limited'}
+                            onChange={() => setNewCustomer({...newCustomer, accessLevel: 'limited'})}
+                          />
+                          <Label htmlFor="limited-access" className="cursor-pointer">
+                            <span className="font-medium">Limited Access</span> - Restricted feature set with custom controls
+                          </Label>
+                        </div>
+                      </div>
                     </div>
-                    <Button className="w-full">Create Customer</Button>
+
+                    {/* Feature Controls */}
+                    <div className="space-y-4">
+                      <h3 className="font-semibold text-sm text-gray-700">Feature Configuration</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="maxUsers">Maximum Users</Label>
+                          <Input 
+                            id="maxUsers" 
+                            type="number" 
+                            min="1"
+                            value={newCustomer.features.maxUsers}
+                            onChange={(e) => setNewCustomer({
+                              ...newCustomer, 
+                              features: {...newCustomer.features, maxUsers: parseInt(e.target.value) || 1}
+                            })}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="maxPatients">Maximum Patients</Label>
+                          <Input 
+                            id="maxPatients" 
+                            type="number" 
+                            min="1"
+                            value={newCustomer.features.maxPatients}
+                            onChange={(e) => setNewCustomer({
+                              ...newCustomer, 
+                              features: {...newCustomer.features, maxPatients: parseInt(e.target.value) || 1}
+                            })}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="aiEnabled">AI Features</Label>
+                          <input 
+                            type="checkbox" 
+                            id="aiEnabled"
+                            checked={newCustomer.features.aiEnabled}
+                            onChange={(e) => setNewCustomer({
+                              ...newCustomer, 
+                              features: {...newCustomer.features, aiEnabled: e.target.checked}
+                            })}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="telemedicineEnabled">Telemedicine</Label>
+                          <input 
+                            type="checkbox" 
+                            id="telemedicineEnabled"
+                            checked={newCustomer.features.telemedicineEnabled}
+                            onChange={(e) => setNewCustomer({
+                              ...newCustomer, 
+                              features: {...newCustomer.features, telemedicineEnabled: e.target.checked}
+                            })}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="billingEnabled">Billing Module</Label>
+                          <input 
+                            type="checkbox" 
+                            id="billingEnabled"
+                            checked={newCustomer.features.billingEnabled}
+                            onChange={(e) => setNewCustomer({
+                              ...newCustomer, 
+                              features: {...newCustomer.features, billingEnabled: e.target.checked}
+                            })}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="analyticsEnabled">Analytics & Reports</Label>
+                          <input 
+                            type="checkbox" 
+                            id="analyticsEnabled"
+                            checked={newCustomer.features.analyticsEnabled}
+                            onChange={(e) => setNewCustomer({
+                              ...newCustomer, 
+                              features: {...newCustomer.features, analyticsEnabled: e.target.checked}
+                            })}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex space-x-2">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => setIsAddDialogOpen(false)}
+                        className="flex-1"
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        onClick={() => createCustomerMutation.mutate(newCustomer)}
+                        disabled={createCustomerMutation.isPending}
+                        className="flex-1"
+                      >
+                        {createCustomerMutation.isPending ? 'Creating...' : 'Create Customer'}
+                      </Button>
+                    </div>
                   </div>
                 </DialogContent>
               </Dialog>

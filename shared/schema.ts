@@ -73,6 +73,15 @@ export const organizations = pgTable("organizations", {
     compliance?: { gdprEnabled?: boolean; dataResidency?: string };
     features?: { aiEnabled?: boolean; billingEnabled?: boolean };
   }>().default({}),
+  features: jsonb("features").$type<{
+    maxUsers?: number;
+    maxPatients?: number;
+    aiEnabled?: boolean;
+    telemedicineEnabled?: boolean;
+    billingEnabled?: boolean;
+    analyticsEnabled?: boolean;
+  }>().default({}),
+  accessLevel: varchar("access_level", { length: 50 }).default("full"),
   subscriptionStatus: varchar("subscription_status", { length: 20 }).notNull().default("trial"), // trial, active, suspended, cancelled
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow(),

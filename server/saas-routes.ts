@@ -174,6 +174,23 @@ export function registerSaaSRoutes(app: Express) {
     }
   });
 
+  app.post('/api/saas/customers', verifySaaSToken, async (req: Request, res: Response) => {
+    try {
+      const customerData = req.body;
+      
+      // Validate required fields
+      if (!customerData.name || !customerData.subdomain || !customerData.adminEmail) {
+        return res.status(400).json({ message: 'Name, subdomain, and admin email are required' });
+      }
+      
+      const result = await storage.createCustomerOrganization(customerData);
+      res.json(result);
+    } catch (error) {
+      console.error('Error creating customer:', error);
+      res.status(500).json({ message: 'Failed to create customer' });
+    }
+  });
+
   app.patch('/api/saas/customers/status', verifySaaSToken, async (req: Request, res: Response) => {
     try {
       const { organizationId, status } = req.body;
