@@ -3128,13 +3128,17 @@ export class DatabaseStorage implements IStorage {
 
     // Create billing subscription if package selected
     if (customerData.billingPackageId) {
-      await db.insert(subscriptions).values({
-        organizationId: organization.id,
-        planName: 'Custom Package',
-        status: 'active',
-        startDate: new Date(),
-        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-      });
+      const selectedPackage = await db.select().from(saasPackages).where(eq(saasPackages.id, customerData.billingPackageId)).limit(1);
+      if (selectedPackage.length > 0) {
+        await db.insert(subscriptions).values({
+          organizationId: organization.id,
+          plan: selectedPackage[0].name,
+          planName: selectedPackage[0].name,
+          status: 'active',
+          startDate: new Date(),
+          endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+        });
+      }
     }
 
     return { 
