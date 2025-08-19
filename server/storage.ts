@@ -3252,10 +3252,14 @@ export class DatabaseStorage implements IStorage {
       subscriptionStatus: organizations.subscriptionStatus,
       createdAt: organizations.createdAt,
       userCount: count(users.id),
+      packageName: saasPackages.name,
+      billingPackageId: subscriptions.id,
     })
     .from(organizations)
     .leftJoin(users, eq(organizations.id, users.organizationId))
-    .groupBy(organizations.id);
+    .leftJoin(subscriptions, eq(organizations.id, subscriptions.organizationId))
+    .leftJoin(saasPackages, eq(subscriptions.plan, saasPackages.name))
+    .groupBy(organizations.id, saasPackages.name, subscriptions.id);
 
     if (status && status !== 'all') {
       query = query.where(eq(organizations.subscriptionStatus, status));
