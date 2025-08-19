@@ -272,7 +272,7 @@ export function WebsiteChatbot() {
     } catch (error) {
       const errorMessage: Message = {
         id: Date.now().toString(),
-        text: `❌ Sorry, there was an error booking your appointment: ${error.message}\n\nPlease try again or contact our support team.`,
+        text: `❌ Sorry, there was an error booking your appointment: ${error instanceof Error ? error.message : 'Unknown error'}\n\nPlease try again or contact our support team.`,
         isUser: false,
         timestamp: new Date(),
         quickActions: [
@@ -338,7 +338,7 @@ export function WebsiteChatbot() {
     } catch (error) {
       const errorMessage: Message = {
         id: Date.now().toString(),
-        text: `❌ Sorry, there was an error submitting your prescription request: ${error.message}\n\nPlease try again or contact our support team.`,
+        text: `❌ Sorry, there was an error submitting your prescription request: ${error instanceof Error ? error.message : 'Unknown error'}\n\nPlease try again or contact our support team.`,
         isUser: false,
         timestamp: new Date(),
         quickActions: [
@@ -626,9 +626,19 @@ export function WebsiteChatbot() {
       <div className="fixed bottom-6 right-6 z-50">
         <Button
           onClick={() => setIsOpen(!isOpen)}
-          className="rounded-full h-14 w-14 bg-blue-600 hover:bg-blue-700 shadow-lg"
+          className="rounded-full h-16 w-16 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-xl border-2 border-white"
         >
-          {isOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
+          {isOpen ? (
+            <X className="h-6 w-6 text-white" />
+          ) : (
+            <div className="flex flex-col items-center">
+              <img 
+                src="/cura-logo-chatbot.png" 
+                alt="Cura Chat" 
+                className="h-8 w-8 mb-1"
+              />
+            </div>
+          )}
         </Button>
       </div>
 
@@ -637,14 +647,21 @@ export function WebsiteChatbot() {
         <Card className="fixed bottom-24 right-6 w-96 h-[500px] z-40 shadow-2xl">
           <div className="flex flex-col h-full">
             {/* Header */}
-            <div className="p-4 border-b bg-blue-600 text-white rounded-t-lg">
+            <div className="p-4 border-b bg-white text-gray-900 rounded-t-lg border-gray-200">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Bot className="h-5 w-5" />
-                  <span className="font-semibold">Cura Assistant</span>
+                <div className="flex items-center gap-3">
+                  <img 
+                    src="/cura-logo-chatbot.png" 
+                    alt="Cura Logo" 
+                    className="h-8 w-auto"
+                  />
+                  <div>
+                    <div className="font-semibold text-gray-800">Cura Assistant</div>
+                    <div className="text-xs text-gray-500">AI-Powered Healthcare Support</div>
+                  </div>
                 </div>
-                <Badge variant="secondary" className="bg-blue-500 text-white">
-                  <div className="w-2 h-2 bg-green-400 rounded-full mr-1"></div>
+                <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
                   Online
                 </Badge>
               </div>
@@ -661,7 +678,13 @@ export function WebsiteChatbot() {
                         : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
                     }`}>
                       <div className="flex items-start gap-2">
-                        {!message.isUser && <Bot className="h-4 w-4 mt-0.5 flex-shrink-0" />}
+                        {!message.isUser && (
+                          <img 
+                            src="/cura-logo-chatbot.png" 
+                            alt="Cura" 
+                            className="h-4 w-4 mt-0.5 flex-shrink-0 rounded-sm"
+                          />
+                        )}
                         <div className="whitespace-pre-wrap text-sm">{message.text}</div>
                         {message.isUser && <User className="h-4 w-4 mt-0.5 flex-shrink-0" />}
                       </div>
@@ -700,7 +723,11 @@ export function WebsiteChatbot() {
                 <div className="flex justify-start">
                   <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
                     <div className="flex items-center gap-2">
-                      <Bot className="h-4 w-4" />
+                      <img 
+                        src="/cura-logo-chatbot.png" 
+                        alt="Cura" 
+                        className="h-4 w-4 rounded-sm"
+                      />
                       <div className="flex space-x-1">
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
