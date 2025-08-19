@@ -7,6 +7,7 @@ import crypto from "crypto";
 import { storage } from "./storage";
 import { authService } from "./services/auth";
 import { aiService } from "./services/ai";
+import { registerSaaSRoutes } from "./saas-routes";
 import { tenantMiddleware, authMiddleware, requireRole, gdprComplianceMiddleware, type TenantRequest } from "./middleware/tenant";
 import { multiTenantEnforcer, validateOrganizationFilter, withTenantIsolation } from "./middleware/multi-tenant-enforcer";
 import { initializeMultiTenantPackage, getMultiTenantPackage } from "./packages/multi-tenant-core";
@@ -7168,6 +7169,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to fetch stock movements" });
     }
   });
+
+  // Register SaaS administration routes
+  registerSaaSRoutes(app);
 
   const httpServer = createServer(app);
   

@@ -1,5 +1,5 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations, messages,
+  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations, messages, saasOwners, saasPackages, saasSubscriptions,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Role, type InsertRole,
@@ -26,7 +26,10 @@ import {
   type GdprAuditTrail, type InsertGdprAuditTrail,
   type GdprProcessingActivity, type InsertGdprProcessingActivity,
   type Conversation, type InsertConversation,
-  type Message, type InsertMessage
+  type Message, type InsertMessage,
+  type SaaSOwner, type InsertSaaSOwner,
+  type SaaSPackage, type InsertSaaSPackage,
+  type SaaSSubscription, type InsertSaaSSubscription
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, count, not, sql, gte, lt, lte, isNotNull } from "drizzle-orm";
@@ -238,6 +241,27 @@ export interface IStorage {
   createGdprAuditTrail(audit: InsertGdprAuditTrail): Promise<GdprAuditTrail>;
   
   getActiveAppointmentsByPatient(patientId: number, organizationId: number): Promise<Appointment[]>;
+
+  // SaaS Administration
+  getSaaSOwner(id: number): Promise<SaaSOwner | undefined>;
+  getSaaSOwnerByUsername(username: string): Promise<SaaSOwner | undefined>;
+  updateSaaSOwnerLastLogin(id: number): Promise<void>;
+  getSaaSStats(): Promise<any>;
+  getAllUsers(search?: string, organizationId?: string): Promise<any[]>;
+  resetUserPassword(userId: number): Promise<any>;
+  updateUserStatus(userId: number, isActive: boolean): Promise<any>;
+  getAllOrganizations(): Promise<Organization[]>;
+  getAllCustomers(search?: string, status?: string): Promise<any[]>;
+  updateOrganizationStatus(organizationId: number, status: string): Promise<any>;
+  getAllPackages(): Promise<SaaSPackage[]>;
+  createPackage(packageData: InsertSaaSPackage): Promise<SaaSPackage>;
+  updatePackage(id: number, packageData: Partial<InsertSaaSPackage>): Promise<SaaSPackage>;
+  deletePackage(id: number): Promise<any>;
+  getBillingData(search?: string, dateRange?: string): Promise<any>;
+  getBillingStats(dateRange?: string): Promise<any>;
+  getSaaSSettings(): Promise<any>;
+  updateSaaSSettings(settings: any): Promise<any>;
+  testEmailSettings(): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2985,6 +3009,196 @@ export class DatabaseStorage implements IStorage {
         not(eq(appointments.status, "cancelled"))
       ))
       .orderBy(asc(appointments.scheduledAt));
+  }
+
+  // SaaS Administration Methods
+  async getSaaSOwner(id: number): Promise<SaaSOwner | undefined> {
+    const [owner] = await db.select().from(saasOwners).where(eq(saasOwners.id, id));
+    return owner || undefined;
+  }
+
+  async getSaaSOwnerByUsername(username: string): Promise<SaaSOwner | undefined> {
+    const [owner] = await db.select().from(saasOwners).where(eq(saasOwners.username, username));
+    return owner || undefined;
+  }
+
+  async updateSaaSOwnerLastLogin(id: number): Promise<void> {
+    await db.update(saasOwners)
+      .set({ lastLoginAt: new Date() })
+      .where(eq(saasOwners.id, id));
+  }
+
+  async getSaaSStats(): Promise<any> {
+    const [totalCustomers] = await db.select({ count: count() }).from(organizations);
+    const [activeUsers] = await db.select({ count: count() }).from(users).where(eq(users.isActive, true));
+    const [activePackages] = await db.select({ count: count() }).from(saasPackages).where(eq(saasPackages.isActive, true));
+    
+    return {
+      totalCustomers: totalCustomers.count,
+      activeUsers: activeUsers.count,
+      monthlyRevenue: 0, // Placeholder for billing calculation
+      activePackages: activePackages.count,
+    };
+  }
+
+  async getAllUsers(search?: string, organizationId?: string): Promise<any[]> {
+    let query = db.select({
+      id: users.id,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      email: users.email,
+      role: users.role,
+      isActive: users.isActive,
+      lastLoginAt: users.lastLoginAt,
+      createdAt: users.createdAt,
+      organizationName: organizations.name,
+    })
+    .from(users)
+    .leftJoin(organizations, eq(users.organizationId, organizations.id));
+
+    if (organizationId && organizationId !== 'all') {
+      query = query.where(eq(users.organizationId, parseInt(organizationId)));
+    }
+
+    return await query.orderBy(desc(users.createdAt));
+  }
+
+  async resetUserPassword(userId: number): Promise<any> {
+    // Generate a temporary password and send email
+    const tempPassword = Math.random().toString(36).slice(-8);
+    const hashedPassword = await require('bcrypt').hash(tempPassword, 10);
+    
+    await db.update(users)
+      .set({ password: hashedPassword })
+      .where(eq(users.id, userId));
+
+    return { success: true, tempPassword };
+  }
+
+  async updateUserStatus(userId: number, isActive: boolean): Promise<any> {
+    const [user] = await db.update(users)
+      .set({ isActive })
+      .where(eq(users.id, userId))
+      .returning();
+
+    return { success: true, user };
+  }
+
+  async getAllOrganizations(): Promise<Organization[]> {
+    return await db.select().from(organizations).orderBy(desc(organizations.createdAt));
+  }
+
+  async getAllCustomers(search?: string, status?: string): Promise<any[]> {
+    let query = db.select({
+      id: organizations.id,
+      name: organizations.name,
+      brandName: organizations.brandName,
+      subdomain: organizations.subdomain,
+      subscriptionStatus: organizations.subscriptionStatus,
+      createdAt: organizations.createdAt,
+      userCount: count(users.id),
+    })
+    .from(organizations)
+    .leftJoin(users, eq(organizations.id, users.organizationId))
+    .groupBy(organizations.id);
+
+    if (status && status !== 'all') {
+      query = query.where(eq(organizations.subscriptionStatus, status));
+    }
+
+    return await query.orderBy(desc(organizations.createdAt));
+  }
+
+  async updateOrganizationStatus(organizationId: number, status: string): Promise<any> {
+    const [org] = await db.update(organizations)
+      .set({ subscriptionStatus: status, updatedAt: new Date() })
+      .where(eq(organizations.id, organizationId))
+      .returning();
+
+    return { success: true, organization: org };
+  }
+
+  async getAllPackages(): Promise<SaaSPackage[]> {
+    return await db.select().from(saasPackages).orderBy(desc(saasPackages.createdAt));
+  }
+
+  async createPackage(packageData: InsertSaaSPackage): Promise<SaaSPackage> {
+    const [pkg] = await db.insert(saasPackages).values(packageData).returning();
+    return pkg;
+  }
+
+  async updatePackage(id: number, packageData: Partial<InsertSaaSPackage>): Promise<SaaSPackage> {
+    const [pkg] = await db.update(saasPackages)
+      .set({ ...packageData, updatedAt: new Date() })
+      .where(eq(saasPackages.id, id))
+      .returning();
+    return pkg;
+  }
+
+  async deletePackage(id: number): Promise<any> {
+    await db.delete(saasPackages).where(eq(saasPackages.id, id));
+    return { success: true };
+  }
+
+  async getBillingData(search?: string, dateRange?: string): Promise<any> {
+    // Placeholder for billing data - would integrate with payment processor
+    return {
+      invoices: [],
+      total: 0,
+    };
+  }
+
+  async getBillingStats(dateRange?: string): Promise<any> {
+    // Placeholder for billing stats
+    return {
+      totalRevenue: 0,
+      monthlyRecurring: 0,
+      overdueAmount: 0,
+      activeSubscriptions: 0,
+    };
+  }
+
+  async getSaaSSettings(): Promise<any> {
+    // Return default SaaS settings - could be stored in database
+    return {
+      systemSettings: {
+        platformName: 'Cura EMR Platform',
+        supportEmail: 'support@curapms.ai',
+        maintenanceMode: false,
+        registrationEnabled: true,
+        trialPeriodDays: 14,
+      },
+      emailSettings: {
+        smtpHost: '',
+        smtpPort: 587,
+        smtpUsername: '',
+        smtpPassword: '',
+        fromEmail: '',
+        fromName: 'Cura Software Limited',
+      },
+      securitySettings: {
+        passwordMinLength: 8,
+        requireTwoFactor: false,
+        sessionTimeoutMinutes: 30,
+        maxLoginAttempts: 5,
+      },
+      billingSettings: {
+        currency: 'GBP',
+        taxRate: 20,
+        invoicePrefix: 'CURA',
+        paymentMethods: ['stripe', 'paypal'],
+      },
+    };
+  }
+
+  async updateSaaSSettings(settings: any): Promise<any> {
+    // Store settings in database or config - placeholder implementation
+    return { success: true, settings };
+  }
+
+  async testEmailSettings(): Promise<any> {
+    // Test email configuration - placeholder implementation
+    return { success: true, message: 'Email test completed' };
   }
 }
 

@@ -3,6 +3,64 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// SaaS Owners (Platform Administrators)
+export const saasOwners = pgTable("saas_owners", {
+  id: serial("id").primaryKey(),
+  username: varchar("username", { length: 50 }).notNull().unique(),
+  password: text("password").notNull(),
+  email: text("email").notNull().unique(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  lastLoginAt: timestamp("last_login_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// SaaS Packages
+export const saasPackages = pgTable("saas_packages", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  billingCycle: varchar("billing_cycle", { length: 20 }).notNull().default("monthly"), // monthly, yearly
+  features: jsonb("features").$type<{
+    maxUsers?: number;
+    maxPatients?: number;
+    aiEnabled?: boolean;
+    telemedicineEnabled?: boolean;
+    billingEnabled?: boolean;
+    analyticsEnabled?: boolean;
+    customBranding?: boolean;
+    prioritySupport?: boolean;
+    storageGB?: number;
+    apiCallsPerMonth?: number;
+  }>().default({}),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// SaaS Subscriptions
+export const saasSubscriptions = pgTable("saas_subscriptions", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  packageId: integer("package_id").notNull(),
+  status: varchar("status", { length: 20 }).notNull().default("active"), // active, cancelled, suspended, past_due
+  currentPeriodStart: timestamp("current_period_start").notNull(),
+  currentPeriodEnd: timestamp("current_period_end").notNull(),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
+  trialEnd: timestamp("trial_end"),
+  metadata: jsonb("metadata").$type<{
+    paymentMethodId?: string;
+    lastPaymentDate?: string;
+    nextPaymentDate?: string;
+    paymentProvider?: string;
+  }>().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Organizations (Tenants)
 export const organizations = pgTable("organizations", {
   id: serial("id").primaryKey(),
@@ -1717,3 +1775,13 @@ export type InsertConversation = z.infer<typeof insertConversationSchema>;
 
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
+
+// SaaS Types
+export type SaaSOwner = typeof saasOwners.$inferSelect;
+export type InsertSaaSOwner = typeof saasOwners.$inferInsert;
+
+export type SaaSPackage = typeof saasPackages.$inferSelect;
+export type InsertSaaSPackage = typeof saasPackages.$inferInsert;
+
+export type SaaSSubscription = typeof saasSubscriptions.$inferSelect;
+export type InsertSaaSSubscription = typeof saasSubscriptions.$inferInsert;

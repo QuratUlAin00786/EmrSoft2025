@@ -38,6 +38,7 @@ import ClinicalDecisionSupport from "@/pages/clinical-decision-support";
 import Telemedicine from "@/pages/telemedicine";
 import PopulationHealth from "@/pages/population-health";
 import MobileHealth from "@/pages/mobile-health";
+import { SaaSPortal } from "@/pages/saas/SaaSPortal";
 import VoiceDocumentation from "@/pages/voice-documentation";
 import FinancialIntelligence from "@/pages/financial-intelligence";
 import EmergencyProtocols from "@/pages/emergency-protocols";
@@ -64,6 +65,8 @@ import PrivacyPolicy from "@/pages/legal/PrivacyPolicy";
 import TermsOfService from "@/pages/legal/TermsOfService";
 import GDPRCompliancePage from "@/pages/legal/GDPRCompliance";
 import Press from "@/pages/legal/Press";
+
+// SaaS Administration - removed duplicate import
 
 function ProtectedApp() {
   // Load and apply theme from organization settings
@@ -243,16 +246,25 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <ThemeProvider>
-          <TenantProvider>
-            <AuthProvider>
-              <LocaleProvider>
-                <div className="min-h-screen">
-                  <AppRouter />
-                </div>
-                <Toaster />
-              </LocaleProvider>
-            </AuthProvider>
-          </TenantProvider>
+          <div className="min-h-screen">
+            <Switch>
+              {/* SaaS Admin Portal - Standalone route */}
+              <Route path="/saas" component={SaaSPortal} />
+              <Route path="/saas/*" component={SaaSPortal} />
+              
+              {/* Regular app routes */}
+              <Route>
+                <TenantProvider>
+                  <AuthProvider>
+                    <LocaleProvider>
+                      <AppRouter />
+                    </LocaleProvider>
+                  </AuthProvider>
+                </TenantProvider>
+              </Route>
+            </Switch>
+          </div>
+          <Toaster />
         </ThemeProvider>
       </TooltipProvider>
     </QueryClientProvider>
