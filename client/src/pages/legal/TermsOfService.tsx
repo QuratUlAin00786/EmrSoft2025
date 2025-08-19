@@ -17,7 +17,7 @@ export default function TermsOfService() {
                 className="h-12 w-auto"
               />
               <div className="flex flex-col">
-                <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">by Halo Group</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">by Averox Ltd</span>
               </div>
             </Link>
             
@@ -48,9 +48,7 @@ export default function TermsOfService() {
             <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">1. Agreement to Terms</h2>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
               These Terms of Service ("Terms") govern your use of the Cura EMR platform operated by 
-              Cura Software Limited, a company incorporated in England & Wales under registration number 
-              16556912, whose registered office is at Ground Floor Unit 2, Drayton Court, Drayton Road, 
-              Solihull, England B90 4NG.
+              Averox Ltd, Registration: TBD, Address: [To be provided by Averox Ltd].
             </p>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
               By accessing or using our service, you agree to be bound by these Terms. If you disagree 

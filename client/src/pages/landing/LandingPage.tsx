@@ -33,7 +33,7 @@ export default function LandingPage() {
                 className="h-12 w-auto"
               />
               <div className="flex flex-col">
-                <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">by Halo Group</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">by Averox Ltd</span>
               </div>
             </div>
             
