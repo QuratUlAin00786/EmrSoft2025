@@ -94,6 +94,17 @@ export const saasPayments = pgTable("saas_payments", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// SaaS Settings - Store global system settings
+export const saasSettings = pgTable("saas_settings", {
+  id: serial("id").primaryKey(),
+  key: varchar("key", { length: 100 }).notNull().unique(),
+  value: jsonb("value"),
+  description: text("description"),
+  category: varchar("category", { length: 50 }).notNull().default("system"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // SaaS Invoices - Track billing invoices
 export const saasInvoices = pgTable("saas_invoices", {
   id: serial("id").primaryKey(),
@@ -1909,3 +1920,6 @@ export type InsertSaaSPayment = z.infer<typeof insertSaaSPaymentSchema>;
 
 export type SaaSInvoice = typeof saasInvoices.$inferSelect;
 export type InsertSaaSInvoice = z.infer<typeof insertSaaSInvoiceSchema>;
+
+export type SaaSSettings = typeof saasSettings.$inferSelect;
+export type InsertSaaSSettings = typeof saasSettings.$inferInsert;

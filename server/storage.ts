@@ -1,5 +1,5 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations, messages, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices,
+  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations, messages, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Role, type InsertRole,
@@ -31,7 +31,8 @@ import {
   type SaaSPackage, type InsertSaaSPackage,
   type SaaSSubscription, type InsertSaaSSubscription,
   type SaaSPayment, type InsertSaaSPayment,
-  type SaaSInvoice, type InsertSaaSInvoice
+  type SaaSInvoice, type InsertSaaSInvoice,
+  type SaaSSettings, type InsertSaaSSettings
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, count, not, sql, gte, lt, lte, isNotNull, or, ilike } from "drizzle-orm";
@@ -3664,41 +3665,114 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSaaSSettings(): Promise<any> {
-    // Return default SaaS settings - could be stored in database
-    return {
-      systemSettings: {
-        platformName: 'Cura EMR Platform',
-        supportEmail: 'support@curapms.ai',
-        maintenanceMode: false,
-        registrationEnabled: true,
-        trialPeriodDays: 14,
-      },
-      emailSettings: {
-        smtpHost: '',
-        smtpPort: 587,
-        smtpUsername: '',
-        smtpPassword: '',
-        fromEmail: '',
-        fromName: 'Cura Software Limited',
-      },
-      securitySettings: {
-        passwordMinLength: 8,
-        requireTwoFactor: false,
-        sessionTimeoutMinutes: 30,
-        maxLoginAttempts: 5,
-      },
-      billingSettings: {
-        currency: 'GBP',
-        taxRate: 20,
-        invoicePrefix: 'CURA',
-        paymentMethods: ['stripe', 'paypal'],
-      },
-    };
+    try {
+      // Get all settings from database
+      const dbSettings = await db.select().from(saasSettings);
+      
+      // Default settings structure
+      const defaultSettings = {
+        systemSettings: {
+          platformName: 'Cura EMR Platform',
+          supportEmail: 'support@curapms.ai',
+          maintenanceMode: false,
+          registrationEnabled: true,
+          trialPeriodDays: 14,
+        },
+        emailSettings: {
+          smtpHost: '',
+          smtpPort: 587,
+          smtpUsername: '',
+          smtpPassword: '',
+          fromEmail: '',
+          fromName: 'Cura Software Limited',
+        },
+        securitySettings: {
+          passwordMinLength: 8,
+          requireTwoFactor: false,
+          sessionTimeoutMinutes: 30,
+          maxLoginAttempts: 5,
+        },
+        billingSettings: {
+          currency: 'GBP',
+          taxRate: 20,
+          invoicePrefix: 'CURA',
+          paymentMethods: ['stripe', 'paypal'],
+        },
+      };
+
+      // Merge database settings with defaults
+      const settings = JSON.parse(JSON.stringify(defaultSettings));
+      
+      dbSettings.forEach(setting => {
+        const [category, key] = setting.key.split('.');
+        if (settings[category] && key) {
+          settings[category][key] = setting.value;
+        }
+      });
+
+      return settings;
+    } catch (error) {
+      console.error('Error getting SaaS settings:', error);
+      // Return defaults if database error
+      return {
+        systemSettings: {
+          platformName: 'Cura EMR Platform',
+          supportEmail: 'support@curapms.ai',
+          maintenanceMode: false,
+          registrationEnabled: true,
+          trialPeriodDays: 14,
+        },
+        emailSettings: {
+          smtpHost: '',
+          smtpPort: 587,
+          smtpUsername: '',
+          smtpPassword: '',
+          fromEmail: '',
+          fromName: 'Cura Software Limited',
+        },
+        securitySettings: {
+          passwordMinLength: 8,
+          requireTwoFactor: false,
+          sessionTimeoutMinutes: 30,
+          maxLoginAttempts: 5,
+        },
+        billingSettings: {
+          currency: 'GBP',
+          taxRate: 20,
+          invoicePrefix: 'CURA',
+          paymentMethods: ['stripe', 'paypal'],
+        },
+      };
+    }
   }
 
   async updateSaaSSettings(settings: any): Promise<any> {
-    // Store settings in database or config - placeholder implementation
-    return { success: true, settings };
+    try {
+      // Update each setting in the database
+      for (const [category, categorySettings] of Object.entries(settings)) {
+        for (const [key, value] of Object.entries(categorySettings as Record<string, any>)) {
+          const settingKey = `${category}.${key}`;
+          await db
+            .insert(saasSettings)
+            .values({
+              key: settingKey,
+              value: value,
+              category: category,
+            })
+            .onConflictDoUpdate({
+              target: saasSettings.key,
+              set: {
+                value: value,
+                updatedAt: new Date(),
+              },
+            });
+        }
+      }
+      return { success: true, settings };
+    } catch (error) {
+      console.error('Error updating SaaS settings:', error);
+      throw error;
+    }
   }
 
   async testEmailSettings(): Promise<any> {
