@@ -3166,9 +3166,12 @@ export class DatabaseStorage implements IStorage {
     
     // Handle billing package assignment/update
     if (customerData.billingPackageId !== undefined) {
-      if (customerData.billingPackageId) {
+      if (customerData.billingPackageId && customerData.billingPackageId !== '') {
+        // Convert string to number if needed
+        const packageId = typeof customerData.billingPackageId === 'string' ? parseInt(customerData.billingPackageId) : customerData.billingPackageId;
+        
         // Update/assign billing package
-        const selectedPackage = await db.select().from(saasPackages).where(eq(saasPackages.id, customerData.billingPackageId)).limit(1);
+        const selectedPackage = await db.select().from(saasPackages).where(eq(saasPackages.id, packageId)).limit(1);
         if (selectedPackage.length > 0) {
           // Check if subscription exists
           const existingSubscription = await db.select().from(subscriptions).where(eq(subscriptions.organizationId, organizationId)).limit(1);
@@ -3251,15 +3254,16 @@ export class DatabaseStorage implements IStorage {
       subdomain: organizations.subdomain,
       subscriptionStatus: organizations.subscriptionStatus,
       createdAt: organizations.createdAt,
+      features: organizations.features,
       userCount: count(users.id),
       packageName: saasPackages.name,
-      billingPackageId: subscriptions.id,
+      billingPackageId: saasPackages.id,
     })
     .from(organizations)
     .leftJoin(users, eq(organizations.id, users.organizationId))
     .leftJoin(subscriptions, eq(organizations.id, subscriptions.organizationId))
     .leftJoin(saasPackages, eq(subscriptions.plan, saasPackages.name))
-    .groupBy(organizations.id, saasPackages.name, subscriptions.id);
+    .groupBy(organizations.id, organizations.features, saasPackages.name, saasPackages.id);
 
     if (status && status !== 'all') {
       query = query.where(eq(organizations.subscriptionStatus, status));

@@ -533,7 +533,7 @@ export default function SaaSCustomers() {
                               subdomain: customer.subdomain,
                               subscriptionStatus: customer.subscriptionStatus,
                               billingPackageId: customer.billingPackageId || '',
-                              features: {
+                              features: customer.features ? (typeof customer.features === 'string' ? JSON.parse(customer.features) : customer.features) : {
                                 maxUsers: 10,
                                 maxPatients: 100,
                                 aiEnabled: true,
