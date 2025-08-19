@@ -307,7 +307,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
+      <footer className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
@@ -319,10 +319,10 @@ export default function LandingPage() {
                 />
                 <span className="text-xl font-bold">Cura EMR</span>
               </div>
-              <p className="text-gray-400 mb-4">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Transforming healthcare with intelligent EMR solutions.
               </p>
-              <div className="text-sm text-gray-400">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
                 <div>Halo Group Ltd</div>
                 <div>123 Healthcare Street</div>
                 <div>Manchester, M1 2AB</div>
@@ -332,36 +332,36 @@ export default function LandingPage() {
 
             <div>
               <h4 className="font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="/landing/features" className="hover:text-white">Features</Link></li>
-                <li><Link href="/auth/login" className="hover:text-white">Login</Link></li>
-                <li><a href="#" className="hover:text-white">Pricing</a></li>
-                <li><a href="#" className="hover:text-white">API Documentation</a></li>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                <li><Link href="/landing/features" className="hover:text-blue-600 dark:hover:text-white">Features</Link></li>
+                <li><Link href="/auth/login" className="hover:text-blue-600 dark:hover:text-white">Login</Link></li>
+                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">Pricing</a></li>
+                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">API Documentation</a></li>
               </ul>
             </div>
 
             <div>
               <h4 className="font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="/landing/about" className="hover:text-white">About Us</Link></li>
-                <li><a href="#" className="hover:text-white">Careers</a></li>
-                <li><a href="#" className="hover:text-white">Contact</a></li>
-                <li><a href="#" className="hover:text-white">Press</a></li>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                <li><Link href="/landing/about" className="hover:text-blue-600 dark:hover:text-white">About Us</Link></li>
+                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">Careers</a></li>
+                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">Contact</a></li>
+                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">Press</a></li>
               </ul>
             </div>
 
             <div>
               <h4 className="font-semibold mb-4">Support</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white">Help Center</a></li>
-                <li><a href="#" className="hover:text-white">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-white">GDPR Compliance</a></li>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">Help Center</a></li>
+                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">Terms of Service</a></li>
+                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">GDPR Compliance</a></li>
               </ul>
             </div>
           </div>
 
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+          <div className="border-t border-gray-300 dark:border-gray-600 mt-12 pt-8 text-center text-gray-600 dark:text-gray-400">
             <p>&copy; 2025 Halo Group Ltd. All rights reserved.</p>
           </div>
         </div>

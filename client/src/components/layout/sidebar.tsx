@@ -165,7 +165,6 @@ export function Sidebar() {
             className="h-20 w-auto mb-2"
           />
           <div>
-            <h2 className="text-lg font-bold text-[hsl(235,45%,25%)] dark:text-foreground">Cura</h2>
             <p className="text-xs text-[hsl(225,16%,65%)] dark:text-muted-foreground mt-1">by halo group</p>
           </div>
         </div>

@@ -314,50 +314,52 @@ export default function AboutPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
+      <footer className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">C</span>
-                </div>
+                <img 
+                  src={curaLogoPath} 
+                  alt="Cura EMR" 
+                  className="h-8 w-auto"
+                />
                 <span className="text-xl font-bold">Cura EMR</span>
               </div>
-              <p className="text-gray-400">
+              <p className="text-gray-600 dark:text-gray-400">
                 Transforming healthcare with intelligent EMR solutions.
               </p>
             </div>
 
             <div>
               <h4 className="font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="/landing/features" className="hover:text-white">Features</Link></li>
-                <li><Link href="/auth/login" className="hover:text-white">Login</Link></li>
-                <li><a href="#" className="hover:text-white">Pricing</a></li>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                <li><Link href="/landing/features" className="hover:text-blue-600 dark:hover:text-white">Features</Link></li>
+                <li><Link href="/auth/login" className="hover:text-blue-600 dark:hover:text-white">Login</Link></li>
+                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">Pricing</a></li>
               </ul>
             </div>
 
             <div>
               <h4 className="font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="/landing/about" className="hover:text-white">About Us</Link></li>
-                <li><Link href="/landing" className="hover:text-white">Home</Link></li>
-                <li><a href="#" className="hover:text-white">Contact</a></li>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                <li><Link href="/landing/about" className="hover:text-blue-600 dark:hover:text-white">About Us</Link></li>
+                <li><Link href="/landing" className="hover:text-blue-600 dark:hover:text-white">Home</Link></li>
+                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">Contact</a></li>
               </ul>
             </div>
 
             <div>
               <h4 className="font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-white">GDPR Compliance</a></li>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">Terms of Service</a></li>
+                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">GDPR Compliance</a></li>
               </ul>
             </div>
           </div>
 
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+          <div className="border-t border-gray-300 dark:border-gray-600 mt-12 pt-8 text-center text-gray-600 dark:text-gray-400">
             <p>&copy; 2025 Halo Group Ltd. All rights reserved.</p>
           </div>
         </div>
