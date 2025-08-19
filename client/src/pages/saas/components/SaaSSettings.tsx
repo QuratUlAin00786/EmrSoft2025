@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { saasApiRequest, saasQueryFn } from '@/lib/saasApiClient';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Settings, 
@@ -23,9 +23,10 @@ export default function SaaSSettings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch SaaS settings
+  // Fetch SaaS settings with proper authentication
   const { data: settings, isLoading } = useQuery({
     queryKey: ['/api/saas/settings'],
+    queryFn: saasQueryFn,
   });
 
   const [formData, setFormData] = useState({
@@ -60,7 +61,7 @@ export default function SaaSSettings() {
 
   const updateSettingsMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest('PUT', '/api/saas/settings', data);
+      const response = await saasApiRequest('PUT', '/api/saas/settings', data);
       return response.json();
     },
     onSuccess: () => {
@@ -81,7 +82,7 @@ export default function SaaSSettings() {
 
   const testEmailMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/saas/settings/test-email', {});
+      const response = await saasApiRequest('POST', '/api/saas/settings/test-email', {});
       return response.json();
     },
     onSuccess: () => {
