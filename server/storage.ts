@@ -3137,13 +3137,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateCustomerOrganization(organizationId: number, customerData: any): Promise<any> {
+    const updateData: any = {};
+    
+    if (customerData.name) updateData.name = customerData.name;
+    if (customerData.brandName) updateData.brandName = customerData.brandName;
+    if (customerData.subscriptionStatus) updateData.subscriptionStatus = customerData.subscriptionStatus;
+    if (customerData.features) updateData.features = JSON.stringify(customerData.features);
+    
     const [organization] = await db.update(organizations)
-      .set({
-        name: customerData.name,
-        brandName: customerData.brandName,
-        subscriptionStatus: customerData.subscriptionStatus,
-        features: JSON.stringify(customerData.features),
-      })
+      .set(updateData)
       .where(eq(organizations.id, organizationId))
       .returning();
 

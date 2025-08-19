@@ -671,10 +671,14 @@ export default function SaaSCustomers() {
                         </Dialog>
                         <select
                           value={customer.subscriptionStatus}
-                          onChange={(e) => updateStatusMutation.mutate({
-                            organizationId: customer.id,
-                            status: e.target.value
-                          })}
+                          onChange={(e) => {
+                            if (e.target.value !== customer.subscriptionStatus) {
+                              updateStatusMutation.mutate({
+                                organizationId: customer.id,
+                                status: e.target.value
+                              });
+                            }
+                          }}
                           className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                           disabled={updateStatusMutation.isPending}
                         >
