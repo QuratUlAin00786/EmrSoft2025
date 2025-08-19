@@ -15,6 +15,7 @@ import {
   EyeOff,
   Loader2
 } from "lucide-react";
+import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
@@ -51,9 +52,11 @@ export default function LoginPage() {
           </Link>
           
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold">C</span>
-            </div>
+            <img 
+              src={curaLogoPath} 
+              alt="Cura EMR" 
+              className="h-10 w-auto"
+            />
             <span className="text-2xl font-bold text-gray-900 dark:text-white">Cura EMR</span>
           </div>
           <p className="text-gray-600 dark:text-gray-300">

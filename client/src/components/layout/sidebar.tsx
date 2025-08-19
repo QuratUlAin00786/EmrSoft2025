@@ -33,7 +33,7 @@ import {
   Activity
 } from "lucide-react";
 import { useTenant } from "@/hooks/use-tenant";
-import curaIconPath from "@assets/Cura Icon Main_1751893631980.png";
+import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
 import { useAuth } from "@/hooks/use-auth";
 import { useRolePermissions } from "@/hooks/use-role-permissions";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -160,7 +160,7 @@ export function Sidebar() {
       <div className="p-6 border-b border-neutral-100 dark:border-border">
         <div className="flex flex-col items-center text-center">
           <img 
-            src={curaIconPath} 
+            src={curaLogoPath} 
             alt="Cura" 
             className="h-20 w-auto mb-2"
           />

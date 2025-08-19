@@ -27,6 +27,7 @@ import {
   Activity,
   Pill
 } from "lucide-react";
+import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
 
 export default function FeaturesPage() {
   return (
@@ -36,9 +37,11 @@ export default function FeaturesPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/landing" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">C</span>
-              </div>
+              <img 
+                src={curaLogoPath} 
+                alt="Cura EMR" 
+                className="h-8 w-auto"
+              />
               <span className="text-xl font-bold text-gray-900 dark:text-white">Cura EMR</span>
               <span className="text-sm text-gray-500">by Halo Group</span>
             </Link>
