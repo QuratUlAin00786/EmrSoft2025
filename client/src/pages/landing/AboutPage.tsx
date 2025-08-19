@@ -26,7 +26,6 @@ export default function AboutPage() {
                 alt="Cura EMR" 
                 className="h-8 w-auto"
               />
-              <span className="text-xl font-bold text-gray-900 dark:text-white">Cura EMR</span>
               <span className="text-sm text-gray-500">by Halo Group</span>
             </Link>
             
@@ -324,7 +323,6 @@ export default function AboutPage() {
                   alt="Cura EMR" 
                   className="h-8 w-auto"
                 />
-                <span className="text-xl font-bold">Cura EMR</span>
               </div>
               <p className="text-gray-600 dark:text-gray-400">
                 Transforming healthcare with intelligent EMR solutions.
