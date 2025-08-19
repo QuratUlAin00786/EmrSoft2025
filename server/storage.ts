@@ -3164,6 +3164,48 @@ export class DatabaseStorage implements IStorage {
     if (customerData.subscriptionStatus) updateData.subscriptionStatus = customerData.subscriptionStatus;
     if (customerData.features) updateData.features = JSON.stringify(customerData.features);
     
+    // Handle billing package assignment/update
+    if (customerData.billingPackageId !== undefined) {
+      if (customerData.billingPackageId) {
+        // Update/assign billing package
+        const selectedPackage = await db.select().from(saasPackages).where(eq(saasPackages.id, customerData.billingPackageId)).limit(1);
+        if (selectedPackage.length > 0) {
+          // Check if subscription exists
+          const existingSubscription = await db.select().from(subscriptions).where(eq(subscriptions.organizationId, organizationId)).limit(1);
+          
+          if (existingSubscription.length > 0) {
+            // Update existing subscription
+            await db.update(subscriptions)
+              .set({
+                plan: selectedPackage[0].name,
+                planName: selectedPackage[0].name,
+                status: 'active',
+                startDate: new Date(),
+                endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+              })
+              .where(eq(subscriptions.organizationId, organizationId));
+          } else {
+            // Create new subscription
+            await db.insert(subscriptions).values({
+              organizationId: organizationId,
+              plan: selectedPackage[0].name,
+              planName: selectedPackage[0].name,
+              status: 'active',
+              startDate: new Date(),
+              endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+            });
+          }
+          
+          // Update organization status to active if it was trial
+          updateData.subscriptionStatus = 'active';
+        }
+      } else {
+        // Remove billing package (set to manual billing)
+        await db.delete(subscriptions).where(eq(subscriptions.organizationId, organizationId));
+        updateData.subscriptionStatus = customerData.subscriptionStatus || 'trial';
+      }
+    }
+    
     console.log('Update data prepared:', updateData);
     
     if (Object.keys(updateData).length === 0) {

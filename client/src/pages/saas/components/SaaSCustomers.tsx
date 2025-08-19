@@ -248,7 +248,7 @@ export default function SaaSCustomers() {
                           <option value="">Select a billing package (optional)</option>
                           {billingPackages?.map((pkg: any) => (
                             <option key={pkg.id} value={pkg.id}>
-                              {pkg.name} - ${pkg.price}/{pkg.billingCycle}
+                              {pkg.name} - £{pkg.price}/{pkg.billingCycle}
                             </option>
                           ))}
                         </select>
@@ -532,6 +532,7 @@ export default function SaaSCustomers() {
                               brandName: customer.brandName,
                               subdomain: customer.subdomain,
                               subscriptionStatus: customer.subscriptionStatus,
+                              billingPackageId: customer.billingPackageId || '',
                               features: {
                                 maxUsers: 10,
                                 maxPatients: 100,
@@ -595,6 +596,24 @@ export default function SaaSCustomers() {
                                       <option value="suspended">Suspended</option>
                                       <option value="cancelled">Cancelled</option>
                                     </select>
+                                  </div>
+                                  <div>
+                                    <Label>Billing Package</Label>
+                                    <select 
+                                      className="w-full px-3 py-2 border rounded"
+                                      value={editingCustomer.billingPackageId || ''}
+                                      onChange={(e) => setEditingCustomer({...editingCustomer, billingPackageId: e.target.value})}
+                                    >
+                                      <option value="">No Package (Manual Billing)</option>
+                                      {billingPackages?.map((pkg: any) => (
+                                        <option key={pkg.id} value={pkg.id}>
+                                          {pkg.name} - £{pkg.price}/{pkg.billingCycle}
+                                        </option>
+                                      ))}
+                                    </select>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                      Assign or change billing package for this customer
+                                    </p>
                                   </div>
                                 </div>
 
