@@ -56,7 +56,7 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
       setTimeout(() => {
         toast({
           title: "Success",
-          description: "Appointment scheduled successfully - ID: " + (data?.id || 'Unknown')
+          description: "Appointment scheduled successfully - ID: " + ((data as any)?.id || 'Unknown')
         });
       }, 100);
     },
@@ -88,7 +88,7 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
     try {
       const token = localStorage.getItem('auth_token');
       const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': 'demo'
+        'X-Tenant-Subdomain': 'cura'
       };
       
       if (token) {
@@ -119,7 +119,7 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
     try {
       const token = localStorage.getItem('auth_token');
       const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': 'demo'
+        'X-Tenant-Subdomain': 'cura'
       };
       
       if (token) {
@@ -136,9 +136,15 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
       }
       
       const data = await response.json();
-      const uniqueProviders = data ? data.filter((provider: any, index: number, self: any[]) => 
+      console.log("Raw medical staff response:", data);
+      
+      // The API returns {staff: [...]} structure
+      const staffArray = data?.staff || [];
+      const uniqueProviders = staffArray.filter((provider: any, index: number, self: any[]) => 
         index === self.findIndex((p: any) => `${p.firstName} ${p.lastName}` === `${provider.firstName} ${provider.lastName}`)
-      ) : [];
+      );
+      
+      console.log("Processed providers:", uniqueProviders);
       setAllProviders(uniqueProviders);
     } catch (err) {
       console.error("Error fetching providers:", err);
