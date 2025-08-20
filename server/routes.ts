@@ -1136,10 +1136,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else if (typeof appointmentData.patientId === "string") {
         // If it's a string (like "P000007"), find the patient by patientId
         console.log("Looking up patient by patientId:", appointmentData.patientId);
-        const patient = await storage.getPatientByPatientId(appointmentData.patientId, req.tenant!.id);
+        let patient = await storage.getPatientByPatientId(appointmentData.patientId, req.tenant!.id);
+        
+        // If not found, try different formatting patterns
+        if (!patient && appointmentData.patientId.startsWith("P")) {
+          // Extract the numeric part and try different formats
+          const numericPart = appointmentData.patientId.substring(1);
+          const numericValue = parseInt(numericPart, 10);
+          
+          if (!isNaN(numericValue)) {
+            // Try with 6-digit padding: P000007
+            const paddedId = `P${numericValue.toString().padStart(6, '0')}`;
+            console.log("Trying padded patientId:", paddedId);
+            patient = await storage.getPatientByPatientId(paddedId, req.tenant!.id);
+            
+            // If still not found, try with 3-digit padding: P007
+            if (!patient) {
+              const shortPaddedId = `P${numericValue.toString().padStart(3, '0')}`;
+              console.log("Trying short padded patientId:", shortPaddedId);
+              patient = await storage.getPatientByPatientId(shortPaddedId, req.tenant!.id);
+            }
+            
+            // If still not found, try without padding: P7
+            if (!patient) {
+              const noPaddingId = `P${numericValue}`;
+              console.log("Trying no padding patientId:", noPaddingId);
+              patient = await storage.getPatientByPatientId(noPaddingId, req.tenant!.id);
+            }
+          }
+        }
+        
         if (!patient) {
           console.log("Patient not found for patientId:", appointmentData.patientId);
-          return res.status(400).json({ error: "Patient not found" });
+          return res.status(400).json({ 
+            error: `Patient not found. Please use a valid patient ID like P000001, P000002, P000004, P000005, P000007, P000008, P000009, P000010, or P000158.` 
+          });
         }
         numericPatientId = patient.id;
         console.log("Found patient with numeric ID:", numericPatientId);
