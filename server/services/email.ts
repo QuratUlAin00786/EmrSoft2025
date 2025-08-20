@@ -51,7 +51,7 @@ class EmailService {
         port: 587,
         secure: false,
         auth: {
-          user: 'noreply@curapms.ai',
+          user: 'noreply@curaemr.ai',
           pass: 'jwtvqwwcnopfgndt'
         },
         tls: {
@@ -62,8 +62,8 @@ class EmailService {
       console.log('[EMAIL] Using Gmail SMTP for real email delivery:');
       console.log('[EMAIL] Host:', smtpConfig.host);
       console.log('[EMAIL] User:', smtpConfig.auth.user);
-      console.log('[EMAIL] Automated notifications from: Cura EMR <noreply@curapms.ai>');
-      console.log('[EMAIL] Communication & replies from: Cura EMR <info@curapms.ai>');
+      console.log('[EMAIL] Automated notifications from: Cura EMR <noreply@curaemr.ai>');
+      console.log('[EMAIL] Communication & replies from: Cura EMR <info@curaemr.ai>');
       
       this.transporter = nodemailer.createTransport(smtpConfig);
       this.initialized = true;

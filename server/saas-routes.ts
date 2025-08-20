@@ -147,7 +147,7 @@ export function registerSaaSRoutes(app: Express) {
       const saasOwnerUser = await storage.createUser({
         firstName: 'SaaS',
         lastName: 'Administrator', 
-        email: 'saas_admin@curapms.ai',
+        email: 'saas_admin@curaemr.ai',
         username: 'saas_admin',
         password: hashedPassword,
         role: 'saas_owner', // Special role for SaaS owners
