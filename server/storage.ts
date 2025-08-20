@@ -35,7 +35,7 @@ import {
   type SaaSSettings, type InsertSaaSSettings
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, count, not, sql, gte, lt, lte, isNotNull, or, ilike } from "drizzle-orm";
+import { eq, and, desc, asc, count, not, sql, gte, lt, lte, isNotNull, or, ilike, ne } from "drizzle-orm";
 
 export interface IStorage {
   // Organizations
@@ -255,6 +255,10 @@ export interface IStorage {
   getAllUsers(search?: string, organizationId?: string): Promise<any[]>;
   resetUserPassword(userId: number): Promise<any>;
   updateUserStatus(userId: number, isActive: boolean): Promise<any>;
+  // PRIVACY COMPLIANT: Only subscription contacts, not all users
+  getSubscriptionContacts(search?: string): Promise<any[]>;
+  resetSubscriptionContactPassword(contactId: number): Promise<any>;
+  updateSubscriptionContactStatus(contactId: number, isActive: boolean): Promise<any>;
   getAllOrganizations(): Promise<Organization[]>;
   getAllCustomers(search?: string, status?: string): Promise<any[]>;
   updateOrganizationStatus(organizationId: number, status: string): Promise<any>;
@@ -3120,6 +3124,43 @@ export class DatabaseStorage implements IStorage {
     return await query.orderBy(desc(users.createdAt));
   }
 
+  // PRIVACY COMPLIANT: Only return subscription contact users (organization admins)
+  // SaaS owners should NOT see all internal users within organizations
+  async getSubscriptionContacts(search?: string): Promise<any[]> {
+    let query = db.select({
+      id: users.id,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      email: users.email,
+      role: users.role,
+      isActive: users.isActive,
+      lastLoginAt: users.lastLoginAt,
+      createdAt: users.createdAt,
+      organizationName: organizations.name,
+    })
+    .from(users)
+    .leftJoin(organizations, eq(users.organizationId, organizations.id))
+    .where(and(
+      eq(users.role, 'admin'), // Only organization admins (subscription contacts)
+      ne(users.organizationId, 0) // Exclude SaaS owners
+    ));
+
+    if (search) {
+      query = query.where(and(
+        eq(users.role, 'admin'),
+        ne(users.organizationId, 0),
+        or(
+          ilike(users.firstName, `%${search}%`),
+          ilike(users.lastName, `%${search}%`),
+          ilike(users.email, `%${search}%`),
+          ilike(organizations.name, `%${search}%`)
+        )
+      ));
+    }
+
+    return await query.orderBy(desc(users.createdAt));
+  }
+
   async resetUserPassword(userId: number): Promise<any> {
     // Generate a temporary password and send email
     const crypto = await import('crypto');
@@ -3138,6 +3179,57 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db.update(users)
       .set({ isActive })
       .where(eq(users.id, userId))
+      .returning();
+
+    return { success: true, user };
+  }
+
+  // PRIVACY COMPLIANT: Only reset passwords for subscription contacts (organization admins)
+  async resetSubscriptionContactPassword(contactId: number): Promise<any> {
+    // First verify this is actually a subscription contact (org admin)
+    const [contact] = await db.select()
+      .from(users)
+      .where(and(
+        eq(users.id, contactId),
+        eq(users.role, 'admin'), // Only organization admins
+        ne(users.organizationId, 0) // Exclude SaaS owners
+      ));
+
+    if (!contact) {
+      throw new Error('Contact not found or not a valid subscription contact');
+    }
+
+    // Generate a temporary password and send email
+    const crypto = await import('crypto');
+    const tempPassword = crypto.randomBytes(4).toString('hex');
+    const bcryptModule = await import('bcrypt');
+    const hashedPassword = await bcryptModule.hash(tempPassword, 10);
+    
+    await db.update(users)
+      .set({ password: hashedPassword })
+      .where(eq(users.id, contactId));
+
+    return { success: true, tempPassword, contact };
+  }
+
+  // PRIVACY COMPLIANT: Only update status for subscription contacts (organization admins)
+  async updateSubscriptionContactStatus(contactId: number, isActive: boolean): Promise<any> {
+    // First verify this is actually a subscription contact (org admin)
+    const [contact] = await db.select()
+      .from(users)
+      .where(and(
+        eq(users.id, contactId),
+        eq(users.role, 'admin'), // Only organization admins
+        ne(users.organizationId, 0) // Exclude SaaS owners
+      ));
+
+    if (!contact) {
+      throw new Error('Contact not found or not a valid subscription contact');
+    }
+
+    const [user] = await db.update(users)
+      .set({ isActive })
+      .where(eq(users.id, contactId))
       .returning();
 
     return { success: true, user };

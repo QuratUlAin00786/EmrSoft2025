@@ -367,7 +367,7 @@ export function registerSaaSRoutes(app: Express) {
         });
       }
 
-      // Update last login
+      // Update last login - use correct field name from database
       await storage.updateUser(saasUser.id, 0, { lastLoginAt: new Date() });
 
       // Generate JWT token
@@ -432,37 +432,41 @@ export function registerSaaSRoutes(app: Express) {
     }
   });
 
-  // Users Management
-  app.get('/api/saas/users', verifySaaSToken, async (req: Request, res: Response) => {
+  // Subscription Contact Management (PRIVACY COMPLIANT)
+  // SaaS owners should only see one subscription contact per organization, not all internal users
+  app.get('/api/saas/subscription-contacts', verifySaaSToken, async (req: Request, res: Response) => {
     try {
-      const { search, organizationId } = req.query;
-      const users = await storage.getAllUsers(search as string, organizationId as string);
-      res.json(users);
+      const { search } = req.query;
+      // Only get subscription contacts (organization admins who subscribed)
+      const contacts = await storage.getSubscriptionContacts(search as string);
+      res.json(contacts);
     } catch (error) {
-      console.error('Error fetching users:', error);
-      res.status(500).json({ message: 'Failed to fetch users' });
+      console.error('Error fetching subscription contacts:', error);
+      res.status(500).json({ message: 'Failed to fetch subscription contacts' });
     }
   });
 
-  app.post('/api/saas/users/reset-password', verifySaaSToken, async (req: Request, res: Response) => {
+  app.post('/api/saas/subscription-contacts/reset-password', verifySaaSToken, async (req: Request, res: Response) => {
     try {
-      const { userId } = req.body;
-      const result = await storage.resetUserPassword(userId);
+      const { contactId } = req.body;
+      // Only allow password reset for subscription contacts (org admins), not all users
+      const result = await storage.resetSubscriptionContactPassword(contactId);
       res.json(result);
     } catch (error) {
-      console.error('Error resetting password:', error);
-      res.status(500).json({ message: 'Failed to reset password' });
+      console.error('Error resetting subscription contact password:', error);
+      res.status(500).json({ message: 'Failed to reset contact password' });
     }
   });
 
-  app.patch('/api/saas/users/status', verifySaaSToken, async (req: Request, res: Response) => {
+  app.patch('/api/saas/subscription-contacts/status', verifySaaSToken, async (req: Request, res: Response) => {
     try {
-      const { userId, isActive } = req.body;
-      const result = await storage.updateUserStatus(userId, isActive);
+      const { contactId, isActive } = req.body;
+      // Only allow status changes for subscription contacts (org admins), not all users
+      const result = await storage.updateSubscriptionContactStatus(contactId, isActive);
       res.json(result);
     } catch (error) {
-      console.error('Error updating user status:', error);
-      res.status(500).json({ message: 'Failed to update user status' });
+      console.error('Error updating subscription contact status:', error);
+      res.status(500).json({ message: 'Failed to update contact status' });
     }
   });
 
