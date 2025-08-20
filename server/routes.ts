@@ -78,6 +78,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Register SaaS administration routes BEFORE multi-tenant middleware
+  // SaaS routes must bypass tenant middleware as they operate system-wide
+  registerSaaSRoutes(app);
+
   // Initialize multi-tenant middleware stack
   multiTenantPackage.initializeMiddleware(app);
   
@@ -7143,8 +7147,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Register SaaS administration routes
-  registerSaaSRoutes(app);
+  // SaaS routes already registered above before tenant middleware
 
   const httpServer = createServer(app);
   

@@ -52,40 +52,14 @@ export async function saasApiRequest(
   // Build the correct URL for both dev and production environments
   const apiUrl = buildApiUrl(url);
   
-  // Add production debugging
-  console.log('SaaS API Request Debug:', {
-    originalUrl: url,
-    finalUrl: apiUrl,
+  const res = await fetch(apiUrl, {
     method,
-    hostname: window.location.hostname,
-    origin: window.location.origin
+    headers,
+    body: data ? JSON.stringify(data) : undefined,
   });
 
-  try {
-    const res = await fetch(apiUrl, {
-      method,
-      headers,
-      body: data ? JSON.stringify(data) : undefined,
-    });
-
-    console.log('SaaS API Response:', {
-      status: res.status,
-      statusText: res.statusText,
-      ok: res.ok,
-      url: res.url
-    });
-
-    await throwIfResNotOk(res);
-    return res;
-  } catch (error) {
-    console.error('SaaS API Network Error:', {
-      error: error.message,
-      apiUrl,
-      method,
-      hostname: window.location.hostname
-    });
-    throw error;
-  }
+  await throwIfResNotOk(res);
+  return res;
 }
 
 export const getSaaSQueryFn: QueryFunction = async ({ queryKey }) => {
