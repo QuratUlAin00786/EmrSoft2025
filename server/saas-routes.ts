@@ -367,10 +367,8 @@ export function registerSaaSRoutes(app: Express) {
         });
       }
 
-      // Update last login - remove type error for now
-      console.log(`Storage: Updating user ${saasUser.id} with data:`, { lastLoginAt: new Date() });
-      const updatedUser = await storage.updateUser(saasUser.id, 0, {});
-      console.log(`Storage: Updated user result:`, `User ${updatedUser.id} - workingHours: ${JSON.stringify(updatedUser.workingHours) || '{}'}`);
+      // Skip last login update to avoid SQL errors - not essential for SaaS login
+      console.log(`Storage: SaaS user ${saasUser.id} login successful, skipping update`);
 
       // Generate JWT token
       const token = jwt.sign(

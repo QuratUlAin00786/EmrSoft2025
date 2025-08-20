@@ -9,17 +9,8 @@ async function throwIfResNotOk(res: Response) {
 
 // Helper function to get the correct API base URL for both dev and production
 function getApiBaseUrl(): string {
-  // In development (Replit), use relative URLs
-  if (window.location.hostname === 'localhost' || window.location.hostname.includes('replit.dev')) {
-    return '';
-  }
-  
-  // In production (deployed app), construct the full API URL
-  const protocol = window.location.protocol;
-  const hostname = window.location.hostname;
-  const port = window.location.port ? `:${window.location.port}` : '';
-  
-  return `${protocol}//${hostname}${port}`;
+  // Always use relative URLs - let the browser handle the correct domain resolution
+  return '';
 }
 
 function buildApiUrl(path: string): string {
@@ -47,7 +38,7 @@ export async function saasApiRequest(
 
   // Build the correct URL for both dev and production environments
   const apiUrl = buildApiUrl(url);
-
+  
   const res = await fetch(apiUrl, {
     method,
     headers,
