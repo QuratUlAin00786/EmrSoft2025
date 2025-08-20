@@ -3300,66 +3300,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let responseData = null;
 
       if (aiResponse.intent === 'appointment_booking' && aiResponse.appointmentData?.should_book) {
-        // Handle appointment booking with OpenAI data
-        try {
-          const appointmentDetails = aiResponse.appointmentData;
-          
-          // Find patient by name if provided
-          let patient = null;
-          if (appointmentDetails.patient_name) {
-            const patients = await storage.getPatientsByOrganization(req.tenant!.id);
-            patient = patients.find(p => 
-              `${p.firstName} ${p.lastName}`.toLowerCase().includes(appointmentDetails.patient_name.toLowerCase()) ||
-              p.firstName?.toLowerCase().includes(appointmentDetails.patient_name.toLowerCase()) ||
-              p.lastName?.toLowerCase().includes(appointmentDetails.patient_name.toLowerCase())
-            );
-          }
-
-          if (patient && appointmentDetails.doctor_preference && appointmentDetails.date) {
-            // Find doctor by name
-            const users = await storage.getUsersByOrganization(req.tenant!.id);
-            const doctor = users.find(u => 
-              (u.role === 'doctor' || u.role === 'admin') &&
-              `${u.firstName} ${u.lastName}`.toLowerCase().includes(appointmentDetails.doctor_preference.toLowerCase())
-            );
-
-            if (doctor) {
-              // Create appointment
-              const appointmentData = {
-                organizationId: req.tenant!.id,
-                patientId: patient.id,
-                providerId: doctor.id,
-                appointmentDate: new Date(appointmentDetails.date),
-                appointmentTime: appointmentDetails.time || '10:00',
-                appointmentType: appointmentDetails.appointment_type || 'consultation',
-                reason: appointmentDetails.reason || 'General consultation',
-                status: 'scheduled' as const,
-                duration: 30,
-                notes: `Booked via AI Assistant`
-              };
-
-              const newAppointment = await storage.createAppointment(appointmentData);
-              
-              actionResult = {
-                action: 'appointment_booked',
-                actionDescription: `Appointment scheduled for ${patient.firstName} ${patient.lastName} with Dr. ${doctor.firstName} ${doctor.lastName}`,
-                data: { appointmentId: newAppointment.id }
-              };
-              responseData = { 
-                appointmentBooked: true, 
-                appointmentId: newAppointment.id,
-                appointmentDetails: {
-                  patient: `${patient.firstName} ${patient.lastName}`,
-                  doctor: `Dr. ${doctor.firstName} ${doctor.lastName}`,
-                  date: appointmentDetails.date,
-                  time: appointmentDetails.time
-                }
-              };
-            }
-          }
-        } catch (error) {
-          console.error('Error creating appointment from AI:', error);
-        }
+        // Appointment creation is handled internally by the AI service
+        // The createAutomaticAppointment method in AI service already handles the appointment creation
+        actionResult = {
+          action: 'appointment_booked',
+          actionDescription: `Appointment booking processed`,
+          data: { processed: true }
+        };
+        responseData = { 
+          appointmentBooked: true,
+          processed: true
+        };
       } else if (aiResponse.intent === 'prescription_inquiry' && aiResponse.prescriptionData?.search_query) {
         // Handle prescription search with OpenAI data
         try {
