@@ -371,6 +371,31 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                         {patient.insuranceInfo.provider.toUpperCase()}
                       </Badge>
                     )}
+                    {patient.flags && patient.flags.length > 0 && (
+                      <div className="flex flex-col items-end space-y-1">
+                        {patient.flags.slice(0, 2).map((flag: string, index: number) => {
+                          const [type, priority, reason] = flag.split(':');
+                          const flagColor = priority === 'urgent' ? 'bg-red-100 text-red-800' :
+                                          priority === 'high' ? 'bg-orange-100 text-orange-800' :
+                                          priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                                          'bg-blue-100 text-blue-800';
+                          return (
+                            <Badge 
+                              key={index} 
+                              className={`text-xs ${flagColor}`}
+                              title={`${type}: ${reason}`}
+                            >
+                              🚩 {type}
+                            </Badge>
+                          );
+                        })}
+                        {patient.flags.length > 2 && (
+                          <Badge variant="outline" className="text-xs text-gray-600">
+                            +{patient.flags.length - 2} more flags
+                          </Badge>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardHeader>
