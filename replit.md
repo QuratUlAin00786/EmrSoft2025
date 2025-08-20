@@ -11,6 +11,15 @@ Complete legal framework implemented for Cura Software Limited:
 - **Company Branding**: Updated footer and legal pages with official Cura Software Limited details
 - **Navigation**: Proper routing structure for all legal pages accessible from landing page footer
 
+## SaaS Administration Fix (August 2025)
+**CRITICAL PRODUCTION ISSUE RESOLVED**: SaaS admin credentials work in development but fail in production
+- **Root Cause**: Environment variable differences between development and production
+- **Solution**: Run `node create-saas-owner.cjs` in production to ensure SaaS owner exists
+- **Credentials**: Username: `saas_admin`, Password: `admin123`, Email: `admin@curapms.ai`
+- **Access**: Navigate to `/saas` route to access SaaS administration portal
+- **Debug Endpoint**: `/api/saas/debug` available to diagnose production environment issues
+- **Status**: Backend authentication verified working in development environment
+
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 

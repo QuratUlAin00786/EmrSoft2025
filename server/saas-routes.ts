@@ -125,6 +125,27 @@ const verifySaaSToken = async (req: SaaSRequest, res: Response, next: any) => {
 };
 
 export function registerSaaSRoutes(app: Express) {
+  // SaaS diagnostic endpoint for production debugging
+  app.get('/api/saas/debug', async (req: Request, res: Response) => {
+    try {
+      const hasOwner = await storage.getSaaSOwnerByUsername('saas_admin');
+      
+      res.json({
+        debug: true,
+        environment: process.env.NODE_ENV || 'unknown',
+        hasSaaSJWTSecret: !!process.env.SAAS_JWT_SECRET,
+        jwtSecretLength: SAAS_JWT_SECRET.length,
+        hasSaaSAdmin: !!hasOwner,
+        saasAdminActive: hasOwner?.isActive || false,
+        saasAdminEmail: hasOwner?.email || 'none',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('SaaS debug error:', error);
+      res.status(500).json({ error: 'Debug endpoint failed', message: (error as Error).message });
+    }
+  });
+
   // SaaS Owner Login
   app.post('/api/saas/login', async (req: Request, res: Response) => {
     try {
