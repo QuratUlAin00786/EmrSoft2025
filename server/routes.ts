@@ -1006,6 +1006,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         scheduledAt: new Date(appointmentData.appointmentDate || appointmentData.scheduledAt || new Date()),
         duration: appointmentData.duration,
         type: appointmentData.type,
+        status: appointmentData.status || "scheduled", // Add missing status field
         location: appointmentData.location || "",
         isVirtual: appointmentData.isVirtual
       };
