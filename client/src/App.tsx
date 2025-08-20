@@ -181,6 +181,10 @@ function AppRouter() {
   useEffect(() => {
     if (loading) return;
 
+    // Exclude SaaS routes from main app authentication redirects
+    const isSaaSRoute = location.startsWith('/saas');
+    if (isSaaSRoute) return;
+
     const isLandingPage = location.startsWith('/landing') || 
                          location.startsWith('/auth/login') || 
                          location.startsWith('/legal') || 
@@ -212,6 +216,11 @@ function AppRouter() {
   if (!isAuthenticated) {
     return (
       <Switch>
+        {/* SaaS Admin Portal - Allow access even when not authenticated to main app */}
+        <Route path="/saas" component={SaaSPortal} />
+        <Route path="/saas/*" component={SaaSPortal} />
+        
+        {/* Public pages */}
         <Route path="/" component={LandingPage} />
         <Route path="/landing" component={LandingPage} />
         <Route path="/landing/about" component={AboutPage} />
