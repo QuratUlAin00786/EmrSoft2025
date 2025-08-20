@@ -2,7 +2,9 @@ import type { Express, Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { storage } from "./storage";
+import { db } from "./db";
 import nodemailer from 'nodemailer';
+import { saasOwners } from '@shared/schema';
 
 const SAAS_JWT_SECRET = process.env.SAAS_JWT_SECRET || "saas-super-secret-key-change-in-production";
 
@@ -125,6 +127,56 @@ const verifySaaSToken = async (req: SaaSRequest, res: Response, next: any) => {
 };
 
 export function registerSaaSRoutes(app: Express) {
+  // Production Setup Endpoint - Creates SaaS owner if doesn't exist
+  app.post('/api/production-setup', async (req: Request, res: Response) => {
+    try {
+      // Check if SaaS owner already exists
+      const existingOwner = await storage.getSaaSOwnerByUsername('saas_admin');
+      
+      if (existingOwner) {
+        return res.json({ 
+          success: true, 
+          message: 'SaaS admin already exists', 
+          alreadyExists: true 
+        });
+      }
+
+      // Create the SaaS owner account
+      const hashedPassword = await bcrypt.hash('admin123', 12);
+      
+      const [newOwner] = await db.insert(saasOwners).values({
+        username: 'saas_admin',
+        email: 'admin@curapms.ai',
+        password: hashedPassword,
+        firstName: 'SaaS',
+        lastName: 'Administrator',
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).returning();
+
+      console.log('✅ Production SaaS owner created successfully');
+      
+      res.json({ 
+        success: true, 
+        message: 'SaaS admin account created successfully',
+        owner: {
+          id: newOwner.id,
+          username: newOwner.username,
+          email: newOwner.email
+        }
+      });
+      
+    } catch (error) {
+      console.error('❌ Production setup failed:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Failed to create SaaS admin account',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // SaaS Owner Profile Management
   app.get('/api/saas/owner/profile', verifySaaSToken, async (req: Request, res: Response) => {
     try {
@@ -214,18 +266,18 @@ export function registerSaaSRoutes(app: Express) {
       }
 
       // Validate organization exists
-      const organization = await storage.getOrganizationById(parseInt(organizationId));
+      const organization = await storage.getOrganization(parseInt(organizationId));
       if (!organization) {
         return res.status(400).json({ error: 'Invalid organization selected' });
       }
 
       // Check if username or email already exists
-      const existingUser = await storage.getUserByUsername(username);
+      const existingUser = await storage.getUserByUsername(username, parseInt(organizationId));
       if (existingUser) {
         return res.status(400).json({ error: 'Username already exists' });
       }
 
-      const existingEmail = await storage.getUserByEmail(email);
+      const existingEmail = await storage.getUserByEmail(email, parseInt(organizationId));
       if (existingEmail) {
         return res.status(400).json({ error: 'Email already exists' });
       }
