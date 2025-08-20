@@ -295,7 +295,7 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
                 <option value="">Select patient...</option>
                 {patients.map((patient: any) => (
                   <option key={patient.id} value={patient.patientId}>
-                    {patient.firstName} {patient.lastName} ({patient.patientId})
+                    {patient.firstName} {patient.lastName}
                   </option>
                 ))}
               </select>
