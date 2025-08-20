@@ -207,6 +207,7 @@ export const users = pgTable("users", {
     };
   }>().default({}),
   isActive: boolean("is_active").notNull().default(true),
+  isSaaSOwner: boolean("is_saas_owner").notNull().default(false), // Flag for SaaS owners
   lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

@@ -113,13 +113,13 @@ const verifySaaSToken = async (req: SaaSRequest, res: Response, next: any) => {
 
   try {
     const decoded = jwt.verify(token, SAAS_JWT_SECRET) as any;
-    const owner = await storage.getSaaSOwner(decoded.id);
+    const saasUser = await storage.getUser(decoded.id, 0); // organizationId 0 = system-wide
     
-    if (!owner || !owner.isActive) {
+    if (!saasUser || !saasUser.isSaaSOwner || !saasUser.isActive) {
       return res.status(401).json({ message: 'Invalid token or inactive owner' });
     }
     
-    req.saasOwner = owner;
+    req.saasOwner = saasUser;
     next();
   } catch (error) {
     return res.status(401).json({ message: 'Invalid token' });
@@ -127,13 +127,13 @@ const verifySaaSToken = async (req: SaaSRequest, res: Response, next: any) => {
 };
 
 export function registerSaaSRoutes(app: Express) {
-  // Production Setup Endpoint - Creates SaaS owner if doesn't exist
+  // Production Setup Endpoint - Creates SaaS owner through normal user system
   app.post('/api/production-setup', async (req: Request, res: Response) => {
     try {
-      // Check if SaaS owner already exists
-      const existingOwner = await storage.getSaaSOwnerByUsername('saas_admin');
+      // Check if SaaS owner already exists in regular users table
+      const existingUser = await storage.getUserByEmail('saas_admin@curapms.ai', 0); // organizationId 0 = system-wide
       
-      if (existingOwner) {
+      if (existingUser) {
         return res.json({ 
           success: true, 
           message: 'SaaS admin already exists', 
@@ -141,29 +141,30 @@ export function registerSaaSRoutes(app: Express) {
         });
       }
 
-      // Create the SaaS owner account
+      // Create SaaS owner as a special system user (organizationId: 0)
       const hashedPassword = await bcrypt.hash('admin123', 12);
       
-      const [newOwner] = await db.insert(saasOwners).values({
-        username: 'saas_admin',
-        email: 'admin@curapms.ai',
-        password: hashedPassword,
+      const saasOwnerUser = await storage.createUser({
         firstName: 'SaaS',
-        lastName: 'Administrator',
+        lastName: 'Administrator', 
+        email: 'saas_admin@curapms.ai',
+        username: 'saas_admin',
+        password: hashedPassword,
+        role: 'saas_owner', // Special role for SaaS owners
+        organizationId: 0, // 0 = System-wide, hidden from regular organizations
         isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }).returning();
+        isSaaSOwner: true // Flag to identify SaaS owners
+      });
 
-      console.log('✅ Production SaaS owner created successfully');
+      console.log('✅ Production SaaS owner created as system user');
       
       res.json({ 
         success: true, 
         message: 'SaaS admin account created successfully',
         owner: {
-          id: newOwner.id,
-          username: newOwner.username,
-          email: newOwner.email
+          id: saasOwnerUser.id,
+          username: saasOwnerUser.username,
+          email: saasOwnerUser.email
         }
       });
       
@@ -180,15 +181,10 @@ export function registerSaaSRoutes(app: Express) {
   // SaaS Owner Profile Management
   app.get('/api/saas/owner/profile', verifySaaSToken, async (req: Request, res: Response) => {
     try {
-      const ownerId = (req as any).saasOwner.id;
-      const owner = await storage.getSaaSOwnerById(ownerId);
+      const saasOwner = (req as any).saasOwner;
       
-      if (!owner) {
-        return res.status(404).json({ error: 'Owner not found' });
-      }
-      
-      // Return owner without password
-      const { password, ...ownerWithoutPassword } = owner;
+      // Return SaaS owner without password
+      const { password, ...ownerWithoutPassword } = saasOwner;
       res.json(ownerWithoutPassword);
     } catch (error) {
       console.error('Error fetching owner profile:', error);
@@ -198,19 +194,22 @@ export function registerSaaSRoutes(app: Express) {
 
   app.put('/api/saas/owner/profile', verifySaaSToken, async (req: Request, res: Response) => {
     try {
-      const ownerId = (req as any).saasOwner.id;
+      const saasOwner = (req as any).saasOwner;
       const { email, firstName, lastName } = req.body;
 
       if (!email || !firstName || !lastName) {
         return res.status(400).json({ error: 'All fields are required' });
       }
 
-      const updatedOwner = await storage.updateSaaSOwner(ownerId, {
+      const updatedOwner = await storage.updateUser(saasOwner.id, 0, {
         email,
         firstName,
         lastName,
-        updatedAt: new Date(),
       });
+
+      if (!updatedOwner) {
+        return res.status(404).json({ error: 'Owner not found' });
+      }
 
       // Return owner without password
       const { password, ...ownerWithoutPassword } = updatedOwner;
@@ -223,20 +222,15 @@ export function registerSaaSRoutes(app: Express) {
 
   app.put('/api/saas/owner/password', verifySaaSToken, async (req: Request, res: Response) => {
     try {
-      const ownerId = (req as any).saasOwner.id;
+      const saasOwner = (req as any).saasOwner;
       const { currentPassword, newPassword } = req.body;
 
       if (!currentPassword || !newPassword) {
         return res.status(400).json({ error: 'Current password and new password are required' });
       }
 
-      const owner = await storage.getSaaSOwnerById(ownerId);
-      if (!owner) {
-        return res.status(404).json({ error: 'Owner not found' });
-      }
-
       // Verify current password
-      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, owner.password);
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, saasOwner.password);
       if (!isCurrentPasswordValid) {
         return res.status(400).json({ error: 'Current password is incorrect' });
       }
@@ -244,9 +238,8 @@ export function registerSaaSRoutes(app: Express) {
       // Hash new password
       const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
-      await storage.updateSaaSOwner(ownerId, {
+      await storage.updateUser(saasOwner.id, 0, {
         password: hashedNewPassword,
-        updatedAt: new Date(),
       });
 
       res.json({ message: 'Password updated successfully' });
@@ -310,16 +303,17 @@ export function registerSaaSRoutes(app: Express) {
   // SaaS diagnostic endpoint for production debugging
   app.get('/api/saas/debug', async (req: Request, res: Response) => {
     try {
-      const hasOwner = await storage.getSaaSOwnerByUsername('saas_admin');
+      const hasSaaSUser = await storage.getUserByUsername('saas_admin', 0);
       
       res.json({
         debug: true,
         environment: process.env.NODE_ENV || 'unknown',
         hasSaaSJWTSecret: !!process.env.SAAS_JWT_SECRET,
         jwtSecretLength: SAAS_JWT_SECRET.length,
-        hasSaaSAdmin: !!hasOwner,
-        saasAdminActive: hasOwner?.isActive || false,
-        saasAdminEmail: hasOwner?.email || 'none',
+        hasSaaSAdmin: !!hasSaaSUser,
+        saasAdminActive: hasSaaSUser?.isActive || false,
+        saasAdminEmail: hasSaaSUser?.email || 'none',
+        isSaaSOwner: hasSaaSUser?.isSaaSOwner || false,
         timestamp: new Date().toISOString()
       });
     } catch (error) {
@@ -340,22 +334,23 @@ export function registerSaaSRoutes(app: Express) {
         });
       }
 
-      const owner = await storage.getSaaSOwnerByUsername(username);
+      // Check for SaaS owner in users table (organizationId = 0)
+      const saasUser = await storage.getUserByUsername(username, 0);
       
-      console.log('Login attempt for username:', username);
-      console.log('Owner found:', !!owner);
+      console.log('SaaS login attempt for username:', username);
+      console.log('SaaS user found:', !!saasUser);
+      console.log('Is SaaS owner:', saasUser?.isSaaSOwner || false);
       
-      if (!owner) {
-        console.log('No owner found with username:', username);
+      if (!saasUser || !saasUser.isSaaSOwner) {
+        console.log('No SaaS owner found with username:', username);
         return res.status(401).json({ 
           success: false, 
           message: 'Invalid credentials' 
         });
       }
 
-      console.log('Comparing password for owner:', owner.username);
-      console.log('Stored hash:', owner.password);
-      const isValidPassword = await bcrypt.compare(password, owner.password);
+      console.log('Comparing password for SaaS user:', saasUser.username);
+      const isValidPassword = await bcrypt.compare(password, saasUser.password);
       console.log('Password valid:', isValidPassword);
       
       if (!isValidPassword) {
@@ -365,7 +360,7 @@ export function registerSaaSRoutes(app: Express) {
         });
       }
 
-      if (!owner.isActive) {
+      if (!saasUser.isActive) {
         return res.status(401).json({ 
           success: false, 
           message: 'Account is deactivated' 
@@ -373,11 +368,11 @@ export function registerSaaSRoutes(app: Express) {
       }
 
       // Update last login
-      await storage.updateSaaSOwnerLastLogin(owner.id);
+      await storage.updateUser(saasUser.id, 0, { lastLoginAt: new Date() });
 
       // Generate JWT token
       const token = jwt.sign(
-        { id: owner.id, username: owner.username },
+        { id: saasUser.id, username: saasUser.username, isSaaSOwner: true },
         SAAS_JWT_SECRET,
         { expiresIn: '24h' }
       );
@@ -386,11 +381,11 @@ export function registerSaaSRoutes(app: Express) {
         success: true,
         token,
         owner: {
-          id: owner.id,
-          username: owner.username,
-          email: owner.email,
-          firstName: owner.firstName,
-          lastName: owner.lastName,
+          id: saasUser.id,
+          username: saasUser.username,
+          email: saasUser.email,
+          firstName: saasUser.firstName,
+          lastName: saasUser.lastName,
         }
       });
     } catch (error) {
