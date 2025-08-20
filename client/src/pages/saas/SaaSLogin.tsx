@@ -38,10 +38,20 @@ export default function SaaSLogin({ onLoginSuccess }: SaaSLoginProps) {
 
   const loginMutation = useMutation({
     mutationFn: async (data: SaaSLoginForm) => {
-      const response = await saasApiRequest('POST', '/api/saas/login', data);
-      return response.json();
+      console.log('SaaS Login attempt with data:', data);
+      try {
+        const response = await saasApiRequest('POST', '/api/saas/login', data);
+        console.log('SaaS Login response status:', response.status);
+        const result = await response.json();
+        console.log('SaaS Login response data:', result);
+        return result;
+      } catch (error) {
+        console.error('SaaS Login request failed:', error);
+        throw error;
+      }
     },
     onSuccess: (result) => {
+      console.log('SaaS Login mutation success:', result);
       if (result.success) {
         localStorage.setItem('saasToken', result.token);
         localStorage.setItem('saas_owner', JSON.stringify(result.owner));
@@ -55,7 +65,7 @@ export default function SaaSLogin({ onLoginSuccess }: SaaSLoginProps) {
       }
     },
     onError: (error: any) => {
-      console.error('SaaS login error:', error);
+      console.error('SaaS login error details:', error);
       setError('Authentication failed. Please check your credentials.');
     },
   });
