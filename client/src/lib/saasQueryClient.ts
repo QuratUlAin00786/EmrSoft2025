@@ -7,30 +7,11 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-// Helper function to get the correct API base URL for both dev and production
-function getApiBaseUrl(): string {
-  // For production, we need to ensure requests go to the same origin
-  // Check if we're in a deployed environment vs development
-  if (window.location.hostname !== 'localhost' && !window.location.hostname.includes('replit.dev')) {
-    // Production environment - use absolute URL to ensure correct routing
-    return window.location.origin;
-  }
-  // Development environment - use relative URLs
-  return '';
-}
-
+// Simplified URL building that works in all environments
 function buildApiUrl(path: string): string {
-  const baseUrl = getApiBaseUrl();
-  // Ensure path starts with /
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  
-  // Special handling for production - ensure full path is included
-  if (baseUrl) {
-    return `${baseUrl}${normalizedPath}`;
-  }
-  
-  // Development fallback
-  return normalizedPath;
+  // Always use relative URLs - this works in both dev and production
+  // The browser will automatically resolve to the correct domain
+  return path.startsWith('/') ? path : `/${path}`;
 }
 
 export async function saasApiRequest(
@@ -52,14 +33,40 @@ export async function saasApiRequest(
   // Build the correct URL for both dev and production environments
   const apiUrl = buildApiUrl(url);
   
-  const res = await fetch(apiUrl, {
+  // Add logging to debug production issues
+  console.log('🔍 SaaS API Call:', {
     method,
-    headers,
-    body: data ? JSON.stringify(data) : undefined,
+    originalUrl: url,
+    finalUrl: apiUrl,
+    location: window.location.href,
+    hostname: window.location.hostname
   });
 
-  await throwIfResNotOk(res);
-  return res;
+  try {
+    const res = await fetch(apiUrl, {
+      method,
+      headers,
+      body: data ? JSON.stringify(data) : undefined,
+    });
+
+    console.log('📡 SaaS API Response:', {
+      status: res.status,
+      statusText: res.statusText,
+      ok: res.ok,
+      url: res.url,
+      headers: Object.fromEntries(res.headers.entries())
+    });
+
+    await throwIfResNotOk(res);
+    return res;
+  } catch (error) {
+    console.error('❌ SaaS API Error:', {
+      error: error.message,
+      stack: error.stack,
+      finalUrl: apiUrl
+    });
+    throw error;
+  }
 }
 
 export const getSaaSQueryFn: QueryFunction = async ({ queryKey }) => {
