@@ -241,6 +241,7 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
       scheduledAt: scheduledAt.toISOString(),
       duration: parseInt(formData.duration),
       type: formData.type,
+      status: "scheduled", // Required field - set default status
       location: formData.isVirtual ? "Virtual" : (formData.location || `${formData.department || 'General'} Department`),
       isVirtual: formData.isVirtual
     };
