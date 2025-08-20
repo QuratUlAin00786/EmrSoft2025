@@ -187,7 +187,7 @@ export default function PrivacyPolicy() {
             <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
               <h3 className="text-lg font-medium mb-3 text-gray-900 dark:text-white">Data Protection Officer</h3>
               <p className="text-gray-700 dark:text-gray-300 mb-2">
-                Email: <a href="mailto:dpo@curapms.ai" className="text-blue-600 hover:text-blue-800">dpo@curapms.ai</a>
+                Email: <a href="mailto:dpo@curaemr.ai" className="text-blue-600 hover:text-blue-800">dpo@curaemr.ai</a>
               </p>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
                 Address: Ground Floor Unit 2, Drayton Court, Drayton Road, Solihull, England B90 4NG
@@ -195,7 +195,7 @@ export default function PrivacyPolicy() {
               
               <h3 className="text-lg font-medium mb-3 text-gray-900 dark:text-white">General Enquiries</h3>
               <p className="text-gray-700 dark:text-gray-300 mb-2">
-                Email: <a href="mailto:info@curapms.ai" className="text-blue-600 hover:text-blue-800">info@curapms.ai</a>
+                Email: <a href="mailto:info@curaemr.ai" className="text-blue-600 hover:text-blue-800">info@curaemr.ai</a>
               </p>
               <p className="text-gray-700 dark:text-gray-300">
                 Phone: +44 (0) 121 456 7890

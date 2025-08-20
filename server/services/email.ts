@@ -98,9 +98,9 @@ class EmailService {
             options.subject?.toLowerCase().includes('notification') ||
             options.subject?.toLowerCase().includes('alert') ||
             options.subject?.toLowerCase().includes('confirmation')) {
-          fromAddress = 'Cura EMR <noreply@curapms.ai>';
+          fromAddress = 'Cura EMR <noreply@curaemr.ai>';
         } else {
-          fromAddress = 'Cura EMR <info@curapms.ai>';
+          fromAddress = 'Cura EMR <info@curaemr.ai>';
         }
       }
 

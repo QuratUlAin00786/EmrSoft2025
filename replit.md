@@ -17,7 +17,7 @@ Complete legal framework implemented for Cura Software Limited:
 - **Identification**: `isSaaSOwner: true` flag distinguishes SaaS owners from regular users
 - **Isolation**: SaaS owners completely hidden from regular organizations (organizationId: 0)
 - **Production Setup**: Automated via `/api/production-setup` endpoint - no console access required
-- **Credentials**: Username: `saas_admin`, Password: `admin123`, Email: `saas_admin@curapms.ai`
+- **Credentials**: Username: `saas_admin`, Password: `admin123`, Email: `saas_admin@curaemr.ai`
 - **Access**: Navigate to `/saas` route to access SaaS administration portal
 - **Benefits**: Unified authentication, simplified management, better security isolation
 - **Status**: Fully operational with elegant system-wide user management integration

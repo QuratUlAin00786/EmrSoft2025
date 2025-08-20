@@ -84,7 +84,7 @@ async function sendWelcomeEmail(organization: any, adminUser: any) {
           <div class="footer">
             <p>This email was sent to ${adminUser.email} regarding your new Cura EMR account.</p>
             <p>Cura Software Limited | Ground Floor Unit 2, Drayton Court, Drayton Road, Solihull, England B90 4NG</p>
-            <p>Registration: 16556912 | For support, contact: info@curapms.ai</p>
+            <p>Registration: 16556912 | For support, contact: info@curaemr.ai</p>
           </div>
         </body>
         </html>
@@ -131,7 +131,7 @@ export function registerSaaSRoutes(app: Express) {
   app.post('/api/production-setup', async (req: Request, res: Response) => {
     try {
       // Check if SaaS owner already exists in regular users table
-      const existingUser = await storage.getUserByEmail('saas_admin@curapms.ai', 0); // organizationId 0 = system-wide
+      const existingUser = await storage.getUserByEmail('saas_admin@curaemr.ai', 0); // organizationId 0 = system-wide
       
       if (existingUser) {
         return res.json({ 

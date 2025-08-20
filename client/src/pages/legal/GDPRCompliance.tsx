@@ -286,7 +286,7 @@ export default function GDPRCompliance() {
                 <div>
                   <h3 className="text-lg font-medium mb-3 text-gray-900 dark:text-white">Data Protection Officer</h3>
                   <p className="text-gray-700 dark:text-gray-300 mb-2">
-                    Email: <a href="mailto:dpo@curapms.ai" className="text-blue-600 hover:text-blue-800">dpo@curapms.ai</a>
+                    Email: <a href="mailto:dpo@curaemr.ai" className="text-blue-600 hover:text-blue-800">dpo@curaemr.ai</a>
                   </p>
                   <p className="text-gray-700 dark:text-gray-300 mb-2">
                     Phone: +44 (0) 121 456 7891

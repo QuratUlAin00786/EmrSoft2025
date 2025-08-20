@@ -341,8 +341,8 @@ export default function LandingPage() {
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-gray-600 dark:text-gray-400">
                 <li><Link href="/landing/about" className="hover:text-blue-600 dark:hover:text-white">About Us</Link></li>
-                <li><a href="mailto:careers@curapms.ai" className="hover:text-blue-600 dark:hover:text-white">Careers</a></li>
-                <li><a href="mailto:info@curapms.ai" className="hover:text-blue-600 dark:hover:text-white">Contact</a></li>
+                <li><a href="mailto:careers@curaemr.ai" className="hover:text-blue-600 dark:hover:text-white">Careers</a></li>
+                <li><a href="mailto:info@curaemr.ai" className="hover:text-blue-600 dark:hover:text-white">Contact</a></li>
                 <li><Link href="/legal/press" className="hover:text-blue-600 dark:hover:text-white">Press</Link></li>
               </ul>
             </div>
