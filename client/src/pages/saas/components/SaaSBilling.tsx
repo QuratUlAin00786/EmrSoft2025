@@ -204,6 +204,52 @@ export default function SaaSBilling() {
     });
   };
 
+  const handleExportPayments = () => {
+    if (!billingData?.invoices || billingData.invoices.length === 0) {
+      toast({
+        title: "No Data to Export",
+        description: "There are no payments to export.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Prepare CSV data
+    const csvHeaders = ['Invoice', 'Customer', 'Amount', 'Currency', 'Method', 'Status', 'Date'];
+    
+    const csvData = billingData.invoices.map((payment: any) => [
+      payment.invoiceNumber,
+      payment.organizationName || 'Unknown',
+      parseFloat(payment.amount).toFixed(2),
+      payment.currency || 'GBP',
+      payment.paymentMethod.replace('_', ' '),
+      payment.paymentStatus,
+      formatDate(payment.createdAt)
+    ]);
+
+    // Create CSV content
+    const csvContent = [
+      csvHeaders.join(','),
+      ...csvData.map(row => row.join(','))
+    ].join('\n');
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `payments-export-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast({
+      title: "Export Successful",
+      description: `Exported ${billingData.invoices.length} payments to CSV file.`,
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -412,7 +458,13 @@ export default function SaaSBilling() {
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle>All Payments</CardTitle>
-                <Button variant="outline" size="sm" className="gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-2"
+                  onClick={handleExportPayments}
+                  disabled={dataLoading || !billingData?.invoices?.length}
+                >
                   <Download className="w-4 h-4" />
                   Export
                 </Button>
