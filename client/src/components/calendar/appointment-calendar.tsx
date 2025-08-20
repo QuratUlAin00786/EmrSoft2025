@@ -164,7 +164,7 @@ export default function AppointmentCalendar() {
     .sort((a: any, b: any) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
   
   console.log("[Calendar] Final processed appointments count:", appointments.length);
-  console.log("[Calendar] All appointments:", appointments.map(apt => ({ id: apt.id, title: apt.title, scheduledAt: apt.scheduledAt })));
+  console.log("[Calendar] All appointments:", appointments.map((apt: any) => ({ id: apt.id, title: apt.title, scheduledAt: apt.scheduledAt })));
   
   // Data processing complete
 
@@ -208,9 +208,22 @@ export default function AppointmentCalendar() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
+                onClick={async () => {
                   console.log("[Calendar] Manual refresh triggered");
-                  refetch();
+                  try {
+                    await refetch();
+                    toast({
+                      title: "Calendar refreshed",
+                      description: "Appointments data has been updated",
+                    });
+                  } catch (error) {
+                    console.error("[Calendar] Refresh failed:", error);
+                    toast({
+                      title: "Refresh failed",
+                      description: "Could not refresh appointments data",
+                      variant: "destructive",
+                    });
+                  }
                 }}
                 className="text-xs sm:text-sm"
               >
