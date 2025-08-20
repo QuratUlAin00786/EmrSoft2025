@@ -247,7 +247,9 @@ export interface IStorage {
 
   // SaaS Administration
   getSaaSOwner(id: number): Promise<SaaSOwner | undefined>;
+  getSaaSOwnerById(id: number): Promise<SaaSOwner | undefined>;
   getSaaSOwnerByUsername(username: string): Promise<SaaSOwner | undefined>;
+  updateSaaSOwner(id: number, data: Partial<SaaSOwner>): Promise<SaaSOwner>;
   updateSaaSOwnerLastLogin(id: number): Promise<void>;
   getSaaSStats(): Promise<any>;
   getAllUsers(search?: string, organizationId?: string): Promise<any[]>;
@@ -3026,9 +3028,22 @@ export class DatabaseStorage implements IStorage {
     return owner || undefined;
   }
 
+  async getSaaSOwnerById(id: number): Promise<SaaSOwner | undefined> {
+    const [owner] = await db.select().from(saasOwners).where(eq(saasOwners.id, id));
+    return owner || undefined;
+  }
+
   async getSaaSOwnerByUsername(username: string): Promise<SaaSOwner | undefined> {
     const [owner] = await db.select().from(saasOwners).where(eq(saasOwners.username, username));
     return owner || undefined;
+  }
+
+  async updateSaaSOwner(id: number, data: Partial<SaaSOwner>): Promise<SaaSOwner> {
+    const [owner] = await db.update(saasOwners)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(saasOwners.id, id))
+      .returning();
+    return owner;
   }
 
   async updateSaaSOwnerLastLogin(id: number): Promise<void> {

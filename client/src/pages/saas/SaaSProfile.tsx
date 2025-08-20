@@ -43,9 +43,9 @@ export default function SaaSProfile() {
   const profileForm = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      email: owner?.email || "",
-      firstName: owner?.firstName || "",
-      lastName: owner?.lastName || "",
+      email: "",
+      firstName: "",
+      lastName: "",
     },
   });
 
@@ -107,9 +107,9 @@ export default function SaaSProfile() {
   // Update form defaults when owner data loads
   if (owner && !profileForm.formState.isDirty) {
     profileForm.reset({
-      email: owner.email,
-      firstName: owner.firstName,
-      lastName: owner.lastName,
+      email: (owner as any).email || "",
+      firstName: (owner as any).firstName || "",
+      lastName: (owner as any).lastName || "",
     });
   }
 
@@ -323,16 +323,16 @@ export default function SaaSProfile() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div>
                   <Label className="text-gray-500">Username</Label>
-                  <p className="font-medium">{owner.username}</p>
+                  <p className="font-medium">{(owner as any)?.username}</p>
                 </div>
                 <div>
                   <Label className="text-gray-500">Account ID</Label>
-                  <p className="font-medium">#{owner.id}</p>
+                  <p className="font-medium">#{(owner as any)?.id}</p>
                 </div>
                 <div>
                   <Label className="text-gray-500">Status</Label>
-                  <p className={`font-medium ${owner.isActive ? 'text-green-600' : 'text-red-600'}`}>
-                    {owner.isActive ? 'Active' : 'Inactive'}
+                  <p className={`font-medium ${(owner as any)?.isActive ? 'text-green-600' : 'text-red-600'}`}>
+                    {(owner as any)?.isActive ? 'Active' : 'Inactive'}
                   </p>
                 </div>
               </div>

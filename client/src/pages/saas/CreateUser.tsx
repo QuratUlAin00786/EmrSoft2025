@@ -1,0 +1,343 @@
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { UserPlus, Building2, Shield, ArrowLeft } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { Link } from "wouter";
+
+const createUserSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email("Please enter a valid email address"),
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  role: z.enum(['admin', 'doctor', 'nurse', 'receptionist', 'patient', 'sample_taker']),
+  organizationId: z.string().min(1, "Please select an organization"),
+});
+
+type CreateUserFormData = z.infer<typeof createUserSchema>;
+
+const roleOptions = [
+  { value: 'admin', label: 'Administrator', description: 'Full system access and management' },
+  { value: 'doctor', label: 'Doctor', description: 'Patient care and medical records' },
+  { value: 'nurse', label: 'Nurse', description: 'Patient care and basic records' },
+  { value: 'receptionist', label: 'Receptionist', description: 'Appointments and basic patient info' },
+  { value: 'patient', label: 'Patient', description: 'Personal medical records access' },
+  { value: 'sample_taker', label: 'Sample Taker', description: 'Lab sample collection' },
+];
+
+export default function CreateUser() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch organizations
+  const { data: organizations, isLoading: orgLoading } = useQuery({
+    queryKey: ["/api/saas/organizations"],
+  });
+
+  // Form setup
+  const form = useForm<CreateUserFormData>({
+    resolver: zodResolver(createUserSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      username: "",
+      password: "",
+      role: "patient",
+      organizationId: "",
+    },
+  });
+
+  // Create user mutation
+  const createUserMutation = useMutation({
+    mutationFn: async (data: CreateUserFormData) => {
+      return apiRequest("POST", "/api/saas/users/create", data);
+    },
+    onSuccess: (newUser: any) => {
+      toast({
+        title: "User Created Successfully",
+        description: `${newUser.firstName} ${newUser.lastName} has been added to the system.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/saas/users"] });
+      form.reset();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Create User",
+        description: error.message || "An error occurred while creating the user.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: CreateUserFormData) => {
+    createUserMutation.mutate(data);
+  };
+
+  if (orgLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/3 mb-6"></div>
+            <div className="h-96 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <Link href="/saas/users" className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 mb-4">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Users
+          </Link>
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <UserPlus className="h-8 w-8 text-indigo-600" />
+            Create New User
+          </h1>
+          <p className="text-gray-600 mt-2">Add a new user to the Cura EMR system</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Form */}
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>User Information</CardTitle>
+                <CardDescription>
+                  Enter the user's personal details and account information
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  {/* Personal Information */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium text-gray-900">Personal Details</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="firstName">First Name</Label>
+                        <Input
+                          id="firstName"
+                          {...form.register("firstName")}
+                          placeholder="Enter first name"
+                        />
+                        {form.formState.errors.firstName && (
+                          <p className="text-sm text-red-600">
+                            {form.formState.errors.firstName.message}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="lastName">Last Name</Label>
+                        <Input
+                          id="lastName"
+                          {...form.register("lastName")}
+                          placeholder="Enter last name"
+                        />
+                        {form.formState.errors.lastName && (
+                          <p className="text-sm text-red-600">
+                            {form.formState.errors.lastName.message}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email Address</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        {...form.register("email")}
+                        placeholder="user@example.com"
+                      />
+                      {form.formState.errors.email && (
+                        <p className="text-sm text-red-600">
+                          {form.formState.errors.email.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Account Information */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium text-gray-900">Account Details</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="username">Username</Label>
+                        <Input
+                          id="username"
+                          {...form.register("username")}
+                          placeholder="Enter username"
+                        />
+                        {form.formState.errors.username && (
+                          <p className="text-sm text-red-600">
+                            {form.formState.errors.username.message}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="password">Password</Label>
+                        <Input
+                          id="password"
+                          type="password"
+                          {...form.register("password")}
+                          placeholder="Enter password"
+                        />
+                        {form.formState.errors.password && (
+                          <p className="text-sm text-red-600">
+                            {form.formState.errors.password.message}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Organization & Role */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium text-gray-900">Organization & Role</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="organizationId">Organization</Label>
+                        <Select onValueChange={(value) => form.setValue("organizationId", value)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select organization" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {organizations?.map((org: any) => (
+                              <SelectItem key={org.id} value={org.id.toString()}>
+                                <div className="flex items-center gap-2">
+                                  <Building2 className="h-4 w-4" />
+                                  {org.name}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {form.formState.errors.organizationId && (
+                          <p className="text-sm text-red-600">
+                            {form.formState.errors.organizationId.message}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="role">User Role</Label>
+                        <Select onValueChange={(value) => form.setValue("role", value as any)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {roleOptions.map((role) => (
+                              <SelectItem key={role.value} value={role.value}>
+                                <div className="flex items-center gap-2">
+                                  <Shield className="h-4 w-4" />
+                                  {role.label}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {form.formState.errors.role && (
+                          <p className="text-sm text-red-600">
+                            {form.formState.errors.role.message}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Submit Button */}
+                  <div className="pt-6 border-t">
+                    <Button
+                      type="submit"
+                      disabled={createUserMutation.isPending}
+                      className="w-full"
+                      size="lg"
+                    >
+                      {createUserMutation.isPending ? (
+                        "Creating User..."
+                      ) : (
+                        <span className="flex items-center gap-2">
+                          <UserPlus className="h-5 w-5" />
+                          Create User Account
+                        </span>
+                      )}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Role Information Sidebar */}
+          <div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  Role Permissions
+                </CardTitle>
+                <CardDescription>
+                  Information about user roles and their access levels
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {roleOptions.map((role) => (
+                    <div key={role.value} className="border-l-4 border-indigo-200 pl-4">
+                      <h4 className="font-medium text-gray-900">{role.label}</h4>
+                      <p className="text-sm text-gray-600">{role.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Organization Info */}
+            {organizations && organizations.length > 0 && (
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Building2 className="h-5 w-5" />
+                    Available Organizations
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {organizations.slice(0, 5).map((org: any) => (
+                      <div key={org.id} className="flex items-center gap-2 text-sm">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="truncate">{org.name}</span>
+                      </div>
+                    ))}
+                    {organizations.length > 5 && (
+                      <p className="text-xs text-gray-500 pt-2">
+                        +{organizations.length - 5} more organizations
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

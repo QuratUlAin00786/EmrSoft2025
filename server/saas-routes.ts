@@ -125,6 +125,136 @@ const verifySaaSToken = async (req: SaaSRequest, res: Response, next: any) => {
 };
 
 export function registerSaaSRoutes(app: Express) {
+  // SaaS Owner Profile Management
+  app.get('/api/saas/owner/profile', verifySaaSToken, async (req: Request, res: Response) => {
+    try {
+      const ownerId = (req as any).saasOwner.id;
+      const owner = await storage.getSaaSOwnerById(ownerId);
+      
+      if (!owner) {
+        return res.status(404).json({ error: 'Owner not found' });
+      }
+      
+      // Return owner without password
+      const { password, ...ownerWithoutPassword } = owner;
+      res.json(ownerWithoutPassword);
+    } catch (error) {
+      console.error('Error fetching owner profile:', error);
+      res.status(500).json({ error: 'Failed to fetch profile' });
+    }
+  });
+
+  app.put('/api/saas/owner/profile', verifySaaSToken, async (req: Request, res: Response) => {
+    try {
+      const ownerId = (req as any).saasOwner.id;
+      const { email, firstName, lastName } = req.body;
+
+      if (!email || !firstName || !lastName) {
+        return res.status(400).json({ error: 'All fields are required' });
+      }
+
+      const updatedOwner = await storage.updateSaaSOwner(ownerId, {
+        email,
+        firstName,
+        lastName,
+        updatedAt: new Date(),
+      });
+
+      // Return owner without password
+      const { password, ...ownerWithoutPassword } = updatedOwner;
+      res.json(ownerWithoutPassword);
+    } catch (error) {
+      console.error('Error updating owner profile:', error);
+      res.status(500).json({ error: 'Failed to update profile' });
+    }
+  });
+
+  app.put('/api/saas/owner/password', verifySaaSToken, async (req: Request, res: Response) => {
+    try {
+      const ownerId = (req as any).saasOwner.id;
+      const { currentPassword, newPassword } = req.body;
+
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: 'Current password and new password are required' });
+      }
+
+      const owner = await storage.getSaaSOwnerById(ownerId);
+      if (!owner) {
+        return res.status(404).json({ error: 'Owner not found' });
+      }
+
+      // Verify current password
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, owner.password);
+      if (!isCurrentPasswordValid) {
+        return res.status(400).json({ error: 'Current password is incorrect' });
+      }
+
+      // Hash new password
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+      await storage.updateSaaSOwner(ownerId, {
+        password: hashedNewPassword,
+        updatedAt: new Date(),
+      });
+
+      res.json({ message: 'Password updated successfully' });
+    } catch (error) {
+      console.error('Error updating password:', error);
+      res.status(500).json({ error: 'Failed to update password' });
+    }
+  });
+
+  // Create User
+  app.post('/api/saas/users/create', verifySaaSToken, async (req: Request, res: Response) => {
+    try {
+      const { firstName, lastName, email, username, password, role, organizationId } = req.body;
+
+      if (!firstName || !lastName || !email || !username || !password || !role || !organizationId) {
+        return res.status(400).json({ error: 'All fields are required' });
+      }
+
+      // Validate organization exists
+      const organization = await storage.getOrganizationById(parseInt(organizationId));
+      if (!organization) {
+        return res.status(400).json({ error: 'Invalid organization selected' });
+      }
+
+      // Check if username or email already exists
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({ error: 'Username already exists' });
+      }
+
+      const existingEmail = await storage.getUserByEmail(email);
+      if (existingEmail) {
+        return res.status(400).json({ error: 'Email already exists' });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Create user
+      const newUser = await storage.createUser({
+        firstName,
+        lastName,
+        email,
+        username,
+        password: hashedPassword,
+        role,
+        organizationId: parseInt(organizationId),
+        isActive: true,
+      });
+
+      // Return user without password
+      const { password: _, ...userWithoutPassword } = newUser;
+      
+      res.status(201).json(userWithoutPassword);
+    } catch (error) {
+      console.error('Error creating user:', error);
+      res.status(500).json({ error: 'Failed to create user' });
+    }
+  });
+
   // SaaS diagnostic endpoint for production debugging
   app.get('/api/saas/debug', async (req: Request, res: Response) => {
     try {
