@@ -78,8 +78,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Register SaaS administration routes BEFORE multi-tenant middleware
-  // SaaS routes must bypass tenant middleware as they operate system-wide
+  // Register critical SaaS routes DIRECTLY before ANY middleware
+  // These MUST work in production - direct implementation without external dependencies
+  
+  // SaaS Debug endpoint - direct implementation
+  app.get('/api/saas/debug', async (req, res) => {
+    try {
+      const hasSaaSUser = await storage.getUserByUsername('saas_admin', 0);
+      res.json({
+        debug: true,
+        environment: process.env.NODE_ENV || 'unknown',
+        hostname: req.hostname,
+        hasSaaSAdmin: !!hasSaaSUser,
+        saasAdminActive: hasSaaSUser?.isActive || false,
+        timestamp: new Date().toISOString(),
+        status: 'DIRECT_ROUTE_BYPASSING_MIDDLEWARE'
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Debug failed', message: (error as Error).message });
+    }
+  });
+
+  // SaaS Login endpoint - direct implementation
+  app.post('/api/saas/login', async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      console.log(`[DIRECT SAAS] Login attempt: ${username}`);
+      
+      const user = await storage.getUserByUsername(username, 0);
+      if (!user || !user.isSaaSOwner) {
+        return res.status(401).json({ error: "Authentication failed. Please check your credentials." });
+      }
+
+      const bcrypt = require('bcrypt');
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ error: "Authentication failed. Please check your credentials." });
+      }
+
+      const jwt = require('jsonwebtoken');
+      const SAAS_JWT_SECRET = process.env.SAAS_JWT_SECRET || "saas-super-secret-key-change-in-production";
+      const token = jwt.sign(
+        { id: user.id, username: user.username, isSaaSOwner: true },
+        SAAS_JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
+      res.json({
+        success: true,
+        token,
+        owner: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName
+        }
+      });
+    } catch (error) {
+      console.error('[DIRECT SAAS] Login error:', error);
+      res.status(500).json({ error: "Login failed" });
+    }
+  });
+
+  // Register remaining SaaS administration routes
   registerSaaSRoutes(app);
 
   // Initialize multi-tenant middleware stack
