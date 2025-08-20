@@ -45,16 +45,27 @@ export class MultiTenantCorePackage {
   initializeMiddleware(app: Express): void {
     console.log('[MULTI-TENANT-CORE] Initializing middleware stack...');
 
-    // 1. Tenant identification and organization loading
-    app.use("/api", tenantMiddleware as any);
+    // Custom middleware to exclude SaaS routes from multi-tenant enforcement
+    const excludeSaaSRoutes = (middleware: any) => {
+      return (req: any, res: any, next: any) => {
+        // Skip SaaS routes entirely - they operate system-wide
+        if (req.path.startsWith('/api/saas/')) {
+          return next();
+        }
+        return middleware(req, res, next);
+      };
+    };
 
-    // 2. Multi-tenant enforcement with comprehensive validation
-    app.use("/api", multiTenantEnforcer({
+    // 1. Tenant identification and organization loading (excluding SaaS routes)
+    app.use("/api", excludeSaaSRoutes(tenantMiddleware as any));
+
+    // 2. Multi-tenant enforcement with comprehensive validation (excluding SaaS routes)
+    app.use("/api", excludeSaaSRoutes(multiTenantEnforcer({
       enforceOrganizationId: this.config.enforceStrictTenantIsolation,
       auditDataAccess: this.config.auditAllDataAccess,
       validateTenantAccess: this.config.validateCrossTenantOperations,
       logUnauthorizedAccess: this.config.logUnauthorizedAccess
-    }) as any);
+    }) as any));
 
     console.log('[MULTI-TENANT-CORE] Middleware stack initialized successfully');
   }
