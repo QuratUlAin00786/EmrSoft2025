@@ -4,6 +4,8 @@ import { WebSocketServer, WebSocket } from "ws";
 import { z } from "zod";
 import Stripe from "stripe";
 import crypto from "crypto";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { storage } from "./storage";
 import { authService } from "./services/auth";
 import { aiService } from "./services/ai";
@@ -195,13 +197,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Authentication failed. Please check your credentials." });
       }
 
-      const bcrypt = require('bcrypt');
       const isValidPassword = await bcrypt.compare(password, user.password);
       if (!isValidPassword) {
         return res.status(401).json({ error: "Authentication failed. Please check your credentials." });
       }
-
-      const jwt = require('jsonwebtoken');
       const SAAS_JWT_SECRET = process.env.SAAS_JWT_SECRET || "saas-super-secret-key-change-in-production";
       const token = jwt.sign(
         { id: user.id, username: user.username, isSaaSOwner: true },
