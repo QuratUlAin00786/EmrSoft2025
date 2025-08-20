@@ -308,12 +308,20 @@ export function registerSaaSRoutes(app: Express) {
       res.json({
         debug: true,
         environment: process.env.NODE_ENV || 'unknown',
+        hostname: req.hostname,
+        headers: {
+          host: req.get('host'),
+          origin: req.get('origin'),
+          referer: req.get('referer'),
+          userAgent: req.get('user-agent')
+        },
         hasSaaSJWTSecret: !!process.env.SAAS_JWT_SECRET,
         jwtSecretLength: SAAS_JWT_SECRET.length,
         hasSaaSAdmin: !!hasSaaSUser,
         saasAdminActive: hasSaaSUser?.isActive || false,
         saasAdminEmail: hasSaaSUser?.email || 'none',
         isSaaSOwner: hasSaaSUser?.isSaaSOwner || false,
+        databaseConnected: true,
         timestamp: new Date().toISOString()
       });
     } catch (error) {
