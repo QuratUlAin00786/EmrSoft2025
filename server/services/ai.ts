@@ -313,6 +313,52 @@ export class AiService {
     if (/\b(book|schedule|appointment|reserve|set up)\b/.test(lowerMessage)) {
       return 'appointment_booking';
     }
+
+    // PRIORITY 2.5: Enhanced appointment detection for structured appointment data
+    // Detect when user provides appointment details without explicit booking keywords
+    // Split by lines to handle multi-line appointment data
+    const messageLines = message.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    
+    let hasPatientName = false;
+    let hasDateTime = false;
+    let hasDoctorName = false;
+    let hasTimeReference = false;
+    
+    // Check each line and the full message for appointment components
+    for (const line of messageLines) {
+      if (!hasPatientName && this.looksLikePatientName(line)) {
+        hasPatientName = true;
+        console.log('[INTENT] Found patient name in line:', line);
+      }
+      if (!hasDoctorName && this.looksLikeDoctorName(line)) {
+        hasDoctorName = true;
+        console.log('[INTENT] Found doctor name in line:', line);
+      }
+      if (!hasDateTime && this.looksLikeDateTime(line)) {
+        hasDateTime = true;
+        console.log('[INTENT] Found date/time in line:', line);
+      }
+      if (!hasTimeReference && /\b(tomorrow|today|monday|tuesday|wednesday|thursday|friday|saturday|sunday|morning|afternoon|evening|noon|\d{1,2}(:\d{2})?\s*(am|pm)|\d{1,2}[-\/]\d{1,2})\b/i.test(line)) {
+        hasTimeReference = true;
+        console.log('[INTENT] Found time reference in line:', line);
+      }
+    }
+    
+    // Also check the full message (fallback for single-line data)
+    if (!hasPatientName) hasPatientName = this.looksLikePatientName(message);
+    if (!hasDoctorName) hasDoctorName = this.looksLikeDoctorName(message);
+    if (!hasDateTime) hasDateTime = this.looksLikeDateTime(message);
+    if (!hasTimeReference) hasTimeReference = /\b(tomorrow|today|monday|tuesday|wednesday|thursday|friday|saturday|sunday|morning|afternoon|evening|noon|\d{1,2}(:\d{2})?\s*(am|pm)|\d{1,2}[-\/]\d{1,2})\b/i.test(lowerMessage);
+    
+    // If message contains structured appointment components, classify as appointment booking
+    if ((hasPatientName && (hasDateTime || hasTimeReference)) || 
+        (hasDoctorName && (hasDateTime || hasTimeReference)) ||
+        (hasPatientName && hasDoctorName)) {
+      console.log('[INTENT] Detected structured appointment data:', {
+        hasPatientName, hasDateTime, hasDoctorName, hasTimeReference, messageLines
+      });
+      return 'appointment_booking';
+    }
     
     // PRIORITY 3: Context-aware classification (only if no direct keywords found)
     if (conversationHistory && conversationHistory.length > 0) {
@@ -400,6 +446,35 @@ export class AiService {
     // Allow single names that are clearly patient names (3+ characters, capitalized)
     if (words.length === 1 && /^[A-Z][a-z]{2,}$/.test(words[0]) && words[0].length >= 3) {
       return true;
+    }
+    
+    return false;
+  }
+
+  private looksLikeDoctorName(name: string): boolean {
+    const trimmedName = name.trim();
+    const lowerName = trimmedName.toLowerCase();
+    
+    // Look for doctor titles and common doctor name patterns
+    const doctorPatterns = [
+      /\b(dr\.?|doctor|prof\.?|professor)\s+[A-Z][a-z]{2,}/i,
+      /\b[A-Z][a-z]{2,}\s+(dr\.?|doctor|md|prof\.?)/i
+    ];
+    
+    // Check if it contains doctor title
+    if (doctorPatterns.some(pattern => pattern.test(trimmedName))) {
+      return true;
+    }
+    
+    // Check for common doctor name formats without explicit titles
+    const words = trimmedName.split(/\s+/);
+    if (words.length === 2) {
+      const [first, last] = words;
+      // Look for proper name format that could be a doctor
+      if (/^[A-Z][a-z]{2,}$/.test(first) && /^[A-Z][a-z]{2,}$/.test(last)) {
+        // Additional check for common doctor name patterns in the message context
+        return true;
+      }
     }
     
     return false;
@@ -1524,7 +1599,11 @@ Return JSON with this structure:
       reason: ""
     };
 
-    // Enhanced patient name extraction with better context awareness
+    // Split message by lines to handle multi-line appointment data
+    const lines = message.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    console.log('[EXTRACT] Processing lines:', lines);
+
+    // Enhanced patient name extraction with line-by-line processing
     const patientNamePatterns = [
       // Explicit patterns with "for" keyword
       /(?:for|appointment for)\s+([A-Z][a-z]+\s+[A-Z][a-z]+)/i,
@@ -1537,66 +1616,134 @@ Return JSON with this structure:
       /\b([A-Z][a-z]+\s+[A-Z][a-z]+)\b/i
     ];
     
-    // Try to extract patient name using multiple strategies
-    for (const pattern of patientNamePatterns) {
-      const match = message.match(pattern);
-      if (match && match[1]) {
-        const potentialName = match[1].trim();
-        if (this.looksLikePatientName(potentialName)) {
-          details.patient_name = potentialName;
-          break;
+    // First check each line individually for potential patient names
+    for (const line of lines) {
+      if (!details.patient_name && this.looksLikePatientName(line)) {
+        details.patient_name = line;
+        console.log('[EXTRACT] Found patient name in line:', line);
+        break;
+      }
+    }
+    
+    // If no patient name found in lines, try pattern matching on full message
+    if (!details.patient_name) {
+      for (const pattern of patientNamePatterns) {
+        const match = message.match(pattern);
+        if (match && match[1]) {
+          const potentialName = match[1].trim();
+          if (this.looksLikePatientName(potentialName)) {
+            details.patient_name = potentialName;
+            console.log('[EXTRACT] Found patient name with pattern:', potentialName);
+            break;
+          }
         }
       }
     }
     
-    // If no patient name found with patterns, check if the entire message is just a name
+    // If still no patient name found, check if the entire message is just a name
     if (!details.patient_name) {
       const trimmedMessage = message.trim();
       if (this.looksLikePatientName(trimmedMessage)) {
         details.patient_name = trimmedMessage;
+        console.log('[EXTRACT] Using entire message as patient name:', trimmedMessage);
       }
     }
 
-    // Extract doctor preferences
-    const doctorPatterns = [
-      /(?:dr\.?|doctor)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/gi,
-      /with\s+([A-Z][a-z]+\s+[A-Z][a-z]+)(?:\s+(?:tomorrow|today|at))/gi
-    ];
-    
-    for (const pattern of doctorPatterns) {
-      const matches = message.match(pattern);
-      if (matches && matches[0]) {
-        details.doctor_preference = matches[0].replace(/^(?:dr\.?|doctor|with)\s+/i, '').trim();
+    // Extract doctor preferences - check lines first
+    for (const line of lines) {
+      if (!details.doctor_preference && this.looksLikeDoctorName(line)) {
+        details.doctor_preference = line.replace(/^(?:dr\.?|doctor)\s+/i, '').trim();
+        console.log('[EXTRACT] Found doctor name in line:', line);
         break;
       }
     }
-
-    // Extract dates
-    const datePatterns = [
-      /\b(?:tomorrow|today)\b/gi,
-      /\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/gi,
-      /\b\d{1,2}[-\/]\d{1,2}(?:[-\/]\d{2,4})?\b/gi
-    ];
     
-    for (const pattern of datePatterns) {
-      const match = message.match(pattern);
-      if (match) {
-        details.date = match[0].toLowerCase();
-        break;
+    // If no doctor found in lines, try pattern matching
+    if (!details.doctor_preference) {
+      const doctorPatterns = [
+        /(?:dr\.?|doctor)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/gi,
+        /with\s+([A-Z][a-z]+\s+[A-Z][a-z]+)(?:\s+(?:tomorrow|today|at))/gi
+      ];
+      
+      for (const pattern of doctorPatterns) {
+        const matches = message.match(pattern);
+        if (matches && matches[0]) {
+          details.doctor_preference = matches[0].replace(/^(?:dr\.?|doctor|with)\s+/i, '').trim();
+          console.log('[EXTRACT] Found doctor name with pattern:', details.doctor_preference);
+          break;
+        }
       }
     }
 
-    // Extract times
-    const timePatterns = [
-      /\b\d{1,2}(?::\d{2})?\s*(?:am|pm)\b/gi,
-      /\bat\s+(\d{1,2}(?::\d{2})?)\b/gi
-    ];
+    // Extract dates and times - check each line for date/time information
+    for (const line of lines) {
+      // Extract dates from individual lines
+      if (!details.date) {
+        const datePatterns = [
+          /\b(?:tomorrow|today)\b/gi,
+          /\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/gi,
+          /\b\d{1,2}[-\/]\d{1,2}(?:[-\/]\d{2,4})?\b/gi
+        ];
+        
+        for (const pattern of datePatterns) {
+          const match = line.match(pattern);
+          if (match) {
+            details.date = match[0].toLowerCase();
+            console.log('[EXTRACT] Found date in line:', line, '-> date:', details.date);
+            break;
+          }
+        }
+      }
+      
+      // Extract times from individual lines
+      if (!details.time) {
+        const timePatterns = [
+          /\b\d{1,2}(?::\d{2})?\s*(?:am|pm)\b/gi,
+          /\bat\s+(\d{1,2}(?::\d{2})?)\b/gi
+        ];
+        
+        for (const pattern of timePatterns) {
+          const match = line.match(pattern);
+          if (match) {
+            details.time = match[0].replace(/^at\s+/i, '').trim();
+            console.log('[EXTRACT] Found time in line:', line, '-> time:', details.time);
+            break;
+          }
+        }
+      }
+    }
     
-    for (const pattern of timePatterns) {
-      const match = message.match(pattern);
-      if (match) {
-        details.time = match[0].replace(/^at\s+/i, '').trim();
-        break;
+    // If date/time not found in individual lines, try full message
+    if (!details.date) {
+      const datePatterns = [
+        /\b(?:tomorrow|today)\b/gi,
+        /\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/gi,
+        /\b\d{1,2}[-\/]\d{1,2}(?:[-\/]\d{2,4})?\b/gi
+      ];
+      
+      for (const pattern of datePatterns) {
+        const match = message.match(pattern);
+        if (match) {
+          details.date = match[0].toLowerCase();
+          console.log('[EXTRACT] Found date in full message:', details.date);
+          break;
+        }
+      }
+    }
+
+    if (!details.time) {
+      const timePatterns = [
+        /\b\d{1,2}(?::\d{2})?\s*(?:am|pm)\b/gi,
+        /\bat\s+(\d{1,2}(?::\d{2})?)\b/gi
+      ];
+      
+      for (const pattern of timePatterns) {
+        const match = message.match(pattern);
+        if (match) {
+          details.time = match[0].replace(/^at\s+/i, '').trim();
+          console.log('[EXTRACT] Found time in full message:', details.time);
+          break;
+        }
       }
     }
 
@@ -1615,6 +1762,7 @@ Return JSON with this structure:
       }
     }
 
+    console.log('[EXTRACT] Final extracted details:', details);
     return details;
   }
 
