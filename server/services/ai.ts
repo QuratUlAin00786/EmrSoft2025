@@ -437,17 +437,20 @@ export class AiService {
       return false;
     }
     
-    // Check if it's a proper name (2 words, each starting with capital letter)
+    // Check if it's a proper name (2 words, each starting with capital letter OR mixed case)
     const words = trimmedName.split(/\s+/);
     if (words.length === 2) {
-      return words.every(word => /^[A-Z][a-z]{2,}$/.test(word) && word.length >= 3);
+      // Allow more flexible matching - each word should be at least 2 characters and look like a name
+      // First word should start with capital, second word can be mixed case
+      const isValidName = words.every(word => /^[A-Za-z]+$/.test(word) && word.length >= 2) &&
+                         /^[A-Z]/.test(words[0]); // First word must start with capital
+      return isValidName;
     }
     
-    // Allow single names that are clearly patient names (3+ characters, capitalized)
-    if (words.length === 1 && /^[A-Z][a-z]{2,}$/.test(words[0]) && words[0].length >= 3) {
+    // Allow single names that are clearly patient names (2+ characters, capitalized)
+    if (words.length === 1 && /^[A-Z][a-z]+$/.test(words[0]) && words[0].length >= 2) {
       return true;
     }
-    
     return false;
   }
 

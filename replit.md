@@ -47,7 +47,7 @@ Preferred communication style: Simple, everyday language.
 ### Key Components
 - **Database Schema**: Organizations, Users (role-based access), Patients, Medical Records (AI integration), Appointments, AI Insights, Subscriptions.
 - **Authentication & Authorization**: JWT (7-day expiration), 6 user roles (admin, doctor, nurse, receptionist, patient, sample_taker) with granular module permissions, dynamic UI based on roles, tenant isolation, secure session management.
-- **AI Integration**: Local NLP-powered chatbot with intent classification for appointment booking and general healthcare queries. OpenAI GPT-4o available for risk assessment, drug interaction, treatment suggestions, preventive care. Includes confidence scoring.
+- **AI Integration**: Local NLP-powered chatbot with intent classification for appointment booking and general healthcare queries. OpenAI GPT-4o available for risk assessment, drug interaction, treatment suggestions, preventive care. Includes confidence scoring. **AI Chatbot Appointment Booking**: Fully functional multi-line input processing with flexible patient name detection supporting mixed-case names (fixed Aug 20, 2025).
 - **Real-time Messaging**: Hybrid WebSocket + polling messaging system with 2-second refresh intervals for reliable real-time synchronization. Includes automatic reconnection, ping/pong stability, and polling fallback (fully resolved Aug 16, 2025).
 - **Message Delivery Tracking**: Polling-based delivery status system for SMS/WhatsApp messages with automatic status updates and manual status checking endpoints (implemented Aug 14, 2025).
 
