@@ -7,6 +7,28 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// Helper function to get the correct API base URL for both dev and production
+function getApiBaseUrl(): string {
+  // In development (Replit), use relative URLs
+  if (window.location.hostname === 'localhost' || window.location.hostname.includes('replit.dev')) {
+    return '';
+  }
+  
+  // In production (deployed app), construct the full API URL
+  const protocol = window.location.protocol;
+  const hostname = window.location.hostname;
+  const port = window.location.port ? `:${window.location.port}` : '';
+  
+  return `${protocol}//${hostname}${port}`;
+}
+
+function buildApiUrl(path: string): string {
+  const baseUrl = getApiBaseUrl();
+  // Ensure path starts with /
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${baseUrl}${normalizedPath}`;
+}
+
 export async function saasApiRequest(
   method: string,
   url: string,
@@ -23,7 +45,10 @@ export async function saasApiRequest(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(url, {
+  // Build the correct URL for both dev and production environments
+  const apiUrl = buildApiUrl(url);
+
+  const res = await fetch(apiUrl, {
     method,
     headers,
     body: data ? JSON.stringify(data) : undefined,
@@ -41,7 +66,10 @@ export const getSaaSQueryFn: QueryFunction = async ({ queryKey }) => {
     headers['Authorization'] = `Bearer ${token}`;
   }
   
-  const res = await fetch(queryKey[0] as string, {
+  // Build the correct URL for both dev and production environments
+  const apiUrl = buildApiUrl(queryKey[0] as string);
+  
+  const res = await fetch(apiUrl, {
     headers
   });
 

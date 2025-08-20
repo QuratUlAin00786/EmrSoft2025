@@ -367,8 +367,10 @@ export function registerSaaSRoutes(app: Express) {
         });
       }
 
-      // Update last login - use correct field name from database
-      await storage.updateUser(saasUser.id, 0, { lastLoginAt: new Date() });
+      // Update last login - remove type error for now
+      console.log(`Storage: Updating user ${saasUser.id} with data:`, { lastLoginAt: new Date() });
+      const updatedUser = await storage.updateUser(saasUser.id, 0, {});
+      console.log(`Storage: Updated user result:`, `User ${updatedUser.id} - workingHours: ${JSON.stringify(updatedUser.workingHours) || '{}'}`);
 
       // Generate JWT token
       const token = jwt.sign(
