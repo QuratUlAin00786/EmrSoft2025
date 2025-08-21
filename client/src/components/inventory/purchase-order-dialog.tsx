@@ -242,10 +242,21 @@ export default function PurchaseOrderDialog({ open, onOpenChange, items }: Purch
                   />
                 </div>
               </div>
-              <div className="flex justify-end">
+              <div className="flex justify-end space-x-2">
                 <Button 
                   type="button" 
+                  variant="outline"
                   onClick={() => {
+                    console.log("TEST BUTTON CLICKED!");
+                  }}
+                >
+                  Test
+                </Button>
+                <Button 
+                  type="button" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     console.log("Plus button clicked!");
                     addItem();
                   }}
