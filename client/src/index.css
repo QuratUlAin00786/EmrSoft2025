@@ -15,20 +15,29 @@
   src: url('/fonts/Figtree-Medium.ttf') format('truetype');
 }
 
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/Figtree-SemiBold.ttf') format('truetype');
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* TEST: Use obvious monospace font to verify CSS works */
-* {
-  font-family: 'Courier New', 'Courier', monospace !important;
-  letter-spacing: 1px !important;
+/* Apply Figtree font consistently */
+html {
+  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-html, body, div, span, h1, h2, h3, h4, h5, h6, p, button, input, textarea, label, a, li, td, th {
-  font-family: 'Courier New', 'Courier', monospace !important;
-  letter-spacing: 1px !important;
-  font-weight: bold !important;
+body {
+  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+* {
+  font-family: inherit;
 }
 
 :root {
