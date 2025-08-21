@@ -813,7 +813,7 @@ export default function Inventory() {
                                   <Eye className="h-3 w-3 mr-1" />
                                   View
                                 </Button>
-                                {!po.emailSent && (
+                                {(!po.emailSent && po.status !== 'sent') && (
                                   <Button 
                                     size="sm" 
                                     onClick={() => sendEmailMutation.mutate(po.id)}
@@ -822,10 +822,6 @@ export default function Inventory() {
                                     Send
                                   </Button>
                                 )}
-                                {/* Debug: Show email status */}
-                                <span className="text-xs text-gray-400 ml-2">
-                                  {po.emailSent ? 'Sent' : 'Pending'}
-                                </span>
                               </div>
                             </TableCell>
                           </TableRow>
