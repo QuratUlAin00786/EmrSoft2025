@@ -90,6 +90,9 @@ export default function PurchaseOrderDialog({ open, onOpenChange, items }: Purch
   };
 
   const addItem = () => {
+    console.log("Add item called with:", newItem);
+    console.log("Current poItems before add:", poItems);
+    
     if (!newItem.itemId || !newItem.unitPrice) {
       toast({
         title: "Error",
@@ -100,7 +103,10 @@ export default function PurchaseOrderDialog({ open, onOpenChange, items }: Purch
     }
 
     const selectedItem = items.find(item => item.id === parseInt(newItem.itemId));
-    if (!selectedItem) return;
+    if (!selectedItem) {
+      console.log("Selected item not found for ID:", newItem.itemId);
+      return;
+    }
 
     const totalPrice = (newItem.quantity * parseFloat(newItem.unitPrice)).toFixed(2);
 
@@ -112,7 +118,11 @@ export default function PurchaseOrderDialog({ open, onOpenChange, items }: Purch
       totalPrice
     };
 
-    setPOItems([...poItems, poItem]);
+    console.log("Adding poItem:", poItem);
+    const newPOItems = [...poItems, poItem];
+    setPOItems(newPOItems);
+    console.log("New poItems array:", newPOItems);
+    
     setNewItem({
       itemId: "",
       quantity: 1,
@@ -132,6 +142,9 @@ export default function PurchaseOrderDialog({ open, onOpenChange, items }: Purch
   };
 
   const handleSubmit = () => {
+    console.log("Handle submit called, poItems.length:", poItems.length);
+    console.log("poItems:", poItems);
+    
     if (poItems.length === 0) {
       toast({
         title: "Error",
