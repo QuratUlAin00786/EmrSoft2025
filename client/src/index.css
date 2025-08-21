@@ -13,11 +13,13 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Force Figtree font on all elements */
-@layer base {
-  * {
-    font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-  }
+/* Force Figtree font on all elements - placed AFTER Tailwind */
+* {
+  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+html, body {
+  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
 }
 
 :root {
