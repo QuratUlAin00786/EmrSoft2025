@@ -76,32 +76,32 @@ button, input, textarea, select, div, span, p, h1, h2, h3, h4, h5, h6, label, a 
   --card-foreground: hsl(220, 45%, 15%);
   --border: hsl(240, 10%, 92%);
   --input: hsl(240, 10%, 92%);
-  --primary: hsl(222, 100%, 64%);
-  --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(256, 58%, 71%);
-  --secondary-foreground: hsl(0, 0%, 100%);
-  --accent: hsl(180, 66%, 80%);
-  --accent-foreground: hsl(220, 45%, 15%);
+  --primary: #4A7DFF;
+  --primary-foreground: #FFFFFF;
+  --secondary: #7279FB;
+  --secondary-foreground: #FFFFFF;
+  --accent: #6CFFEB;
+  --accent-foreground: #162B61;
   --destructive: hsl(0, 84.2%, 60.2%);
   --destructive-foreground: hsl(0, 0%, 100%);
-  --ring: hsl(222, 100%, 64%);
+  --ring: #4A7DFF;
   --radius: 0.5rem;
   
-  /* Cura brand colors from design system */
-  --cura-bluewave: hsl(222, 100%, 64%);
-  --cura-electric-lilac: hsl(256, 58%, 71%);
-  --cura-electric-violet: hsl(256, 100%, 72%);
-  --cura-midnight: hsl(220, 45%, 25%);
-  --cura-steel: hsl(240, 4%, 62%);
-  --cura-mist: hsl(240, 10%, 92%);
-  --cura-mint-drift: hsl(180, 66%, 80%);
+  /* Cura brand colors - exact hex values from brand guide */
+  --cura-bluewave: #4A7DFF;
+  --cura-electric-lilac: #7279FB;
+  --cura-electric-violet: #C073FF;
+  --cura-midnight: #162B61;
+  --cura-steel: #9B9FAF;
+  --cura-mist: #E0E1F4;
+  --cura-mint-drift: #6CFFEB;
   
-  /* Chart colors using new theme */
-  --chart-1: hsl(222, 100%, 64%);
-  --chart-2: hsl(256, 58%, 71%);
-  --chart-3: hsl(220, 45%, 25%);
-  --chart-4: hsl(180, 66%, 80%);
-  --chart-5: hsl(240, 4%, 62%);
+  /* Chart colors using exact hex values */
+  --chart-1: #4A7DFF;
+  --chart-2: #7279FB;
+  --chart-3: #162B61;
+  --chart-4: #6CFFEB;
+  --chart-5: #9B9FAF;
   
   /* Medical colors for light mode */
   --medical-blue: hsl(229, 100%, 64%);
@@ -120,25 +120,25 @@ button, input, textarea, select, div, span, p, h1, h2, h3, h4, h5, h6, label, a 
   --card-foreground: hsl(0, 0%, 95%);
   --border: hsl(220, 45%, 18%);
   --input: hsl(220, 45%, 18%);
-  --primary: hsl(222, 100%, 64%);
-  --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(256, 58%, 71%);
-  --secondary-foreground: hsl(0, 0%, 100%);
-  --accent: hsl(180, 66%, 80%);
-  --accent-foreground: hsl(220, 45%, 15%);
+  --primary: #4A7DFF;
+  --primary-foreground: #FFFFFF;
+  --secondary: #7279FB;
+  --secondary-foreground: #FFFFFF;
+  --accent: #6CFFEB;
+  --accent-foreground: #162B61;
   --destructive: hsl(0, 84.2%, 60.2%);
   --destructive-foreground: hsl(0, 0%, 100%);
-  --ring: hsl(222, 100%, 64%);
+  --ring: #4A7DFF;
   --radius: 0.5rem;
   
-  /* Cura brand colors for dark mode */
-  --cura-bluewave: hsl(222, 100%, 64%);
-  --cura-electric-lilac: hsl(256, 58%, 71%);
-  --cura-electric-violet: hsl(256, 100%, 72%);
-  --cura-midnight: hsl(220, 45%, 75%);
-  --cura-steel: hsl(240, 4%, 70%);
-  --cura-mist: hsl(220, 45%, 18%);
-  --cura-mint-drift: hsl(180, 66%, 80%);
+  /* Cura brand colors for dark mode - exact hex values */
+  --cura-bluewave: #4A7DFF;
+  --cura-electric-lilac: #7279FB;
+  --cura-electric-violet: #C073FF;
+  --cura-midnight: #162B61;
+  --cura-steel: #9B9FAF;
+  --cura-mist: #E0E1F4;
+  --cura-mint-drift: #6CFFEB;
   
   /* Medical colors for dark mode */
   --medical-blue: hsl(222, 100%, 64%);
