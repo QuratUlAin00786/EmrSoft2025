@@ -757,39 +757,23 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                         {(() => {
                           // Combine allergies from medicalHistory and extract from flags
                           const medicalAllergies = patient.medicalHistory?.allergies || [];
-                          console.log('Debug - Patient flags:', patient.flags);
-                          console.log('Debug - Medical allergies:', medicalAllergies);
                           
                           const flagAllergies = patient.flags 
                             ? patient.flags
-                                .filter(flag => {
-                                  console.log('Debug - Processing flag:', flag);
-                                  return typeof flag === 'string' && flag.includes(':');
-                                })
+                                .filter(flag => typeof flag === 'string' && flag.includes(':'))
                                 .filter(flag => {
                                   const flagType = flag.split(':')[0].toLowerCase();
-                                  console.log('Debug - Flag type:', flagType);
                                   // Only include flags that are allergy-related
-                                  const isAllergy = flagType === 'general' || flagType === 'allergy' || flagType === 'allergies';
-                                  console.log('Debug - Is allergy flag:', isAllergy);
-                                  return isAllergy;
+                                  return flagType === 'general' || flagType === 'allergy' || flagType === 'allergies';
                                 })
                                 .map(flag => {
                                   const parts = flag.split(':');
-                                  const allergyText = parts[2];
-                                  console.log('Debug - Extracted allergy text:', allergyText);
-                                  return allergyText;
+                                  return parts[2]; // Extract the allergy text after "general:medium:"
                                 })
-                                .filter(allergy => {
-                                  const isValid = allergy && allergy.trim().length > 0;
-                                  console.log('Debug - Is valid allergy:', isValid, allergy);
-                                  return isValid;
-                                })
+                                .filter(allergy => allergy && allergy.trim().length > 0)
                             : [];
                           
-                          console.log('Debug - Flag allergies:', flagAllergies);
                           const allAllergies = [...medicalAllergies, ...flagAllergies];
-                          console.log('Debug - All allergies combined:', allAllergies);
                           
                           return allAllergies.length > 0 ? (
                             allAllergies.map((allergy, index) => (
