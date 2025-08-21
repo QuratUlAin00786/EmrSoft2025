@@ -19,22 +19,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* CRITICAL: Force Figtree font everywhere with maximum specificity */
+/* TEST: Use obvious monospace font to verify CSS works */
 * {
-  font-family: 'Figtree' !important;
+  font-family: 'Courier New', 'Courier', monospace !important;
+  letter-spacing: 1px !important;
 }
 
-html * {
-  font-family: 'Figtree' !important;
-}
-
-body * {
-  font-family: 'Figtree' !important;
-}
-
-/* Target specific elements to ensure coverage */
-h1, h2, h3, h4, h5, h6, p, span, div, button, input, textarea, label, a, li, td, th {
-  font-family: 'Figtree' !important;
+html, body, div, span, h1, h2, h3, h4, h5, h6, p, button, input, textarea, label, a, li, td, th {
+  font-family: 'Courier New', 'Courier', monospace !important;
+  letter-spacing: 1px !important;
+  font-weight: bold !important;
 }
 
 :root {
