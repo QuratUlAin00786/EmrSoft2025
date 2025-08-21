@@ -199,63 +199,85 @@ export default function PurchaseOrderDialog({ open, onOpenChange, items }: Purch
           {/* Add Items Section */}
           <div className="border rounded-lg p-4">
             <h3 className="font-medium mb-3">Add Items</h3>
-            <div className="space-y-3">
-              <div className="grid grid-cols-4 gap-3">
-                <div>
-                  <Label>Item</Label>
-                  <Select value={newItem.itemId} onValueChange={(value) => setNewItem({...newItem, itemId: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select item" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {items.map(item => (
-                        <SelectItem key={item.id} value={item.id.toString()}>
-                          {item.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Quantity</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={newItem.quantity}
-                    onChange={(e) => setNewItem({...newItem, quantity: parseInt(e.target.value) || 1})}
-                  />
-                </div>
-                <div>
-                  <Label>Unit Price</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={newItem.unitPrice}
-                    onChange={(e) => setNewItem({...newItem, unitPrice: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <Label>Total</Label>
-                  <Input
-                    value={newItem.unitPrice ? (newItem.quantity * parseFloat(newItem.unitPrice)).toFixed(2) : "0.00"}
-                    disabled
-                  />
-                </div>
+            <div className="grid grid-cols-4 gap-3 mb-3">
+              <div>
+                <Label>Item</Label>
+                <Select value={newItem.itemId} onValueChange={(value) => setNewItem({...newItem, itemId: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select item" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {items.map(item => (
+                      <SelectItem key={item.id} value={item.id.toString()}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="flex justify-end">
-                <button 
-                  type="button"
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2"
-                  onClick={() => {
-                    console.log("NATIVE BUTTON CLICKED!");
-                    addItem();
-                  }}
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Item
-                </button>
+              <div>
+                <Label>Quantity</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={newItem.quantity}
+                  onChange={(e) => setNewItem({...newItem, quantity: parseInt(e.target.value) || 1})}
+                />
+              </div>
+              <div>
+                <Label>Unit Price</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={newItem.unitPrice}
+                  onChange={(e) => setNewItem({...newItem, unitPrice: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>Total</Label>
+                <Input
+                  value={newItem.unitPrice ? (newItem.quantity * parseFloat(newItem.unitPrice)).toFixed(2) : "0.00"}
+                  disabled
+                />
               </div>
             </div>
+          </div>
+
+          {/* Add Item Button - Moved Outside */}
+          <div className="flex justify-end">
+            <button 
+              type="button"
+              style={{
+                backgroundColor: '#3b82f6',
+                color: 'white',
+                padding: '10px 16px',
+                borderRadius: '6px',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '14px',
+                fontWeight: '500',
+                zIndex: 9999,
+                position: 'relative'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = '#2563eb';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = '#3b82f6';
+              }}
+              onClick={(e) => {
+                console.log("ISOLATED BUTTON CLICKED!");
+                console.log("Event target:", e.target);
+                console.log("Event currentTarget:", e.currentTarget);
+                addItem();
+              }}
+            >
+              <Plus className="h-4 w-4" />
+              Add Item
+            </button>
           </div>
 
           {/* Items Table */}
