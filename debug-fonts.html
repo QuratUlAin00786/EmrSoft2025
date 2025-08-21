@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @font-face {
+            font-family: 'FigtreeTest';
+            src: url('/fonts/figtree-400.woff2') format('woff2');
+            font-weight: 400;
+            font-display: swap;
+        }
+        
+        .figtree-test {
+            font-family: 'FigtreeTest', sans-serif;
+            font-size: 48px;
+            margin: 20px 0;
+        }
+        
+        .system-font {
+            font-family: system-ui, sans-serif;
+            font-size: 48px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Font Debug Test</h1>
+    
+    <div class="figtree-test">
+        testing figtree ggggg geometry
+    </div>
+    
+    <div class="system-font">
+        testing system ggggg geometry  
+    </div>
+    
+    <script>
+        console.log('Available fonts:', document.fonts);
+        
+        document.fonts.ready.then(() => {
+            console.log('All fonts loaded');
+            const testEl = document.querySelector('.figtree-test');
+            console.log('Computed font:', getComputedStyle(testEl).fontFamily);
+        });
+    </script>
+</body>
+</html>

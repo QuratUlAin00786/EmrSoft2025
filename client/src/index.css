@@ -2,41 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'FigtreeReal';
+  src: url('/fonts/figtree-fresh.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
-  *, *::before, *::after {
-    font-family: 'Figtree', 'FigtreeLocal', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
+  * {
+    border-color: hsl(var(--border));
+    font-family: 'FigtreeReal', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
   }
-  
-  html, body {
-    font-family: 'Figtree', 'FigtreeLocal', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
+
+  html {
+    font-family: 'FigtreeReal', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
   }
-  
-  .font-sans {
-    font-family: 'Figtree', 'FigtreeLocal', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'FigtreeReal', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
   }
-  
-  /* Specific UI component overrides */
-  [class*="text-"], [class*="font-"] {
-    font-family: 'Figtree', 'FigtreeLocal', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
-  }
-  
-  /* Force Figtree on all common elements */
-  div, span, p, a, button, input, textarea, select, option, label, 
-  h1, h2, h3, h4, h5, h6, nav, ul, li, td, th, table, form, 
-  .text-sm, .text-base, .text-lg, .text-xl, .font-medium, .font-semibold {
-    font-family: 'Figtree', 'FigtreeLocal', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
+
+  /* Typography classes with Figtree */
+  .text-xs, .text-sm, .text-base, .text-lg, .text-xl, .text-2xl, .text-3xl, .text-4xl, .text-5xl, .text-6xl,
+  .font-light, .font-normal, .font-medium, .font-semibold, .font-bold, .font-extrabold {
+    font-family: 'FigtreeReal', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
   }
   
   /* Tailwind component overrides */
   .bg-primary, .bg-secondary, .bg-background, .text-foreground,
   [data-radix-collection-item], [data-state], [role="button"], [role="menuitem"] {
-    font-family: 'Figtree', 'FigtreeLocal', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
+    font-family: 'FigtreeReal', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
   }
   
   /* Media query to force font loading */
   @media screen {
     * {
-      font-family: 'Figtree', 'FigtreeLocal', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
+      font-family: 'FigtreeReal', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
     }
   }
   
@@ -46,7 +51,6 @@
   .font-semibold { font-weight: 600 !important; }
   .font-bold { font-weight: 700 !important; }
 }
-
 
 
 :root {
@@ -135,409 +139,423 @@
   content: "";
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
+/* AI Chat Widget styling */
+.ai-chat-widget {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 50;
+  width: 400px;
+  max-height: 600px;
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
 
-  body {
-    @apply antialiased bg-background text-foreground;
-    line-height: 1.2;
-  }
+.ai-chat-widget.collapsed {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+}
 
-  /* Figtree Typography Scale */
-  .heading-1 {
-    font-family: 'Figtree', sans-serif;
-    font-size: 56px;
-    font-weight: 700;
-    line-height: 1.2;
-  }
+.ai-chat-header {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: between;
+  cursor: pointer;
+}
 
-  .heading-2 {
-    font-family: 'Figtree', sans-serif;
-    font-size: 42px;
-    font-weight: 700;
-    line-height: 1.2;
-  }
+.ai-chat-messages {
+  height: 400px;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 
-  .heading-3 {
-    font-family: 'Figtree', sans-serif;
-    font-size: 32px;
-    font-weight: 700;
-    line-height: 1.2;
-  }
+.ai-chat-message {
+  padding: 8px 12px;
+  border-radius: 8px;
+  max-width: 80%;
+  word-wrap: break-word;
+}
 
-  .large-body-text-bold {
-    font-family: 'Figtree', sans-serif;
-    font-size: 20px;
-    font-weight: 700;
-    line-height: 1.2;
-  }
+.ai-chat-message.user {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  align-self: flex-end;
+  margin-left: auto;
+}
 
-  .large-body-text {
-    font-family: 'Figtree', sans-serif;
-    font-size: 20px;
-    font-weight: 400;
-    line-height: 1.2;
-  }
+.ai-chat-message.bot {
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  align-self: flex-start;
+}
 
-  .normal-body-text-bold {
-    font-family: 'Figtree', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    line-height: 1.2;
-  }
+.ai-chat-input {
+  border-top: 1px solid hsl(var(--border));
+  padding: 12px 16px;
+  display: flex;
+  gap: 8px;
+}
 
-  .normal-body-text {
-    font-family: 'Figtree', sans-serif;
-    font-size: 16px;
-    font-weight: 400;
-    line-height: 1.2;
-  }
+.ai-chat-input input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
 
-  .small-body-text-bold {
-    font-family: 'Figtree', sans-serif;
-    font-size: 12px;
-    font-weight: 700;
-    line-height: 1.2;
-  }
+.ai-chat-input input:focus {
+  outline: none;
+  border-color: hsl(var(--primary));
+}
 
-  .small-body-text {
-    font-family: 'Figtree', sans-serif;
-    font-size: 12px;
-    font-weight: 400;
-    line-height: 1.2;
-  }
+.ai-chat-input button {
+  padding: 8px 12px;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
 
-  /* Default heading styles with Figtree */
-  h1 {
-    @apply heading-1;
-  }
+.ai-chat-input button:hover {
+  background: hsl(var(--primary) / 0.9);
+}
 
-  h2 {
-    @apply heading-2;
-  }
+.ai-chat-input button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
-  h3 {
-    @apply heading-3;
-  }
+/* Calendar styling */
+.calendar-container {
+  padding: 20px;
+}
 
-  h4 {
-    @apply large-body-text-bold;
-  }
+.calendar-header {
+  display: flex;
+  justify-content: between;
+  align-items: center;
+  margin-bottom: 20px;
+}
 
-  h5 {
-    @apply normal-body-text-bold;
-  }
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: hsl(var(--border));
+  border-radius: 8px;
+  overflow: hidden;
+}
 
-  h6 {
-    @apply small-body-text-bold;
-  }
+.calendar-day {
+  background: hsl(var(--background));
+  min-height: 120px;
+  padding: 8px;
+  position: relative;
+  border: none;
+}
 
-  p {
-    @apply normal-body-text;
+.calendar-day-header {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.calendar-day.other-month {
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+}
+
+.calendar-day.selected {
+  background: hsl(var(--primary) / 0.1);
+}
+
+.calendar-appointment {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  margin-bottom: 2px;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-appointment:hover {
+  background: hsl(var(--primary) / 0.8);
+}
+
+/* Prescription styling */
+.prescription-card {
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  background: hsl(var(--card));
+}
+
+.prescription-header {
+  display: flex;
+  justify-content: between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.prescription-medication {
+  font-weight: 600;
+  font-size: 18px;
+  color: hsl(var(--foreground));
+}
+
+.prescription-status {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.prescription-status.active {
+  background: hsl(var(--medical-green) / 0.1);
+  color: hsl(var(--medical-green));
+}
+
+.prescription-status.pending {
+  background: hsl(var(--medical-orange) / 0.1);
+  color: hsl(var(--medical-orange));
+}
+
+.prescription-status.completed {
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+}
+
+.prescription-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.prescription-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.prescription-detail-label {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  font-weight: 500;
+}
+
+.prescription-detail-value {
+  font-size: 14px;
+  color: hsl(var(--foreground));
+}
+
+/* Medical record styling */
+.medical-record {
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.medical-record-header {
+  background: hsl(var(--muted));
+  padding: 12px 16px;
+  border-bottom: 1px solid hsl(var(--border));
+  display: flex;
+  justify-content: between;
+  align-items: center;
+}
+
+.medical-record-type {
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.medical-record-date {
+  font-size: 14px;
+  color: hsl(var(--muted-foreground));
+}
+
+.medical-record-content {
+  padding: 16px;
+}
+
+.medical-record-notes {
+  margin-top: 12px;
+  padding: 12px;
+  background: hsl(var(--muted) / 0.5);
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Dashboard stats grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: hsl(var(--primary));
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: hsl(var(--muted-foreground));
+  font-weight: 500;
+}
+
+.stat-change {
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.stat-change.positive {
+  color: hsl(var(--medical-green));
+}
+
+.stat-change.negative {
+  color: hsl(var(--destructive));
+}
+
+/* Form styling improvements */
+.form-section {
+  margin-bottom: 24px;
+  padding: 20px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  background: hsl(var(--card));
+}
+
+.form-section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+/* Loading animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
   }
 }
 
-@layer components {
-  .medical-gradient {
-    background: linear-gradient(135deg, var(--medical-blue), hsl(210, 100%, 56%));
-  }
-  
-  /* Force exact button styling to match medical data buttons */
-  .force-small-button {
-    height: 1.25rem !important;
-    min-height: 1.25rem !important;
-    padding: 0 0.5rem !important;
-    font-size: 0.75rem !important;
-    line-height: 1rem !important;
-    font-weight: 500 !important;
-  }
-  
-  .ai-gradient {
-    background: linear-gradient(135deg, hsl(270, 100%, 60%), hsl(210, 100%, 46%));
-  }
-  
-  .glass-effect {
-    backdrop-filter: blur(10px);
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-  }
-  
-  .medical-shadow {
-    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1), 0 2px 4px -1px rgba(59, 130, 246, 0.06);
-  }
-  
-  .status-indicator {
-    position: relative;
-  }
-  
-  .status-indicator::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--medical-green);
-    animation: pulse 2s infinite;
-  }
-  
-  @keyframes pulse {
-    0%, 100% { 
-      opacity: 1; 
-    }
-    50% { 
-      opacity: 0.5; 
-    }
-  }
-  
-  .sidebar-nav {
-    @apply flex flex-col space-y-1;
-  }
-  
-  .sidebar-nav-item {
-    @apply flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors;
-  }
-  
-  .sidebar-nav-item.active {
-    @apply text-white font-semibold;
-    background-color: var(--primary);
-    border-left: 3px solid var(--primary);
-  }
-  
-  .sidebar-nav-item:not(.active) {
-    @apply text-neutral-700 dark:text-neutral-300;
-    border-left: 3px solid transparent;
-  }
-  
-  .sidebar-nav-item:not(.active):hover {
-    @apply bg-neutral-100 dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100;
-    border-left: 3px solid transparent;
-  }
-  
-  .dashboard-card {
-    @apply bg-white dark:bg-card rounded-xl border border-neutral-100 dark:border-border p-6 shadow-sm hover:shadow-md transition-shadow;
-  }
-  
-  .stats-card {
-    @apply dashboard-card flex items-center justify-between;
-  }
-  
-  .ai-insight-card {
-    @apply p-4 rounded-lg border flex items-start space-x-4 bg-white dark:bg-card border-neutral-200 dark:border-border;
-  }
-  
-  .ai-insight-card.risk-alert {
-    @apply bg-blue-50 dark:bg-blue-950 border-blue-100 dark:border-blue-800;
-  }
-  
-  .ai-insight-card.treatment-success {
-    @apply bg-green-50 dark:bg-green-950 border-green-100 dark:border-green-800;
-  }
-  
-  .ai-insight-card.drug-interaction {
-    @apply bg-yellow-50 dark:bg-yellow-950 border-yellow-100 dark:border-yellow-800;
-  }
-  
-  .patient-status-badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
-  }
-  
-  .patient-status-badge.high-risk {
-    @apply bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200;
-  }
-  
-  .patient-status-badge.stable {
-    @apply bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200;
-  }
-  
-  .patient-status-badge.monitoring {
-    @apply bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200;
-  }
-  
-  .medical-form {
-    @apply space-y-6;
-  }
-  
-  .medical-form .form-group {
-    @apply space-y-2;
-  }
-  
-  .medical-form label {
-    @apply block text-sm font-medium text-gray-700 dark:text-gray-300;
-  }
-  
-  .medical-form input, 
-  .medical-form textarea, 
-  .medical-form select {
-    @apply w-full px-3 py-2 border border-neutral-300 dark:border-border rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent transition-colors bg-white dark:bg-input text-gray-900 dark:text-foreground;
-  }
-  
-  .medical-form .required::after {
-    content: ' *';
-    @apply text-red-500;
+.loading-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
-@layer utilities {
-  .text-medical-blue {
-    color: var(--medical-blue);
-  }
-  
-  .text-medical-green {
-    color: var(--medical-green);
-  }
-  
-  .text-medical-orange {
-    color: var(--medical-orange);
-  }
-  
-  .bg-medical-blue {
-    background-color: var(--medical-blue);
-  }
-  
-  .bg-medical-green {
-    background-color: var(--medical-green);
-  }
-  
-  .bg-medical-orange {
-    background-color: var(--medical-orange);
-  }
-  
-  .border-medical-blue {
-    border-color: var(--medical-blue);
-  }
-  
-  .ring-medical-blue {
-    --tw-ring-color: var(--medical-blue);
-  }
-  
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-  
-  .animate-fade-in {
-    animation: fadeIn 0.5s ease-in-out;
-  }
-  
-  @keyframes fadeIn {
-    from { 
-      opacity: 0; 
-      transform: translateY(10px); 
-    }
-    to { 
-      opacity: 1; 
-      transform: translateY(0); 
-    }
-  }
+.loading-spin {
+  animation: spin 1s linear infinite;
 }
 
-/* Medical data tables */
-.medical-table {
-  @apply w-full border-collapse;
-}
-
-.medical-table th {
-  @apply text-left text-sm font-medium text-neutral-600 pb-3 border-b border-neutral-200;
-}
-
-.medical-table td {
-  @apply py-3 text-sm border-b border-neutral-100;
-}
-
-.medical-table tr:hover {
-  @apply bg-neutral-50;
-}
-
-/* Responsive design helpers */
+/* Responsive design improvements */
 @media (max-width: 768px) {
-  .dashboard-card {
-    @apply p-4;
+  .ai-chat-widget {
+    width: 350px;
+    max-height: 500px;
+    bottom: 10px;
+    right: 10px;
   }
   
-  .stats-card {
-    @apply flex-col items-start space-y-3;
+  .stats-grid {
+    grid-template-columns: 1fr;
   }
   
-  .sidebar-nav-item {
-    @apply px-2 py-3;
+  .calendar-grid {
+    font-size: 12px;
+  }
+  
+  .calendar-day {
+    min-height: 80px;
+    padding: 4px;
+  }
+  
+  .prescription-details {
+    grid-template-columns: 1fr;
   }
 }
 
-/* Print styles for medical records */
+/* Print styles */
 @media print {
-  .no-print {
+  .ai-chat-widget,
+  .sidebar,
+  .header-actions {
     display: none !important;
   }
   
-  .medical-header {
-    @apply border-b-2 border-gray-300 pb-4 mb-6;
-  }
-  
-  .medical-content {
-    @apply text-black;
-  }
-}
-
-/* Additional responsive utilities for mobile-first design */
-@media (max-width: 1023px) {
   .main-content {
     margin-left: 0 !important;
   }
   
-  .mobile-padding {
-    padding-left: 1rem;
-    padding-right: 1rem;
+  .prescription-card,
+  .medical-record {
+    break-inside: avoid;
   }
 }
 
-/* Mobile container utilities */
-.responsive-container {
-  width: 100%;
-  max-width: 100%;
-  padding: 0.5rem;
-}
-
-@media (min-width: 640px) {
-  .responsive-container {
-    padding: 1rem;
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .ai-chat-widget,
+  .loading-pulse,
+  .loading-spin {
+    animation: none;
   }
 }
 
-@media (min-width: 1024px) {
-  .responsive-container {
-    padding: 1.5rem;
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  :root {
+    --border: hsl(0, 0%, 0%);
+    --ring: hsl(0, 0%, 0%);
   }
-}
-
-/* Responsive grid systems */
-.responsive-grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: 1fr;
-}
-
-@media (min-width: 640px) {
-  .responsive-grid-2 {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 768px) {
-  .responsive-grid-3 {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .responsive-grid-4 {
-    grid-template-columns: repeat(4, 1fr);
+  
+  .dark {
+    --border: hsl(0, 0%, 100%);
+    --ring: hsl(0, 0%, 100%);
   }
 }
