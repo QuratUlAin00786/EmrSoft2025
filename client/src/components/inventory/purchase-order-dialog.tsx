@@ -240,7 +240,10 @@ export default function PurchaseOrderDialog({ open, onOpenChange, items }: Purch
                   disabled
                 />
               </div>
-              <Button onClick={addItem}>
+              <Button type="button" onClick={() => {
+                console.log("Plus button clicked!");
+                addItem();
+              }}>
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
