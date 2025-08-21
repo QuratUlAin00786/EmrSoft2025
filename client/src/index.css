@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
 /* Force Figtree font loading */
 @font-face {
@@ -13,22 +13,14 @@
 @tailwind components;
 @tailwind utilities;
 
-/* CRITICAL: Force Figtree font on absolutely every element */
-html {
-  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
-}
-
-/* Nuclear option: Override EVERYTHING with maximum CSS specificity */
-html body * {
+/* Simple but effective: Force Figtree everywhere */
+* {
   font-family: 'Figtree', sans-serif !important;
 }
 
-html body *:before {
-  font-family: 'Figtree', sans-serif !important;
-}
-
-html body *:after {
-  font-family: 'Figtree', sans-serif !important;
+/* Make font change obvious - slightly bolder text */
+body, h1, h2, h3, h4, h5, h6, p, span, div, button {
+  font-weight: 500 !important;
 }
 
 :root {
@@ -124,40 +116,7 @@ html body *:after {
 
   body {
     @apply antialiased bg-background text-foreground;
-    font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
     line-height: 1.2;
-  }
-
-  *, *::before, *::after {
-    font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
-  }
-
-  h1, h2, h3, h4, h5, h6, p, span, div, button, input, label, a, td, th, li, ul, ol {
-    font-family: 'Figtree', sans-serif !important;
-  }
-
-  /* Override all possible UI component fonts */
-  .ui-button, .ui-input, .ui-select, .ui-textarea, .ui-card, .ui-dialog {
-    font-family: 'Figtree', sans-serif !important;
-  }
-
-  /* Override shadcn/ui component fonts */
-  [data-radix-popper-content-wrapper], 
-  [data-radix-dialog-content],
-  [data-radix-select-content],
-  [data-radix-dropdown-menu-content] {
-    font-family: 'Figtree', sans-serif !important;
-  }
-
-  /* Override any component library fonts */
-  .MuiTypography-root, 
-  .ant-typography,
-  .chakra-text,
-  button[class*="btn"],
-  input[class*="form"],
-  select[class*="select"],
-  textarea[class*="textarea"] {
-    font-family: 'Figtree', sans-serif !important;
   }
 
   /* Figtree Typography Scale */
