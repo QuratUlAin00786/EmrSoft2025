@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -754,26 +754,42 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                         Known Allergies
                       </h4>
                       <div className="space-y-2 mb-4">
-                        {React.useMemo(() => {
+                        {(() => {
                           // Combine allergies from medicalHistory and extract from flags
                           const medicalAllergies = patient.medicalHistory?.allergies || [];
+                          console.log('Debug - Patient flags:', patient.flags);
+                          console.log('Debug - Medical allergies:', medicalAllergies);
                           
                           const flagAllergies = patient.flags 
                             ? patient.flags
-                                .filter(flag => typeof flag === 'string' && flag.includes(':'))
+                                .filter(flag => {
+                                  console.log('Debug - Processing flag:', flag);
+                                  return typeof flag === 'string' && flag.includes(':');
+                                })
                                 .filter(flag => {
                                   const flagType = flag.split(':')[0].toLowerCase();
+                                  console.log('Debug - Flag type:', flagType);
                                   // Only include flags that are allergy-related
-                                  return flagType === 'general' || flagType === 'allergy' || flagType === 'allergies';
+                                  const isAllergy = flagType === 'general' || flagType === 'allergy' || flagType === 'allergies';
+                                  console.log('Debug - Is allergy flag:', isAllergy);
+                                  return isAllergy;
                                 })
                                 .map(flag => {
                                   const parts = flag.split(':');
-                                  return parts[2]; // Extract the allergy text after "general:medium:"
+                                  const allergyText = parts[2];
+                                  console.log('Debug - Extracted allergy text:', allergyText);
+                                  return allergyText;
                                 })
-                                .filter(allergy => allergy && allergy.trim().length > 0)
+                                .filter(allergy => {
+                                  const isValid = allergy && allergy.trim().length > 0;
+                                  console.log('Debug - Is valid allergy:', isValid, allergy);
+                                  return isValid;
+                                })
                             : [];
                           
+                          console.log('Debug - Flag allergies:', flagAllergies);
                           const allAllergies = [...medicalAllergies, ...flagAllergies];
+                          console.log('Debug - All allergies combined:', allAllergies);
                           
                           return allAllergies.length > 0 ? (
                             allAllergies.map((allergy, index) => (
@@ -791,7 +807,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                           ) : (
                             <p className="text-sm text-gray-500">No known allergies</p>
                           );
-                        }, [patient.medicalHistory?.allergies, patient.flags])}
+                        })()}
                       </div>
                       <div className="flex gap-2">
                         <Input
