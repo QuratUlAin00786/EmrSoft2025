@@ -813,7 +813,7 @@ export default function Inventory() {
                                   <Eye className="h-3 w-3 mr-1" />
                                   View
                                 </Button>
-                                {(!po.emailSent && po.status !== 'sent') && (
+                                {!po.emailSent && (
                                   <Button 
                                     size="sm" 
                                     onClick={() => sendEmailMutation.mutate(po.id)}
