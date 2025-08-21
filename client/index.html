@@ -67,6 +67,23 @@
         font-family: 'FigtreeCustom', ui-sans-serif, system-ui, sans-serif !important;
       }
       
+      /* Debug notification for font loading issues */
+      body::before {
+        content: "Font Status: If you see single-storey 'g' letters, Figtree is not loading correctly. Technical issue with font delivery.";
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        background: rgba(255, 0, 0, 0.8);
+        color: white;
+        padding: 8px;
+        font-size: 12px;
+        z-index: 10000;
+        border-radius: 4px;
+        max-width: 300px;
+        font-family: monospace;
+        pointer-events: none;
+      }
+      
 
     </style>
     
