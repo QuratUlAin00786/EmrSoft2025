@@ -1,10 +1,10 @@
-/* Local Figtree font files for guaranteed loading */
+/* Fresh Figtree font files - WOFF2 format for better compatibility */
 @font-face {
   font-family: 'Figtree';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('/fonts/Figtree-Regular.ttf') format('truetype');
+  src: url('/fonts/Figtree-Regular.woff2') format('woff2');
 }
 
 @font-face {
@@ -12,38 +12,37 @@
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: url('/fonts/Figtree-Medium.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'Figtree';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url('/fonts/Figtree-SemiBold.ttf') format('truetype');
+  src: url('/fonts/Figtree-Medium.woff2') format('woff2');
 }
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Global font enforcement - must be after Tailwind */
-html {
-  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+/* NUCLEAR OPTION: Force Figtree everywhere with maximum override power */
+@layer utilities {
+  * {
+    font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  }
+  
+  html, body, div, span, h1, h2, h3, h4, h5, h6, p, button, input, textarea, label, a, li, td, th, nav, header, footer, main, section, aside, article {
+    font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  }
 }
 
-body {
-  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-}
-
-/* Override all possible elements */
-*, *::before, *::after {
-  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-}
-
-/* Specific component overrides */
-.font-sans {
-  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+/* Test element for verification */
+body::before {
+  content: "FIGTREE TEST: f g t";
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 9999;
+  background: red;
+  color: white;
+  padding: 5px;
+  font-size: 20px;
+  font-family: 'Figtree', monospace !important;
+  font-weight: bold;
 }
 
 :root {
