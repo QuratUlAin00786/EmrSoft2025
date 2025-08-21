@@ -228,7 +228,8 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
       return;
     }
 
-    const scheduledAt = new Date(`${formData.date}T${formData.time}`);
+    // Create date in local timezone and keep it as local time for proper scheduling
+    const localDateTime = `${formData.date}T${formData.time}:00`;
     
     // Find the actual patient ID from the selected patientId string
     const selectedPatient = patients.find(p => p.patientId === formData.patientId);
@@ -238,7 +239,7 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
       providerId: parseInt(formData.providerId),
       title: formData.title || `${formData.type} appointment`,
       description: formData.description || "",
-      scheduledAt: scheduledAt.toISOString(),
+      scheduledAt: localDateTime,
       duration: parseInt(formData.duration),
       type: formData.type,
       status: "scheduled", // Required field - set default status
