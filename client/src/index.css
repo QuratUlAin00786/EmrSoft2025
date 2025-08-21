@@ -2,46 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  * {
-    font-family: "Figtree", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji" !important;
-  }
-  
-  html {
-    font-family: "Figtree", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji" !important;
-  }
-  
-  body {
-    font-family: "Figtree", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji" !important;
-  }
-}
-
-@layer components {
-  .font-sans {
-    font-family: "Figtree", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji" !important;
-  }
-}
-
-@layer utilities {
-  input, textarea, button, select, option, [role="combobox"], [role="button"], [class*="ui-"], [data-radix-collection-item] {
-    font-family: "Figtree", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji" !important;
-  }
-}
-
-/* Diagnostic font test - temporary visual check */
-body::after {
-  content: "g testing double-storey loops";
+/* Diagnostic font test showing Figtree characteristics */
+body::before {
+  content: "Figtree Test: f g t (look for: curved f/t, double-storey g, wider spacing, higher x-height)";
   position: fixed;
-  bottom: 10px;
-  right: 10px;
-  background: #ff0000;
+  top: 10px;
+  left: 10px;
+  background: #0066cc;
   color: white;
-  padding: 8px;
-  font-size: 18px;
+  padding: 12px;
+  font-size: 16px;
   font-weight: 400;
-  z-index: 9999;
-  border-radius: 4px;
+  z-index: 10000;
+  border-radius: 6px;
   pointer-events: none;
+  max-width: 600px;
+  line-height: 1.2;
 }
 
 :root {
