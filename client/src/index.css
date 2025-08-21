@@ -110,38 +110,38 @@ button, input, textarea, select, div, span, p, h1, h2, h3, h4, h5, h6, label, a 
 }
 
 .dark {
-  --background: hsl(220, 13%, 9%);
-  --foreground: hsl(210, 15%, 92%);
-  --muted: hsl(220, 13%, 15%);
-  --muted-foreground: hsl(215, 10%, 65%);
-  --popover: hsl(220, 13%, 12%);
-  --popover-foreground: hsl(210, 15%, 92%);
-  --card: hsl(220, 13%, 12%);
-  --card-foreground: hsl(210, 15%, 92%);
-  --border: hsl(220, 13%, 18%);
-  --input: hsl(220, 13%, 18%);
-  --primary: hsl(142, 70%, 55%);
+  --background: hsl(220, 45%, 6%);
+  --foreground: hsl(0, 0%, 95%);
+  --muted: hsl(220, 45%, 12%);
+  --muted-foreground: hsl(240, 4%, 70%);
+  --popover: hsl(220, 45%, 8%);
+  --popover-foreground: hsl(0, 0%, 95%);
+  --card: hsl(220, 45%, 8%);
+  --card-foreground: hsl(0, 0%, 95%);
+  --border: hsl(220, 45%, 18%);
+  --input: hsl(220, 45%, 18%);
+  --primary: hsl(222, 100%, 64%);
   --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(220, 13%, 18%);
-  --secondary-foreground: hsl(210, 15%, 92%);
-  --accent: hsl(220, 13%, 18%);
-  --accent-foreground: hsl(210, 15%, 92%);
-  --destructive: hsl(0, 85%, 55%);
-  --destructive-foreground: hsl(0, 0%, 98%);
-  --ring: hsl(142, 70%, 55%);
+  --secondary: hsl(256, 58%, 71%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+  --accent: hsl(180, 66%, 80%);
+  --accent-foreground: hsl(220, 45%, 15%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --ring: hsl(222, 100%, 64%);
   --radius: 0.5rem;
   
   /* Cura brand colors for dark mode */
-  --cura-bluewave: hsl(229, 100%, 64%);
-  --cura-electric-lilac: hsl(246, 95%, 72%);
-  --cura-electric-violet: hsl(267, 100%, 72%);
-  --cura-midnight: hsl(234, 57%, 75%);
-  --cura-steel: hsl(225, 16%, 65%);
-  --cura-mist: hsl(220, 13%, 18%);
-  --cura-mint-drift: hsl(177, 85%, 68%);
+  --cura-bluewave: hsl(222, 100%, 64%);
+  --cura-electric-lilac: hsl(256, 58%, 71%);
+  --cura-electric-violet: hsl(256, 100%, 72%);
+  --cura-midnight: hsl(220, 45%, 75%);
+  --cura-steel: hsl(240, 4%, 70%);
+  --cura-mist: hsl(220, 45%, 18%);
+  --cura-mint-drift: hsl(180, 66%, 80%);
   
   /* Medical colors for dark mode */
-  --medical-blue: hsl(229, 100%, 64%);
+  --medical-blue: hsl(222, 100%, 64%);
   --medical-green: hsl(142, 70%, 55%);
   --medical-orange: hsl(15, 100%, 65%);
 }
