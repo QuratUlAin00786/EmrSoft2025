@@ -197,14 +197,118 @@ export default function PurchaseOrderDialog({ open, onOpenChange, items }: Purch
             </div>
           </div>
 
-          {/* Simple Add Item Component */}
-          <SimpleAddItem 
-            items={items} 
-            onItemAdded={(item) => {
-              console.log("Item added via SimpleAddItem:", item);
-              setPOItems([...poItems, item]);
-            }} 
-          />
+          {/* Direct Add Item - No Component */}
+          <div style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '8px', margin: '16px 0' }}>
+            <h3 style={{ marginBottom: '12px', fontSize: '16px', fontWeight: '500' }}>Quick Add Item</h3>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '12px', alignItems: 'end' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px' }}>Item</label>
+                <select 
+                  value={newItem.itemId} 
+                  onChange={(e) => setNewItem({...newItem, itemId: e.target.value})}
+                  style={{ 
+                    width: '100%', 
+                    padding: '8px', 
+                    border: '1px solid #d1d5db', 
+                    borderRadius: '4px',
+                    fontSize: '14px'
+                  }}
+                >
+                  <option value="">Select item</option>
+                  {items.map(item => (
+                    <option key={item.id} value={item.id.toString()}>
+                      {item.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px' }}>Quantity</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={newItem.quantity}
+                  onChange={(e) => setNewItem({...newItem, quantity: parseInt(e.target.value) || 1})}
+                  style={{ 
+                    width: '100%', 
+                    padding: '8px', 
+                    border: '1px solid #d1d5db', 
+                    borderRadius: '4px',
+                    fontSize: '14px'
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px' }}>Unit Price</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={newItem.unitPrice}
+                  onChange={(e) => setNewItem({...newItem, unitPrice: e.target.value})}
+                  style={{ 
+                    width: '100%', 
+                    padding: '8px', 
+                    border: '1px solid #d1d5db', 
+                    borderRadius: '4px',
+                    fontSize: '14px'
+                  }}
+                />
+              </div>
+              
+              <button
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  console.log("DIRECT BUTTON MOUSEDOWN!");
+                  
+                  if (!newItem.itemId || !newItem.unitPrice) {
+                    console.log("Missing required fields");
+                    return;
+                  }
+
+                  const selectedItem = items.find(item => item.id === parseInt(newItem.itemId));
+                  if (!selectedItem) {
+                    console.log("Selected item not found");
+                    return;
+                  }
+
+                  const totalPrice = (newItem.quantity * parseFloat(newItem.unitPrice)).toFixed(2);
+                  const itemToAdd = {
+                    itemId: parseInt(newItem.itemId),
+                    itemName: selectedItem.name,
+                    quantity: newItem.quantity,
+                    unitPrice: newItem.unitPrice,
+                    totalPrice
+                  };
+
+                  console.log("Adding item directly:", itemToAdd);
+                  setPOItems(prev => [...prev, itemToAdd]);
+                  
+                  // Reset form
+                  setNewItem({ itemId: "", quantity: 100, unitPrice: "2" });
+                }}
+                style={{
+                  backgroundColor: '#059669',
+                  color: 'white',
+                  padding: '10px 16px',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                <Plus size={16} />
+                Add Item NOW
+              </button>
+            </div>
+          </div>
 
           {/* Items Table */}
           {poItems.length > 0 && (
