@@ -392,6 +392,31 @@ Cura Healthcare Team
     }
   }
 
+  async deletePurchaseOrder(purchaseOrderId: number, organizationId: number) {
+    return await db.transaction(async (tx) => {
+      // Delete purchase order items first
+      await tx
+        .delete(inventoryPurchaseOrderItems)
+        .where(eq(inventoryPurchaseOrderItems.purchaseOrderId, purchaseOrderId));
+
+      // Delete the purchase order
+      const [deletedPO] = await tx
+        .delete(inventoryPurchaseOrders)
+        .where(and(
+          eq(inventoryPurchaseOrders.id, purchaseOrderId),
+          eq(inventoryPurchaseOrders.organizationId, organizationId)
+        ))
+        .returning();
+
+      if (!deletedPO) {
+        throw new Error('Purchase order not found');
+      }
+
+      console.log(`[INVENTORY] Deleted purchase order ${deletedPO.poNumber}`);
+      return true;
+    });
+  }
+
   // ====== STOCK MANAGEMENT ======
   
   async updateStock(itemId: number, organizationId: number, quantity: number, movementType: string, notes?: string, userId?: number) {

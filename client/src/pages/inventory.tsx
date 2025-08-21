@@ -5,7 +5,7 @@ import {
   Plus, Package, AlertTriangle, TrendingUp, Search, Filter, BarChart3, 
   ShoppingCart, Edit, MoreVertical, Calendar, MapPin, Clock, CheckCircle,
   XCircle, AlertCircle, FileText, Truck, Pill, Stethoscope, Archive,
-  Eye, Download, Upload, RefreshCw, Settings, Users, Building2
+  Eye, Download, Upload, RefreshCw, Settings, Users, Building2, Trash2
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -266,6 +266,27 @@ export default function Inventory() {
       toast({
         title: "Error",
         description: error.message || "Failed to send purchase order email",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete purchase order mutation
+  const deletePurchaseOrderMutation = useMutation({
+    mutationFn: async (purchaseOrderId: number) => {
+      await apiRequest("DELETE", `/api/inventory/purchase-orders/${purchaseOrderId}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Purchase Order Deleted",
+        description: "Purchase order has been deleted successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/inventory/purchase-orders"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete purchase order",
         variant: "destructive",
       });
     },
@@ -822,6 +843,15 @@ export default function Inventory() {
                                     Send
                                   </Button>
                                 )}
+                                <Button 
+                                  size="sm" 
+                                  variant="destructive"
+                                  onClick={() => deletePurchaseOrderMutation.mutate(po.id)}
+                                  disabled={deletePurchaseOrderMutation.isPending}
+                                >
+                                  <Trash2 className="h-3 w-3 mr-1" />
+                                  Delete
+                                </Button>
                               </div>
                             </TableCell>
                           </TableRow>

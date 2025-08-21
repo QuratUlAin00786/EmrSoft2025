@@ -7278,6 +7278,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete Purchase Order
+  app.delete("/api/inventory/purchase-orders/:id", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const purchaseOrderId = parseInt(req.params.id);
+      
+      if (isNaN(purchaseOrderId)) {
+        return res.status(400).json({ error: "Invalid purchase order ID" });
+      }
+
+      await inventoryService.deletePurchaseOrder(purchaseOrderId, req.tenant!.id);
+      
+      res.json({ 
+        success: true, 
+        message: "Purchase order deleted successfully" 
+      });
+    } catch (error) {
+      console.error("Error deleting purchase order:", error);
+      res.status(500).json({ error: "Failed to delete purchase order" });
+    }
+  });
+
   // Stock Alerts
   app.get("/api/inventory/alerts", authMiddleware, requireRole(["admin", "doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
