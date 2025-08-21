@@ -703,7 +703,9 @@ export class DatabaseStorage implements IStorage {
     // Pattern 6: Scheduled time must be in the future for new appointments
     const scheduledTime = new Date(appointment.scheduledAt);
     const now = new Date();
-    if (scheduledTime <= now && appointment.status === 'scheduled') {
+    // Allow a 1-minute grace period to account for processing time and timezone differences
+    const gracePeriod = 60 * 1000; // 1 minute in milliseconds
+    if (scheduledTime.getTime() <= (now.getTime() - gracePeriod) && appointment.status === 'scheduled') {
       errors.push("Scheduled appointments must be set for a future date and time");
     }
 
