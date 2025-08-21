@@ -4,14 +4,11 @@
 
 @layer base {
   * {
-    font-family: 'Inter', 'Noto Sans', sans-serif !important;
-    letter-spacing: 0.015em !important;
+    font-family: 'Figtree', sans-serif !important;
   }
   
   html, body {
-    font-family: 'Inter', 'Noto Sans', sans-serif !important;
-    letter-spacing: 0.015em !important;
-    font-feature-settings: "kern" 1, "liga" 1, "ss01" 1 !important;
+    font-family: 'Figtree', sans-serif !important;
   }
   
   .font-sans {
