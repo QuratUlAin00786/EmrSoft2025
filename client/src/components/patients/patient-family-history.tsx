@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -754,7 +754,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                         Known Allergies
                       </h4>
                       <div className="space-y-2 mb-4">
-                        {(() => {
+                        {React.useMemo(() => {
                           // Combine allergies from medicalHistory and extract from flags
                           const medicalAllergies = patient.medicalHistory?.allergies || [];
                           
@@ -791,7 +791,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                           ) : (
                             <p className="text-sm text-gray-500">No known allergies</p>
                           );
-                        })()}
+                        }, [patient.medicalHistory?.allergies, patient.flags])}
                       </div>
                       <div className="flex gap-2">
                         <Input
