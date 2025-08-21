@@ -67,34 +67,41 @@ button, input, textarea, select, div, span, p, h1, h2, h3, h4, h5, h6, label, a 
 
 :root {
   --background: hsl(0, 0%, 100%);
-  --foreground: hsl(235, 45%, 25%);
-  --muted: hsl(227, 50%, 92%);
-  --muted-foreground: hsl(227, 12%, 65%);
+  --foreground: hsl(220, 45%, 15%);
+  --muted: hsl(240, 10%, 92%);
+  --muted-foreground: hsl(240, 4%, 62%);
   --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(235, 45%, 25%);
+  --popover-foreground: hsl(220, 45%, 15%);
   --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(235, 45%, 25%);
-  --border: hsl(227, 50%, 92%);
-  --input: hsl(227, 50%, 92%);
-  --primary: hsl(142, 70%, 45%);
+  --card-foreground: hsl(220, 45%, 15%);
+  --border: hsl(240, 10%, 92%);
+  --input: hsl(240, 10%, 92%);
+  --primary: hsl(222, 100%, 64%);
   --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(227, 50%, 92%);
-  --secondary-foreground: hsl(235, 45%, 25%);
-  --accent: hsl(142, 70%, 45%);
-  --accent-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(256, 58%, 71%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+  --accent: hsl(180, 66%, 80%);
+  --accent-foreground: hsl(220, 45%, 15%);
   --destructive: hsl(0, 84.2%, 60.2%);
-  --destructive-foreground: hsl(60, 9.1%, 97.8%);
-  --ring: hsl(142, 70%, 45%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --ring: hsl(222, 100%, 64%);
   --radius: 0.5rem;
   
-  /* Cura brand colors */
-  --cura-bluewave: hsl(229, 100%, 64%);
-  --cura-electric-lilac: hsl(246, 95%, 72%);
-  --cura-electric-violet: hsl(267, 100%, 72%);
-  --cura-midnight: hsl(234, 57%, 25%);
-  --cura-steel: hsl(225, 16%, 65%);
-  --cura-mist: hsl(235, 50%, 92%);
-  --cura-mint-drift: hsl(177, 85%, 68%);
+  /* Cura brand colors from design system */
+  --cura-bluewave: hsl(222, 100%, 64%);
+  --cura-electric-lilac: hsl(256, 58%, 71%);
+  --cura-electric-violet: hsl(256, 100%, 72%);
+  --cura-midnight: hsl(220, 45%, 25%);
+  --cura-steel: hsl(240, 4%, 62%);
+  --cura-mist: hsl(240, 10%, 92%);
+  --cura-mint-drift: hsl(180, 66%, 80%);
+  
+  /* Chart colors using new theme */
+  --chart-1: hsl(222, 100%, 64%);
+  --chart-2: hsl(256, 58%, 71%);
+  --chart-3: hsl(220, 45%, 25%);
+  --chart-4: hsl(180, 66%, 80%);
+  --chart-5: hsl(240, 4%, 62%);
   
   /* Medical colors for light mode */
   --medical-blue: hsl(229, 100%, 64%);
