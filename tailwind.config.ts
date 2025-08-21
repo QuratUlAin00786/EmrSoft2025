@@ -6,7 +6,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        'sans': ['Figtree', 'sans-serif'],
+        'sans': ['Inter', 'Noto Sans', 'system-ui', 'sans-serif'],
         'figtree': ['Figtree', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
