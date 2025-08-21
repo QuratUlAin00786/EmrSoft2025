@@ -2662,38 +2662,38 @@ export default function Forms() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 dark:bg-slate-900">
+    <div className="h-screen flex flex-col bg-[hsl(var(--cura-mist))] dark:bg-[hsl(var(--cura-midnight))]">
       {/* Scrollable Content Wrapper */}
       <div className="flex-1 overflow-y-auto">
-        {/* Top Header - exact match to Semble */}
-        <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-600 px-3 py-2 flex-shrink-0">
+        {/* Top Header - medical theme colors */}
+        <div className="bg-white dark:bg-[hsl(var(--cura-midnight))] border-b border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))] px-3 py-2 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => toast({ title: "Letters", description: "Navigating back to letters list." })}>
               <ArrowLeft className="h-3 w-3 mr-1" />
               <span>Letters</span>
             </Button>
-            <Button className="bg-teal-600 hover:bg-teal-700 text-white text-xs px-3 py-1 h-6" onClick={handlePreview}>
+            <Button className="bg-[hsl(var(--cura-mint-drift))] hover:bg-[hsl(var(--cura-mint-drift),0.8)] text-black text-xs px-3 py-1 h-6" onClick={handlePreview}>
               Save and preview
             </Button>
             <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={handleSaveAsDraft}>
               Save as draft
             </Button>
           </div>
-          <div className="text-xs text-gray-600 dark:text-gray-300">Letter body</div>
+          <div className="text-xs text-[hsl(var(--cura-steel))] dark:text-[hsl(var(--cura-steel))]">Letter body</div>
           <div className="flex items-center space-x-2">
-            <span className="text-xs text-gray-600 dark:text-gray-300 cursor-pointer">Select Patient...</span>
-            <span className="text-xs text-gray-600 dark:text-gray-300 cursor-pointer">New Chris...</span>
-            <span className="text-xs text-gray-600 dark:text-gray-300 cursor-pointer">Share this...</span>
+            <span className="text-xs text-[hsl(var(--cura-steel))] dark:text-[hsl(var(--cura-steel))] cursor-pointer">Select Patient...</span>
+            <span className="text-xs text-[hsl(var(--cura-steel))] dark:text-[hsl(var(--cura-steel))] cursor-pointer">New Chris...</span>
+            <span className="text-xs text-[hsl(var(--cura-steel))] dark:text-[hsl(var(--cura-steel))] cursor-pointer">Share this...</span>
           </div>
         </div>
       </div>
 
       {/* Form Fields Section - Collapsible */}
-      <div className="bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-600">
+      <div className="bg-[hsl(var(--cura-mist))] dark:bg-[hsl(var(--cura-midnight))] border-b border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))]">
         {/* Toggle Header */}
         <div className="px-4 py-2 flex items-center justify-between cursor-pointer" onClick={() => setShowFormFields(!showFormFields)}>
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Letter Details</span>
+          <span className="text-sm font-medium text-[hsl(var(--cura-midnight))] dark:text-white">Letter Details</span>
           <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
             {showFormFields ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </Button>
@@ -2704,18 +2704,18 @@ export default function Forms() {
           <div className="px-4 pb-4">
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Subject</label>
+                <label className="block text-sm font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-1">Subject</label>
                 <input
                   type="text"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-3 py-2 border border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))] bg-white dark:bg-[hsl(var(--cura-midnight))] text-[hsl(var(--cura-midnight))] dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[hsl(var(--cura-bluewave))]"
                   placeholder="Enter subject"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Recipient (optional)</label>
+                <label className="block text-sm font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-1">Recipient (optional)</label>
                 <input
                   type="text"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-3 py-2 border border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))] bg-white dark:bg-[hsl(var(--cura-midnight))] text-[hsl(var(--cura-midnight))] dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[hsl(var(--cura-bluewave))]"
                   placeholder="Enter recipient"
                 />
               </div>
@@ -2723,7 +2723,7 @@ export default function Forms() {
             
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location (optional)</label>
+                <label className="block text-sm font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-1">Location (optional)</label>
                 <Select>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select..." />
@@ -2736,10 +2736,10 @@ export default function Forms() {
                 </Select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Copied in recipients (optional)</label>
+                <label className="block text-sm font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-1">Copied in recipients (optional)</label>
                 <input
                   type="text"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-3 py-2 border border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))] bg-white dark:bg-[hsl(var(--cura-midnight))] text-[hsl(var(--cura-midnight))] dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[hsl(var(--cura-bluewave))]"
                   placeholder="Enter copied recipients"
                 />
               </div>
@@ -2747,7 +2747,7 @@ export default function Forms() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Practitioner (optional)</label>
+                <label className="block text-sm font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-1">Practitioner (optional)</label>
                 <Select>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select practitioner" />
@@ -2760,7 +2760,7 @@ export default function Forms() {
                 </Select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Select Header</label>
+                <label className="block text-sm font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-1">Select Header</label>
                 <Select>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Your Clinic" />
@@ -2779,11 +2779,11 @@ export default function Forms() {
       </div>
 
       {/* Clinical Header Selection - Create the Letter */}
-      <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-600 px-4 py-4">
+      <div className="bg-white dark:bg-[hsl(var(--cura-midnight))] border-b border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))] px-4 py-4">
         <div className="flex flex-col items-center">
-          <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Create the Letter</h3>
+          <h3 className="text-sm font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-3">Create the Letter</h3>
           <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 text-center">Select Header</label>
+            <label className="block text-xs font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-2 text-center">Select Header</label>
             <Select value={selectedHeader} onValueChange={setSelectedHeader}>
               <SelectTrigger style={{ width: '700px' }}>
                 <SelectValue placeholder="Your Clinic" />
@@ -2801,13 +2801,13 @@ export default function Forms() {
           </div>
           
           {/* Header Preview Area */}
-          <div className="mt-4 p-6 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded text-center relative" style={{ width: '700px' }}>
+          <div className="mt-4 p-6 bg-[hsl(var(--cura-mist))] dark:bg-[hsl(var(--cura-midnight))] border border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))] rounded text-center relative" style={{ width: '700px' }}>
             {selectedHeader === "your-clinic" ? (
               <div>
-                <div className="text-teal-600 dark:text-teal-400 text-lg font-semibold">🏥 {clinicInfo.name}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">{clinicInfo.address}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-300">{clinicInfo.phone} • {clinicInfo.email}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-300">{clinicInfo.website}</div>
+                <div className="text-[hsl(var(--cura-bluewave))] dark:text-[hsl(var(--cura-bluewave))] text-lg font-semibold">🏥 {clinicInfo.name}</div>
+                <div className="text-sm text-[hsl(var(--cura-steel))] dark:text-[hsl(var(--cura-steel))] mt-1">{clinicInfo.address}</div>
+                <div className="text-sm text-[hsl(var(--cura-steel))] dark:text-[hsl(var(--cura-steel))]">{clinicInfo.phone} • {clinicInfo.email}</div>
+                <div className="text-sm text-[hsl(var(--cura-steel))] dark:text-[hsl(var(--cura-steel))]">{clinicInfo.website}</div>
                 
                 {/* Edit Button */}
                 <Dialog open={showEditClinic} onOpenChange={setShowEditClinic}>
@@ -2886,16 +2886,16 @@ export default function Forms() {
               </div>
             ) : (
               <div>
-                <div className="text-teal-600 text-lg font-semibold">🏥 {selectedHeader.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</div>
-                <div className="text-xs text-gray-500 mt-1">Header preview will appear here</div>
+                <div className="text-[hsl(var(--cura-bluewave))] dark:text-[hsl(var(--cura-bluewave))] text-lg font-semibold">🏥 {selectedHeader.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</div>
+                <div className="text-xs text-[hsl(var(--cura-steel))] dark:text-[hsl(var(--cura-steel))] mt-1">Header preview will appear here</div>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Toolbar - exact match to Semble with all visible options */}
-      <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-600 px-2 py-2 flex-shrink-0">
+      {/* Toolbar - medical theme colors */}
+      <div className="bg-white dark:bg-[hsl(var(--cura-midnight))] border-b border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))] px-2 py-2 flex-shrink-0">
         {/* Main formatting row */}
         <div className="flex justify-center items-center gap-0.5 mb-2">
           {/* Font controls */}
@@ -2908,7 +2908,7 @@ export default function Forms() {
               else if (value === "heading2") handleH2();
             }, 100);
           }}>
-            <SelectTrigger className="w-20 h-6 text-xs border border-gray-300">
+            <SelectTrigger className="w-20 h-6 text-xs border border-[hsl(var(--cura-steel))]">
               <SelectValue placeholder="H2" />
             </SelectTrigger>
             <SelectContent>
@@ -2926,7 +2926,7 @@ export default function Forms() {
               applyFontFamily(value);
             }
           }}>
-            <SelectTrigger className="w-24 h-5 text-xs border border-gray-300 bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white">
+            <SelectTrigger className="w-24 h-5 text-xs border border-[hsl(var(--cura-steel))] bg-white dark:bg-[hsl(var(--cura-midnight))] dark:border-[hsl(var(--cura-steel))] dark:text-white">
               <SelectValue placeholder="Verdana" />
             </SelectTrigger>
             <SelectContent>
@@ -2963,7 +2963,7 @@ export default function Forms() {
               applyFontSize(value);
             }
           }}>
-            <SelectTrigger className="w-16 h-5 text-xs border border-gray-300 bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white">
+            <SelectTrigger className="w-16 h-5 text-xs border border-[hsl(var(--cura-steel))] bg-white dark:bg-[hsl(var(--cura-midnight))] dark:border-[hsl(var(--cura-steel))] dark:text-white">
               <SelectValue placeholder="12pt" />
             </SelectTrigger>
             <SelectContent>
@@ -2986,54 +2986,54 @@ export default function Forms() {
             </SelectContent>
           </Select>
           
-          <div className="h-4 w-px bg-gray-300 dark:bg-slate-600 mx-1"></div>
+          <div className="h-4 w-px bg-[hsl(var(--cura-steel))] dark:bg-[hsl(var(--cura-steel))] mx-1"></div>
           
           {/* Text formatting - more visible */}
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200 dark:border-slate-600" onClick={handleBold}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))]" onClick={handleBold}>
             <Bold className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200 dark:border-slate-600" onClick={handleItalic}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))]" onClick={handleItalic}>
             <Italic className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200 dark:border-slate-600" onClick={handleUnderline}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))]" onClick={handleUnderline}>
             <Underline className="h-3 w-3" />
           </Button>
           
-          <div className="h-4 w-px bg-gray-300 dark:bg-slate-600 mx-1"></div>
+          <div className="h-4 w-px bg-[hsl(var(--cura-steel))] dark:bg-[hsl(var(--cura-steel))] mx-1"></div>
           
           {/* Lists */}
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200 dark:border-slate-600" onClick={handleBulletList}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))]" onClick={handleBulletList}>
             <List className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200 dark:border-slate-600" onClick={handleNumberedList}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))]" onClick={handleNumberedList}>
             <ListOrdered className="h-3 w-3" />
           </Button>
           
-          <div className="h-4 w-px bg-gray-300 dark:bg-slate-600 mx-1"></div>
+          <div className="h-4 w-px bg-[hsl(var(--cura-steel))] dark:bg-[hsl(var(--cura-steel))] mx-1"></div>
           
           {/* Alignment */}
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200 dark:border-slate-600" onClick={handleAlignLeft}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))]" onClick={handleAlignLeft}>
             <AlignLeft className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200 dark:border-slate-600" onClick={handleAlignCenter}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))]" onClick={handleAlignCenter}>
             <AlignCenter className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200 dark:border-slate-600" onClick={handleAlignRight}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))]" onClick={handleAlignRight}>
             <AlignRight className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200 dark:border-slate-600" onClick={handleAlignJustify}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))]" onClick={handleAlignJustify}>
             <AlignJustify className="h-3 w-3" />
           </Button>
           
-          <div className="h-4 w-px bg-gray-300 dark:bg-slate-600 mx-1"></div>
+          <div className="h-4 w-px bg-[hsl(var(--cura-steel))] dark:bg-[hsl(var(--cura-steel))] mx-1"></div>
           
           {/* Text color and tools */}
           <div className="relative">
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200 dark:border-slate-600" onClick={() => setShowColorPicker(!showColorPicker)}>
+            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))]" onClick={() => setShowColorPicker(!showColorPicker)}>
               <Type className="h-3 w-3" />
             </Button>
             {showColorPicker && (
-              <div className="absolute top-full left-0 mt-1 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded shadow-lg p-2 z-50">
+              <div className="absolute top-full left-0 mt-1 bg-white dark:bg-[hsl(var(--cura-midnight))] border border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))] rounded shadow-lg p-2 z-50">
                 <div className="grid grid-cols-8 gap-1">
                   {[
                     '#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#FFFFFF',
@@ -3041,7 +3041,7 @@ export default function Forms() {
                   ].map((color) => (
                     <button
                       key={color}
-                      className="w-4 h-4 border border-gray-300 rounded"
+                      className="w-4 h-4 border border-[hsl(var(--cura-steel))] rounded"
                       style={{ backgroundColor: color }}
                       onClick={() => {
                         const selection = window.getSelection();
@@ -3089,78 +3089,78 @@ export default function Forms() {
             )}
           </div>
           
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleHighlight}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-[hsl(var(--cura-steel))]" onClick={handleHighlight}>
             <Highlighter className="h-3 w-3" />
           </Button>
           
-          <div className="h-4 w-px bg-gray-300 mx-1"></div>
+          <div className="h-4 w-px bg-[hsl(var(--cura-steel))] mx-1"></div>
           
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleClock}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-[hsl(var(--cura-steel))]" onClick={handleClock}>
             <Clock className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleTable}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-[hsl(var(--cura-steel))]" onClick={handleTable}>
             <Table className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleAttachFile}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-[hsl(var(--cura-steel))]" onClick={handleAttachFile}>
             <Paperclip className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleImage}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-[hsl(var(--cura-steel))]" onClick={handleImage}>
             <Image className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleLink}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-[hsl(var(--cura-steel))]" onClick={handleLink}>
             <Link className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-gray-200" onClick={handleMore}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-[hsl(var(--cura-steel))]" onClick={handleMore}>
             <MoreHorizontal className="h-3 w-3" />
           </Button>
         </div>
 
-        {/* Medical data buttons row - more clearly visible */}
+        {/* Medical data buttons row - medical theme colors */}
         <div className="flex justify-center items-center gap-1">
-          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={handleInsertTemplate}>
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-[hsl(var(--cura-steel))]" onClick={handleInsertTemplate}>
             Insert template
           </Button>
-          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={handleInsertLogo}>
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-[hsl(var(--cura-steel))]" onClick={handleInsertLogo}>
             Insert logo
           </Button>
-          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={handleClinic}>
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-[hsl(var(--cura-steel))]" onClick={handleClinic}>
             Clinic
           </Button>
-          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={handlePatient}>
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-[hsl(var(--cura-steel))]" onClick={handlePatient}>
             Patient
           </Button>
-          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={handleRecipient}>
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-[hsl(var(--cura-steel))]" onClick={handleRecipient}>
             Recipient
           </Button>
-          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={handleAppointments}>
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-[hsl(var(--cura-steel))]" onClick={handleAppointments}>
             Appointments
           </Button>
-          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={handleLabs}>
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-[hsl(var(--cura-steel))]" onClick={handleLabs}>
             Labs
           </Button>
-          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={handlePatientRecords}>
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-[hsl(var(--cura-steel))]" onClick={handlePatientRecords}>
             Patient records
           </Button>
-          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={handleInsertProduct}>
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-[hsl(var(--cura-steel))]" onClick={handleInsertProduct}>
             Insert product
           </Button>
         </div>
         
-        {/* Save and View buttons - EXACT COPY of medical data button structure */}
+        {/* Save and View buttons - medical theme colors */}
         <div className="flex justify-center items-center gap-1">
-          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={handleSave} style={{ backgroundColor: '#0d9488', color: 'white', borderColor: '#0d9488' }}>
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 bg-[hsl(var(--cura-bluewave))] text-white border-[hsl(var(--cura-bluewave))] hover:bg-[hsl(var(--cura-bluewave),0.8)]" onClick={handleSave}>
             Save Template
           </Button>
-          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-gray-300" onClick={() => setShowSavedTemplatesDialog(true)}>
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-[hsl(var(--cura-steel))]" onClick={() => setShowSavedTemplatesDialog(true)}>
             View Saved Templates
           </Button>
         </div>
       </div>
 
-      {/* Document Editor - expandable page layout */}
-      <div className="flex-1 bg-gray-100 dark:bg-slate-900 overflow-y-auto min-h-0">
+      {/* Document Editor - medical theme colors */}
+      <div className="flex-1 bg-[hsl(var(--cura-mist))] dark:bg-[hsl(var(--cura-midnight))] overflow-y-auto min-h-0">
         <div className="h-full flex items-start justify-center p-4">
-          <div className="bg-white dark:bg-slate-700 shadow-sm border border-gray-300 dark:border-slate-600 min-h-[600px]" style={{ width: '700px', maxWidth: '700px' }}>
+          <div className="bg-white dark:bg-[hsl(var(--cura-midnight))] shadow-sm border border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))] min-h-[600px]" style={{ width: '700px', maxWidth: '700px' }}>
             <div className="p-6">
               <div
                 ref={(el) => {
@@ -3188,7 +3188,7 @@ export default function Forms() {
                     }
                   }
                 }}
-                className="w-full border-none outline-none text-black dark:text-gray-100 leading-normal bg-transparent focus:outline-none"
+                className="w-full border-none outline-none text-[hsl(var(--cura-midnight))] dark:text-white leading-normal bg-transparent focus:outline-none"
                 style={{ 
                   fontSize: fontSize,
                   lineHeight: '1.6',
