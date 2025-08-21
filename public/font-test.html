@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Figtree Font Test</title>
+    <style>
+        @font-face {
+            font-family: 'Figtree';
+            font-style: normal;
+            font-weight: 300 900;
+            font-display: swap;
+            src: url('/fonts/Figtree-Variable.ttf') format('truetype-variations');
+        }
+        
+        body {
+            font-family: 'Figtree', Arial, sans-serif;
+            font-size: 24px;
+            line-height: 1.5;
+            padding: 20px;
+        }
+        
+        .test-text {
+            font-size: 48px;
+            margin: 20px 0;
+        }
+        
+        .comparison {
+            display: flex;
+            gap: 40px;
+        }
+        
+        .figtree {
+            font-family: 'Figtree', Arial, sans-serif;
+        }
+        
+        .arial {
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <h1>Figtree Font Test</h1>
+    
+    <div class="test-text figtree">
+        f g t - Playful curves and friendly loops
+    </div>
+    
+    <div class="comparison">
+        <div>
+            <h3>Figtree (should show curved f/t, double-storey g)</h3>
+            <div class="test-text figtree">
+                The quick brown fox jumps over the lazy dog
+            </div>
+        </div>
+        
+        <div>
+            <h3>Arial (comparison)</h3>
+            <div class="test-text arial">
+                The quick brown fox jumps over the lazy dog
+            </div>
+        </div>
+    </div>
+    
+    <p>If Figtree is working correctly, you should see:</p>
+    <ul>
+        <li>Playful "f" and "t" letters with curved edges</li>
+        <li>Friendly double-storey "g" with soft loops</li>
+        <li>Wider character spacing for better readability</li>
+        <li>Higher x-height making text more legible</li>
+    </ul>
+</body>
+</html>
