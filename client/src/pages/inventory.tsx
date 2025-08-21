@@ -168,6 +168,7 @@ export default function Inventory() {
   const [showReceiptDialog, setShowReceiptDialog] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [selectedPO, setSelectedPO] = useState<PurchaseOrder | null>(null);
+  const [showPODetailsDialog, setShowPODetailsDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("item-master");
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -225,11 +226,8 @@ export default function Inventory() {
   // View Purchase Order function
   const viewPurchaseOrder = (po: PurchaseOrder) => {
     console.log("Viewing purchase order:", po);
-    toast({
-      title: "Purchase Order Details",
-      description: `PO ${po.poNumber} - £${parseFloat(po.totalAmount).toFixed(2)} - ${po.itemsOrdered?.length || 0} items`,
-    });
-    // Future enhancement: Open detailed view dialog
+    setSelectedPO(po);
+    setShowPODetailsDialog(true);
   };
 
   const { data: categories = [], error: categoriesError } = useQuery<InventoryCategory[]>({
@@ -999,6 +997,136 @@ export default function Inventory() {
             onOpenChange={setShowReceiptDialog}
             items={items}
           />
+        )}
+
+        {showPODetailsDialog && selectedPO && (
+          <Dialog open={showPODetailsDialog} onOpenChange={setShowPODetailsDialog}>
+            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center">
+                  <Eye className="h-5 w-5 mr-2" />
+                  Purchase Order Details - {selectedPO.poNumber}
+                </DialogTitle>
+                <DialogDescription>
+                  Complete purchase order information and supplier details
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-6">
+                {/* Header Information */}
+                <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">PO Number</Label>
+                    <div className="font-mono font-semibold">{selectedPO.poNumber}</div>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">Status</Label>
+                    <div className="mt-1">{getStatusBadge(selectedPO.status)}</div>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">Order Date</Label>
+                    <div>{format(new Date(selectedPO.orderDate), 'MMM dd, yyyy')}</div>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">Expected Delivery</Label>
+                    <div>{selectedPO.expectedDeliveryDate ? format(new Date(selectedPO.expectedDeliveryDate), 'MMM dd, yyyy') : 'Not specified'}</div>
+                  </div>
+                </div>
+
+                {/* Supplier Information */}
+                <div className="p-4 border rounded-lg">
+                  <h3 className="font-semibold mb-3 flex items-center">
+                    <Building2 className="h-4 w-4 mr-2" />
+                    Supplier Information
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">Supplier ID</Label>
+                      <div>#{selectedPO.supplierId}</div>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">Supplier Name</Label>
+                      <div className="font-medium">{selectedPO.supplierName}</div>
+                    </div>
+                    <div className="col-span-2">
+                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">Email Address</Label>
+                      <div className="font-mono text-sm">{selectedPO.supplierEmail || 'Not provided'}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Financial Information */}
+                <div className="p-4 border rounded-lg">
+                  <h3 className="font-semibold mb-3 flex items-center">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Financial Summary
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Amount</Label>
+                      <div className="text-lg font-bold text-green-600">£{parseFloat(selectedPO.totalAmount).toFixed(2)}</div>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">Tax Amount</Label>
+                      <div className="font-medium">£{parseFloat(selectedPO.taxAmount || '0').toFixed(2)}</div>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">Items Count</Label>
+                      <div className="font-medium">{selectedPO.itemsOrdered?.length || 0} items</div>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">Email Status</Label>
+                      <div className="font-medium">
+                        {selectedPO.emailSent ? (
+                          <Badge variant="default" className="text-green-700">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Sent
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline">
+                            <Clock className="h-3 w-3 mr-1" />
+                            Pending
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notes if any */}
+                {selectedPO.notes && (
+                  <div className="p-4 border rounded-lg">
+                    <h3 className="font-semibold mb-2">Notes</h3>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">{selectedPO.notes}</div>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex justify-end space-x-2 pt-4 border-t">
+                  {!selectedPO.emailSent && (
+                    <Button 
+                      onClick={() => {
+                        sendEmailMutation.mutate(selectedPO.id);
+                        setShowPODetailsDialog(false);
+                      }}
+                      disabled={sendEmailMutation.isPending}
+                      className="flex items-center"
+                    >
+                      {sendEmailMutation.isPending ? (
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <FileText className="h-4 w-4 mr-2" />
+                      )}
+                      Send to Supplier
+                    </Button>
+                  )}
+                  <Button variant="outline" onClick={() => setShowPODetailsDialog(false)}>
+                    Close
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         )}
       </div>
     </div>
