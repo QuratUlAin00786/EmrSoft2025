@@ -3,13 +3,16 @@
 @tailwind utilities;
 
 @layer base {
-  html, body {
-    font-family: 'FigtreeCustom', 'Figtree', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  * {
+    font-family: 'Figtree', sans-serif !important;
   }
   
-  /* Ensure all typography classes use Figtree */
+  html, body {
+    font-family: 'Figtree', sans-serif !important;
+  }
+  
   .font-sans {
-    font-family: 'FigtreeCustom', 'Figtree', ui-sans-serif, system-ui, sans-serif !important;
+    font-family: 'Figtree', sans-serif !important;
   }
 }
 
