@@ -4,7 +4,12 @@
 
 @layer base {
   html, body {
-    font-family: 'Figtree', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'FigtreeCustom', 'Figtree', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  
+  /* Ensure all typography classes use Figtree */
+  .font-sans {
+    font-family: 'FigtreeCustom', 'Figtree', ui-sans-serif, system-ui, sans-serif !important;
   }
 }
 
