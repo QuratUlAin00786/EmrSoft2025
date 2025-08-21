@@ -2,23 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Figtree font implementation with maximum override power */
-* {
-  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif !important;
+@layer base {
+  * {
+    font-family: "Figtree", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji" !important;
+  }
+  
+  html {
+    font-family: "Figtree", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji" !important;
+  }
+  
+  body {
+    font-family: "Figtree", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji" !important;
+  }
 }
 
-html, body {
-  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif !important;
+@layer components {
+  .font-sans {
+    font-family: "Figtree", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji" !important;
+  }
 }
 
-/* Override Tailwind and component library defaults */
-.font-sans, [class*="font-"] {
-  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif !important;
+@layer utilities {
+  input, textarea, button, select, option, [role="combobox"], [role="button"], [class*="ui-"], [data-radix-collection-item] {
+    font-family: "Figtree", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji" !important;
+  }
 }
 
-/* Target specific UI elements that might override fonts */
-input, textarea, button, select, option {
-  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif !important;
+/* Diagnostic font test - temporary visual check */
+body::after {
+  content: "g testing double-storey loops";
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background: #ff0000;
+  color: white;
+  padding: 8px;
+  font-size: 18px;
+  font-weight: 400;
+  z-index: 9999;
+  border-radius: 4px;
+  pointer-events: none;
 }
 
 :root {

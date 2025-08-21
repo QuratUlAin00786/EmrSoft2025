@@ -6,8 +6,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        'figtree': ['Figtree', 'sans-serif'],
-        'sans': ['Figtree', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        'sans': ['"Figtree"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        'figtree': ['"Figtree"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
         lg: "var(--radius)",
