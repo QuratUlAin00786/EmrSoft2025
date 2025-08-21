@@ -11,7 +11,7 @@ import { Calendar, Plus, Users, Clock, User, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { useLocation } from "wouter";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -30,6 +30,12 @@ export default function CalendarPage() {
   const [location] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Fetch patients for the dropdown
+  const { data: patients = [] } = useQuery({
+    queryKey: ["/api/patients"],
+    retry: false,
+  });
   
   // Check for patientId in URL params to auto-book appointment
   useEffect(() => {
@@ -184,16 +190,19 @@ export default function CalendarPage() {
                 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <Label htmlFor="patientId">Patient ID *</Label>
-                    <Input
-                      id="patientId"
-                      placeholder="Enter: 165, 159, P000004, P000005, or P000158"
-                      value={bookingForm.patientId}
-                      onChange={(e) => setBookingForm(prev => ({ ...prev, patientId: e.target.value }))}
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Valid IDs: 165, 159, P000004, P000005, P000158
-                    </p>
+                    <Label htmlFor="patientId">Patient *</Label>
+                    <Select value={bookingForm.patientId} onValueChange={(value) => setBookingForm(prev => ({ ...prev, patientId: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select patient..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {patients.map((patient: any) => (
+                          <SelectItem key={patient.id} value={patient.patientId || patient.id.toString()}>
+                            {patient.firstName} {patient.lastName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   <div>
