@@ -822,6 +822,10 @@ export default function Inventory() {
                                     Send
                                   </Button>
                                 )}
+                                {/* Debug: Show email status */}
+                                <span className="text-xs text-gray-400 ml-2">
+                                  {po.emailSent ? 'Sent' : 'Pending'}
+                                </span>
                               </div>
                             </TableCell>
                           </TableRow>
