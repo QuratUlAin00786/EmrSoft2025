@@ -68,28 +68,7 @@
         font-family: inherit !important; 
       }
       
-      /* Diagnostic test with font loading detection */
-      body::after {
-        content: "Font test: g g g (should show double-storey loops if Figtree loads)";
-        position: fixed;
-        bottom: 10px;
-        right: 10px;
-        background: #ff0000;
-        color: white;
-        padding: 8px;
-        font-size: 18px;
-        font-weight: 400;
-        z-index: 9999;
-        border-radius: 4px;
-        pointer-events: none;
-        font-family: 'Figtree', monospace !important;
-        font-feature-settings: "kern" 1, "liga" 1;
-      }
-      
-      /* Force load check */
-      .figtree-test {
-        font-family: 'Figtree' !important;
-      }
+
     </style>
     
     <!-- Favicon and Icons -->
