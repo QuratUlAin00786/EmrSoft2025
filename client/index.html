@@ -34,38 +34,10 @@
     <meta name="msapplication-TileColor" content="#6366f1" />
     <meta name="theme-color" content="#6366f1" />
     
-    <!-- Figtree Font with Preload -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&display=swap"></noscript>
-    
+    <!-- Direct Google Fonts CSS Embed -->
     <style>
-      /* Immediate font application with highest priority */
-      html { font-family: "Figtree", -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important; }
-      body { font-family: "Figtree", -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important; }
-      * { font-family: inherit !important; }
-      
-      /* Font loading optimization */
-      .font-loading * { font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
+      @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&display=swap');
     </style>
-    
-    <script>
-      // Font loading detection and application
-      document.documentElement.classList.add('font-loading');
-      
-      if ('fonts' in document) {
-        document.fonts.ready.then(() => {
-          document.documentElement.classList.remove('font-loading');
-          console.log('Fonts loaded successfully');
-        });
-      } else {
-        // Fallback for older browsers
-        setTimeout(() => {
-          document.documentElement.classList.remove('font-loading');
-        }, 3000);
-      }
-    </script>
     
     <!-- Favicon and Icons -->
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=2" />
