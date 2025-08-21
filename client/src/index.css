@@ -13,14 +13,10 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Simple but effective: Force Figtree everywhere */
+/* TEST: Use monospace font to verify CSS is working */
 * {
-  font-family: 'Figtree', sans-serif !important;
-}
-
-/* Make font change obvious - slightly bolder text */
-body, h1, h2, h3, h4, h5, h6, p, span, div, button {
-  font-weight: 500 !important;
+  font-family: 'Courier New', monospace !important;
+  font-size: 16px !important;
 }
 
 :root {
