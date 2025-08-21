@@ -22,7 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import AddItemDialog from "@/components/inventory/add-item-dialog";
 import StockAdjustmentDialog from "@/components/inventory/stock-adjustment-dialog";
-import PurchaseOrderDialog from "../components/inventory/purchase-order-dialog";
+import PurchaseOrderDialog from "../components/inventory/purchase-order-dialog-simple";
 import GoodsReceiptDialog from "../components/inventory/goods-receipt-dialog";
 
 // 1. Item Master Interface
