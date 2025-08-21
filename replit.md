@@ -26,14 +26,14 @@ Complete legal framework implemented for Cura Software Limited:
 Preferred communication style: Simple, everyday language.
 
 ## Recent Typography Implementation (January 2025)
-**FIGTREE TYPOGRAPHY SYSTEM FULLY IMPLEMENTED**: Complete local font system using Figtree typeface
-- **Implementation**: Local font files (Regular, Medium, SemiBold) served from /public/fonts/ directory
-- **Loading**: @font-face declarations with TTF format for guaranteed cross-browser support
-- **Coverage**: HTML/body font-family declarations with inheritance model for all elements
-- **Font Files**: Figtree-Regular.ttf (35KB), Figtree-Medium.ttf (1.6KB), Figtree-SemiBold.ttf (1.6KB)
+**FIGTREE TYPOGRAPHY SYSTEM FULLY IMPLEMENTED**: Complete variable font system using Figtree typeface
+- **Implementation**: Figtree Variable font file (62.7KB) with all font weights in single file
+- **Loading**: @font-face declarations with variable font support and Google Fonts fallback
+- **Coverage**: HTML/body font-family declarations with CSS inheritance for all elements
+- **Font File**: Figtree-Variable.ttf (62.7KB) supporting weights 300-900
 - **Characteristics**: Playful curves in f/t letters, friendly double-storey g, wider character spacing
-- **Fallbacks**: System font chain (-apple-system, BlinkMacSystemFont, Segoe UI, Roboto)
-- **Status**: COMPLETED - Local font files ensure reliable typography across entire application
+- **Fallbacks**: FigtreeFallback from Google Fonts, then system font chain
+- **Status**: COMPLETED - Variable font ensures consistent Figtree typography across entire application
 
 ## System Architecture
 
