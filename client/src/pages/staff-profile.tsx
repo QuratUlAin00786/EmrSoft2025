@@ -37,17 +37,33 @@ export default function StaffProfile() {
   const staffId = params?.id;
 
   const { data: staffMember, isLoading, error } = useQuery({
-    queryKey: ["/api/medical-staff", staffId],
+    queryKey: ["/api/users", staffId],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/medical-staff");
-      const data = await response.json();
-      // Try both string and number comparison to handle ID format differences
-      const foundStaff = data.find((staff: StaffMember) => 
-        staff.id.toString() === staffId || staff.id === parseInt(staffId || '0', 10)
-      );
-      return foundStaff;
+      try {
+        // Try to get user directly by ID first
+        const response = await apiRequest("GET", `/api/users/${staffId}`);
+        if (response.ok) {
+          return await response.json();
+        }
+      } catch (directError) {
+        console.log("Direct user fetch failed, trying users list:", directError);
+      }
+      
+      // Fallback to searching in users list
+      try {
+        const response = await apiRequest("GET", "/api/users");
+        const data = await response.json();
+        const foundUser = data.find((user: StaffMember) => 
+          user.id.toString() === staffId || user.id === parseInt(staffId || '0', 10)
+        );
+        return foundUser;
+      } catch (listError) {
+        console.error("Failed to fetch users list:", listError);
+        throw listError;
+      }
     },
     enabled: !!staffId,
+    retry: false
   });
 
   if (isLoading) {
