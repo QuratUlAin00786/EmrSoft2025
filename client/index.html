@@ -37,7 +37,7 @@
     <!-- Multiple Figtree Loading Strategies -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet"> -->
     
     <style>
       @font-face {
@@ -104,7 +104,88 @@
       }
       
 
+      
+      /* JavaScript-enhanced font loading */
+      .figtree-loaded * {
+        font-family: 'Figtree', 'FigtreeLocal', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
+      }
     </style>
+    
+    <script>
+      // Aggressive Figtree font loading and application
+      (function() {
+        'use strict';
+        
+        function loadFigtreeFont() {
+          // Force browser to recognize and load Figtree
+          const figtreeRegular = new FontFace('FigtreeForced', 'url(/fonts/figtree-400.woff2)', {
+            weight: '400',
+            style: 'normal',
+            display: 'swap'
+          });
+          
+          const figtreeMedium = new FontFace('FigtreeForced', 'url(/fonts/figtree-500.woff2)', {
+            weight: '500', 
+            style: 'normal',
+            display: 'swap'
+          });
+          
+          const figtreeSemiBold = new FontFace('FigtreeForced', 'url(/fonts/figtree-600.woff2)', {
+            weight: '600',
+            style: 'normal', 
+            display: 'swap'
+          });
+          
+          // Load all font faces
+          Promise.all([
+            figtreeRegular.load(),
+            figtreeMedium.load(),
+            figtreeSemiBold.load()
+          ]).then(function(fonts) {
+            // Add fonts to document
+            fonts.forEach(font => document.fonts.add(font));
+            
+            // Apply Figtree class to body
+            document.documentElement.classList.add('figtree-loaded');
+            
+            // Force style recalculation
+            document.body.style.fontFamily = "'Figtree', 'FigtreeForced', 'FigtreeLocal', system-ui, sans-serif";
+            
+            // Force repaint of all elements
+            const allElements = document.querySelectorAll('*');
+            allElements.forEach(el => {
+              el.style.fontFamily = "'Figtree', 'FigtreeForced', 'FigtreeLocal', system-ui, sans-serif";
+            });
+            
+            console.log('✅ Figtree fonts loaded and applied successfully');
+            
+            // Additional debug information
+            console.log('🔍 Font status:', {
+              documentFonts: document.fonts.size,
+              computedFontFamily: getComputedStyle(document.body).fontFamily,
+              figtreeInFamily: getComputedStyle(document.body).fontFamily.includes('Figtree')
+            });
+          }).catch(function(error) {
+            console.warn('❌ Figtree font loading failed:', error);
+            
+            // Fallback: Apply system fonts
+            document.body.style.fontFamily = "system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
+          });
+        }
+        
+        // Load fonts when DOM is ready
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', loadFigtreeFont);
+        } else {
+          loadFigtreeFont();
+        }
+        
+        // Reapply fonts after page loads
+        window.addEventListener('load', function() {
+          setTimeout(loadFigtreeFont, 100);
+        });
+      })();
+    </script>
     
     <!-- Favicon and Icons -->
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=2" />
