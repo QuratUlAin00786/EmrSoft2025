@@ -87,6 +87,8 @@ interface PurchaseOrder {
   expectedDeliveryDate?: string;
   status: string; // Status (Ordered/Received)
   totalAmount: string;
+  taxAmount?: string; // Tax Amount
+  notes?: string; // Notes
   itemsOrdered: PurchaseOrderItem[]; // Items Ordered (List with quantities)
   emailSent: boolean;
   emailSentAt?: string;
