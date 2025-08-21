@@ -4,6 +4,20 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Force Figtree across entire application */
+* {
+  font-family: "Figtree", ui-sans-serif, system-ui, sans-serif !important;
+}
+
+html, body, #root {
+  font-family: "Figtree", ui-sans-serif, system-ui, sans-serif !important;
+}
+
+/* Override any component-specific fonts */
+button, input, textarea, select, div, span, p, h1, h2, h3, h4, h5, h6, label, a {
+  font-family: "Figtree", ui-sans-serif, system-ui, sans-serif !important;
+}
+
 @layer base {
   *, *::before, *::after {
     font-family: 'Figtree', 'FigtreeLocal', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
