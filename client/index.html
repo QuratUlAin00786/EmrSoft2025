@@ -118,19 +118,19 @@
         
         function loadFigtreeFont() {
           // Force browser to recognize and load Figtree
-          const figtreeRegular = new FontFace('FigtreeReal', 'url(/fonts/figtree-fresh.woff2)', {
+          const figtreeRegular = new FontFace('FigtreeForced', 'url(/fonts/figtree-400.woff2)', {
             weight: '400',
             style: 'normal',
             display: 'swap'
           });
           
-          const figtreeMedium = new FontFace('FigtreeReal', 'url(/fonts/figtree-fresh.woff2)', {
+          const figtreeMedium = new FontFace('FigtreeForced', 'url(/fonts/figtree-500.woff2)', {
             weight: '500', 
             style: 'normal',
             display: 'swap'
           });
           
-          const figtreeSemiBold = new FontFace('FigtreeReal', 'url(/fonts/figtree-fresh.woff2)', {
+          const figtreeSemiBold = new FontFace('FigtreeForced', 'url(/fonts/figtree-600.woff2)', {
             weight: '600',
             style: 'normal', 
             display: 'swap'
@@ -154,7 +154,7 @@
             // Force repaint of all elements
             const allElements = document.querySelectorAll('*');
             allElements.forEach(el => {
-              el.style.fontFamily = "'FigtreeReal', system-ui, sans-serif";
+              el.style.fontFamily = "'Figtree', 'FigtreeForced', 'FigtreeLocal', system-ui, sans-serif";
             });
             
             console.log('✅ Figtree fonts loaded and applied successfully');
