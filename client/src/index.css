@@ -13,10 +13,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* TEST: Use monospace font to verify CSS is working */
-* {
-  font-family: 'Courier New', monospace !important;
-  font-size: 16px !important;
+/* Force Figtree font on all elements */
+@layer base {
+  * {
+    font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  }
 }
 
 :root {
