@@ -10,6 +10,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { LoadingPage } from "@/components/common/loading-spinner";
 import { AIChatWidget } from "@/components/ai-chat-widget";
 import { FontInjector } from "@/components/FontInjector";
+import FontTestingWidget from "@/components/FontTestingWidget";
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect } from "react";
 import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
@@ -50,6 +51,7 @@ import Inventory from "@/pages/inventory";
 import GDPRCompliance from "@/pages/gdpr-compliance";
 import AiAgent from "@/pages/ai-agent";
 import QuickBooks from "@/pages/quickbooks";
+import FontTestPage from "@/pages/font-test";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 
@@ -157,6 +159,7 @@ function ProtectedApp() {
           <Route path="/gdpr-compliance" component={GDPRCompliance} />
           <Route path="/ai-agent" component={AiAgent} />
           <Route path="/quickbooks" component={QuickBooks} />
+          <Route path="/font-test" component={FontTestPage} />
           <Route path="/users" component={UserManagement} />
           <Route path="/user-management" component={UserManagement} />
           <Route path="/shifts" component={ShiftsPage} />
@@ -274,6 +277,7 @@ function App() {
               </Route>
             </Switch>
             <FontInjector />
+            <FontTestingWidget />
           </div>
           <Toaster />
         </ThemeProvider>
