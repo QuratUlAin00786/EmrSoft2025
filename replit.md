@@ -25,6 +25,14 @@ Complete legal framework implemented for Cura Software Limited:
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Recent Typography Implementation (August 2025)
+**FIGTREE TYPOGRAPHY SYSTEM IMPLEMENTED**: Complete font system using Figtree typeface
+- **Implementation**: Tailwind `@layer base` with Google Fonts import for proper CSS priority
+- **Coverage**: Universal selector (*) ensures all elements use Figtree font family
+- **Characteristics**: Playful curves in f/t letters, friendly double-storey g, wider proportions than Roboto
+- **Fallbacks**: System font chain (-apple-system, BlinkMacSystemFont, Segoe UI, Roboto)
+- **Status**: Implemented via client/src/index.css with @layer base directive
+
 ## System Architecture
 
 ### Frontend
