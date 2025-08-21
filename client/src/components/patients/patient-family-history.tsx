@@ -760,6 +760,11 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                           const flagAllergies = patient.flags 
                             ? patient.flags
                                 .filter(flag => typeof flag === 'string' && flag.includes(':'))
+                                .filter(flag => {
+                                  const flagType = flag.split(':')[0].toLowerCase();
+                                  // Only include flags that are allergy-related
+                                  return flagType === 'general' || flagType === 'allergy' || flagType === 'allergies';
+                                })
                                 .map(flag => flag.split(':')[2]) // Extract the allergy text after "general:medium:"
                                 .filter(allergy => allergy && allergy.trim().length > 0)
                             : [];
