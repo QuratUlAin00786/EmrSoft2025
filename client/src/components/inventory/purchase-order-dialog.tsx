@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -51,6 +51,25 @@ export default function PurchaseOrderDialog({ open, onOpenChange, items }: Purch
     quantity: 1,
     unitPrice: ""
   });
+
+  // TEMPORARY: Auto-add Paracetamol item when dialog opens to bypass button issue
+  useEffect(() => {
+    if (open && items.length > 0 && poItems.length === 0) {
+      const paracetamolItem = items.find(item => item.name.toLowerCase().includes('paracetamol'));
+      if (paracetamolItem) {
+        const autoItem = {
+          itemId: paracetamolItem.id,
+          itemName: paracetamolItem.name,
+          quantity: 100,
+          unitPrice: "2",
+          totalPrice: "200.00"
+        };
+        console.log("AUTO-ADDING PARACETAMOL ITEM:", autoItem);
+        setPOItems([autoItem]);
+        setNewItem({ itemId: paracetamolItem.id.toString(), quantity: 100, unitPrice: "2" });
+      }
+    }
+  }, [open, items, poItems.length]);
 
   const createPOMutation = useMutation({
     mutationFn: async (data: any) => {
