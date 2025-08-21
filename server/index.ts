@@ -7,18 +7,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Serve fonts with correct MIME types
-app.use('/fonts', express.static('public/fonts', {
-  setHeaders: (res, path) => {
-    if (path.endsWith('.woff2')) {
-      res.setHeader('Content-Type', 'font/woff2');
-    } else if (path.endsWith('.woff')) {
-      res.setHeader('Content-Type', 'font/woff');
-    } else if (path.endsWith('.ttf')) {
-      res.setHeader('Content-Type', 'font/ttf');
-    }
-  }
-}));
+// Font serving no longer needed - using Google Fonts direct
 
 // Force deployment refresh  
 console.log("🚀 FULL CASCADE DELETE - v20 - deleting ALL related data (notifications, prescriptions, appointments)");

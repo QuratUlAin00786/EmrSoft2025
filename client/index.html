@@ -34,36 +34,34 @@
     <meta name="msapplication-TileColor" content="#6366f1" />
     <meta name="theme-color" content="#6366f1" />
     
-    <!-- Local Figtree Font Family -->
+    <!-- Import Figtree from Google Fonts with preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-      @font-face {
-        font-family: 'Figtree';
-        font-style: normal;
-        font-weight: 400;
-        font-display: block;
-        src: url('/fonts/figtree-400.woff2') format('woff2');
-      }
-      
-      @font-face {
-        font-family: 'Figtree';
-        font-style: normal;
-        font-weight: 500;
-        font-display: block;
-        src: url('/fonts/figtree-500.woff2') format('woff2');
-      }
-      
-      @font-face {
-        font-family: 'Figtree';
-        font-style: normal;
-        font-weight: 600;
-        font-display: block;
-        src: url('/fonts/figtree-600.woff2') format('woff2');
-      }
       
       /* Force Figtree application across all elements */
       html { font-family: 'Figtree', system-ui, sans-serif !important; }
       body { font-family: 'Figtree', system-ui, sans-serif !important; }
       * { font-family: inherit !important; }
+      
+      /* Diagnostic test to verify font loading */
+      body::after {
+        content: "Font test: g g g (should show double-storey loops if Figtree loads)";
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        background: #ff0000;
+        color: white;
+        padding: 8px;
+        font-size: 16px;
+        font-weight: 400;
+        z-index: 9999;
+        border-radius: 4px;
+        pointer-events: none;
+        font-family: 'Figtree', monospace !important;
+      }
     </style>
     
     <!-- Favicon and Icons -->
