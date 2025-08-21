@@ -222,6 +222,16 @@ export default function Inventory() {
     retry: 3,
   });
 
+  // View Purchase Order function
+  const viewPurchaseOrder = (po: PurchaseOrder) => {
+    console.log("Viewing purchase order:", po);
+    toast({
+      title: "Purchase Order Details",
+      description: `PO ${po.poNumber} - £${parseFloat(po.totalAmount).toFixed(2)} - ${po.itemsOrdered?.length || 0} items`,
+    });
+    // Future enhancement: Open detailed view dialog
+  };
+
   const { data: categories = [], error: categoriesError } = useQuery<InventoryCategory[]>({
     queryKey: ["/api/inventory/categories"],
     queryFn: async () => {
@@ -795,7 +805,11 @@ export default function Inventory() {
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center space-x-2">
-                                <Button size="sm" variant="outline">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => viewPurchaseOrder(po)}
+                                >
                                   <Eye className="h-3 w-3 mr-1" />
                                   View
                                 </Button>

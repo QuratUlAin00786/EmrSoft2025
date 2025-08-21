@@ -22,7 +22,7 @@ import {
   type InsertInventoryStockAlert
 } from "@shared/schema";
 import { eq, and, desc, sql, sum, gte, lte } from "drizzle-orm";
-import { messagingService } from "../messaging-service";
+import { emailService } from "../services/email";
 
 /**
  * Comprehensive Inventory Management Service
@@ -367,7 +367,12 @@ Cura Healthcare Team
     `.trim();
 
     try {
-      await messagingService.sendEmail(po.supplierEmail, subject, message);
+      await emailService.sendEmail({
+        to: po.supplierEmail,
+        subject,
+        text: message,
+        html: message.replace(/\n/g, '<br>')
+      });
       
       // Update purchase order as email sent
       await db
