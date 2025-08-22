@@ -992,29 +992,33 @@ export default function VoiceDocumentation() {
                       onClick={saveVoiceNote}
                       disabled={!currentTranscript || !selectedPatient || !selectedNoteType || isRecording}
                       style={{ 
-                        backgroundColor: '#4A7DFF', 
-                        borderColor: '#4A7DFF',
-                        color: 'white',
+                        backgroundColor: (!currentTranscript || !selectedPatient || !selectedNoteType || isRecording) ? '#CBD5E1' : '#4A7DFF',
+                        borderColor: (!currentTranscript || !selectedPatient || !selectedNoteType || isRecording) ? '#94A3B8' : '#4A7DFF',
+                        color: (!currentTranscript || !selectedPatient || !selectedNoteType || isRecording) ? '#475569' : 'white',
                         fontWeight: '700',
                         fontSize: '14px',
-                        textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-                        border: '2px solid #4A7DFF'
+                        textShadow: (!currentTranscript || !selectedPatient || !selectedNoteType || isRecording) ? 'none' : '0 1px 2px rgba(0,0,0,0.3)',
+                        border: `2px solid ${(!currentTranscript || !selectedPatient || !selectedNoteType || isRecording) ? '#94A3B8' : '#4A7DFF'}`,
+                        opacity: 1
                       }}
                       onMouseEnter={(e) => {
-                        if (!e.currentTarget.disabled) {
+                        if (!(!currentTranscript || !selectedPatient || !selectedNoteType || isRecording)) {
                           e.currentTarget.style.backgroundColor = '#7279FB';
                           e.currentTarget.style.borderColor = '#7279FB';
                         }
                       }}
                       onMouseLeave={(e) => {
-                        if (!e.currentTarget.disabled) {
+                        if (!(!currentTranscript || !selectedPatient || !selectedNoteType || isRecording)) {
                           e.currentTarget.style.backgroundColor = '#4A7DFF';
                           e.currentTarget.style.borderColor = '#4A7DFF';
                         }
                       }}
-                      className="transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="transition-all duration-200 cursor-pointer"
                     >
-                      <FileText className="w-4 h-4 mr-1" style={{ filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.3))' }} />
+                      <FileText className="w-4 h-4 mr-1" style={{ 
+                        filter: (!currentTranscript || !selectedPatient || !selectedNoteType || isRecording) ? 'none' : 'drop-shadow(0 1px 1px rgba(0,0,0,0.3))',
+                        color: (!currentTranscript || !selectedPatient || !selectedNoteType || isRecording) ? '#475569' : 'white'
+                      }} />
                       Save Note
                     </Button>
                     <Button 
@@ -1023,15 +1027,19 @@ export default function VoiceDocumentation() {
                       onClick={() => setCurrentTranscript("")}
                       disabled={!currentTranscript}
                       style={{ 
-                        backgroundColor: 'white',
-                        borderColor: '#6B7280',
-                        color: 'black',
+                        backgroundColor: !currentTranscript ? '#F1F5F9' : 'white',
+                        borderColor: !currentTranscript ? '#CBD5E1' : '#6B7280',
+                        color: !currentTranscript ? '#94A3B8' : 'black',
                         fontWeight: '700',
                         fontSize: '14px',
-                        border: '2px solid #6B7280'
+                        border: `2px solid ${!currentTranscript ? '#CBD5E1' : '#6B7280'}`,
+                        opacity: 1
                       }}
+                      className="transition-all duration-200 cursor-pointer"
                     >
-                      <X className="w-4 h-4 mr-1" style={{ color: 'black' }} />
+                      <X className="w-4 h-4 mr-1" style={{ 
+                        color: !currentTranscript ? '#94A3B8' : 'black' 
+                      }} />
                       Clear
                     </Button>
                   </div>
