@@ -3178,8 +3178,8 @@ export default function Forms() {
               color: 'white'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#C073FF';
-              e.currentTarget.style.borderColor = '#C073FF';
+              e.currentTarget.style.backgroundColor = '#4A7DFF';
+              e.currentTarget.style.borderColor = '#4A7DFF';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = '#7279FB';
@@ -3190,19 +3190,17 @@ export default function Forms() {
           </Button>
           <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border transition-all duration-200" 
             style={{ 
-              backgroundColor: '#6CFFEB', 
-              borderColor: '#6CFFEB',
-              color: '#162B61'
+              backgroundColor: '#4A7DFF', 
+              borderColor: '#4A7DFF',
+              color: 'white'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#4A7DFF';
-              e.currentTarget.style.borderColor = '#4A7DFF';
-              e.currentTarget.style.color = 'white';
+              e.currentTarget.style.backgroundColor = '#7279FB';
+              e.currentTarget.style.borderColor = '#7279FB';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#6CFFEB';
-              e.currentTarget.style.borderColor = '#6CFFEB';
-              e.currentTarget.style.color = '#162B61';
+              e.currentTarget.style.backgroundColor = '#4A7DFF';
+              e.currentTarget.style.borderColor = '#4A7DFF';
             }}
             onClick={handleUnderline}>
             <Underline className="h-3 w-3" />
@@ -3213,25 +3211,25 @@ export default function Forms() {
           {/* Lists */}
           <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border transition-all duration-200" 
             style={{ 
-              backgroundColor: '#162B61', 
-              borderColor: '#162B61',
+              backgroundColor: '#7279FB', 
+              borderColor: '#7279FB',
               color: 'white'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#9B9EAF';
-              e.currentTarget.style.borderColor = '#9B9EAF';
+              e.currentTarget.style.backgroundColor = '#4A7DFF';
+              e.currentTarget.style.borderColor = '#4A7DFF';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#162B61';
-              e.currentTarget.style.borderColor = '#162B61';
+              e.currentTarget.style.backgroundColor = '#7279FB';
+              e.currentTarget.style.borderColor = '#7279FB';
             }}
             onClick={handleBulletList}>
             <List className="h-3 w-3" />
           </Button>
           <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border transition-all duration-200" 
             style={{ 
-              backgroundColor: '#C073FF', 
-              borderColor: '#C073FF',
+              backgroundColor: '#4A7DFF', 
+              borderColor: '#4A7DFF',
               color: 'white'
             }}
             onMouseEnter={(e) => {
@@ -3239,8 +3237,8 @@ export default function Forms() {
               e.currentTarget.style.borderColor = '#7279FB';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#C073FF';
-              e.currentTarget.style.borderColor = '#C073FF';
+              e.currentTarget.style.backgroundColor = '#4A7DFF';
+              e.currentTarget.style.borderColor = '#4A7DFF';
             }}
             onClick={handleNumberedList}>
             <ListOrdered className="h-3 w-3" />
@@ -3251,39 +3249,20 @@ export default function Forms() {
           {/* Alignment */}
           <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border transition-all duration-200" 
             style={{ 
-              backgroundColor: '#9B9EAF', 
-              borderColor: '#9B9EAF',
+              backgroundColor: '#7279FB', 
+              borderColor: '#7279FB',
               color: 'white'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#162B61';
-              e.currentTarget.style.borderColor = '#162B61';
+              e.currentTarget.style.backgroundColor = '#4A7DFF';
+              e.currentTarget.style.borderColor = '#4A7DFF';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#9B9EAF';
-              e.currentTarget.style.borderColor = '#9B9EAF';
+              e.currentTarget.style.backgroundColor = '#7279FB';
+              e.currentTarget.style.borderColor = '#7279FB';
             }}
             onClick={handleAlignLeft}>
             <AlignLeft className="h-3 w-3" />
-          </Button>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border transition-all duration-200" 
-            style={{ 
-              backgroundColor: '#E0E1F4', 
-              borderColor: '#E0E1F4',
-              color: '#162B61'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#162B61';
-              e.currentTarget.style.borderColor = '#162B61';
-              e.currentTarget.style.color = 'white';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#E0E1F4';
-              e.currentTarget.style.borderColor = '#E0E1F4';
-              e.currentTarget.style.color = '#162B61';
-            }}
-            onClick={handleAlignCenter}>
-            <AlignCenter className="h-3 w-3" />
           </Button>
           <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border transition-all duration-200" 
             style={{ 
@@ -3292,17 +3271,15 @@ export default function Forms() {
               color: 'white'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#6CFFEB';
-              e.currentTarget.style.borderColor = '#6CFFEB';
-              e.currentTarget.style.color = '#162B61';
+              e.currentTarget.style.backgroundColor = '#7279FB';
+              e.currentTarget.style.borderColor = '#7279FB';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = '#4A7DFF';
               e.currentTarget.style.borderColor = '#4A7DFF';
-              e.currentTarget.style.color = 'white';
             }}
-            onClick={handleAlignRight}>
-            <AlignRight className="h-3 w-3" />
+            onClick={handleAlignCenter}>
+            <AlignCenter className="h-3 w-3" />
           </Button>
           <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border transition-all duration-200" 
             style={{ 
@@ -3311,12 +3288,29 @@ export default function Forms() {
               color: 'white'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#C073FF';
-              e.currentTarget.style.borderColor = '#C073FF';
+              e.currentTarget.style.backgroundColor = '#4A7DFF';
+              e.currentTarget.style.borderColor = '#4A7DFF';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = '#7279FB';
               e.currentTarget.style.borderColor = '#7279FB';
+            }}
+            onClick={handleAlignRight}>
+            <AlignRight className="h-3 w-3" />
+          </Button>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border transition-all duration-200" 
+            style={{ 
+              backgroundColor: '#4A7DFF', 
+              borderColor: '#4A7DFF',
+              color: 'white'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#7279FB';
+              e.currentTarget.style.borderColor = '#7279FB';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#4A7DFF';
+              e.currentTarget.style.borderColor = '#4A7DFF';
             }}
             onClick={handleAlignJustify}>
             <AlignJustify className="h-3 w-3" />
@@ -3423,57 +3417,57 @@ export default function Forms() {
           </Button>
           <Button variant="outline" size="sm" className="text-xs h-5 px-2 border transition-all duration-200" 
             style={{ backgroundColor: '#7279FB', borderColor: '#7279FB', color: 'white' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#C073FF'; e.currentTarget.style.borderColor = '#C073FF'; }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
             onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
             onClick={handleInsertLogo}>
             Insert logo
           </Button>
           <Button variant="outline" size="sm" className="text-xs h-5 px-2 border transition-all duration-200" 
-            style={{ backgroundColor: '#6CFFEB', borderColor: '#6CFFEB', color: '#162B61' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; e.currentTarget.style.color = 'white'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#6CFFEB'; e.currentTarget.style.borderColor = '#6CFFEB'; e.currentTarget.style.color = '#162B61'; }}
+            style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
             onClick={handleClinic}>
             Clinic
           </Button>
           <Button variant="outline" size="sm" className="text-xs h-5 px-2 border transition-all duration-200" 
-            style={{ backgroundColor: '#162B61', borderColor: '#162B61', color: 'white' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#9B9EAF'; e.currentTarget.style.borderColor = '#9B9EAF'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#162B61'; e.currentTarget.style.borderColor = '#162B61'; }}
+            style={{ backgroundColor: '#7279FB', borderColor: '#7279FB', color: 'white' }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
             onClick={handlePatient}>
             Patient
           </Button>
           <Button variant="outline" size="sm" className="text-xs h-5 px-2 border transition-all duration-200" 
-            style={{ backgroundColor: '#C073FF', borderColor: '#C073FF', color: 'white' }}
+            style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
             onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#C073FF'; e.currentTarget.style.borderColor = '#C073FF'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
             onClick={handleRecipient}>
             Recipient
           </Button>
           <Button variant="outline" size="sm" className="text-xs h-5 px-2 border transition-all duration-200" 
-            style={{ backgroundColor: '#9B9EAF', borderColor: '#9B9EAF', color: 'white' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#162B61'; e.currentTarget.style.borderColor = '#162B61'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#9B9EAF'; e.currentTarget.style.borderColor = '#9B9EAF'; }}
+            style={{ backgroundColor: '#7279FB', borderColor: '#7279FB', color: 'white' }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
             onClick={handleAppointments}>
             Appointments
           </Button>
           <Button variant="outline" size="sm" className="text-xs h-5 px-2 border transition-all duration-200" 
-            style={{ backgroundColor: '#E0E1F4', borderColor: '#E0E1F4', color: '#162B61' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#162B61'; e.currentTarget.style.borderColor = '#162B61'; e.currentTarget.style.color = 'white'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#E0E1F4'; e.currentTarget.style.borderColor = '#E0E1F4'; e.currentTarget.style.color = '#162B61'; }}
+            style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
             onClick={handleLabs}>
             Labs
           </Button>
           <Button variant="outline" size="sm" className="text-xs h-5 px-2 border transition-all duration-200" 
-            style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#6CFFEB'; e.currentTarget.style.borderColor = '#6CFFEB'; e.currentTarget.style.color = '#162B61'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; e.currentTarget.style.color = 'white'; }}
+            style={{ backgroundColor: '#7279FB', borderColor: '#7279FB', color: 'white' }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
             onClick={handlePatientRecords}>
             Patient records
           </Button>
           <Button variant="outline" size="sm" className="text-xs h-5 px-2 border transition-all duration-200" 
-            style={{ backgroundColor: '#7279FB', borderColor: '#7279FB', color: 'white' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#C073FF'; e.currentTarget.style.borderColor = '#C073FF'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+            style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
             onClick={handleInsertProduct}>
             Insert product
           </Button>
