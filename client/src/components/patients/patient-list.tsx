@@ -33,24 +33,38 @@ function calculateAge(dateOfBirth: string): number {
 
 function getRiskLevelColor(riskLevel: string) {
   switch (riskLevel?.toLowerCase()) {
-    case 'low': return 'bg-green-100 text-green-800';
-    case 'medium': return 'bg-yellow-100 text-yellow-800';
-    case 'high': return 'bg-orange-100 text-orange-800';
-    case 'critical': return 'bg-red-100 text-red-800';
-    default: return 'bg-gray-100 text-gray-800';
+    case 'low': return 'text-white';
+    case 'medium': return 'text-white';
+    case 'high': return 'text-white';
+    case 'critical': return 'text-white';
+    default: return 'text-white';
+  }
+}
+
+function getRiskLevelBgColor(riskLevel: string) {
+  switch (riskLevel?.toLowerCase()) {
+    case 'low': return '#6CFFEB';        // Mint Drift
+    case 'medium': return '#4A7DFF';     // Bluewave  
+    case 'high': return '#7279FB';       // Electric Lilac
+    case 'critical': return '#C073FF';   // Electric Violet
+    default: return '#9B9EAF';           // Steel
   }
 }
 
 function getConditionColor(condition?: string) {
-  if (!condition) return 'bg-gray-100 text-gray-600';
+  return 'text-white';
+}
+
+function getConditionBgColor(condition?: string) {
+  if (!condition) return '#9B9EAF';  // Steel
   
   const lowerCondition = condition.toLowerCase();
-  if (lowerCondition.includes('diabetes')) return 'bg-purple-100 text-purple-700';
-  if (lowerCondition.includes('hypertension') || lowerCondition.includes('blood pressure')) return 'bg-red-100 text-red-700';
-  if (lowerCondition.includes('asthma') || lowerCondition.includes('respiratory')) return 'bg-blue-100 text-blue-700';
-  if (lowerCondition.includes('heart') || lowerCondition.includes('cardiac')) return 'bg-pink-100 text-pink-700';
+  if (lowerCondition.includes('diabetes')) return '#C073FF';        // Electric Violet
+  if (lowerCondition.includes('hypertension') || lowerCondition.includes('blood pressure')) return '#7279FB';  // Electric Lilac
+  if (lowerCondition.includes('asthma') || lowerCondition.includes('respiratory')) return '#4A7DFF';  // Bluewave
+  if (lowerCondition.includes('heart') || lowerCondition.includes('cardiac')) return '#6CFFEB';  // Mint Drift
   
-  return 'bg-gray-100 text-gray-600';
+  return '#9B9EAF';  // Steel
 }
 
 interface PatientListProps {
@@ -362,7 +376,10 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                   </div>
                   <div className="flex flex-col items-end space-y-1">
                     {patient.riskLevel && (
-                      <Badge className={`text-xs ${getRiskLevelColor(patient.riskLevel)}`}>
+                      <Badge 
+                        className={`text-xs ${getRiskLevelColor(patient.riskLevel)}`}
+                        style={{ backgroundColor: getRiskLevelBgColor(patient.riskLevel) }}
+                      >
                         {patient.riskLevel}
                       </Badge>
                     )}
@@ -375,14 +392,19 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                       <div className="flex flex-col items-end space-y-1">
                         {patient.flags.slice(0, 2).map((flag: string, index: number) => {
                           const [type, priority, reason] = flag.split(':');
-                          const flagColor = priority === 'urgent' ? 'bg-red-100 text-red-800' :
-                                          priority === 'high' ? 'bg-orange-100 text-orange-800' :
-                                          priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                                          'bg-blue-100 text-blue-800';
+                          const flagColor = priority === 'urgent' ? 'text-white' :
+                                          priority === 'high' ? 'text-white' :
+                                          priority === 'medium' ? 'text-white' :
+                                          'text-white';
+                          const flagBgColor = priority === 'urgent' ? '#C073FF' :
+                                           priority === 'high' ? '#7279FB' :
+                                           priority === 'medium' ? '#4A7DFF' :
+                                           '#6CFFEB';
                           return (
                             <Badge 
                               key={index} 
                               className={`text-xs ${flagColor}`}
+                              style={{ backgroundColor: flagBgColor }}
                               title={`${type}: ${reason}`}
                             >
                               🚩 {type}
@@ -436,8 +458,8 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                       {patient.medicalHistory.chronicConditions.slice(0, 2).map((condition: string, index: number) => (
                         <Badge 
                           key={index} 
-                          variant="outline" 
                           className={`text-xs ${getConditionColor(condition)}`}
+                          style={{ backgroundColor: getConditionBgColor(condition) }}
                         >
                           {condition}
                         </Badge>
