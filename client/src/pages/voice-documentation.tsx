@@ -992,17 +992,22 @@ export default function VoiceDocumentation() {
                       onClick={saveVoiceNote}
                       disabled={!currentTranscript || !selectedPatient || !selectedNoteType || isRecording}
                       style={{ 
-                        backgroundColor: '#4A7DFF', 
-                        borderColor: '#4A7DFF',
-                        color: 'white'
+                        backgroundColor: (!currentTranscript || !selectedPatient || !selectedNoteType || isRecording) ? '#94A3B8' : '#4A7DFF', 
+                        borderColor: (!currentTranscript || !selectedPatient || !selectedNoteType || isRecording) ? '#94A3B8' : '#4A7DFF',
+                        color: 'white',
+                        opacity: (!currentTranscript || !selectedPatient || !selectedNoteType || isRecording) ? 0.6 : 1
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#7279FB';
-                        e.currentTarget.style.borderColor = '#7279FB';
+                        if (!(!currentTranscript || !selectedPatient || !selectedNoteType || isRecording)) {
+                          e.currentTarget.style.backgroundColor = '#7279FB';
+                          e.currentTarget.style.borderColor = '#7279FB';
+                        }
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#4A7DFF';
-                        e.currentTarget.style.borderColor = '#4A7DFF';
+                        if (!(!currentTranscript || !selectedPatient || !selectedNoteType || isRecording)) {
+                          e.currentTarget.style.backgroundColor = '#4A7DFF';
+                          e.currentTarget.style.borderColor = '#4A7DFF';
+                        }
                       }}
                       className="transition-all duration-200"
                     >
