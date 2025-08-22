@@ -2672,23 +2672,23 @@ export default function Forms() {
             <Button 
               className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
               style={{ 
-                backgroundColor: '#162B61', 
+                backgroundColor: '#4A7DFF', 
                 color: 'white',
-                borderColor: '#162B61',
+                borderColor: '#4A7DFF',
                 borderRadius: '10px',
-                boxShadow: '0 4px 12px rgba(22,43,97,0.3)'
+                boxShadow: '0 4px 12px rgba(74,125,255,0.3)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#9B9EAF';
-                e.currentTarget.style.borderColor = '#9B9EAF';
+                e.currentTarget.style.backgroundColor = '#7279FB';
+                e.currentTarget.style.borderColor = '#7279FB';
                 e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(22,43,97,0.4)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(114,121,251,0.4)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#162B61';
-                e.currentTarget.style.borderColor = '#162B61';
+                e.currentTarget.style.backgroundColor = '#4A7DFF';
+                e.currentTarget.style.borderColor = '#4A7DFF';
                 e.currentTarget.style.transform = 'translateY(0px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(22,43,97,0.3)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(74,125,255,0.3)';
               }}
               onClick={() => toast({ title: "Letters", description: "Navigating back to letters list." })}
             >
@@ -2701,23 +2701,23 @@ export default function Forms() {
             <Button 
               className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
               style={{ 
-                backgroundColor: '#162B61', 
+                backgroundColor: '#7279FB', 
                 color: 'white',
-                borderColor: '#162B61',
+                borderColor: '#7279FB',
                 borderRadius: '10px',
-                boxShadow: '0 4px 12px rgba(22,43,97,0.3)'
+                boxShadow: '0 4px 12px rgba(114,121,251,0.3)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#9B9EAF';
-                e.currentTarget.style.borderColor = '#9B9EAF';
+                e.currentTarget.style.backgroundColor = '#4A7DFF';
+                e.currentTarget.style.borderColor = '#4A7DFF';
                 e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(22,43,97,0.4)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(74,125,255,0.4)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#162B61';
-                e.currentTarget.style.borderColor = '#162B61';
+                e.currentTarget.style.backgroundColor = '#7279FB';
+                e.currentTarget.style.borderColor = '#7279FB';
                 e.currentTarget.style.transform = 'translateY(0px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(22,43,97,0.3)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(114,121,251,0.3)';
               }}
               onClick={handlePreview}
             >
@@ -2726,23 +2726,23 @@ export default function Forms() {
             <Button 
               className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
               style={{ 
-                backgroundColor: '#162B61', 
+                backgroundColor: '#4A7DFF', 
                 color: 'white',
-                borderColor: '#162B61',
+                borderColor: '#4A7DFF',
                 borderRadius: '10px',
-                boxShadow: '0 4px 12px rgba(22,43,97,0.3)'
+                boxShadow: '0 4px 12px rgba(74,125,255,0.3)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#9B9EAF';
-                e.currentTarget.style.borderColor = '#9B9EAF';
+                e.currentTarget.style.backgroundColor = '#7279FB';
+                e.currentTarget.style.borderColor = '#7279FB';
                 e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(22,43,97,0.4)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(114,121,251,0.4)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#162B61';
-                e.currentTarget.style.borderColor = '#162B61';
+                e.currentTarget.style.backgroundColor = '#4A7DFF';
+                e.currentTarget.style.borderColor = '#4A7DFF';
                 e.currentTarget.style.transform = 'translateY(0px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(22,43,97,0.3)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(74,125,255,0.3)';
               }}
               onClick={handleSaveAsDraft}
             >
@@ -2754,23 +2754,23 @@ export default function Forms() {
             <Button 
               className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
               style={{ 
-                backgroundColor: '#162B61', 
+                backgroundColor: '#7279FB', 
                 color: 'white',
-                borderColor: '#162B61',
+                borderColor: '#7279FB',
                 borderRadius: '10px',
-                boxShadow: '0 4px 12px rgba(22,43,97,0.3)'
+                boxShadow: '0 4px 12px rgba(114,121,251,0.3)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#9B9EAF';
-                e.currentTarget.style.borderColor = '#9B9EAF';
+                e.currentTarget.style.backgroundColor = '#4A7DFF';
+                e.currentTarget.style.borderColor = '#4A7DFF';
                 e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(22,43,97,0.4)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(74,125,255,0.4)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#162B61';
-                e.currentTarget.style.borderColor = '#162B61';
+                e.currentTarget.style.backgroundColor = '#7279FB';
+                e.currentTarget.style.borderColor = '#7279FB';
                 e.currentTarget.style.transform = 'translateY(0px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(22,43,97,0.3)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(114,121,251,0.3)';
               }}
             >
               Letter body
@@ -2781,23 +2781,23 @@ export default function Forms() {
             <Button 
               className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
               style={{ 
-                backgroundColor: '#162B61', 
+                backgroundColor: '#4A7DFF', 
                 color: 'white',
-                borderColor: '#162B61',
+                borderColor: '#4A7DFF',
                 borderRadius: '10px',
-                boxShadow: '0 4px 12px rgba(22,43,97,0.3)'
+                boxShadow: '0 4px 12px rgba(74,125,255,0.3)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#9B9EAF';
-                e.currentTarget.style.borderColor = '#9B9EAF';
+                e.currentTarget.style.backgroundColor = '#7279FB';
+                e.currentTarget.style.borderColor = '#7279FB';
                 e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(22,43,97,0.4)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(114,121,251,0.4)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#162B61';
-                e.currentTarget.style.borderColor = '#162B61';
+                e.currentTarget.style.backgroundColor = '#4A7DFF';
+                e.currentTarget.style.borderColor = '#4A7DFF';
                 e.currentTarget.style.transform = 'translateY(0px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(22,43,97,0.3)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(74,125,255,0.3)';
               }}
             >
               Select Patient...
@@ -2805,23 +2805,23 @@ export default function Forms() {
             <Button 
               className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
               style={{ 
-                backgroundColor: '#162B61', 
+                backgroundColor: '#7279FB', 
                 color: 'white',
-                borderColor: '#162B61',
+                borderColor: '#7279FB',
                 borderRadius: '10px',
-                boxShadow: '0 4px 12px rgba(22,43,97,0.3)'
+                boxShadow: '0 4px 12px rgba(114,121,251,0.3)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#9B9EAF';
-                e.currentTarget.style.borderColor = '#9B9EAF';
+                e.currentTarget.style.backgroundColor = '#4A7DFF';
+                e.currentTarget.style.borderColor = '#4A7DFF';
                 e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(22,43,97,0.4)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(74,125,255,0.4)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#162B61';
-                e.currentTarget.style.borderColor = '#162B61';
+                e.currentTarget.style.backgroundColor = '#7279FB';
+                e.currentTarget.style.borderColor = '#7279FB';
                 e.currentTarget.style.transform = 'translateY(0px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(22,43,97,0.3)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(114,121,251,0.3)';
               }}
             >
               New Chris...
@@ -2829,23 +2829,23 @@ export default function Forms() {
             <Button 
               className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
               style={{ 
-                backgroundColor: '#162B61', 
+                backgroundColor: '#4A7DFF', 
                 color: 'white',
-                borderColor: '#162B61',
+                borderColor: '#4A7DFF',
                 borderRadius: '10px',
-                boxShadow: '0 4px 12px rgba(22,43,97,0.3)'
+                boxShadow: '0 4px 12px rgba(74,125,255,0.3)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#9B9EAF';
-                e.currentTarget.style.borderColor = '#9B9EAF';
+                e.currentTarget.style.backgroundColor = '#7279FB';
+                e.currentTarget.style.borderColor = '#7279FB';
                 e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(22,43,97,0.4)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(114,121,251,0.4)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#162B61';
-                e.currentTarget.style.borderColor = '#162B61';
+                e.currentTarget.style.backgroundColor = '#4A7DFF';
+                e.currentTarget.style.borderColor = '#4A7DFF';
                 e.currentTarget.style.transform = 'translateY(0px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(22,43,97,0.3)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(74,125,255,0.3)';
               }}
             >
               Share this...
