@@ -2666,7 +2666,7 @@ export default function Forms() {
       {/* Scrollable Content Wrapper */}
       <div className="flex-1 overflow-y-auto">
         {/* Top Header - Professional Medical Theme */}
-        <div className="px-6 py-4 flex-shrink-0" style={{ backgroundColor: '#2563EB', borderBottom: '2px solid #1D4ED8' }}>
+        <div className="px-6 py-4 flex-shrink-0" style={{ backgroundColor: 'white', borderBottom: '2px solid #E5E7EB' }}>
         <div className="flex items-center justify-between gap-8">
           <div className="flex items-center gap-4">
             <Button 
