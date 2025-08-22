@@ -397,7 +397,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                                           priority === 'medium' ? 'text-white' :
                                           'text-white';
                           const flagBgColor = priority === 'urgent' ? '#C073FF' :    // Electric Violet
-                                           priority === 'high' ? '#6CFFEB' :     // Mint Drift  
+                                           priority === 'high' ? '#162B61' :     // Midnight  
                                            priority === 'medium' ? '#7279FB' :   // Electric Lilac
                                            '#4A7DFF';
                           return (
