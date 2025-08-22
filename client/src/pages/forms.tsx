@@ -2665,46 +2665,52 @@ export default function Forms() {
     <div className="h-screen flex flex-col" style={{ backgroundColor: '#E0E1F4' }}>
       {/* Scrollable Content Wrapper */}
       <div className="flex-1 overflow-y-auto">
-        {/* Top Header - CURA BRAND COLORS */}
-        <div className="px-3 py-2 flex-shrink-0" style={{ backgroundColor: '#4A7DFF', borderBottom: '1px solid #7279FB' }}>
+        {/* Top Header - Professional Medical Theme */}
+        <div className="px-4 py-3 flex-shrink-0" style={{ backgroundColor: '#2563EB', borderBottom: '1px solid #1D4ED8' }}>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Button 
               size="sm" 
-              className="h-8 px-4 text-xs font-medium text-white shadow-sm"
+              className="h-9 px-4 text-sm font-medium shadow-sm transition-all duration-200"
               style={{ 
-                backgroundColor: '#162B61', 
-                border: '1px solid #162B61',
-                borderRadius: '6px'
+                backgroundColor: 'white', 
+                color: '#2563EB',
+                border: '1px solid white',
+                borderRadius: '8px'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#9B9EAF';
-                e.currentTarget.style.borderColor = '#9B9EAF';
+                e.currentTarget.style.backgroundColor = '#EBF4FF';
+                e.currentTarget.style.color = '#1D4ED8';
+                e.currentTarget.style.transform = 'translateY(-1px)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#162B61';
-                e.currentTarget.style.borderColor = '#162B61';
+                e.currentTarget.style.backgroundColor = 'white';
+                e.currentTarget.style.color = '#2563EB';
+                e.currentTarget.style.transform = 'translateY(0px)';
               }}
               onClick={() => toast({ title: "Letters", description: "Navigating back to letters list." })}
             >
-              <ArrowLeft className="h-3 w-3 mr-2" />
+              <ArrowLeft className="h-4 w-4 mr-2" />
               <span>Letters</span>
             </Button>
             <Button 
               size="sm" 
-              className="h-8 px-4 text-xs font-medium text-white shadow-sm"
+              className="h-9 px-4 text-sm font-medium shadow-sm transition-all duration-200"
               style={{ 
-                backgroundColor: '#162B61', 
-                border: '1px solid #162B61',
-                borderRadius: '6px'
+                backgroundColor: 'white', 
+                color: '#2563EB',
+                border: '1px solid white',
+                borderRadius: '8px'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#9B9EAF';
-                e.currentTarget.style.borderColor = '#9B9EAF';
+                e.currentTarget.style.backgroundColor = '#EBF4FF';
+                e.currentTarget.style.color = '#1D4ED8';
+                e.currentTarget.style.transform = 'translateY(-1px)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#162B61';
-                e.currentTarget.style.borderColor = '#162B61';
+                e.currentTarget.style.backgroundColor = 'white';
+                e.currentTarget.style.color = '#2563EB';
+                e.currentTarget.style.transform = 'translateY(0px)';
               }}
               onClick={handlePreview}
             >
@@ -2712,30 +2718,33 @@ export default function Forms() {
             </Button>
             <Button 
               size="sm" 
-              className="h-8 px-4 text-xs font-medium text-white shadow-sm"
+              className="h-9 px-4 text-sm font-medium shadow-sm transition-all duration-200"
               style={{ 
-                backgroundColor: '#162B61', 
-                border: '1px solid #162B61',
-                borderRadius: '6px'
+                backgroundColor: 'white', 
+                color: '#2563EB',
+                border: '1px solid white',
+                borderRadius: '8px'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#9B9EAF';
-                e.currentTarget.style.borderColor = '#9B9EAF';
+                e.currentTarget.style.backgroundColor = '#EBF4FF';
+                e.currentTarget.style.color = '#1D4ED8';
+                e.currentTarget.style.transform = 'translateY(-1px)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#162B61';
-                e.currentTarget.style.borderColor = '#162B61';
+                e.currentTarget.style.backgroundColor = 'white';
+                e.currentTarget.style.color = '#2563EB';
+                e.currentTarget.style.transform = 'translateY(0px)';
               }}
               onClick={handleSaveAsDraft}
             >
               Save as draft
             </Button>
           </div>
-          <div className="text-xs text-white">Letter body</div>
-          <div className="flex items-center space-x-2">
-            <span className="text-xs text-white cursor-pointer hover:text-[#6CFFEB]">Select Patient...</span>
-            <span className="text-xs text-white cursor-pointer hover:text-[#6CFFEB]">New Chris...</span>
-            <span className="text-xs text-white cursor-pointer hover:text-[#6CFFEB]">Share this...</span>
+          <div className="text-sm text-white font-medium">Letter body</div>
+          <div className="flex items-center space-x-3">
+            <span className="text-sm text-white cursor-pointer hover:text-blue-100 transition-colors">Select Patient...</span>
+            <span className="text-sm text-white cursor-pointer hover:text-blue-100 transition-colors">New Chris...</span>
+            <span className="text-sm text-white cursor-pointer hover:text-blue-100 transition-colors">Share this...</span>
           </div>
         </div>
       </div>
