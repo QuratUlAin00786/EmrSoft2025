@@ -2679,7 +2679,20 @@ export default function Forms() {
                     onClick={handlePreview}>
               Save and preview
             </Button>
-            <Button variant="outline" size="sm" className="h-6 px-2 text-xs text-white border-white hover:bg-white hover:text-[#4A7DFF]" onClick={handleSaveAsDraft}>
+            <Button 
+              size="sm" 
+              className="h-6 px-2 text-xs text-white"
+              style={{ backgroundColor: '#7279FB', border: '1px solid #7279FB' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#9B9EAF';
+                e.currentTarget.style.borderColor = '#9B9EAF';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#7279FB';
+                e.currentTarget.style.borderColor = '#7279FB';
+              }}
+              onClick={handleSaveAsDraft}
+            >
               Save as draft
             </Button>
           </div>
