@@ -13,16 +13,29 @@ import type { Appointment } from "@/types";
 import { NewAppointmentModal } from "./new-appointment-modal";
 
 const statusColors = {
-  scheduled: "bg-blue-100 text-blue-800",
-  completed: "bg-green-100 text-green-800",
-  cancelled: "bg-red-100 text-red-800",
-  no_show: "bg-gray-100 text-gray-800"
+  scheduled: "text-white",
+  completed: "text-white", 
+  cancelled: "text-white",
+  no_show: "text-white"
+};
+
+const statusBgColors = {
+  scheduled: "#4A7DFF",  // Bluewave
+  completed: "#6CFFEB",  // Mint Drift
+  cancelled: "#162B61",  // Midnight
+  no_show: "#9B9EAF"     // Steel
 };
 
 const typeColors = {
-  consultation: "bg-purple-100 text-purple-800",
-  follow_up: "bg-orange-100 text-orange-800",
-  procedure: "bg-cyan-100 text-cyan-800"
+  consultation: "text-white",
+  follow_up: "text-white",
+  procedure: "text-white"
+};
+
+const typeBgColors = {
+  consultation: "#7279FB",  // Electric Lilac
+  follow_up: "#C073FF",     // Electric Violet
+  procedure: "#4A7DFF"      // Bluewave
 };
 
 export default function AppointmentCalendar() {
@@ -233,7 +246,8 @@ export default function AppointmentCalendar() {
                 variant={viewMode === "month" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setViewMode("month")}
-                className={`${viewMode === "month" ? "bg-medical-blue text-white" : ""} text-xs sm:text-sm`}
+                style={{ backgroundColor: viewMode === "month" ? "#4A7DFF" : undefined, color: viewMode === "month" ? "white" : undefined }}
+                className="text-xs sm:text-sm"
               >
                 Month
               </Button>
@@ -241,7 +255,8 @@ export default function AppointmentCalendar() {
                 variant={viewMode === "week" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setViewMode("week")}
-                className={`${viewMode === "week" ? "bg-medical-blue text-white" : ""} text-xs sm:text-sm`}
+                style={{ backgroundColor: viewMode === "week" ? "#4A7DFF" : undefined, color: viewMode === "week" ? "white" : undefined }}
+                className="text-xs sm:text-sm"
               >
                 Week
               </Button>
@@ -249,7 +264,8 @@ export default function AppointmentCalendar() {
                 variant={viewMode === "day" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setViewMode("day")}
-                className={`${viewMode === "day" ? "bg-medical-blue text-white" : ""} text-xs sm:text-sm`}
+                style={{ backgroundColor: viewMode === "day" ? "#4A7DFF" : undefined, color: viewMode === "day" ? "white" : undefined }}
+                className="text-xs sm:text-sm"
               >
                 Day
               </Button>
@@ -297,7 +313,8 @@ export default function AppointmentCalendar() {
                     description: "Opening appointment booking form",
                   });
                 }}
-                className="bg-medical-blue text-white hover:bg-blue-700 text-xs sm:text-sm px-2 sm:px-3 whitespace-nowrap"
+                style={{ backgroundColor: "#4A7DFF", color: "white" }}
+                className="hover:opacity-90 text-xs sm:text-sm px-2 sm:px-3 whitespace-nowrap"
               >
                 + New Appointment
               </Button>
@@ -323,12 +340,20 @@ export default function AppointmentCalendar() {
                     onClick={() => setSelectedDate(day)}
                     className={`
                       p-2 text-sm border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors
-                      ${isSelected ? "bg-blue-100 dark:bg-blue-900 border-blue-300 dark:border-blue-600" : "border-gray-200 dark:border-gray-600"}
-                      ${isCurrentDay ? "bg-blue-50 dark:bg-blue-900/50 font-semibold" : ""}
+                      ${isSelected ? "border-[#4A7DFF]" : "border-gray-200 dark:border-gray-600"}
+                      ${isCurrentDay ? "font-semibold" : ""}
                     `}
                   >
                     <div className="text-center">
-                      <div className={isCurrentDay ? "text-blue-600 dark:text-blue-400" : "text-gray-900 dark:text-gray-100"}>
+                      <div 
+                        className={isCurrentDay ? "text-gray-900 dark:text-gray-100" : "text-gray-900 dark:text-gray-100"}
+                        style={{ 
+                          backgroundColor: isSelected ? "#4A7DFF" : isCurrentDay ? "#E0E1F4" : undefined,
+                          color: isSelected ? "white" : isCurrentDay ? "#162B61" : undefined,
+                          borderRadius: "4px",
+                          padding: "2px 4px"
+                        }}
+                      >
                         {format(day, "d")}
                       </div>
 
@@ -373,7 +398,11 @@ export default function AppointmentCalendar() {
                         return (
                           <div key={dayIndex} className="p-1 border border-gray-200 min-h-[60px]">
                             {hourAppointments.map((apt: any) => (
-                              <div key={apt.id} className="text-xs p-1 bg-medical-blue text-white rounded mb-1">
+                              <div 
+                              key={apt.id} 
+                              className="text-xs p-1 text-white rounded mb-1"
+                              style={{ backgroundColor: "#4A7DFF" }}
+                            >
                                 {isDataLoaded ? (apt.patientName || getPatientName(apt.patientId)) : `Patient ${apt.patientId}`}
                               </div>
                             ))}
@@ -406,7 +435,11 @@ export default function AppointmentCalendar() {
                       <div className="flex-1 ml-4">
                         {hourAppointments.length > 0 ? (
                           hourAppointments.map((apt: any) => (
-                            <div key={apt.id} className="p-3 bg-medical-blue text-white rounded mb-2">
+                            <div 
+                              key={apt.id} 
+                              className="p-3 text-white rounded mb-2"
+                              style={{ backgroundColor: "#4A7DFF" }}
+                            >
                               <div className="font-medium">{isDataLoaded ? (apt.patientName || getPatientName(apt.patientId)) : `Patient ${apt.patientId}`}</div>
                               <div className="text-sm">{apt.type}</div>
                               <div className="text-xs">
@@ -461,10 +494,16 @@ export default function AppointmentCalendar() {
                   <div className="flex flex-col space-y-3">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h4 className="font-semibold dark:text-foreground">{appointment.title}</h4>
-                      <Badge className={statusColors[appointment.status]}>
+                      <Badge 
+                        className={statusColors[appointment.status]}
+                        style={{ backgroundColor: statusBgColors[appointment.status] }}
+                      >
                         {appointment.status}
                       </Badge>
-                      <Badge className={typeColors[appointment.type]}>
+                      <Badge 
+                        className={typeColors[appointment.type]}
+                        style={{ backgroundColor: typeBgColors[appointment.type] }}
+                      >
                         {appointment.type}
                       </Badge>
                       <Badge className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
@@ -505,7 +544,7 @@ export default function AppointmentCalendar() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-blue-600" />
+              <Calendar className="h-5 w-5" style={{ color: "#4A7DFF" }} />
               Appointment Details
             </DialogTitle>
           </DialogHeader>
@@ -518,7 +557,10 @@ export default function AppointmentCalendar() {
                   <p className="text-sm"><strong>Doctor:</strong> {isDataLoaded ? (selectedAppointment.providerName || getProviderName(selectedAppointment.providerId)) : `Provider ID: ${selectedAppointment.providerId}`}</p>
                   <p className="text-sm"><strong>Type:</strong> {selectedAppointment.type}</p>
                   <p className="text-sm"><strong>Status:</strong> 
-                    <Badge className={`ml-2 ${(statusColors as any)[selectedAppointment.status] || 'bg-gray-100'}`}>
+                    <Badge 
+                      className={`ml-2 ${statusColors[selectedAppointment.status] || 'text-white'}`}
+                      style={{ backgroundColor: statusBgColors[selectedAppointment.status] || '#9B9EAF' }}
+                    >
                       {selectedAppointment.status}
                     </Badge>
                   </p>
@@ -536,7 +578,10 @@ export default function AppointmentCalendar() {
                   <p className="text-sm"><strong>Location:</strong> {selectedAppointment.location}</p>
                   {selectedAppointment.location && selectedAppointment.location.includes('Department') && (
                     <p className="text-sm"><strong>Department:</strong> 
-                      <Badge className="ml-2 bg-blue-100 text-blue-800">
+                      <Badge 
+                        className="ml-2 text-white"
+                        style={{ backgroundColor: '#4A7DFF' }}
+                      >
                         {(() => {
                           const parts = selectedAppointment.location.split(', ');
                           return parts.find((part: string) => part.includes('Department')) || 
