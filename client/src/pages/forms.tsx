@@ -2694,20 +2694,17 @@ export default function Forms() {
               size="sm" 
               className="h-8 px-4 text-xs font-medium text-white shadow-sm"
               style={{ 
-                backgroundColor: '#6CFFEB', 
-                color: '#162B61',
-                border: '1px solid #6CFFEB',
+                backgroundColor: '#162B61', 
+                border: '1px solid #162B61',
                 borderRadius: '6px'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#7279FB';
-                e.currentTarget.style.color = 'white';
-                e.currentTarget.style.borderColor = '#7279FB';
+                e.currentTarget.style.backgroundColor = '#9B9EAF';
+                e.currentTarget.style.borderColor = '#9B9EAF';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#6CFFEB';
-                e.currentTarget.style.color = '#162B61';
-                e.currentTarget.style.borderColor = '#6CFFEB';
+                e.currentTarget.style.backgroundColor = '#162B61';
+                e.currentTarget.style.borderColor = '#162B61';
               }}
               onClick={handlePreview}
             >
@@ -2717,17 +2714,17 @@ export default function Forms() {
               size="sm" 
               className="h-8 px-4 text-xs font-medium text-white shadow-sm"
               style={{ 
-                backgroundColor: '#7279FB', 
-                border: '1px solid #7279FB',
+                backgroundColor: '#162B61', 
+                border: '1px solid #162B61',
                 borderRadius: '6px'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#C073FF';
-                e.currentTarget.style.borderColor = '#C073FF';
+                e.currentTarget.style.backgroundColor = '#9B9EAF';
+                e.currentTarget.style.borderColor = '#9B9EAF';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#7279FB';
-                e.currentTarget.style.borderColor = '#7279FB';
+                e.currentTarget.style.backgroundColor = '#162B61';
+                e.currentTarget.style.borderColor = '#162B61';
               }}
               onClick={handleSaveAsDraft}
             >
