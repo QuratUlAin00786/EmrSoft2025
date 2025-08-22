@@ -14,11 +14,8 @@ export default function TermsOfService() {
               <img 
                 src={curaLogoPath} 
                 alt="Cura EMR" 
-                className="h-12 w-auto"
+                className="h-16 w-auto"
               />
-              <div className="flex flex-col">
-                <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">by Cura Software Ltd</span>
-              </div>
             </Link>
             
             <div className="flex items-center space-x-4">
