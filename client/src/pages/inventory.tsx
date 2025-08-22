@@ -171,6 +171,7 @@ export default function Inventory() {
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [selectedPO, setSelectedPO] = useState<PurchaseOrder | null>(null);
   const [showPODetailsDialog, setShowPODetailsDialog] = useState(false);
+  const [showItemDetailsDialog, setShowItemDetailsDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("item-master");
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -644,7 +645,10 @@ export default function Inventory() {
                                     <Edit className="mr-2 h-4 w-4" />
                                     Adjust Stock
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => {
+                                    setSelectedItem(item);
+                                    setShowItemDetailsDialog(true);
+                                  }}>
                                     <Eye className="mr-2 h-4 w-4" />
                                     View Details
                                   </DropdownMenuItem>
@@ -1153,6 +1157,213 @@ export default function Inventory() {
                     </Button>
                   )}
                   <Button variant="outline" onClick={() => setShowPODetailsDialog(false)}>
+                    Close
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+
+        {/* Item Details Dialog */}
+        {showItemDetailsDialog && selectedItem && (
+          <Dialog open={showItemDetailsDialog} onOpenChange={setShowItemDetailsDialog}>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Item Details - {selectedItem.name}
+                </DialogTitle>
+                <DialogDescription>
+                  Complete information about {selectedItem.name} including inventory, pricing, and status details
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-6">
+                {/* Basic Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Basic Information</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Item ID</Label>
+                          <p className="font-mono text-sm">{selectedItem.id}</p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">SKU</Label>
+                          <p className="font-mono text-sm">{selectedItem.sku}</p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Name</Label>
+                          <p className="font-medium">{selectedItem.name}</p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Category</Label>
+                          <p>{selectedItem.categoryName || 'Uncategorized'}</p>
+                        </div>
+                        {selectedItem.description && (
+                          <div className="col-span-2">
+                            <Label className="text-sm font-medium text-gray-600">Description</Label>
+                            <p className="text-sm">{selectedItem.description}</p>
+                          </div>
+                        )}
+                        {selectedItem.barcode && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-600">Barcode</Label>
+                            <p className="font-mono text-sm">{selectedItem.barcode}</p>
+                          </div>
+                        )}
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Unit of Measurement</Label>
+                          <p>{selectedItem.unitOfMeasurement}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Pricing Information</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Purchase Price</Label>
+                          <p className="font-bold text-lg">£{parseFloat(selectedItem.purchasePrice).toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Sale Price</Label>
+                          <p className="font-bold text-lg text-green-600">£{parseFloat(selectedItem.salePrice).toFixed(2)}</p>
+                        </div>
+                        {selectedItem.mrp && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-600">MRP</Label>
+                            <p className="font-medium">£{parseFloat(selectedItem.mrp).toFixed(2)}</p>
+                          </div>
+                        )}
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Stock Value</Label>
+                          <p className="font-bold text-lg text-blue-600">£{selectedItem.stockValue.toFixed(2)}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Inventory Information */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Inventory Management</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="text-center p-4 border rounded-lg">
+                        <Label className="text-sm font-medium text-gray-600">Current Stock</Label>
+                        <p className="text-2xl font-bold mt-1">{selectedItem.currentStock}</p>
+                        <p className="text-sm text-gray-500">{selectedItem.unitOfMeasurement}</p>
+                      </div>
+                      <div className="text-center p-4 border rounded-lg">
+                        <Label className="text-sm font-medium text-gray-600">Minimum Stock</Label>
+                        <p className="text-2xl font-bold mt-1 text-orange-600">{selectedItem.minimumStock}</p>
+                        <p className="text-sm text-gray-500">{selectedItem.unitOfMeasurement}</p>
+                      </div>
+                      <div className="text-center p-4 border rounded-lg">
+                        <Label className="text-sm font-medium text-gray-600">Reorder Point</Label>
+                        <p className="text-2xl font-bold mt-1 text-red-600">{selectedItem.reorderPoint}</p>
+                        <p className="text-sm text-gray-500">{selectedItem.unitOfMeasurement}</p>
+                      </div>
+                      <div className="text-center p-4 border rounded-lg">
+                        <Label className="text-sm font-medium text-gray-600">Stock Status</Label>
+                        <div className="mt-1">
+                          {selectedItem.isLowStock ? (
+                            <Badge variant="destructive">Low Stock</Badge>
+                          ) : (
+                            <Badge variant="default">In Stock</Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Additional Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Additional Information</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="grid grid-cols-2 gap-4">
+                        {selectedItem.brandName && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-600">Brand</Label>
+                            <p>{selectedItem.brandName}</p>
+                          </div>
+                        )}
+                        {selectedItem.manufacturer && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-600">Manufacturer</Label>
+                            <p>{selectedItem.manufacturer}</p>
+                          </div>
+                        )}
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Prescription Required</Label>
+                          <p>{selectedItem.prescriptionRequired ? 'Yes' : 'No'}</p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Active Status</Label>
+                          <p>{selectedItem.isActive ? 'Active' : 'Inactive'}</p>
+                        </div>
+                        {selectedItem.expiryDate && (
+                          <div className="col-span-2">
+                            <Label className="text-sm font-medium text-gray-600">Expiry Date</Label>
+                            <p className={new Date(selectedItem.expiryDate) < new Date() ? 'text-red-600 font-medium' : ''}>
+                              {format(new Date(selectedItem.expiryDate), 'MMM dd, yyyy')}
+                              {new Date(selectedItem.expiryDate) < new Date() && (
+                                <Badge variant="destructive" className="ml-2">Expired</Badge>
+                              )}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Record Information</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="space-y-2">
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Created</Label>
+                          <p className="text-sm">{format(new Date(selectedItem.createdAt), 'MMM dd, yyyy HH:mm')}</p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Last Updated</Label>
+                          <p className="text-sm">{format(new Date(selectedItem.updatedAt), 'MMM dd, yyyy HH:mm')}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end space-x-2 pt-4 border-t">
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      setShowItemDetailsDialog(false);
+                      setShowStockDialog(true);
+                    }}
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Adjust Stock
+                  </Button>
+                  <Button variant="outline" onClick={() => setShowItemDetailsDialog(false)}>
                     Close
                   </Button>
                 </div>
