@@ -35,33 +35,26 @@
 @tailwind components;
 @tailwind utilities;
 
-/* PRODUCTION-GRADE FIGTREE ENFORCEMENT */
-/* Layer 1: Root-level font enforcement */
-html {
-  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+/* ULTRA-ENFORCED FIGTREE - GUARANTEED PRODUCTION */
+/* Force Figtree with maximum specificity */
+html, html * {
+  font-family: 'Figtree', sans-serif !important;
 }
 
-body {
-  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+body, body * {
+  font-family: 'Figtree', sans-serif !important;
 }
 
-#root {
-  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+#root, #root * {
+  font-family: 'Figtree', sans-serif !important;
 }
 
-/* Layer 2: Universal inheritance enforcement */
-* {
-  font-family: inherit !important;
-}
-
-/* Layer 3: Specific element targeting */
-h1, h2, h3, h4, h5, h6, p, div, span, button, input, textarea, select, label, a, li, td, th {
-  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-}
-
-/* Layer 4: Component-level enforcement */
-.card, .btn, .form-control, .nav, .navbar, .sidebar {
-  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+/* NUCLEAR OPTION: Force Figtree on everything */
+*, *::before, *::after,
+h1, h2, h3, h4, h5, h6, p, div, span, button, input, textarea, select, label, a, li, td, th,
+.card, .btn, .form-control, .nav, .navbar, .sidebar,
+[class*="font-"], [style*="font-family"] {
+  font-family: 'Figtree', sans-serif !important;
 }
 
 @layer base {
