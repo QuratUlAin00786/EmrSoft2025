@@ -9,7 +9,7 @@ import { ThemeProvider } from "@/hooks/use-theme";
 import { Sidebar } from "@/components/layout/sidebar";
 import { LoadingPage } from "@/components/common/loading-spinner";
 import { AIChatWidget } from "@/components/ai-chat-widget";
-import { FontInjector } from "@/components/FontInjector";
+
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect } from "react";
 import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
@@ -273,7 +273,6 @@ function App() {
                 </TenantProvider>
               </Route>
             </Switch>
-            <FontInjector />
           </div>
           <Toaster />
         </ThemeProvider>
