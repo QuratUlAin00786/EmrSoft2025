@@ -162,11 +162,8 @@ export function Sidebar() {
           <img 
             src={curaLogoPath} 
             alt="Cura" 
-            className="h-20 w-auto mb-2"
+            className="h-32 w-auto mb-2"
           />
-          <div>
-            <p className="text-xs text-[hsl(225,16%,65%)] dark:text-muted-foreground mt-1">by Cura Software Ltd</p>
-          </div>
         </div>
       </div>
 
