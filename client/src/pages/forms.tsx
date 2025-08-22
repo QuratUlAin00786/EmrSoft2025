@@ -2666,165 +2666,186 @@ export default function Forms() {
       {/* Scrollable Content Wrapper */}
       <div className="flex-1 overflow-y-auto">
         {/* Top Header - Professional Medical Theme */}
-        <div className="px-4 py-3 flex-shrink-0" style={{ backgroundColor: '#2563EB', borderBottom: '1px solid #1D4ED8' }}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+        <div className="px-6 py-4 flex-shrink-0" style={{ backgroundColor: '#2563EB', borderBottom: '2px solid #1D4ED8' }}>
+        <div className="flex items-center justify-between gap-8">
+          <div className="flex items-center gap-4">
             <Button 
-              size="sm" 
-              className="h-9 px-4 text-sm font-medium shadow-sm transition-all duration-200"
+              className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
               style={{ 
                 backgroundColor: 'white', 
                 color: '#2563EB',
-                border: '1px solid white',
-                borderRadius: '8px'
+                borderColor: 'rgba(255,255,255,0.3)',
+                borderRadius: '10px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#EBF4FF';
+                e.currentTarget.style.backgroundColor = '#F8FAFF';
                 e.currentTarget.style.color = '#1D4ED8';
-                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = 'white';
                 e.currentTarget.style.color = '#2563EB';
                 e.currentTarget.style.transform = 'translateY(0px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
               }}
               onClick={() => toast({ title: "Letters", description: "Navigating back to letters list." })}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               <span>Letters</span>
             </Button>
+            
+            <div className="h-8 w-px bg-white/30 mx-1"></div>
+            
             <Button 
-              size="sm" 
-              className="h-9 px-4 text-sm font-medium shadow-sm transition-all duration-200"
+              className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
               style={{ 
                 backgroundColor: 'white', 
                 color: '#2563EB',
-                border: '1px solid white',
-                borderRadius: '8px'
+                borderColor: 'rgba(255,255,255,0.3)',
+                borderRadius: '10px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#EBF4FF';
+                e.currentTarget.style.backgroundColor = '#F8FAFF';
                 e.currentTarget.style.color = '#1D4ED8';
-                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = 'white';
                 e.currentTarget.style.color = '#2563EB';
                 e.currentTarget.style.transform = 'translateY(0px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
               }}
               onClick={handlePreview}
             >
               Save and preview
             </Button>
             <Button 
-              size="sm" 
-              className="h-9 px-4 text-sm font-medium shadow-sm transition-all duration-200"
+              className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
               style={{ 
                 backgroundColor: 'white', 
                 color: '#2563EB',
-                border: '1px solid white',
-                borderRadius: '8px'
+                borderColor: 'rgba(255,255,255,0.3)',
+                borderRadius: '10px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#EBF4FF';
+                e.currentTarget.style.backgroundColor = '#F8FAFF';
                 e.currentTarget.style.color = '#1D4ED8';
-                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = 'white';
                 e.currentTarget.style.color = '#2563EB';
                 e.currentTarget.style.transform = 'translateY(0px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
               }}
               onClick={handleSaveAsDraft}
             >
               Save as draft
             </Button>
           </div>
-          <Button 
-            size="sm" 
-            className="h-9 px-4 text-sm font-medium shadow-sm transition-all duration-200"
-            style={{ 
-              backgroundColor: 'white', 
-              color: '#2563EB',
-              border: '1px solid white',
-              borderRadius: '8px'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#EBF4FF';
-              e.currentTarget.style.color = '#1D4ED8';
-              e.currentTarget.style.transform = 'translateY(-1px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'white';
-              e.currentTarget.style.color = '#2563EB';
-              e.currentTarget.style.transform = 'translateY(0px)';
-            }}
-          >
-            Letter body
-          </Button>
-          <div className="flex items-center space-x-3">
+          
+          <div className="flex items-center gap-4">
             <Button 
-              size="sm" 
-              className="h-9 px-4 text-sm font-medium shadow-sm transition-all duration-200"
+              className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
               style={{ 
                 backgroundColor: 'white', 
                 color: '#2563EB',
-                border: '1px solid white',
-                borderRadius: '8px'
+                borderColor: 'rgba(255,255,255,0.3)',
+                borderRadius: '10px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#EBF4FF';
+                e.currentTarget.style.backgroundColor = '#F8FAFF';
                 e.currentTarget.style.color = '#1D4ED8';
-                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = 'white';
                 e.currentTarget.style.color = '#2563EB';
                 e.currentTarget.style.transform = 'translateY(0px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+              }}
+            >
+              Letter body
+            </Button>
+            
+            <div className="h-8 w-px bg-white/30 mx-1"></div>
+            
+            <Button 
+              className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
+              style={{ 
+                backgroundColor: 'white', 
+                color: '#2563EB',
+                borderColor: 'rgba(255,255,255,0.3)',
+                borderRadius: '10px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#F8FAFF';
+                e.currentTarget.style.color = '#1D4ED8';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'white';
+                e.currentTarget.style.color = '#2563EB';
+                e.currentTarget.style.transform = 'translateY(0px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
               }}
             >
               Select Patient...
             </Button>
             <Button 
-              size="sm" 
-              className="h-9 px-4 text-sm font-medium shadow-sm transition-all duration-200"
+              className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
               style={{ 
                 backgroundColor: 'white', 
                 color: '#2563EB',
-                border: '1px solid white',
-                borderRadius: '8px'
+                borderColor: 'rgba(255,255,255,0.3)',
+                borderRadius: '10px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#EBF4FF';
+                e.currentTarget.style.backgroundColor = '#F8FAFF';
                 e.currentTarget.style.color = '#1D4ED8';
-                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = 'white';
                 e.currentTarget.style.color = '#2563EB';
                 e.currentTarget.style.transform = 'translateY(0px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
               }}
             >
               New Chris...
             </Button>
             <Button 
-              size="sm" 
-              className="h-9 px-4 text-sm font-medium shadow-sm transition-all duration-200"
+              className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
               style={{ 
                 backgroundColor: 'white', 
                 color: '#2563EB',
-                border: '1px solid white',
-                borderRadius: '8px'
+                borderColor: 'rgba(255,255,255,0.3)',
+                borderRadius: '10px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#EBF4FF';
+                e.currentTarget.style.backgroundColor = '#F8FAFF';
                 e.currentTarget.style.color = '#1D4ED8';
-                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = 'white';
                 e.currentTarget.style.color = '#2563EB';
                 e.currentTarget.style.transform = 'translateY(0px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
               }}
             >
               Share this...
