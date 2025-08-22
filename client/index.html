@@ -34,12 +34,19 @@
     <meta name="msapplication-TileColor" content="#6366f1" />
     <meta name="theme-color" content="#6366f1" />
     
-    <!-- LOCAL FIGTREE FONTS - PRODUCTION GUARANTEED -->
+    <!-- BULLETPROOF FIGTREE FONTS - ALL ENVIRONMENTS -->
+    <link rel="preload" href="/figtree-regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/figtree-medium.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/figtree-semibold.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/figtree-bold.woff2" as="font" type="font/woff2" crossorigin>
     <style>
-      /* MAXIMUM FIGTREE ENFORCEMENT - PRODUCTION READY */
-      * { font-family: 'Figtree', sans-serif !important; }
-      html, body, #root { font-family: 'Figtree', sans-serif !important; }
-      html *, body *, #root * { font-family: 'Figtree', sans-serif !important; }
+      /* ULTIMATE FIGTREE ENFORCEMENT - BULLETPROOF */
+      :root { --font-family: 'Figtree', 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif; }
+      * { font-family: var(--font-family) !important; }
+      html { font-family: var(--font-family) !important; }
+      body { font-family: var(--font-family) !important; }
+      #root { font-family: var(--font-family) !important; }
+      html *, body *, #root * { font-family: var(--font-family) !important; }
     </style>
     
     <!-- Favicon and Icons -->

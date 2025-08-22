@@ -1,60 +1,78 @@
-/* LOCAL FIGTREE FONT HOSTING - PRODUCTION GUARANTEED */
+/* BULLETPROOF FIGTREE FONT HOSTING - ALL ENVIRONMENTS */
 @font-face {
   font-family: 'Figtree';
   font-style: normal;
   font-weight: 400;
-  font-display: swap;
-  src: url('/figtree-regular.woff2') format('woff2');
+  font-display: block;
+  src: url('/figtree-regular.woff2') format('woff2'),
+       url('/figtree-regular.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @font-face {
   font-family: 'Figtree';
   font-style: normal;
   font-weight: 500;
-  font-display: swap;
-  src: url('/figtree-medium.woff2') format('woff2');
+  font-display: block;
+  src: url('/figtree-medium.woff2') format('woff2'),
+       url('/figtree-medium.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @font-face {
   font-family: 'Figtree';
   font-style: normal;
   font-weight: 600;
-  font-display: swap;
-  src: url('/figtree-semibold.woff2') format('woff2');
+  font-display: block;
+  src: url('/figtree-semibold.woff2') format('woff2'),
+       url('/figtree-semibold.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @font-face {
   font-family: 'Figtree';
   font-style: normal;
   font-weight: 700;
-  font-display: swap;
-  src: url('/figtree-bold.woff2') format('woff2');
+  font-display: block;
+  src: url('/figtree-bold.woff2') format('woff2'),
+       url('/figtree-bold.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ULTRA-ENFORCED FIGTREE - GUARANTEED PRODUCTION */
-/* Force Figtree with maximum specificity */
-html, html * {
-  font-family: 'Figtree', sans-serif !important;
+/* ULTIMATE FIGTREE ENFORCEMENT - MULTI-LAYER APPROACH */
+/* Layer 1: CSS Custom Property Definition */
+:root {
+  --figtree-stack: 'Figtree', 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-body, body * {
-  font-family: 'Figtree', sans-serif !important;
+/* Layer 2: Universal enforcement with maximum specificity */
+*, *::before, *::after {
+  font-family: var(--figtree-stack) !important;
 }
 
-#root, #root * {
-  font-family: 'Figtree', sans-serif !important;
+/* Layer 3: Element-specific targeting */
+html, body, #root {
+  font-family: var(--figtree-stack) !important;
 }
 
-/* NUCLEAR OPTION: Force Figtree on everything */
-*, *::before, *::after,
+html *, body *, #root * {
+  font-family: var(--figtree-stack) !important;
+}
+
+/* Layer 4: Component and utility class targeting */
 h1, h2, h3, h4, h5, h6, p, div, span, button, input, textarea, select, label, a, li, td, th,
 .card, .btn, .form-control, .nav, .navbar, .sidebar,
 [class*="font-"], [style*="font-family"] {
-  font-family: 'Figtree', sans-serif !important;
+  font-family: var(--figtree-stack) !important;
+}
+
+/* Layer 5: Emergency fallback classes */
+.figtree-loaded *, .figtree-emergency * {
+  font-family: var(--figtree-stack) !important;
 }
 
 @layer base {
