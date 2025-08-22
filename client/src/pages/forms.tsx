@@ -700,7 +700,7 @@ export default function Forms() {
           // Create a proper inline file attachment with styling
           const fileSize = (file.size / 1024).toFixed(1);
           const fileAttachmentHTML = `
-            <span style="display: inline-block; background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 4px; padding: 4px 8px; margin: 0 2px; color: #0369a1; font-family: Arial, sans-serif; font-size: 12px; vertical-align: middle;">
+            <span style="display: inline-block; background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 4px; padding: 4px 8px; margin: 0 2px; color: #0369a1; font-size: 12px; vertical-align: middle;">
               <span style="margin-right: 4px;">📎</span>
               <strong>${file.name}</strong>
               <span style="color: #64748b; margin-left: 4px;">(${fileSize} KB)</span>

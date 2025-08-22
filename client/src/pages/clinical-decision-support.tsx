@@ -1039,7 +1039,7 @@ Generated on ${new Date().toLocaleDateString()}
                           <head>
                             <title>${selectedGuideline.title}</title>
                             <style>
-                              body { font-family: Arial, sans-serif; margin: 20px; }
+                              body { margin: 20px; }
                               h1 { color: #333; }
                               h2 { color: #666; margin-top: 20px; }
                               ul { margin: 10px 0; }

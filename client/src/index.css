@@ -5,12 +5,25 @@
 @tailwind utilities;
 
 @layer base {
-  /* Simple, reliable Figtree implementation */
-  * {
+  /* Maximum specificity Figtree implementation */
+  html {
     font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
   }
   
-  html, body, #root {
+  body {
+    font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
+  }
+  
+  #root {
+    font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
+  }
+  
+  * {
+    font-family: inherit !important;
+  }
+  
+  /* Ensure all text elements use Figtree */
+  h1, h2, h3, h4, h5, h6, p, div, span, button, input, textarea, select, label, a {
     font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
   }
   
@@ -18,6 +31,14 @@
   .font-medium { font-weight: 500 !important; }
   .font-semibold { font-weight: 600 !important; }
   .font-bold { font-weight: 700 !important; }
+}
+
+/* Additional layer to override any conflicting styles */
+@layer components {
+  /* Force Figtree on all possible elements */
+  * {
+    font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
+  }
 }
 
 

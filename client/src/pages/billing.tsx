@@ -247,7 +247,7 @@ export default function BillingPage() {
   <title>Invoice ${invoice.id} - ${timestamp}</title>
   <style>
     body {
-      font-family: 'Arial', sans-serif;
+
       margin: 0;
       padding: 20px;
       background-color: #f5f5f5;

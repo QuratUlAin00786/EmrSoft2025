@@ -100,7 +100,7 @@ export default function QuickBooks() {
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+ 
             background: #f8f9fa; 
             padding: 20px; 
             color: #333;
@@ -560,7 +560,7 @@ export default function QuickBooks() {
             <head>
               <title>Cura Payment Management Center</title>
               <style>
-                body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+                body { padding: 20px; background: #f5f5f5; }
                 .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
                 .header { text-align: center; color: #2563eb; margin-bottom: 30px; }
                 .payment-option { padding: 15px; border: 1px solid #ddd; margin: 10px 0; border-radius: 5px; cursor: pointer; }

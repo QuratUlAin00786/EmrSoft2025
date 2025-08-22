@@ -1174,7 +1174,7 @@ export default function VoiceDocumentation() {
                           textarea.style.cssText = `
                             width: 100%;
                             height: 200px;
-                            font-family: monospace;
+                            font-family: 'Figtree', monospace;
                             font-size: 12px;
                             border: 1px solid #ddd;
                             padding: 8px;

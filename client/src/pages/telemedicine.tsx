@@ -1121,7 +1121,7 @@ export default function Telemedicine() {
                               variant="outline"
                               onClick={() => {
                                 const printContent = `
-                                  <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;">
+                                  <div style="max-width: 800px; margin: 0 auto; padding: 20px;">
                                     <h1 style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px;">Consultation Notes</h1>
                                     
                                     <div style="margin: 20px 0;">
