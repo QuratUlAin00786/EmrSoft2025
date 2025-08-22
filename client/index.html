@@ -34,159 +34,10 @@
     <meta name="msapplication-TileColor" content="#6366f1" />
     <meta name="theme-color" content="#6366f1" />
     
-    <!-- Multiple Figtree Loading Strategies -->
+    <!-- Figtree Font Loading -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet"> -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
-    
-    <style>
-      @font-face {
-        font-family: 'FigtreeLocal';
-        src: local('Figtree Regular'), local('Figtree-Regular'),
-             url('/fonts/figtree-400.woff2') format('woff2'),
-             url('https://fonts.gstatic.com/s/figtree/v5/_Xmq-H86tzKDdAPa-KPQZ-AC5i-4icjSJhc.woff2') format('woff2');
-        font-weight: 400;
-        font-style: normal;
-        font-display: swap;
-        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-      }
-      
-      @font-face {
-        font-family: 'FigtreeLocal';
-        src: local('Figtree Medium'), local('Figtree-Medium'),
-             url('/fonts/figtree-500.woff2') format('woff2'),
-             url('https://fonts.gstatic.com/s/figtree/v5/_Xmq-H86tzKDdAPa-KPQZ-AC5i-4icsqJhc.woff2') format('woff2');
-        font-weight: 500;
-        font-style: normal;
-        font-display: swap;
-        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-      }
-      
-      @font-face {
-        font-family: 'FigtreeLocal';
-        src: local('Figtree SemiBold'), local('Figtree-SemiBold'),
-             url('/fonts/figtree-600.woff2') format('woff2'),
-             url('https://fonts.gstatic.com/s/figtree/v5/_Xmq-H86tzKDdAPa-KPQZ-AC5i-4ictyJhc.woff2') format('woff2');
-        font-weight: 600;
-        font-style: normal;
-        font-display: swap;
-        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-      }
-      
-      /* Universal font application with multiple fallback strategies */
-      *, *::before, *::after {
-        font-family: 'Figtree', 'FigtreeLocal', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif !important;
-      }
-      
-      html {
-        font-family: 'Figtree', 'FigtreeLocal', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif !important;
-      }
-      
-      body {
-        font-family: 'Figtree', 'FigtreeLocal', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif !important;
-      }
-      
-      h1, h2, h3, h4, h5, h6 {
-        font-family: 'Figtree', 'FigtreeLocal', sans-serif !important;
-        font-weight: 600 !important;
-      }
-      
-      p, span, div, button, input, textarea, label, a, li, td, th {
-        font-family: 'Figtree', 'FigtreeLocal', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
-      }
-      
-      .font-medium {
-        font-weight: 500 !important;
-      }
-      
-      .font-semibold {
-        font-weight: 600 !important;
-      }
-      
-
-      
-      /* JavaScript-enhanced font loading */
-      .figtree-loaded * {
-        font-family: 'Figtree', 'FigtreeLocal', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
-      }
-    </style>
-    
-    <script>
-      // Aggressive Figtree font loading and application
-      (function() {
-        'use strict';
-        
-        function loadFigtreeFont() {
-          // Force browser to recognize and load Figtree
-          const figtreeRegular = new FontFace('FigtreeForced', 'url(/fonts/figtree-400.woff2)', {
-            weight: '400',
-            style: 'normal',
-            display: 'swap'
-          });
-          
-          const figtreeMedium = new FontFace('FigtreeForced', 'url(/fonts/figtree-500.woff2)', {
-            weight: '500', 
-            style: 'normal',
-            display: 'swap'
-          });
-          
-          const figtreeSemiBold = new FontFace('FigtreeForced', 'url(/fonts/figtree-600.woff2)', {
-            weight: '600',
-            style: 'normal', 
-            display: 'swap'
-          });
-          
-          // Load all font faces
-          Promise.all([
-            figtreeRegular.load(),
-            figtreeMedium.load(),
-            figtreeSemiBold.load()
-          ]).then(function(fonts) {
-            // Add fonts to document
-            fonts.forEach(font => document.fonts.add(font));
-            
-            // Apply Figtree class to body
-            document.documentElement.classList.add('figtree-loaded');
-            
-            // Force style recalculation
-            document.body.style.fontFamily = "'Figtree', 'FigtreeForced', 'FigtreeLocal', system-ui, sans-serif";
-            
-            // Force repaint of all elements
-            const allElements = document.querySelectorAll('*');
-            allElements.forEach(el => {
-              el.style.fontFamily = "'Figtree', 'FigtreeForced', 'FigtreeLocal', system-ui, sans-serif";
-            });
-            
-            console.log('✅ Figtree fonts loaded and applied successfully');
-            
-            // Additional debug information
-            console.log('🔍 Font status:', {
-              documentFonts: document.fonts.size,
-              computedFontFamily: getComputedStyle(document.body).fontFamily,
-              figtreeInFamily: getComputedStyle(document.body).fontFamily.includes('Figtree')
-            });
-          }).catch(function(error) {
-            console.warn('❌ Figtree font loading failed:', error);
-            
-            // Fallback: Apply system fonts
-            document.body.style.fontFamily = "system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
-          });
-        }
-        
-        // Load fonts when DOM is ready
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', loadFigtreeFont);
-        } else {
-          loadFigtreeFont();
-        }
-        
-        // Reapply fonts after page loads
-        window.addEventListener('load', function() {
-          setTimeout(loadFigtreeFont, 100);
-        });
-      })();
-    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     
     <!-- Favicon and Icons -->
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=2" />
@@ -200,6 +51,5 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-
   </body>
 </html>
