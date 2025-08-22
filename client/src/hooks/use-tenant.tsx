@@ -20,7 +20,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     const subdomain = hostname.split('.')[0];
     
     // For development, we'll use a default tenant
-    if (hostname === 'localhost' || hostname.includes('replit')) {
+    if (hostname === 'localhost' || hostname.includes('repl.co')) {
       setTenant({
         id: 1,
         name: "Demo Healthcare Clinic",
