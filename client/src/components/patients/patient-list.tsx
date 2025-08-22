@@ -43,7 +43,7 @@ function getRiskLevelColor(riskLevel: string) {
 
 function getRiskLevelBgColor(riskLevel: string) {
   switch (riskLevel?.toLowerCase()) {
-    case 'low': return '#E0E1F4';        // Mist
+    case 'low': return '#9B9EAF';        // Steel
     case 'medium': return '#7279FB';     // Electric Lilac  
     case 'high': return '#4A7DFF';       // Bluewave
     case 'critical': return '#C073FF';   // Electric Violet
