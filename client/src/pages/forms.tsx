@@ -2662,39 +2662,42 @@ export default function Forms() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-[hsl(var(--cura-mist))] dark:bg-[hsl(var(--cura-midnight))]">
+    <div className="h-screen flex flex-col" style={{ backgroundColor: '#E0E1F4' }}>
       {/* Scrollable Content Wrapper */}
       <div className="flex-1 overflow-y-auto">
-        {/* Top Header - medical theme colors */}
-        <div className="bg-white dark:bg-[hsl(var(--cura-midnight))] border-b border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))] px-3 py-2 flex-shrink-0">
+        {/* Top Header - CURA BRAND COLORS */}
+        <div className="px-3 py-2 flex-shrink-0" style={{ backgroundColor: '#4A7DFF', borderBottom: '1px solid #7279FB' }}>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => toast({ title: "Letters", description: "Navigating back to letters list." })}>
+            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs text-white hover:bg-white hover:text-[#4A7DFF]" 
+                    onClick={() => toast({ title: "Letters", description: "Navigating back to letters list." })}>
               <ArrowLeft className="h-3 w-3 mr-1" />
               <span>Letters</span>
             </Button>
-            <Button className="bg-[hsl(var(--cura-mint-drift))] hover:bg-[hsl(var(--cura-mint-drift),0.8)] text-black text-xs px-3 py-1 h-6" onClick={handlePreview}>
+            <Button className="text-xs px-3 py-1 h-6 text-white" 
+                    style={{ backgroundColor: '#6CFFEB', color: '#162B61' }}
+                    onClick={handlePreview}>
               Save and preview
             </Button>
-            <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={handleSaveAsDraft}>
+            <Button variant="outline" size="sm" className="h-6 px-2 text-xs text-white border-white hover:bg-white hover:text-[#4A7DFF]" onClick={handleSaveAsDraft}>
               Save as draft
             </Button>
           </div>
-          <div className="text-xs text-[hsl(var(--cura-steel))] dark:text-[hsl(var(--cura-steel))]">Letter body</div>
+          <div className="text-xs text-white">Letter body</div>
           <div className="flex items-center space-x-2">
-            <span className="text-xs text-[hsl(var(--cura-steel))] dark:text-[hsl(var(--cura-steel))] cursor-pointer">Select Patient...</span>
-            <span className="text-xs text-[hsl(var(--cura-steel))] dark:text-[hsl(var(--cura-steel))] cursor-pointer">New Chris...</span>
-            <span className="text-xs text-[hsl(var(--cura-steel))] dark:text-[hsl(var(--cura-steel))] cursor-pointer">Share this...</span>
+            <span className="text-xs text-white cursor-pointer hover:text-[#6CFFEB]">Select Patient...</span>
+            <span className="text-xs text-white cursor-pointer hover:text-[#6CFFEB]">New Chris...</span>
+            <span className="text-xs text-white cursor-pointer hover:text-[#6CFFEB]">Share this...</span>
           </div>
         </div>
       </div>
 
       {/* Form Fields Section - Collapsible */}
-      <div className="bg-[hsl(var(--cura-mist))] dark:bg-[hsl(var(--cura-midnight))] border-b border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))]">
+      <div style={{ backgroundColor: '#7279FB', borderBottom: '1px solid #4A7DFF' }}>
         {/* Toggle Header */}
         <div className="px-4 py-2 flex items-center justify-between cursor-pointer" onClick={() => setShowFormFields(!showFormFields)}>
-          <span className="text-sm font-medium text-[hsl(var(--cura-midnight))] dark:text-white">Letter Details</span>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+          <span className="text-sm font-medium text-white">Letter Details</span>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-white hover:bg-white hover:text-[#7279FB]">
             {showFormFields ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </Button>
         </div>
