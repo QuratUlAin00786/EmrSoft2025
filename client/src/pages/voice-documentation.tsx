@@ -994,7 +994,7 @@ export default function VoiceDocumentation() {
                       style={{ 
                         backgroundColor: '#4A7DFF', 
                         borderColor: '#4A7DFF',
-                        color: 'white',
+                        color: 'black',
                         fontWeight: '600'
                       }}
                       onMouseEnter={(e) => {
@@ -1019,6 +1019,10 @@ export default function VoiceDocumentation() {
                       variant="outline"
                       onClick={() => setCurrentTranscript("")}
                       disabled={!currentTranscript}
+                      style={{ 
+                        color: 'black',
+                        fontWeight: '600'
+                      }}
                     >
                       <X className="w-4 h-4 mr-1" />
                       Clear
