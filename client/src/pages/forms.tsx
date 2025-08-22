@@ -2672,23 +2672,23 @@ export default function Forms() {
             <Button 
               className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
               style={{ 
-                backgroundColor: '#162B61', 
-                color: 'white',
-                borderColor: '#162B61',
+                backgroundColor: 'white', 
+                color: '#2563EB',
+                borderColor: 'rgba(255,255,255,0.3)',
                 borderRadius: '10px',
-                boxShadow: '0 4px 12px rgba(22,43,97,0.3)'
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#9B9EAF';
-                e.currentTarget.style.borderColor = '#9B9EAF';
+                e.currentTarget.style.backgroundColor = '#F8FAFF';
+                e.currentTarget.style.color = '#1D4ED8';
                 e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(22,43,97,0.4)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#162B61';
-                e.currentTarget.style.borderColor = '#162B61';
+                e.currentTarget.style.backgroundColor = 'white';
+                e.currentTarget.style.color = '#2563EB';
                 e.currentTarget.style.transform = 'translateY(0px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(22,43,97,0.3)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
               }}
               onClick={() => toast({ title: "Letters", description: "Navigating back to letters list." })}
             >
@@ -2701,25 +2701,23 @@ export default function Forms() {
             <Button 
               className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
               style={{ 
-                backgroundColor: '#6CFFEB', 
-                color: '#162B61',
-                borderColor: '#6CFFEB',
+                backgroundColor: 'white', 
+                color: '#2563EB',
+                borderColor: 'rgba(255,255,255,0.3)',
                 borderRadius: '10px',
-                boxShadow: '0 4px 12px rgba(108,255,235,0.3)'
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#7279FB';
-                e.currentTarget.style.color = 'white';
-                e.currentTarget.style.borderColor = '#7279FB';
+                e.currentTarget.style.backgroundColor = '#F8FAFF';
+                e.currentTarget.style.color = '#1D4ED8';
                 e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(114,121,251,0.4)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#6CFFEB';
-                e.currentTarget.style.color = '#162B61';
-                e.currentTarget.style.borderColor = '#6CFFEB';
+                e.currentTarget.style.backgroundColor = 'white';
+                e.currentTarget.style.color = '#2563EB';
                 e.currentTarget.style.transform = 'translateY(0px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(108,255,235,0.3)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
               }}
               onClick={handlePreview}
             >
@@ -2728,23 +2726,23 @@ export default function Forms() {
             <Button 
               className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
               style={{ 
-                backgroundColor: '#7279FB', 
-                color: 'white',
-                borderColor: '#7279FB',
+                backgroundColor: 'white', 
+                color: '#2563EB',
+                borderColor: 'rgba(255,255,255,0.3)',
                 borderRadius: '10px',
-                boxShadow: '0 4px 12px rgba(114,121,251,0.3)'
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#C073FF';
-                e.currentTarget.style.borderColor = '#C073FF';
+                e.currentTarget.style.backgroundColor = '#F8FAFF';
+                e.currentTarget.style.color = '#1D4ED8';
                 e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(192,115,255,0.4)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#7279FB';
-                e.currentTarget.style.borderColor = '#7279FB';
+                e.currentTarget.style.backgroundColor = 'white';
+                e.currentTarget.style.color = '#2563EB';
                 e.currentTarget.style.transform = 'translateY(0px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(114,121,251,0.3)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
               }}
               onClick={handleSaveAsDraft}
             >
