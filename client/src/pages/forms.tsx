@@ -2693,11 +2693,11 @@ export default function Forms() {
       </div>
 
       {/* Form Fields Section - Collapsible */}
-      <div style={{ backgroundColor: '#7279FB', borderBottom: '1px solid #4A7DFF' }}>
+      <div style={{ backgroundColor: 'white', borderBottom: '1px solid #e5e7eb' }}>
         {/* Toggle Header */}
         <div className="px-4 py-2 flex items-center justify-between cursor-pointer" onClick={() => setShowFormFields(!showFormFields)}>
-          <span className="text-sm font-medium text-white">Letter Details</span>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-white hover:bg-white hover:text-[#7279FB]">
+          <span className="text-sm font-medium text-gray-900">Letter Details</span>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-gray-600 hover:bg-gray-100 hover:text-gray-900">
             {showFormFields ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </Button>
         </div>
