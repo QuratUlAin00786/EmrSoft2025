@@ -994,8 +994,11 @@ export default function VoiceDocumentation() {
                       style={{ 
                         backgroundColor: '#4A7DFF', 
                         borderColor: '#4A7DFF',
-                        color: 'black',
-                        fontWeight: '600'
+                        color: 'white',
+                        fontWeight: '700',
+                        fontSize: '14px',
+                        textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+                        border: '2px solid #4A7DFF'
                       }}
                       onMouseEnter={(e) => {
                         if (!e.currentTarget.disabled) {
@@ -1011,7 +1014,7 @@ export default function VoiceDocumentation() {
                       }}
                       className="transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <FileText className="w-4 h-4 mr-1" />
+                      <FileText className="w-4 h-4 mr-1" style={{ filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.3))' }} />
                       Save Note
                     </Button>
                     <Button 
@@ -1020,11 +1023,15 @@ export default function VoiceDocumentation() {
                       onClick={() => setCurrentTranscript("")}
                       disabled={!currentTranscript}
                       style={{ 
+                        backgroundColor: 'white',
+                        borderColor: '#6B7280',
                         color: 'black',
-                        fontWeight: '600'
+                        fontWeight: '700',
+                        fontSize: '14px',
+                        border: '2px solid #6B7280'
                       }}
                     >
-                      <X className="w-4 h-4 mr-1" />
+                      <X className="w-4 h-4 mr-1" style={{ color: 'black' }} />
                       Clear
                     </Button>
                   </div>
