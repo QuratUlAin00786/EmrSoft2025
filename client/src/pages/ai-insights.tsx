@@ -376,7 +376,20 @@ export default function AiInsights() {
                                   status: 'resolved' 
                                 })}
                                 disabled={updateInsightMutation.isPending}
-                                className="bg-medical-green hover:bg-green-600"
+                                style={{ 
+                                  backgroundColor: '#4A7DFF', 
+                                  borderColor: '#4A7DFF',
+                                  color: 'white'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#7279FB';
+                                  e.currentTarget.style.borderColor = '#7279FB';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#4A7DFF';
+                                  e.currentTarget.style.borderColor = '#4A7DFF';
+                                }}
+                                className="transition-all duration-200"
                               >
                                 <CheckCheck className="w-4 h-4 mr-1" />
                                 Mark Resolved
@@ -389,6 +402,20 @@ export default function AiInsights() {
                                   status: 'dismissed' 
                                 })}
                                 disabled={updateInsightMutation.isPending}
+                                style={{ 
+                                  backgroundColor: '#7279FB', 
+                                  borderColor: '#7279FB',
+                                  color: 'white'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#4A7DFF';
+                                  e.currentTarget.style.borderColor = '#4A7DFF';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#7279FB';
+                                  e.currentTarget.style.borderColor = '#7279FB';
+                                }}
+                                className="transition-all duration-200"
                               >
                                 <X className="w-4 h-4 mr-1" />
                                 Dismiss
@@ -398,6 +425,20 @@ export default function AiInsights() {
                                   variant="link" 
                                   size="sm"
                                   onClick={() => setLocation(`/patients/${insight.patientId}`)}
+                                  style={{ 
+                                    backgroundColor: '#4A7DFF', 
+                                    borderColor: '#4A7DFF',
+                                    color: 'white'
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#7279FB';
+                                    e.currentTarget.style.borderColor = '#7279FB';
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#4A7DFF';
+                                    e.currentTarget.style.borderColor = '#4A7DFF';
+                                  }}
+                                  className="transition-all duration-200"
                                 >
                                   View Patient
                                 </Button>
