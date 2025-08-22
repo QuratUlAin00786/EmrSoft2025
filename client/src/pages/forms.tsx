@@ -2740,11 +2740,95 @@ export default function Forms() {
               Save as draft
             </Button>
           </div>
-          <div className="text-sm text-white font-medium">Letter body</div>
+          <Button 
+            size="sm" 
+            className="h-9 px-4 text-sm font-medium shadow-sm transition-all duration-200"
+            style={{ 
+              backgroundColor: 'white', 
+              color: '#2563EB',
+              border: '1px solid white',
+              borderRadius: '8px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#EBF4FF';
+              e.currentTarget.style.color = '#1D4ED8';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'white';
+              e.currentTarget.style.color = '#2563EB';
+              e.currentTarget.style.transform = 'translateY(0px)';
+            }}
+          >
+            Letter body
+          </Button>
           <div className="flex items-center space-x-3">
-            <span className="text-sm text-white cursor-pointer hover:text-blue-100 transition-colors">Select Patient...</span>
-            <span className="text-sm text-white cursor-pointer hover:text-blue-100 transition-colors">New Chris...</span>
-            <span className="text-sm text-white cursor-pointer hover:text-blue-100 transition-colors">Share this...</span>
+            <Button 
+              size="sm" 
+              className="h-9 px-4 text-sm font-medium shadow-sm transition-all duration-200"
+              style={{ 
+                backgroundColor: 'white', 
+                color: '#2563EB',
+                border: '1px solid white',
+                borderRadius: '8px'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#EBF4FF';
+                e.currentTarget.style.color = '#1D4ED8';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'white';
+                e.currentTarget.style.color = '#2563EB';
+                e.currentTarget.style.transform = 'translateY(0px)';
+              }}
+            >
+              Select Patient...
+            </Button>
+            <Button 
+              size="sm" 
+              className="h-9 px-4 text-sm font-medium shadow-sm transition-all duration-200"
+              style={{ 
+                backgroundColor: 'white', 
+                color: '#2563EB',
+                border: '1px solid white',
+                borderRadius: '8px'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#EBF4FF';
+                e.currentTarget.style.color = '#1D4ED8';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'white';
+                e.currentTarget.style.color = '#2563EB';
+                e.currentTarget.style.transform = 'translateY(0px)';
+              }}
+            >
+              New Chris...
+            </Button>
+            <Button 
+              size="sm" 
+              className="h-9 px-4 text-sm font-medium shadow-sm transition-all duration-200"
+              style={{ 
+                backgroundColor: 'white', 
+                color: '#2563EB',
+                border: '1px solid white',
+                borderRadius: '8px'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#EBF4FF';
+                e.currentTarget.style.color = '#1D4ED8';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'white';
+                e.currentTarget.style.color = '#2563EB';
+                e.currentTarget.style.transform = 'translateY(0px)';
+              }}
+            >
+              Share this...
+            </Button>
           </div>
         </div>
       </div>
