@@ -991,7 +991,25 @@ export default function VoiceDocumentation() {
                       variant="default"
                       onClick={saveVoiceNote}
                       disabled={!currentTranscript || !selectedPatient || !selectedNoteType || isRecording}
-                      className="disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                      style={{ 
+                        backgroundColor: '#4A7DFF', 
+                        borderColor: '#4A7DFF',
+                        color: 'white',
+                        fontWeight: '600'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!e.currentTarget.disabled) {
+                          e.currentTarget.style.backgroundColor = '#7279FB';
+                          e.currentTarget.style.borderColor = '#7279FB';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!e.currentTarget.disabled) {
+                          e.currentTarget.style.backgroundColor = '#4A7DFF';
+                          e.currentTarget.style.borderColor = '#4A7DFF';
+                        }
+                      }}
+                      className="transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <FileText className="w-4 h-4 mr-1" />
                       Save Note
