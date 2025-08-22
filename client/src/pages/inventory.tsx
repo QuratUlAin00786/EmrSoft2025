@@ -1246,7 +1246,7 @@ export default function Inventory() {
                         )}
                         <div>
                           <Label className="text-sm font-medium text-gray-600">Stock Value</Label>
-                          <p className="font-bold text-lg text-blue-600">£{selectedItem.stockValue.toFixed(2)}</p>
+                          <p className="font-bold text-lg text-blue-600">£{parseFloat(selectedItem.stockValue.toString()).toFixed(2)}</p>
                         </div>
                       </div>
                     </CardContent>
