@@ -172,6 +172,9 @@ export default function Inventory() {
   const [selectedPO, setSelectedPO] = useState<PurchaseOrder | null>(null);
   const [showPODetailsDialog, setShowPODetailsDialog] = useState(false);
   const [showItemDetailsDialog, setShowItemDetailsDialog] = useState(false);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [selectedPOForEmail, setSelectedPOForEmail] = useState<PurchaseOrder | null>(null);
+  const [emailAddress, setEmailAddress] = useState("");
   const [activeTab, setActiveTab] = useState("item-master");
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -347,15 +350,18 @@ export default function Inventory() {
 
   // Send purchase order email mutation
   const sendEmailMutation = useMutation({
-    mutationFn: async (purchaseOrderId: number) => {
-      await apiRequest("POST", `/api/inventory/purchase-orders/${purchaseOrderId}/send-email`);
+    mutationFn: async ({ purchaseOrderId, email }: { purchaseOrderId: number; email: string }) => {
+      await apiRequest("POST", `/api/inventory/purchase-orders/${purchaseOrderId}/send-email`, { email });
     },
     onSuccess: () => {
       toast({
         title: "Email Sent",
-        description: "Purchase order has been sent to Halo Pharmacy successfully.",
+        description: "Purchase order has been sent successfully.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/inventory/purchase-orders"] });
+      setShowEmailDialog(false);
+      setEmailAddress("");
+      setSelectedPOForEmail(null);
     },
     onError: (error: any) => {
       toast({
@@ -365,6 +371,29 @@ export default function Inventory() {
       });
     },
   });
+
+  // Handle send email button click
+  const handleSendEmail = (po: PurchaseOrder) => {
+    setSelectedPOForEmail(po);
+    setEmailAddress(po.supplierEmail || "");
+    setShowEmailDialog(true);
+  };
+
+  // Confirm and send email
+  const confirmSendEmail = () => {
+    if (!selectedPOForEmail || !emailAddress.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+    sendEmailMutation.mutate({ 
+      purchaseOrderId: selectedPOForEmail.id, 
+      email: emailAddress.trim() 
+    });
+  };
 
   // Delete purchase order mutation
   const deletePurchaseOrderMutation = useMutation({
@@ -934,7 +963,7 @@ export default function Inventory() {
                                 </Button>
                                 <Button 
                                   size="sm" 
-                                  onClick={() => sendEmailMutation.mutate(po.id)}
+                                  onClick={() => handleSendEmail(po)}
                                   disabled={sendEmailMutation.isPending}
                                   variant={po.emailSent ? "outline" : "default"}
                                 >
@@ -1232,23 +1261,22 @@ export default function Inventory() {
 
                 {/* Action Buttons */}
                 <div className="flex justify-end space-x-2 pt-4 border-t">
-                  {!selectedPO.emailSent && (
-                    <Button 
-                      onClick={() => {
-                        sendEmailMutation.mutate(selectedPO.id);
-                        setShowPODetailsDialog(false);
-                      }}
-                      disabled={sendEmailMutation.isPending}
-                      className="flex items-center"
-                    >
-                      {sendEmailMutation.isPending ? (
-                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <FileText className="h-4 w-4 mr-2" />
-                      )}
-                      Send to Supplier
-                    </Button>
-                  )}
+                  <Button 
+                    onClick={() => {
+                      handleSendEmail(selectedPO);
+                      setShowPODetailsDialog(false);
+                    }}
+                    disabled={sendEmailMutation.isPending}
+                    className="flex items-center"
+                    variant={selectedPO.emailSent ? "outline" : "default"}
+                  >
+                    {sendEmailMutation.isPending ? (
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <FileText className="h-4 w-4 mr-2" />
+                    )}
+                    {selectedPO.emailSent ? "Resend to Supplier" : "Send to Supplier"}
+                  </Button>
                   <Button variant="outline" onClick={() => setShowPODetailsDialog(false)}>
                     Close
                   </Button>
@@ -1458,6 +1486,71 @@ export default function Inventory() {
                   </Button>
                   <Button variant="outline" onClick={() => setShowItemDetailsDialog(false)}>
                     Close
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+
+        {/* Email Dialog */}
+        {showEmailDialog && selectedPOForEmail && (
+          <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Send Purchase Order
+                </DialogTitle>
+                <DialogDescription>
+                  Enter the email address to send purchase order {selectedPOForEmail.poNumber}
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="email" className="text-sm font-medium">
+                    Email Address
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="supplier@example.com"
+                    value={emailAddress}
+                    onChange={(e) => setEmailAddress(e.target.value)}
+                    className="mt-1"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Purchase order will be sent to this email address
+                  </p>
+                </div>
+
+                <div className="flex justify-end space-x-2 pt-4 border-t">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setShowEmailDialog(false);
+                      setEmailAddress("");
+                      setSelectedPOForEmail(null);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={confirmSendEmail}
+                    disabled={sendEmailMutation.isPending || !emailAddress.trim()}
+                  >
+                    {sendEmailMutation.isPending ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="h-4 w-4 mr-2" />
+                        Send Email
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>
