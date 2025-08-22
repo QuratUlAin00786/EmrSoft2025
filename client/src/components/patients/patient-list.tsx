@@ -44,8 +44,8 @@ function getRiskLevelColor(riskLevel: string) {
 function getRiskLevelBgColor(riskLevel: string) {
   switch (riskLevel?.toLowerCase()) {
     case 'low': return '#6CFFEB';        // Mint Drift
-    case 'medium': return '#4A7DFF';     // Bluewave  
-    case 'high': return '#7279FB';       // Electric Lilac
+    case 'medium': return '#7279FB';     // Electric Lilac  
+    case 'high': return '#4A7DFF';       // Bluewave
     case 'critical': return '#C073FF';   // Electric Violet
     default: return '#9B9EAF';           // Steel
   }
@@ -60,11 +60,11 @@ function getConditionBgColor(condition?: string) {
   
   const lowerCondition = condition.toLowerCase();
   if (lowerCondition.includes('diabetes')) return '#C073FF';        // Electric Violet
-  if (lowerCondition.includes('hypertension') || lowerCondition.includes('blood pressure')) return '#7279FB';  // Electric Lilac
+  if (lowerCondition.includes('hypertension') || lowerCondition.includes('blood pressure')) return '#6CFFEB';  // Mint Drift
   if (lowerCondition.includes('asthma') || lowerCondition.includes('respiratory')) return '#4A7DFF';  // Bluewave
-  if (lowerCondition.includes('heart') || lowerCondition.includes('cardiac')) return '#6CFFEB';  // Mint Drift
+  if (lowerCondition.includes('heart') || lowerCondition.includes('cardiac')) return '#7279FB';  // Electric Lilac
   
-  return '#9B9EAF';  // Steel
+  return '#162B61';  // Midnight for other conditions
 }
 
 interface PatientListProps {
@@ -396,10 +396,10 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                                           priority === 'high' ? 'text-white' :
                                           priority === 'medium' ? 'text-white' :
                                           'text-white';
-                          const flagBgColor = priority === 'urgent' ? '#C073FF' :
-                                           priority === 'high' ? '#7279FB' :
-                                           priority === 'medium' ? '#4A7DFF' :
-                                           '#6CFFEB';
+                          const flagBgColor = priority === 'urgent' ? '#C073FF' :    // Electric Violet
+                                           priority === 'high' ? '#6CFFEB' :     // Mint Drift  
+                                           priority === 'medium' ? '#7279FB' :   // Electric Lilac
+                                           '#4A7DFF';
                           return (
                             <Badge 
                               key={index} 
