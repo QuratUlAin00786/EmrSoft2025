@@ -2668,24 +2668,62 @@ export default function Forms() {
         {/* Top Header - CURA BRAND COLORS */}
         <div className="px-3 py-2 flex-shrink-0" style={{ backgroundColor: '#4A7DFF', borderBottom: '1px solid #7279FB' }}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs text-white hover:bg-white hover:text-[#4A7DFF]" 
-                    onClick={() => toast({ title: "Letters", description: "Navigating back to letters list." })}>
-              <ArrowLeft className="h-3 w-3 mr-1" />
+          <div className="flex items-center space-x-3">
+            <Button 
+              size="sm" 
+              className="h-8 px-4 text-xs font-medium text-white shadow-sm"
+              style={{ 
+                backgroundColor: '#162B61', 
+                border: '1px solid #162B61',
+                borderRadius: '6px'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#9B9EAF';
+                e.currentTarget.style.borderColor = '#9B9EAF';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#162B61';
+                e.currentTarget.style.borderColor = '#162B61';
+              }}
+              onClick={() => toast({ title: "Letters", description: "Navigating back to letters list." })}
+            >
+              <ArrowLeft className="h-3 w-3 mr-2" />
               <span>Letters</span>
             </Button>
-            <Button className="text-xs px-3 py-1 h-6 text-white" 
-                    style={{ backgroundColor: '#6CFFEB', color: '#162B61' }}
-                    onClick={handlePreview}>
+            <Button 
+              size="sm" 
+              className="h-8 px-4 text-xs font-medium text-white shadow-sm"
+              style={{ 
+                backgroundColor: '#6CFFEB', 
+                color: '#162B61',
+                border: '1px solid #6CFFEB',
+                borderRadius: '6px'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#7279FB';
+                e.currentTarget.style.color = 'white';
+                e.currentTarget.style.borderColor = '#7279FB';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#6CFFEB';
+                e.currentTarget.style.color = '#162B61';
+                e.currentTarget.style.borderColor = '#6CFFEB';
+              }}
+              onClick={handlePreview}
+            >
               Save and preview
             </Button>
             <Button 
               size="sm" 
-              className="h-6 px-2 text-xs text-white"
-              style={{ backgroundColor: '#7279FB', border: '1px solid #7279FB' }}
+              className="h-8 px-4 text-xs font-medium text-white shadow-sm"
+              style={{ 
+                backgroundColor: '#7279FB', 
+                border: '1px solid #7279FB',
+                borderRadius: '6px'
+              }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#9B9EAF';
-                e.currentTarget.style.borderColor = '#9B9EAF';
+                e.currentTarget.style.backgroundColor = '#C073FF';
+                e.currentTarget.style.borderColor = '#C073FF';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = '#7279FB';
