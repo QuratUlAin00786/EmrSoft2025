@@ -268,7 +268,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: '#4A7DFF' }}></div>
       </div>
     );
   }
@@ -325,7 +325,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3">
                       <Avatar className="h-12 w-12">
-                        <AvatarFallback className="bg-medical-blue text-white font-semibold">
+                        <AvatarFallback className="text-white font-semibold" style={{ backgroundColor: '#4A7DFF' }}>
                           {getPatientInitials(patient.firstName, patient.lastName)}
                         </AvatarFallback>
                       </Avatar>
@@ -465,7 +465,8 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                       size="default"
                       variant="outline"
                       onClick={() => setLocation(`/patients/${patient.id}/records`)}
-                      className="flex-1 border-medical-blue text-medical-blue hover:bg-medical-blue hover:text-white text-sm dark:text-white dark:border-white dark:hover:bg-white dark:hover:text-black"
+                      className="flex-1 text-sm text-white"
+                      style={{ borderColor: '#4A7DFF', backgroundColor: '#4A7DFF' }}
                     >
                       <FileText className="h-4 w-4 mr-1" />
                       Records
@@ -473,7 +474,8 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                     <Button 
                       size="default"
                       onClick={() => handleBookAppointment(patient)}
-                      className="flex-1 bg-medical-blue hover:bg-blue-700 text-sm"
+                      className="flex-1 text-sm text-white"
+                      style={{ backgroundColor: '#7279FB' }}
                     >
                       <Calendar className="h-4 w-4 mr-1" />
                       Book

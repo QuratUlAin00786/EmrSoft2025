@@ -210,7 +210,8 @@ export default function Patients() {
           </div>
           <Button 
             onClick={() => setShowPatientModal(true)}
-            className="bg-medical-blue hover:bg-blue-700"
+            className="text-white"
+            style={{ backgroundColor: '#4A7DFF' }}
           >
             <UserPlus className="h-4 w-4 mr-2" />
             Add Patient
