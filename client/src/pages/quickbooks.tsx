@@ -528,16 +528,72 @@ export default function QuickBooks() {
   const handleTaxCalculator = async () => {
     setIsLoading("tax-calculator");
     try {
-      // Simulate tax calculation
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      const taxAmount = (accountingSummary.netIncome * 0.25).toFixed(2);
+      // Simulate comprehensive tax calculation
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const quarterlyTax = (accountingSummary.netIncome * 0.25).toFixed(2);
+      const annualProjection = (accountingSummary.netIncome * 4 * 0.25).toFixed(2);
+      const federalTax = (accountingSummary.netIncome * 0.22).toFixed(2);
+      const stateTax = (accountingSummary.netIncome * 0.03).toFixed(2);
+      
+      // Create comprehensive tax calculation popup
+      const taxResults = `
+📊 TAX CALCULATION COMPLETE
+
+💰 Current Quarter:
+• Net Income: $${accountingSummary.netIncome.toLocaleString()}
+• Federal Tax (22%): $${federalTax}
+• State Tax (3%): $${stateTax}
+• Total Quarterly Tax: $${quarterlyTax}
+
+📈 Annual Projection:
+• Projected Annual Tax: $${annualProjection}
+• Effective Tax Rate: 25%
+
+💡 Recommendations:
+• Set aside $${Math.ceil(quarterlyTax / 3)} weekly for taxes
+• Consider quarterly payments to avoid penalties
+• Review deductible expenses to optimize tax liability
+      `.trim();
+
+      // Show detailed results in toast
       toast({
-        title: "Tax Calculation Complete",
-        description: `Estimated quarterly tax: $${taxAmount} (25% of net income)`,
+        title: "🧮 Tax Calculation Complete",
+        description: `Quarterly tax: $${quarterlyTax} | Annual projection: $${annualProjection}`,
       });
+
+      // Also show detailed popup for comprehensive view
+      if (window.confirm(`${taxResults}\n\nWould you like to export this tax calculation report?`)) {
+        // Export functionality
+        const exportData = {
+          calculationDate: new Date().toISOString(),
+          netIncome: accountingSummary.netIncome,
+          quarterlyTax: quarterlyTax,
+          annualProjection: annualProjection,
+          federalTax: federalTax,
+          stateTax: stateTax,
+          effectiveRate: "25%"
+        };
+        
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        const exportFileDefaultName = `tax-calculation-${new Date().toISOString().split('T')[0]}.json`;
+        
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+        
+        toast({
+          title: "Export Complete",
+          description: "Tax calculation report has been downloaded.",
+        });
+      }
+      
     } catch (error) {
+      console.error("Tax calculation error:", error);
       toast({
-        title: "Calculation Failed",
+        title: "Calculation Failed", 
         description: "Failed to calculate taxes. Please try again.",
         variant: "destructive",
       });
