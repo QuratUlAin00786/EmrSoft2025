@@ -838,15 +838,14 @@ export default function Inventory() {
                                   <Eye className="h-3 w-3 mr-1" />
                                   View
                                 </Button>
-                                {!po.emailSent && (
-                                  <Button 
-                                    size="sm" 
-                                    onClick={() => sendEmailMutation.mutate(po.id)}
-                                    disabled={sendEmailMutation.isPending}
-                                  >
-                                    Send
-                                  </Button>
-                                )}
+                                <Button 
+                                  size="sm" 
+                                  onClick={() => sendEmailMutation.mutate(po.id)}
+                                  disabled={sendEmailMutation.isPending}
+                                  variant={po.emailSent ? "outline" : "default"}
+                                >
+                                  {po.emailSent ? "Resend" : "Send"}
+                                </Button>
                                 <Button 
                                   size="sm" 
                                   variant="destructive"
