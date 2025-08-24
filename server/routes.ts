@@ -827,7 +827,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("=== MEDICAL HISTORY UPDATE DEBUG ===");
       console.log("Patient ID:", patientId);
-      console.log("Received data:", JSON.stringify(medicalHistoryUpdate, null, 2));
+      console.log("Received data familyHistory:", JSON.stringify(medicalHistoryUpdate.familyHistory, null, 2));
 
       const patient = await storage.getPatient(patientId, req.tenant!.id);
       if (!patient) {

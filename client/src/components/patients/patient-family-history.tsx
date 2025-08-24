@@ -477,7 +477,10 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                         </Select>
                       </div>
                       <div className="flex items-end">
-                        <Button onClick={addFamilyCondition} className="w-full">
+                        <Button onClick={() => {
+                          alert(`Adding condition: ${newCondition.relative} - ${newCondition.condition}`);
+                          addFamilyCondition();
+                        }} className="w-full">
                           <Plus className="h-4 w-4 mr-2" />
                           Add
                         </Button>
