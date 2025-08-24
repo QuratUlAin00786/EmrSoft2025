@@ -297,6 +297,16 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
     if (!updatedHistory[relativeKey]) updatedHistory[relativeKey] = [];
     updatedHistory[relativeKey].push(condition);
 
+    // Save to database immediately
+    updateMedicalHistoryMutation.mutate({
+      allergies: patient.medicalHistory?.allergies || [],
+      chronicConditions: patient.medicalHistory?.chronicConditions || [],
+      medications: patient.medicalHistory?.medications || [],
+      familyHistory: updatedHistory,
+      socialHistory: patient.medicalHistory?.socialHistory || {},
+      immunizations: patient.medicalHistory?.immunizations || []
+    });
+
     onUpdate({
       medicalHistory: {
         ...patient.medicalHistory,
