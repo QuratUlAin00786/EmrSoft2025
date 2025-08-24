@@ -216,7 +216,9 @@ export default function Patients() {
               key={patient.id}
               patient={patient} 
               onUpdate={(updates) => {
-                setSelectedPatient({ ...selectedPatient, ...updates });
+                const updatedPatient = { ...patient, ...updates };
+                setPatient(updatedPatient);
+                setSelectedPatient(updatedPatient);
               }} 
             />
           </div>
