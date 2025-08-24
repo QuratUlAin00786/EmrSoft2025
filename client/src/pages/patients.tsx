@@ -252,18 +252,6 @@ export default function Patients() {
         </div>
 
         <PatientList />
-        
-        {selectedPatient && (
-          <div className="grid gap-6 lg:grid-cols-2 mt-6">
-            <ConsultationNotes patientId={selectedPatient.id} />
-            <PatientFamilyHistory 
-              patient={selectedPatient} 
-              onUpdate={(updates) => {
-                setSelectedPatient({ ...selectedPatient, ...updates });
-              }} 
-            />
-          </div>
-        )}
       </div>
 
       <PatientModal 
