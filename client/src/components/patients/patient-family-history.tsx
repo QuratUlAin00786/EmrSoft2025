@@ -304,10 +304,12 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
 
     // Determine which relative category this belongs to
     let relativeCategory: 'father' | 'mother' | 'siblings' | 'grandparents' = 'father';
-    const relativeText = newCondition.relative.toLowerCase();
+    const relativeText = newCondition.relative.toLowerCase().trim();
     
-    if (relativeText.includes('mother')) {
+    if (relativeText === 'mother') {
       relativeCategory = 'mother';
+    } else if (relativeText === 'father') {
+      relativeCategory = 'father';
     } else if (relativeText.includes('sibling') || relativeText.includes('sister') || relativeText.includes('brother')) {
       relativeCategory = 'siblings';
     } else if (relativeText.includes('grandparent') || relativeText.includes('grandmother') || relativeText.includes('grandfather')) {
