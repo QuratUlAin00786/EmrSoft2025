@@ -1301,7 +1301,7 @@ export default function Inventory() {
                       <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">Email Status</Label>
                       <div className="font-medium">
                         {selectedPO.emailSent ? (
-                          <Badge variant="default" className="text-green-700">
+                          <Badge variant="default" className="text-white">
                             <CheckCircle className="h-3 w-3 mr-1" />
                             Sent
                           </Badge>
