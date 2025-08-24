@@ -816,7 +816,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update patient medical history
-  app.patch("/api/patients/:id/medical-history", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+  app.patch("/api/patients/:id/medical-history", authMiddleware, requireRole(["admin", "doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
       const patientId = parseInt(req.params.id);
       const medicalHistoryUpdate = req.body;
