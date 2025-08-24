@@ -859,11 +859,7 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
           </div>
         ) : (
           <div className="space-y-4">
-            {console.log("🔍 RENDERING MEDICAL RECORDS:", medicalRecords.length, "records")}
-            {console.log("🔍 RECORD IDs:", medicalRecords.map(r => r.id))}
-            {(medicalRecords as any[]).map((record: any, index: number) => {
-              console.log(`🔍 RENDERING RECORD ${index}:`, record.id, record.title);
-              return (
+            {(medicalRecords as any[]).map((record: any) => (
               <div key={record.id} className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
@@ -960,8 +956,7 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                   </div>
                 )}
               </div>
-              );
-            })}
+            ))}
           </div>
         )}
       </CardContent>
