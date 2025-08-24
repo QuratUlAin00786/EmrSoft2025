@@ -132,7 +132,7 @@ export default function GDPRCompliance() {
       
       return apiRequest("POST", "/api/gdpr/data-request", {
         ...data,
-        dueDate: dueDate.toISOString(),
+        dueDate: dueDate,
       });
     },
     onSuccess: () => {
