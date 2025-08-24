@@ -815,9 +815,14 @@ export default function Inventory() {
                                   <DropdownMenuItem 
                                     onClick={() => deleteItem(item)}
                                     className="text-red-600 focus:text-red-600"
+                                    disabled={deleteItemMutation.isPending}
                                   >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Delete Item
+                                    {deleteItemMutation.isPending ? (
+                                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <Trash2 className="mr-2 h-4 w-4" />
+                                    )}
+                                    {deleteItemMutation.isPending ? "Deleting..." : "Delete Item"}
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
