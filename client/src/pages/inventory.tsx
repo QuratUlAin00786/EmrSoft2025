@@ -259,13 +259,21 @@ export default function Inventory() {
 
   // Delete item function with confirmation
   const deleteItem = (item: InventoryItem) => {
-    const confirmDelete = window.confirm(
-      `Are you sure you want to delete "${item.name}" (SKU: ${item.sku})?\n\nThis action cannot be undone and will permanently remove the item from your inventory database.`
-    );
+    console.log("Delete item clicked for:", item.name, "ID:", item.id);
     
-    if (confirmDelete) {
-      deleteItemMutation.mutate(item.id);
-    }
+    // Add a small delay to ensure the dropdown closes properly
+    setTimeout(() => {
+      const confirmDelete = window.confirm(
+        `Are you sure you want to delete "${item.name}" (SKU: ${item.sku})?\n\nThis action cannot be undone and will permanently remove the item from your inventory database.`
+      );
+      
+      console.log("User confirmed deletion:", confirmDelete);
+      
+      if (confirmDelete) {
+        console.log("Calling deleteItemMutation.mutate with ID:", item.id);
+        deleteItemMutation.mutate(item.id);
+      }
+    }, 100);
   };
 
   // Generate Item Report function
@@ -813,8 +821,12 @@ export default function Inventory() {
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem 
-                                    onClick={() => deleteItem(item)}
-                                    className="text-red-600 focus:text-red-600"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      deleteItem(item);
+                                    }}
+                                    className="text-red-600 focus:text-red-600 hover:text-red-700 hover:bg-red-50"
                                     disabled={deleteItemMutation.isPending}
                                   >
                                     {deleteItemMutation.isPending ? (
