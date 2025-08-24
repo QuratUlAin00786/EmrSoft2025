@@ -286,6 +286,11 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
   const addFamilyCondition = () => {
     if (!newCondition.relative || !newCondition.condition) return;
 
+    console.log("=== FRONTEND DEBUG ===");
+    console.log("newCondition.relative:", newCondition.relative);
+    console.log("newCondition.condition:", newCondition.condition);
+    console.log("newCondition.ageOfOnset:", newCondition.ageOfOnset);
+
     const condition = `${newCondition.condition}${newCondition.ageOfOnset ? ` (age ${newCondition.ageOfOnset})` : ''}${newCondition.notes ? ` - ${newCondition.notes}` : ''}`;
     
     const updatedHistory = { ...familyHistory };
@@ -294,8 +299,16 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                        newCondition.relative?.toLowerCase().includes('sibling') || newCondition.relative?.toLowerCase().includes('sister') || newCondition.relative?.toLowerCase().includes('brother') ? 'siblings' :
                        'grandparents';
 
+    console.log("relativeKey:", relativeKey);
+    console.log("Current familyHistory:", familyHistory);
+    console.log("updatedHistory before:", updatedHistory);
+
     if (!updatedHistory[relativeKey]) updatedHistory[relativeKey] = [];
     updatedHistory[relativeKey].push(condition);
+
+    console.log("updatedHistory after:", updatedHistory);
+    console.log("Final mutation data familyHistory:", updatedHistory);
+    console.log("=== END FRONTEND DEBUG ===");
 
     // Save to database immediately
     updateMedicalHistoryMutation.mutate({
