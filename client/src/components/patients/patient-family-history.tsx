@@ -408,23 +408,12 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
             </p>
           </div>
           <Dialog open={isEditing} onOpenChange={setIsEditing}>
-            <div className="space-x-2">
-              <DialogTrigger asChild>
-                <Button variant="outline">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit History
-                </Button>
-              </DialogTrigger>
-              <button
-                onClick={() => {
-                  console.log("🔥 TEST BUTTON CLICKED - WORKING!");
-                  alert("Test button works!");
-                }}
-                className="px-4 py-2 bg-red-500 text-white rounded"
-              >
-                TEST
-              </button>
-            </div>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Edit className="h-4 w-4 mr-2" />
+                Edit History
+              </Button>
+            </DialogTrigger>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Complete Medical History</DialogTitle>
@@ -501,17 +490,9 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                         </Select>
                       </div>
                       <div className="flex items-end">
-                        <button 
-                          type="button"
-                          onClick={(e) => {
-                            console.log("🟢 NATIVE BUTTON CLICKED!");
-                            console.log("Event:", e);
-                            console.log("newCondition state:", newCondition);
-                            
-                            if (!newCondition.relative || !newCondition.condition) {
-                              console.log("❌ Missing data:", newCondition);
-                              return;
-                            }
+                        <Button 
+                          onClick={() => {
+                            if (!newCondition.relative || !newCondition.condition) return;
 
                             const conditionText = `${newCondition.condition}${newCondition.ageOfOnset ? ` (age ${newCondition.ageOfOnset})` : ''}${newCondition.notes ? ` - ${newCondition.notes}` : ''}`;
                             
@@ -523,12 +504,12 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                             };
 
                             let relativeCategory: 'father' | 'mother' | 'siblings' | 'grandparents' = 'father';
-                            const relativeText = newCondition.relative.toLowerCase();
+                            const relativeText = newCondition.relative!.toLowerCase();
                             
                             if (relativeText.includes('mother')) {
                               relativeCategory = 'mother';
                             } else if (relativeText.includes('sibling') || relativeText.includes('sister') || relativeText.includes('brother')) {
-                              relativeCategory = 'siblings';
+                              relativeCategory = 'siblings';  
                             } else if (relativeText.includes('grandparent') || relativeText.includes('grandmother') || relativeText.includes('grandfather')) {
                               relativeCategory = 'grandparents';
                             }
@@ -541,8 +522,6 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                             };
 
                             updatedFamilyHistory[relativeCategory].push(conditionText);
-
-                            console.log("🚀 SENDING TO SERVER:", updatedFamilyHistory);
 
                             updateMedicalHistoryMutation.mutate({
                               allergies: patient.medicalHistory?.allergies || [],
@@ -562,11 +541,11 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
 
                             setNewCondition({ relative: "", condition: "", severity: "mild" });
                           }}
-                          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md flex items-center justify-center gap-2"
+                          className="w-full"
                         >
-                          <Plus className="h-4 w-4" />
+                          <Plus className="h-4 w-4 mr-2" />
                           Add
-                        </button>
+                        </Button>
                       </div>
                     </div>
                     <div>
