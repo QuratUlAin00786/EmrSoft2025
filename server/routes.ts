@@ -710,7 +710,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         medicalHistory: z.object({
           allergies: z.array(z.string()).optional(),
           chronicConditions: z.array(z.string()).optional(),
-          medications: z.array(z.string()).optional()
+          medications: z.array(z.string()).optional(),
+          familyHistory: z.object({
+            father: z.array(z.string()).optional(),
+            mother: z.array(z.string()).optional(),
+            siblings: z.array(z.string()).optional(),
+            grandparents: z.array(z.string()).optional()
+          }).optional(),
+          socialHistory: z.object({
+            smoking: z.object({
+              status: z.enum(["never", "former", "current"]).optional(),
+              packsPerDay: z.number().optional(),
+              yearsSmoked: z.number().optional(),
+              quitDate: z.string().optional()
+            }).optional(),
+            alcohol: z.object({
+              status: z.enum(["never", "occasional", "moderate", "heavy"]).optional(),
+              drinksPerWeek: z.number().optional()
+            }).optional(),
+            drugs: z.object({
+              status: z.enum(["never", "former", "current"]).optional(),
+              substances: z.array(z.string()).optional(),
+              notes: z.string().optional()
+            }).optional(),
+            occupation: z.string().optional(),
+            maritalStatus: z.enum(["single", "married", "divorced", "widowed", "partner"]).optional(),
+            education: z.string().optional(),
+            exercise: z.object({
+              frequency: z.enum(["none", "occasional", "regular", "daily"]).optional(),
+              type: z.string().optional(),
+              duration: z.string().optional()
+            }).optional()
+          }).optional(),
+          immunizations: z.array(z.object({
+            id: z.string(),
+            vaccine: z.string(),
+            date: z.string(),
+            provider: z.string(),
+            lot: z.string().optional(),
+            site: z.string().optional(),
+            notes: z.string().optional()
+          })).optional()
         }).optional()
       }).parse(req.body);
 
