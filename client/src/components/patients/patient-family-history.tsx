@@ -284,10 +284,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
   };
 
   const addFamilyCondition = () => {
-    console.log("🚨 FUNCTION CALLED - addFamilyCondition()");
-    console.log("newCondition data:", newCondition);
     if (!newCondition.relative || !newCondition.condition) {
-      console.log("🚨 EARLY RETURN - missing data");
       return;
     }
 
@@ -327,8 +324,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
     // Add the new condition to the appropriate category
     updatedFamilyHistory[relativeCategory].push(conditionText);
 
-    console.log("Adding family condition:", conditionText, "to category:", relativeCategory);
-    console.log("Updated family history:", updatedFamilyHistory);
+
 
     // Save to database
     updateMedicalHistoryMutation.mutate({
@@ -491,67 +487,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                       </div>
                       <div className="flex items-end">
                         <Button 
-                          onClick={async () => {
-                            const relative = newCondition.relative;
-                            const condition = newCondition.condition;
-                            const ageOfOnset = newCondition.ageOfOnset;
-                            const notes = newCondition.notes;
-                            
-                            if (!relative || !condition) return;
-
-                            const conditionText = `${condition}${ageOfOnset ? ` (age ${ageOfOnset})` : ''}${notes ? ` - ${notes}` : ''}`;
-                            
-                            let category: 'father' | 'mother' | 'siblings' | 'grandparents';
-                            if (relative.toLowerCase().includes('mother')) {
-                              category = 'mother';
-                            } else if (relative.toLowerCase().includes('father')) {
-                              category = 'father';
-                            } else if (relative.toLowerCase().includes('sister') || relative.toLowerCase().includes('brother') || relative.toLowerCase().includes('sibling')) {
-                              category = 'siblings';
-                            } else {
-                              category = 'grandparents';
-                            }
-
-                            const updatedHistory = {
-                              father: [...(familyHistory.father || [])],
-                              mother: [...(familyHistory.mother || [])],
-                              siblings: [...(familyHistory.siblings || [])],
-                              grandparents: [...(familyHistory.grandparents || [])]
-                            };
-
-                            updatedHistory[category].push(conditionText);
-
-                            try {
-                              await apiRequest('PATCH', `/api/patients/${patient.id}/medical-history`, {
-                                allergies: patient.medicalHistory?.allergies || [],
-                                chronicConditions: patient.medicalHistory?.chronicConditions || [],
-                                medications: patient.medicalHistory?.medications || [],
-                                familyHistory: updatedHistory,
-                                socialHistory: patient.medicalHistory?.socialHistory || {},
-                                immunizations: patient.medicalHistory?.immunizations || []
-                              });
-
-                              onUpdate({
-                                medicalHistory: {
-                                  ...patient.medicalHistory,
-                                  familyHistory: updatedHistory
-                                }
-                              });
-
-                              toast({
-                                title: "Family history updated",
-                                description: "Condition added successfully",
-                              });
-
-                              setNewCondition({ relative: "", condition: "", severity: "mild" });
-                            } catch (error) {
-                              toast({
-                                title: "Error",
-                                description: "Failed to save family history",
-                                variant: "destructive",
-                              });
-                            }
-                          }}
+                          onClick={addFamilyCondition}
                           className="w-full"
                         >
                           <Plus className="h-4 w-4 mr-2" />
