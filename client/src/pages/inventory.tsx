@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -234,6 +234,38 @@ export default function Inventory() {
     console.log("Viewing purchase order:", po);
     setSelectedPO(po);
     setShowPODetailsDialog(true);
+  };
+
+  // Delete item mutation
+  const deleteItemMutation = useMutation({
+    mutationFn: async (itemId: number) => {
+      await apiRequest("DELETE", `/api/inventory/items/${itemId}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Item Deleted",
+        description: "Inventory item has been deleted successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/inventory/items"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete inventory item",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete item function with confirmation
+  const deleteItem = (item: InventoryItem) => {
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete "${item.name}" (SKU: ${item.sku})?\n\nThis action cannot be undone and will permanently remove the item from your inventory database.`
+    );
+    
+    if (confirmDelete) {
+      deleteItemMutation.mutate(item.id);
+    }
   };
 
   // Generate Item Report function
@@ -778,6 +810,14 @@ export default function Inventory() {
                                   <DropdownMenuItem onClick={() => generateItemReport(item)}>
                                     <FileText className="mr-2 h-4 w-4" />
                                     Generate Report
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem 
+                                    onClick={() => deleteItem(item)}
+                                    className="text-red-600 focus:text-red-600"
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete Item
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
