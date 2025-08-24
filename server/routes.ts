@@ -768,6 +768,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           allergies: patientData.medicalHistory?.allergies || [],
           chronicConditions: patientData.medicalHistory?.chronicConditions || [],
           medications: patientData.medicalHistory?.medications || [],
+          familyHistory: {
+            father: [],
+            mother: [],
+            siblings: [],
+            grandparents: [],
+            ...patientData.medicalHistory?.familyHistory
+          },
+          socialHistory: {
+            smoking: { status: "never" },
+            alcohol: { status: "never" },
+            drugs: { status: "never" },
+            occupation: "",
+            maritalStatus: "single",
+            education: "",
+            exercise: { frequency: "none" },
+            ...patientData.medicalHistory?.socialHistory
+          },
+          immunizations: patientData.medicalHistory?.immunizations || [],
           ...patientData.medicalHistory
         }
       });
