@@ -284,40 +284,24 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
   };
 
   const addFamilyCondition = () => {
-    console.log("=== FRONTEND DEBUG START ===");
-    console.log("addFamilyCondition called!");
-    console.log("newCondition:", newCondition);
-    
-    if (!newCondition.relative || !newCondition.condition) {
-      console.log("EARLY RETURN: Missing relative or condition");
-      console.log("newCondition.relative:", newCondition.relative);
-      console.log("newCondition.condition:", newCondition.condition);
-      return;
-    }
-
-    console.log("=== FRONTEND DEBUG ===");
-    console.log("newCondition.relative:", newCondition.relative);
-    console.log("newCondition.condition:", newCondition.condition);
-    console.log("newCondition.ageOfOnset:", newCondition.ageOfOnset);
+    if (!newCondition.relative || !newCondition.condition) return;
 
     const condition = `${newCondition.condition}${newCondition.ageOfOnset ? ` (age ${newCondition.ageOfOnset})` : ''}${newCondition.notes ? ` - ${newCondition.notes}` : ''}`;
     
-    const updatedHistory = { ...familyHistory };
+    const currentFamilyHistory = patient.medicalHistory?.familyHistory || {
+      father: [],
+      mother: [],
+      siblings: [],
+      grandparents: []
+    };
+    const updatedHistory = { ...currentFamilyHistory };
     const relativeKey = newCondition.relative?.toLowerCase().includes('father') ? 'father' :
                        newCondition.relative?.toLowerCase().includes('mother') ? 'mother' :
                        newCondition.relative?.toLowerCase().includes('sibling') || newCondition.relative?.toLowerCase().includes('sister') || newCondition.relative?.toLowerCase().includes('brother') ? 'siblings' :
                        'grandparents';
 
-    console.log("relativeKey:", relativeKey);
-    console.log("Current familyHistory:", familyHistory);
-    console.log("updatedHistory before:", updatedHistory);
-
     if (!updatedHistory[relativeKey]) updatedHistory[relativeKey] = [];
     updatedHistory[relativeKey].push(condition);
-
-    console.log("updatedHistory after:", updatedHistory);
-    console.log("Final mutation data familyHistory:", updatedHistory);
-    console.log("=== END FRONTEND DEBUG ===");
 
     // Save to database immediately
     updateMedicalHistoryMutation.mutate({
@@ -477,10 +461,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                         </Select>
                       </div>
                       <div className="flex items-end">
-                        <Button onClick={() => {
-                          alert(`Adding condition: ${newCondition.relative} - ${newCondition.condition}`);
-                          addFamilyCondition();
-                        }} className="w-full">
+                        <Button onClick={addFamilyCondition} className="w-full">
                           <Plus className="h-4 w-4 mr-2" />
                           Add
                         </Button>
