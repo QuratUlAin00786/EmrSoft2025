@@ -284,7 +284,12 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
   };
 
   const addFamilyCondition = () => {
-    if (!newCondition.relative || !newCondition.condition) return;
+    console.log("🚨 FUNCTION CALLED - addFamilyCondition()");
+    console.log("newCondition data:", newCondition);
+    if (!newCondition.relative || !newCondition.condition) {
+      console.log("🚨 EARLY RETURN - missing data");
+      return;
+    }
 
     // Build the condition string
     const conditionText = `${newCondition.condition}${newCondition.ageOfOnset ? ` (age ${newCondition.ageOfOnset})` : ''}${newCondition.notes ? ` - ${newCondition.notes}` : ''}`;
@@ -485,7 +490,11 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                         </Select>
                       </div>
                       <div className="flex items-end">
-                        <Button onClick={addFamilyCondition} className="w-full">
+                        <Button onClick={() => {
+                          console.log("🔴 BUTTON CLICKED!");
+                          console.log("Current newCondition:", newCondition);
+                          addFamilyCondition();
+                        }} className="w-full">
                           <Plus className="h-4 w-4 mr-2" />
                           Add
                         </Button>
