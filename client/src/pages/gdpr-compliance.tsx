@@ -125,7 +125,16 @@ export default function GDPRCompliance() {
   });
 
   const submitDataRequestMutation = useMutation({
-    mutationFn: (data: DataRequestForm) => apiRequest("POST", "/api/gdpr/data-request", data),
+    mutationFn: (data: DataRequestForm) => {
+      // Calculate due date (30 days as per GDPR)
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + 30);
+      
+      return apiRequest("POST", "/api/gdpr/data-request", {
+        ...data,
+        dueDate: dueDate.toISOString(),
+      });
+    },
     onSuccess: () => {
       toast({
         title: "Data Request Submitted",
