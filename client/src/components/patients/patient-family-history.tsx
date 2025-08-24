@@ -286,42 +286,64 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
   const addFamilyCondition = () => {
     if (!newCondition.relative || !newCondition.condition) return;
 
-    const condition = `${newCondition.condition}${newCondition.ageOfOnset ? ` (age ${newCondition.ageOfOnset})` : ''}${newCondition.notes ? ` - ${newCondition.notes}` : ''}`;
+    // Build the condition string
+    const conditionText = `${newCondition.condition}${newCondition.ageOfOnset ? ` (age ${newCondition.ageOfOnset})` : ''}${newCondition.notes ? ` - ${newCondition.notes}` : ''}`;
     
-    const currentFamilyHistory = patient.medicalHistory?.familyHistory || {
+    // Get current family history and create a copy
+    const currentHistory = patient.medicalHistory?.familyHistory || {
       father: [],
       mother: [],
       siblings: [],
       grandparents: []
     };
-    const updatedHistory = { ...currentFamilyHistory };
-    const relativeKey = newCondition.relative?.toLowerCase().includes('father') ? 'father' :
-                       newCondition.relative?.toLowerCase().includes('mother') ? 'mother' :
-                       newCondition.relative?.toLowerCase().includes('sibling') || newCondition.relative?.toLowerCase().includes('sister') || newCondition.relative?.toLowerCase().includes('brother') ? 'siblings' :
-                       'grandparents';
 
-    if (!updatedHistory[relativeKey]) updatedHistory[relativeKey] = [];
-    updatedHistory[relativeKey].push(condition);
+    // Determine which relative category this belongs to
+    let relativeCategory: 'father' | 'mother' | 'siblings' | 'grandparents' = 'father';
+    const relativeText = newCondition.relative.toLowerCase();
+    
+    if (relativeText.includes('mother')) {
+      relativeCategory = 'mother';
+    } else if (relativeText.includes('sibling') || relativeText.includes('sister') || relativeText.includes('brother')) {
+      relativeCategory = 'siblings';
+    } else if (relativeText.includes('grandparent') || relativeText.includes('grandmother') || relativeText.includes('grandfather')) {
+      relativeCategory = 'grandparents';
+    } else {
+      relativeCategory = 'father'; // default to father
+    }
 
-    console.log("SENDING TO SERVER:", { familyHistory: updatedHistory });
+    // Create the updated family history object
+    const updatedFamilyHistory = {
+      father: [...(currentHistory.father || [])],
+      mother: [...(currentHistory.mother || [])],
+      siblings: [...(currentHistory.siblings || [])],
+      grandparents: [...(currentHistory.grandparents || [])]
+    };
 
-    // Save to database immediately
+    // Add the new condition to the appropriate category
+    updatedFamilyHistory[relativeCategory].push(conditionText);
+
+    console.log("Adding family condition:", conditionText, "to category:", relativeCategory);
+    console.log("Updated family history:", updatedFamilyHistory);
+
+    // Save to database
     updateMedicalHistoryMutation.mutate({
       allergies: patient.medicalHistory?.allergies || [],
       chronicConditions: patient.medicalHistory?.chronicConditions || [],
       medications: patient.medicalHistory?.medications || [],
-      familyHistory: updatedHistory,
+      familyHistory: updatedFamilyHistory,
       socialHistory: patient.medicalHistory?.socialHistory || {},
       immunizations: patient.medicalHistory?.immunizations || []
     });
 
+    // Update local state
     onUpdate({
       medicalHistory: {
         ...patient.medicalHistory,
-        familyHistory: updatedHistory
+        familyHistory: updatedFamilyHistory
       }
     });
 
+    // Reset form
     setNewCondition({ relative: "", condition: "", severity: "mild" });
   };
 
