@@ -158,7 +158,10 @@ export default function GDPRCompliance() {
   // Consent status query
   const { data: consentStatuses = [] } = useQuery<ConsentStatus[]>({
     queryKey: ["/api/gdpr/consent-status", selectedPatient],
-    queryFn: () => apiRequest("GET", `/api/gdpr/patient/${selectedPatient}/consent-status`),
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/gdpr/patient/${selectedPatient}/consent-status`);
+      return response.json();
+    },
     enabled: !!selectedPatient,
   });
 
@@ -446,7 +449,7 @@ export default function GDPRCompliance() {
 
                   {selectedPatient && (
                     <div className="space-y-3">
-                      {consentStatuses.length === 0 ? (
+                      {(!Array.isArray(consentStatuses) || consentStatuses.length === 0) ? (
                         <p className="text-sm text-muted-foreground">No consent records found for this patient.</p>
                       ) : (
                         consentStatuses.map((consent) => (
