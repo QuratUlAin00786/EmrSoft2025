@@ -110,7 +110,9 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
     mutationFn: async (medicalHistory: any) => {
       return apiRequest('PATCH', `/api/patients/${patient.id}/medical-history`, medicalHistory);
     },
-    onSuccess: () => {
+    onSuccess: (updatedPatient) => {
+      // Update the local patient state with the response from the API
+      onUpdate(updatedPatient);
       queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
       queryClient.invalidateQueries({ queryKey: [`/api/patients/${patient.id}`] });
       toast({
@@ -326,7 +328,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
 
 
 
-    // Save to database
+    // Save to database - the onSuccess callback will handle local state update
     updateMedicalHistoryMutation.mutate({
       allergies: patient.medicalHistory?.allergies || [],
       chronicConditions: patient.medicalHistory?.chronicConditions || [],
@@ -334,14 +336,6 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
       familyHistory: updatedFamilyHistory,
       socialHistory: patient.medicalHistory?.socialHistory || {},
       immunizations: patient.medicalHistory?.immunizations || []
-    });
-
-    // Update local state
-    onUpdate({
-      medicalHistory: {
-        ...patient.medicalHistory,
-        familyHistory: updatedFamilyHistory
-      }
     });
 
     // Reset form
