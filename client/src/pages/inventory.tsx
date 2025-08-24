@@ -239,16 +239,24 @@ export default function Inventory() {
   // Delete item mutation
   const deleteItemMutation = useMutation({
     mutationFn: async (itemId: number) => {
-      await apiRequest("DELETE", `/api/inventory/items/${itemId}`);
+      console.log("Starting deletion API call for ID:", itemId);
+      const response = await apiRequest("DELETE", `/api/inventory/items/${itemId}`);
+      console.log("Delete API response:", response);
+      return response;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
+      console.log("Delete mutation onSuccess called for ID:", variables);
       toast({
         title: "Item Deleted",
         description: "Inventory item has been deleted successfully.",
       });
+      // Force cache invalidation with refetch
       queryClient.invalidateQueries({ queryKey: ["/api/inventory/items"] });
+      queryClient.refetchQueries({ queryKey: ["/api/inventory/items"] });
+      console.log("Cache invalidated and refetch triggered");
     },
     onError: (error: any) => {
+      console.log("Delete mutation onError called:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to delete inventory item",

@@ -224,6 +224,34 @@ export class InventoryService {
     return item;
   }
 
+  async deleteItem(id: number, organizationId: number) {
+    console.log(`[INVENTORY] Attempting to delete item ${id} for organization ${organizationId}`);
+    
+    // First check if item exists
+    const existingItem = await this.getItemById(id, organizationId);
+    if (!existingItem) {
+      console.log(`[INVENTORY] Item ${id} not found`);
+      return false;
+    }
+
+    // Delete the item
+    const result = await db
+      .delete(inventoryItems)
+      .where(and(
+        eq(inventoryItems.id, id),
+        eq(inventoryItems.organizationId, organizationId)
+      ))
+      .returning({ id: inventoryItems.id });
+
+    if (result.length > 0) {
+      console.log(`[INVENTORY] Successfully deleted item ${id} (${existingItem.name})`);
+      return true;
+    } else {
+      console.log(`[INVENTORY] Failed to delete item ${id}`);
+      return false;
+    }
+  }
+
   // ====== SUPPLIER MANAGEMENT ======
   
   async getSuppliers(organizationId: number) {

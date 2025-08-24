@@ -7151,6 +7151,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete Inventory Item
+  app.delete("/api/inventory/items/:id", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const itemId = parseInt(req.params.id);
+      console.log(`Deleting inventory item ${itemId} for organization ${req.tenant!.id}`);
+
+      if (isNaN(itemId)) {
+        return res.status(400).json({ error: "Invalid item ID" });
+      }
+
+      const deleted = await inventoryService.deleteItem(itemId, req.tenant!.id);
+      
+      if (!deleted) {
+        console.log(`Item ${itemId} not found or already deleted`);
+        return res.status(404).json({ error: "Item not found" });
+      }
+
+      console.log(`Item ${itemId} deleted successfully`);
+      res.json({ 
+        success: true, 
+        message: "Item deleted successfully",
+        id: itemId 
+      });
+    } catch (error) {
+      console.error("Error deleting inventory item:", error);
+      res.status(500).json({ error: "Failed to delete item" });
+    }
+  });
+
   // Stock Management
   app.post("/api/inventory/items/:id/stock", authMiddleware, requireRole(["admin", "doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
