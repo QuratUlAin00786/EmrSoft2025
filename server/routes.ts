@@ -825,10 +825,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const patientId = parseInt(req.params.id);
       const medicalHistoryUpdate = req.body;
 
+      console.log("=== MEDICAL HISTORY UPDATE DEBUG ===");
+      console.log("Patient ID:", patientId);
+      console.log("Received data:", JSON.stringify(medicalHistoryUpdate, null, 2));
+
       const patient = await storage.getPatient(patientId, req.tenant!.id);
       if (!patient) {
         return res.status(404).json({ error: "Patient not found" });
       }
+
+      console.log("Current medical history:", JSON.stringify(patient.medicalHistory, null, 2));
 
       // Preserve all existing medical history and merge with updates
       const updatedMedicalHistory = {
@@ -849,9 +855,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         immunizations: medicalHistoryUpdate.immunizations || patient.medicalHistory?.immunizations || []
       };
 
+      console.log("Final merged medical history:", JSON.stringify(updatedMedicalHistory, null, 2));
+
       const updatedPatient = await storage.updatePatient(patientId, req.tenant!.id, {
         medicalHistory: updatedMedicalHistory
       });
+
+      console.log("Updated patient medical history:", JSON.stringify(updatedPatient?.medicalHistory, null, 2));
+      console.log("=== END DEBUG ===");
 
       res.json(updatedPatient);
     } catch (error) {
