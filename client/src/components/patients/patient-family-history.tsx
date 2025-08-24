@@ -303,6 +303,8 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
     if (!updatedHistory[relativeKey]) updatedHistory[relativeKey] = [];
     updatedHistory[relativeKey].push(condition);
 
+    console.log("SENDING TO SERVER:", { familyHistory: updatedHistory });
+
     // Save to database immediately
     updateMedicalHistoryMutation.mutate({
       allergies: patient.medicalHistory?.allergies || [],
