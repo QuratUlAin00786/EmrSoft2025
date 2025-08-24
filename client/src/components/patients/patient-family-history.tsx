@@ -492,8 +492,10 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                       <div className="flex items-end">
                         <button 
                           type="button"
-                          onClick={() => {
+                          onClick={(e) => {
                             console.log("🟢 NATIVE BUTTON CLICKED!");
+                            console.log("Event:", e);
+                            console.log("newCondition state:", newCondition);
                             
                             if (!newCondition.relative || !newCondition.condition) {
                               console.log("❌ Missing data:", newCondition);
