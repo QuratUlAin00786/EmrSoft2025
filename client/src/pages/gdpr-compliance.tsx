@@ -70,6 +70,10 @@ export default function GDPRCompliance() {
   // Fetch patients
   const { data: patients = [] } = useQuery({
     queryKey: ["/api/patients"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/patients");
+      return response.json();
+    },
   });
 
   // Fetch compliance metrics
