@@ -408,12 +408,23 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
             </p>
           </div>
           <Dialog open={isEditing} onOpenChange={setIsEditing}>
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                <Edit className="h-4 w-4 mr-2" />
-                Edit History
-              </Button>
-            </DialogTrigger>
+            <div className="space-x-2">
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit History
+                </Button>
+              </DialogTrigger>
+              <button
+                onClick={() => {
+                  console.log("🔥 TEST BUTTON CLICKED - WORKING!");
+                  alert("Test button works!");
+                }}
+                className="px-4 py-2 bg-red-500 text-white rounded"
+              >
+                TEST
+              </button>
+            </div>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Complete Medical History</DialogTitle>
