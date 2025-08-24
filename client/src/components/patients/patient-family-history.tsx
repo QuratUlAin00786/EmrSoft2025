@@ -509,7 +509,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                               grandparents: []
                             };
 
-                            let relativeCategory = 'father';
+                            let relativeCategory: 'father' | 'mother' | 'siblings' | 'grandparents' = 'father';
                             const relativeText = newCondition.relative.toLowerCase();
                             
                             if (relativeText.includes('mother')) {
