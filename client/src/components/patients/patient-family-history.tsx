@@ -490,20 +490,70 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                         </Select>
                       </div>
                       <div className="flex items-end">
-                        <Button 
+                        <button 
                           type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log("🔴 BUTTON CLICKED!");
-                            console.log("Current newCondition:", newCondition);
-                            addFamilyCondition();
-                          }} 
-                          className="w-full"
+                          onClick={() => {
+                            console.log("🟢 NATIVE BUTTON CLICKED!");
+                            
+                            if (!newCondition.relative || !newCondition.condition) {
+                              console.log("❌ Missing data:", newCondition);
+                              return;
+                            }
+
+                            const conditionText = `${newCondition.condition}${newCondition.ageOfOnset ? ` (age ${newCondition.ageOfOnset})` : ''}${newCondition.notes ? ` - ${newCondition.notes}` : ''}`;
+                            
+                            const currentHistory = patient.medicalHistory?.familyHistory || {
+                              father: [],
+                              mother: [],
+                              siblings: [],
+                              grandparents: []
+                            };
+
+                            let relativeCategory = 'father';
+                            const relativeText = newCondition.relative.toLowerCase();
+                            
+                            if (relativeText.includes('mother')) {
+                              relativeCategory = 'mother';
+                            } else if (relativeText.includes('sibling') || relativeText.includes('sister') || relativeText.includes('brother')) {
+                              relativeCategory = 'siblings';
+                            } else if (relativeText.includes('grandparent') || relativeText.includes('grandmother') || relativeText.includes('grandfather')) {
+                              relativeCategory = 'grandparents';
+                            }
+
+                            const updatedFamilyHistory = {
+                              father: [...(currentHistory.father || [])],
+                              mother: [...(currentHistory.mother || [])],
+                              siblings: [...(currentHistory.siblings || [])],
+                              grandparents: [...(currentHistory.grandparents || [])]
+                            };
+
+                            updatedFamilyHistory[relativeCategory].push(conditionText);
+
+                            console.log("🚀 SENDING TO SERVER:", updatedFamilyHistory);
+
+                            updateMedicalHistoryMutation.mutate({
+                              allergies: patient.medicalHistory?.allergies || [],
+                              chronicConditions: patient.medicalHistory?.chronicConditions || [],
+                              medications: patient.medicalHistory?.medications || [],
+                              familyHistory: updatedFamilyHistory,
+                              socialHistory: patient.medicalHistory?.socialHistory || {},
+                              immunizations: patient.medicalHistory?.immunizations || []
+                            });
+
+                            onUpdate({
+                              medicalHistory: {
+                                ...patient.medicalHistory,
+                                familyHistory: updatedFamilyHistory
+                              }
+                            });
+
+                            setNewCondition({ relative: "", condition: "", severity: "mild" });
+                          }}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md flex items-center justify-center gap-2"
                         >
-                          <Plus className="h-4 w-4 mr-2" />
+                          <Plus className="h-4 w-4" />
                           Add
-                        </Button>
+                        </button>
                       </div>
                     </div>
                     <div>
