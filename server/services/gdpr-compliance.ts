@@ -129,22 +129,31 @@ export class GDPRComplianceService {
     });
 
     // Create notification for data processing team
-    await storage.createNotification({
-      organizationId,
-      userId: 1, // DPO or admin
-      title: "GDPR Consent Withdrawn",
-      message: `Patient has withdrawn consent for ${consent.consentType}. Review data processing activities.`,
-      type: "gdpr_consent_withdrawal",
-      priority: "high",
-      status: "unread",
-      isActionable: true,
-      relatedEntityType: "patient",
-      relatedEntityId: consent.patientId,
-      metadata: {
-        patientId: consent.patientId,
-        department: "Data Protection"
+    try {
+      const adminUser = await storage.getUsersByRole("admin", organizationId);
+      const targetUserId = adminUser.length > 0 ? adminUser[0].id : null;
+      
+      if (targetUserId) {
+        await storage.createNotification({
+          organizationId,
+          userId: targetUserId,
+          title: "GDPR Consent Withdrawn",
+          message: `Patient has withdrawn consent for ${consent.consentType}. Review data processing activities.`,
+          type: "gdpr_consent_withdrawal",
+          priority: "high",
+          status: "unread",
+          isActionable: true,
+          relatedEntityType: "patient",
+          relatedEntityId: consent.patientId,
+          metadata: {
+            patientId: consent.patientId,
+            department: "Data Protection"
+          }
+        });
       }
-    });
+    } catch (error) {
+      console.log("Could not create GDPR notification - no admin user found");
+    }
   }
 
   /**
@@ -184,23 +193,32 @@ export class GDPRComplianceService {
       }
     });
 
-    // Create notification for DPO
-    await storage.createNotification({
-      organizationId: requestData.organizationId,
-      userId: 1, // DPO
-      title: `GDPR ${requestData.requestType.toUpperCase()} Request`,
-      message: `New data ${requestData.requestType} request submitted. Due: ${dueDate.toLocaleDateString()}`,
-      type: "gdpr_data_request",
-      priority: "high",
-      status: "unread",
-      isActionable: true,
-      relatedEntityType: "patient",
-      relatedEntityId: requestData.patientId,
-      metadata: {
-        patientId: requestData.patientId,
-        department: "Data Protection"
+    // Create notification for admin/DPO (find first admin user in organization)
+    try {
+      const adminUser = await storage.getUsersByRole("admin", requestData.organizationId);
+      const targetUserId = adminUser.length > 0 ? adminUser[0].id : null;
+      
+      if (targetUserId) {
+        await storage.createNotification({
+          organizationId: requestData.organizationId,
+          userId: targetUserId,
+          title: `GDPR ${requestData.requestType.toUpperCase()} Request`,
+          message: `New data ${requestData.requestType} request submitted. Due: ${dueDate.toLocaleDateString()}`,
+          type: "gdpr_data_request",
+          priority: "high",
+          status: "unread",
+          isActionable: true,
+          relatedEntityType: "patient",
+          relatedEntityId: requestData.patientId,
+          metadata: {
+            patientId: requestData.patientId,
+            department: "Data Protection"
+          }
+        });
       }
-    });
+    } catch (error) {
+      console.log("Could not create GDPR notification - no admin user found");
+    }
 
     return request;
   }
