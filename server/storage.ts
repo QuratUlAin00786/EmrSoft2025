@@ -482,11 +482,24 @@ export class DatabaseStorage implements IStorage {
 
   async updatePatient(id: number, organizationId: number, updates: Partial<InsertPatient>): Promise<Patient | undefined> {
     const cleanUpdates: any = { ...updates };
-    delete cleanUpdates.address; // Remove complex nested type to avoid compilation errors
-    delete cleanUpdates.medicalHistory; // Remove complex nested type to avoid compilation errors
-    delete cleanUpdates.communicationPreferences; // Remove complex nested type to avoid compilation errors
+    
+    // Handle complex nested types separately to avoid compilation errors
+    const complexFields: any = {};
+    if (updates.address) {
+      complexFields.address = updates.address;
+      delete cleanUpdates.address;
+    }
+    if (updates.medicalHistory) {
+      complexFields.medicalHistory = updates.medicalHistory;
+      delete cleanUpdates.medicalHistory;
+    }
+    if (updates.communicationPreferences) {
+      complexFields.communicationPreferences = updates.communicationPreferences;
+      delete cleanUpdates.communicationPreferences;
+    }
+    
     const [updated] = await db.update(patients)
-      .set({ ...cleanUpdates, updatedAt: new Date() })
+      .set({ ...cleanUpdates, ...complexFields, updatedAt: new Date() })
       .where(and(eq(patients.id, id), eq(patients.organizationId, organizationId)))
       .returning();
     return updated || undefined;
