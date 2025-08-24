@@ -584,15 +584,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Patient not found" });
       }
 
-      // Get medical records
-      const medicalRecords = await storage.getMedicalRecordsByPatient(patientId, req.tenant!.id);
-      
       // Get AI insights for this patient
       const aiInsights = await storage.getAiInsightsByPatient(patientId, req.tenant!.id);
 
       res.json({
         ...patient,
-        medicalRecords,
         aiInsights
       });
     } catch (error) {
