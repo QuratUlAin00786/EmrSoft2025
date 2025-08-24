@@ -403,9 +403,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/gdpr/data-request", requireRole(["admin", "patient"]), async (req: TenantRequest, res) => {
     try {
+      // Calculate due date (30 days as per GDPR) before validation
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + 30);
+      
       const requestData = insertGdprDataRequestSchema.parse({
         ...req.body,
-        organizationId: req.tenant!.id
+        organizationId: req.tenant!.id,
+        dueDate
       });
       
       const dataRequest = await gdprComplianceService.submitDataRequest(requestData);
