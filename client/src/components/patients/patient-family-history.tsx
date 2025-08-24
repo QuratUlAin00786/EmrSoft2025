@@ -863,17 +863,26 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                   <AlertTriangle className="h-4 w-4" />
                   Allergies
                 </h4>
-                {patient.medicalHistory?.allergies?.length ? (
-                  <div className="flex flex-wrap gap-1">
-                    {patient.medicalHistory.allergies.map((allergy, index) => (
-                      <Badge key={index} className="bg-red-100 text-red-800">
-                        {allergy}
-                      </Badge>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-500">No known allergies</p>
-                )}
+                {(() => {
+                  // Extract allergies from both medicalHistory and flags
+                  const medicalAllergies = patient.medicalHistory?.allergies || [];
+                  const flagAllergies = (patient as any).flags?.filter((flag: string) => 
+                    flag.includes(':') && flag.split(':')[2]
+                  ).map((flag: string) => flag.split(':')[2]) || [];
+                  const allAllergies = [...medicalAllergies, ...flagAllergies].filter(Boolean);
+                  
+                  return allAllergies.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                      {allAllergies.map((allergy, index) => (
+                        <Badge key={index} className="bg-red-100 text-red-800">
+                          {allergy}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">No known allergies</p>
+                  );
+                })()}
               </div>
               <div className="border rounded-lg p-4">
                 <h4 className="font-medium mb-2 flex items-center gap-2 text-blue-600">

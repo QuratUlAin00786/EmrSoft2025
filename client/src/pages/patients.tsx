@@ -152,37 +152,10 @@ export default function Patients() {
                     </div>
                   </div>
                 )}
-                {/* Extract allergies from both medicalHistory and flags */}
-                {(() => {
-                  const allergies = patient.medicalHistory?.allergies || [];
-                  const flagAllergies = patient.flags?.filter((flag: string) => 
-                    flag.includes(':') && flag.split(':')[2]
-                  ).map((flag: string) => flag.split(':')[2]) || [];
-                  const allAllergies = [...allergies, ...flagAllergies].filter(Boolean);
-                  
-                  return allAllergies.length > 0 ? (
-                    <div>
-                      <p className="text-sm font-medium text-gray-700 dark:text-white">Allergies</p>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {allAllergies.map((allergy: string, index: number) => (
-                          <Badge key={index} variant="destructive" className="text-xs">
-                            {allergy}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div>
-                      <p className="text-sm font-medium text-gray-700 dark:text-white">Allergies</p>
-                      <p className="text-sm text-gray-500 dark:text-neutral-400">No known allergies</p>
-                    </div>
-                  );
-                })()}
-                
-                {/* Display patient flags */}
+                {/* Display patient flags for quick reference */}
                 {patient.flags && patient.flags.length > 0 && (
                   <div>
-                    <p className="text-sm font-medium text-gray-700 dark:text-white">Patient Flags</p>
+                    <p className="text-sm font-medium text-gray-700 dark:text-white">Patient Alerts</p>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {patient.flags.map((flag: string, index: number) => {
                         const [category, priority, description] = flag.split(':');
