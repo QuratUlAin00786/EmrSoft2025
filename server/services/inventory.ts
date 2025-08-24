@@ -228,7 +228,7 @@ export class InventoryService {
     console.log(`[INVENTORY] Attempting to delete item ${id} for organization ${organizationId}`);
     
     // First check if item exists
-    const existingItem = await this.getItemById(id, organizationId);
+    const existingItem = await this.getItem(id, organizationId);
     if (!existingItem) {
       console.log(`[INVENTORY] Item ${id} not found`);
       return false;
