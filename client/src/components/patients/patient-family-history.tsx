@@ -284,7 +284,16 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
   };
 
   const addFamilyCondition = () => {
-    if (!newCondition.relative || !newCondition.condition) return;
+    console.log("=== FRONTEND DEBUG START ===");
+    console.log("addFamilyCondition called!");
+    console.log("newCondition:", newCondition);
+    
+    if (!newCondition.relative || !newCondition.condition) {
+      console.log("EARLY RETURN: Missing relative or condition");
+      console.log("newCondition.relative:", newCondition.relative);
+      console.log("newCondition.condition:", newCondition.condition);
+      return;
+    }
 
     console.log("=== FRONTEND DEBUG ===");
     console.log("newCondition.relative:", newCondition.relative);
