@@ -108,7 +108,8 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
 
   const updateMedicalHistoryMutation = useMutation({
     mutationFn: async (medicalHistory: any) => {
-      return apiRequest('PATCH', `/api/patients/${patient.id}/medical-history`, medicalHistory);
+      const response = await apiRequest('PATCH', `/api/patients/${patient.id}/medical-history`, medicalHistory);
+      return response.json();
     },
     onSuccess: (updatedPatient) => {
       // Update the local patient state with the response from the API
