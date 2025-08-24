@@ -490,11 +490,17 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                         </Select>
                       </div>
                       <div className="flex items-end">
-                        <Button onClick={() => {
-                          console.log("🔴 BUTTON CLICKED!");
-                          console.log("Current newCondition:", newCondition);
-                          addFamilyCondition();
-                        }} className="w-full">
+                        <Button 
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log("🔴 BUTTON CLICKED!");
+                            console.log("Current newCondition:", newCondition);
+                            addFamilyCondition();
+                          }} 
+                          className="w-full"
+                        >
                           <Plus className="h-4 w-4 mr-2" />
                           Add
                         </Button>
