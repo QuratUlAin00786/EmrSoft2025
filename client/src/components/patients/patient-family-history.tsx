@@ -130,6 +130,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
     }
   });
 
+  // Make familyHistory reactive to patient data changes
   const familyHistory = patient.medicalHistory?.familyHistory || {
     father: [],
     mother: [],
@@ -329,12 +330,19 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
     // Add the new condition to the appropriate category
     updatedFamilyHistory[relativeCategory].push(conditionText);
 
-    // Update local state immediately for instant UI feedback
+    // Update local state immediately for instant UI feedback - ensure complete immutability
+    const newMedicalHistory = {
+      allergies: patient.medicalHistory?.allergies || [],
+      medications: patient.medicalHistory?.medications || [],
+      familyHistory: updatedFamilyHistory,
+      immunizations: patient.medicalHistory?.immunizations || [],
+      socialHistory: patient.medicalHistory?.socialHistory || {},
+      chronicConditions: patient.medicalHistory?.chronicConditions || []
+    };
+    
     onUpdate({
-      medicalHistory: {
-        ...patient.medicalHistory,
-        familyHistory: updatedFamilyHistory
-      }
+      ...patient,
+      medicalHistory: newMedicalHistory
     });
 
     // Save to database
