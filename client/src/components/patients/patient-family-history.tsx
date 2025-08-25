@@ -329,9 +329,15 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
     // Add the new condition to the appropriate category
     updatedFamilyHistory[relativeCategory].push(conditionText);
 
+    // Update local state immediately for instant UI feedback
+    onUpdate({
+      medicalHistory: {
+        ...patient.medicalHistory,
+        familyHistory: updatedFamilyHistory
+      }
+    });
 
-
-    // Save to database - the onSuccess callback will handle local state update
+    // Save to database
     updateMedicalHistoryMutation.mutate({
       allergies: patient.medicalHistory?.allergies || [],
       chronicConditions: patient.medicalHistory?.chronicConditions || [],
@@ -341,7 +347,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
       immunizations: patient.medicalHistory?.immunizations || []
     });
 
-    // Reset form
+    // Reset form only after successful local update
     setNewCondition({ relative: "", condition: "", severity: "mild" });
   };
 
