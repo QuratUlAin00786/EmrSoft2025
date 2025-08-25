@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Clock, MapPin, User, Video, Stethoscope, FileText, Plus, Save, X } from "lucide-react";
+import { Calendar, Clock, MapPin, User, Video, Stethoscope, FileText, Plus, Save, X, Mic, Square } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
@@ -765,20 +765,23 @@ export default function AppointmentCalendar() {
           
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="basic">Basic Info</TabsTrigger>
-                <TabsTrigger value="clinical">Clinical</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-4 mb-6">
+                <TabsTrigger value="basic" className="bg-blue-100 dark:bg-blue-900/30 font-semibold data-[state=active]:bg-blue-100 data-[state=active]:dark:bg-blue-900/50">Basic Info ⭐</TabsTrigger>
+                <TabsTrigger value="clinical">Clinical Notes</TabsTrigger>
                 <TabsTrigger value="medications">Medications</TabsTrigger>
                 <TabsTrigger value="followup">Follow-up</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="basic" className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <TabsContent value="basic" className="space-y-6 p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg">
+                <div className="grid grid-cols-2 gap-6">
                   <div>
                     <Label htmlFor="type">Record Type</Label>
-                    <Select value={form.watch("type")} onValueChange={(value) => form.setValue("type", value as any)}>
+                    <Select
+                      value={form.watch("type")}
+                      onValueChange={(value) => form.setValue("type", value as any)}
+                    >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select record type" />
+                        <SelectValue placeholder="Select type" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="consultation">Consultation</SelectItem>
@@ -793,75 +796,120 @@ export default function AppointmentCalendar() {
                     <Label htmlFor="title">Title</Label>
                     <Input
                       {...form.register("title")}
-                      placeholder="Enter record title"
+                      placeholder="e.g., Annual Checkup, Blood Work Results"
                     />
+                    {form.formState.errors.title && (
+                      <p className="text-sm text-red-600 mt-1">
+                        {form.formState.errors.title.message}
+                      </p>
+                    )}
                   </div>
-                </div>
-                
-                <div>
-                  <Label htmlFor="notes">Notes</Label>
-                  <Textarea
-                    {...form.register("notes")}
-                    placeholder="Enter detailed notes about the consultation..."
-                    rows={4}
-                  />
                 </div>
               </TabsContent>
 
               <TabsContent value="clinical" className="space-y-4">
-                <div>
-                  <Label htmlFor="diagnosis">Diagnosis</Label>
-                  <Textarea
-                    {...form.register("diagnosis")}
-                    placeholder="Enter diagnosis..."
-                    rows={3}
-                  />
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-700 mb-4">
+                  <Label htmlFor="examination" className="text-blue-800 dark:text-blue-200 font-semibold">Examination</Label>
+                  <Select>
+                    <SelectTrigger className="mt-2 border-blue-300 dark:border-blue-600">
+                      <SelectValue placeholder="Select examination type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="general">General Examination</SelectItem>
+                      <SelectItem value="cardiovascular">Cardiovascular</SelectItem>
+                      <SelectItem value="respiratory">Respiratory</SelectItem>
+                      <SelectItem value="neurological">Neurological</SelectItem>
+                      <SelectItem value="anatomical">🔬 Anatomical (View Muscles)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                
                 <div>
-                  <Label htmlFor="treatment">Treatment Plan</Label>
+                  <div className="flex items-center justify-between mb-2">
+                    <Label htmlFor="notes">Clinical Notes</Label>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center space-x-1"
+                        disabled
+                        title="Speech recognition not available in this context"
+                      >
+                        <Mic className="h-3 w-3" />
+                        <span>Transcribe Audio</span>
+                      </Button>
+                      <span className="text-xs text-gray-500">
+                        (Audio transcription not available)
+                      </span>
+                    </div>
+                  </div>
                   <Textarea
-                    {...form.register("treatment")}
-                    placeholder="Enter treatment plan..."
-                    rows={3}
+                    {...form.register("notes")}
+                    placeholder="Detailed consultation notes, observations, and findings..."
+                    className="min-h-32 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
                   />
+                  {form.formState.errors.notes && (
+                    <p className="text-sm text-red-600 mt-1">
+                      {form.formState.errors.notes.message}
+                    </p>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="diagnosis">Diagnosis</Label>
+                    <Textarea
+                      {...form.register("diagnosis")}
+                      placeholder="Primary and secondary diagnoses with ICD codes..."
+                      className="min-h-24 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="treatment">Treatment Plan</Label>
+                    <Textarea
+                      {...form.register("treatment")}
+                      placeholder="Treatment recommendations and care plan..."
+                      className="min-h-24 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                    />
+                  </div>
                 </div>
               </TabsContent>
 
               <TabsContent value="medications" className="space-y-4">
-                <div>
-                  <Label>Prescribed Medications</Label>
-                  {(form.watch("medications") || []).map((medication: any, index: number) => (
-                    <div key={index} className="grid grid-cols-4 gap-2 mb-2">
-                      <Input
-                        {...form.register(`medications.${index}.name` as any)}
-                        placeholder="Medication name"
-                      />
-                      <Input
-                        {...form.register(`medications.${index}.dosage` as any)}
-                        placeholder="Dosage (e.g., 10mg)"
-                      />
-                      <Input
-                        {...form.register(`medications.${index}.frequency` as any)}
-                        placeholder="Frequency (e.g., twice daily)"
-                      />
-                      <Input
-                        {...form.register(`medications.${index}.duration` as any)}
-                        placeholder="Duration (e.g., 30 days)"
-                      />
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      const current = form.watch("medications") || [];
-                      form.setValue("medications", [...current, { name: "", dosage: "", frequency: "", duration: "" }] as any);
-                    }}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Medication
-                  </Button>
+                <div className="border rounded-lg p-4">
+                  <h4 className="font-medium mb-4">Prescribed Medications</h4>
+                  <div className="space-y-4">
+                    {(form.watch("medications") || []).map((_, index) => (
+                      <div key={index} className="grid grid-cols-4 gap-3 p-3 border rounded">
+                        <Input
+                          {...form.register(`medications.${index}.name` as any)}
+                          placeholder="Medication name"
+                        />
+                        <Input
+                          {...form.register(`medications.${index}.dosage` as any)}
+                          placeholder="Dosage (e.g., 10mg)"
+                        />
+                        <Input
+                          {...form.register(`medications.${index}.frequency` as any)}
+                          placeholder="Frequency (e.g., twice daily)"
+                        />
+                        <Input
+                          {...form.register(`medications.${index}.duration` as any)}
+                          placeholder="Duration (e.g., 30 days)"
+                        />
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        const current = form.watch("medications") || [];
+                        form.setValue("medications", [...current, { name: "", dosage: "", frequency: "", duration: "" }] as any);
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Medication
+                    </Button>
+                  </div>
                 </div>
               </TabsContent>
 
