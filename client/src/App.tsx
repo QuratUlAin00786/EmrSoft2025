@@ -83,41 +83,50 @@ function ProtectedApp() {
     
     switch (themeValue) {
       case 'green':
-        // Medical Green Theme
-        root.style.setProperty('--primary', '#22C55E'); 
-        root.style.setProperty('--ring', '#22C55E');
-        root.style.setProperty('--cura-bluewave', '#22C55E');
-        root.style.setProperty('--cura-electric-lilac', '#10B981');
-        root.style.setProperty('--cura-mint-drift', '#34D399');
-        root.style.setProperty('--medical-blue', '#22C55E');
+        // Medical Green Theme - Force high specificity
+        root.style.setProperty('--primary', '#22C55E', 'important'); 
+        root.style.setProperty('--primary-foreground', '#FFFFFF', 'important');
+        root.style.setProperty('--ring', '#22C55E', 'important');
+        root.style.setProperty('--cura-bluewave', '#22C55E', 'important');
+        root.style.setProperty('--cura-electric-lilac', '#10B981', 'important');
+        root.style.setProperty('--cura-mint-drift', '#34D399', 'important');
+        root.style.setProperty('--medical-blue', '#22C55E', 'important');
         break;
       case 'purple':
         // Professional Purple Theme
-        root.style.setProperty('--primary', '#7C3AED');
-        root.style.setProperty('--ring', '#7C3AED');
-        root.style.setProperty('--cura-bluewave', '#7C3AED');
-        root.style.setProperty('--cura-electric-lilac', '#A855F7');
-        root.style.setProperty('--cura-mint-drift', '#C084FC');
-        root.style.setProperty('--medical-blue', '#7C3AED');
+        root.style.setProperty('--primary', '#7C3AED', 'important');
+        root.style.setProperty('--primary-foreground', '#FFFFFF', 'important');
+        root.style.setProperty('--ring', '#7C3AED', 'important');
+        root.style.setProperty('--cura-bluewave', '#7C3AED', 'important');
+        root.style.setProperty('--cura-electric-lilac', '#A855F7', 'important');
+        root.style.setProperty('--cura-mint-drift', '#C084FC', 'important');
+        root.style.setProperty('--medical-blue', '#7C3AED', 'important');
         break;
       case 'dark':
         // Dark Mode Theme
-        root.style.setProperty('--primary', '#374151');
-        root.style.setProperty('--ring', '#374151');
-        root.style.setProperty('--cura-bluewave', '#374151');
-        root.style.setProperty('--cura-electric-lilac', '#4B5563');
-        root.style.setProperty('--cura-mint-drift', '#6B7280');
-        root.style.setProperty('--medical-blue', '#374151');
+        root.style.setProperty('--primary', '#374151', 'important');
+        root.style.setProperty('--primary-foreground', '#FFFFFF', 'important');
+        root.style.setProperty('--ring', '#374151', 'important');
+        root.style.setProperty('--cura-bluewave', '#374151', 'important');
+        root.style.setProperty('--cura-electric-lilac', '#4B5563', 'important');
+        root.style.setProperty('--cura-mint-drift', '#6B7280', 'important');
+        root.style.setProperty('--medical-blue', '#374151', 'important');
         break;
       default: // Medical Blue (Default)
-        root.style.setProperty('--primary', '#4A7DFF');
-        root.style.setProperty('--ring', '#4A7DFF');
-        root.style.setProperty('--cura-bluewave', '#4A7DFF');
-        root.style.setProperty('--cura-electric-lilac', '#7279FB');
-        root.style.setProperty('--cura-mint-drift', '#6CFFEB');
-        root.style.setProperty('--medical-blue', '#4A7DFF');
+        root.style.setProperty('--primary', '#4A7DFF', 'important');
+        root.style.setProperty('--primary-foreground', '#FFFFFF', 'important');
+        root.style.setProperty('--ring', '#4A7DFF', 'important');
+        root.style.setProperty('--cura-bluewave', '#4A7DFF', 'important');
+        root.style.setProperty('--cura-electric-lilac', '#7279FB', 'important');
+        root.style.setProperty('--cura-mint-drift', '#6CFFEB', 'important');
+        root.style.setProperty('--medical-blue', '#4A7DFF', 'important');
         break;
     }
+    
+    // Force a re-render by triggering a style recalculation
+    document.body.style.display = 'none';
+    document.body.offsetHeight; // Trigger reflow
+    document.body.style.display = '';
   };
 
   // Apply theme immediately on component mount from localStorage
