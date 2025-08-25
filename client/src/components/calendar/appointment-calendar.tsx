@@ -294,11 +294,6 @@ Medical License: [License Number]
     return provider ? `Dr. ${provider.firstName || ''} ${provider.lastName || ''}`.trim() : `Provider ${providerId}`;
   };
 
-  // Debug logging
-  console.log("[Calendar] appointmentsData:", appointmentsData);
-  console.log("[Calendar] appointmentsData type:", typeof appointmentsData);
-  console.log("[Calendar] isArray:", Array.isArray(appointmentsData));
-  console.log("[Calendar] isLoading:", isLoading);
 
   // Process and validate appointments
   const appointments = (appointmentsData && Array.isArray(appointmentsData) ? appointmentsData.filter((apt: any) => {

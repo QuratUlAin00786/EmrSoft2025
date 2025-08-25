@@ -14,7 +14,7 @@ export async function apiRequest(
 ): Promise<Response> {
   const token = localStorage.getItem('auth_token');
   const headers: Record<string, string> = {
-    'X-Tenant-Subdomain': 'cura'
+    'X-Tenant-Subdomain': 'halo'
   };
   
   if (data) {
@@ -44,7 +44,7 @@ export const getQueryFn: <T>(options: {
   async ({ queryKey }) => {
     const token = localStorage.getItem('auth_token');
     const headers: Record<string, string> = {
-      'X-Tenant-Subdomain': 'cura'
+      'X-Tenant-Subdomain': 'halo'
     };
 
     if (token) {
