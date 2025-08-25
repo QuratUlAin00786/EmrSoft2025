@@ -422,13 +422,145 @@ export default function AnalyticsPage() {
         </TabsContent>
 
         <TabsContent value="patients" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            {/* Patient Demographics */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Age Distribution</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie
+                      data={Object.entries(analyticsData?.patientAnalytics?.demographics?.ageDistribution || {}).map(([key, value]) => ({
+                        name: key,
+                        value: value as number
+                      }))}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {Object.entries(analyticsData?.patientAnalytics?.demographics?.ageDistribution || {}).map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Gender Distribution */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Gender Distribution</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={Object.entries(analyticsData?.patientAnalytics?.demographics?.genderDistribution || {}).map(([key, value]) => ({
+                    gender: key,
+                    count: value as number
+                  }))}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="gender" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="count" fill="#0ea5e9" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Top Conditions */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Most Common Conditions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {analyticsData?.patientAnalytics?.topConditions?.map((condition: any, index: number) => (
+                    <div key={condition.condition} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                        <span className="font-medium">{condition.condition}</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold">{condition.count}</div>
+                        <div className="text-sm text-gray-500">
+                          {analyticsData?.patientAnalytics?.totalPatients > 0 
+                            ? Math.round((condition.count / analyticsData.patientAnalytics.totalPatients) * 100) 
+                            : 0}% of patients
+                        </div>
+                      </div>
+                    </div>
+                  )) || []}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Appointment Statistics */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Patient Appointment Statistics</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Total Appointments</span>
+                    <span className="font-bold text-lg">{analyticsData?.patientAnalytics?.appointmentStats?.total || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Completed</span>
+                    <span className="font-bold text-green-600">{analyticsData?.patientAnalytics?.appointmentStats?.completed || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Cancelled</span>
+                    <span className="font-bold text-yellow-600">{analyticsData?.patientAnalytics?.appointmentStats?.cancelled || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">No Shows</span>
+                    <span className="font-bold text-red-600">{analyticsData?.patientAnalytics?.appointmentStats?.noShow || 0}</span>
+                  </div>
+                  <div className="pt-4 border-t">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Completion Rate</span>
+                      <span className="font-bold text-blue-600">{analyticsData?.patientAnalytics?.appointmentStats?.completionRate || 0}%</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           <Card>
             <CardHeader>
-              <CardTitle>Patient Analytics</CardTitle>
+              <CardTitle>Patient Summary</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center text-gray-500 py-8">
-                Patient analytics data will be displayed here once connected to the database.
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-blue-600 mb-2">
+                    {analyticsData?.patientAnalytics?.totalPatients || 0}
+                  </div>
+                  <div className="text-sm text-gray-600">Total Patients</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-green-600 mb-2">
+                    {analyticsData?.patientAnalytics?.newPatients || 0}
+                  </div>
+                  <div className="text-sm text-gray-600">New Patients (30 days)</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-purple-600 mb-2">
+                    {analyticsData?.patientAnalytics?.appointmentStats?.completionRate || 0}%
+                  </div>
+                  <div className="text-sm text-gray-600">Completion Rate</div>
+                </div>
               </div>
             </CardContent>
           </Card>
