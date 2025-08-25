@@ -150,6 +150,85 @@ export default function ClinicalDecisionSupport() {
     }
   };
 
+  // Mock data definitions (must be defined before useQuery hooks)
+  const mockInsights: ClinicalInsight[] = [
+    {
+      id: "insight_1",
+      patientId: "patient_1",
+      patientName: "Sarah Johnson",
+      type: "drug_interaction",
+      priority: "high",
+      title: "Potential Drug Interaction Alert",
+      description: "Warfarin and Amoxicillin combination may increase bleeding risk",
+      recommendations: [
+        "Monitor INR more frequently (every 2-3 days)",
+        "Consider alternative antibiotic if possible",
+        "Educate patient on bleeding signs",
+        "Document interaction in patient record"
+      ],
+      confidence: 92,
+      evidenceLevel: "A",
+      createdAt: "2024-06-26T14:30:00Z",
+      status: "active",
+      provider: "Dr. Emily Watson",
+      relatedConditions: ["Atrial Fibrillation", "Upper Respiratory Infection"],
+      supportingData: {
+        medications: [
+          { name: "Warfarin", dosage: "5mg", frequency: "Daily", interactions: ["Amoxicillin"] },
+          { name: "Amoxicillin", dosage: "500mg", frequency: "TID", interactions: ["Warfarin"] }
+        ]
+      }
+    },
+    {
+      id: "insight_2",
+      patientId: "patient_2",
+      patientName: "Michael Chen",
+      type: "risk_assessment",
+      priority: "medium",
+      title: "Cardiovascular Risk Assessment",
+      description: "Patient shows elevated 10-year cardiovascular risk based on current factors",
+      recommendations: [
+        "Initiate statin therapy",
+        "Lifestyle counseling for diet and exercise",
+        "Blood pressure monitoring",
+        "Follow-up in 3 months"
+      ],
+      confidence: 87,
+      evidenceLevel: "A",
+      createdAt: "2024-06-26T13:15:00Z",
+      status: "active",
+      relatedConditions: ["Hypertension", "Hyperlipidemia"],
+      supportingData: {
+        labValues: [
+          { name: "Total Cholesterol", value: "285 mg/dL", reference: "<200", status: "abnormal" },
+          { name: "LDL", value: "185 mg/dL", reference: "<100", status: "abnormal" },
+          { name: "HDL", value: "35 mg/dL", reference: ">40", status: "abnormal" }
+        ],
+        vitalSigns: [
+          { parameter: "Blood Pressure", value: "145/92 mmHg", trend: "worsening" },
+          { parameter: "BMI", value: "28.5", trend: "stable" }
+        ]
+      }
+    }
+  ];
+
+  const mockRiskScores: RiskScore[] = [
+    {
+      category: "Cardiovascular Disease",
+      score: 15.2,
+      risk: "high",
+      factors: ["Age >65", "Smoking", "Hypertension", "High cholesterol"],
+      recommendations: ["Statin therapy", "Blood pressure control", "Smoking cessation"]
+    },
+    {
+      category: "Diabetes",
+      score: 8.7,
+      risk: "moderate",
+      factors: ["Family history", "BMI >25", "Prediabetes"],
+      recommendations: ["Annual glucose screening", "Weight management", "Diet counseling"]
+    }
+  ];
+
   // Fetch clinical insights
   const { data: insights = mockInsights, isLoading: insightsLoading } = useQuery<ClinicalInsight[]>({
     queryKey: ["/api/clinical/insights", filterPriority, filterType],
@@ -246,84 +325,6 @@ export default function ClinicalDecisionSupport() {
       });
     }
   });
-
-  const mockInsights: ClinicalInsight[] = [
-    {
-      id: "insight_1",
-      patientId: "patient_1",
-      patientName: "Sarah Johnson",
-      type: "drug_interaction",
-      priority: "high",
-      title: "Potential Drug Interaction Alert",
-      description: "Warfarin and Amoxicillin combination may increase bleeding risk",
-      recommendations: [
-        "Monitor INR more frequently (every 2-3 days)",
-        "Consider alternative antibiotic if possible",
-        "Educate patient on bleeding signs",
-        "Document interaction in patient record"
-      ],
-      confidence: 92,
-      evidenceLevel: "A",
-      createdAt: "2024-06-26T14:30:00Z",
-      status: "active",
-      provider: "Dr. Emily Watson",
-      relatedConditions: ["Atrial Fibrillation", "Upper Respiratory Infection"],
-      supportingData: {
-        medications: [
-          { name: "Warfarin", dosage: "5mg", frequency: "Daily", interactions: ["Amoxicillin"] },
-          { name: "Amoxicillin", dosage: "500mg", frequency: "TID", interactions: ["Warfarin"] }
-        ]
-      }
-    },
-    {
-      id: "insight_2",
-      patientId: "patient_2",
-      patientName: "Michael Chen",
-      type: "risk_assessment",
-      priority: "medium",
-      title: "Cardiovascular Risk Assessment",
-      description: "Patient shows elevated 10-year cardiovascular risk based on current factors",
-      recommendations: [
-        "Initiate statin therapy",
-        "Lifestyle counseling for diet and exercise",
-        "Blood pressure monitoring",
-        "Follow-up in 3 months"
-      ],
-      confidence: 87,
-      evidenceLevel: "A",
-      createdAt: "2024-06-26T13:15:00Z",
-      status: "active",
-      relatedConditions: ["Hypertension", "Hyperlipidemia"],
-      supportingData: {
-        labValues: [
-          { name: "Total Cholesterol", value: "285 mg/dL", reference: "<200", status: "abnormal" },
-          { name: "LDL", value: "185 mg/dL", reference: "<100", status: "abnormal" },
-          { name: "HDL", value: "35 mg/dL", reference: ">40", status: "abnormal" }
-        ],
-        vitalSigns: [
-          { parameter: "Blood Pressure", value: "145/92 mmHg", trend: "worsening" },
-          { parameter: "BMI", value: "28.5", trend: "stable" }
-        ]
-      }
-    }
-  ];
-
-  const mockRiskScores: RiskScore[] = [
-    {
-      category: "Cardiovascular Disease",
-      score: 15.2,
-      risk: "high",
-      factors: ["Age >65", "Smoking", "Hypertension", "High cholesterol"],
-      recommendations: ["Statin therapy", "Blood pressure control", "Smoking cessation"]
-    },
-    {
-      category: "Diabetes",
-      score: 8.7,
-      risk: "moderate",
-      factors: ["Family history", "BMI >25", "Prediabetes"],
-      recommendations: ["Annual glucose screening", "Weight management", "Diet counseling"]
-    }
-  ];
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
