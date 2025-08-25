@@ -393,7 +393,7 @@ Medical License: [License Number]
             </Button>
           </div>
         </div>
-        <Button onClick={() => setShowNewAppointment(true)} className="bg-blue-600 hover:bg-blue-700">
+        <Button onClick={() => setShowNewAppointment(true)}>
           <Plus className="h-4 w-4 mr-2" />
           New Appointment
         </Button>
