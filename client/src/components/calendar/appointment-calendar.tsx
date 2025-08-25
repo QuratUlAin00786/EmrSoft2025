@@ -295,6 +295,11 @@ Medical License: [License Number]
   };
 
 
+  // Debug logging to see what's happening
+  console.log("[Calendar DEBUG] appointmentsData:", appointmentsData);
+  console.log("[Calendar DEBUG] isLoading:", isLoading);
+  console.log("[Calendar DEBUG] data type:", typeof appointmentsData);
+
   // Process and validate appointments
   const appointments = (appointmentsData && Array.isArray(appointmentsData) ? appointmentsData.filter((apt: any) => {
     const isValid = apt && apt.id && apt.scheduledAt;
