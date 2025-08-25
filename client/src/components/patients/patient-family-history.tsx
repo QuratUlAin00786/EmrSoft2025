@@ -108,6 +108,8 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
 
   const updateMedicalHistoryMutation = useMutation({
     mutationFn: async (medicalHistory: any) => {
+      console.log("MUTATION - Sending medical history:", JSON.stringify(medicalHistory, null, 2));
+      console.log("MUTATION - Family history being sent:", medicalHistory.familyHistory);
       const response = await apiRequest('PATCH', `/api/patients/${patient.id}/medical-history`, medicalHistory);
       return response.json();
     },
