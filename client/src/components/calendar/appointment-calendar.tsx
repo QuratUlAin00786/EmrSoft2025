@@ -1127,14 +1127,6 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
         <DialogContent className="max-w-6xl h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 text-xl font-bold text-blue-800 mb-2">
-              <button 
-                onClick={() => setShowAnatomicalViewer(false)}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              </button>
               <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                 <span className="text-white font-bold text-sm">🔬</span>
               </div>
