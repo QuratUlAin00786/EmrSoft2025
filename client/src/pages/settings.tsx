@@ -73,20 +73,39 @@ export default function Settings() {
     
     switch (themeValue) {
       case 'green':
-        root.style.setProperty('--primary', 'hsl(142, 70%, 45%)'); // Medical Green
-        root.style.setProperty('--medical-blue', 'hsl(142, 70%, 45%)');
+        // Medical Green Theme
+        root.style.setProperty('--primary', '#22C55E'); 
+        root.style.setProperty('--ring', '#22C55E');
+        root.style.setProperty('--cura-bluewave', '#22C55E');
+        root.style.setProperty('--cura-electric-lilac', '#10B981');
+        root.style.setProperty('--cura-mint-drift', '#34D399');
+        root.style.setProperty('--medical-blue', '#22C55E');
         break;
       case 'purple':
-        root.style.setProperty('--primary', 'hsl(261, 73%, 52%)'); // Professional Purple
-        root.style.setProperty('--medical-blue', 'hsl(261, 73%, 52%)');
+        // Professional Purple Theme
+        root.style.setProperty('--primary', '#7C3AED');
+        root.style.setProperty('--ring', '#7C3AED');
+        root.style.setProperty('--cura-bluewave', '#7C3AED');
+        root.style.setProperty('--cura-electric-lilac', '#A855F7');
+        root.style.setProperty('--cura-mint-drift', '#C084FC');
+        root.style.setProperty('--medical-blue', '#7C3AED');
         break;
       case 'dark':
-        root.style.setProperty('--primary', 'hsl(0, 0%, 20%)'); // Dark Mode
-        root.style.setProperty('--medical-blue', 'hsl(0, 0%, 20%)');
+        // Dark Mode Theme
+        root.style.setProperty('--primary', '#374151');
+        root.style.setProperty('--ring', '#374151');
+        root.style.setProperty('--cura-bluewave', '#374151');
+        root.style.setProperty('--cura-electric-lilac', '#4B5563');
+        root.style.setProperty('--cura-mint-drift', '#6B7280');
+        root.style.setProperty('--medical-blue', '#374151');
         break;
-      default: // Medical Blue
-        root.style.setProperty('--primary', 'hsl(210, 100%, 46%)');
-        root.style.setProperty('--medical-blue', 'hsl(210, 100%, 46%)');
+      default: // Medical Blue (Default)
+        root.style.setProperty('--primary', '#4A7DFF');
+        root.style.setProperty('--ring', '#4A7DFF');
+        root.style.setProperty('--cura-bluewave', '#4A7DFF');
+        root.style.setProperty('--cura-electric-lilac', '#7279FB');
+        root.style.setProperty('--cura-mint-drift', '#6CFFEB');
+        root.style.setProperty('--medical-blue', '#4A7DFF');
         break;
     }
   };
@@ -144,6 +163,8 @@ export default function Settings() {
     // Apply theme immediately when user selects it
     if (field === 'theme') {
       applyTheme(value);
+      // Save theme to localStorage for persistence across pages
+      localStorage.setItem('cura-theme', value);
     }
   };
 
