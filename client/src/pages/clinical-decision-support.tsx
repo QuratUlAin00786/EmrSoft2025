@@ -572,11 +572,11 @@ export default function ClinicalDecisionSupport() {
                 <CardContent className="space-y-4">
                   <p className="text-gray-700">{insight.description}</p>
                   
-                  {insight.supportingData.medications && (
+                  {insight.supportingData?.medications && (
                     <div>
                       <h4 className="font-medium text-sm mb-2">Medications Involved</h4>
                       <div className="space-y-1">
-                        {insight.supportingData.medications.map((med, idx) => (
+                        {insight.supportingData?.medications?.map((med, idx) => (
                           <div key={idx} className="flex items-center gap-2 text-sm">
                             <Pill className="w-4 h-4 text-blue-500" />
                             <span>{med.name} {med.dosage} {med.frequency}</span>
@@ -591,11 +591,11 @@ export default function ClinicalDecisionSupport() {
                     </div>
                   )}
 
-                  {insight.supportingData.labValues && (
+                  {insight.supportingData?.labValues && (
                     <div>
                       <h4 className="font-medium text-sm mb-2">Lab Values</h4>
                       <div className="space-y-1">
-                        {insight.supportingData.labValues.map((lab, idx) => (
+                        {insight.supportingData?.labValues?.map((lab, idx) => (
                           <div key={idx} className="flex items-center justify-between text-sm">
                             <span>{lab.name}</span>
                             <div className="flex items-center gap-2">
