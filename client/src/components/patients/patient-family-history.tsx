@@ -330,7 +330,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
     // Add the new condition to the appropriate category
     updatedFamilyHistory[relativeCategory].push(conditionText);
 
-    // Update local state immediately for instant UI feedback - ensure complete immutability
+    // Create the complete updated medical history
     const newMedicalHistory = {
       allergies: patient.medicalHistory?.allergies || [],
       medications: patient.medicalHistory?.medications || [],
@@ -339,20 +339,14 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
       socialHistory: patient.medicalHistory?.socialHistory || {},
       chronicConditions: patient.medicalHistory?.chronicConditions || []
     };
+
+    // Save to database using the updated data
+    updateMedicalHistoryMutation.mutate(newMedicalHistory);
     
+    // Update local state immediately for instant UI feedback
     onUpdate({
       ...patient,
       medicalHistory: newMedicalHistory
-    });
-
-    // Save to database
-    updateMedicalHistoryMutation.mutate({
-      allergies: patient.medicalHistory?.allergies || [],
-      chronicConditions: patient.medicalHistory?.chronicConditions || [],
-      medications: patient.medicalHistory?.medications || [],
-      familyHistory: updatedFamilyHistory,
-      socialHistory: patient.medicalHistory?.socialHistory || {},
-      immunizations: patient.medicalHistory?.immunizations || []
     });
 
     // Reset form only after successful local update
