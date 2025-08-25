@@ -3,14 +3,40 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Calendar, Clock, MapPin, User, Video, Stethoscope, FileText } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar, Clock, MapPin, User, Video, Stethoscope, FileText, Plus, Save, X } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { FullConsultationInterface } from "@/components/consultation/full-consultation-interface";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useMutation } from "@tanstack/react-query";
 import type { Appointment } from "@/types";
 import { NewAppointmentModal } from "./new-appointment-modal";
+
+// Medical record form schema
+const medicalRecordSchema = z.object({
+  type: z.enum(["consultation", "prescription", "lab_result", "imaging", "procedure"]),
+  title: z.string().min(1, "Title is required"),
+  notes: z.string().min(10, "Notes must be at least 10 characters"),
+  diagnosis: z.string().optional(),
+  treatment: z.string().optional(),
+  medications: z.array(z.object({
+    name: z.string(),
+    dosage: z.string(),
+    frequency: z.string(),
+    duration: z.string(),
+    instructions: z.string().optional()
+  })).optional(),
+  followUpRequired: z.boolean().optional(),
+  followUpDate: z.string().optional(),
+});
 
 const statusColors = {
   scheduled: "text-white",
@@ -43,9 +69,10 @@ export default function AppointmentCalendar() {
   const [viewMode, setViewMode] = useState<"month" | "week" | "day">("month");
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [showAppointmentDetails, setShowAppointmentDetails] = useState(false);
-  const [showConsultation, setShowConsultation] = useState(false);
+  const [showMedicalRecord, setShowMedicalRecord] = useState(false);
   const [showNewAppointment, setShowNewAppointment] = useState(false);
   const [dialogStable, setDialogStable] = useState(true);
+  const [activeTab, setActiveTab] = useState("basic");
   const { toast } = useToast();
 
   const { data: rawAppointments = [], isLoading, refetch } = useQuery({
@@ -178,6 +205,64 @@ export default function AppointmentCalendar() {
   
   console.log("[Calendar] Final processed appointments count:", appointments.length);
   console.log("[Calendar] All appointments:", appointments.map((apt: any) => ({ id: apt.id, title: apt.title, scheduledAt: apt.scheduledAt })));
+  
+  // Medical record form
+  const form = useForm({
+    resolver: zodResolver(medicalRecordSchema),
+    defaultValues: {
+      type: "consultation" as const,
+      title: "",
+      notes: "",
+      diagnosis: "",
+      treatment: "",
+      medications: [],
+      followUpRequired: false,
+      followUpDate: "",
+    },
+  });
+
+  // Save medical record mutation
+  const saveMedicalRecord = useMutation({
+    mutationFn: async (data: any) => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/patients/${selectedAppointment?.patientId}/records`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'X-Tenant-Subdomain': 'cura'
+        },
+        credentials: 'include',
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Medical record saved",
+        description: "The medical record has been saved successfully.",
+      });
+      setShowMedicalRecord(false);
+      form.reset();
+      setActiveTab("basic");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error saving record",
+        description: error.message || "Failed to save the medical record. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const onSubmit = async (data: any) => {
+    saveMedicalRecord.mutate(data);
+  };
   
   // Data processing complete
 
@@ -603,17 +688,20 @@ export default function AppointmentCalendar() {
               <div className="flex gap-2 pt-4">
                 <Button 
                   onClick={() => {
+                    // Pre-fill form with appointment details
+                    form.setValue("title", `Medical Record - ${selectedAppointment.title}`);
+                    form.setValue("type", "consultation");
                     setShowAppointmentDetails(false);
-                    setShowConsultation(true);
+                    setShowMedicalRecord(true);
                     toast({
-                      title: "Starting Consultation",
-                      description: `Beginning consultation for ${isDataLoaded ? ((selectedAppointment as any).patientName || getPatientName(selectedAppointment.patientId)) : `Patient ${selectedAppointment.patientId}`}`,
+                      title: "Opening Medical Record",
+                      description: `Creating medical record for ${isDataLoaded ? ((selectedAppointment as any).patientName || getPatientName(selectedAppointment.patientId)) : `Patient ${selectedAppointment.patientId}`}`,
                     });
                   }}
                   disabled={selectedAppointment.status !== "scheduled"}
                 >
-                  <Stethoscope className="h-4 w-4 mr-2" />
-                  Start Consultation
+                  <FileText className="h-4 w-4 mr-2" />
+                  Add Medical Record
                 </Button>
                 <Button 
                   variant="destructive"
@@ -663,19 +751,163 @@ export default function AppointmentCalendar() {
         </DialogContent>
       </Dialog>
 
-      {/* Full Consultation Interface */}
-      <FullConsultationInterface 
-        open={showConsultation} 
-        onOpenChange={setShowConsultation}
-        patient={selectedAppointment ? { 
-          id: selectedAppointment.patientId,
-          firstName: `Patient`,
-          lastName: selectedAppointment.patientId.toString(),
-          dateOfBirth: "1990-01-01",
-          phone: "Not provided",
-          email: "Not provided"
-        } : null}
-      />
+      {/* Medical Record Dialog */}
+      <Dialog open={showMedicalRecord} onOpenChange={setShowMedicalRecord}>
+        <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-blue-800">
+              Add Medical Record - {isDataLoaded ? ((selectedAppointment as any)?.patientName || getPatientName(selectedAppointment?.patientId)) : `Patient ${selectedAppointment?.patientId}`}
+            </DialogTitle>
+            <DialogDescription>
+              Create a new medical record for this patient
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="basic">Basic Info</TabsTrigger>
+                <TabsTrigger value="clinical">Clinical</TabsTrigger>
+                <TabsTrigger value="medications">Medications</TabsTrigger>
+                <TabsTrigger value="followup">Follow-up</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="basic" className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="type">Record Type</Label>
+                    <Select value={form.watch("type")} onValueChange={(value) => form.setValue("type", value as any)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select record type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="consultation">Consultation</SelectItem>
+                        <SelectItem value="prescription">Prescription</SelectItem>
+                        <SelectItem value="lab_result">Lab Result</SelectItem>
+                        <SelectItem value="imaging">Imaging</SelectItem>
+                        <SelectItem value="procedure">Procedure</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="title">Title</Label>
+                    <Input
+                      {...form.register("title")}
+                      placeholder="Enter record title"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="notes">Notes</Label>
+                  <Textarea
+                    {...form.register("notes")}
+                    placeholder="Enter detailed notes about the consultation..."
+                    rows={4}
+                  />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="clinical" className="space-y-4">
+                <div>
+                  <Label htmlFor="diagnosis">Diagnosis</Label>
+                  <Textarea
+                    {...form.register("diagnosis")}
+                    placeholder="Enter diagnosis..."
+                    rows={3}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="treatment">Treatment Plan</Label>
+                  <Textarea
+                    {...form.register("treatment")}
+                    placeholder="Enter treatment plan..."
+                    rows={3}
+                  />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="medications" className="space-y-4">
+                <div>
+                  <Label>Prescribed Medications</Label>
+                  {(form.watch("medications") || []).map((medication: any, index: number) => (
+                    <div key={index} className="grid grid-cols-4 gap-2 mb-2">
+                      <Input
+                        {...form.register(`medications.${index}.name` as any)}
+                        placeholder="Medication name"
+                      />
+                      <Input
+                        {...form.register(`medications.${index}.dosage` as any)}
+                        placeholder="Dosage (e.g., 10mg)"
+                      />
+                      <Input
+                        {...form.register(`medications.${index}.frequency` as any)}
+                        placeholder="Frequency (e.g., twice daily)"
+                      />
+                      <Input
+                        {...form.register(`medications.${index}.duration` as any)}
+                        placeholder="Duration (e.g., 30 days)"
+                      />
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      const current = form.watch("medications") || [];
+                      form.setValue("medications", [...current, { name: "", dosage: "", frequency: "", duration: "" }] as any);
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Medication
+                  </Button>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="followup" className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    {...form.register("followUpRequired")}
+                    className="rounded border-gray-300"
+                  />
+                  <Label>Follow-up appointment required</Label>
+                </div>
+                {form.watch("followUpRequired") && (
+                  <div>
+                    <Label htmlFor="followUpDate">Follow-up Date</Label>
+                    <Input
+                      type="date"
+                      {...form.register("followUpDate" as any)}
+                    />
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setShowMedicalRecord(false);
+                  form.reset();
+                  setActiveTab("basic");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={saveMedicalRecord.isPending}
+              >
+                {saveMedicalRecord.isPending ? "Saving..." : "Save Record"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* New Appointment Modal */}
       <NewAppointmentModal 
