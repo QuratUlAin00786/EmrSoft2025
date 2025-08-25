@@ -202,6 +202,9 @@ export default function Settings() {
       await queryClient.invalidateQueries({ queryKey: ["/api/tenant/info"] });
       await queryClient.refetchQueries({ queryKey: ["/api/tenant/info"] });
       
+      // Immediately reapply theme after saving
+      applyTheme(settings.theme);
+      
       setHasChanges(false);
       setShowSaved(true);
       toast({
@@ -478,7 +481,7 @@ export default function Settings() {
               onClick={handleSave}
               disabled={updateSettingsMutation.isPending}
               size="lg"
-              className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg border-0"
+              className="shadow-lg"
             >
               {updateSettingsMutation.isPending ? (
                 <>

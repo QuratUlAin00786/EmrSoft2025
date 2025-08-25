@@ -130,8 +130,8 @@ export function AIChatbot({ isOpen, onClose }: ChatbotProps) {
         <CardHeader className="flex-shrink-0 border-b">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-medical-blue/10 rounded-lg">
-                <Bot className="h-6 w-6 text-medical-blue" />
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Bot className="h-6 w-6 text-primary" />
               </div>
               <div>
                 <CardTitle className="flex items-center space-x-2">
@@ -178,13 +178,13 @@ export function AIChatbot({ isOpen, onClose }: ChatbotProps) {
                 >
                   <div className={`p-2 rounded-lg flex-shrink-0 ${
                     message.role === 'user' 
-                      ? 'bg-medical-blue text-white' 
+                      ? 'bg-primary text-primary-foreground' 
                       : 'bg-neutral-100'
                   }`}>
                     {message.role === 'user' ? (
                       <User className="h-4 w-4" />
                     ) : (
-                      <Bot className="h-4 w-4 text-medical-blue" />
+                      <Bot className="h-4 w-4 text-primary" />
                     )}
                   </div>
                   
@@ -193,7 +193,7 @@ export function AIChatbot({ isOpen, onClose }: ChatbotProps) {
                   }`}>
                     <div className={`p-3 rounded-lg ${
                       message.role === 'user'
-                        ? 'bg-medical-blue text-white ml-auto'
+                        ? 'bg-primary text-primary-foreground ml-auto'
                         : 'bg-neutral-50 border'
                     }`}>
                       <p className="text-sm whitespace-pre-wrap">{message.content}</p>
@@ -223,7 +223,7 @@ export function AIChatbot({ isOpen, onClose }: ChatbotProps) {
               {isTyping && (
                 <div className="flex items-start space-x-3">
                   <div className="p-2 rounded-lg bg-neutral-100 flex-shrink-0">
-                    <Bot className="h-4 w-4 text-medical-blue" />
+                    <Bot className="h-4 w-4 text-primary" />
                   </div>
                   <div className="flex-1">
                     <div className="p-3 rounded-lg bg-neutral-50 border">
@@ -253,7 +253,6 @@ export function AIChatbot({ isOpen, onClose }: ChatbotProps) {
               <Button
                 type="submit"
                 disabled={!inputMessage.trim() || chatMutation.isPending}
-                className="bg-medical-blue hover:bg-blue-700"
               >
                 <Send className="h-4 w-4" />
               </Button>
