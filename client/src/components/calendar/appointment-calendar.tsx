@@ -259,12 +259,22 @@ Medical License: [License Number]
   };
 
   // Fetch appointments
-  const { data: appointmentsData, isLoading, refetch } = useQuery({
+  const { data: appointmentsData, isLoading, refetch, error } = useQuery({
     queryKey: ["/api/appointments"],
     staleTime: 30000,
     refetchInterval: 60000,
     retry: 3,
     retryDelay: 1000,
+    queryFn: async () => {
+      console.log("[Calendar] Fetching appointments...");
+      const response = await apiRequest('GET', '/api/appointments');
+      const data = await response.json();
+      console.log("[Calendar] Appointments data received:", data);
+      return data;
+    },
+    onError: (error) => {
+      console.error("[Calendar] Appointments query error:", error);
+    }
   });
 
   // Fetch users for patient and provider names
@@ -298,6 +308,7 @@ Medical License: [License Number]
   // Debug logging to see what's happening
   console.log("[Calendar DEBUG] appointmentsData:", appointmentsData);
   console.log("[Calendar DEBUG] isLoading:", isLoading);
+  console.log("[Calendar DEBUG] error:", error);
   console.log("[Calendar DEBUG] data type:", typeof appointmentsData);
 
   // Process and validate appointments
