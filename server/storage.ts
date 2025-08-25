@@ -1127,23 +1127,23 @@ export class DatabaseStorage implements IStorage {
   async getAnalytics(organizationId: number): Promise<any> {
     try {
       // Get real patient data from database
-      const patients = await db.select().from(patientsTable).where(eq(patientsTable.organizationId, organizationId));
-      const appointments = await db.select().from(appointmentsTable).where(eq(appointmentsTable.organizationId, organizationId));
+      const patientsList = await db.select().from(patients).where(eq(patients.organizationId, organizationId));
+      const appointmentsList = await db.select().from(appointments).where(eq(appointments.organizationId, organizationId));
       
-      const totalPatients = patients.length;
-      const totalAppointments = appointments.length;
+      const totalPatients = patientsList.length;
+      const totalAppointments = appointmentsList.length;
       
       // Calculate new patients (created in last 30 days)
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-      const newPatients = patients.filter(p => new Date(p.createdAt) > thirtyDaysAgo).length;
+      const newPatients = patientsList.filter(p => new Date(p.createdAt) > thirtyDaysAgo).length;
       
       // Calculate appointment stats
-      const completedAppointments = appointments.filter(a => a.status === 'completed').length;
-      const cancelledAppointments = appointments.filter(a => a.status === 'cancelled').length;
-      const noShowAppointments = appointments.filter(a => a.status === 'no-show').length;
+      const completedAppointments = appointmentsList.filter(a => a.status === 'completed').length;
+      const cancelledAppointments = appointmentsList.filter(a => a.status === 'cancelled').length;
+      const noShowAppointments = appointmentsList.filter(a => a.status === 'no-show').length;
       
       // Patient age distribution
-      const ageDistribution = patients.reduce((acc, patient) => {
+      const ageDistribution = patientsList.reduce((acc, patient) => {
         if (patient.dateOfBirth) {
           const age = new Date().getFullYear() - new Date(patient.dateOfBirth).getFullYear();
           if (age < 18) acc['Under 18']++;
@@ -1156,7 +1156,7 @@ export class DatabaseStorage implements IStorage {
       }, { 'Under 18': 0, '18-34': 0, '35-54': 0, '55-74': 0, '75+': 0 });
       
       // Gender distribution
-      const genderDistribution = patients.reduce((acc, patient) => {
+      const genderDistribution = patientsList.reduce((acc, patient) => {
         acc[patient.gender || 'Unknown']++;
         return acc;
       }, { Male: 0, Female: 0, Unknown: 0 });
@@ -1169,12 +1169,12 @@ export class DatabaseStorage implements IStorage {
         const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
         const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
         
-        const monthPatients = patients.filter(p => {
+        const monthPatients = patientsList.filter(p => {
           const createdDate = new Date(p.createdAt);
           return createdDate >= monthStart && createdDate <= monthEnd;
         }).length;
         
-        const totalToDate = patients.filter(p => new Date(p.createdAt) <= monthEnd).length;
+        const totalToDate = patientsList.filter(p => new Date(p.createdAt) <= monthEnd).length;
         
         patientGrowthData.push({
           month: monthDate.toLocaleDateString('en-US', { month: 'short' }),
