@@ -82,6 +82,56 @@ function ProtectedApp() {
     const root = document.documentElement;
     
     switch (themeValue) {
+      case 'electric-lilac':
+        // Electric Lilac Theme
+        root.style.setProperty('--primary', '#7279FB', 'important'); 
+        root.style.setProperty('--primary-foreground', '#FFFFFF', 'important');
+        root.style.setProperty('--ring', '#7279FB', 'important');
+        root.style.setProperty('--cura-bluewave', '#7279FB', 'important');
+        root.style.setProperty('--cura-electric-lilac', '#7279FB', 'important');
+        root.style.setProperty('--cura-mint-drift', '#C073FF', 'important');
+        root.style.setProperty('--medical-blue', '#7279FB', 'important');
+        break;
+      case 'midnight':
+        // Midnight Theme
+        root.style.setProperty('--primary', '#162B61', 'important'); 
+        root.style.setProperty('--primary-foreground', '#FFFFFF', 'important');
+        root.style.setProperty('--ring', '#162B61', 'important');
+        root.style.setProperty('--cura-bluewave', '#162B61', 'important');
+        root.style.setProperty('--cura-electric-lilac', '#2A4082', 'important');
+        root.style.setProperty('--cura-mint-drift', '#4A6FA5', 'important');
+        root.style.setProperty('--medical-blue', '#162B61', 'important');
+        break;
+      case 'steel':
+        // Steel Theme
+        root.style.setProperty('--primary', '#9B9EAF', 'important'); 
+        root.style.setProperty('--primary-foreground', '#FFFFFF', 'important');
+        root.style.setProperty('--ring', '#9B9EAF', 'important');
+        root.style.setProperty('--cura-bluewave', '#9B9EAF', 'important');
+        root.style.setProperty('--cura-electric-lilac', '#B5B8C7', 'important');
+        root.style.setProperty('--cura-mint-drift', '#A8ABBA', 'important');
+        root.style.setProperty('--medical-blue', '#9B9EAF', 'important');
+        break;
+      case 'mist':
+        // Mist Theme
+        root.style.setProperty('--primary', '#E0E1F4', 'important'); 
+        root.style.setProperty('--primary-foreground', '#162B61', 'important');
+        root.style.setProperty('--ring', '#E0E1F4', 'important');
+        root.style.setProperty('--cura-bluewave', '#E0E1F4', 'important');
+        root.style.setProperty('--cura-electric-lilac', '#D1D3E8', 'important');
+        root.style.setProperty('--cura-mint-drift', '#E8E9F6', 'important');
+        root.style.setProperty('--medical-blue', '#E0E1F4', 'important');
+        break;
+      case 'mint-drift':
+        // Mint Drift Theme
+        root.style.setProperty('--primary', '#6CFFEB', 'important'); 
+        root.style.setProperty('--primary-foreground', '#162B61', 'important');
+        root.style.setProperty('--ring', '#6CFFEB', 'important');
+        root.style.setProperty('--cura-bluewave', '#6CFFEB', 'important');
+        root.style.setProperty('--cura-electric-lilac', '#5CFCE6', 'important');
+        root.style.setProperty('--cura-mint-drift', '#6CFFEB', 'important');
+        root.style.setProperty('--medical-blue', '#6CFFEB', 'important');
+        break;
       case 'green':
         // Medical Green Theme - Force high specificity
         root.style.setProperty('--primary', '#22C55E', 'important'); 
@@ -112,7 +162,7 @@ function ProtectedApp() {
         root.style.setProperty('--cura-mint-drift', '#6B7280', 'important');
         root.style.setProperty('--medical-blue', '#374151', 'important');
         break;
-      default: // Medical Blue (Default)
+      default: // Bluewave (Default)
         root.style.setProperty('--primary', '#4A7DFF', 'important');
         root.style.setProperty('--primary-foreground', '#FFFFFF', 'important');
         root.style.setProperty('--ring', '#4A7DFF', 'important');
