@@ -2966,7 +2966,7 @@ export default function Forms() {
           </div>
           
           {/* Header Preview Area */}
-          <div className="mt-4 p-6 bg-[hsl(var(--cura-mist))] dark:bg-[hsl(var(--cura-midnight))] border border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))] rounded text-center relative" style={{ width: '700px' }}>
+          <div className="mt-4 p-6 bg-primary/10 dark:bg-[hsl(var(--cura-midnight))] border border-primary/20 dark:border-[hsl(var(--cura-steel))] rounded text-center relative" style={{ width: '700px' }}>
             {selectedHeader === "your-clinic" ? (
               <div>
                 <div className="text-[hsl(var(--cura-bluewave))] dark:text-[hsl(var(--cura-bluewave))] text-lg font-semibold">🏥 {clinicInfo.name}</div>
