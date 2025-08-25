@@ -174,9 +174,9 @@ export function AdminDashboard() {
       </div>
 
       {/* Main Content Area with Calendar and Quick Actions */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Appointment Calendar */}
-        <div className="xl:col-span-3">
+        <div className="lg:col-span-3">
           <AppointmentCalendar />
         </div>
 
