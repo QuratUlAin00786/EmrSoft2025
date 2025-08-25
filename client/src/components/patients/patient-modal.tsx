@@ -184,16 +184,8 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
+          <DialogTitle>
             Add New Patient
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClose}
-              className="text-neutral-600 hover:text-gray-900"
-            >
-              <X className="h-5 w-5" />
-            </Button>
           </DialogTitle>
         </DialogHeader>
         
