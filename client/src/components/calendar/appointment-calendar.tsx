@@ -21,6 +21,7 @@ import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import type { Appointment } from "@/types";
 import { NewAppointmentModal } from "./new-appointment-modal";
+import ConsultationNotes from "@/components/medical/consultation-notes";
 
 // Medical record form schema
 const medicalRecordSchema = z.object({
@@ -71,7 +72,6 @@ export default function AppointmentCalendar() {
   const [viewMode, setViewMode] = useState<"month" | "week" | "day">("month");
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [showAppointmentDetails, setShowAppointmentDetails] = useState(false);
-  const [showMedicalRecord, setShowMedicalRecord] = useState(false);
   const [showNewAppointment, setShowNewAppointment] = useState(false);
   const [dialogStable, setDialogStable] = useState(true);
   const [activeTab, setActiveTab] = useState("basic");
@@ -380,48 +380,6 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
     },
   });
 
-  // Save medical record mutation
-  const saveMedicalRecord = useMutation({
-    mutationFn: async (data: any) => {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch(`/api/patients/${selectedAppointment?.patientId}/records`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'X-Tenant-Subdomain': 'cura'
-        },
-        credentials: 'include',
-        body: JSON.stringify(data)
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Medical record saved",
-        description: "The medical record has been saved successfully.",
-      });
-      setShowMedicalRecord(false);
-      form.reset();
-      setActiveTab("basic");
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error saving record",
-        description: error.message || "Failed to save the medical record. Please try again.",
-        variant: "destructive",
-      });
-    }
-  });
-
-  const onSubmit = async (data: any) => {
-    saveMedicalRecord.mutate(data);
-  };
   
   // Data processing complete
 
@@ -845,23 +803,13 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
               )}
               
               <div className="flex gap-2 pt-4">
-                <Button 
-                  onClick={() => {
-                    // Pre-fill form with appointment details
-                    form.setValue("title", `Medical Record - ${selectedAppointment.title}`);
-                    form.setValue("type", "consultation");
-                    setShowAppointmentDetails(false);
-                    setShowMedicalRecord(true);
-                    toast({
-                      title: "Opening Medical Record",
-                      description: `Creating medical record for ${isDataLoaded ? ((selectedAppointment as any).patientName || getPatientName(selectedAppointment.patientId)) : `Patient ${selectedAppointment.patientId}`}`,
-                    });
-                  }}
-                  disabled={selectedAppointment.status !== "scheduled"}
-                >
-                  <FileText className="h-4 w-4 mr-2" />
-                  Add Medical Record
-                </Button>
+                <div className="w-full mt-4">
+                  <ConsultationNotes 
+                    patientId={selectedAppointment.patientId}
+                    patientName={isDataLoaded ? ((selectedAppointment as any)?.patientName || getPatientName(selectedAppointment?.patientId)) : `Patient ${selectedAppointment?.patientId}`}
+                    patientNumber={`Patient ${selectedAppointment?.patientId}`}
+                  />
+                </div>
                 <Button 
                   variant="destructive"
                   onClick={async () => {
