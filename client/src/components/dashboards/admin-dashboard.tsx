@@ -173,15 +173,10 @@ export function AdminDashboard() {
         ))}
       </div>
 
-      {/* Main Content Area with Calendar and Quick Actions */}
+      {/* Main Content Area with Quick Actions and Calendar */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* Appointment Calendar */}
-        <div className="lg:col-span-2">
-          <AppointmentCalendar />
-        </div>
-
         {/* Quick Actions */}
-        <div className="space-y-4">
+        <div className="lg:col-span-2 space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
@@ -223,6 +218,11 @@ export function AdminDashboard() {
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Appointment Calendar */}
+        <div className="lg:col-span-3">
+          <AppointmentCalendar />
         </div>
       </div>
       

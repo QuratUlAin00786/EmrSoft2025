@@ -419,7 +419,7 @@ Medical License: [License Number]
                 <div
                   key={day.toString()}
                   className={`
-                    min-h-[120px] p-2 border rounded-lg cursor-pointer transition-colors
+                    min-h-[80px] p-1 border rounded-lg cursor-pointer transition-colors
                     ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}
                     ${isCurrentDay ? 'bg-yellow-50 border-yellow-300' : ''}
                   `}
