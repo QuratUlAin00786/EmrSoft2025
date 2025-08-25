@@ -263,6 +263,8 @@ Medical License: [License Number]
     queryKey: ["/api/appointments"],
     staleTime: 30000,
     refetchInterval: 60000,
+    retry: 3,
+    retryDelay: 1000,
   });
 
   // Fetch users for patient and provider names
@@ -292,8 +294,14 @@ Medical License: [License Number]
     return provider ? `Dr. ${provider.firstName || ''} ${provider.lastName || ''}`.trim() : `Provider ${providerId}`;
   };
 
+  // Debug logging
+  console.log("[Calendar] appointmentsData:", appointmentsData);
+  console.log("[Calendar] appointmentsData type:", typeof appointmentsData);
+  console.log("[Calendar] isArray:", Array.isArray(appointmentsData));
+  console.log("[Calendar] isLoading:", isLoading);
+
   // Process and validate appointments
-  const appointments = (Array.isArray(appointmentsData) ? appointmentsData.filter((apt: any) => {
+  const appointments = (appointmentsData && Array.isArray(appointmentsData) ? appointmentsData.filter((apt: any) => {
     const isValid = apt && apt.id && apt.scheduledAt;
     if (!isValid) {
       console.warn('[Calendar] Invalid appointment filtered out:', apt);

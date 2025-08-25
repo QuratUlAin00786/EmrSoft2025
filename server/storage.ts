@@ -584,7 +584,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAppointmentsByOrganization(organizationId: number, date?: Date): Promise<Appointment[]> {
-    let query = db.select().from(appointments).where(eq(appointments.organizationId, organizationId));
+    let baseConditions = [eq(appointments.organizationId, organizationId)];
     
     if (date) {
       const startOfDay = new Date(date);
@@ -592,14 +592,15 @@ export class DatabaseStorage implements IStorage {
       const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
       
-      query = query.where(and(
-        eq(appointments.organizationId, organizationId),
+      baseConditions.push(
         gte(appointments.scheduledAt, startOfDay),
         lte(appointments.scheduledAt, endOfDay)
-      ));
+      );
     }
     
-    return await query.orderBy(asc(appointments.scheduledAt));
+    return await db.select().from(appointments)
+      .where(and(...baseConditions))
+      .orderBy(asc(appointments.scheduledAt));
   }
 
   async getAppointmentsByProvider(providerId: number, organizationId: number, date?: Date): Promise<Appointment[]> {
