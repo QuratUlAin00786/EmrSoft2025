@@ -121,7 +121,7 @@ export default function AppointmentCalendar() {
     const treatmentPlan = `
 COMPREHENSIVE FACIAL MUSCLE TREATMENT PLAN
 
-Patient: ${selectedAppointment?.patient?.firstName} ${selectedAppointment?.patient?.lastName}
+Patient: ${getPatientName(selectedAppointment.patientId)}
 Date: ${format(new Date(), 'MMMM dd, yyyy')}
 
 TARGET ANALYSIS:
@@ -171,7 +171,7 @@ Generated on: ${format(new Date(), 'PPpp')}
       return;
     }
 
-    if (!selectedAppointment?.patient?.id) {
+    if (!selectedAppointment?.patientId) {
       toast({
         title: "Error",
         description: "No patient selected for this analysis.",
@@ -188,7 +188,7 @@ Generated on: ${format(new Date(), 'PPpp')}
         title: `Anatomical Analysis - ${selectedMuscleGroup.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`,
         notes: `FACIAL MUSCLE ANALYSIS REPORT
 
-Patient: ${selectedAppointment?.patient?.firstName} ${selectedAppointment?.patient?.lastName}
+Patient: ${getPatientName(selectedAppointment.patientId)}
 Date: ${format(new Date(), 'MMMM dd, yyyy')}
 
 ANALYSIS DETAILS:
@@ -208,7 +208,7 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
         treatment: selectedTreatment ? selectedTreatment.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : undefined
       };
 
-      const response = await apiRequest("POST", `/api/patients/${selectedAppointment.patient.id}/records`, analysisData);
+      const response = await apiRequest("POST", `/api/patients/${selectedAppointment.patientId}/records`, analysisData);
       
       toast({
         title: "Analysis Saved",
