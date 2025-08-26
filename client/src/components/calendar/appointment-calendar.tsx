@@ -266,10 +266,8 @@ Medical License: [License Number]
     retry: 3,
     retryDelay: 1000,
     queryFn: async () => {
-      console.log("[Calendar] Fetching appointments...");
       const response = await apiRequest('GET', '/api/appointments');
       const data = await response.json();
-      console.log("[Calendar] Appointments data received:", data);
       return data;
     },
     onError: (error) => {
@@ -282,10 +280,8 @@ Medical License: [License Number]
     queryKey: ["/api/users"],
     staleTime: 60000,
     queryFn: async () => {
-      console.log("[Calendar] Fetching users data...");
       const response = await apiRequest('GET', '/api/users');
       const data = await response.json();
-      console.log("[Calendar] Users data received:", data);
       return data;
     },
   });
@@ -308,18 +304,10 @@ Medical License: [License Number]
   const getProviderName = (providerId: number) => {
     if (!usersData || !Array.isArray(usersData)) return `Provider ${providerId}`;
     const provider = usersData.find((u: any) => u.id === providerId);
-    console.log(`[Calendar] Looking up provider ${providerId}:`, provider);
     return provider ? `${provider.firstName || ''} ${provider.lastName || ''}`.trim() : `Provider ${providerId}`;
   };
 
 
-  // Debug logging to see what's happening
-  console.log("[Calendar DEBUG] appointmentsData:", appointmentsData);
-  console.log("[Calendar DEBUG] isLoading:", isLoading);
-  console.log("[Calendar DEBUG] error:", error);
-  console.log("[Calendar DEBUG] data type:", typeof appointmentsData);
-  console.log("[Calendar DEBUG] usersData:", usersData);
-  console.log("[Calendar DEBUG] isUsersLoading:", isUsersLoading);
 
   // Process and validate appointments
   const appointments = (appointmentsData && Array.isArray(appointmentsData) ? appointmentsData.filter((apt: any) => {
