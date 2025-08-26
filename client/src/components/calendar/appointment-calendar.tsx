@@ -311,6 +311,8 @@ Medical License: [License Number]
   console.log("[Calendar DEBUG] isLoading:", isLoading);
   console.log("[Calendar DEBUG] error:", error);
   console.log("[Calendar DEBUG] data type:", typeof appointmentsData);
+  console.log("[Calendar DEBUG] usersData:", usersData);
+  console.log("[Calendar DEBUG] isUsersLoading:", isUsersLoading);
 
   // Process and validate appointments
   const appointments = (appointmentsData && Array.isArray(appointmentsData) ? appointmentsData.filter((apt: any) => {
