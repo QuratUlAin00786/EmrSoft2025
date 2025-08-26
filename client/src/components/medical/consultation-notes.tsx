@@ -20,9 +20,8 @@ import { useToast } from "@/hooks/use-toast";
 import { FileText, Plus, Calendar, User, Stethoscope, Pill, AlertTriangle, Mic, Square } from "lucide-react";
 import { format } from "date-fns";
 import type { MedicalRecord } from "@/types";
-// Use public assets that work reliably in production
-const anatomicalDiagramImage = "/facial-diagram.png";
-const facialDiagramImage = "/facial-diagram.png";
+import anatomicalDiagramImage from "@assets/2_1754469563272.png";
+import facialDiagramImage from "@assets/1_1754469776185.png";
 
 const consultationSchema = z.object({
   type: z.enum(["consultation", "prescription", "lab_result", "imaging", "procedure"]),
