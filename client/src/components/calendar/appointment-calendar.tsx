@@ -310,18 +310,9 @@ Medical License: [License Number]
   };
 
 
-  // Debug logging to see what's happening
-  console.log("[Calendar DEBUG] appointmentsData:", appointmentsData);
-  console.log("[Calendar DEBUG] isLoading:", isLoading);
-  console.log("[Calendar DEBUG] error:", error);
-  console.log("[Calendar DEBUG] data type:", typeof appointmentsData);
-  console.log("[Calendar DEBUG] usersData:", usersData);
-  console.log("[Calendar DEBUG] isUsersLoading:", isUsersLoading);
-  console.log("[Calendar DEBUG] patientsData:", patientsData);
-  console.log("[Calendar DEBUG] isPatientsLoading:", isPatientsLoading);
 
-  // Process and validate appointments
-  const appointments = (appointmentsData && Array.isArray(appointmentsData) ? appointmentsData.filter((apt: any) => {
+  // Process and validate appointments - only when all data is loaded
+  const appointments = (appointmentsData && Array.isArray(appointmentsData) && patientsData && Array.isArray(patientsData) ? appointmentsData.filter((apt: any) => {
     const isValid = apt && apt.id && apt.scheduledAt;
     if (!isValid) {
       console.warn('[Calendar] Invalid appointment filtered out:', apt);
