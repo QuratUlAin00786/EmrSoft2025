@@ -272,9 +272,6 @@ Medical License: [License Number]
       console.log("[Calendar] Appointments data received:", data);
       return data;
     },
-    onError: (error) => {
-      console.error("[Calendar] Appointments query error:", error);
-    }
   });
 
   // Fetch users for patient and provider names
