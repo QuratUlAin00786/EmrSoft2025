@@ -299,9 +299,10 @@ Medical License: [License Number]
   };
 
   const getProviderName = (providerId: number) => {
-    if (!isDataLoaded || !usersData || !Array.isArray(usersData)) return `Provider ${providerId}`;
+    if (!usersData || !Array.isArray(usersData)) return `Provider ${providerId}`;
     const provider = usersData.find((u: any) => u.id === providerId);
-    return provider ? `Dr. ${provider.firstName || ''} ${provider.lastName || ''}`.trim() : `Provider ${providerId}`;
+    console.log(`[Calendar] Looking up provider ${providerId}:`, provider);
+    return provider ? `${provider.firstName || ''} ${provider.lastName || ''}`.trim() : `Provider ${providerId}`;
   };
 
 
