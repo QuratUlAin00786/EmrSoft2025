@@ -293,7 +293,7 @@ Medical License: [License Number]
 
   // Helper functions
   const getPatientName = (patientId: number) => {
-    if (!isDataLoaded || !patientsData || !Array.isArray(patientsData)) return `Patient ${patientId}`;
+    if (!patientsData || !Array.isArray(patientsData)) return `Patient ${patientId}`;
     const patient = patientsData.find((p: any) => p.id === patientId);
     return patient ? `${patient.firstName} ${patient.lastName}` : `Patient ${patientId}`;
   };
@@ -322,9 +322,9 @@ Medical License: [License Number]
   }) : [])
     .map((apt: any) => {
       try {
-        // Always include the appointment, but only add names when data is loaded
-        const patientName = isDataLoaded ? getPatientName(apt.patientId) : `Patient ${apt.patientId}`;
-        const providerName = isDataLoaded ? getProviderName(apt.providerId) : `Provider ${apt.providerId}`;
+        // Always try to get actual names, fall back to IDs if data not available
+        const patientName = getPatientName(apt.patientId);
+        const providerName = getProviderName(apt.providerId);
         const processed = {
           ...apt,
           patientName,
