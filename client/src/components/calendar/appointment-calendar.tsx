@@ -281,6 +281,13 @@ Medical License: [License Number]
   const { data: usersData, isLoading: isUsersLoading } = useQuery({
     queryKey: ["/api/users"],
     staleTime: 60000,
+    queryFn: async () => {
+      console.log("[Calendar] Fetching users data...");
+      const response = await apiRequest('GET', '/api/users');
+      const data = await response.json();
+      console.log("[Calendar] Users data received:", data);
+      return data;
+    },
   });
 
   // Fetch patients
