@@ -383,7 +383,9 @@ Medical License: [License Number]
 
   const formatTime = (timeString: string) => {
     try {
-      const date = new Date(timeString);
+      // Remove 'Z' to treat as local time and avoid timezone conversion
+      const cleanTimeString = timeString.replace('Z', '');
+      const date = new Date(cleanTimeString);
       return format(date, "h:mm a");
     } catch (error) {
       return "Invalid time";
