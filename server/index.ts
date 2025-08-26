@@ -53,8 +53,8 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // Seed database on startup in development
-  if (process.env.NODE_ENV === "development") {
+  // Seed database on startup in development and production
+  if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "production") {
     try {
       await seedDatabase();
       
