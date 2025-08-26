@@ -165,6 +165,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Production Data Sync endpoint - triggers database seeding for production
+  app.post('/api/production-sync', async (req, res) => {
+    try {
+      console.log('[PRODUCTION SYNC] Starting database seeding...');
+      
+      // Import and run the seeding function
+      const { seedDatabase } = await import('./seed-data');
+      await seedDatabase();
+      
+      res.json({
+        success: true,
+        message: 'Production database seeded successfully',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('[PRODUCTION SYNC] Seeding failed:', error);
+      res.status(500).json({ 
+        error: 'Production sync failed', 
+        message: (error as Error).message 
+      });
+    }
+  });
+
   // Register critical SaaS routes DIRECTLY before ANY middleware
   // These MUST work in production - direct implementation without external dependencies
   
