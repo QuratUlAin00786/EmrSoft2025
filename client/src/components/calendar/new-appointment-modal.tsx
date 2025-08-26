@@ -209,7 +209,12 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
   }, [formData.date, formData.time, allProviders]);
 
   const createAppointment = () => {
+    console.log("🔍 FORM VALIDATION - Current form data:", formData);
+    console.log("🔍 FORM VALIDATION - patientId:", formData.patientId, "type:", typeof formData.patientId);
+    console.log("🔍 FORM VALIDATION - providerId:", formData.providerId, "type:", typeof formData.providerId);
+    
     if (!formData.patientId || !formData.providerId) {
+      console.log("❌ VALIDATION FAILED - Missing patient or provider");
       toast({
         title: "Missing Information", 
         description: "Please select both patient and provider",
