@@ -36,6 +36,9 @@ export default function SaaSDashboard({ onLogout }: SaaSDashboardProps) {
   // Fetch dashboard stats
   const { data: stats, isLoading } = useQuery({
     queryKey: ['/api/saas/stats'],
+    staleTime: 0,
+    cacheTime: 0,
+    refetchOnMount: true,
   });
 
   // Fetch recent activity
@@ -45,11 +48,17 @@ export default function SaaSDashboard({ onLogout }: SaaSDashboardProps) {
       const response = await saasApiRequest('GET', `/api/saas/activity?page=${activityPage}&limit=${activityLimit}`);
       return response.json();
     },
+    staleTime: 0,
+    cacheTime: 0,
+    refetchOnMount: true,
   });
 
   // Fetch system alerts
   const { data: systemAlerts } = useQuery({
     queryKey: ['/api/saas/alerts'],
+    staleTime: 0,
+    cacheTime: 0,
+    refetchOnMount: true,
   });
 
   const handleLogout = () => {
