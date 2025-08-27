@@ -60,10 +60,13 @@ export async function saasApiRequest(
     await throwIfResNotOk(res);
     return res;
   } catch (error) {
-    // If token is invalid, clear it and force re-login
-    if (error.message.includes('401')) {
+    // Only clear token for specific authentication failures, not all 401s
+    if (error.message.includes('401') && error.message.includes('Invalid token')) {
       localStorage.removeItem('saasToken');
-      window.location.reload();
+      // Don't immediately reload - let the UI handle it gracefully
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
       return;
     }
     console.error('❌ SaaS API Error:', {
@@ -91,12 +94,19 @@ export const getSaaSQueryFn: QueryFunction = async ({ queryKey }) => {
   });
 
   if (!res.ok) {
-    // If token is invalid, clear it and force re-login
+    // Only clear token for specific authentication failures
     if (res.status === 401) {
-      localStorage.removeItem('saasToken');
-      // Reload page to trigger re-authentication
-      window.location.reload();
-      return;
+      const errorText = await res.text();
+      if (errorText.includes('Invalid token')) {
+        localStorage.removeItem('saasToken');
+        // Add delay to prevent immediate logout during temporary issues
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+        return;
+      }
+      // For other 401s, just throw error without clearing token
+      throw new Error(`${res.status}: ${errorText}`);
     }
     const errorText = await res.text();
     throw new Error(`${res.status}: ${errorText}`);
