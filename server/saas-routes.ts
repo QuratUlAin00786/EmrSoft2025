@@ -30,7 +30,7 @@ async function sendWelcomeEmail(organization: any, adminUser: any) {
     const mailOptions = {
       from: 'noreply@curaemr.ai',
       to: adminUser.email,
-      subject: 'TEST - Cura EMR Login Details',
+      subject: 'Cura EMR Login Details',
       text: `Hello ${adminUser.firstName},
 
 Your Cura EMR account for ${organization.name} is ready.
