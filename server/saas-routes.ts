@@ -167,12 +167,58 @@ async function testEmailConnection() {
 
 export function registerSaaSRoutes(app: Express) {
   
+  // Send email to specific customer by ID
+  app.post('/api/saas/send-email-to-customer/:customerId', verifySaaSToken, async (req: Request, res: Response) => {
+    try {
+      const customerId = parseInt(req.params.customerId);
+      console.log(`📧 Sending welcome email to customer ID: ${customerId}`);
+      
+      // Get the organization
+      const organization = await storage.getOrganization(customerId);
+      if (!organization) {
+        return res.status(404).json({ success: false, message: 'Customer not found' });
+      }
+      
+      // Get the admin user for this organization
+      const adminUsers = await storage.getUsersByRole('admin', customerId);
+      if (!adminUsers || adminUsers.length === 0) {
+        return res.status(404).json({ success: false, message: 'No admin user found for this customer' });
+      }
+      
+      const adminUser = adminUsers[0];
+      
+      console.log('📧 Sending welcome email to:', {
+        organization: organization.name,
+        adminEmail: adminUser.email,
+        adminName: `${adminUser.firstName} ${adminUser.lastName}`
+      });
+      
+      // Send the welcome email
+      await sendWelcomeEmail(organization, adminUser);
+      
+      res.json({ 
+        success: true, 
+        message: `Welcome email sent successfully`,
+        sentTo: adminUser.email,
+        organization: organization.name
+      });
+      
+    } catch (error: any) {
+      console.error('📧 ❌ Error sending welcome email to customer:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to send welcome email',
+        error: error.message 
+      });
+    }
+  });
+
   // DIRECT EMAIL TEST - Bypasses all middleware
   app.get('/api/direct-email-test', async (req: Request, res: Response) => {
     try {
       console.log('🔥 DIRECT EMAIL TEST STARTING...');
       
-      // Create test organization and user data
+      // Create test organization and user data with YOUR email
       const testOrganization = {
         id: 1,
         name: 'Halo Healthcare',
@@ -182,9 +228,9 @@ export function registerSaaSRoutes(app: Express) {
       
       const testAdminUser = {
         id: 348,
-        email: 'admin@cura.com',
-        firstName: 'John',
-        lastName: 'Administrator',
+        email: 'admin@cura.com', // Using your real email from the customer list
+        firstName: 'Muhammad',
+        lastName: 'Younus',
         tempPassword: 'temp123'
       };
       
