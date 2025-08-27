@@ -16,13 +16,13 @@ async function sendWelcomeEmail(organization: any, adminUser: any) {
       port: 587,
       secure: false,
       auth: {
-        user: process.env.GMAIL_USER || 'noreply@curapms.ai',
-        pass: process.env.GMAIL_APP_PASSWORD,
+        user: 'noreply@curaemr.ai',
+        pass: 'wxnd higm fhgj jklr',
       },
     });
 
     const mailOptions = {
-      from: 'Cura EMR <noreply@curapms.ai>',
+      from: 'Cura EMR <noreply@curaemr.ai>',
       to: adminUser.email,
       subject: `Welcome to Cura EMR - Your Account is Ready`,
       html: `
