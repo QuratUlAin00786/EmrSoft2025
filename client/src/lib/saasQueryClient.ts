@@ -121,6 +121,8 @@ export const saasQueryClient = new QueryClient({
       queryFn: getSaaSQueryFn,
       retry: false,
       refetchOnWindowFocus: false,
+      staleTime: 0, // Always fetch fresh data in production
+      cacheTime: 0, // Don't cache data that might be stale
     },
   },
 });

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useQuery } from '@tanstack/react-query';
+import { saasApiRequest } from '@/lib/saasQueryClient';
 import { 
   Users, 
   Building2, 
@@ -41,11 +42,7 @@ export default function SaaSDashboard({ onLogout }: SaaSDashboardProps) {
   const { data: activityData } = useQuery({
     queryKey: ['/api/saas/activity', activityPage, activityLimit],
     queryFn: async () => {
-      const response = await fetch(`/api/saas/activity?page=${activityPage}&limit=${activityLimit}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('saasToken')}`
-        }
-      });
+      const response = await saasApiRequest('GET', `/api/saas/activity?page=${activityPage}&limit=${activityLimit}`);
       return response.json();
     },
   });
