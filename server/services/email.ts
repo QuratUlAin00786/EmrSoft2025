@@ -52,7 +52,7 @@ class EmailService {
         secure: false,
         auth: {
           user: 'noreply@curaemr.ai',
-          pass: 'wxnd higm fhgj jklr'
+          pass: 'wxndhigmfhgjjklr'
         },
         tls: {
           rejectUnauthorized: false

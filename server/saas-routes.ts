@@ -25,7 +25,7 @@ async function sendWelcomeEmail(organization: any, adminUser: any) {
       secure: false,
       auth: {
         user: 'noreply@curaemr.ai',
-        pass: 'wxnd higm fhgj jklr',
+        pass: 'wxndhigmfhgjjklr',
       },
     });
 
