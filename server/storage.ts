@@ -3408,67 +3408,106 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCustomerOrganization(customerData: any): Promise<any> {
-    console.log('Creating customer with billing package:', customerData.billingPackageId);
-    const bcryptModule = await import('bcrypt');
-    
-    // Create organization - match database column names (snake_case)
-    const [organization] = await db.insert(organizations)
-      .values({
-        name: customerData.name,
-        brandName: customerData.brandName || customerData.name, // This matches schema
-        subdomain: customerData.subdomain,
-        region: 'UK',
-        subscriptionStatus: customerData.billingPackageId ? 'active' : 'trial', // This matches schema
-        features: customerData.features || {},
-        accessLevel: customerData.accessLevel || 'full' // This matches schema
-      })
-      .returning();
+    console.log('🏗️ [CUSTOMER-CREATE] Starting customer creation with data:', {
+      name: customerData.name,
+      subdomain: customerData.subdomain,
+      billingPackageId: customerData.billingPackageId,
+      adminEmail: customerData.adminEmail
+    });
 
-    // Generate temporary password for admin user
-    const crypto = await import('crypto');
-    const tempPassword = crypto.randomBytes(4).toString('hex');
-    const hashedPassword = await bcryptModule.hash(tempPassword, 10);
+    try {
+      const bcryptModule = await import('bcrypt');
+      
+      // Double-check subdomain availability to prevent conflicts
+      const existingSubdomain = await db.select().from(organizations).where(eq(organizations.subdomain, customerData.subdomain)).limit(1);
+      if (existingSubdomain.length > 0) {
+        console.log('❌ [CUSTOMER-CREATE] Subdomain already exists:', customerData.subdomain);
+        throw new Error(`Subdomain '${customerData.subdomain}' is already taken`);
+      }
 
-    // Create admin user
-    const [adminUser] = await db.insert(users)
-      .values({
-        organizationId: organization.id,
-        email: customerData.adminEmail,
-        username: customerData.adminEmail, // Use email as username
-        password: hashedPassword,
-        firstName: customerData.adminFirstName,
-        lastName: customerData.adminLastName,
-        role: 'admin',
-        isActive: true
-      })
-      .returning();
+      // Create organization - match database column names (snake_case)
+      console.log('🏢 [CUSTOMER-CREATE] Creating organization...');
+      const [organization] = await db.insert(organizations)
+        .values({
+          name: customerData.name,
+          brandName: customerData.brandName || customerData.name,
+          subdomain: customerData.subdomain,
+          region: 'UK',
+          subscriptionStatus: customerData.billingPackageId ? 'active' : 'trial',
+          features: customerData.features || {},
+          accessLevel: customerData.accessLevel || 'full'
+        })
+        .returning();
+      
+      console.log('✅ [CUSTOMER-CREATE] Organization created with ID:', organization.id);
 
-    // Create billing subscription if package selected
-    if (customerData.billingPackageId) {
-      const selectedPackage = await db.select().from(saasPackages).where(eq(saasPackages.id, customerData.billingPackageId)).limit(1);
-      if (selectedPackage.length > 0) {
-        await db.insert(subscriptions).values({
+      // Generate temporary password for admin user
+      const crypto = await import('crypto');
+      const tempPassword = crypto.randomBytes(4).toString('hex');
+      const hashedPassword = await bcryptModule.hash(tempPassword, 10);
+
+      // Create admin user
+      console.log('👤 [CUSTOMER-CREATE] Creating admin user...');
+      const [adminUser] = await db.insert(users)
+        .values({
           organizationId: organization.id,
-          plan: selectedPackage[0].name,
-          planName: selectedPackage[0].name,
-          status: 'active',
-          startDate: new Date(),
-          endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-        });
-      }
-    }
+          email: customerData.adminEmail,
+          username: customerData.adminEmail, // Use email as username
+          password: hashedPassword,
+          firstName: customerData.adminFirstName,
+          lastName: customerData.adminLastName,
+          role: 'admin',
+          isActive: true
+        })
+        .returning();
+      
+      console.log('✅ [CUSTOMER-CREATE] Admin user created with ID:', adminUser.id);
 
-    return { 
-      success: true, 
-      organization, 
-      adminUser: {
-        id: adminUser.id,
-        email: adminUser.email,
-        firstName: adminUser.firstName,
-        lastName: adminUser.lastName,
-        tempPassword
+      // Create billing subscription if package selected
+      if (customerData.billingPackageId) {
+        console.log('💳 [CUSTOMER-CREATE] Setting up billing subscription...');
+        const selectedPackage = await db.select().from(saasPackages).where(eq(saasPackages.id, customerData.billingPackageId)).limit(1);
+        if (selectedPackage.length > 0) {
+          await db.insert(subscriptions).values({
+            organizationId: organization.id,
+            plan: selectedPackage[0].name,
+            planName: selectedPackage[0].name,
+            status: 'active',
+            startDate: new Date(),
+            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+          });
+          console.log('✅ [CUSTOMER-CREATE] Billing subscription created for package:', selectedPackage[0].name);
+        }
       }
-    };
+
+      console.log('🎉 [CUSTOMER-CREATE] Customer creation completed successfully!');
+      
+      return { 
+        success: true, 
+        organization, 
+        adminUser: {
+          id: adminUser.id,
+          email: adminUser.email,
+          firstName: adminUser.firstName,
+          lastName: adminUser.lastName,
+          tempPassword
+        }
+      };
+      
+    } catch (error: any) {
+      console.error('❌ [CUSTOMER-CREATE] Customer creation failed:', {
+        error: error.message,
+        stack: error.stack,
+        customerData: {
+          name: customerData.name,
+          subdomain: customerData.subdomain,
+          adminEmail: customerData.adminEmail
+        }
+      });
+      
+      // Re-throw with more context for the API layer
+      throw new Error(`Customer creation failed: ${error.message}`);
+    }
   }
 
   async updateCustomerOrganization(organizationId: number, customerData: any): Promise<any> {
