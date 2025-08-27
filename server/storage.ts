@@ -392,14 +392,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(user: InsertUser): Promise<User> {
-    const [created] = await db.insert(users).values([user]).returning();
+    const [created] = await db.insert(users).values(user).returning();
     return created;
   }
 
   async updateUser(id: number, organizationId: number, updates: Partial<InsertUser>): Promise<User | undefined> {
     console.log(`Storage: Updating user ${id} with data:`, JSON.stringify(updates, null, 2));
     const [updated] = await db.update(users)
-      .set({ ...updates, updatedAt: new Date() })
+      .set(updates)
       .where(and(eq(users.id, id), eq(users.organizationId, organizationId)))
       .returning();
     console.log(`Storage: Updated user result:`, updated ? `User ${updated.id} - workingHours: ${JSON.stringify(updated.workingHours)}` : 'No user updated');
@@ -606,7 +606,7 @@ export class DatabaseStorage implements IStorage {
   async createMedicalRecord(record: InsertMedicalRecord): Promise<MedicalRecord> {
     const cleanRecord: any = { ...record };
     delete cleanRecord.data; // Remove complex nested type to avoid compilation errors
-    const [created] = await db.insert(medicalRecords).values([cleanRecord]).returning();
+    const [created] = await db.insert(medicalRecords).values(cleanRecord).returning();
     return created;
   }
 
@@ -647,11 +647,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAppointmentsByProvider(providerId: number, organizationId: number, date?: Date): Promise<Appointment[]> {
-    let query = db.select().from(appointments)
-      .where(and(
-        eq(appointments.providerId, providerId),
-        eq(appointments.organizationId, organizationId)
-      ));
+    let baseConditions = [
+      eq(appointments.providerId, providerId),
+      eq(appointments.organizationId, organizationId)
+    ];
 
     // If date is provided, filter appointments for that specific date
     if (date) {
@@ -660,15 +659,15 @@ export class DatabaseStorage implements IStorage {
       const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
       
-      query = query.where(and(
-        eq(appointments.providerId, providerId),
-        eq(appointments.organizationId, organizationId),
+      baseConditions.push(
         gte(appointments.scheduledAt, startOfDay),
         lte(appointments.scheduledAt, endOfDay)
-      ));
+      );
     }
 
-    return await query.orderBy(asc(appointments.scheduledAt));
+    return await db.select().from(appointments)
+      .where(and(...baseConditions))
+      .orderBy(asc(appointments.scheduledAt));
   }
 
   async getAppointmentsByPatient(patientId: number, organizationId: number): Promise<Appointment[]> {
@@ -741,19 +740,19 @@ export class DatabaseStorage implements IStorage {
 
     // Pattern 3: Duration must be in standard increments (15, 30, 45, 60, 90, 120 minutes)
     const validDurations = [15, 30, 45, 60, 90, 120];
-    if (!validDurations.includes(appointment.duration)) {
+    if (appointment.duration !== undefined && !validDurations.includes(appointment.duration)) {
       errors.push(`Appointment duration must be one of: ${validDurations.join(', ')} minutes`);
     }
 
     // Pattern 4: Validate appointment type
     const validTypes = ['consultation', 'follow_up', 'procedure', 'emergency', 'routine_checkup'];
-    if (!validTypes.includes(appointment.type)) {
+    if (appointment.type && !validTypes.includes(appointment.type)) {
       errors.push(`Appointment type must be one of: ${validTypes.join(', ')}`);
     }
 
     // Pattern 5: Validate status
     const validStatuses = ['scheduled', 'completed', 'cancelled', 'no_show', 'rescheduled'];
-    if (!validStatuses.includes(appointment.status)) {
+    if (appointment.status && !validStatuses.includes(appointment.status)) {
       errors.push(`Appointment status must be one of: ${validStatuses.join(', ')}`);
     }
 
@@ -1097,7 +1096,7 @@ export class DatabaseStorage implements IStorage {
         eq(notifications.userId, userId),
         eq(notifications.organizationId, organizationId)
       ));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Consultation Methods Implementation
@@ -2844,7 +2843,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(documents)
       .where(and(eq(documents.id, id), eq(documents.organizationId, organizationId)));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Medical Images implementation
@@ -2901,7 +2900,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(medicalImages)
       .where(and(eq(medicalImages.id, id), eq(medicalImages.organizationId, organizationId)));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Lab Results (Database-driven)
@@ -3117,7 +3116,7 @@ export class DatabaseStorage implements IStorage {
   async deleteStaffShift(id: number, organizationId: number): Promise<boolean> {
     const result = await db.delete(staffShifts)
       .where(and(eq(staffShifts.id, id), eq(staffShifts.organizationId, organizationId)));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // GDPR Compliance Methods

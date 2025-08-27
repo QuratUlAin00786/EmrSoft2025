@@ -40,7 +40,13 @@ Password: ${adminUser.tempPassword}
 URL: https://${organization.subdomain}
 
 Best regards,
-Cura EMR Team`
+Cura EMR Team`,
+      html: `<h2>Hello ${adminUser.firstName},</h2>
+<p>Your Cura EMR account for <strong>${organization.name}</strong> is ready.</p>
+<p><strong>Login:</strong> ${adminUser.email}<br>
+<strong>Password:</strong> ${adminUser.tempPassword}<br>
+<strong>URL:</strong> https://${organization.subdomain}</p>
+<p>Best regards,<br>Cura EMR Team</p>`
     };
 
     console.log('📧 About to send email with options:', {

@@ -60,7 +60,7 @@ class EmailService {
       console.log('[EMAIL] Automated notifications from: Cura EMR <noreply@curaemr.ai>');
       console.log('[EMAIL] Communication & replies from: Cura EMR <info@curaemr.ai>');
       
-      this.transporter = nodemailer.createTransporter(smtpConfig);
+      this.transporter = nodemailer.createTransport(smtpConfig);
       this.initialized = true;
       
     } catch (error) {
@@ -145,7 +145,7 @@ class EmailService {
   private async sendWithFallback(mailOptions: any): Promise<boolean> {
     try {
       // Create new transporter with fallback credentials
-      const fallbackTransporter = nodemailer.createTransporter({
+      const fallbackTransporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
           user: process.env.FALLBACK_EMAIL_USER,
