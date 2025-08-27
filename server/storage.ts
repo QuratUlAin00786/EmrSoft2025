@@ -43,6 +43,7 @@ export interface IStorage {
   getOrganizationBySubdomain(subdomain: string): Promise<Organization | undefined>;
   createOrganization(organization: InsertOrganization): Promise<Organization>;
   updateOrganization(id: number, updates: Partial<InsertOrganization>): Promise<Organization | undefined>;
+  deleteCustomerOrganization(id: number): Promise<{ success: boolean; message: string }>;
 
   // Users
   getUser(id: number, organizationId: number): Promise<User | undefined>;
@@ -311,6 +312,48 @@ export class DatabaseStorage implements IStorage {
     
     const [updated] = await db.update(organizations).set(cleanUpdates).where(eq(organizations.id, id)).returning();
     return updated || undefined;
+  }
+
+  async deleteCustomerOrganization(id: number): Promise<{ success: boolean; message: string }> {
+    try {
+      console.log(`🗑️ Deleting customer organization: ${id}`);
+      
+      // Get organization info first for logging
+      const org = await this.getOrganization(id);
+      if (!org) {
+        return { success: false, message: 'Organization not found' };
+      }
+      
+      console.log(`🗑️ Deleting organization: ${org.name} (${org.subdomain})`);
+      
+      // Delete all related data for this organization
+      console.log(`🗑️ Deleting all users for organization ${id}`);
+      await db.delete(users).where(eq(users.organizationId, id));
+      
+      console.log(`🗑️ Deleting all patients for organization ${id}`);
+      await db.delete(patients).where(eq(patients.organizationId, id));
+      
+      console.log(`🗑️ Deleting all medical records for organization ${id}`);
+      await db.delete(medicalRecords).where(eq(medicalRecords.organizationId, id));
+      
+      console.log(`🗑️ Deleting all appointments for organization ${id}`);
+      await db.delete(appointments).where(eq(appointments.organizationId, id));
+      
+      console.log(`🗑️ Deleting all notifications for organization ${id}`);
+      await db.delete(notifications).where(eq(notifications.organizationId, id));
+      
+      console.log(`🗑️ Deleting all subscriptions for organization ${id}`);
+      await db.delete(subscriptions).where(eq(subscriptions.organizationId, id));
+      
+      console.log(`🗑️ Deleting organization ${id}`);
+      const result = await db.delete(organizations).where(eq(organizations.id, id));
+      
+      console.log(`🗑️ Successfully deleted organization ${org.name}`);
+      return { success: true, message: `Organization "${org.name}" deleted successfully` };
+    } catch (error) {
+      console.error(`🗑️ Error deleting organization ${id}:`, error);
+      return { success: false, message: 'Failed to delete organization' };
+    }
   }
 
   // Users

@@ -751,6 +751,19 @@ export function registerSaaSRoutes(app: Express) {
     }
   });
 
+  app.delete('/api/saas/customers/:id', verifySaaSToken, async (req: Request, res: Response) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      console.log('Deleting customer:', customerId);
+      
+      const result = await storage.deleteCustomerOrganization(customerId);
+      res.json(result);
+    } catch (error) {
+      console.error('Error deleting customer:', error);
+      res.status(500).json({ message: 'Failed to delete customer' });
+    }
+  });
+
   // Packages Management
   app.get('/api/saas/packages', verifySaaSToken, async (req: Request, res: Response) => {
     try {
