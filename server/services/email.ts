@@ -47,15 +47,10 @@ class EmailService {
       
       // Use Gmail SMTP with working credentials for real email delivery
       const smtpConfig = {
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false,
+        service: 'gmail',
         auth: {
           user: 'noreply@curaemr.ai',
           pass: 'wxndhigmfhgjjklr'
-        },
-        tls: {
-          rejectUnauthorized: false
         }
       };
       
@@ -76,33 +71,31 @@ class EmailService {
 
   async sendEmail(options: EmailOptions): Promise<boolean> {
     try {
-      const attachments = [...(options.attachments || [])];
+      // For welcome emails, use simple format without attachments
+      const isWelcomeEmail = options.subject?.toLowerCase().includes('welcome');
+      const attachments = isWelcomeEmail ? [] : [...(options.attachments || [])];
       
-      // Add Cura logos as embedded attachments for email
-      attachments.push({
-        filename: 'cura-new-logo.png',
-        path: './public/cura-new-logo.png',
-        cid: 'cura-new-logo'
-      });
-      attachments.push({
-        filename: 'cura-email-logo.png',
-        path: './public/cura-email-logo.png',
-        cid: 'cura-email-logo'
-      });
-
-      // Determine which email to use based on message type
-      let fromAddress = options.from;
-      if (!fromAddress) {
-        // Use info@curapms.ai for communication & replies, noreply@curapms.ai for automated notifications
-        if (options.subject?.toLowerCase().includes('reminder') || 
-            options.subject?.toLowerCase().includes('notification') ||
-            options.subject?.toLowerCase().includes('alert') ||
-            options.subject?.toLowerCase().includes('confirmation')) {
-          fromAddress = 'Cura EMR <noreply@curaemr.ai>';
-        } else {
-          fromAddress = 'Cura EMR <info@curaemr.ai>';
+      // Don't add logo attachments for welcome emails to avoid spam filters
+      if (!isWelcomeEmail) {
+        try {
+          // Add Cura logos as embedded attachments for email
+          attachments.push({
+            filename: 'cura-new-logo.png',
+            path: './public/cura-new-logo.png',
+            cid: 'cura-new-logo'
+          });
+          attachments.push({
+            filename: 'cura-email-logo.png',
+            path: './public/cura-email-logo.png',
+            cid: 'cura-email-logo'
+          });
+        } catch (error) {
+          console.log('[EMAIL] Logo files not found, proceeding without attachments');
         }
       }
+
+      // Use authenticated Gmail address to match SMTP credentials
+      let fromAddress = options.from || 'Cura EMR <noreply@curaemr.ai>';
 
       const mailOptions = {
         from: fromAddress,

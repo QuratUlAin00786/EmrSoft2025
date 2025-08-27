@@ -20,9 +20,7 @@ async function sendWelcomeEmail(organization: any, adminUser: any) {
     });
     
     const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
+      service: 'gmail',
       auth: {
         user: 'noreply@curaemr.ai',
         pass: 'wxndhigmfhgjjklr',
@@ -32,70 +30,71 @@ async function sendWelcomeEmail(organization: any, adminUser: any) {
     const mailOptions = {
       from: 'Cura EMR <noreply@curaemr.ai>',
       to: adminUser.email,
-      subject: `Welcome to Cura EMR - Your Account is Ready`,
+      subject: 'Welcome to Cura EMR - Your Account is Ready',
+      text: `Hello ${adminUser.firstName} ${adminUser.lastName},
+
+Welcome to Cura EMR! Your organization "${organization.name}" has been successfully set up.
+
+YOUR LOGIN CREDENTIALS:
+Login URL: https://${organization.subdomain}
+Email: ${adminUser.email}
+Temporary Password: ${adminUser.tempPassword}
+
+IMPORTANT: Please change your password on first login for security.
+
+Your Cura EMR system includes:
+- Patient Management
+- Appointment Scheduling  
+- Medical Records
+- Real-time Messaging
+- AI-Powered Insights
+- Comprehensive Reporting
+
+Login now at: https://${organization.subdomain}
+
+Best regards,
+The Cura EMR Team
+Cura Software Limited
+
+Support: info@curaemr.ai
+Registration: 16556912`,
       html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center; }
-            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-            .credentials { background: #fff; padding: 20px; border-left: 4px solid #667eea; margin: 20px 0; border-radius: 5px; }
-            .button { display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px; }
-            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
-            .security-note { background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ffc107; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>🏥 Welcome to Cura EMR</h1>
-            <p>Your healthcare management system is ready!</p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; line-height: 1.6;">
+          <h2 style="color: #333;">Welcome to Cura EMR</h2>
+          
+          <p>Hello ${adminUser.firstName} ${adminUser.lastName},</p>
+          
+          <p>Welcome to Cura EMR! Your organization "<strong>${organization.name}</strong>" has been successfully set up.</p>
+          
+          <div style="background: #f0f0f0; padding: 20px; margin: 20px 0; border-radius: 5px;">
+            <h3 style="margin-top: 0; color: #333;">Your Login Credentials</h3>
+            <p><strong>Login URL:</strong> https://${organization.subdomain}</p>
+            <p><strong>Email:</strong> ${adminUser.email}</p>
+            <p><strong>Temporary Password:</strong> ${adminUser.tempPassword}</p>
           </div>
           
-          <div class="content">
-            <h2>Hello ${adminUser.firstName} ${adminUser.lastName},</h2>
-            
-            <p>Congratulations! Your organization <strong>"${organization.name}"</strong> has been successfully set up in the Cura EMR system.</p>
-            
-            <div class="credentials">
-              <h3>🔐 Your Administrator Credentials</h3>
-              <p><strong>Login URL:</strong> https://${organization.subdomain}</p>
-              <p><strong>Email:</strong> ${adminUser.email}</p>
-              <p><strong>Temporary Password:</strong> <code style="background:#f0f0f0;padding:2px 6px;border-radius:3px;">${adminUser.tempPassword}</code></p>
-            </div>
-            
-            <div class="security-note">
-              <h4>🛡️ Important Security Notice</h4>
-              <p>For security reasons, you must change your password on first login. This temporary password will expire after your initial login session.</p>
-            </div>
-            
-            <p>Your Cura EMR system includes:</p>
-            <ul>
-              <li>✅ Patient Management System</li>
-              <li>✅ Appointment Scheduling</li>
-              <li>✅ Medical Records Management</li>
-              <li>✅ Real-time Messaging</li>
-              <li>✅ AI-Powered Clinical Insights</li>
-              <li>✅ Comprehensive Reporting</li>
-            </ul>
-            
-            <a href="https://${organization.subdomain}" class="button">Access Your EMR System</a>
-            
-            <p style="margin-top: 30px;">If you have any questions or need assistance getting started, our support team is here to help.</p>
-            
-            <p>Best regards,<br>
-            <strong>The Cura EMR Team</strong><br>
-            Cura Software Limited</p>
-          </div>
+          <p><strong>Important:</strong> Please change your password on first login for security.</p>
           
-          <div class="footer">
-            <p>This email was sent to ${adminUser.email} regarding your new Cura EMR account.</p>
-            <p>Cura Software Limited | Ground Floor Unit 2, Drayton Court, Drayton Road, Solihull, England B90 4NG</p>
-            <p>Registration: 16556912 | For support, contact: info@curaemr.ai</p>
-          </div>
-        </body>
-        </html>
+          <p>Your Cura EMR system includes:</p>
+          <ul>
+            <li>Patient Management</li>
+            <li>Appointment Scheduling</li>
+            <li>Medical Records</li>
+            <li>Real-time Messaging</li>
+            <li>AI-Powered Insights</li>
+            <li>Comprehensive Reporting</li>
+          </ul>
+          
+          <p><a href="https://${organization.subdomain}" style="background: #007cba; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Login Now</a></p>
+          
+          <p>Best regards,<br>
+          The Cura EMR Team<br>
+          Cura Software Limited</p>
+          
+          <p style="font-size: 12px; color: #666;">
+          Support: info@curaemr.ai | Registration: 16556912
+          </p>
+        </div>
       `,
     };
 
@@ -147,9 +146,7 @@ async function testEmailConnection() {
   try {
     console.log('📧 TESTING EMAIL CONNECTION...');
     const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
+      service: 'gmail',
       auth: {
         user: 'noreply@curaemr.ai',
         pass: 'wxndhigmfhgjjklr',
