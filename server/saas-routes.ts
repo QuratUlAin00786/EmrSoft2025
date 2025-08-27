@@ -28,74 +28,19 @@ async function sendWelcomeEmail(organization: any, adminUser: any) {
     });
 
     const mailOptions = {
-      from: 'Cura EMR <noreply@curaemr.ai>',
+      from: 'noreply@curaemr.ai',
       to: adminUser.email,
-      subject: 'Welcome to Cura EMR - Your Account is Ready',
-      text: `Hello ${adminUser.firstName} ${adminUser.lastName},
+      subject: 'TEST - Cura EMR Login Details',
+      text: `Hello ${adminUser.firstName},
 
-Welcome to Cura EMR! Your organization "${organization.name}" has been successfully set up.
+Your Cura EMR account for ${organization.name} is ready.
 
-YOUR LOGIN CREDENTIALS:
-Login URL: https://${organization.subdomain}
-Email: ${adminUser.email}
-Temporary Password: ${adminUser.tempPassword}
-
-IMPORTANT: Please change your password on first login for security.
-
-Your Cura EMR system includes:
-- Patient Management
-- Appointment Scheduling  
-- Medical Records
-- Real-time Messaging
-- AI-Powered Insights
-- Comprehensive Reporting
-
-Login now at: https://${organization.subdomain}
+Login: ${adminUser.email}
+Password: ${adminUser.tempPassword}
+URL: https://${organization.subdomain}
 
 Best regards,
-The Cura EMR Team
-Cura Software Limited
-
-Support: info@curaemr.ai
-Registration: 16556912`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; line-height: 1.6;">
-          <h2 style="color: #333;">Welcome to Cura EMR</h2>
-          
-          <p>Hello ${adminUser.firstName} ${adminUser.lastName},</p>
-          
-          <p>Welcome to Cura EMR! Your organization "<strong>${organization.name}</strong>" has been successfully set up.</p>
-          
-          <div style="background: #f0f0f0; padding: 20px; margin: 20px 0; border-radius: 5px;">
-            <h3 style="margin-top: 0; color: #333;">Your Login Credentials</h3>
-            <p><strong>Login URL:</strong> https://${organization.subdomain}</p>
-            <p><strong>Email:</strong> ${adminUser.email}</p>
-            <p><strong>Temporary Password:</strong> ${adminUser.tempPassword}</p>
-          </div>
-          
-          <p><strong>Important:</strong> Please change your password on first login for security.</p>
-          
-          <p>Your Cura EMR system includes:</p>
-          <ul>
-            <li>Patient Management</li>
-            <li>Appointment Scheduling</li>
-            <li>Medical Records</li>
-            <li>Real-time Messaging</li>
-            <li>AI-Powered Insights</li>
-            <li>Comprehensive Reporting</li>
-          </ul>
-          
-          <p><a href="https://${organization.subdomain}" style="background: #007cba; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Login Now</a></p>
-          
-          <p>Best regards,<br>
-          The Cura EMR Team<br>
-          Cura Software Limited</p>
-          
-          <p style="font-size: 12px; color: #666;">
-          Support: info@curaemr.ai | Registration: 16556912
-          </p>
-        </div>
-      `,
+Cura EMR Team`
     };
 
     console.log('📧 About to send email with options:', {
