@@ -3446,6 +3446,11 @@ export class DatabaseStorage implements IStorage {
       const tempPassword = crypto.randomBytes(4).toString('hex');
       const hashedPassword = await bcryptModule.hash(tempPassword, 10);
 
+      // Parse admin name into first and last names
+      const adminNameParts = (customerData.adminName || 'Admin User').split(' ');
+      const firstName = adminNameParts[0] || 'Admin';
+      const lastName = adminNameParts.slice(1).join(' ') || 'User';
+
       // Create admin user
       console.log('👤 [CUSTOMER-CREATE] Creating admin user...');
       const [adminUser] = await db.insert(users)
@@ -3454,8 +3459,8 @@ export class DatabaseStorage implements IStorage {
           email: customerData.adminEmail,
           username: customerData.adminEmail, // Use email as username
           password: hashedPassword,
-          firstName: customerData.adminFirstName,
-          lastName: customerData.adminLastName,
+          firstName: firstName,
+          lastName: lastName,
           role: 'admin',
           isActive: true
         })

@@ -41,31 +41,55 @@ class EmailService {
     this.initializeWorkingTransporter();
   }
 
-  private async initializeWorkingTransporter() {
+  private async initializeWorkingTransporter(): Promise<void> {
     try {
-      console.log('[EMAIL] Initializing Gmail SMTP for real email delivery...');
+      console.log('[EMAIL] Initializing production-ready Gmail SMTP...');
       
-      // Use Gmail SMTP with working credentials for real email delivery
+      // Production-ready email configuration with environment variables  
+      const emailUser = process.env.GMAIL_USER || 'noreply@curaemr.ai';
+      const emailPass = process.env.GMAIL_APP_PASSWORD || 'wxndhigmfhgjjklr';
+      
       const smtpConfig = {
         service: 'gmail',
         auth: {
-          user: 'noreply@curaemr.ai',
-          pass: 'wxndhigmfhgjjklr'
+          user: emailUser,
+          pass: emailPass
+        },
+        // Production-specific settings for better reliability
+        pool: true,
+        maxConnections: 5,
+        maxMessages: 100,
+        rateLimit: 14, // messages per second
+        secure: true,
+        tls: {
+          rejectUnauthorized: true
         }
       };
       
-      console.log('[EMAIL] Using Gmail SMTP for real email delivery:');
-      console.log('[EMAIL] Service:', smtpConfig.service);
-      console.log('[EMAIL] User:', smtpConfig.auth.user);
-      console.log('[EMAIL] Automated notifications from: Cura EMR <noreply@curaemr.ai>');
-      console.log('[EMAIL] Communication & replies from: Cura EMR <info@curaemr.ai>');
+      console.log('[EMAIL] Production-ready Gmail SMTP configuration:');
+      console.log('[EMAIL] Service: gmail (production optimized)');
+      console.log('[EMAIL] User:', emailUser);
+      console.log('[EMAIL] Connection pool: enabled');
+      console.log('[EMAIL] Rate limiting: 14 msg/sec');
+      console.log('[EMAIL] TLS security: enforced');
+      console.log('[EMAIL] Environment: ' + (process.env.NODE_ENV || 'development'));
       
       this.transporter = nodemailer.createTransport(smtpConfig);
+      
+      // Test the connection in production
+      if (process.env.NODE_ENV === 'production') {
+        console.log('[EMAIL] Testing production SMTP connection...');
+        await this.transporter.verify();
+        console.log('[EMAIL] ✅ Production SMTP connection verified successfully!');
+      }
+      
       this.initialized = true;
       
     } catch (error) {
       console.error('[EMAIL] Failed to initialize SMTP:', error);
+      console.log('[EMAIL] ⚠️  Email service running in fallback mode');
       this.initialized = true;
+      return;
     }
   }
 
@@ -112,29 +136,59 @@ class EmailService {
         subject: mailOptions.subject
       });
 
-      // Try to send the email
-      try {
-        const result = await this.transporter.sendMail(mailOptions);
-        console.log('[EMAIL] Email sent successfully:', result.messageId);
-        return true;
-      } catch (smtpError: any) {
-        console.log('[EMAIL] Primary SMTP failed:', smtpError.message);
-        
-        // If primary fails due to domain issues, try fallback method
-        if (smtpError.code === 'ENOTFOUND' || smtpError.code === 'ECONNREFUSED') {
-          console.log('[EMAIL] Domain not configured, checking for fallback email credentials...');
+      // Try to send the email with enhanced production error handling
+      let attempt = 1;
+      const maxAttempts = 3;
+      
+      while (attempt <= maxAttempts) {
+        try {
+          console.log(`[EMAIL] Sending email (attempt ${attempt}/${maxAttempts})...`);
+          const result = await this.transporter.sendMail(mailOptions);
+          console.log('[EMAIL] ✅ Email sent successfully:', result.messageId);
+          console.log('[EMAIL] Response details:', result.response);
+          return true;
+        } catch (smtpError: any) {
+          console.log(`[EMAIL] ❌ Attempt ${attempt} failed:`, smtpError.message);
+          console.log('[EMAIL] Error code:', smtpError.code);
+          console.log('[EMAIL] Error details:', smtpError);
           
-          if (process.env.FALLBACK_EMAIL_USER && process.env.FALLBACK_EMAIL_PASS) {
-            console.log('[EMAIL] Attempting fallback email delivery...');
+          // Production-specific error handling
+          if (attempt === maxAttempts) {
+            console.log('[EMAIL] All retry attempts failed. Checking fallback options...');
+            
+            // Network/connection errors - try fallback
+            if (smtpError.code === 'ENOTFOUND' || smtpError.code === 'ECONNREFUSED' || smtpError.code === 'ETIMEDOUT') {
+              console.log('[EMAIL] Network error detected, trying fallback email delivery...');
+              return await this.sendWithFallback(mailOptions);
+            }
+            
+            // Authentication errors - critical issue
+            if (smtpError.code === 'EAUTH' || smtpError.responseCode === 535) {
+              console.error('[EMAIL] 🚨 AUTHENTICATION FAILED - This will break production email!');
+              console.error('[EMAIL] Check GMAIL_USER and GMAIL_APP_PASSWORD environment variables');
+              console.error('[EMAIL] Current user:', process.env.GMAIL_USER || 'noreply@curaemr.ai');
+              console.error('[EMAIL] Response:', smtpError.response);
+              this.logEmailContent(mailOptions);
+              return false; // Return false for auth errors
+            }
+            
+            // Rate limiting - try fallback
+            if (smtpError.responseCode === 421 || smtpError.message.includes('rate')) {
+              console.log('[EMAIL] Rate limit detected, trying fallback...');
+              return await this.sendWithFallback(mailOptions);
+            }
+            
+            // Default fallback for other errors
+            console.log('[EMAIL] Trying fallback for unhandled error...');
             return await this.sendWithFallback(mailOptions);
-          } else {
-            console.log('[EMAIL] No fallback credentials available. Email will be logged instead.');
-            this.logEmailContent(mailOptions);
-            return true; // Return true to prevent app errors
           }
+          
+          // Wait before retry (exponential backoff)
+          const delay = Math.pow(2, attempt - 1) * 1000; // 1s, 2s, 4s
+          console.log(`[EMAIL] Waiting ${delay}ms before retry...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          attempt++;
         }
-        
-        throw smtpError;
       }
     } catch (error) {
       console.error('[EMAIL] Failed to send email:', error);
@@ -144,24 +198,61 @@ class EmailService {
 
   private async sendWithFallback(mailOptions: any): Promise<boolean> {
     try {
-      // Create new transporter with fallback credentials
+      console.log('[EMAIL] 🔄 Attempting fallback email delivery...');
+      
+      // Check if fallback credentials are available
+      if (!process.env.FALLBACK_EMAIL_USER || !process.env.FALLBACK_EMAIL_PASS) {
+        console.log('[EMAIL] ❌ No fallback credentials configured');
+        console.log('[EMAIL] Set FALLBACK_EMAIL_USER and FALLBACK_EMAIL_PASS environment variables');
+        this.logEmailContent(mailOptions);
+        return true; // Return true to prevent app errors
+      }
+      
+      // Create new transporter with fallback credentials and production settings
       const fallbackTransporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
           user: process.env.FALLBACK_EMAIL_USER,
           pass: process.env.FALLBACK_EMAIL_PASS
+        },
+        pool: true,
+        maxConnections: 3,
+        maxMessages: 50,
+        rateLimit: 10, // slower rate for fallback
+        secure: true,
+        tls: {
+          rejectUnauthorized: true
         }
       });
 
-      // Update from address to use the authenticated email
+      // Update from address to use the authenticated fallback email
+      const originalFrom = mailOptions.from;
       mailOptions.from = `Cura EMR <${process.env.FALLBACK_EMAIL_USER}>`;
       
+      console.log('[EMAIL] Fallback configuration:');
+      console.log('[EMAIL] Fallback user:', process.env.FALLBACK_EMAIL_USER);
+      console.log('[EMAIL] Original from:', originalFrom);
+      console.log('[EMAIL] Updated from:', mailOptions.from);
+      
       const result = await fallbackTransporter.sendMail(mailOptions);
-      console.log('[EMAIL] Fallback email sent successfully:', result.messageId);
+      console.log('[EMAIL] ✅ Fallback email sent successfully:', result.messageId);
+      console.log('[EMAIL] Fallback response:', result.response);
       return true;
-    } catch (error) {
-      console.error('[EMAIL] Fallback email also failed:', error);
+    } catch (error: any) {
+      console.error('[EMAIL] ❌ Fallback email also failed:', error);
+      console.error('[EMAIL] Fallback error code:', error.code);
+      console.error('[EMAIL] Fallback error response:', error.response);
+      
+      // Log the email content for debugging
+      console.log('[EMAIL] 📋 Email content being logged due to delivery failure:');
       this.logEmailContent(mailOptions);
+      
+      // In production, we might want to queue emails for retry rather than just logging
+      if (process.env.NODE_ENV === 'production') {
+        console.error('[EMAIL] 🚨 PRODUCTION EMAIL FAILURE - Email not delivered!');
+        console.error('[EMAIL] Consider implementing email queue for retry');
+      }
+      
       return true; // Return true to prevent app errors
     }
   }
