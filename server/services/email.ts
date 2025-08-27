@@ -54,35 +54,16 @@ class EmailService {
         auth: {
           user: emailUser,
           pass: emailPass
-        },
-        // Production-specific settings for better reliability
-        pool: true,
-        maxConnections: 5,
-        maxMessages: 100,
-        rateLimit: 14, // messages per second
-        secure: true,
-        tls: {
-          rejectUnauthorized: true
         }
       };
       
-      console.log('[EMAIL] Production-ready Gmail SMTP configuration:');
-      console.log('[EMAIL] Service: gmail (production optimized)');
+      console.log('[EMAIL] Gmail SMTP configuration:');
+      console.log('[EMAIL] Service:', smtpConfig.service);
       console.log('[EMAIL] User:', emailUser);
-      console.log('[EMAIL] Connection pool: enabled');
-      console.log('[EMAIL] Rate limiting: 14 msg/sec');
-      console.log('[EMAIL] TLS security: enforced');
-      console.log('[EMAIL] Environment: ' + (process.env.NODE_ENV || 'development'));
+      console.log('[EMAIL] Automated notifications from: Cura EMR <noreply@curaemr.ai>');
+      console.log('[EMAIL] Communication & replies from: Cura EMR <info@curaemr.ai>');
       
-      this.transporter = nodemailer.createTransport(smtpConfig);
-      
-      // Test the connection in production
-      if (process.env.NODE_ENV === 'production') {
-        console.log('[EMAIL] Testing production SMTP connection...');
-        await this.transporter.verify();
-        console.log('[EMAIL] ✅ Production SMTP connection verified successfully!');
-      }
-      
+      this.transporter = nodemailer.createTransporter(smtpConfig);
       this.initialized = true;
       
     } catch (error) {
