@@ -4060,14 +4060,19 @@ export class DatabaseStorage implements IStorage {
     
     try {
       // Get recent customer registrations
-      const recentCustomers = await db.select({
-        id: organizations.id,
-        name: organizations.name,
-        createdAt: organizations.createdAt,
-      })
-      .from(organizations)
-      .orderBy(desc(organizations.createdAt))
-      .limit(10);
+      let recentCustomers = [];
+      try {
+        recentCustomers = await db.select({
+          id: organizations.id,
+          name: organizations.name,
+          createdAt: organizations.createdAt,
+        })
+        .from(organizations)
+        .orderBy(desc(organizations.createdAt))
+        .limit(10);
+      } catch (error) {
+        console.error('Error fetching recent customers:', error);
+      }
 
       // Add customer creation activities
       recentCustomers.forEach(c => {
@@ -4082,19 +4087,25 @@ export class DatabaseStorage implements IStorage {
       });
 
       // Get recent user registrations
-      const recentUsers = await db.select({
-        id: users.id,
-        firstName: users.firstName,
-        lastName: users.lastName,
-        email: users.email,
-        organizationId: users.organizationId,
-        createdAt: users.createdAt,
-        orgName: organizations.name
-      })
-      .from(users)
-      .innerJoin(organizations, eq(users.organizationId, organizations.id))
-      .orderBy(desc(users.createdAt))
-      .limit(10);
+      let recentUsers = [];
+      try {
+        recentUsers = await db.select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          organizationId: users.organizationId,
+          createdAt: users.createdAt,
+          orgName: organizations.name
+        })
+        .from(users)
+        .leftJoin(organizations, eq(users.organizationId, organizations.id))
+        .where(ne(users.organizationId, 0))
+        .orderBy(desc(users.createdAt))
+        .limit(10);
+      } catch (error) {
+        console.error('Error fetching recent users:', error);
+      }
 
       // Add user creation activities
       recentUsers.forEach(u => {
@@ -4102,25 +4113,30 @@ export class DatabaseStorage implements IStorage {
           id: `user_${u.id}`,
           type: 'user_created',
           title: 'New User Added',
-          description: `${u.firstName} ${u.lastName} joined ${u.orgName}`,
+          description: `${u.firstName} ${u.lastName} joined ${u.orgName || 'Unknown Organization'}`,
           timestamp: u.createdAt,
           icon: 'user'
         });
       });
 
       // Get subscription updates
-      const subscriptionUpdates = await db.select({
-        id: subscriptions.id,
-        plan: subscriptions.plan,
-        status: subscriptions.status,
-        startDate: subscriptions.startDate,
-        organizationId: subscriptions.organizationId,
-        orgName: organizations.name
-      })
-      .from(subscriptions)
-      .innerJoin(organizations, eq(subscriptions.organizationId, organizations.id))
-      .orderBy(desc(subscriptions.startDate))
-      .limit(10);
+      let subscriptionUpdates = [];
+      try {
+        subscriptionUpdates = await db.select({
+          id: subscriptions.id,
+          plan: subscriptions.plan,
+          status: subscriptions.status,
+          startDate: subscriptions.startDate,
+          organizationId: subscriptions.organizationId,
+          orgName: organizations.name
+        })
+        .from(subscriptions)
+        .leftJoin(organizations, eq(subscriptions.organizationId, organizations.id))
+        .orderBy(desc(subscriptions.startDate))
+        .limit(10);
+      } catch (error) {
+        console.error('Error fetching subscription updates:', error);
+      }
 
       // Add subscription activities
       subscriptionUpdates.forEach(s => {
@@ -4128,7 +4144,7 @@ export class DatabaseStorage implements IStorage {
           id: `subscription_${s.id}`,
           type: 'subscription_updated',
           title: `Subscription ${s.status}`,
-          description: `${s.orgName} - ${s.plan} plan`,
+          description: `${s.orgName || 'Unknown Organization'} - ${s.plan} plan`,
           timestamp: s.startDate,
           icon: 'credit-card'
         });
