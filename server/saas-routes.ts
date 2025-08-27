@@ -142,6 +142,29 @@ const verifySaaSToken = async (req: SaaSRequest, res: Response, next: any) => {
   }
 };
 
+// Simple test route to verify email functionality
+async function testEmailConnection() {
+  try {
+    console.log('📧 TESTING EMAIL CONNECTION...');
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: 'noreply@curaemr.ai',
+        pass: 'wxndhigmfhgjjklr',
+      },
+    });
+    
+    const testResult = await transporter.verify();
+    console.log('📧 ✅ SMTP CONNECTION VERIFIED:', testResult);
+    return testResult;
+  } catch (error) {
+    console.error('📧 ❌ SMTP CONNECTION FAILED:', error);
+    return false;
+  }
+}
+
 export function registerSaaSRoutes(app: Express) {
   // Production Setup Endpoint - Creates SaaS owner through normal user system
   app.post('/api/production-setup', async (req: Request, res: Response) => {
@@ -317,6 +340,18 @@ export function registerSaaSRoutes(app: Express) {
   });
 
   // SaaS diagnostic endpoint for production debugging
+  // Test email connection
+  app.get('/api/saas/test-email', verifySaaSToken, async (req: Request, res: Response) => {
+    try {
+      console.log('📧 Manual email test requested...');
+      const result = await testEmailConnection();
+      res.json({ success: result, message: result ? 'Email connection verified' : 'Email connection failed' });
+    } catch (error) {
+      console.error('Error testing email:', error);
+      res.status(500).json({ success: false, message: 'Email test failed' });
+    }
+  });
+
   app.get('/api/saas/debug', async (req: Request, res: Response) => {
     try {
       const hasSaaSUser = await storage.getUserByUsername('saas_admin', 0);
