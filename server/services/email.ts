@@ -55,7 +55,7 @@ class EmailService {
       };
       
       console.log('[EMAIL] Using Gmail SMTP for real email delivery:');
-      console.log('[EMAIL] Host:', smtpConfig.host);
+      console.log('[EMAIL] Service:', smtpConfig.service);
       console.log('[EMAIL] User:', smtpConfig.auth.user);
       console.log('[EMAIL] Automated notifications from: Cura EMR <noreply@curaemr.ai>');
       console.log('[EMAIL] Communication & replies from: Cura EMR <info@curaemr.ai>');
