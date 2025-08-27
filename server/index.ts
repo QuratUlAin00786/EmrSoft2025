@@ -53,17 +53,27 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // Seed database on startup in development and production
-  if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "production") {
-    try {
-      await seedDatabase();
-      
-      // Seed inventory data for existing organizations
-      const { seedAllOrganizations } = await import("./seed-inventory");
-      await seedAllOrganizations();
-    } catch (error: any) {
-      console.log("Database already seeded or seeding failed:", error.message);
-    }
+  // FORCE database seeding on ALL environments - GUARANTEED
+  console.log("🚀 FORCE SEEDING: Starting database seeding process...");
+  console.log(`Environment: ${process.env.NODE_ENV}`);
+  
+  try {
+    console.log("📊 Step 1: Running seedDatabase()...");
+    await seedDatabase();
+    console.log("✅ Step 1: seedDatabase() completed successfully!");
+    
+    console.log("📦 Step 2: Running inventory seeding...");
+    const { seedAllOrganizations } = await import("./seed-inventory");
+    await seedAllOrganizations();
+    console.log("✅ Step 2: Inventory seeding completed successfully!");
+    
+    console.log("🎉 DATABASE SEEDING COMPLETED - ALL PATIENT DATA AVAILABLE!");
+  } catch (error: any) {
+    console.error("❌ SEEDING FAILED - This will cause problems:");
+    console.error("Error details:", error);
+    console.error("Stack trace:", error.stack);
+    // Don't stop the app, but make the error very visible
+    console.log("⚠️  App will continue but database may be empty");
   }
 
   // importantly only setup vite in development and after
