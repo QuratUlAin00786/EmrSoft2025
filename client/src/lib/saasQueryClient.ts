@@ -60,6 +60,12 @@ export async function saasApiRequest(
     await throwIfResNotOk(res);
     return res;
   } catch (error) {
+    // If token is invalid, clear it and force re-login
+    if (error.message.includes('401')) {
+      localStorage.removeItem('saasToken');
+      window.location.reload();
+      return;
+    }
     console.error('❌ SaaS API Error:', {
       error: error.message,
       stack: error.stack,
@@ -85,6 +91,13 @@ export const getSaaSQueryFn: QueryFunction = async ({ queryKey }) => {
   });
 
   if (!res.ok) {
+    // If token is invalid, clear it and force re-login
+    if (res.status === 401) {
+      localStorage.removeItem('saasToken');
+      // Reload page to trigger re-authentication
+      window.location.reload();
+      return;
+    }
     const errorText = await res.text();
     throw new Error(`${res.status}: ${errorText}`);
   }
