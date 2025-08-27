@@ -11,6 +11,14 @@ const SAAS_JWT_SECRET = process.env.SAAS_JWT_SECRET || "saas-super-secret-key-ch
 // Email configuration for customer notifications
 async function sendWelcomeEmail(organization: any, adminUser: any) {
   try {
+    console.log('📧 sendWelcomeEmail called with:', {
+      orgName: organization?.name,
+      orgSubdomain: organization?.subdomain,
+      adminEmail: adminUser?.email,
+      adminName: `${adminUser?.firstName} ${adminUser?.lastName}`,
+      hasTempPassword: !!adminUser?.tempPassword
+    });
+    
     const transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
       port: 587,
@@ -91,8 +99,16 @@ async function sendWelcomeEmail(organization: any, adminUser: any) {
       `,
     };
 
-    await transporter.sendMail(mailOptions);
-    console.log(`Welcome email sent to ${adminUser.email} for organization ${organization.name}`);
+    console.log('📧 About to send email with options:', {
+      from: mailOptions.from,
+      to: mailOptions.to,
+      subject: mailOptions.subject,
+      hasHtml: !!mailOptions.html
+    });
+    
+    const emailResult = await transporter.sendMail(mailOptions);
+    console.log('📧 ✅ Email sent successfully! Result:', emailResult);
+    console.log(`📧 Welcome email sent to ${adminUser.email} for organization ${organization.name}`);
   } catch (error) {
     console.error('Error sending welcome email:', error);
     throw error;
@@ -518,13 +534,32 @@ export function registerSaaSRoutes(app: Express) {
       const result = await storage.createCustomerOrganization(customerData);
       
       // Send welcome email with credentials
+      console.log('📧 Email Debug - Customer creation result:', {
+        success: result.success,
+        hasAdminUser: !!result.adminUser,
+        adminEmail: result.adminUser?.email,
+        orgName: result.organization?.name
+      });
+      
       if (result.success && result.adminUser) {
         try {
+          console.log('📧 Attempting to send welcome email to:', result.adminUser.email);
           await sendWelcomeEmail(result.organization, result.adminUser);
-        } catch (emailError) {
-          console.error('Failed to send welcome email:', emailError);
+          console.log('📧 ✅ Welcome email sent successfully to:', result.adminUser.email);
+        } catch (emailError: any) {
+          console.error('📧 ❌ Failed to send welcome email:', emailError);
+          console.error('📧 ❌ Email error details:', {
+            message: emailError.message,
+            code: emailError.code,
+            stack: emailError.stack
+          });
           // Don't fail the customer creation if email fails
         }
+      } else {
+        console.log('📧 ⚠️ Email not sent - conditions not met:', {
+          success: result.success,
+          hasAdminUser: !!result.adminUser
+        });
       }
       
       res.json(result);
