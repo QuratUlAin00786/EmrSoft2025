@@ -166,6 +166,52 @@ async function testEmailConnection() {
 }
 
 export function registerSaaSRoutes(app: Express) {
+  
+  // DIRECT EMAIL TEST - Bypasses all middleware
+  app.get('/api/direct-email-test', async (req: Request, res: Response) => {
+    try {
+      console.log('🔥 DIRECT EMAIL TEST STARTING...');
+      
+      // Create test organization and user data
+      const testOrganization = {
+        id: 1,
+        name: 'Halo Healthcare',
+        subdomain: 'halo',
+        createdAt: new Date()
+      };
+      
+      const testAdminUser = {
+        id: 348,
+        email: 'admin@cura.com',
+        firstName: 'John',
+        lastName: 'Administrator',
+        tempPassword: 'temp123'
+      };
+      
+      console.log('🔥 Sending test email to:', testAdminUser.email);
+      console.log('🔥 Organization:', testOrganization.name);
+      
+      await sendWelcomeEmail(testOrganization, testAdminUser);
+      
+      console.log('🔥 ✅ DIRECT EMAIL TEST COMPLETED SUCCESSFULLY!');
+      
+      res.json({
+        success: true,
+        message: 'Direct email test completed successfully',
+        sentTo: testAdminUser.email,
+        organization: testOrganization.name,
+        timestamp: new Date().toISOString()
+      });
+      
+    } catch (error: any) {
+      console.error('🔥 ❌ DIRECT EMAIL TEST FAILED:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        stack: error.stack
+      });
+    }
+  });
   // Production Setup Endpoint - Creates SaaS owner through normal user system
   app.post('/api/production-setup', async (req: Request, res: Response) => {
     try {
@@ -349,6 +395,74 @@ export function registerSaaSRoutes(app: Express) {
     } catch (error) {
       console.error('Error testing email:', error);
       res.status(500).json({ success: false, message: 'Email test failed' });
+    }
+  });
+
+  // Send welcome email to last customer created
+  app.post('/api/saas/send-welcome-to-last-customer', verifySaaSToken, async (req: Request, res: Response) => {
+    try {
+      console.log('📧 Manual welcome email requested for last customer...');
+      
+      // Get all organizations ordered by creation date (newest first)
+      const organizations = await storage.getAllOrganizations();
+      
+      if (!organizations || organizations.length === 0) {
+        return res.status(404).json({ success: false, message: 'No customers found' });
+      }
+      
+      // Get the most recent organization (last created)
+      const lastOrganization = organizations.sort((a, b) => 
+        new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
+      )[0];
+      
+      console.log('📧 Last customer found:', {
+        id: lastOrganization.id,
+        name: lastOrganization.name,
+        subdomain: lastOrganization.subdomain,
+        createdAt: lastOrganization.createdAt
+      });
+      
+      // Get the admin user for this organization
+      const adminUsers = await storage.getUsersByRole('admin', lastOrganization.id);
+      
+      if (!adminUsers || adminUsers.length === 0) {
+        return res.status(404).json({ success: false, message: 'No admin user found for last customer' });
+      }
+      
+      const adminUser = adminUsers[0]; // Take the first admin
+      
+      console.log('📧 Admin user found:', {
+        id: adminUser.id,
+        email: adminUser.email,
+        firstName: adminUser.firstName,
+        lastName: adminUser.lastName
+      });
+      
+      // Send the welcome email
+      console.log('📧 About to send welcome email...');
+      await sendWelcomeEmail(lastOrganization, adminUser);
+      console.log('📧 ✅ Welcome email sent successfully!');
+      
+      res.json({ 
+        success: true, 
+        message: `Welcome email sent to ${adminUser.email} for organization ${lastOrganization.name}`,
+        organization: {
+          name: lastOrganization.name,
+          subdomain: lastOrganization.subdomain
+        },
+        adminUser: {
+          email: adminUser.email,
+          name: `${adminUser.firstName} ${adminUser.lastName}`
+        }
+      });
+      
+    } catch (error: any) {
+      console.error('📧 ❌ Error sending welcome email to last customer:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to send welcome email',
+        error: error.message 
+      });
     }
   });
 
