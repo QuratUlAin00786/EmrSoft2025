@@ -3411,16 +3411,16 @@ export class DatabaseStorage implements IStorage {
     console.log('Creating customer with billing package:', customerData.billingPackageId);
     const bcryptModule = await import('bcrypt');
     
-    // Create organization
+    // Create organization - match database column names (snake_case)
     const [organization] = await db.insert(organizations)
       .values({
         name: customerData.name,
-        brandName: customerData.brandName || customerData.name,
+        brandName: customerData.brandName || customerData.name, // This matches schema
         subdomain: customerData.subdomain,
-        subscriptionStatus: customerData.billingPackageId ? 'active' : 'trial',
-        theme: 'blue',
-        features: JSON.stringify(customerData.features),
-        accessLevel: customerData.accessLevel || 'full'
+        region: 'UK',
+        subscriptionStatus: customerData.billingPackageId ? 'active' : 'trial', // This matches schema
+        features: customerData.features || {},
+        accessLevel: customerData.accessLevel || 'full' // This matches schema
       })
       .returning();
 
