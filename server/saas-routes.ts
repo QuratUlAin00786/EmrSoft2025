@@ -855,12 +855,6 @@ export function registerSaaSRoutes(app: Express) {
       const result = await storage.createCustomerOrganization(customerData);
       
       // Send welcome email with credentials
-      console.log('📧 Email Debug - Customer creation result:', {
-        success: result.success,
-        hasAdminUser: !!result.adminUser,
-        adminEmail: result.adminUser?.email,
-        orgName: result.organization?.name
-      });
       
       if (result.success && result.adminUser) {
         try {

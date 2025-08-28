@@ -43,7 +43,7 @@ class EmailService {
 
   private async initializeWorkingTransporter() {
     try {
-      console.log('[EMAIL] Initializing Gmail SMTP for real email delivery...');
+      console.log('[EMAIL] Initializing Gmail SMTP...');
       
       // Use Gmail SMTP with working credentials for real email delivery
       const smtpConfig = {
@@ -53,12 +53,6 @@ class EmailService {
           pass: 'wxndhigmfhgjjklr'
         }
       };
-      
-      console.log('[EMAIL] Using Gmail SMTP for real email delivery:');
-      console.log('[EMAIL] Service:', smtpConfig.service);
-      console.log('[EMAIL] User:', smtpConfig.auth.user);
-      console.log('[EMAIL] Automated notifications from: Cura EMR <noreply@curaemr.ai>');
-      console.log('[EMAIL] Communication & replies from: Cura EMR <info@curaemr.ai>');
       
       this.transporter = nodemailer.createTransport(smtpConfig);
       this.initialized = true;
