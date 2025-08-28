@@ -703,10 +703,44 @@ export async function seedDatabase() {
       console.log("System roles already exist for this organization");
     }
 
-    console.log("Database seeding completed successfully!");
+    // CRITICAL: Ensure SaaS admin user exists for administration portal
+    console.log("🔐 Creating/updating SaaS admin user for administration portal...");
+    
+    try {
+      const existingSaaSUser = await storage.getUserByUsername('saas_admin', 0);
+      const hashedSaaSPassword = await authService.hashPassword('admin123');
+      
+      if (!existingSaaSUser) {
+        const saasUser = await storage.createUser({
+          username: 'saas_admin',
+          email: 'saas_admin@curaemr.ai',
+          password: hashedSaaSPassword,
+          firstName: 'SaaS',
+          lastName: 'Administrator',
+          organizationId: 0, // System-wide SaaS owner
+          role: 'admin',
+          isActive: true,
+          isSaaSOwner: true
+        });
+        console.log(`✅ Created SaaS admin user with ID: ${saasUser.id}`);
+      } else {
+        // Update existing SaaS user to ensure proper credentials
+        await storage.updateUser(existingSaaSUser.id, 0, {
+          password: hashedSaaSPassword,
+          isActive: true,
+          isSaaSOwner: true
+        });
+        console.log(`✅ Updated existing SaaS admin user with ID: ${existingSaaSUser.id}`);
+      }
+    } catch (saasError) {
+      console.error('❌ Failed to create/update SaaS admin user:', saasError);
+      // Don't fail the entire seeding - SaaS admin can be created via emergency endpoint
+    }
+
+    console.log("🎉 Database seeding completed successfully!");
     
   } catch (error) {
-    console.error("Error seeding database:", error);
+    console.error("❌ Error seeding database:", error);
     throw error;
   }
 }

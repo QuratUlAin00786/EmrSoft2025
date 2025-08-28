@@ -57,19 +57,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/emergency-saas-setup', async (req, res) => {
     try {
       console.log('[EMERGENCY] Emergency SaaS setup triggered');
-      const bcrypt = require('bcrypt');
-      const hashedPassword = await bcrypt.hash('admin123', 10);
+      const bcrypt = await import('bcrypt');
+      const hashedPassword = await bcrypt.default.hash('admin123', 10);
       
-      // Direct database access bypassing all middleware and storage
-      const { db } = require('./db');
-      const { users } = require('../shared/schema');
+      // Use existing storage to create SaaS admin - more reliable than direct DB access
+      const existingUser = await storage.getUserByUsername('saas_admin', 0);
       
-      // Upsert SaaS admin directly to database
-      const [saasUser] = await db
-        .insert(users)
-        .values({
+      if (!existingUser) {
+        const saasUser = await storage.createUser({
           username: 'saas_admin',
-          email: 'saas_admin@curaemr.ai', 
+          email: 'saas_admin@curaemr.ai',
           password: hashedPassword,
           firstName: 'SaaS',
           lastName: 'Administrator',
@@ -77,25 +74,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
           role: 'admin',
           isActive: true,
           isSaaSOwner: true
-        })
-        .onConflictDoUpdate({
-          target: users.username,
-          set: {
-            password: hashedPassword,
-            isActive: true,
-            isSaaSOwner: true,
-            updatedAt: new Date()
-          }
-        })
-        .returning();
+        });
         
-      res.json({ 
-        success: true, 
-        message: 'Emergency SaaS setup complete',
-        userId: saasUser.id,
-        timestamp: new Date().toISOString()
-      });
+        console.log(`[EMERGENCY] Created SaaS admin user with ID: ${saasUser.id}`);
+        res.json({ 
+          success: true, 
+          message: 'Emergency SaaS setup complete - user created',
+          userId: saasUser.id,
+          timestamp: new Date().toISOString()
+        });
+      } else {
+        // Update existing user to ensure proper flags
+        await storage.updateUser(existingUser.id, 0, {
+          password: hashedPassword,
+          isActive: true,
+          isSaaSOwner: true
+        });
+        
+        console.log(`[EMERGENCY] Updated existing SaaS admin user with ID: ${existingUser.id}`);
+        res.json({ 
+          success: true, 
+          message: 'Emergency SaaS setup complete - user updated',
+          userId: existingUser.id,
+          timestamp: new Date().toISOString()
+        });
+      }
     } catch (error) {
+      console.error('[EMERGENCY] Setup error:', error);
       res.status(500).json({ error: 'Emergency setup failed', details: (error as Error).message });
     }
   });
