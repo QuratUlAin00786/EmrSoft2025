@@ -750,10 +750,15 @@ export default function SaaSCustomers() {
                             <Button 
                               size="sm" 
                               variant="outline" 
-                              className="text-red-600 hover:bg-red-50 hover:text-red-700 border-red-200"
+                              className="text-red-600 hover:bg-red-50 hover:text-red-700 border-red-200 border-2 bg-white shadow-sm min-w-[40px] min-h-[32px]"
+                              style={{ 
+                                color: '#dc2626', 
+                                borderColor: '#fecaca',
+                                backgroundColor: '#ffffff'
+                              }}
                               title="Delete Customer"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-4 w-4" style={{ color: '#dc2626' }} />
                             </Button>
                           </DialogTrigger>
                           <DialogContent>
