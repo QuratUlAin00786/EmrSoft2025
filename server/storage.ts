@@ -2764,38 +2764,6 @@ export class DatabaseStorage implements IStorage {
 
 
 
-  async getMessageCampaigns(organizationId: number): Promise<any[]> {
-    // Return sample campaigns data
-    return [
-      {
-        id: "camp_1",
-        name: "Flu Vaccination Reminder",
-        type: "email",
-        status: "sent",
-        subject: "Annual Flu Vaccination Available",
-        content: "Book your flu vaccination appointment today.",
-        recipientCount: 150,
-        sentCount: 150,
-        openRate: 65,
-        clickRate: 12,
-        createdAt: "2024-06-20T10:00:00Z",
-        template: "vaccination_reminder"
-      }
-    ];
-  }
-
-  async createMessageCampaign(campaignData: any, organizationId: number): Promise<any> {
-    // Create a new campaign
-    const campaign = {
-      id: `camp_${Date.now()}`,
-      ...campaignData,
-      organizationId,
-      createdAt: new Date().toISOString(),
-      status: "draft"
-    };
-
-    return campaign;
-  }
 
   // Documents implementation
   async getDocument(id: number, organizationId: number): Promise<Document | undefined> {
@@ -2953,10 +2921,6 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(labResults.createdAt));
   }
 
-  async createLabResult(labResult: InsertLabResult): Promise<LabResult> {
-    const [result] = await db.insert(labResults).values(labResult).returning();
-    return result;
-  }
 
   async updateLabResult(id: number, organizationId: number, updates: Partial<InsertLabResult>): Promise<LabResult | undefined> {
     const [result] = await db.update(labResults)
@@ -3730,23 +3694,6 @@ export class DatabaseStorage implements IStorage {
     return { success: true };
   }
 
-  async createPackage(packageData: InsertSaaSPackage): Promise<SaaSPackage> {
-    const [pkg] = await db.insert(saasPackages).values(packageData).returning();
-    return pkg;
-  }
-
-  async updatePackage(id: number, packageData: Partial<InsertSaaSPackage>): Promise<SaaSPackage> {
-    const [pkg] = await db.update(saasPackages)
-      .set({ ...packageData, updatedAt: new Date() })
-      .where(eq(saasPackages.id, id))
-      .returning();
-    return pkg;
-  }
-
-  async deletePackage(id: number): Promise<any> {
-    await db.delete(saasPackages).where(eq(saasPackages.id, id));
-    return { success: true };
-  }
 
   // Comprehensive Billing System with All Payment Methods
   
