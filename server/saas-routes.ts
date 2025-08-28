@@ -11,6 +11,12 @@ const SAAS_JWT_SECRET = process.env.SAAS_JWT_SECRET || "saas-super-secret-key-ch
 
 // Email configuration for customer notifications
 async function sendWelcomeEmail(organization: any, adminUser: any) {
+  // Email validation function
+  function isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
   try {
     console.log('📧 sendWelcomeEmail called with:', {
       orgName: organization?.name,
@@ -19,43 +25,192 @@ async function sendWelcomeEmail(organization: any, adminUser: any) {
       adminName: `${adminUser?.firstName} ${adminUser?.lastName}`,
       hasTempPassword: !!adminUser?.tempPassword
     });
+
+    // Validate email address
+    if (!adminUser?.email || !isValidEmail(adminUser.email)) {
+      throw new Error(`Invalid email address: ${adminUser?.email}`);
+    }
+
+    // Create professional email content
+    const loginUrl = `https://${organization.subdomain}.curaemr.ai`;
+    const supportEmail = 'support@curaemr.ai';
     
     const emailOptions = {
       to: adminUser.email,
-      subject: 'Welcome to Cura EMR - Login Details',
-      text: `Hello ${adminUser.firstName},
+      subject: `Welcome to Cura EMR - Your ${organization.name} Account is Ready`,
+      text: `Dear ${adminUser.firstName} ${adminUser.lastName},
 
-Your Cura EMR account for ${organization.name} is ready.
+Welcome to Cura EMR! Your account for ${organization.name} has been successfully created.
 
-Login: ${adminUser.email}
-Password: ${adminUser.tempPassword || 'Please check your account for login details'}
-URL: https://${organization.subdomain}.curaemr.ai
+Your Login Credentials:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Email: ${adminUser.email}
+Temporary Password: ${adminUser.tempPassword || 'Please contact support'}
+Organization: ${organization.name}
+Login URL: ${loginUrl}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+IMPORTANT SECURITY NOTICE:
+• Please change your password upon first login
+• Keep your credentials secure and confidential
+• Contact support if you experience any issues
+
+Next Steps:
+1. Visit your login URL above
+2. Login with your email and temporary password
+3. Set up your new secure password
+4. Complete your profile setup
+
+Need Help?
+Contact our support team at ${supportEmail}
 
 Best regards,
-Cura EMR Team`,
-      html: `<h2>Hello ${adminUser.firstName},</h2>
-<p>Your Cura EMR account for <strong>${organization.name}</strong> is ready.</p>
-<p><strong>Login:</strong> ${adminUser.email}<br>
-<strong>Password:</strong> ${adminUser.tempPassword || 'Please check your account for login details'}<br>
-<strong>URL:</strong> https://${organization.subdomain}.curaemr.ai</p>
-<p>Best regards,<br>Cura EMR Team</p>`
+The Cura EMR Team
+Cura Software Limited
+
+© 2025 Cura Software Limited. All rights reserved.`,
+      html: `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to Cura EMR</title>
+  <style>
+    body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f4; }
+    .container { max-width: 600px; margin: 0 auto; background-color: white; }
+    .header { background: linear-gradient(135deg, #4A7DFF 0%, #7279FB 100%); color: white; padding: 30px 20px; text-align: center; }
+    .logo { font-size: 28px; font-weight: bold; margin-bottom: 10px; }
+    .content { padding: 30px 20px; }
+    .credentials-box { background-color: #f8f9fa; border: 2px solid #4A7DFF; border-radius: 10px; padding: 20px; margin: 20px 0; }
+    .credentials-title { font-size: 18px; font-weight: bold; color: #4A7DFF; margin-bottom: 15px; }
+    .credential-item { margin: 10px 0; }
+    .credential-label { font-weight: bold; color: #555; }
+    .credential-value { color: #333; font-family: 'Courier New', monospace; background-color: #e9ecef; padding: 5px 8px; border-radius: 4px; }
+    .security-notice { background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; padding: 15px; margin: 20px 0; }
+    .security-title { font-weight: bold; color: #856404; margin-bottom: 10px; }
+    .steps { background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 5px; padding: 15px; margin: 20px 0; }
+    .steps-title { font-weight: bold; color: #155724; margin-bottom: 10px; }
+    .step { margin: 8px 0; padding-left: 20px; }
+    .footer { background-color: #f8f9fa; color: #666; text-align: center; padding: 20px; font-size: 12px; }
+    .btn { display: inline-block; background-color: #4A7DFF; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 10px 0; }
+    .btn:hover { background-color: #3d6be8; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">Cura EMR</div>
+      <h2>Welcome to Your Healthcare Management Platform</h2>
+    </div>
+    
+    <div class="content">
+      <h3>Dear ${adminUser.firstName} ${adminUser.lastName},</h3>
+      
+      <p>Welcome to Cura EMR! Your account for <strong>${organization.name}</strong> has been successfully created and is ready to use.</p>
+      
+      <div class="credentials-box">
+        <div class="credentials-title">🔐 Your Login Credentials</div>
+        <div class="credential-item">
+          <span class="credential-label">Email:</span> 
+          <span class="credential-value">${adminUser.email}</span>
+        </div>
+        <div class="credential-item">
+          <span class="credential-label">Temporary Password:</span> 
+          <span class="credential-value">${adminUser.tempPassword || 'Contact Support'}</span>
+        </div>
+        <div class="credential-item">
+          <span class="credential-label">Organization:</span> 
+          <span class="credential-value">${organization.name}</span>
+        </div>
+        <div class="credential-item">
+          <span class="credential-label">Login URL:</span> 
+          <a href="${loginUrl}" class="btn">Access Your Account</a>
+        </div>
+      </div>
+
+      <div class="security-notice">
+        <div class="security-title">🔒 Important Security Notice</div>
+        <ul>
+          <li>Please change your password upon first login</li>
+          <li>Keep your credentials secure and confidential</li>
+          <li>Contact support if you experience any issues</li>
+        </ul>
+      </div>
+
+      <div class="steps">
+        <div class="steps-title">📋 Next Steps</div>
+        <div class="step">1. Visit your login URL above</div>
+        <div class="step">2. Login with your email and temporary password</div>
+        <div class="step">3. Set up your new secure password</div>
+        <div class="step">4. Complete your profile setup</div>
+      </div>
+
+      <p><strong>Need Help?</strong><br>
+      Contact our support team at <a href="mailto:${supportEmail}">${supportEmail}</a></p>
+
+      <p>Best regards,<br>
+      <strong>The Cura EMR Team</strong><br>
+      Cura Software Limited</p>
+    </div>
+
+    <div class="footer">
+      <p>© 2025 Cura Software Limited. All rights reserved.</p>
+      <p>Ground Floor Unit 2, Drayton Court, Drayton Road, Solihull, England B90 4NG</p>
+    </div>
+  </div>
+</body>
+</html>`
     };
 
-    console.log('📧 About to send email via centralized service:', {
+    console.log('📧 About to send professional welcome email via centralized service:', {
       to: emailOptions.to,
       subject: emailOptions.subject,
       hasHtml: !!emailOptions.html
     });
     
-    const emailResult = await emailService.sendEmail(emailOptions);
-    console.log('📧 ✅ Email sent via centralized service! Success:', emailResult);
-    console.log(`📧 Welcome email sent to ${adminUser.email} for organization ${organization.name}`);
+    // Retry mechanism for reliability
+    let emailResult = false;
+    let attempt = 0;
+    const maxAttempts = 3;
+    
+    while (!emailResult && attempt < maxAttempts) {
+      attempt++;
+      console.log(`📧 Email delivery attempt ${attempt}/${maxAttempts}`);
+      
+      try {
+        emailResult = await emailService.sendEmail(emailOptions);
+        if (emailResult) {
+          console.log(`📧 ✅ Email sent successfully on attempt ${attempt}!`);
+          break;
+        } else {
+          console.log(`📧 ⚠️ Email attempt ${attempt} failed, retrying...`);
+          if (attempt < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before retry
+          }
+        }
+      } catch (attemptError) {
+        console.error(`📧 ❌ Email attempt ${attempt} error:`, attemptError);
+        if (attempt < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before retry
+        }
+      }
+    }
+    
+    console.log(`📧 Welcome email to ${adminUser.email} for organization ${organization.name} - Final result: ${emailResult}`);
     
     if (!emailResult) {
-      throw new Error('Email service returned false - email may not have been delivered');
+      throw new Error(`Failed to send welcome email after ${maxAttempts} attempts`);
     }
+    
+    return true;
   } catch (error) {
     console.error('📧 ❌ Error sending welcome email:', error);
+    // Log the email content for debugging
+    console.log('📧 📄 Failed email details:', {
+      to: adminUser?.email,
+      organization: organization?.name,
+      tempPassword: adminUser?.tempPassword ? 'Present' : 'Missing'
+    });
     throw error;
   }
 }
@@ -87,19 +242,48 @@ const verifySaaSToken = async (req: SaaSRequest, res: Response, next: any) => {
   }
 };
 
-// Simple test route to verify email functionality
+// Enhanced test route to verify email functionality with reliability checks
 async function testEmailConnection() {
   try {
     console.log('📧 TESTING EMAIL CONNECTION VIA CENTRALIZED SERVICE...');
     
-    // Test with a simple email send to verify the service works
-    const testResult = await emailService.sendEmail({
-      to: 'test@example.com',
-      subject: 'Email Service Test',
-      text: 'This is a test email to verify the service is working.'
-    });
+    // Test email with retry mechanism
+    let testResult = false;
+    let attempt = 0;
+    const maxAttempts = 2;
     
-    console.log('📧 ✅ EMAIL SERVICE VERIFIED:', testResult);
+    while (!testResult && attempt < maxAttempts) {
+      attempt++;
+      console.log(`📧 Connection test attempt ${attempt}/${maxAttempts}`);
+      
+      try {
+        testResult = await emailService.sendEmail({
+          to: 'test@example.com',
+          subject: 'Cura EMR Email Service Test',
+          text: 'This is a test email to verify the Cura EMR email service is working properly.',
+          html: `
+            <h3>Cura EMR Email Service Test</h3>
+            <p>This is a test email to verify the Cura EMR email service is working properly.</p>
+            <p><strong>Test Status:</strong> Connection Successful</p>
+            <p><strong>Timestamp:</strong> ${new Date().toISOString()}</p>
+          `
+        });
+        
+        if (testResult) {
+          console.log(`📧 ✅ EMAIL SERVICE VERIFIED on attempt ${attempt}`);
+          break;
+        } else if (attempt < maxAttempts) {
+          console.log(`📧 ⚠️ Test attempt ${attempt} failed, retrying...`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      } catch (attemptError) {
+        console.error(`📧 ❌ Test attempt ${attempt} error:`, attemptError);
+        if (attempt < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+    }
+    
     return testResult;
   } catch (error) {
     console.error('📧 ❌ EMAIL SERVICE FAILED:', error);
