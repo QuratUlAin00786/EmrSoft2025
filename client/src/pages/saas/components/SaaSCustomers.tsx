@@ -31,7 +31,8 @@ import {
   Users,
   Calendar,
   CreditCard,
-  Settings
+  Settings,
+  Trash2
 } from 'lucide-react';
 
 export default function SaaSCustomers() {
@@ -154,6 +155,27 @@ export default function SaaSCustomers() {
     },
   });
 
+  const deleteCustomerMutation = useMutation({
+    mutationFn: async (customerId: number) => {
+      const response = await saasApiRequest('DELETE', `/api/saas/customers/${customerId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saas/customers'] });
+      toast({
+        title: "Customer Deleted",
+        description: "Customer and all associated data have been permanently deleted",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Delete Failed",
+        description: error.message || "Failed to delete customer",
+        variant: "destructive",
+      });
+    },
+  });
+
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800';
@@ -254,7 +276,7 @@ export default function SaaSCustomers() {
                           onChange={(e) => setNewCustomer({...newCustomer, billingPackageId: e.target.value})}
                         >
                           <option value="">Select a billing package (optional)</option>
-                          {billingPackages?.map((pkg: any) => (
+                          {Array.isArray(billingPackages) && billingPackages.map((pkg: any) => (
                             <option key={pkg.id} value={pkg.id}>
                               {pkg.name} - £{pkg.price}/{pkg.billingCycle}
                             </option>
@@ -613,7 +635,7 @@ export default function SaaSCustomers() {
                                       onChange={(e) => setEditingCustomer({...editingCustomer, billingPackageId: e.target.value})}
                                     >
                                       <option value="">No Package (Manual Billing)</option>
-                                      {billingPackages?.map((pkg: any) => (
+                                      {Array.isArray(billingPackages) && billingPackages.map((pkg: any) => (
                                         <option key={pkg.id} value={pkg.id}>
                                           {pkg.name} - £{pkg.price}/{pkg.billingCycle}
                                         </option>
@@ -721,6 +743,49 @@ export default function SaaSCustomers() {
                                 </div>
                               </div>
                             )}
+                          </DialogContent>
+                        </Dialog>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button size="sm" variant="outline" className="text-red-600 hover:bg-red-50 hover:text-red-700">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Delete Customer - {customer.name}</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4">
+                              <p className="text-sm text-gray-600">
+                                Are you sure you want to permanently delete <strong>{customer.name}</strong>? 
+                                This action will remove all associated data including:
+                              </p>
+                              <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                                <li>Organization and user accounts</li>
+                                <li>Patient records and medical data</li>
+                                <li>Appointments and schedules</li>
+                                <li>Billing and subscription data</li>
+                                <li>All system configurations</li>
+                              </ul>
+                              <p className="text-sm font-semibold text-red-600">
+                                This action cannot be undone.
+                              </p>
+                              <div className="flex space-x-2 pt-4">
+                                <DialogTrigger asChild>
+                                  <Button variant="outline" className="flex-1">
+                                    Cancel
+                                  </Button>
+                                </DialogTrigger>
+                                <Button 
+                                  variant="destructive" 
+                                  className="flex-1"
+                                  onClick={() => deleteCustomerMutation.mutate(customer.id)}
+                                  disabled={deleteCustomerMutation.isPending}
+                                >
+                                  {deleteCustomerMutation.isPending ? 'Deleting...' : 'Delete Permanently'}
+                                </Button>
+                              </div>
+                            </div>
                           </DialogContent>
                         </Dialog>
                         <select
