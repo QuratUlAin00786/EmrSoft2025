@@ -697,7 +697,7 @@ export function registerSaaSRoutes(app: Express) {
         console.log('🔧 Updating existing SaaS admin user...');
         // Update existing user to ensure it's properly configured
         const hashedPassword = await bcrypt.hash('admin123', 12);
-        await storage.updateUser(saasUser.id, {
+        await storage.updateUser(saasUser.id, 0, {
           password: hashedPassword,
           isActive: true,
           isSaaSOwner: true
