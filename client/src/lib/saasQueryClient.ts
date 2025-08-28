@@ -59,19 +59,21 @@ export async function saasApiRequest(
 
     await throwIfResNotOk(res);
     return res;
-  } catch (error) {
+  } catch (error: any) {
     // Only clear token for specific authentication failures, not all 401s
-    if (error.message.includes('401') && error.message.includes('Invalid token')) {
+    if (error?.message?.includes('401')) {
+      console.log('🔑 Authentication error detected, clearing token...');
       localStorage.removeItem('saasToken');
+      localStorage.removeItem('saas_owner');
       // Don't immediately reload - let the UI handle it gracefully
       setTimeout(() => {
         window.location.reload();
       }, 1000);
-      return;
+      throw error;
     }
     console.error('❌ SaaS API Error:', {
-      error: error.message,
-      stack: error.stack,
+      error: error?.message || 'Unknown error',
+      stack: error?.stack,
       finalUrl: apiUrl
     });
     throw error;
@@ -122,7 +124,7 @@ export const saasQueryClient = new QueryClient({
       retry: false,
       refetchOnWindowFocus: false,
       staleTime: 0, // Always fetch fresh data in production
-      cacheTime: 0, // Don't cache data that might be stale
+      gcTime: 0, // Don't cache data that might be stale
     },
   },
 });
