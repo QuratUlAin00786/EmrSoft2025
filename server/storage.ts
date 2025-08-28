@@ -293,9 +293,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createOrganization(organization: InsertOrganization): Promise<Organization> {
-    const cleanOrganization: any = { ...organization };
-    delete cleanOrganization.settings; // Remove complex nested type to avoid compilation errors
-    const [created] = await db.insert(organizations).values([cleanOrganization]).returning();
+    const { settings, features, ...baseFields } = organization;
+    const insertData = {
+      ...baseFields,
+      settings: settings ? JSON.parse(JSON.stringify(settings)) : null,
+      features: features ? JSON.parse(JSON.stringify(features)) : null
+    };
+    const [created] = await db.insert(organizations).values([insertData as any]).returning();
     return created;
   }
 
@@ -515,34 +519,28 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createPatient(patient: InsertPatient): Promise<Patient> {
-    const cleanPatient: any = { ...patient };
-    delete cleanPatient.address; // Remove complex nested type to avoid compilation errors
-    delete cleanPatient.medicalHistory; // Remove complex nested type to avoid compilation errors
-    delete cleanPatient.communicationPreferences; // Remove complex nested type to avoid compilation errors
-    const [created] = await db.insert(patients).values([cleanPatient]).returning();
+    const { address, medicalHistory, communicationPreferences, ...baseFields } = patient;
+    const insertData = {
+      ...baseFields,
+      address: address ? JSON.parse(JSON.stringify(address)) : null,
+      medicalHistory: medicalHistory ? JSON.parse(JSON.stringify(medicalHistory)) : null,
+      communicationPreferences: communicationPreferences ? JSON.parse(JSON.stringify(communicationPreferences)) : null
+    };
+    const [created] = await db.insert(patients).values([insertData as any]).returning();
     return created;
   }
 
   async updatePatient(id: number, organizationId: number, updates: Partial<InsertPatient>): Promise<Patient | undefined> {
-    const cleanUpdates: any = { ...updates };
-    
-    // Handle complex nested types separately to avoid compilation errors
-    const complexFields: any = {};
-    if (updates.address) {
-      complexFields.address = updates.address;
-      delete cleanUpdates.address;
-    }
-    if (updates.medicalHistory) {
-      complexFields.medicalHistory = updates.medicalHistory;
-      delete cleanUpdates.medicalHistory;
-    }
-    if (updates.communicationPreferences) {
-      complexFields.communicationPreferences = updates.communicationPreferences;
-      delete cleanUpdates.communicationPreferences;
-    }
-    
+    const { address, medicalHistory, communicationPreferences, ...baseUpdates } = updates;
+    const updateData = {
+      ...baseUpdates,
+      updatedAt: new Date(),
+      ...(address && { address: JSON.parse(JSON.stringify(address)) }),
+      ...(medicalHistory && { medicalHistory: JSON.parse(JSON.stringify(medicalHistory)) }),
+      ...(communicationPreferences && { communicationPreferences: JSON.parse(JSON.stringify(communicationPreferences)) })
+    };
     const [updated] = await db.update(patients)
-      .set({ ...cleanUpdates, ...complexFields, updatedAt: new Date() })
+      .set(updateData)
       .where(and(eq(patients.id, id), eq(patients.organizationId, organizationId)))
       .returning();
     return updated || undefined;
@@ -849,17 +847,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createAiInsight(insight: InsertAiInsight): Promise<AiInsight> {
-    const cleanInsight: any = { ...insight };
-    delete cleanInsight.metadata; // Remove complex nested type to avoid compilation errors
-    const [created] = await db.insert(aiInsights).values([cleanInsight]).returning();
+    const { metadata, ...baseFields } = insight;
+    const insertData = {
+      ...baseFields,
+      metadata: metadata ? JSON.parse(JSON.stringify(metadata)) : null
+    };
+    const [created] = await db.insert(aiInsights).values([insertData as any]).returning();
     return created;
   }
 
   async updateAiInsight(id: number, organizationId: number, updates: Partial<InsertAiInsight>): Promise<AiInsight | undefined> {
-    const cleanUpdates: any = { ...updates };
-    delete cleanUpdates.metadata; // Remove complex nested type to avoid compilation errors
+    const { metadata, ...baseUpdates } = updates;
+    const updateData = {
+      ...baseUpdates,
+      ...(metadata && { metadata: JSON.parse(JSON.stringify(metadata)) })
+    };
     const [updated] = await db.update(aiInsights)
-      .set(cleanUpdates)
+      .set(updateData)
       .where(and(eq(aiInsights.id, id), eq(aiInsights.organizationId, organizationId)))
       .returning();
     return updated || undefined;
@@ -867,22 +871,34 @@ export class DatabaseStorage implements IStorage {
 
   // Subscriptions
   async getSubscription(organizationId: number): Promise<Subscription | undefined> {
-    const [subscription] = await db.select().from(subscriptions).where(eq(subscriptions.organizationId, organizationId));
-    return subscription || undefined;
+    try {
+      const [subscription] = await db.select().from(subscriptions).where(eq(subscriptions.organizationId, organizationId));
+      return subscription || undefined;
+    } catch (error) {
+      console.error('[STORAGE] Error fetching subscription for org', organizationId, ':', error);
+      return undefined;
+    }
   }
 
   async createSubscription(subscription: InsertSubscription): Promise<Subscription> {
-    const cleanSubscription: any = { ...subscription };
-    delete cleanSubscription.features; // Remove complex nested type to avoid compilation errors
-    const [created] = await db.insert(subscriptions).values([cleanSubscription]).returning();
+    const { features, ...baseFields } = subscription;
+    const insertData = {
+      ...baseFields,
+      features: features ? JSON.parse(JSON.stringify(features)) : null
+    };
+    const [created] = await db.insert(subscriptions).values([insertData as any]).returning();
     return created;
   }
 
   async updateSubscription(organizationId: number, updates: Partial<InsertSubscription>): Promise<Subscription | undefined> {
-    const cleanUpdates: any = { ...updates };
-    delete cleanUpdates.features; // Remove complex nested type to avoid compilation errors
+    const { features, ...baseUpdates } = updates;
+    const updateData = {
+      ...baseUpdates,
+      updatedAt: new Date(),
+      ...(features && { features: JSON.parse(JSON.stringify(features)) })
+    };
     const [updated] = await db.update(subscriptions)
-      .set({ ...cleanUpdates, updatedAt: new Date() })
+      .set(updateData)
       .where(eq(subscriptions.organizationId, organizationId))
       .returning();
     return updated || undefined;
@@ -962,11 +978,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePatientCommunication(id: number, organizationId: number, updates: Partial<InsertPatientCommunication>): Promise<PatientCommunication | undefined> {
-    const cleanUpdates: any = { ...updates };
-    delete cleanUpdates.metadata; // Remove complex nested type to avoid compilation errors
+    const { metadata, ...baseUpdates } = updates;
+    const updateData = {
+      ...baseUpdates,
+      updatedAt: new Date(),
+      ...(metadata && { metadata: JSON.parse(JSON.stringify(metadata)) })
+    };
     const [updatedCommunication] = await db
       .update(patientCommunications)
-      .set({ ...cleanUpdates, updatedAt: new Date() })
+      .set(updateData)
       .where(and(eq(patientCommunications.id, id), eq(patientCommunications.organizationId, organizationId)))
       .returning();
     return updatedCommunication;
@@ -1134,25 +1154,32 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createConsultation(consultation: InsertConsultation): Promise<Consultation> {
-    const cleanConsultation: any = { ...consultation };
-    delete cleanConsultation.vitalSigns; // Remove complex nested type to avoid compilation errors
-    delete cleanConsultation.labResults; // Remove complex nested type to avoid compilation errors
-    delete cleanConsultation.followUpActions; // Remove complex nested type to avoid compilation errors
+    const { vitalSigns, labResults, followUpActions, ...baseFields } = consultation;
+    const insertData = {
+      ...baseFields,
+      vitalSigns: vitalSigns ? JSON.parse(JSON.stringify(vitalSigns)) : null,
+      labResults: labResults ? JSON.parse(JSON.stringify(labResults)) : null,
+      followUpActions: followUpActions ? JSON.parse(JSON.stringify(followUpActions)) : null
+    };
     const [created] = await db
       .insert(consultations)
-      .values([cleanConsultation])
+      .values([insertData as any])
       .returning();
     return created;
   }
 
   async updateConsultation(id: number, organizationId: number, updates: Partial<InsertConsultation>): Promise<Consultation | undefined> {
-    const cleanUpdates: any = { ...updates };
-    delete cleanUpdates.vitalSigns; // Remove complex nested type to avoid compilation errors
-    delete cleanUpdates.labResults; // Remove complex nested type to avoid compilation errors
-    delete cleanUpdates.followUpActions; // Remove complex nested type to avoid compilation errors
+    const { vitalSigns, labResults, followUpActions, ...baseUpdates } = updates;
+    const updateData = {
+      ...baseUpdates,
+      updatedAt: new Date(),
+      ...(vitalSigns && { vitalSigns: JSON.parse(JSON.stringify(vitalSigns)) }),
+      ...(labResults && { labResults: JSON.parse(JSON.stringify(labResults)) }),
+      ...(followUpActions && { followUpActions: JSON.parse(JSON.stringify(followUpActions)) })
+    };
     const [updated] = await db
       .update(consultations)
-      .set({ ...cleanUpdates, updatedAt: new Date() })
+      .set(updateData)
       .where(and(eq(consultations.id, id), eq(consultations.organizationId, organizationId)))
       .returning();
     return updated;
