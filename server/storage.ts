@@ -884,7 +884,7 @@ export class DatabaseStorage implements IStorage {
     const { features, ...baseFields } = subscription;
     const insertData = {
       ...baseFields,
-      features: features ? JSON.parse(JSON.stringify(features)) : null
+      features: features && typeof features === 'object' ? JSON.parse(JSON.stringify(features)) : {}
     };
     const [created] = await db.insert(subscriptions).values([insertData as any]).returning();
     return created;
@@ -895,7 +895,7 @@ export class DatabaseStorage implements IStorage {
     const updateData = {
       ...baseUpdates,
       updatedAt: new Date(),
-      ...(features && { features: JSON.parse(JSON.stringify(features)) })
+      ...(features && typeof features === 'object' ? { features: JSON.parse(JSON.stringify(features)) } : {})
     };
     const [updated] = await db.update(subscriptions)
       .set(updateData)
