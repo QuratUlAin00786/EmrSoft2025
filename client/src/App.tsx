@@ -201,64 +201,55 @@ function ProtectedApp() {
 
   return (
     <div className="flex h-screen bg-neutral-50 dark:bg-background">
-      <Switch>
-        {/* SaaS Admin Portal - Accessible even when authenticated in main EMR */}
-        <Route path="/saas" component={SaaSPortal} />
-        <Route path="/saas/*" component={SaaSPortal} />
-        
-        {/* Regular EMR routes with sidebar */}
-        <Route>
-          <Sidebar />
-          <main className="flex-1 flex flex-col overflow-y-auto lg:ml-0">
-            <Switch>
-              <Route path="/" component={Dashboard} />
-              <Route path="/dashboard" component={Dashboard} />
-              <Route path="/patients" component={Patients} />
-              <Route path="/patients/:id" component={Patients} />
-              <Route path="/patients/:id/records" component={Patients} />
-              <Route path="/calendar" component={CalendarPage} />
-              <Route path="/appointments" component={CalendarPage} />
-              <Route path="/prescriptions" component={PrescriptionsPage} />
-              <Route path="/lab-results" component={LabResultsPage} />
-              <Route path="/imaging" component={ImagingPage} />
-              <Route path="/forms" component={FormsPage} />
-              <Route path="/messaging" component={MessagingPage} />
-              <Route path="/integrations" component={IntegrationsPage} />
-              <Route path="/billing" component={BillingPage} />
-              <Route path="/analytics" component={AnalyticsPage} />
-              <Route path="/automation" component={AutomationPage} />
-              <Route path="/patient-portal" component={PatientPortal} />
-              <Route path="/ai-insights" component={AiInsights} />
-              <Route path="/clinical-decision-support" component={ClinicalDecisionSupport} />
-              <Route path="/telemedicine" component={Telemedicine} />
-              <Route path="/population-health" component={PopulationHealth} />
-              <Route path="/mobile-health" component={MobileHealth} />
-              <Route path="/voice-documentation" component={VoiceDocumentation} />
-              <Route path="/financial-intelligence" component={FinancialIntelligence} />
-              <Route path="/emergency-protocols" component={EmergencyProtocols} />
-              <Route path="/medication-guide" component={MedicationGuide} />
-              <Route path="/prevention-guidelines" component={PreventionGuidelines} />
-              <Route path="/clinical-procedures" component={ClinicalProcedures} />
-              <Route path="/inventory" component={Inventory} />
-              <Route path="/gdpr-compliance" component={GDPRCompliance} />
-              <Route path="/ai-agent" component={AiAgent} />
-              <Route path="/quickbooks" component={QuickBooks} />
-              <Route path="/font-test" component={FontTest} />
-              <Route path="/users" component={UserManagement} />
-              <Route path="/user-management" component={UserManagement} />
-              <Route path="/shifts" component={ShiftsPage} />
-              <Route path="/permissions-reference" component={PermissionsReference} />
-              <Route path="/staff/:id" component={StaffProfile} />
-              <Route path="/subscription" component={Subscription} />
-              <Route path="/settings" component={Settings} />
-              <Route component={NotFound} />
-            </Switch>
-          </main>
-          
-          {/* AI Chat Widget available on all pages */}
-          <AIChatWidget />
-        </Route>
-      </Switch>
+      <Sidebar />
+      <main className="flex-1 flex flex-col overflow-y-auto lg:ml-0">
+        <Switch>
+          <Route path="/" component={Dashboard} />
+          <Route path="/dashboard" component={Dashboard} />
+          <Route path="/patients" component={Patients} />
+          <Route path="/patients/:id" component={Patients} />
+          <Route path="/patients/:id/records" component={Patients} />
+          <Route path="/calendar" component={CalendarPage} />
+          <Route path="/appointments" component={CalendarPage} />
+          <Route path="/prescriptions" component={PrescriptionsPage} />
+          <Route path="/lab-results" component={LabResultsPage} />
+          <Route path="/imaging" component={ImagingPage} />
+          <Route path="/forms" component={FormsPage} />
+          <Route path="/messaging" component={MessagingPage} />
+          <Route path="/integrations" component={IntegrationsPage} />
+          <Route path="/billing" component={BillingPage} />
+          <Route path="/analytics" component={AnalyticsPage} />
+          <Route path="/automation" component={AutomationPage} />
+          <Route path="/patient-portal" component={PatientPortal} />
+          <Route path="/ai-insights" component={AiInsights} />
+          <Route path="/clinical-decision-support" component={ClinicalDecisionSupport} />
+          <Route path="/telemedicine" component={Telemedicine} />
+          <Route path="/population-health" component={PopulationHealth} />
+          <Route path="/mobile-health" component={MobileHealth} />
+          <Route path="/voice-documentation" component={VoiceDocumentation} />
+          <Route path="/financial-intelligence" component={FinancialIntelligence} />
+          <Route path="/emergency-protocols" component={EmergencyProtocols} />
+          <Route path="/medication-guide" component={MedicationGuide} />
+          <Route path="/prevention-guidelines" component={PreventionGuidelines} />
+          <Route path="/clinical-procedures" component={ClinicalProcedures} />
+          <Route path="/inventory" component={Inventory} />
+          <Route path="/gdpr-compliance" component={GDPRCompliance} />
+          <Route path="/ai-agent" component={AiAgent} />
+          <Route path="/quickbooks" component={QuickBooks} />
+          <Route path="/font-test" component={FontTest} />
+          <Route path="/users" component={UserManagement} />
+          <Route path="/user-management" component={UserManagement} />
+          <Route path="/shifts" component={ShiftsPage} />
+          <Route path="/permissions-reference" component={PermissionsReference} />
+          <Route path="/staff/:id" component={StaffProfile} />
+          <Route path="/subscription" component={Subscription} />
+          <Route path="/settings" component={Settings} />
+          <Route component={NotFound} />
+        </Switch>
+      </main>
+      
+      {/* AI Chat Widget available on all pages */}
+      <AIChatWidget />
     </div>
   );
 }
@@ -271,9 +262,12 @@ function AppRouter() {
   useEffect(() => {
     if (loading) return;
 
-    // Exclude SaaS routes from main app authentication redirects
+    // Exclude SaaS routes from main app authentication redirects - COMPLETELY
     const isSaaSRoute = location.startsWith('/saas');
-    if (isSaaSRoute) return;
+    if (isSaaSRoute) {
+      console.log('🔧 SaaS route detected, skipping main app redirects:', location);
+      return;
+    }
 
     const isLandingPage = location.startsWith('/landing') || 
                          location.startsWith('/auth/login') || 
@@ -297,6 +291,13 @@ function AppRouter() {
     return <LoadingPage />;
   }
 
+  // Check if we're on a SaaS route - if so, always render SaaS portal regardless of auth state
+  const isSaaSRoute = location.startsWith('/saas');
+  if (isSaaSRoute) {
+    console.log('🔧 Rendering SaaS Portal for route:', location);
+    return <SaaSPortal />;
+  }
+
   const isLandingPage = location.startsWith('/landing') || 
                        location.startsWith('/auth/login') || 
                        location.startsWith('/legal') || 
@@ -306,10 +307,6 @@ function AppRouter() {
   if (!isAuthenticated) {
     return (
       <Switch>
-        {/* SaaS Admin Portal - Allow access even when not authenticated to main app */}
-        <Route path="/saas" component={SaaSPortal} />
-        <Route path="/saas/*" component={SaaSPortal} />
-        
         {/* Public pages */}
         <Route path="/" component={LandingPage} />
         <Route path="/landing" component={LandingPage} />
