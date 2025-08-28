@@ -338,27 +338,39 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  const [location] = useLocation();
+  
+  // CRITICAL FIX: Handle SaaS routes at the VERY TOP LEVEL before any other logic
+  console.log('🔍 APP: Current location:', location);
+  if (location.startsWith('/saas')) {
+    console.log('🚀 TOP-LEVEL: SaaS route detected, rendering SaaS Portal:', location);
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <ThemeProvider>
+            <div className="min-h-screen">
+              <SaaSPortal />
+            </div>
+            <Toaster />
+          </ThemeProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  }
+
+  console.log('🔧 APP: Non-SaaS route, using regular app routing');
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <ThemeProvider>
           <div className="min-h-screen">
-            <Switch>
-              {/* SaaS Admin Portal - Standalone route */}
-              <Route path="/saas" component={SaaSPortal} />
-              <Route path="/saas/*" component={SaaSPortal} />
-              
-              {/* Regular app routes */}
-              <Route>
-                <TenantProvider>
-                  <AuthProvider>
-                    <LocaleProvider>
-                      <AppRouter />
-                    </LocaleProvider>
-                  </AuthProvider>
-                </TenantProvider>
-              </Route>
-            </Switch>
+            <TenantProvider>
+              <AuthProvider>
+                <LocaleProvider>
+                  <AppRouter />
+                </LocaleProvider>
+              </AuthProvider>
+            </TenantProvider>
           </div>
           <Toaster />
         </ThemeProvider>
