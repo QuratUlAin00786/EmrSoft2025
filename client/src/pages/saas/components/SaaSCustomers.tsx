@@ -749,7 +749,7 @@ export default function SaaSCustomers() {
                           </DialogContent>
                         </Dialog>
 
-                        {/* DELETE BUTTON - GUARANTEED VISIBLE */}
+                        {/* BULLETPROOF DELETE BUTTON */}
                         <button
                           onClick={() => {
                             if (window.confirm(`Are you sure you want to delete ${customer.name}? This cannot be undone.`)) {
@@ -757,21 +757,22 @@ export default function SaaSCustomers() {
                             }
                           }}
                           disabled={deleteCustomerMutation.isPending}
-                          className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-red-600 bg-white border-2 border-red-300 rounded-md hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                           title="Delete Customer"
                           style={{
-                            minWidth: '44px',
-                            minHeight: '36px',
-                            display: 'inline-flex',
-                            visibility: 'visible',
-                            opacity: 1,
-                            position: 'relative',
-                            zIndex: 10,
-                            backgroundColor: 'white',
-                            border: '2px solid #ef4444'
-                          } as React.CSSProperties}
+                            width: '40px',
+                            height: '40px',
+                            backgroundColor: '#fee2e2',
+                            border: '2px solid #dc2626',
+                            borderRadius: '6px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            color: '#dc2626',
+                            fontSize: '16px'
+                          }}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          🗑️
                         </button>
                       </div>
                     </TableCell>
