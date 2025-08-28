@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import { db } from "./db";
 import nodemailer from 'nodemailer';
 import { saasOwners } from '@shared/schema';
+import { emailService } from "./services/email";
 
 const SAAS_JWT_SECRET = process.env.SAAS_JWT_SECRET || "saas-super-secret-key-change-in-production";
 
@@ -19,48 +20,42 @@ async function sendWelcomeEmail(organization: any, adminUser: any) {
       hasTempPassword: !!adminUser?.tempPassword
     });
     
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: 'noreply@curaemr.ai',
-        pass: 'wxndhigmfhgjjklr',
-      },
-    });
-
-    const mailOptions = {
-      from: 'noreply@curaemr.ai',
+    const emailOptions = {
       to: adminUser.email,
-      subject: 'Cura EMR Login Details',
+      subject: 'Welcome to Cura EMR - Login Details',
       text: `Hello ${adminUser.firstName},
 
 Your Cura EMR account for ${organization.name} is ready.
 
 Login: ${adminUser.email}
-Password: ${adminUser.tempPassword}
-URL: https://${organization.subdomain}
+Password: ${adminUser.tempPassword || 'Please check your account for login details'}
+URL: https://${organization.subdomain}.curaemr.ai
 
 Best regards,
 Cura EMR Team`,
       html: `<h2>Hello ${adminUser.firstName},</h2>
 <p>Your Cura EMR account for <strong>${organization.name}</strong> is ready.</p>
 <p><strong>Login:</strong> ${adminUser.email}<br>
-<strong>Password:</strong> ${adminUser.tempPassword}<br>
-<strong>URL:</strong> https://${organization.subdomain}</p>
+<strong>Password:</strong> ${adminUser.tempPassword || 'Please check your account for login details'}<br>
+<strong>URL:</strong> https://${organization.subdomain}.curaemr.ai</p>
 <p>Best regards,<br>Cura EMR Team</p>`
     };
 
-    console.log('📧 About to send email with options:', {
-      from: mailOptions.from,
-      to: mailOptions.to,
-      subject: mailOptions.subject,
-      hasHtml: !!mailOptions.html
+    console.log('📧 About to send email via centralized service:', {
+      to: emailOptions.to,
+      subject: emailOptions.subject,
+      hasHtml: !!emailOptions.html
     });
     
-    const emailResult = await transporter.sendMail(mailOptions);
-    console.log('📧 ✅ Email sent successfully! Result:', emailResult);
+    const emailResult = await emailService.sendEmail(emailOptions);
+    console.log('📧 ✅ Email sent via centralized service! Success:', emailResult);
     console.log(`📧 Welcome email sent to ${adminUser.email} for organization ${organization.name}`);
+    
+    if (!emailResult) {
+      throw new Error('Email service returned false - email may not have been delivered');
+    }
   } catch (error) {
-    console.error('Error sending welcome email:', error);
+    console.error('📧 ❌ Error sending welcome email:', error);
     throw error;
   }
 }
@@ -95,20 +90,19 @@ const verifySaaSToken = async (req: SaaSRequest, res: Response, next: any) => {
 // Simple test route to verify email functionality
 async function testEmailConnection() {
   try {
-    console.log('📧 TESTING EMAIL CONNECTION...');
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: 'noreply@curaemr.ai',
-        pass: 'wxndhigmfhgjjklr',
-      },
+    console.log('📧 TESTING EMAIL CONNECTION VIA CENTRALIZED SERVICE...');
+    
+    // Test with a simple email send to verify the service works
+    const testResult = await emailService.sendEmail({
+      to: 'test@example.com',
+      subject: 'Email Service Test',
+      text: 'This is a test email to verify the service is working.'
     });
     
-    const testResult = await transporter.verify();
-    console.log('📧 ✅ SMTP CONNECTION VERIFIED:', testResult);
+    console.log('📧 ✅ EMAIL SERVICE VERIFIED:', testResult);
     return testResult;
   } catch (error) {
-    console.error('📧 ❌ SMTP CONNECTION FAILED:', error);
+    console.error('📧 ❌ EMAIL SERVICE FAILED:', error);
     return false;
   }
 }
