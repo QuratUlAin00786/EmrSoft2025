@@ -749,25 +749,19 @@ export default function SaaSCustomers() {
                           </DialogContent>
                         </Dialog>
 
-                        <span 
+                        <Button
+                          size="sm"
+                          variant="destructive"
                           onClick={() => {
                             if (window.confirm(`Are you sure you want to delete ${customer.name}? This cannot be undone.`)) {
                               deleteCustomerMutation.mutate(customer.id);
                             }
                           }}
-                          style={{
-                            color: 'red',
-                            cursor: 'pointer', 
-                            fontSize: '18px',
-                            padding: '8px',
-                            border: '1px solid red',
-                            borderRadius: '4px',
-                            backgroundColor: 'white',
-                            display: 'inline-block'
-                          }}
+                          className="!bg-red-600 !text-white !border-red-600 hover:!bg-red-700 !font-medium !px-3 !py-1 !text-sm"
                         >
+                          <Trash2 className="h-4 w-4 mr-1" />
                           DELETE
-                        </span>
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
