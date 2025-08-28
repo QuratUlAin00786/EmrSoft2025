@@ -749,31 +749,25 @@ export default function SaaSCustomers() {
                           </DialogContent>
                         </Dialog>
 
-                        {/* BULLETPROOF DELETE BUTTON */}
-                        <button
+                        <span 
                           onClick={() => {
                             if (window.confirm(`Are you sure you want to delete ${customer.name}? This cannot be undone.`)) {
                               deleteCustomerMutation.mutate(customer.id);
                             }
                           }}
-                          disabled={deleteCustomerMutation.isPending}
-                          title="Delete Customer"
                           style={{
-                            width: '40px',
-                            height: '40px',
-                            backgroundColor: '#fee2e2',
-                            border: '2px solid #dc2626',
-                            borderRadius: '6px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            color: '#dc2626',
-                            fontSize: '16px'
+                            color: 'red',
+                            cursor: 'pointer', 
+                            fontSize: '18px',
+                            padding: '8px',
+                            border: '1px solid red',
+                            borderRadius: '4px',
+                            backgroundColor: 'white',
+                            display: 'inline-block'
                           }}
                         >
-                          🗑️
-                        </button>
+                          DELETE
+                        </span>
                       </div>
                     </TableCell>
                   </TableRow>
