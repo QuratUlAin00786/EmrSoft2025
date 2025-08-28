@@ -747,7 +747,12 @@ export default function SaaSCustomers() {
                         </Dialog>
                         <Dialog>
                           <DialogTrigger asChild>
-                            <Button size="sm" variant="outline" className="text-red-600 hover:bg-red-50 hover:text-red-700">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="text-red-600 hover:bg-red-50 hover:text-red-700 border-red-200"
+                              title="Delete Customer"
+                            >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </DialogTrigger>
