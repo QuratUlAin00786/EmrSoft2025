@@ -667,6 +667,65 @@ export function registerSaaSRoutes(app: Express) {
     }
   });
 
+  // Production setup endpoint to ensure SaaS admin works in live environment
+  app.post('/api/production-setup', async (req: Request, res: Response) => {
+    try {
+      console.log('🔧 Production setup requested...');
+      
+      // Get or create SaaS admin user
+      let saasUser = await storage.getUserByUsername('saas_admin', 0);
+      
+      if (!saasUser) {
+        console.log('🔧 Creating new SaaS admin user...');
+        // Create new SaaS admin
+        const hashedPassword = await bcrypt.hash('admin123', 12);
+        const userData = {
+          username: 'saas_admin',
+          email: 'saas_admin@curaemr.ai',
+          password: hashedPassword,
+          firstName: 'SaaS',
+          lastName: 'Administrator',
+          role: 'admin',
+          organizationId: 0, // System-wide
+          isActive: true,
+          isSaaSOwner: true
+        };
+        
+        saasUser = await storage.createUser(userData);
+        console.log('✅ Created new SaaS admin user');
+      } else {
+        console.log('🔧 Updating existing SaaS admin user...');
+        // Update existing user to ensure it's properly configured
+        const hashedPassword = await bcrypt.hash('admin123', 12);
+        await storage.updateUser(saasUser.id, {
+          password: hashedPassword,
+          isActive: true,
+          isSaaSOwner: true
+        });
+        console.log('✅ Updated existing SaaS admin user');
+      }
+      
+      res.json({
+        success: true,
+        message: 'Production setup completed successfully',
+        saasAdmin: {
+          id: saasUser.id,
+          username: saasUser.username,
+          email: saasUser.email,
+          isActive: saasUser.isActive,
+          isSaaSOwner: saasUser.isSaaSOwner
+        }
+      });
+    } catch (error) {
+      console.error('Production setup error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Production setup failed',
+        error: (error as Error).message 
+      });
+    }
+  });
+
   // SaaS Owner Login
   app.post('/api/saas/login', async (req: Request, res: Response) => {
     try {
