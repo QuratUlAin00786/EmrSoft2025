@@ -338,10 +338,18 @@ const queryClient = new QueryClient({
 });
 
 function App() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   
   // CRITICAL FIX: Handle SaaS routes at the VERY TOP LEVEL before any other logic
   console.log('🔍 APP: Current location:', location);
+  
+  // Handle common typo: /sass -> /saas
+  if (location.startsWith('/sass')) {
+    console.log('🔧 Redirecting /sass to /saas');
+    setLocation('/saas');
+    return null;
+  }
+  
   if (location.startsWith('/saas')) {
     console.log('🚀 TOP-LEVEL: SaaS route detected, rendering SaaS Portal:', location);
     return (
