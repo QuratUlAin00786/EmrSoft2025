@@ -752,18 +752,18 @@ export default function SaaSCustomers() {
                               variant="outline" 
                               className="!text-red-600 !bg-white !border-red-300 !border-2 hover:!bg-red-50 hover:!text-red-700 !shadow-md !min-w-[44px] !min-h-[36px] !visible !opacity-100 !block"
                               style={{ 
-                                color: '#dc2626 !important', 
-                                borderColor: '#fca5a5 !important',
-                                backgroundColor: '#ffffff !important',
-                                display: 'inline-flex !important',
-                                visibility: 'visible !important',
-                                opacity: '1 !important',
-                                zIndex: '10',
+                                color: '#dc2626', 
+                                borderColor: '#fca5a5',
+                                backgroundColor: '#ffffff',
+                                display: 'inline-flex',
+                                visibility: 'visible',
+                                opacity: 1,
+                                zIndex: 10,
                                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                               }}
                               title="Delete Customer"
                             >
-                              <Trash2 className="h-4 w-4 !text-red-600" style={{ color: '#dc2626 !important', display: 'block !important' }} />
+                              <Trash2 className="h-4 w-4 !text-red-600" style={{ color: '#dc2626', display: 'block' }} />
                             </Button>
                           </DialogTrigger>
                           <DialogContent>
