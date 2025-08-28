@@ -534,6 +534,7 @@ export default function SaaSCustomers() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
+                        {/* View Details Button */}
                         <Dialog>
                           <DialogTrigger asChild>
                             <Button size="sm" variant="outline">
@@ -554,6 +555,8 @@ export default function SaaSCustomers() {
                             </div>
                           </DialogContent>
                         </Dialog>
+
+                        {/* Edit Customer Button */}
                         <Dialog open={editingCustomer?.id === customer.id} onOpenChange={(open) => !open && setEditingCustomer(null)}>
                           <DialogTrigger asChild>
                             <Button size="sm" variant="outline" onClick={() => setEditingCustomer({
@@ -745,82 +748,27 @@ export default function SaaSCustomers() {
                             )}
                           </DialogContent>
                         </Dialog>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              className="!text-red-600 !bg-white !border-red-300 !border-2 hover:!bg-red-50 hover:!text-red-700 !shadow-md !min-w-[44px] !min-h-[36px] !visible !opacity-100 !block"
-                              style={{ 
-                                color: '#dc2626', 
-                                borderColor: '#fca5a5',
-                                backgroundColor: '#ffffff',
-                                display: 'inline-flex',
-                                visibility: 'visible',
-                                opacity: 1,
-                                zIndex: 10,
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                              }}
-                              title="Delete Customer"
-                            >
-                              <Trash2 className="h-4 w-4 !text-red-600" style={{ color: '#dc2626', display: 'block' }} />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Delete Customer - {customer.name}</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                              <p className="text-sm text-gray-600">
-                                Are you sure you want to permanently delete <strong>{customer.name}</strong>? 
-                                This action will remove all associated data including:
-                              </p>
-                              <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-                                <li>Organization and user accounts</li>
-                                <li>Patient records and medical data</li>
-                                <li>Appointments and schedules</li>
-                                <li>Billing and subscription data</li>
-                                <li>All system configurations</li>
-                              </ul>
-                              <p className="text-sm font-semibold text-red-600">
-                                This action cannot be undone.
-                              </p>
-                              <div className="flex space-x-2 pt-4">
-                                <DialogTrigger asChild>
-                                  <Button variant="outline" className="flex-1">
-                                    Cancel
-                                  </Button>
-                                </DialogTrigger>
-                                <Button 
-                                  variant="destructive" 
-                                  className="flex-1"
-                                  onClick={() => deleteCustomerMutation.mutate(customer.id)}
-                                  disabled={deleteCustomerMutation.isPending}
-                                >
-                                  {deleteCustomerMutation.isPending ? 'Deleting...' : 'Delete Permanently'}
-                                </Button>
-                              </div>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                        <select
-                          value={customer.subscriptionStatus}
-                          onChange={(e) => {
-                            if (e.target.value !== customer.subscriptionStatus) {
-                              updateStatusMutation.mutate({
-                                organizationId: customer.id,
-                                status: e.target.value
-                              });
+
+                        {/* DELETE BUTTON - GUARANTEED VISIBLE */}
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`Are you sure you want to delete ${customer.name}? This cannot be undone.`)) {
+                              deleteCustomerMutation.mutate(customer.id);
                             }
                           }}
-                          className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                          disabled={updateStatusMutation.isPending}
+                          disabled={deleteCustomerMutation.isPending}
+                          className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-red-600 bg-white border-2 border-red-300 rounded-md hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Delete Customer"
+                          style={{
+                            minWidth: '44px',
+                            minHeight: '36px',
+                            display: 'inline-flex',
+                            visibility: 'visible',
+                            opacity: 1
+                          }}
                         >
-                          <option value="trial">Trial</option>
-                          <option value="active">Active</option>
-                          <option value="suspended">Suspended</option>
-                          <option value="cancelled">Cancelled</option>
-                        </select>
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </div>
                     </TableCell>
                   </TableRow>
