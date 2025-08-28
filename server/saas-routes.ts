@@ -864,49 +864,13 @@ export function registerSaaSRoutes(app: Express) {
       
       if (result.success && result.adminUser) {
         try {
-          console.log('📧 🔧 DEBUGGING: About to send welcome email...');
-          console.log('📧 🔧 Admin user details:', {
-            email: result.adminUser.email,
-            firstName: result.adminUser.firstName,
-            lastName: result.adminUser.lastName,
-            hasTempPassword: !!result.adminUser.tempPassword,
-            tempPassword: result.adminUser.tempPassword ? 'PRESENT' : 'MISSING'
-          });
-          console.log('📧 🔧 Organization details:', {
-            name: result.organization.name,
-            subdomain: result.organization.subdomain
-          });
-          
-          console.log('📧 🔧 Testing email service directly first...');
-          const directEmailTest = await emailService.sendEmail({
-            to: result.adminUser.email,
-            subject: 'Cura EMR - Direct Email Test',
-            text: 'This is a direct test to verify email service is working.',
-            html: '<p>This is a direct test to verify email service is working.</p>'
-          });
-          console.log('📧 🔧 Direct email test result:', directEmailTest);
-          
-          if (!directEmailTest) {
-            throw new Error('Direct email test failed - email service not working');
-          }
-          
-          console.log('📧 🔧 Now attempting welcome email...');
+          console.log('📧 Sending welcome email to:', result.adminUser.email);
           await sendWelcomeEmail(result.organization, result.adminUser);
           console.log('📧 ✅ Welcome email sent successfully to:', result.adminUser.email);
         } catch (emailError: any) {
           console.error('📧 ❌ Failed to send welcome email:', emailError);
-          console.error('📧 ❌ Email error details:', {
-            message: emailError.message,
-            code: emailError.code,
-            stack: emailError.stack
-          });
           // Don't fail the customer creation if email fails
         }
-      } else {
-        console.log('📧 ⚠️ Email not sent - conditions not met:', {
-          success: result.success,
-          hasAdminUser: !!result.adminUser
-        });
       }
       
       res.json(result);
