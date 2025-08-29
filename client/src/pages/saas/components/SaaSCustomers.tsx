@@ -752,16 +752,42 @@ export default function SaaSCustomers() {
                           </DialogContent>
                         </Dialog>
 
-                        {/* Delete Customer Button - Production Safe */}
+                        {/* ABSOLUTE FAILSAFE DELETE BUTTON */}
                         <button
                           type="button"
-                          className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700 h-8 w-8 transition-colors"
-                          onClick={() => {
-                            if (window.confirm(`Are you sure you want to delete ${customer.name}? This cannot be undone.`)) {
-                              deleteCustomerMutation.mutate(customer.id);
+                          style={{
+                            backgroundColor: '#dc2626',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            width: '32px',
+                            height: '32px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            fontSize: '16px'
+                          }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            try {
+                              console.log('Delete button clicked for:', customer.name);
+                              if (window.confirm(`Are you sure you want to delete ${customer.name}? This cannot be undone.`)) {
+                                console.log('User confirmed deletion');
+                                if (deleteCustomerMutation && deleteCustomerMutation.mutate) {
+                                  deleteCustomerMutation.mutate(customer.id);
+                                } else {
+                                  console.error('deleteCustomerMutation not available');
+                                  alert('Delete function not available');
+                                }
+                              }
+                            } catch (error) {
+                              console.error('Delete button error:', error);
+                              alert('Error: ' + error.message);
                             }
                           }}
-                          disabled={deleteCustomerMutation.isPending}
+                          disabled={deleteCustomerMutation?.isPending}
                           title="Delete Customer"
                         >
                           🗑️
