@@ -752,19 +752,38 @@ export default function SaaSCustomers() {
                           </DialogContent>
                         </Dialog>
 
-                        <Button
-                          size="sm"
-                          variant="destructive"
+                        <button
+                          type="button"
                           onClick={() => {
                             if (window.confirm(`Are you sure you want to delete ${customer.name}? This cannot be undone.`)) {
                               deleteCustomerMutation.mutate(customer.id);
                             }
                           }}
-                          className="!bg-red-600 !text-white !border-red-600 hover:!bg-red-700 !font-medium !px-3 !py-1 !text-sm"
+                          style={{
+                            backgroundColor: '#dc2626',
+                            color: '#ffffff',
+                            border: '1px solid #dc2626',
+                            borderRadius: '0.375rem',
+                            padding: '0.25rem 0.75rem',
+                            fontSize: '0.875rem',
+                            fontWeight: '500',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.25rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#b91c1c';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#dc2626';
+                          }}
+                          className="!bg-red-600 !text-white !border-red-600 hover:!bg-red-700 !font-medium !px-3 !py-1 !text-sm !inline-flex !items-center !gap-1 !cursor-pointer"
                         >
-                          <Trash2 className="h-4 w-4 mr-1" />
+                          <Trash2 className="h-4 w-4" style={{ width: '1rem', height: '1rem' }} />
                           DELETE
-                        </Button>
+                        </button>
                       </div>
                     </TableCell>
                   </TableRow>
