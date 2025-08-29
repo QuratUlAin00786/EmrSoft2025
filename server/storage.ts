@@ -396,14 +396,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(user: InsertUser): Promise<User> {
-    const [created] = await db.insert(users).values(user).returning();
+    const [created] = await db.insert(users).values([user]).returning();
     return created;
   }
 
   async updateUser(id: number, organizationId: number, updates: Partial<InsertUser>): Promise<User | undefined> {
     console.log(`Storage: Updating user ${id} with data:`, JSON.stringify(updates, null, 2));
+    const updateData = {
+      ...updates,
+      updatedAt: new Date()
+    };
     const [updated] = await db.update(users)
-      .set(updates)
+      .set(updateData)
       .where(and(eq(users.id, id), eq(users.organizationId, organizationId)))
       .returning();
     console.log(`Storage: Updated user result:`, updated ? `User ${updated.id} - workingHours: ${JSON.stringify(updated.workingHours)}` : 'No user updated');
@@ -1154,28 +1158,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createConsultation(consultation: InsertConsultation): Promise<Consultation> {
-    const { vitalSigns, labResults, followUpActions, ...baseFields } = consultation;
-    const insertData = {
-      ...baseFields,
-      vitalSigns: vitalSigns ? JSON.parse(JSON.stringify(vitalSigns)) : null,
-      labResults: labResults ? JSON.parse(JSON.stringify(labResults)) : null,
-      followUpActions: followUpActions ? JSON.parse(JSON.stringify(followUpActions)) : null
-    };
     const [created] = await db
       .insert(consultations)
-      .values([insertData as any])
+      .values([consultation])
       .returning();
     return created;
   }
 
   async updateConsultation(id: number, organizationId: number, updates: Partial<InsertConsultation>): Promise<Consultation | undefined> {
-    const { vitalSigns, labResults, followUpActions, ...baseUpdates } = updates;
     const updateData = {
-      ...baseUpdates,
-      updatedAt: new Date(),
-      ...(vitalSigns && { vitalSigns: JSON.parse(JSON.stringify(vitalSigns)) }),
-      ...(labResults && { labResults: JSON.parse(JSON.stringify(labResults)) }),
-      ...(followUpActions && { followUpActions: JSON.parse(JSON.stringify(followUpActions)) })
+      ...updates,
+      updatedAt: new Date()
     };
     const [updated] = await db
       .update(consultations)
@@ -1225,9 +1218,12 @@ export class DatabaseStorage implements IStorage {
         return acc;
       }, { 'Under 18': 0, '18-34': 0, '35-54': 0, '55-74': 0, '75+': 0 });
       
-      // Gender distribution
+      // Gender distribution (using sex field from schema)
       const genderDistribution = patientsList.reduce((acc, patient) => {
-        acc[patient.gender || 'Unknown']++;
+        const sexValue = (patient as any).sex || 'Unknown';
+        if (sexValue === 'male') acc.Male++;
+        else if (sexValue === 'female') acc.Female++;
+        else acc.Unknown++;
         return acc;
       }, { Male: 0, Female: 0, Unknown: 0 });
       
@@ -2456,7 +2452,7 @@ export class DatabaseStorage implements IStorage {
     console.log("Storage: Provider ID being inserted:", prescription.providerId);
     const [newPrescription] = await db
       .insert(prescriptions)
-      .values(prescription)
+      .values([prescription])
       .returning();
     return newPrescription;
   }
@@ -2494,7 +2490,7 @@ export class DatabaseStorage implements IStorage {
   async createLabResult(labResult: InsertLabResult): Promise<LabResult> {
     const [result] = await db
       .insert(labResults)
-      .values(labResult)
+      .values([labResult])
       .returning();
     
     return result;
@@ -2813,11 +2809,10 @@ export class DatabaseStorage implements IStorage {
   async createDocument(document: InsertDocument): Promise<Document> {
     const [newDocument] = await db
       .insert(documents)
-      .values({
+      .values([{
         ...document,
-        createdAt: new Date(),
         updatedAt: new Date(),
-      })
+      }])
       .returning();
     return newDocument;
   }
@@ -2870,11 +2865,10 @@ export class DatabaseStorage implements IStorage {
   async createMedicalImage(image: InsertMedicalImage): Promise<MedicalImage> {
     const [newImage] = await db
       .insert(medicalImages)
-      .values({
+      .values([{
         ...image,
-        createdAt: new Date(),
         updatedAt: new Date(),
-      })
+      }])
       .returning();
     return newImage;
   }

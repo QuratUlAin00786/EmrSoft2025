@@ -71,7 +71,8 @@ h1, h2, h3, h4, h5, h6, p, div, span, button, input, textarea, select, label, a,
 }
 
 /* Layer 5: Emergency fallback classes */
-.figtree-loaded *, .figtree-emergency * {
+.figtree-loaded *, 
+.figtree-emergency * {
   font-family: var(--figtree-stack) !important;
 }
 
