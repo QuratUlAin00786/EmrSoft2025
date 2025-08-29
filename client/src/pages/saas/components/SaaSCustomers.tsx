@@ -87,6 +87,9 @@ export default function SaaSCustomers() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/saas/customers'] });
       setIsAddDialogOpen(false);
+      // Clear search filter to show new customer
+      setSearchTerm('');
+      setSelectedStatus('all');
       setNewCustomer({
         name: '', brandName: '', subdomain: '', adminEmail: '', 
         adminFirstName: '', adminLastName: '', accessLevel: 'full', billingPackageId: '',
