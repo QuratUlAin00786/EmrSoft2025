@@ -752,19 +752,20 @@ export default function SaaSCustomers() {
                           </DialogContent>
                         </Dialog>
 
-                        {/* Delete Customer Button */}
-                        <Button 
-                          size="sm" 
-                          variant="destructive"
+                        {/* Delete Customer Button - Production Safe */}
+                        <button
+                          type="button"
+                          className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700 h-8 w-8 transition-colors"
                           onClick={() => {
                             if (window.confirm(`Are you sure you want to delete ${customer.name}? This cannot be undone.`)) {
                               deleteCustomerMutation.mutate(customer.id);
                             }
                           }}
                           disabled={deleteCustomerMutation.isPending}
+                          title="Delete Customer"
                         >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                          🗑️
+                        </button>
                       </div>
                     </TableCell>
                   </TableRow>
