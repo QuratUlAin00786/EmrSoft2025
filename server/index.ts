@@ -53,28 +53,23 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // FORCE database seeding on ALL environments - GUARANTEED
-  console.log("🚀 FORCE SEEDING: Starting database seeding process...");
-  console.log(`Environment: ${process.env.NODE_ENV}`);
-  
-  try {
-    console.log("📊 Step 1: Running seedDatabase()...");
-    await seedDatabase();
-    console.log("✅ Step 1: seedDatabase() completed successfully!");
-    
-    console.log("📦 Step 2: Running inventory seeding...");
-    const { seedAllOrganizations } = await import("./seed-inventory");
-    await seedAllOrganizations();
-    console.log("✅ Step 2: Inventory seeding completed successfully!");
-    
-    console.log("🎉 DATABASE SEEDING COMPLETED - ALL PATIENT DATA AVAILABLE!");
-  } catch (error: any) {
-    console.error("❌ SEEDING FAILED - This will cause problems:");
-    console.error("Error details:", error);
-    console.error("Stack trace:", error.stack);
-    // Don't stop the app, but make the error very visible
-    console.log("⚠️  App will continue but database may be empty");
-  }
+  // Add root health check endpoint for deployment health checks
+  app.get("/", (req, res) => {
+    res.status(200).json({
+      status: "OK",
+      message: "Cura EMR System is running",
+      timestamp: new Date().toISOString(),
+      version: "1.0.0"
+    });
+  });
+
+  // Add health endpoint as an alias
+  app.get("/health", (req, res) => {
+    res.status(200).json({
+      status: "healthy",
+      timestamp: new Date().toISOString()
+    });
+  });
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
@@ -91,5 +86,29 @@ app.use((req, res, next) => {
   const port = 5000;
   server.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
+    
+    // Run database seeding asynchronously after server starts to avoid blocking health checks
+    setTimeout(async () => {
+      console.log("🚀 ASYNC SEEDING: Starting database seeding process...");
+      console.log(`Environment: ${process.env.NODE_ENV}`);
+      
+      try {
+        console.log("📊 Step 1: Running seedDatabase()...");
+        await seedDatabase();
+        console.log("✅ Step 1: seedDatabase() completed successfully!");
+        
+        console.log("📦 Step 2: Running inventory seeding...");
+        const { seedAllOrganizations } = await import("./seed-inventory");
+        await seedAllOrganizations();
+        console.log("✅ Step 2: Inventory seeding completed successfully!");
+        
+        console.log("🎉 DATABASE SEEDING COMPLETED - ALL PATIENT DATA AVAILABLE!");
+      } catch (error: any) {
+        console.error("❌ SEEDING FAILED - This will cause problems:");
+        console.error("Error details:", error);
+        console.error("Stack trace:", error.stack);
+        console.log("⚠️  Database may be empty, but app is still running");
+      }
+    }, 1000); // Start seeding 1 second after server is ready
   });
 })();
