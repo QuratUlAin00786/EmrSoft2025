@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import sgMail from '@sendgrid/mail';
 
 interface EmailOptions {
   to: string;
@@ -24,9 +25,10 @@ interface EmailTemplate {
 class EmailService {
   private transporter: nodemailer.Transporter;
   private initialized: boolean = false;
+  private useSendGrid: boolean = false;
 
   constructor() {
-    // Initialize with a basic transporter, will be replaced with working one
+    // Initialize with fallback transporter
     this.transporter = nodemailer.createTransport({
       host: 'smtp.ethereal.email',
       port: 587,
@@ -37,15 +39,26 @@ class EmailService {
       }
     });
     
-    // Initialize with working SMTP in background
-    this.initializeWorkingTransporter();
+    // Initialize production email service
+    this.initializeProductionEmailService();
   }
 
-  private async initializeWorkingTransporter() {
+  private async initializeProductionEmailService() {
     try {
-      console.log('[EMAIL] Initializing Gmail SMTP...');
+      console.log('[EMAIL] Initializing production email service...');
       
-      // Use Gmail SMTP with working credentials for real email delivery
+      // Check for SendGrid API key (production-ready)
+      const sendGridApiKey = process.env.SENDGRID_API_KEY;
+      if (sendGridApiKey && sendGridApiKey !== 'your-sendgrid-api-key-here') {
+        console.log('[EMAIL] Using SendGrid for production email delivery');
+        sgMail.setApiKey(sendGridApiKey);
+        this.useSendGrid = true;
+        this.initialized = true;
+        return;
+      }
+      
+      // Fallback to Gmail SMTP (development only)
+      console.log('[EMAIL] SendGrid not configured, using Gmail SMTP for development...');
       const smtpConfig = {
         service: 'gmail',
         auth: {
@@ -55,15 +68,66 @@ class EmailService {
       };
       
       this.transporter = nodemailer.createTransport(smtpConfig);
+      this.useSendGrid = false;
       this.initialized = true;
       
     } catch (error) {
-      console.error('[EMAIL] Failed to initialize SMTP:', error);
+      console.error('[EMAIL] Failed to initialize email service:', error);
       this.initialized = true;
     }
   }
 
   async sendEmail(options: EmailOptions): Promise<boolean> {
+    try {
+      // Use SendGrid if configured (production)
+      if (this.useSendGrid) {
+        return await this.sendWithSendGrid(options);
+      }
+      
+      // Fallback to SMTP (development)
+      return await this.sendWithSMTP(options);
+      
+    } catch (error) {
+      console.error('[EMAIL] Failed to send email:', error);
+      return false;
+    }
+  }
+
+  private async sendWithSendGrid(options: EmailOptions): Promise<boolean> {
+    try {
+      const fromAddress = options.from || 'Cura EMR <noreply@curaemr.ai>';
+      
+      const msg: any = {
+        to: options.to,
+        from: fromAddress,
+        subject: options.subject,
+        text: options.text || '',
+        html: options.html || '',
+      };
+
+      console.log('[EMAIL] Sending with SendGrid:', {
+        from: msg.from,
+        to: msg.to,
+        subject: msg.subject
+      });
+
+      const result = await sgMail.send(msg);
+      console.log('[EMAIL] SendGrid email sent successfully:', result[0].headers['x-message-id']);
+      return true;
+      
+    } catch (sendGridError: any) {
+      console.error('[EMAIL] SendGrid failed:', sendGridError.message);
+      
+      // Log detailed error for debugging
+      if (sendGridError.response) {
+        console.error('[EMAIL] SendGrid error details:', sendGridError.response.body);
+      }
+      
+      return false;
+    }
+  }
+
+  private async sendWithSMTP(options: EmailOptions): Promise<boolean> {
     try {
       // For welcome emails, use simple format without attachments
       const isWelcomeEmail = options.subject?.toLowerCase().includes('welcome');
@@ -100,7 +164,7 @@ class EmailService {
         attachments
       };
 
-      console.log('[EMAIL] Attempting to send email:', {
+      console.log('[EMAIL] Attempting to send email via SMTP:', {
         from: mailOptions.from,
         to: mailOptions.to,
         subject: mailOptions.subject
@@ -109,7 +173,7 @@ class EmailService {
       // Try to send the email
       try {
         const result = await this.transporter.sendMail(mailOptions);
-        console.log('[EMAIL] Email sent successfully:', result.messageId);
+        console.log('[EMAIL] SMTP email sent successfully:', result.messageId);
         return true;
       } catch (smtpError: any) {
         console.log('[EMAIL] Primary SMTP failed:', smtpError.message);
@@ -131,7 +195,7 @@ class EmailService {
         throw smtpError;
       }
     } catch (error) {
-      console.error('[EMAIL] Failed to send email:', error);
+      console.error('[EMAIL] Failed to send email via SMTP:', error);
       return false;
     }
   }
@@ -640,24 +704,22 @@ Cura EMR Team
               <li>Contact our system if you need any clarification</li>
               <li>Maintain confidentiality as per healthcare regulations</li>
             </ul>
-            
-            <p style="margin-top: 30px; color: #4b5563;">
-              Thank you for your professional service in patient care.
+
+            <p style="color: #4b5563; margin-top: 30px;">
+              Thank you for your professional service.
             </p>
           </div>
           
           <div class="footer">
             <div class="footer-logo">
-              <img src="cid:cura-email-logo" alt="Cura EMR" style="width: 65px; height: 65px; object-fit: contain; display: block; margin: 0 auto;">
+              <img src="cid:cura-email-logo" alt="Cura" style="width: 50px; height: 50px; object-fit: contain;">
             </div>
-            <div class="footer-brand">
-              <strong>CURA EMR</strong> | Powered by Halo Group & Averox
-            </div>
-            <div class="footer-text">
-              This is an automated message from Cura EMR System.<br>
-              AI-Powered Healthcare Platform | Secure • Compliant • Intelligent<br>
-              © ${new Date().getFullYear()} Halo Group & Averox. All rights reserved.
-            </div>
+            <div class="footer-brand">Powered by Cura EMR</div>
+            <p class="footer-text">
+              This email was automatically generated by the Cura EMR system.<br>
+              For technical support, please contact your system administrator.<br>
+              © 2025 Cura Software Limited. All rights reserved.
+            </p>
           </div>
         </div>
       </body>
@@ -665,12 +727,11 @@ Cura EMR Team
     `;
     
     const text = `
-Prescription PDF - ${patientName}
+Prescription Document
 
 Dear ${pharmacyName || 'Pharmacy Team'},
 
 Please find attached the electronic prescription for ${patientName}.
-
 This document has been digitally generated and contains all necessary prescription details with electronic signature verification.
 
 Prescription Details:
@@ -679,240 +740,52 @@ Prescription Details:
 - System: Cura EMR Platform
 - Generated: ${new Date().toLocaleDateString('en-GB')} at ${new Date().toLocaleTimeString('en-GB')}
 
+PDF Attachment Included
+The complete prescription document is attached to this email as a PDF file.
+Please review and process according to your standard procedures.
+
 Important Notes:
 - This prescription has been electronically signed and verified
 - Please check the PDF attachment for complete medication details
 - Contact our system if you need any clarification
 - Maintain confidentiality as per healthcare regulations
 
-Thank you for your professional service in patient care.
+Thank you for your professional service.
 
-Best regards,
-Cura EMR System
-Powered by Halo Group & Averox
+---
+Powered by Cura EMR
+This email was automatically generated by the Cura EMR system.
+For technical support, please contact your system administrator.
+© 2025 Cura Software Limited. All rights reserved.
     `;
 
     return { subject, html, text };
   }
 
-  // Send appointment confirmation
-  async sendAppointmentConfirmation(options: {
-    patientEmail: string;
-    patientName: string;
-    appointmentDate: string;
-    appointmentTime: string;
-    doctorName: string;
-    appointmentType: string;
-  }): Promise<boolean> {
-    const { patientEmail, patientName, appointmentDate, appointmentTime, doctorName, appointmentType } = options;
+  // Send prescription email with PDF attachment
+  async sendPrescriptionEmail(
+    pharmacyEmail: string, 
+    patientName: string, 
+    pharmacyName: string, 
+    pdfBuffer: Buffer,
+    prescriptionData?: any,
+    clinicLogoUrl?: string,
+    organizationName?: string
+  ): Promise<boolean> {
+    const template = this.generatePrescriptionEmail(patientName, pharmacyName, prescriptionData, clinicLogoUrl, organizationName);
     
-    const subject = `Appointment Confirmation - ${appointmentDate}`;
-    const html = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background-color: #4F46E5; color: white; padding: 20px; text-align: center; }
-          .content { padding: 20px; background-color: #f9f9f9; }
-          .appointment-details { background-color: white; padding: 15px; border-radius: 5px; margin: 20px 0; }
-          .success-badge { background-color: #10B981; color: white; padding: 5px 10px; border-radius: 20px; font-size: 12px; }
-          .footer { text-align: center; color: #666; font-size: 12px; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>Cura EMR</h1>
-            <h2>Appointment Confirmed</h2>
-            <span class="success-badge">✓ CONFIRMED</span>
-          </div>
-          <div class="content">
-            <p>Dear ${patientName},</p>
-            <p>Your appointment has been successfully booked through our website chatbot!</p>
-            
-            <div class="appointment-details">
-              <h3>📅 Appointment Details</h3>
-              <p><strong>Date:</strong> ${appointmentDate}</p>
-              <p><strong>Time:</strong> ${appointmentTime}</p>
-              <p><strong>Doctor:</strong> ${doctorName}</p>
-              <p><strong>Type:</strong> ${appointmentType}</p>
-              <p><strong>Status:</strong> <span style="color: #10B981; font-weight: bold;">Pending Confirmation</span></p>
-            </div>
-            
-            <div style="background-color: #FEF3C7; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #F59E0B;">
-              <h4 style="margin: 0 0 10px 0; color: #92400E;">📋 Next Steps:</h4>
-              <p style="margin: 0; color: #92400E;">Our medical team will review your appointment request and confirm the exact time within 24 hours. You'll receive another email with the final confirmation.</p>
-            </div>
-            
-            <p><strong>Important:</strong></p>
-            <ul>
-              <li>Please arrive 15 minutes early for check-in</li>
-              <li>Bring a valid ID and insurance information</li>
-              <li>If you need to reschedule, please contact us at least 24 hours in advance</li>
-            </ul>
-            
-            <p>If you have any questions, please contact our support team.</p>
-            
-            <p>Best regards,<br>Cura EMR Team<br>Powered by Halo Group</p>
-          </div>
-          <div class="footer">
-            <p>© 2025 Cura EMR by Halo Group. All rights reserved.</p>
-            <p>This appointment was booked through our AI-powered website chatbot.</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-    
-    const text = `
-Dear ${patientName},
-
-Your appointment has been successfully booked through our website chatbot!
-
-APPOINTMENT DETAILS:
-Date: ${appointmentDate}
-Time: ${appointmentTime}
-Doctor: ${doctorName}
-Type: ${appointmentType}
-Status: Pending Confirmation
-
-NEXT STEPS:
-Our medical team will review your appointment request and confirm the exact time within 24 hours. You'll receive another email with the final confirmation.
-
-IMPORTANT:
-- Please arrive 15 minutes early for check-in
-- Bring a valid ID and insurance information
-- If you need to reschedule, please contact us at least 24 hours in advance
-
-If you have any questions, please contact our support team.
-
-Best regards,
-Cura EMR Team
-Powered by Halo Group
-
-© 2025 Cura EMR by Halo Group. All rights reserved.
-This appointment was booked through our AI-powered website chatbot.
-    `;
-
     return this.sendEmail({
-      to: patientEmail,
-      subject,
-      html,
-      text
-    });
-  }
-
-  // Send prescription request confirmation
-  async sendPrescriptionRequestConfirmation(options: {
-    patientEmail: string;
-    patientName: string;
-    medication: string;
-    doctorName: string;
-    requestReason: string;
-  }): Promise<boolean> {
-    const { patientEmail, patientName, medication, doctorName, requestReason } = options;
-    
-    const subject = `Prescription Request Received - ${medication}`;
-    const html = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background-color: #10B981; color: white; padding: 20px; text-align: center; }
-          .content { padding: 20px; background-color: #f9f9f9; }
-          .prescription-details { background-color: white; padding: 15px; border-radius: 5px; margin: 20px 0; }
-          .pending-badge { background-color: #F59E0B; color: white; padding: 5px 10px; border-radius: 20px; font-size: 12px; }
-          .footer { text-align: center; color: #666; font-size: 12px; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>Cura EMR</h1>
-            <h2>Prescription Request Received</h2>
-            <span class="pending-badge">⏳ UNDER REVIEW</span>
-          </div>
-          <div class="content">
-            <p>Dear ${patientName},</p>
-            <p>We have received your prescription request submitted through our website chatbot.</p>
-            
-            <div class="prescription-details">
-              <h3>💊 Request Details</h3>
-              <p><strong>Medication:</strong> ${medication}</p>
-              <p><strong>Reviewing Doctor:</strong> ${doctorName}</p>
-              <p><strong>Request Reason:</strong> ${requestReason}</p>
-              <p><strong>Submitted:</strong> ${new Date().toLocaleDateString()}</p>
-              <p><strong>Status:</strong> <span style="color: #F59E0B; font-weight: bold;">Pending Review</span></p>
-            </div>
-            
-            <div style="background-color: #DBEAFE; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #3B82F6;">
-              <h4 style="margin: 0 0 10px 0; color: #1E40AF;">📋 What's Next:</h4>
-              <p style="margin: 0; color: #1E40AF;">Our licensed physician will review your prescription request within 24 hours. You'll receive another email once the review is complete with further instructions.</p>
-            </div>
-            
-            <div style="background-color: #FEF3C7; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #F59E0B;">
-              <h4 style="margin: 0 0 10px 0; color: #92400E;">⚠️ Important Notes:</h4>
-              <ul style="margin: 10px 0; color: #92400E;">
-                <li>This is not yet a valid prescription</li>
-                <li>Do not purchase medication until you receive our approval</li>
-                <li>Our doctor may contact you for additional information</li>
-                <li>Emergency cases should contact your local emergency services</li>
-              </ul>
-            </div>
-            
-            <p>If you have any urgent medical concerns or questions about your request, please contact our support team immediately.</p>
-            
-            <p>Best regards,<br>Cura EMR Medical Team<br>Powered by Halo Group</p>
-          </div>
-          <div class="footer">
-            <p>© 2025 Cura EMR by Halo Group. All rights reserved.</p>
-            <p>This prescription request was submitted through our AI-powered website chatbot.</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-    
-    const text = `
-Dear ${patientName},
-
-We have received your prescription request submitted through our website chatbot.
-
-REQUEST DETAILS:
-Medication: ${medication}
-Reviewing Doctor: ${doctorName}
-Request Reason: ${requestReason}
-Submitted: ${new Date().toLocaleDateString()}
-Status: Pending Review
-
-WHAT'S NEXT:
-Our licensed physician will review your prescription request within 24 hours. You'll receive another email once the review is complete with further instructions.
-
-IMPORTANT NOTES:
-- This is not yet a valid prescription
-- Do not purchase medication until you receive our approval
-- Our doctor may contact you for additional information
-- Emergency cases should contact your local emergency services
-
-If you have any urgent medical concerns or questions about your request, please contact our support team immediately.
-
-Best regards,
-Cura EMR Medical Team
-Powered by Halo Group
-
-© 2025 Cura EMR by Halo Group. All rights reserved.
-This prescription request was submitted through our AI-powered website chatbot.
-    `;
-
-    return this.sendEmail({
-      to: patientEmail,
-      subject,
-      html,
-      text
+      to: pharmacyEmail,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+      attachments: [
+        {
+          filename: `prescription-${patientName.replace(/\s+/g, '-')}-${Date.now()}.pdf`,
+          content: pdfBuffer,
+          contentType: 'application/pdf'
+        }
+      ]
     });
   }
 }
