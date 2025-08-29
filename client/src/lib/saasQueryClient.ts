@@ -121,10 +121,11 @@ export const saasQueryClient = new QueryClient({
   defaultOptions: {
     queries: {
       queryFn: getSaaSQueryFn,
-      retry: false,
+      retry: 3, // Retry failed requests 3 times
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       refetchOnWindowFocus: false,
-      staleTime: 0, // Always fetch fresh data in production
-      gcTime: 0, // Don't cache data that might be stale
+      staleTime: 30000, // Cache data for 30 seconds to prevent excessive requests
+      gcTime: 5 * 60 * 1000, // Keep data in cache for 5 minutes
     },
   },
 });
