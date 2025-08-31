@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import sgMail from '@sendgrid/mail';
+// Using Gmail SMTP exclusively as requested
 
 interface EmailOptions {
   to: string;
@@ -25,7 +25,7 @@ interface EmailTemplate {
 class EmailService {
   private transporter: nodemailer.Transporter;
   private initialized: boolean = false;
-  private useSendGrid: boolean = false;
+  // Gmail SMTP only - no SendGrid
 
   constructor() {
     // Initialize with fallback transporter
@@ -45,31 +45,39 @@ class EmailService {
 
   private async initializeProductionEmailService() {
     try {
-      console.log('[EMAIL] Initializing production email service...');
+      console.log('[EMAIL] Initializing Gmail SMTP for all environments...');
       
-      // Check for SendGrid API key (production-ready)
-      const sendGridApiKey = process.env.SENDGRID_API_KEY;
-      if (sendGridApiKey && sendGridApiKey !== 'your-sendgrid-api-key-here') {
-        console.log('[EMAIL] Using SendGrid for production email delivery');
-        sgMail.setApiKey(sendGridApiKey);
-        this.useSendGrid = true;
-        this.initialized = true;
-        return;
-      }
-      
-      // Fallback to Gmail SMTP (development only)
-      console.log('[EMAIL] SendGrid not configured, using Gmail SMTP for development...');
+      // Force use Gmail SMTP for both development and production
+      console.log('[EMAIL] Using Gmail SMTP for email delivery...');
+      // Production-ready Gmail SMTP configuration
       const smtpConfig = {
         service: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
         auth: {
           user: 'noreply@curaemr.ai',
           pass: 'wxndhigmfhgjjklr'
-        }
+        },
+        tls: {
+          rejectUnauthorized: false
+        },
+        connectionTimeout: 30000,
+        greetingTimeout: 30000,
+        socketTimeout: 30000
       };
       
       this.transporter = nodemailer.createTransport(smtpConfig);
-      this.useSendGrid = false;
+      // Gmail SMTP configured
       this.initialized = true;
+      
+      // Test the connection
+      try {
+        await this.transporter.verify();
+        console.log('[EMAIL] ✅ Gmail SMTP connection verified successfully');
+      } catch (verifyError: any) {
+        console.log('[EMAIL] ⚠️ Gmail SMTP verification failed, but continuing:', verifyError.message);
+      }
       
     } catch (error) {
       console.error('[EMAIL] Failed to initialize email service:', error);
@@ -79,12 +87,7 @@ class EmailService {
 
   async sendEmail(options: EmailOptions): Promise<boolean> {
     try {
-      // Use SendGrid if configured (production)
-      if (this.useSendGrid) {
-        return await this.sendWithSendGrid(options);
-      }
-      
-      // Fallback to SMTP (development)
+      // Always use Gmail SMTP as requested by user
       return await this.sendWithSMTP(options);
       
     } catch (error) {
@@ -93,39 +96,7 @@ class EmailService {
     }
   }
 
-  private async sendWithSendGrid(options: EmailOptions): Promise<boolean> {
-    try {
-      const fromAddress = options.from || 'Cura EMR <noreply@curaemr.ai>';
-      
-      const msg: any = {
-        to: options.to,
-        from: fromAddress,
-        subject: options.subject,
-        text: options.text || '',
-        html: options.html || '',
-      };
-
-      console.log('[EMAIL] Sending with SendGrid:', {
-        from: msg.from,
-        to: msg.to,
-        subject: msg.subject
-      });
-
-      const result = await sgMail.send(msg);
-      console.log('[EMAIL] SendGrid email sent successfully:', result[0].headers['x-message-id']);
-      return true;
-      
-    } catch (sendGridError: any) {
-      console.error('[EMAIL] SendGrid failed:', sendGridError.message);
-      
-      // Log detailed error for debugging
-      if (sendGridError.response) {
-        console.error('[EMAIL] SendGrid error details:', sendGridError.response.body);
-      }
-      
-      return false;
-    }
-  }
+  // Gmail SMTP only - SendGrid removed as requested by user
 
   private async sendWithSMTP(options: EmailOptions): Promise<boolean> {
     try {
