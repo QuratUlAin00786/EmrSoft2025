@@ -752,76 +752,44 @@ export default function SaaSCustomers() {
                           </DialogContent>
                         </Dialog>
 
-                        {/* PRODUCTION-BULLETPROOF DELETE BUTTON - MULTIPLE FALLBACKS */}
-                        <div style={{ display: 'inline-block' }}>
-                          {/* Primary Button - Native HTML */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              console.log('🗑️ DELETE button clicked for customer:', customer.id, customer.name);
-                              if (window.confirm(`Are you sure you want to delete ${customer.name}? This cannot be undone.`)) {
-                                console.log('🗑️ User confirmed deletion, calling API...');
-                                deleteCustomerMutation.mutate(customer.id);
-                              }
-                            }}
-                            style={{
-                              backgroundColor: '#dc2626 !important',
-                              color: '#ffffff !important',
-                              border: '2px solid #dc2626 !important',
-                              borderRadius: '6px',
-                              padding: '6px 12px',
-                              fontSize: '14px',
-                              fontWeight: '600',
-                              display: 'inline-flex !important',
-                              alignItems: 'center',
-                              gap: '4px',
-                              cursor: 'pointer',
-                              minWidth: '80px',
-                              minHeight: '32px',
-                              transition: 'all 0.2s',
-                              boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.5px'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = '#b91c1c !important';
-                              e.currentTarget.style.transform = 'scale(1.02)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = '#dc2626 !important';
-                              e.currentTarget.style.transform = 'scale(1)';
-                            }}
-                            className="production-delete-btn"
-                            data-testid="delete-customer-button"
-                            id={`delete-btn-${customer.id}`}
-                          >
-                            🗑️ DELETE
-                          </button>
-                          
-                          {/* Fallback Button - In case primary fails */}
-                          <span 
-                            onClick={() => {
-                              console.log('🗑️ FALLBACK DELETE clicked for customer:', customer.id);
-                              if (window.confirm(`Delete ${customer.name}?`)) {
-                                deleteCustomerMutation.mutate(customer.id);
-                              }
-                            }}
-                            style={{
-                              display: 'none',
-                              backgroundColor: '#ef4444',
-                              color: 'white',
-                              padding: '4px 8px',
-                              cursor: 'pointer',
-                              fontSize: '12px',
-                              borderRadius: '4px',
-                              marginLeft: '4px'
-                            }}
-                            className="fallback-delete-btn"
-                            id={`fallback-delete-${customer.id}`}
-                          >
-                            DEL
-                          </span>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            console.log('🗑️ DELETE button clicked for customer:', customer.id, customer.name);
+                            if (window.confirm(`Are you sure you want to delete ${customer.name}? This cannot be undone.`)) {
+                              console.log('🗑️ User confirmed deletion, calling API...');
+                              deleteCustomerMutation.mutate(customer.id);
+                            }
+                          }}
+                          style={{
+                            backgroundColor: '#dc2626',
+                            color: '#ffffff',
+                            border: '1px solid #dc2626',
+                            borderRadius: '6px',
+                            padding: '6px 12px',
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            cursor: 'pointer',
+                            minWidth: '75px',
+                            minHeight: '32px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#b91c1c';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#dc2626';
+                          }}
+                          className="production-delete-btn !bg-red-600 !text-white !border-red-600 hover:!bg-red-700"
+                          data-testid="delete-customer-button"
+                        >
+                          <Trash2 className="h-4 w-4" style={{ width: '16px', height: '16px' }} />
+                          DELETE
+                        </button>
                       </div>
                     </TableCell>
                   </TableRow>
