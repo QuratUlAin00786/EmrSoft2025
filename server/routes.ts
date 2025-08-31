@@ -53,6 +53,33 @@ const upload = multer({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  // DEPLOYMENT HEALTH CHECK - Absolute priority for deployment success
+  app.get('/api/health', (req, res) => {
+    res.status(200).json({ 
+      status: 'ok', 
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      service: 'cura-emr',
+      environment: process.env.NODE_ENV || 'development'
+    });
+  });
+
+  // Alternative health endpoints for different deployment systems
+  app.get('/health', (req, res) => {
+    res.status(200).json({ 
+      status: 'healthy', 
+      timestamp: new Date().toISOString(),
+      service: 'cura-emr'
+    });
+  });
+
+  app.get('/healthz', (req, res) => {
+    res.status(200).json({ 
+      status: 'healthy', 
+      timestamp: new Date().toISOString()
+    });
+  });
+  
   // EMERGENCY PRODUCTION FIX - Absolute priority route BEFORE everything else
   app.post('/api/emergency-saas-setup', async (req, res) => {
     try {
