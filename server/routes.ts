@@ -2077,7 +2077,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isDuplicate = existingPrescriptions.some(existing => 
         existing.patientId === parseInt(prescriptionData.patientId) &&
         existing.status === 'active' &&
-        existing.medications.some(med => 
+        existing.medications?.some(med => 
           prescriptionData.medications?.some((newMed: any) => 
             newMed.name === med.name && 
             newMed.dosage === med.dosage
@@ -2110,12 +2110,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(newPrescription);
     } catch (error) {
       console.error("DETAILED ERROR creating prescription:", error);
-      console.error("Error message:", error.message);
-      console.error("Error stack:", error.stack);
-      if (error.code) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      if (error instanceof Error) {
+        console.error("Error message:", error.message);
+        console.error("Error stack:", error.stack);
+      }
+      if (error && typeof error === 'object' && 'code' in error) {
         console.error("Error code:", error.code);
       }
-      res.status(500).json({ error: "Failed to create prescription", details: error.message });
+      res.status(500).json({ error: "Failed to create prescription", details: errorMsg });
     }
   });
 
@@ -2251,7 +2254,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create signature data
       const signatureData = {
         doctorSignature: signature,
-        signedBy: `${req.user.firstName} ${req.user.lastName}`,
+        signedBy: `${(req.user as any).firstName || 'Unknown'} ${(req.user as any).lastName || 'User'}`,
         signedAt: new Date().toISOString(),
         signerId: req.user.id
       };
@@ -2700,7 +2703,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } else {
         // For internal messages, mark as delivered immediately since they don't go through SMS/WhatsApp
-        await storage.updateMessageDeliveryStatus(message.id, 'delivered', null, null);
+        await storage.updateMessageDeliveryStatus(message.id, 'delivered', undefined, undefined);
         console.log(`✅ Internal message ${message.id} marked as delivered`);
         
         // For internal messages, broadcast to other users via WebSocket
@@ -3637,15 +3640,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Search by medication name
             const allPrescriptions = await storage.getPrescriptionsByOrganization(req.tenant!.id);
             prescriptions = allPrescriptions.filter(p => 
-              p.medicationName?.toLowerCase().includes(prescriptionData.medication_name.toLowerCase()) ||
-              p.instructions?.toLowerCase().includes(prescriptionData.medication_name.toLowerCase())
+              p.medications?.some(med => med.name?.toLowerCase().includes(prescriptionData.medication_name.toLowerCase())) ||
+              p.notes?.toLowerCase().includes(prescriptionData.medication_name.toLowerCase())
             );
           } else {
             // General prescription search based on search query
             const allPrescriptions = await storage.getPrescriptionsByOrganization(req.tenant!.id);
             prescriptions = allPrescriptions.filter(p => 
-              p.medicationName?.toLowerCase().includes(prescriptionData.search_query.toLowerCase()) ||
-              p.instructions?.toLowerCase().includes(prescriptionData.search_query.toLowerCase())
+              p.medications?.some(med => med.name?.toLowerCase().includes(prescriptionData.search_query.toLowerCase())) ||
+              p.notes?.toLowerCase().includes(prescriptionData.search_query.toLowerCase())
             );
           }
 
@@ -4293,7 +4296,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (messageId && messageStatus) {
         // Update message status in database
-        await storage.updateMessageDeliveryStatus(messageId, messageStatus, errorCode, errorMessage);
+        await storage.updateMessageDeliveryStatus(messageId, messageStatus, errorCode || undefined, errorMessage || undefined);
         console.log(`📱 Updated message ${messageId} status to: ${messageStatus}`);
       }
 
@@ -4382,7 +4385,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } else {
             // Internal messages should be marked as delivered
             console.log(`✅ Internal message ${message.id} - marking as delivered`);
-            await storage.updateMessageDeliveryStatus(message.id, 'delivered', null, null);
+            await storage.updateMessageDeliveryStatus(message.id, 'delivered', undefined, undefined);
             updateResults.push({
               messageId: message.id,
               oldStatus: 'pending',
@@ -4713,8 +4716,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           patientId: `P${String(Date.now()).slice(-6)}`, // Generate patient ID
           dateOfBirth: new Date(), // Default date
           gender: 'other',
-          address: '',
-          emergencyContact: patientPhone,
+          address: { street: '', city: '', state: '', postcode: '', country: '' },
+          emergencyContact: { name: '', phone: patientPhone || '', relationship: '' },
           medicalHistory: '',
           allergies: ''
         };
