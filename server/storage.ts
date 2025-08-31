@@ -3978,7 +3978,7 @@ export class DatabaseStorage implements IStorage {
       const defaultSettings = {
         systemSettings: {
           platformName: 'Cura EMR Platform',
-          supportEmail: 'support@curapms.ai',
+          supportEmail: 'support@curaemr.ai',
           maintenanceMode: false,
           registrationEnabled: true,
           trialPeriodDays: 14,
@@ -4022,7 +4022,7 @@ export class DatabaseStorage implements IStorage {
       return {
         systemSettings: {
           platformName: 'Cura EMR Platform',
-          supportEmail: 'support@curapms.ai',
+          supportEmail: 'support@curaemr.ai',
           maintenanceMode: false,
           registrationEnabled: true,
           trialPeriodDays: 14,

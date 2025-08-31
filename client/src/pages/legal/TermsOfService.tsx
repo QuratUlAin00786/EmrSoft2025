@@ -227,7 +227,7 @@ export default function TermsOfService() {
             <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
               <h3 className="text-lg font-medium mb-3 text-gray-900 dark:text-white">Legal Enquiries</h3>
               <p className="text-gray-700 dark:text-gray-300 mb-2">
-                Email: <a href="mailto:legal@curapms.ai" className="text-blue-600 hover:text-blue-800">legal@curapms.ai</a>
+                Email: <a href="mailto:legal@curaemr.ai" className="text-blue-600 hover:text-blue-800">legal@curaemr.ai</a>
               </p>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
                 Address: Ground Floor Unit 2, Drayton Court, Drayton Road, Solihull, England B90 4NG
@@ -235,7 +235,7 @@ export default function TermsOfService() {
               
               <h3 className="text-lg font-medium mb-3 text-gray-900 dark:text-white">General Support</h3>
               <p className="text-gray-700 dark:text-gray-300 mb-2">
-                Email: <a href="mailto:support@curapms.ai" className="text-blue-600 hover:text-blue-800">support@curapms.ai</a>
+                Email: <a href="mailto:support@curaemr.ai" className="text-blue-600 hover:text-blue-800">support@curaemr.ai</a>
               </p>
               <p className="text-gray-700 dark:text-gray-300">
                 Phone: +44 (0) 121 456 7890

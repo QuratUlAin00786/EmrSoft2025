@@ -240,8 +240,8 @@ export default function Press() {
                 <div className="space-y-2 text-gray-700 dark:text-gray-300">
                   <div className="flex items-center">
                     <Mail className="h-4 w-4 mr-2 text-blue-600" />
-                    <a href="mailto:press@curapms.ai" className="text-blue-600 hover:text-blue-800">
-                      press@curapms.ai
+                    <a href="mailto:press@curaemr.ai" className="text-blue-600 hover:text-blue-800">
+                      press@curaemr.ai
                     </a>
                   </div>
                   <div className="flex items-center">

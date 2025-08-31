@@ -45,7 +45,7 @@ export default function SaaSSettings() {
   const [formData, setFormData] = useState({
     systemSettings: {
       platformName: settings?.systemSettings?.platformName || 'Cura EMR Platform',
-      supportEmail: settings?.systemSettings?.supportEmail || 'support@curapms.ai',
+      supportEmail: settings?.systemSettings?.supportEmail || 'support@curaemr.ai',
       maintenanceMode: settings?.systemSettings?.maintenanceMode || false,
       registrationEnabled: settings?.systemSettings?.registrationEnabled || true,
       trialPeriodDays: settings?.systemSettings?.trialPeriodDays || 14,
@@ -122,7 +122,7 @@ export default function SaaSSettings() {
     setFormData({
       systemSettings: {
         platformName: 'Cura EMR Platform',
-        supportEmail: 'support@curapms.ai',
+        supportEmail: 'support@curaemr.ai',
         maintenanceMode: false,
         registrationEnabled: true,
         trialPeriodDays: 14,

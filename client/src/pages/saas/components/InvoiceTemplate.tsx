@@ -101,7 +101,7 @@ const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(({ invo
             <p>Solihull, England B90 4NG</p>
             <p>United Kingdom</p>
             <p className="mt-2">
-              Email: billing@curapms.ai<br />
+              Email: billing@curaemr.ai<br />
               Phone: +44 (0) 121 456 7890
             </p>
           </div>
@@ -203,7 +203,7 @@ const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(({ invo
           <div className="text-sm text-gray-700">
             <p>• Payment is due within 30 days of invoice date</p>
             <p>• Late payment charges may apply</p>
-            <p>• For questions, contact billing@curapms.ai</p>
+            <p>• For questions, contact billing@curaemr.ai</p>
             <p>• Online payments available via customer portal</p>
           </div>
         </div>
@@ -217,7 +217,7 @@ const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(({ invo
           Cura Software Limited • Registered in England & Wales • Company No. 16556912
         </p>
         <p>
-          VAT Registration Number: GB123 4567 89 • www.curapms.ai
+          VAT Registration Number: GB123 4567 89 • www.curaemr.ai
         </p>
         <p className="mt-2">
           Thank you for choosing Cura EMR for your healthcare management needs.

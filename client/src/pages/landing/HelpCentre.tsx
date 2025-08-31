@@ -285,7 +285,7 @@ export default function HelpCentre() {
                   <Mail className="h-5 w-5 text-blue-600" />
                   <div>
                     <div className="font-medium">Email Support</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">support@curapms.ai</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">support@curaemr.ai</div>
                     <div className="text-xs text-gray-500">Response within 24 hours</div>
                   </div>
                 </div>
