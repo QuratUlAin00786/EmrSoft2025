@@ -2104,7 +2104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isDuplicate = existingPrescriptions.some(existing => 
         existing.patientId === parseInt(prescriptionData.patientId) &&
         existing.status === 'active' &&
-        existing.medications.some(med => 
+        existing.medications?.some(med => 
           prescriptionData.medications?.some((newMed: any) => 
             newMed.name === med.name && 
             newMed.dosage === med.dosage
@@ -2135,14 +2135,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const newPrescription = await storage.createPrescription(prescriptionToInsert);
       console.log("Prescription created successfully:", newPrescription.id);
       res.status(201).json(newPrescription);
-    } catch (error) {
+    } catch (error: any) {
       console.error("DETAILED ERROR creating prescription:", error);
-      console.error("Error message:", error.message);
-      console.error("Error stack:", error.stack);
-      if (error.code) {
+      console.error("Error message:", error?.message);
+      console.error("Error stack:", error?.stack);
+      if (error?.code) {
         console.error("Error code:", error.code);
       }
-      res.status(500).json({ error: "Failed to create prescription", details: error.message });
+      res.status(500).json({ error: "Failed to create prescription", details: error?.message });
     }
   });
 
@@ -2278,7 +2278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create signature data
       const signatureData = {
         doctorSignature: signature,
-        signedBy: `${req.user.firstName} ${req.user.lastName}`,
+        signedBy: `${(req.user as any).firstName || ''} ${(req.user as any).lastName || ''}`,
         signedAt: new Date().toISOString(),
         signerId: req.user.id
       };
@@ -3664,15 +3664,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Search by medication name
             const allPrescriptions = await storage.getPrescriptionsByOrganization(req.tenant!.id);
             prescriptions = allPrescriptions.filter(p => 
-              p.medicationName?.toLowerCase().includes(prescriptionData.medication_name.toLowerCase()) ||
-              p.instructions?.toLowerCase().includes(prescriptionData.medication_name.toLowerCase())
+              p.medications?.some((med: any) => med.name?.toLowerCase().includes(prescriptionData.medication_name.toLowerCase())) ||
+              p.interactions?.some((int: any) => int.toLowerCase().includes(prescriptionData.medication_name.toLowerCase()))
             );
           } else {
             // General prescription search based on search query
             const allPrescriptions = await storage.getPrescriptionsByOrganization(req.tenant!.id);
             prescriptions = allPrescriptions.filter(p => 
-              p.medicationName?.toLowerCase().includes(prescriptionData.search_query.toLowerCase()) ||
-              p.instructions?.toLowerCase().includes(prescriptionData.search_query.toLowerCase())
+              p.medications?.some((med: any) => med.name?.toLowerCase().includes(prescriptionData.search_query.toLowerCase())) ||
+              p.interactions?.some((int: any) => int.toLowerCase().includes(prescriptionData.search_query.toLowerCase()))
             );
           }
 
@@ -5698,8 +5698,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: Date.now().toString(),
         patientId,
         patientName: "Patient", // Would be fetched from database
-        providerId: req.user.id,
-        providerName: req.user.firstName + " " + req.user.lastName,
+        providerId: req.user!.id,
+        providerName: `${(req.user as any).firstName || ''} ${(req.user as any).lastName || ''}`,
         type: "video",
         status: "scheduled", 
         scheduledTime,
