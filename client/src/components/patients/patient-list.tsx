@@ -150,7 +150,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
   const { data: patients, isLoading, error } = useQuery({
     queryKey: ["/api/patients"],
     staleTime: 0,
-    cacheTime: 0,
+    gcTime: 0,
     queryFn: async () => {
       try {
         const token = localStorage.getItem('auth_token');

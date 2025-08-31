@@ -37,9 +37,9 @@ export default function SaaSDashboard({ onLogout }: SaaSDashboardProps) {
   const { data: stats, isLoading } = useQuery({
     queryKey: ['/api/saas/stats'],
     staleTime: 0,
-    cacheTime: 0,
+    gcTime: 0,
     refetchOnMount: true,
-  });
+  }) as { data: any, isLoading: boolean };
 
   // Fetch recent activity
   const { data: activityData } = useQuery({
@@ -49,17 +49,17 @@ export default function SaaSDashboard({ onLogout }: SaaSDashboardProps) {
       return response.json();
     },
     staleTime: 0,
-    cacheTime: 0,
+    gcTime: 0,
     refetchOnMount: true,
-  });
+  }) as { data: any };
 
   // Fetch system alerts
   const { data: systemAlerts } = useQuery({
     queryKey: ['/api/saas/alerts'],
     staleTime: 0,
-    cacheTime: 0,
+    gcTime: 0,
     refetchOnMount: true,
-  });
+  }) as { data: any[] };
 
   const handleLogout = () => {
     localStorage.removeItem('saasToken');
