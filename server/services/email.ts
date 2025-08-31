@@ -49,9 +49,8 @@ class EmailService {
       
       // Force use Gmail SMTP for both development and production
       console.log('[EMAIL] Using Gmail SMTP for email delivery...');
-      // Production-ready Gmail SMTP configuration
+      // Production-ready Gmail SMTP configuration with multiple fallback options
       const smtpConfig = {
-        service: 'gmail',
         host: 'smtp.gmail.com',
         port: 587,
         secure: false,
@@ -59,12 +58,19 @@ class EmailService {
           user: 'noreply@curaemr.ai',
           pass: 'wxndhigmfhgjjklr'
         },
+        debug: true,
+        logger: true,
         tls: {
-          rejectUnauthorized: false
+          rejectUnauthorized: false,
+          ciphers: 'SSLv3'
         },
-        connectionTimeout: 30000,
-        greetingTimeout: 30000,
-        socketTimeout: 30000
+        connectionTimeout: 60000,
+        greetingTimeout: 60000,
+        socketTimeout: 60000,
+        pool: true,
+        maxConnections: 5,
+        maxMessages: 100,
+        rateLimit: 14 // messages per second
       };
       
       this.transporter = nodemailer.createTransport(smtpConfig);
@@ -123,8 +129,8 @@ class EmailService {
         }
       }
 
-      // Use authenticated Gmail address to match SMTP credentials
-      let fromAddress = options.from || 'Cura EMR <noreply@curaemr.ai>';
+      // Use authenticated Gmail address to match SMTP credentials (production-safe)
+      let fromAddress = options.from || 'noreply@curaemr.ai';
 
       const mailOptions = {
         from: fromAddress,

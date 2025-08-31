@@ -474,8 +474,17 @@ export default function SaaSCustomers() {
                 placeholder="Search customers by name, domain, or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 pr-8"
               />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 hover:text-gray-600"
+                  style={{ backgroundColor: 'transparent', border: 'none', cursor: 'pointer' }}
+                >
+                  ✕
+                </button>
+              )}
             </div>
             <select
               value={selectedStatus}
