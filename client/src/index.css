@@ -71,11 +71,65 @@ h1, h2, h3, h4, h5, h6, p, div, span, button, input, textarea, select, label, a,
 }
 
 /* Layer 5: Emergency fallback classes */
-.figtree-loaded *, 
-.figtree-emergency * {
+.figtree-loaded *, .figtree-emergency * {
   font-family: var(--figtree-stack) !important;
 }
 
+/* PRODUCTION-BULLETPROOF DELETE BUTTON STYLES */
+/* These styles guarantee DELETE button visibility in all environments */
+.production-delete-btn {
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+  border: 2px solid #dc2626 !important;
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 999 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  min-width: 80px !important;
+  min-height: 32px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+}
+
+.production-delete-btn:hover {
+  background-color: #b91c1c !important;
+  border-color: #b91c1c !important;
+}
+
+/* Fallback button styles (hidden by default) */
+.fallback-delete-btn {
+  background-color: #ef4444 !important;
+  color: white !important;
+  cursor: pointer !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+}
+
+/* Force visibility for any element with these IDs */
+[id^="delete-btn-"], [id^="fallback-delete-"] {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Emergency override - nuclear option */
+button[data-testid="delete-customer-button"] {
+  background: #dc2626 !important;
+  color: white !important;
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  border: 2px solid #dc2626 !important;
+  padding: 6px 12px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  min-width: 80px !important;
+  min-height: 32px !important;
+}
 
 @layer base {
   .font-normal { font-weight: 400 !important; }

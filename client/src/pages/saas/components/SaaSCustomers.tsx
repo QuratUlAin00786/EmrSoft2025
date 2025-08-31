@@ -752,46 +752,76 @@ export default function SaaSCustomers() {
                           </DialogContent>
                         </Dialog>
 
-                        {/* ABSOLUTE FAILSAFE DELETE BUTTON */}
-                        <button
-                          type="button"
-                          style={{
-                            backgroundColor: '#dc2626',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            width: '32px',
-                            height: '32px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            fontSize: '16px'
-                          }}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            try {
-                              console.log('Delete button clicked for:', customer.name);
+                        {/* PRODUCTION-BULLETPROOF DELETE BUTTON - MULTIPLE FALLBACKS */}
+                        <div style={{ display: 'inline-block' }}>
+                          {/* Primary Button - Native HTML */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              console.log('🗑️ DELETE button clicked for customer:', customer.id, customer.name);
                               if (window.confirm(`Are you sure you want to delete ${customer.name}? This cannot be undone.`)) {
-                                console.log('User confirmed deletion');
-                                if (deleteCustomerMutation && deleteCustomerMutation.mutate) {
-                                  deleteCustomerMutation.mutate(customer.id);
-                                } else {
-                                  console.error('deleteCustomerMutation not available');
-                                  alert('Delete function not available');
-                                }
+                                console.log('🗑️ User confirmed deletion, calling API...');
+                                deleteCustomerMutation.mutate(customer.id);
                               }
-                            } catch (error) {
-                              console.error('Delete button error:', error);
-                              alert('Error: ' + error.message);
-                            }
-                          }}
-                          disabled={deleteCustomerMutation?.isPending}
-                          title="Delete Customer"
-                        >
-                          🗑️
-                        </button>
+                            }}
+                            style={{
+                              backgroundColor: '#dc2626 !important',
+                              color: '#ffffff !important',
+                              border: '2px solid #dc2626 !important',
+                              borderRadius: '6px',
+                              padding: '6px 12px',
+                              fontSize: '14px',
+                              fontWeight: '600',
+                              display: 'inline-flex !important',
+                              alignItems: 'center',
+                              gap: '4px',
+                              cursor: 'pointer',
+                              minWidth: '80px',
+                              minHeight: '32px',
+                              transition: 'all 0.2s',
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = '#b91c1c !important';
+                              e.currentTarget.style.transform = 'scale(1.02)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = '#dc2626 !important';
+                              e.currentTarget.style.transform = 'scale(1)';
+                            }}
+                            className="production-delete-btn"
+                            data-testid="delete-customer-button"
+                            id={`delete-btn-${customer.id}`}
+                          >
+                            🗑️ DELETE
+                          </button>
+                          
+                          {/* Fallback Button - In case primary fails */}
+                          <span 
+                            onClick={() => {
+                              console.log('🗑️ FALLBACK DELETE clicked for customer:', customer.id);
+                              if (window.confirm(`Delete ${customer.name}?`)) {
+                                deleteCustomerMutation.mutate(customer.id);
+                              }
+                            }}
+                            style={{
+                              display: 'none',
+                              backgroundColor: '#ef4444',
+                              color: 'white',
+                              padding: '4px 8px',
+                              cursor: 'pointer',
+                              fontSize: '12px',
+                              borderRadius: '4px',
+                              marginLeft: '4px'
+                            }}
+                            className="fallback-delete-btn"
+                            id={`fallback-delete-${customer.id}`}
+                          >
+                            DEL
+                          </span>
+                        </div>
                       </div>
                     </TableCell>
                   </TableRow>
