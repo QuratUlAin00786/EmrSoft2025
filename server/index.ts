@@ -53,28 +53,49 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // FORCE database seeding on ALL environments - GUARANTEED
-  console.log("🚀 FORCE SEEDING: Starting database seeding process...");
-  console.log(`Environment: ${process.env.NODE_ENV}`);
-  
-  try {
-    console.log("📊 Step 1: Running seedDatabase()...");
-    await seedDatabase();
-    console.log("✅ Step 1: seedDatabase() completed successfully!");
+  // Move database seeding to background to avoid blocking health checks
+  // This ensures the server starts quickly for deployment health checks
+  setTimeout(async () => {
+    console.log("🚀 BACKGROUND SEEDING: Starting database seeding process...");
+    console.log(`Environment: ${process.env.NODE_ENV}`);
     
-    console.log("📦 Step 2: Running inventory seeding...");
-    const { seedAllOrganizations } = await import("./seed-inventory");
-    await seedAllOrganizations();
-    console.log("✅ Step 2: Inventory seeding completed successfully!");
-    
-    console.log("🎉 DATABASE SEEDING COMPLETED - ALL PATIENT DATA AVAILABLE!");
-  } catch (error: any) {
-    console.error("❌ SEEDING FAILED - This will cause problems:");
-    console.error("Error details:", error);
-    console.error("Stack trace:", error.stack);
-    // Don't stop the app, but make the error very visible
-    console.log("⚠️  App will continue but database may be empty");
-  }
+    try {
+      console.log("📊 Step 1: Running seedDatabase()...");
+      await seedDatabase();
+      console.log("✅ Step 1: seedDatabase() completed successfully!");
+      
+      console.log("📦 Step 2: Running inventory seeding...");
+      const { seedAllOrganizations } = await import("./seed-inventory");
+      await seedAllOrganizations();
+      console.log("✅ Step 2: Inventory seeding completed successfully!");
+      
+      console.log("🎉 DATABASE SEEDING COMPLETED - ALL PATIENT DATA AVAILABLE!");
+    } catch (error: any) {
+      console.error("❌ SEEDING FAILED - This will cause problems:");
+      console.error("Error details:", error);
+      console.error("Stack trace:", error.stack);
+      console.log("⚠️  Database seeding failed but server is running");
+    }
+  }, 1000); // Start seeding 1 second after server startup
+
+  // CRITICAL: Health check endpoints MUST come BEFORE Vite/static middleware
+  // to ensure they're not overridden by catch-all routes
+  app.get('/', (req, res) => {
+    res.status(200).json({ 
+      status: 'OK', 
+      message: 'Cura EMR System is running',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
+  });
+
+  app.get('/health', (req, res) => {
+    res.status(200).json({ 
+      status: 'healthy', 
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString()
+    });
+  });
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
