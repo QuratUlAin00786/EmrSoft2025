@@ -344,7 +344,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <CardTitle className="text-lg flex items-center gap-2">
+                        <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-gray-100">
                           {patient.firstName} {patient.lastName}
                           <TooltipProvider>
                             {patient.medicalHistory?.allergies && patient.medicalHistory.allergies.length > 0 && (
@@ -384,7 +384,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                       </Badge>
                     )}
                     {patient.insuranceInfo?.provider && (
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs dark:text-gray-200 dark:border-gray-600">
                         {patient.insuranceInfo.provider.toUpperCase()}
                       </Badge>
                     )}
@@ -462,7 +462,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                         </Badge>
                       ))}
                       {patient.medicalHistory.chronicConditions.length > 2 && (
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-xs dark:text-gray-200 dark:border-gray-600">
                           +{patient.medicalHistory.chronicConditions.length - 2} more
                         </Badge>
                       )}
