@@ -130,7 +130,7 @@ export default function CalendarPage() {
         <div className="mb-6">
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
+              <Calendar className="h-5 w-5 text-gray-900 dark:text-white" />
               Calendar & Scheduling
             </h3>
             <p className="text-sm text-neutral-600 dark:text-neutral-300">
@@ -148,8 +148,8 @@ export default function CalendarPage() {
           {/* Doctor List - 1 column */}
           <div>
             <div className="mb-4">
-              <h4 className="font-medium text-gray-900 flex items-center gap-2 mb-3">
-                <Users className="h-4 w-4" />
+              <h4 className="font-medium text-gray-900 dark:text-white flex items-center gap-2 mb-3">
+                <Users className="h-4 w-4 text-gray-900 dark:text-white" />
                 Available Doctors
               </h4>
             </div>
