@@ -90,6 +90,11 @@ app.use((req, res, next) => {
         await seedAllOrganizations();
         console.log("✅ Step 2: Inventory seeding completed successfully!");
         
+        console.log("🏥 Step 3: Running production medical records seeding...");
+        const { seedProductionMedicalRecords } = await import("./production-medical-records");
+        await seedProductionMedicalRecords();
+        console.log("✅ Step 3: Production medical records seeding completed successfully!");
+        
         console.log("🎉 DATABASE SEEDING COMPLETED - ALL PATIENT DATA AVAILABLE!");
       } catch (error: any) {
         console.error("❌ SEEDING FAILED - This will cause problems:");
