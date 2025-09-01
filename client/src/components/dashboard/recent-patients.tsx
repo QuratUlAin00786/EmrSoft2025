@@ -167,7 +167,7 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-neutral-600 text-center py-8">
+          <p className="text-neutral-600 dark:text-neutral-300 text-center py-8">
             Unable to load patient data. Please try again later.
           </p>
         </CardContent>
@@ -185,7 +185,7 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-neutral-600 text-center py-8">
+          <p className="text-neutral-600 dark:text-neutral-300 text-center py-8">
             No patients found.
           </p>
         </CardContent>
@@ -226,7 +226,7 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
                 const primaryCondition = patient.medicalHistory?.chronicConditions?.[0];
                 
                 return (
-                  <tr key={patient.id} className="hover:bg-neutral-50">
+                  <tr key={patient.id} className="hover:bg-neutral-50 dark:hover:bg-gray-700">
                     <td className="py-4">
                       <div className="flex items-center space-x-3">
                         <Avatar>
@@ -238,16 +238,16 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium text-gray-900 dark:text-white">
                             {patient.firstName} {patient.lastName}
                           </p>
-                          <p className="text-sm text-neutral-600">
+                          <p className="text-sm text-neutral-600 dark:text-neutral-300">
                             ID: #{patient.patientId}
                           </p>
                         </div>
                       </div>
                     </td>
-                    <td className="py-4 text-sm text-neutral-600">
+                    <td className="py-4 text-sm text-neutral-600 dark:text-neutral-300">
                       {formatDate(patient.updatedAt)}
                     </td>
                     <td className="py-4">
@@ -259,7 +259,7 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
                           {primaryCondition}
                         </Badge>
                       ) : (
-                        <span className="text-sm text-neutral-500">No conditions</span>
+                        <span className="text-sm text-neutral-500 dark:text-neutral-400">No conditions</span>
                       )}
                     </td>
                     <td className="py-4">
@@ -283,7 +283,7 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
                             </Badge>
                           ))
                         ) : (
-                          <span className="text-sm text-gray-400">No flags</span>
+                          <span className="text-sm text-gray-400 dark:text-gray-500">No flags</span>
                         )}
                       </div>
                     </td>
