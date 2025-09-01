@@ -66,6 +66,7 @@ const ALL_NAVIGATION = [
   { name: "Patient Portal", href: "/patient-portal", icon: Globe, module: "patient_portal" },
   { name: "AI Insights", href: "/ai-insights", icon: Brain, module: "ai_insights" },
   { name: "AI Agent", href: "/ai-agent", icon: Bot, module: "ai_insights" },
+  { name: "AI Chatbot", href: "/chatbot", icon: MessageSquare, module: "ai_insights" },
   { name: "Clinical Decision Support", href: "/clinical-decision-support", icon: Brain, module: "ai_insights" },
   { name: "Telemedicine", href: "/telemedicine", icon: Video, module: "telemedicine" },
   { name: "Population Health", href: "/population-health", icon: Users, module: "population_health" },

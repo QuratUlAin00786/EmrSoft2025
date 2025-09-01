@@ -66,6 +66,7 @@ import LoginPage from "@/pages/auth/LoginPage";
 import PrivacyPolicy from "@/pages/legal/PrivacyPolicy";
 import TermsOfService from "@/pages/legal/TermsOfService";
 import GDPRCompliancePage from "@/pages/legal/GDPRCompliance";
+import ChatbotPage from "@/pages/ChatbotPage";
 import Press from "@/pages/legal/Press";
 
 // SaaS Administration - removed duplicate import
@@ -222,6 +223,7 @@ function ProtectedApp() {
           <Route path="/automation" component={AutomationPage} />
           <Route path="/patient-portal" component={PatientPortal} />
           <Route path="/ai-insights" component={AiInsights} />
+          <Route path="/chatbot" component={ChatbotPage} />
           <Route path="/clinical-decision-support" component={ClinicalDecisionSupport} />
           <Route path="/telemedicine" component={Telemedicine} />
           <Route path="/population-health" component={PopulationHealth} />

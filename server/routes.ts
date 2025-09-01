@@ -7508,6 +7508,186 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Chatbot API Routes
+  // Get chatbot configuration for organization
+  app.get("/api/chatbot/config", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const config = await storage.getChatbotConfig(req.tenant!.id);
+      res.json(config || null);
+    } catch (error) {
+      console.error("Error fetching chatbot config:", error);
+      res.status(500).json({ error: "Failed to fetch chatbot configuration" });
+    }
+  });
+
+  // Create or update chatbot configuration
+  app.post("/api/chatbot/config", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const existingConfig = await storage.getChatbotConfig(req.tenant!.id);
+      
+      if (existingConfig) {
+        // Update existing config
+        const updated = await storage.updateChatbotConfig(req.tenant!.id, req.body);
+        res.json(updated);
+      } else {
+        // Create new config
+        const configData = {
+          organizationId: req.tenant!.id,
+          apiKey: crypto.randomUUID(),
+          ...req.body
+        };
+        const created = await storage.createChatbotConfig(configData);
+        res.json(created);
+      }
+    } catch (error) {
+      console.error("Error saving chatbot config:", error);
+      res.status(500).json({ error: "Failed to save chatbot configuration" });
+    }
+  });
+
+  // Public chatbot endpoint (no auth required - for embedded widgets)
+  app.post("/api/chatbot/message", async (req, res) => {
+    try {
+      const { sessionId, message, organizationId, apiKey } = req.body;
+
+      // Validate API key
+      const config = await storage.getChatbotConfig(organizationId);
+      if (!config || config.apiKey !== apiKey || !config.isActive) {
+        return res.status(401).json({ error: "Invalid API key or chatbot not active" });
+      }
+
+      // Get or create session
+      let session = await storage.getChatbotSession(sessionId, organizationId);
+      if (!session) {
+        const sessionData = {
+          organizationId,
+          configId: config.id,
+          sessionId,
+          visitorId: crypto.randomUUID(),
+          status: "active" as const
+        };
+        session = await storage.createChatbotSession(sessionData);
+      }
+
+      // Get conversation history for AI context
+      const history = await storage.getChatbotMessagesBySession(session.id, organizationId);
+      const sessionHistory = history.map(msg => ({
+        sender: msg.sender,
+        content: msg.content
+      }));
+
+      // Save user message
+      const userMessage = {
+        organizationId,
+        sessionId: session.id,
+        messageId: crypto.randomUUID(),
+        sender: "user" as const,
+        content: message,
+        messageType: "text" as const
+      };
+      await storage.createChatbotMessage(userMessage);
+
+      // Process message with AI
+      const { chatbotAIService } = await import('./services/chatbot-ai.js');
+      const aiResponse = await chatbotAIService.processMessage(message, sessionHistory);
+      
+      // Update session with extracted data
+      if (aiResponse.intent.extractedData) {
+        const updateData: any = {};
+        if (aiResponse.intent.extractedData.patientName) {
+          updateData.extractedPatientName = aiResponse.intent.extractedData.patientName;
+        }
+        if (aiResponse.intent.extractedData.phone) {
+          updateData.extractedPhone = aiResponse.intent.extractedData.phone;
+        }
+        if (aiResponse.intent.extractedData.email) {
+          updateData.extractedEmail = aiResponse.intent.extractedData.email;
+        }
+        updateData.currentIntent = aiResponse.intent.intent;
+        
+        if (Object.keys(updateData).length > 0) {
+          await storage.updateChatbotSession(session.id, organizationId, updateData);
+        }
+      }
+      
+      // Save bot message with AI processing data
+      const botMessage = {
+        organizationId,
+        sessionId: session.id,
+        messageId: crypto.randomUUID(),
+        sender: "bot" as const,
+        content: aiResponse.response,
+        messageType: "text" as const,
+        intent: aiResponse.intent.intent,
+        confidence: aiResponse.intent.confidence,
+        aiProcessed: true
+      };
+      const savedBotMessage = await storage.createChatbotMessage(botMessage);
+
+      res.json({
+        sessionId: session.sessionId,
+        response: aiResponse.response,
+        messageId: savedBotMessage.messageId,
+        intent: aiResponse.intent.intent,
+        confidence: aiResponse.intent.confidence,
+        requiresFollowUp: aiResponse.requiresFollowUp,
+        nextAction: aiResponse.nextAction
+      });
+    } catch (error) {
+      console.error("Error processing chatbot message:", error);
+      res.status(500).json({ error: "Failed to process message" });
+    }
+  });
+
+  // Get chat history for a session
+  app.get("/api/chatbot/session/:sessionId/messages", async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const { organizationId, apiKey } = req.query;
+
+      // Validate API key
+      const config = await storage.getChatbotConfig(Number(organizationId));
+      if (!config || config.apiKey !== apiKey) {
+        return res.status(401).json({ error: "Invalid API key" });
+      }
+
+      const session = await storage.getChatbotSession(sessionId, Number(organizationId));
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+
+      const messages = await storage.getChatbotMessagesBySession(session.id, Number(organizationId));
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching chat history:", error);
+      res.status(500).json({ error: "Failed to fetch chat history" });
+    }
+  });
+
+  // Admin: Get chatbot analytics
+  app.get("/api/chatbot/analytics", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const date = req.query.date ? new Date(req.query.date as string) : undefined;
+      const analytics = await storage.getChatbotAnalytics(req.tenant!.id, date);
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching chatbot analytics:", error);
+      res.status(500).json({ error: "Failed to fetch analytics" });
+    }
+  });
+
+  // Admin: Get chatbot sessions
+  app.get("/api/chatbot/sessions", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+      const sessions = await storage.getChatbotSessionsByOrganization(req.tenant!.id, limit);
+      res.json(sessions);
+    } catch (error) {
+      console.error("Error fetching chatbot sessions:", error);
+      res.status(500).json({ error: "Failed to fetch sessions" });
+    }
+  });
+
   // SaaS routes already registered above before tenant middleware
 
   const httpServer = createServer(app);

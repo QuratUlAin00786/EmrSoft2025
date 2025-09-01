@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, decimal } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, decimal, real } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -1778,6 +1778,106 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
   createdAt: true,
 });
 
+// Chatbot Configuration - Each organization can configure their chatbot
+export const chatbotConfigs = pgTable("chatbot_configs", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  name: text("name").notNull().default("Healthcare Assistant"),
+  description: text("description").default("AI-powered healthcare assistant"),
+  isActive: boolean("is_active").notNull().default(true),
+  primaryColor: text("primary_color").default("#4A7DFF"),
+  welcomeMessage: text("welcome_message").default("Hello! I can help with appointments and prescriptions."),
+  appointmentBookingEnabled: boolean("appointment_booking_enabled").notNull().default(true),
+  prescriptionRequestsEnabled: boolean("prescription_requests_enabled").notNull().default(true),
+  apiKey: text("api_key").notNull(),
+  embedCode: text("embed_code"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Chatbot Sessions - Track individual chat sessions
+export const chatbotSessions = pgTable("chatbot_sessions", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  configId: integer("config_id").notNull().references(() => chatbotConfigs.id),
+  sessionId: text("session_id").notNull().unique(),
+  visitorId: text("visitor_id"),
+  patientId: integer("patient_id").references(() => patients.id),
+  status: varchar("status", { length: 20 }).notNull().default("active"),
+  currentIntent: text("current_intent"),
+  extractedPatientName: text("extracted_patient_name"),
+  extractedPhone: text("extracted_phone"),
+  extractedEmail: text("extracted_email"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Chatbot Messages - Individual messages in chat sessions
+export const chatbotMessages = pgTable("chatbot_messages", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  sessionId: integer("session_id").notNull().references(() => chatbotSessions.id),
+  messageId: text("message_id").notNull().unique(),
+  sender: varchar("sender", { length: 10 }).notNull(),
+  messageType: varchar("message_type", { length: 20 }).notNull().default("text"),
+  content: text("content").notNull(),
+  intent: text("intent"),
+  confidence: real("confidence"),
+  aiProcessed: boolean("ai_processed").notNull().default(false),
+  isRead: boolean("is_read").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Chatbot Analytics - Track chatbot performance and usage
+export const chatbotAnalytics = pgTable("chatbot_analytics", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  configId: integer("config_id").notNull().references(() => chatbotConfigs.id),
+  date: timestamp("date").notNull(),
+  totalSessions: integer("total_sessions").default(0),
+  completedSessions: integer("completed_sessions").default(0),
+  totalMessages: integer("total_messages").default(0),
+  appointmentsBooked: integer("appointments_booked").default(0),
+  prescriptionRequests: integer("prescription_requests").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Chatbot Insert Schemas
+export const insertChatbotConfigSchema = createInsertSchema(chatbotConfigs).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertChatbotSessionSchema = createInsertSchema(chatbotSessions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertChatbotMessageSchema = createInsertSchema(chatbotMessages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertChatbotAnalyticsSchema = createInsertSchema(chatbotAnalytics).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Chatbot Types
+export type ChatbotConfig = typeof chatbotConfigs.$inferSelect;
+export type InsertChatbotConfig = z.infer<typeof insertChatbotConfigSchema>;
+
+export type ChatbotSession = typeof chatbotSessions.$inferSelect;
+export type InsertChatbotSession = z.infer<typeof insertChatbotSessionSchema>;
+
+export type ChatbotMessage = typeof chatbotMessages.$inferSelect;
+export type InsertChatbotMessage = z.infer<typeof insertChatbotMessageSchema>;
+
+export type ChatbotAnalytics = typeof chatbotAnalytics.$inferSelect;
+export type InsertChatbotAnalytics = z.infer<typeof insertChatbotAnalyticsSchema>;
+
 // Types
 export type Organization = typeof organizations.$inferSelect;
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
@@ -1924,3 +2024,16 @@ export type InsertSaaSInvoice = z.infer<typeof insertSaaSInvoiceSchema>;
 
 export type SaaSSettings = typeof saasSettings.$inferSelect;
 export type InsertSaaSSettings = typeof saasSettings.$inferInsert;
+
+// Chatbot Types
+export type ChatbotConfig = typeof chatbotConfigs.$inferSelect;
+export type InsertChatbotConfig = z.infer<typeof insertChatbotConfigSchema>;
+
+export type ChatbotSession = typeof chatbotSessions.$inferSelect;
+export type InsertChatbotSession = z.infer<typeof insertChatbotSessionSchema>;
+
+export type ChatbotMessage = typeof chatbotMessages.$inferSelect;
+export type InsertChatbotMessage = z.infer<typeof insertChatbotMessageSchema>;
+
+export type ChatbotAnalytics = typeof chatbotAnalytics.$inferSelect;
+export type InsertChatbotAnalytics = z.infer<typeof insertChatbotAnalyticsSchema>;

@@ -1,5 +1,5 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations, messages, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings,
+  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations, messages, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Role, type InsertRole,
@@ -32,7 +32,11 @@ import {
   type SaaSSubscription, type InsertSaaSSubscription,
   type SaaSPayment, type InsertSaaSPayment,
   type SaaSInvoice, type InsertSaaSInvoice,
-  type SaaSSettings, type InsertSaaSSettings
+  type SaaSSettings, type InsertSaaSSettings,
+  type ChatbotConfig, type InsertChatbotConfig,
+  type ChatbotSession, type InsertChatbotSession,
+  type ChatbotMessage, type InsertChatbotMessage,
+  type ChatbotAnalytics, type InsertChatbotAnalytics
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, count, not, sql, gte, lt, lte, isNotNull, or, ilike, ne } from "drizzle-orm";
@@ -278,6 +282,28 @@ export interface IStorage {
   getSaaSSettings(): Promise<any>;
   updateSaaSSettings(settings: any): Promise<any>;
   testEmailSettings(): Promise<any>;
+
+  // Chatbot Configuration
+  getChatbotConfig(organizationId: number): Promise<ChatbotConfig | undefined>;
+  createChatbotConfig(config: InsertChatbotConfig): Promise<ChatbotConfig>;
+  updateChatbotConfig(organizationId: number, updates: Partial<InsertChatbotConfig>): Promise<ChatbotConfig | undefined>;
+
+  // Chatbot Sessions
+  getChatbotSession(sessionId: string, organizationId: number): Promise<ChatbotSession | undefined>;
+  createChatbotSession(session: InsertChatbotSession): Promise<ChatbotSession>;
+  updateChatbotSession(sessionId: string, organizationId: number, updates: Partial<InsertChatbotSession>): Promise<ChatbotSession | undefined>;
+  getChatbotSessionsByOrganization(organizationId: number, limit?: number): Promise<ChatbotSession[]>;
+
+  // Chatbot Messages
+  getChatbotMessage(messageId: string, organizationId: number): Promise<ChatbotMessage | undefined>;
+  getChatbotMessagesBySession(sessionId: number, organizationId: number): Promise<ChatbotMessage[]>;
+  createChatbotMessage(message: InsertChatbotMessage): Promise<ChatbotMessage>;
+  updateChatbotMessage(messageId: string, organizationId: number, updates: Partial<InsertChatbotMessage>): Promise<ChatbotMessage | undefined>;
+
+  // Chatbot Analytics
+  getChatbotAnalytics(organizationId: number, date?: Date): Promise<ChatbotAnalytics[]>;
+  createChatbotAnalytics(analytics: InsertChatbotAnalytics): Promise<ChatbotAnalytics>;
+  updateChatbotAnalytics(id: number, organizationId: number, updates: Partial<InsertChatbotAnalytics>): Promise<ChatbotAnalytics | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -4254,6 +4280,109 @@ export class DatabaseStorage implements IStorage {
       const priorityOrder = { high: 3, medium: 2, low: 1 };
       return (priorityOrder[b.priority as keyof typeof priorityOrder] || 0) - (priorityOrder[a.priority as keyof typeof priorityOrder] || 0);
     });
+  }
+
+  // Chatbot Configuration Methods
+  async getChatbotConfig(organizationId: number): Promise<ChatbotConfig | undefined> {
+    const [config] = await db.select().from(chatbotConfigs).where(eq(chatbotConfigs.organizationId, organizationId));
+    return config || undefined;
+  }
+
+  async createChatbotConfig(config: InsertChatbotConfig): Promise<ChatbotConfig> {
+    const [created] = await db.insert(chatbotConfigs).values(config).returning();
+    return created;
+  }
+
+  async updateChatbotConfig(organizationId: number, updates: Partial<InsertChatbotConfig>): Promise<ChatbotConfig | undefined> {
+    const [updated] = await db.update(chatbotConfigs)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(chatbotConfigs.organizationId, organizationId))
+      .returning();
+    return updated || undefined;
+  }
+
+  // Chatbot Session Methods
+  async getChatbotSession(sessionId: string, organizationId: number): Promise<ChatbotSession | undefined> {
+    const [session] = await db.select().from(chatbotSessions)
+      .where(and(eq(chatbotSessions.sessionId, sessionId), eq(chatbotSessions.organizationId, organizationId)));
+    return session || undefined;
+  }
+
+  async createChatbotSession(session: InsertChatbotSession): Promise<ChatbotSession> {
+    const [created] = await db.insert(chatbotSessions).values(session).returning();
+    return created;
+  }
+
+  async updateChatbotSession(sessionId: string, organizationId: number, updates: Partial<InsertChatbotSession>): Promise<ChatbotSession | undefined> {
+    const [updated] = await db.update(chatbotSessions)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(eq(chatbotSessions.sessionId, sessionId), eq(chatbotSessions.organizationId, organizationId)))
+      .returning();
+    return updated || undefined;
+  }
+
+  async getChatbotSessionsByOrganization(organizationId: number, limit = 50): Promise<ChatbotSession[]> {
+    return await db.select().from(chatbotSessions)
+      .where(eq(chatbotSessions.organizationId, organizationId))
+      .orderBy(desc(chatbotSessions.createdAt))
+      .limit(limit);
+  }
+
+  // Chatbot Message Methods
+  async getChatbotMessage(messageId: string, organizationId: number): Promise<ChatbotMessage | undefined> {
+    const [message] = await db.select().from(chatbotMessages)
+      .where(and(eq(chatbotMessages.messageId, messageId), eq(chatbotMessages.organizationId, organizationId)));
+    return message || undefined;
+  }
+
+  async getChatbotMessagesBySession(sessionId: number, organizationId: number): Promise<ChatbotMessage[]> {
+    return await db.select().from(chatbotMessages)
+      .where(and(eq(chatbotMessages.sessionId, sessionId), eq(chatbotMessages.organizationId, organizationId)))
+      .orderBy(asc(chatbotMessages.createdAt));
+  }
+
+  async createChatbotMessage(message: InsertChatbotMessage): Promise<ChatbotMessage> {
+    const [created] = await db.insert(chatbotMessages).values(message).returning();
+    return created;
+  }
+
+  async updateChatbotMessage(messageId: string, organizationId: number, updates: Partial<InsertChatbotMessage>): Promise<ChatbotMessage | undefined> {
+    const [updated] = await db.update(chatbotMessages)
+      .set(updates)
+      .where(and(eq(chatbotMessages.messageId, messageId), eq(chatbotMessages.organizationId, organizationId)))
+      .returning();
+    return updated || undefined;
+  }
+
+  // Chatbot Analytics Methods
+  async getChatbotAnalytics(organizationId: number, date?: Date): Promise<ChatbotAnalytics[]> {
+    let query = db.select().from(chatbotAnalytics)
+      .where(eq(chatbotAnalytics.organizationId, organizationId));
+    
+    if (date) {
+      const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const endOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
+      query = query.where(and(
+        eq(chatbotAnalytics.organizationId, organizationId),
+        gte(chatbotAnalytics.date, startOfDay),
+        lt(chatbotAnalytics.date, endOfDay)
+      ));
+    }
+
+    return await query.orderBy(desc(chatbotAnalytics.date));
+  }
+
+  async createChatbotAnalytics(analytics: InsertChatbotAnalytics): Promise<ChatbotAnalytics> {
+    const [created] = await db.insert(chatbotAnalytics).values(analytics).returning();
+    return created;
+  }
+
+  async updateChatbotAnalytics(id: number, organizationId: number, updates: Partial<InsertChatbotAnalytics>): Promise<ChatbotAnalytics | undefined> {
+    const [updated] = await db.update(chatbotAnalytics)
+      .set(updates)
+      .where(and(eq(chatbotAnalytics.id, id), eq(chatbotAnalytics.organizationId, organizationId)))
+      .returning();
+    return updated || undefined;
   }
 }
 
