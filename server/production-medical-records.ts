@@ -9,14 +9,20 @@ export async function seedProductionMedicalRecords() {
   try {
     console.log("🏥 Seeding production medical records for Patient 158 (Imran Mubashir)...");
     
-    // Check if records already exist
-    const existingRecords = await db.select().from(medicalRecords)
-      .where(and(eq(medicalRecords.patientId, 158), eq(medicalRecords.organizationId, 1)));
+    // Check if the specific Anatomical Analysis records exist
+    const anatomicalRecords = await db.select().from(medicalRecords)
+      .where(and(
+        eq(medicalRecords.patientId, 158), 
+        eq(medicalRecords.organizationId, 1),
+        eq(medicalRecords.title, "Anatomical Analysis - Orbicularis Oris")
+      ));
     
-    if (existingRecords.length >= 3) {
-      console.log("✅ Medical records already exist for Patient 158, skipping seed");
+    if (anatomicalRecords.length > 0) {
+      console.log("✅ Anatomical Analysis medical records already exist for Patient 158, skipping seed");
       return;
     }
+    
+    console.log("🔍 No Anatomical Analysis records found, creating medical records...");
     
     // Production medical records data - exact copies from development
     const productionRecords = [
@@ -128,16 +134,52 @@ Analysis completed on: Aug 21, 2025, 9:59:28 PM`,
       }
     ];
 
-    // Insert the records
-    await db.insert(medicalRecords).values(productionRecords);
+    // Insert the records with better error handling
+    const insertedRecords = await db.insert(medicalRecords).values(productionRecords).returning();
     
     console.log("✅ Successfully seeded production medical records for Patient 158");
-    console.log("📋 Records added:");
-    console.log("   • Anatomical Analysis - Orbicularis Oris");
-    console.log("   • Anatomical Analysis - Temporalis");
-    console.log("   • Headache/fever consultation");
+    console.log(`📋 Created ${insertedRecords.length} medical records:`);
+    insertedRecords.forEach(record => {
+      console.log(`   • ID ${record.id}: ${record.title || 'Untitled consultation'}`);
+    });
+    
+    // Verify the records were created
+    const verificationRecords = await db.select().from(medicalRecords)
+      .where(and(eq(medicalRecords.patientId, 158), eq(medicalRecords.organizationId, 1)));
+    console.log(`🔍 Verification: Found ${verificationRecords.length} total records for Patient 158`);
     
   } catch (error) {
     console.error("❌ Failed to seed production medical records:", error);
+    console.error("Full error details:", error);
+  }
+}
+
+// Verification function to ensure medical records exist
+export async function verifyMedicalRecordsExist() {
+  try {
+    console.log("🔍 Verifying medical records exist for Patient 158...");
+    
+    const allRecords = await db.select().from(medicalRecords)
+      .where(and(eq(medicalRecords.patientId, 158), eq(medicalRecords.organizationId, 1)));
+    
+    console.log(`📊 Found ${allRecords.length} medical records for Patient 158:`);
+    allRecords.forEach((record, index) => {
+      console.log(`   ${index + 1}. ID ${record.id}: "${record.title}" (${record.type})`);
+    });
+    
+    // Check for specific Anatomical Analysis records
+    const anatomicalCount = allRecords.filter(r => r.title?.includes("Anatomical Analysis")).length;
+    console.log(`🎯 Found ${anatomicalCount} Anatomical Analysis records`);
+    
+    if (anatomicalCount === 0) {
+      console.log("⚠️  NO ANATOMICAL ANALYSIS RECORDS FOUND - FORCE CREATING...");
+      // Force create the records if they don't exist
+      await seedProductionMedicalRecords();
+    } else {
+      console.log("✅ Anatomical Analysis records confirmed present");
+    }
+    
+  } catch (error) {
+    console.error("❌ Failed to verify medical records:", error);
   }
 }

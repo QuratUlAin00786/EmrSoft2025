@@ -95,6 +95,12 @@ app.use((req, res, next) => {
         await seedProductionMedicalRecords();
         console.log("✅ Step 3: Production medical records seeding completed successfully!");
         
+        console.log("🔍 Step 4: Verifying medical records are accessible...");
+        // Force verify that Patient 158 medical records exist
+        const { verifyMedicalRecordsExist } = await import("./production-medical-records");
+        await verifyMedicalRecordsExist();
+        console.log("✅ Step 4: Medical records verification completed!");
+        
         console.log("🎉 DATABASE SEEDING COMPLETED - ALL PATIENT DATA AVAILABLE!");
       } catch (error: any) {
         console.error("❌ SEEDING FAILED - This will cause problems:");
