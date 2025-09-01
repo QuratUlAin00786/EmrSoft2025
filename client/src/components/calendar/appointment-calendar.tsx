@@ -425,7 +425,7 @@ Medical License: [License Number]
         <CardContent className="p-6">
           <div className="grid grid-cols-7 gap-4 mb-4">
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-              <div key={day} className="text-center font-semibold text-gray-600 py-2">
+              <div key={day} className="text-center font-semibold text-gray-600 dark:text-gray-300 py-2">
                 {day}
               </div>
             ))}
@@ -441,12 +441,14 @@ Medical License: [License Number]
                   key={day.toString()}
                   className={`
                     h-[50px] p-1 border rounded cursor-pointer transition-colors flex flex-col
-                    ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}
-                    ${isCurrentDay ? 'bg-yellow-50 border-yellow-300' : ''}
+                    ${isSelected 
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-400' 
+                      : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'}
+                    ${isCurrentDay ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-300 dark:border-yellow-600' : ''}
                   `}
                   onClick={() => setSelectedDate(day)}
                 >
-                  <div className={`text-sm font-medium ${isCurrentDay ? 'text-yellow-800' : 'text-gray-900'}`}>
+                  <div className={`text-sm font-medium ${isCurrentDay ? 'text-yellow-800 dark:text-yellow-200' : 'text-gray-900 dark:text-gray-100'}`}>
                     {format(day, "d")}
                   </div>
                   <div className="flex flex-wrap gap-0.5 mt-0.5 flex-1">
@@ -466,7 +468,7 @@ Medical License: [License Number]
                       />
                     ))}
                     {dayAppointments.length > 10 && (
-                      <div className="text-xs text-gray-500 ml-0.5">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 ml-0.5">
                         +{dayAppointments.length - 10}
                       </div>
                     )}
@@ -488,13 +490,13 @@ Medical License: [License Number]
         </CardHeader>
         <CardContent>
           {selectedDateAppointments.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No appointments scheduled for this date.</p>
+            <p className="text-gray-500 dark:text-gray-400 text-center py-8">No appointments scheduled for this date.</p>
           ) : (
             <div className="space-y-3">
               {selectedDateAppointments.map((appointment: any) => (
                 <div
                   key={appointment.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                  className="flex items-center justify-between p-4 border dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
                   onClick={() => {
                     setSelectedAppointment(appointment);
                     setShowAppointmentDetails(true);
@@ -518,7 +520,7 @@ Medical License: [License Number]
                       </div>
                       <div className="flex items-center space-x-2 mt-1">
                         <User className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm text-gray-600">{appointment.patientName}</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-300">{appointment.patientName}</span>
                       </div>
                     </div>
                   </div>
