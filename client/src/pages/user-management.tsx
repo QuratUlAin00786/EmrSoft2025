@@ -587,8 +587,8 @@ export default function UserManagement() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Users</p>
-                  <p className="text-2xl font-bold">{users.length}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Users</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{users.length}</p>
                 </div>
                 <Users className="h-8 w-8 text-blue-600" />
               </div>
@@ -599,8 +599,8 @@ export default function UserManagement() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Doctors</p>
-                  <p className="text-2xl font-bold">{userCounts.doctor || 0}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Doctors</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{userCounts.doctor || 0}</p>
                 </div>
                 <Stethoscope className="h-8 w-8 text-blue-600" />
               </div>
@@ -611,8 +611,8 @@ export default function UserManagement() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Nurses</p>
-                  <p className="text-2xl font-bold">{userCounts.nurse || 0}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Nurses</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{userCounts.nurse || 0}</p>
                 </div>
                 <Users className="h-8 w-8 text-green-600" />
               </div>
@@ -623,8 +623,8 @@ export default function UserManagement() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Staff</p>
-                  <p className="text-2xl font-bold">{(userCounts.receptionist || 0) + (userCounts.admin || 0)}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Staff</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{(userCounts.receptionist || 0) + (userCounts.admin || 0)}</p>
                 </div>
                 <Calendar className="h-8 w-8 text-yellow-600" />
               </div>
@@ -909,9 +909,9 @@ export default function UserManagement() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="text-center py-8">Loading users...</div>
+              <div className="text-center py-8 text-gray-600 dark:text-gray-300">Loading users...</div>
             ) : filteredUsers.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                 {searchTerm ? "No users found matching your search." : "No users found."}
               </div>
             ) : (
@@ -919,22 +919,22 @@ export default function UserManagement() {
                 {filteredUsers.map((user, index) => (
                   <div
                     key={`user-${user.id}-${user.email}`}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                    className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 bg-white dark:bg-gray-900"
                   >
                     <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
                         {getRoleIcon(user.role)}
                       </div>
                       <div>
-                        <h3 className="font-medium text-white bg-orange-500 px-3 py-1 rounded w-48 text-center">
+                        <h3 className="font-medium text-gray-900 dark:text-gray-100">
                           {user.firstName || 'N/A'} {user.lastName || 'N/A'}
                         </h3>
-                        <p className="text-sm text-gray-500">{user.email}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
                         {user.department && user.department.trim() && (
-                          <p className="text-xs text-gray-400">{user.department}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500">{user.department}</p>
                         )}
                         {user.workingDays && user.workingDays.length > 0 && (
-                          <p className="text-xs text-blue-600">
+                          <p className="text-xs text-blue-600 dark:text-blue-400">
                             Working: {user.workingDays.join(", ")} ({user.workingHours?.start || '09:00'} - {user.workingHours?.end || '17:00'})
                           </p>
                         )}
