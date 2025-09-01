@@ -312,8 +312,8 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Patients</h2>
-        <div className="text-sm text-gray-500">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Patients</h2>
+        <div className="text-sm text-gray-500 dark:text-gray-400">
           {displayPatients.length} patient{displayPatients.length !== 1 ? 's' : ''} found
         </div>
       </div>
@@ -323,8 +323,8 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
       {displayPatients.length === 0 ? (
         <div className="text-center py-12">
           <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No patients found</h3>
-          <p className="text-gray-500">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No patients found</h3>
+          <p className="text-gray-500 dark:text-gray-400">
             {searchQuery ? "Try adjusting your search criteria" : "No patients have been added yet"}
           </p>
         </div>
@@ -369,7 +369,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                             )}
                           </TooltipProvider>
                         </CardTitle>
-                      <p className="text-sm text-neutral-600">
+                      <p className="text-sm text-neutral-600 dark:text-neutral-300">
                         Age {calculateAge(patient.dateOfBirth)} • {patient.patientId}
                       </p>
                     </div>
@@ -409,7 +409,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                           );
                         })}
                         {patient.flags.length > 2 && (
-                          <Badge variant="outline" className="text-xs text-gray-600">
+                          <Badge variant="outline" className="text-xs text-gray-600 dark:text-gray-300">
                             +{patient.flags.length - 2} more flags
                           </Badge>
                         )}
@@ -450,7 +450,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
 
                 {patient.medicalHistory?.chronicConditions && patient.medicalHistory.chronicConditions.length > 0 && (
                   <div className="space-y-1">
-                    <p className="text-xs font-medium text-neutral-700">Conditions:</p>
+                    <p className="text-xs font-medium text-neutral-700 dark:text-neutral-300">Conditions:</p>
                     <div className="flex flex-wrap gap-1">
                       {patient.medicalHistory.chronicConditions.slice(0, 2).map((condition: string, index: number) => (
                         <Badge 
@@ -471,7 +471,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                 )}
 
                 {patient.lastVisit && (
-                  <div className="flex items-center text-xs text-neutral-500">
+                  <div className="flex items-center text-xs text-neutral-500 dark:text-neutral-400">
                     <Clock className="h-3 w-3 mr-1" />
                     Last visit: {formatDistanceToNow(new Date(patient.lastVisit), { addSuffix: true })}
                   </div>
@@ -535,7 +535,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                       variant="ghost"
                       onClick={() => handleDeletePatient(patient)}
                       disabled={deletePatientMutation.isPending}
-                      className="flex-1 text-xs h-7 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="flex-1 text-xs h-7 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 dark:text-red-400 dark:hover:text-red-300"
                     >
                       <Trash2 className="h-3 w-3 mr-1" />
                       Delete
@@ -544,13 +544,13 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                 </div>
 
                 {patient.alerts && patient.alerts.length > 0 && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-2">
-                    <div className="flex items-center text-red-700 text-xs font-medium mb-1">
+                  <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-2">
+                    <div className="flex items-center text-red-700 dark:text-red-300 text-xs font-medium mb-1">
                       <AlertTriangle className="h-3 w-3 mr-1" />
                       Urgent Alerts
                     </div>
                     {patient.alerts.slice(0, 2).map((alert: any, index: number) => (
-                      <p key={index} className="text-xs text-red-600">
+                      <p key={index} className="text-xs text-red-600 dark:text-red-400">
                         {alert.message || alert}
                       </p>
                     ))}
