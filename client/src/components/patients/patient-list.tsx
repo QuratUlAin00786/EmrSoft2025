@@ -422,13 +422,13 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
               <CardContent className="space-y-3 overflow-visible pb-6">
                 <div className="space-y-2 text-sm">
                   {patient.phone && (
-                    <div className="flex items-center patient-contact">
+                    <div className="flex items-center" style={{ color: '#e5e7eb' }}>
                       <Phone className="h-4 w-4 mr-2" />
                       {patient.phone}
                     </div>
                   )}
                   {patient.email && (
-                    <div className="flex items-center patient-contact truncate">
+                    <div className="flex items-center truncate" style={{ color: '#e5e7eb' }}>
                       <User className="h-4 w-4 mr-2" />
                       {patient.email}
                     </div>
