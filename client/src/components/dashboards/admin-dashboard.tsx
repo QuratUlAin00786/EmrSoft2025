@@ -8,9 +8,11 @@ import AppointmentCalendar from "../calendar/appointment-calendar";
 
 // Recent Patients List Component
 function RecentPatientsList() {
+  console.log("RecentPatientsList component rendering");
   const { data: patients, isLoading, error } = useQuery({
     queryKey: ["/api/patients"],
     queryFn: async () => {
+      console.log("RecentPatientsList - Making API call");
       const token = localStorage.getItem('auth_token');
       const headers: Record<string, string> = {};
       
@@ -28,15 +30,22 @@ function RecentPatientsList() {
         credentials: 'include'
       });
       
+      console.log("RecentPatientsList - Response:", response.status, response.ok);
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
       
-      return response.json();
+      const data = await response.json();
+      console.log("RecentPatientsList - Data:", data);
+      return data;
     },
     retry: 1,
-    staleTime: 30000
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   });
+
+  console.log("RecentPatientsList - State:", { isLoading, error, patients });
 
   if (isLoading) {
     return <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">Loading patients...</div>;
