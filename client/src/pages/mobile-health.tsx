@@ -570,8 +570,8 @@ export default function MobileHealth() {
             Back
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Mobile Health</h1>
-            <p className="text-gray-600 mt-1">Wearable devices, mobile apps, and patient engagement</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Mobile Health</h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">Wearable devices, mobile apps, and patient engagement</p>
           </div>
         </div>
         <div className="flex gap-3">
@@ -589,7 +589,7 @@ export default function MobileHealth() {
               <div className="space-y-4">
                 <div className="text-center p-6">
                   <QrCode className="w-16 h-16 mx-auto mb-4" />
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
                     Scan this QR code with your device's companion app to connect
                   </p>
                 </div>
@@ -774,7 +774,7 @@ export default function MobileHealth() {
                       <Smartphone className="w-8 h-8 text-blue-500" />
                       <div>
                         <CardTitle className="text-lg">{app.name}</CardTitle>
-                        <p className="text-sm text-gray-600">{app.description}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">{app.description}</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -784,30 +784,30 @@ export default function MobileHealth() {
                             ★
                           </span>
                         ))}
-                        <span className="text-sm text-gray-600 ml-1">{app.rating}</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-300 ml-1">{app.rating}</span>
                       </div>
-                      <div className="text-sm text-gray-500">{app.downloads.toLocaleString()} downloads</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">{app.downloads.toLocaleString()} downloads</div>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                      <div className="text-sm text-gray-500">Category</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">Category</div>
                       <div className="font-medium capitalize">
                         {app.category.replace('_', ' ')}
                       </div>
                     </div>
                     <div>
-                      <div className="text-sm text-gray-500">Platform</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">Platform</div>
                       <div className="font-medium uppercase">{app.platform}</div>
                     </div>
                     <div>
-                      <div className="text-sm text-gray-500">Version</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">Version</div>
                       <div className="font-medium">{app.version}</div>
                     </div>
                     <div>
-                      <div className="text-sm text-gray-500">Features</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">Features</div>
                       <div className="font-medium">{app.features.length} features</div>
                     </div>
                   </div>
@@ -906,8 +906,8 @@ export default function MobileHealth() {
                       </div>
                       <div className="space-y-1">
                         <div className="font-medium text-sm">{notification.title}</div>
-                        <div className="text-sm text-gray-600">{notification.message}</div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-sm text-gray-600 dark:text-gray-300">{notification.message}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
                           Scheduled: {format(new Date(notification.scheduledTime), 'MMM dd, yyyy HH:mm')}
                           {notification.deliveryTime && (
                             <span className="ml-2">
@@ -937,7 +937,7 @@ export default function MobileHealth() {
           <div className="flex justify-between items-center">
             <div>
               <h3 className="text-lg font-semibold">Patient Consent Management</h3>
-              <p className="text-gray-600">Manage patient consent for IoT cardiac monitoring and data sharing</p>
+              <p className="text-gray-600 dark:text-gray-300">Manage patient consent for IoT cardiac monitoring and data sharing</p>
             </div>
           </div>
 
@@ -952,7 +952,7 @@ export default function MobileHealth() {
                       <Heart className={`w-8 h-8 ${consent.consentStatus === 'consented' ? 'text-green-500' : consent.consentStatus === 'declined' || consent.consentStatus === 'revoked' ? 'text-red-500' : 'text-yellow-500'}`} />
                       <div>
                         <CardTitle className="text-lg">{consent.patientName}</CardTitle>
-                        <p className="text-sm text-gray-600">{consent.email}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">{consent.email}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -969,25 +969,25 @@ export default function MobileHealth() {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                      <div className="text-sm text-gray-500">Consent Date</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">Consent Date</div>
                       <div className="font-medium">
                         {consent.consentDate ? format(new Date(consent.consentDate), 'MMM dd, yyyy') : 'Not provided'}
                       </div>
                     </div>
                     <div>
-                      <div className="text-sm text-gray-500">Last Updated</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">Last Updated</div>
                       <div className="font-medium">
                         {format(new Date(consent.lastUpdated), 'MMM dd, HH:mm')}
                       </div>
                     </div>
                     <div>
-                      <div className="text-sm text-gray-500">Device Access</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">Device Access</div>
                       <div className="font-medium">
                         {consent.deviceAccess ? 'Enabled' : 'Disabled'}
                       </div>
                     </div>
                     <div>
-                      <div className="text-sm text-gray-500">Data Sharing</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">Data Sharing</div>
                       <div className="font-medium">
                         {consent.dataSharing ? 'Allowed' : 'Restricted'}
                       </div>
@@ -1044,7 +1044,7 @@ export default function MobileHealth() {
                           return <Activity className="w-5 h-5 text-yellow-500" />;
                         }
                       })()}
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-gray-600 dark:text-gray-300">
                         {(() => {
                           if (consent.consentStatus === 'consented') {
                             // Check if patient has connected devices that are actively monitoring
@@ -1146,8 +1146,8 @@ export default function MobileHealth() {
               <Card>
                 <CardContent className="text-center py-8">
                   <Heart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-600">No Patient Consent Records</h3>
-                  <p className="text-gray-500 mt-2">Patient consent data will appear here once patients are enrolled for monitoring.</p>
+                  <h3 className="text-lg font-medium text-gray-600 dark:text-gray-300">No Patient Consent Records</h3>
+                  <p className="text-gray-500 dark:text-gray-400 mt-2">Patient consent data will appear here once patients are enrolled for monitoring.</p>
                 </CardContent>
               </Card>
             )}
@@ -1163,7 +1163,7 @@ export default function MobileHealth() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-300">
                 Enable offline functionality for essential features when internet connectivity is limited.
               </p>
               
@@ -1233,13 +1233,13 @@ export default function MobileHealth() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <div className="text-sm text-gray-500">Status</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Status</div>
                   <Badge className={getStatusColor(selectedDevice.status)}>
                     {selectedDevice.status}
                   </Badge>
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500">Battery</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Battery</div>
                   <div className="flex items-center gap-2">
                     <Battery className={`w-4 h-4 ${getBatteryColor(selectedDevice.batteryLevel)}`} />
                     <span>{selectedDevice.batteryLevel}%</span>
@@ -1295,7 +1295,7 @@ export default function MobileHealth() {
             <div className="space-y-4">
               <div className="p-3 bg-gray-50 rounded-lg">
                 <p className="font-medium">{deviceToConfig.patientName}</p>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   Device Type: {deviceToConfig.deviceType.replace('_', ' ')}
                 </p>
                 <div className="flex gap-2 mt-2">
@@ -1346,44 +1346,44 @@ export default function MobileHealth() {
                     <>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="text-xs text-gray-600">Heart Rate Max</label>
+                          <label className="text-xs text-gray-600 dark:text-gray-300">Heart Rate Max</label>
                           <Input type="number" defaultValue="120" placeholder="BPM" />
                         </div>
                         <div>
-                          <label className="text-xs text-gray-600">Heart Rate Min</label>
+                          <label className="text-xs text-gray-600 dark:text-gray-300">Heart Rate Min</label>
                           <Input type="number" defaultValue="60" placeholder="BPM" />
                         </div>
                       </div>
                       <div>
-                        <label className="text-xs text-gray-600">Daily Steps Goal</label>
+                        <label className="text-xs text-gray-600 dark:text-gray-300">Daily Steps Goal</label>
                         <Input type="number" defaultValue="8000" placeholder="Steps" />
                       </div>
                     </>
                   ) : deviceToConfig.deviceType === 'blood_pressure' ? (
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="text-xs text-gray-600">Systolic Max</label>
+                        <label className="text-xs text-gray-600 dark:text-gray-300">Systolic Max</label>
                         <Input type="number" defaultValue="140" placeholder="mmHg" />
                       </div>
                       <div>
-                        <label className="text-xs text-gray-600">Diastolic Max</label>
+                        <label className="text-xs text-gray-600 dark:text-gray-300">Diastolic Max</label>
                         <Input type="number" defaultValue="90" placeholder="mmHg" />
                       </div>
                     </div>
                   ) : deviceToConfig.deviceType === 'glucose_monitor' ? (
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="text-xs text-gray-600">Glucose High</label>
+                        <label className="text-xs text-gray-600 dark:text-gray-300">Glucose High</label>
                         <Input type="number" defaultValue="180" placeholder="mg/dL" />
                       </div>
                       <div>
-                        <label className="text-xs text-gray-600">Glucose Low</label>
+                        <label className="text-xs text-gray-600 dark:text-gray-300">Glucose Low</label>
                         <Input type="number" defaultValue="70" placeholder="mg/dL" />
                       </div>
                     </div>
                   ) : (
                     <div>
-                      <label className="text-xs text-gray-600">Custom Alert Value</label>
+                      <label className="text-xs text-gray-600 dark:text-gray-300">Custom Alert Value</label>
                       <Input type="number" placeholder="Enter threshold value" />
                     </div>
                   )}
@@ -1623,7 +1623,7 @@ export default function MobileHealth() {
 
             <div className="p-3 bg-gray-50 rounded-lg text-sm">
               <p className="font-medium">Installation Instructions:</p>
-              <ol className="mt-2 space-y-1 text-gray-600">
+              <ol className="mt-2 space-y-1 text-gray-600 dark:text-gray-300">
                 <li>1. Click "Install App" below</li>
                 <li>2. Confirm installation in browser prompt</li>
                 <li>3. App will be added to your device</li>
@@ -1632,7 +1632,7 @@ export default function MobileHealth() {
             </div>
 
             <div className="space-y-3">
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-600 dark:text-gray-300">
                 <p>Compatible with:</p>
                 <div className="flex gap-2 mt-1">
                   <Badge variant="outline">Chrome</Badge>
@@ -1673,7 +1673,7 @@ export default function MobileHealth() {
                 <Cloud className="w-5 h-5 text-blue-500" />
                 <span className="font-medium">Offline Mode Configuration</span>
               </div>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                 Customize what data is available when you're offline
               </p>
             </div>
@@ -1705,11 +1705,11 @@ export default function MobileHealth() {
                 <Progress value={9} />
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-xs text-gray-600">Max Storage (MB)</label>
+                    <label className="text-xs text-gray-600 dark:text-gray-300">Max Storage (MB)</label>
                     <Input type="number" defaultValue="500" placeholder="MB" />
                   </div>
                   <div>
-                    <label className="text-xs text-gray-600">Patient Records Limit</label>
+                    <label className="text-xs text-gray-600 dark:text-gray-300">Patient Records Limit</label>
                     <Input type="number" defaultValue="200" placeholder="Records" />
                   </div>
                 </div>
@@ -1820,36 +1820,36 @@ export default function MobileHealth() {
                 <Smartphone className="w-8 h-8 text-blue-500" />
                 <div>
                   <h3 className="font-medium">{selectedApp.name}</h3>
-                  <p className="text-sm text-gray-600">{selectedApp.description}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{selectedApp.description}</p>
                   <div className="flex items-center gap-2 mt-1">
                     <Badge variant="outline">{selectedApp.platform.toUpperCase()}</Badge>
-                    <span className="text-sm text-gray-500">v{selectedApp.version}</span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">v{selectedApp.version}</span>
                   </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <div className="text-sm text-gray-500">Rating</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Rating</div>
                   <div className="flex items-center gap-1">
                     {[...Array(5)].map((_, i) => (
                       <span key={i} className={i < Math.floor(selectedApp.rating) ? 'text-yellow-400' : 'text-gray-300'}>
                         ★
                       </span>
                     ))}
-                    <span className="text-sm text-gray-600 ml-1">{selectedApp.rating}</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300 ml-1">{selectedApp.rating}</span>
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500">Downloads</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Downloads</div>
                   <div className="font-medium">{selectedApp.downloads.toLocaleString()}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500">Category</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Category</div>
                   <div className="font-medium capitalize">{selectedApp.category.replace('_', ' ')}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500">Platform</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Platform</div>
                   <div className="font-medium">{selectedApp.platform.toUpperCase()}</div>
                 </div>
               </div>
@@ -1875,7 +1875,7 @@ export default function MobileHealth() {
 
               <div className="space-y-2">
                 <h4 className="font-medium">Installation Requirements</h4>
-                <ul className="text-sm text-gray-600 space-y-1">
+                <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
                   {selectedApp.platform === 'pwa' ? (
                     <>
                       <li>• Modern web browser (Chrome, Edge, Safari, Firefox)</li>
@@ -1930,7 +1930,7 @@ export default function MobileHealth() {
                   <Share2 className="w-5 h-5 text-blue-500" />
                   <span className="font-medium">Share {selectedApp.name}</span>
                 </div>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                   Share this app with colleagues, patients, or other healthcare providers
                 </p>
               </div>
@@ -1990,8 +1990,8 @@ export default function MobileHealth() {
                 <div className="flex items-center justify-center p-6 bg-gray-50 rounded-lg mt-2">
                   <div className="text-center">
                     <QrCode className="w-16 h-16 mx-auto text-gray-400 mb-2" />
-                    <p className="text-sm text-gray-600">QR Code for easy sharing</p>
-                    <p className="text-xs text-gray-500">Scan to download app</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">QR Code for easy sharing</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Scan to download app</p>
                   </div>
                 </div>
               </div>
