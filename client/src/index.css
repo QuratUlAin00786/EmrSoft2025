@@ -292,6 +292,15 @@ button[data-testid="delete-customer-button"] {
   color: #d1d5db !important; /* Light gray for dark mode */
 }
 
+/* Patient contact info (phone, email) visibility fix */
+.patient-contact {
+  color: #6b7280 !important; /* Gray for light mode */
+}
+
+.dark .patient-contact {
+  color: #e5e7eb !important; /* Brighter gray for dark mode */
+}
+
 @layer base {
   * {
     @apply border-border;
