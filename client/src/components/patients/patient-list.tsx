@@ -369,7 +369,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                             )}
                           </TooltipProvider>
                         </CardTitle>
-                      <p className="text-sm text-neutral-600 dark:text-neutral-300">
+                      <p className="text-sm patient-info">
                         Age {calculateAge(patient.dateOfBirth)} • {patient.patientId}
                       </p>
                     </div>

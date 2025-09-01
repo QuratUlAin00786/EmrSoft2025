@@ -283,6 +283,15 @@ button[data-testid="delete-customer-button"] {
   color: #ffffff !important; /* Force white in dark mode */
 }
 
+/* Patient info (age, ID) visibility fix */
+.patient-info {
+  color: #6b7280 !important; /* Gray for light mode */
+}
+
+.dark .patient-info {
+  color: #d1d5db !important; /* Light gray for dark mode */
+}
+
 @layer base {
   * {
     @apply border-border;
