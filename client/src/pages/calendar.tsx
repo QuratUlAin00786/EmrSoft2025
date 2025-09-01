@@ -129,11 +129,11 @@ export default function CalendarPage() {
       <div className="flex-1 overflow-auto p-6">
         <div className="mb-6">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
               <Calendar className="h-5 w-5" />
               Calendar & Scheduling
             </h3>
-            <p className="text-sm text-neutral-600">
+            <p className="text-sm text-neutral-600 dark:text-neutral-300">
               View appointments, manage schedules, and book new consultations.
             </p>
           </div>
