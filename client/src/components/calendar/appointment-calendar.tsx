@@ -449,27 +449,25 @@ Medical License: [License Number]
                   <div className={`text-sm font-medium mb-2 ${isCurrentDay ? 'text-yellow-800' : 'text-gray-900'}`}>
                     {format(day, "d")}
                   </div>
-                  <div className="space-y-1">
-                    {dayAppointments.slice(0, 3).map((appointment: any) => (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {dayAppointments.slice(0, 6).map((appointment: any) => (
                       <div
                         key={appointment.id}
-                        className="text-xs p-1 rounded cursor-pointer truncate"
+                        className="w-2 h-2 rounded-full cursor-pointer"
                         style={{
-                          backgroundColor: statusBgColors[appointment.status as keyof typeof statusBgColors] || statusBgColors.scheduled,
-                          color: statusColors[appointment.status as keyof typeof statusColors] || statusColors.scheduled
+                          backgroundColor: statusBgColors[appointment.status as keyof typeof statusBgColors] || statusBgColors.scheduled
                         }}
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedAppointment(appointment);
                           setShowAppointmentDetails(true);
                         }}
-                      >
-                        {formatTime(appointment.scheduledAt)} - {appointment.patientName}
-                      </div>
+                        title={`${formatTime(appointment.scheduledAt)} - ${appointment.patientName}`}
+                      />
                     ))}
-                    {dayAppointments.length > 3 && (
-                      <div className="text-xs text-gray-500">
-                        +{dayAppointments.length - 3} more
+                    {dayAppointments.length > 6 && (
+                      <div className="text-xs text-gray-500 ml-1">
+                        +{dayAppointments.length - 6}
                       </div>
                     )}
                   </div>
