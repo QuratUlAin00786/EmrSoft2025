@@ -238,8 +238,8 @@ export default function Patients() {
       <div className="flex-1 overflow-auto p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Patient Records</h3>
-            <p className="text-sm text-neutral-600">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Patient Records</h3>
+            <p className="text-sm text-neutral-600 dark:text-neutral-300">
               View and manage all patient information securely.
             </p>
           </div>
