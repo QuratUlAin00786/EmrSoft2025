@@ -8,44 +8,25 @@ import AppointmentCalendar from "../calendar/appointment-calendar";
 
 // Recent Patients List Component
 function RecentPatientsList() {
-  console.log("RecentPatientsList component rendering");
   const { data: patients, isLoading, error } = useQuery({
-    queryKey: ["/api/patients"],
+    queryKey: ["recent-patients-list"],
     queryFn: async () => {
-      console.log("RecentPatientsList - Making API call");
-      const token = localStorage.getItem('auth_token');
-      const headers: Record<string, string> = {};
-      
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      
       const response = await fetch('/api/patients', {
         headers: {
-          ...headers,
           'X-Tenant-Subdomain': 'demo',
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
         },
         credentials: 'include'
       });
       
-      console.log("RecentPatientsList - Response:", response.status, response.ok);
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        throw new Error(`Failed to fetch patients: ${response.status}`);
       }
       
-      const data = await response.json();
-      console.log("RecentPatientsList - Data:", data);
-      return data;
+      return response.json();
     },
-    retry: 1,
-    staleTime: 0,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true
+    retry: 3,
+    refetchOnMount: true
   });
-
-  console.log("RecentPatientsList - State:", { isLoading, error, patients });
 
   if (isLoading) {
     return <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">Loading patients...</div>;
