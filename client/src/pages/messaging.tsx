@@ -202,11 +202,13 @@ export default function MessagingPage() {
 
   const { data: conversations = [], isLoading: conversationsLoading, error: conversationsError, refetch: refetchConversations } = useQuery({
     queryKey: ['/api/messaging/conversations'],
-    staleTime: 0, // Always consider stale
-    gcTime: 0, // Don't cache (TanStack Query v5)  
-    refetchOnMount: 'always', // Always refetch when component mounts
-    refetchOnWindowFocus: true, // Refetch when window gains focus
+    enabled: false, // Disable automatic execution to prevent loop
+    staleTime: 300000, // Consider data fresh for 5 minutes
+    gcTime: 600000, // Keep in cache for 10 minutes
+    refetchOnMount: false, // Don't auto-refetch on mount
+    refetchOnWindowFocus: false, // Don't refetch on window focus
     refetchInterval: false, // Don't poll
+    retry: 1, // Only retry once on failure
     queryFn: async () => {
       console.log('🔄 FETCHING CONVERSATIONS');
       const response = await apiRequest('GET', '/api/messaging/conversations');
@@ -369,9 +371,9 @@ export default function MessagingPage() {
         queryClient.removeQueries({ queryKey: ['/api/messaging/conversations'] });
         queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
         // Force immediate refetch
-        setTimeout(() => {
-          refetchConversations();
-        }, 100);
+        // setTimeout(() => {
+        //   refetchConversations();
+        // }, 100);
       } else {
         // Existing conversation - update the last message info immediately
         const updatedConversations = currentConversations.map(conv => {
@@ -397,10 +399,10 @@ export default function MessagingPage() {
         
         // Force invalidation and refetch to ensure consistency
         queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
-        setTimeout(() => {
-          console.log('🔄 EXISTING CONVERSATION UPDATED - forcing refetch');
-          refetchConversations();
-        }, 50);
+        // setTimeout(() => {
+        //   console.log('🔄 EXISTING CONVERSATION UPDATED - forcing refetch');
+        //   refetchConversations();
+        // }, 50);
       }
       
       // Only handle new message dialog closing here
@@ -497,9 +499,9 @@ export default function MessagingPage() {
       // Always refetch after mutation settles - force complete refresh
       queryClient.removeQueries({ queryKey: ['/api/messaging/conversations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
-      setTimeout(() => {
-        refetchConversations();
-      }, 50);
+      // setTimeout(() => {
+      //   refetchConversations();
+      // }, 50);
     }
   });
 
@@ -530,7 +532,7 @@ export default function MessagingPage() {
       if (selectedConversation) {
         fetchMessages(selectedConversation);
       }
-      refetchConversations();
+      // refetchConversations();
       
       toast({
         title: "Delivery Status Updated",
@@ -617,7 +619,7 @@ export default function MessagingPage() {
       }
       
       // Less frequent conversation refresh to reduce API calls
-      refetchConversations();
+      // refetchConversations();
     }, 5000); // Check every 5 seconds instead of 2
     
     // Also attempt WebSocket as primary method
@@ -663,7 +665,7 @@ export default function MessagingPage() {
           
           // Always refresh conversations to update sidebar
           console.log('🔥 FORCE REFETCH ALL CONVERSATIONS - WebSocket triggered');
-          refetchConversations();
+          // refetchConversations();
           
           // Show toast notification
           toast({
@@ -788,7 +790,7 @@ export default function MessagingPage() {
       }
       
       // Also refetch conversations to update last message info
-      await refetchConversations();
+      // await refetchConversations();
       
       toast({
         title: "Message Sent",
@@ -1684,7 +1686,7 @@ export default function MessagingPage() {
                                           }
                                           
                                           // Also force refetch conversations 
-                                          await refetchConversations();
+                                          // await refetchConversations();
                                           
                                           console.log('🗑️ REFETCH COMPLETED - deleted message should disappear immediately');
                                           
