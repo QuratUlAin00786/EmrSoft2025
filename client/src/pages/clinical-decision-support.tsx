@@ -354,14 +354,14 @@ export default function ClinicalDecisionSupport() {
             variant="ghost"
             size="sm"
             onClick={() => setLocation("/")}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Clinical Decision Support</h1>
-            <p className="text-gray-600 mt-1">AI-powered insights and recommendations</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Clinical Decision Support</h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">AI-powered insights and recommendations</p>
           </div>
         </div>
         <div className="flex gap-3">
@@ -551,12 +551,12 @@ export default function ClinicalDecisionSupport() {
                           {insight.priority.toUpperCase()}
                         </Badge>
                         <Badge variant="outline">{insight.type.replace('_', ' ')}</Badge>
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
                           Evidence Level {insight.evidenceLevel}
                         </span>
                       </div>
                       <h3 className="text-lg font-semibold">{insight.title}</h3>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
                         {insight.patientName} • {format(new Date(insight.createdAt), 'MMM dd, yyyy HH:mm')}
                       </p>
                     </div>
@@ -570,7 +570,7 @@ export default function ClinicalDecisionSupport() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-gray-700">{insight.description}</p>
+                  <p className="text-gray-700 dark:text-gray-300">{insight.description}</p>
                   
                   {insight.supportingData?.medications && (
                     <div>
@@ -602,7 +602,7 @@ export default function ClinicalDecisionSupport() {
                               <span className={lab.status === 'abnormal' ? 'text-red-600' : 'text-green-600'}>
                                 {lab.value}
                               </span>
-                              <span className="text-gray-500">({lab.reference})</span>
+                              <span className="text-gray-500 dark:text-gray-400">({lab.reference})</span>
                             </div>
                           </div>
                         ))}
@@ -680,7 +680,7 @@ export default function ClinicalDecisionSupport() {
                       <div className={`text-3xl font-bold ${getRiskColor(risk.risk)}`}>
                         {risk.score}%
                       </div>
-                      <div className="text-sm text-gray-500">Risk Score</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">Risk Score</div>
                     </div>
                     <Progress value={risk.score} className="flex-1" />
                   </div>
@@ -730,7 +730,7 @@ export default function ClinicalDecisionSupport() {
                 <CardTitle>Evidence-Based Guidelines</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 mb-4">
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
                   Access the latest clinical guidelines and evidence-based recommendations.
                 </p>
                 <Dialog>
@@ -776,10 +776,10 @@ export default function ClinicalDecisionSupport() {
                                 <div className="flex justify-between items-start">
                                   <div className="flex-1">
                                     <h4 className="font-semibold text-sm">NICE Guidelines: Hypertension Management</h4>
-                                    <p className="text-sm text-gray-600 mt-1">
+                                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                                       Comprehensive guidance on diagnosis and management of hypertension in adults
                                     </p>
-                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
                                       <span>Updated: March 2024</span>
                                       <span>Evidence Level: A</span>
                                       <Badge variant="secondary" className="text-xs">Cardiology</Badge>
@@ -801,10 +801,10 @@ export default function ClinicalDecisionSupport() {
                                 <div className="flex justify-between items-start">
                                   <div className="flex-1">
                                     <h4 className="font-semibold text-sm">ADA Standards: Diabetes Care</h4>
-                                    <p className="text-sm text-gray-600 mt-1">
+                                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                                       Evidence-based recommendations for diabetes diagnosis, treatment, and monitoring
                                     </p>
-                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
                                       <span>Updated: January 2024</span>
                                       <span>Evidence Level: A</span>
                                       <Badge variant="secondary" className="text-xs">Endocrinology</Badge>
@@ -826,10 +826,10 @@ export default function ClinicalDecisionSupport() {
                                 <div className="flex justify-between items-start">
                                   <div className="flex-1">
                                     <h4 className="font-semibold text-sm">GOLD Guidelines: COPD Management</h4>
-                                    <p className="text-sm text-gray-600 mt-1">
+                                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                                       Global strategy for diagnosis, management and prevention of COPD
                                     </p>
-                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
                                       <span>Updated: February 2024</span>
                                       <span>Evidence Level: A</span>
                                       <Badge variant="secondary" className="text-xs">Respiratory</Badge>
@@ -862,10 +862,10 @@ export default function ClinicalDecisionSupport() {
                                 <div className="flex justify-between items-start">
                                   <div className="flex-1">
                                     <h4 className="font-semibold text-sm">WHO Guidelines: Antimicrobial Resistance</h4>
-                                    <p className="text-sm text-gray-600 mt-1">
+                                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                                       Updated recommendations for preventing and containing antimicrobial resistance
                                     </p>
-                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
                                       <span>Updated: April 2024</span>
                                       <span>Evidence Level: B</span>
                                       <Badge variant="secondary" className="text-xs">Infectious Disease</Badge>
@@ -892,10 +892,10 @@ export default function ClinicalDecisionSupport() {
                                 <div className="flex justify-between items-start">
                                   <div className="flex-1">
                                     <h4 className="font-semibold text-sm">ESC Guidelines: Heart Failure</h4>
-                                    <p className="text-sm text-gray-600 mt-1">
+                                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                                       European Society of Cardiology guidelines for acute and chronic heart failure
                                     </p>
-                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
                                       <span>Updated: March 2024</span>
                                       <span>Evidence Level: A</span>
                                       <Badge variant="secondary" className="text-xs">Cardiology</Badge>
@@ -988,11 +988,11 @@ export default function ClinicalDecisionSupport() {
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="font-medium">Organization:</span>
-                    <p className="text-gray-600">{selectedGuideline.organization}</p>
+                    <p className="text-gray-600 dark:text-gray-300">{selectedGuideline.organization}</p>
                   </div>
                   <div>
                     <span className="font-medium">Last Updated:</span>
-                    <p className="text-gray-600">{selectedGuideline.updated}</p>
+                    <p className="text-gray-600 dark:text-gray-300">{selectedGuideline.updated}</p>
                   </div>
                   <div>
                     <span className="font-medium">Evidence Level:</span>
@@ -1004,7 +1004,7 @@ export default function ClinicalDecisionSupport() {
                   </div>
                 </div>
                 <div className="mt-3">
-                  <p className="text-gray-700">{selectedGuideline.description}</p>
+                  <p className="text-gray-700 dark:text-gray-300">{selectedGuideline.description}</p>
                 </div>
               </div>
 
@@ -1020,7 +1020,7 @@ export default function ClinicalDecisionSupport() {
                         {section.content.map((item: string, itemIndex: number) => (
                           <li key={itemIndex} className="flex items-start gap-2">
                             <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                            <span className="text-gray-700">{item}</span>
+                            <span className="text-gray-700 dark:text-gray-300">{item}</span>
                           </li>
                         ))}
                       </ul>
