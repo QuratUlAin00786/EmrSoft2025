@@ -344,8 +344,8 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-gray-100">
-                          {patient.firstName} {patient.lastName}
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <span className="patient-name">{patient.firstName} {patient.lastName}</span>
                           <TooltipProvider>
                             {patient.medicalHistory?.allergies && patient.medicalHistory.allergies.length > 0 && (
                               <Tooltip>

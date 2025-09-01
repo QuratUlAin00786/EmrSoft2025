@@ -265,6 +265,24 @@ button[data-testid="delete-customer-button"] {
   content: "";
 }
 
+/* FORCE PATIENT NAME VISIBILITY IN DARK MODE */
+.patient-name-light {
+  color: #1f2937 !important; /* Dark gray for light mode */
+}
+
+.dark .patient-name-dark {
+  color: #ffffff !important; /* Pure white for dark mode */
+}
+
+/* Universal patient name fix */
+.patient-name {
+  color: #1f2937 !important; /* Default dark color */
+}
+
+.dark .patient-name {
+  color: #ffffff !important; /* Force white in dark mode */
+}
+
 @layer base {
   * {
     @apply border-border;
