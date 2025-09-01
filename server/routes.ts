@@ -1326,11 +1326,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Appointment creation error:", error);
       
-      // Provide more specific error message if it's a validation error
+      // Provide specific error message for validation failures
       const errorMessage = error instanceof Error ? error.message : "Failed to create appointment";
-      res.status(500).json({ 
+      
+      // Always provide detailed error message for appointment failures
+      res.status(400).json({ 
         error: errorMessage,
-        details: process.env.NODE_ENV === 'development' ? error : undefined
+        type: "appointment_validation_error",
+        timestamp: new Date().toISOString()
       });
     }
   });

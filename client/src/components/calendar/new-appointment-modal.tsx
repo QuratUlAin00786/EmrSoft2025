@@ -62,9 +62,13 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
     },
     onError: (error: any) => {
       console.error("❌ MUTATION ERROR:", error);
+      
+      // Show detailed validation error if available
+      const errorMessage = error.message || "Failed to create appointment";
+      
       toast({
-        title: "Error",
-        description: error.message || "Failed to create appointment",
+        title: "Appointment Creation Failed",
+        description: errorMessage,
         variant: "destructive"
       });
     }
