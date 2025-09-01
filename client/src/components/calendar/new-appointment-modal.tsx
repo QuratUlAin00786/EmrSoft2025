@@ -440,7 +440,7 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
               onChange={(e) => setFormData(prev => ({ ...prev, isVirtual: e.target.checked }))}
               className="rounded"
             />
-            <label htmlFor="isVirtual" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="isVirtual" className="text-sm font-medium text-gray-700 dark:text-white">
               Virtual appointment
             </label>
           </div>
