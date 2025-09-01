@@ -404,8 +404,8 @@ export default function PopulationHealth() {
             Back
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Population Health</h1>
-            <p className="text-gray-600 mt-1">Manage patient cohorts and community health initiatives</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Population Health</h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">Manage patient cohorts and community health initiatives</p>
           </div>
         </div>
         <div className="flex gap-3">
@@ -616,7 +616,7 @@ export default function PopulationHealth() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Total Patients</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Patients</p>
                     <p className="text-2xl font-bold">1,276</p>
                   </div>
                   <Users className="w-8 h-8 text-blue-500" />
@@ -632,7 +632,7 @@ export default function PopulationHealth() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">High Risk</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">High Risk</p>
                     <p className="text-2xl font-bold">319</p>
                   </div>
                   <AlertTriangle className="w-8 h-8 text-orange-500" />
@@ -648,7 +648,7 @@ export default function PopulationHealth() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Prevention Rate</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Prevention Rate</p>
                     <p className="text-2xl font-bold">78%</p>
                   </div>
                   <Shield className="w-8 h-8 text-green-500" />
@@ -664,13 +664,13 @@ export default function PopulationHealth() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Active Cohorts</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Active Cohorts</p>
                     <p className="text-2xl font-bold">12</p>
                   </div>
                   <Target className="w-8 h-8 text-purple-500" />
                 </div>
                 <div className="flex items-center mt-2 text-sm">
-                  <span className="text-gray-600">3 new this month</span>
+                  <span className="text-gray-600 dark:text-gray-300">3 new this month</span>
                 </div>
               </CardContent>
             </Card>
@@ -754,11 +754,11 @@ export default function PopulationHealth() {
                           {cohort.riskLevel} risk
                         </Badge>
                       </CardTitle>
-                      <p className="text-sm text-gray-600 mt-1">{cohort.description}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{cohort.description}</p>
                     </div>
                     <div className="text-right">
                       <div className="text-2xl font-bold text-blue-600">{cohort.patientCount}</div>
-                      <div className="text-sm text-gray-500">patients</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">patients</div>
                     </div>
                   </div>
                 </CardHeader>
@@ -804,7 +804,7 @@ export default function PopulationHealth() {
                           <div className="flex items-center gap-3">
                             <div className="text-right">
                               <div className="text-sm font-medium">{intervention.completionRate}%</div>
-                              <div className="text-xs text-gray-500">completion</div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400">completion</div>
                             </div>
                             <Progress value={intervention.completionRate} className="w-16" />
                           </div>
@@ -863,8 +863,8 @@ export default function PopulationHealth() {
                         <Badge className={getStatusColor(care.status)}>{care.status}</Badge>
                         <Badge className={getPriorityColor(care.priority)}>{care.priority}</Badge>
                       </div>
-                      <p className="text-sm text-gray-600 mb-1">{care.description}</p>
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                      <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">{care.description}</p>
+                      <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                         <span>Due: {format(new Date(care.dueDate), 'MMM dd, yyyy')}</span>
                         {care.lastCompleted && (
                           <span>Last: {format(new Date(care.lastCompleted), 'MMM dd, yyyy')}</span>
@@ -1755,53 +1755,53 @@ export default function PopulationHealth() {
                   </Badge>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Type</label>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Type</label>
                   <Badge variant="outline">{selectedIntervention.type}</Badge>
                 </div>
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-500">Description</label>
-                <p className="text-gray-900 mt-1">{selectedIntervention.description}</p>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Description</label>
+                <p className="text-gray-900 dark:text-gray-100 mt-1">{selectedIntervention.description}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Duration</label>
-                  <p className="text-gray-900">{selectedIntervention.duration}</p>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Duration</label>
+                  <p className="text-gray-900 dark:text-gray-100">{selectedIntervention.duration}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Budget</label>
-                  <p className="text-gray-900">£{selectedIntervention.budget?.toLocaleString()}</p>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Budget</label>
+                  <p className="text-gray-900 dark:text-gray-100">£{selectedIntervention.budget?.toLocaleString()}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Target Population</label>
-                  <p className="text-gray-900">{selectedIntervention.targetPopulation}</p>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Target Population</label>
+                  <p className="text-gray-900 dark:text-gray-100">{selectedIntervention.targetPopulation}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Start Date</label>
-                  <p className="text-gray-900">{selectedIntervention.startDate}</p>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Start Date</label>
+                  <p className="text-gray-900 dark:text-gray-100">{selectedIntervention.startDate}</p>
                 </div>
               </div>
 
               {selectedIntervention.metrics && (
                 <div>
-                  <label className="text-sm font-medium text-gray-500 mb-3 block">Performance Metrics</label>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 block">Performance Metrics</label>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="text-center p-3 bg-blue-50 rounded-lg">
                       <div className="text-lg font-semibold text-blue-600">{selectedIntervention.metrics.enrolled}</div>
-                      <div className="text-sm text-gray-600">Enrolled</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-300">Enrolled</div>
                     </div>
                     <div className="text-center p-3 bg-green-50 rounded-lg">
                       <div className="text-lg font-semibold text-green-600">{selectedIntervention.metrics.completed}</div>
-                      <div className="text-sm text-gray-600">Completed</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-300">Completed</div>
                     </div>
                     <div className="text-center p-3 bg-yellow-50 rounded-lg">
                       <div className="text-lg font-semibold text-yellow-600">{selectedIntervention.metrics.successRate}%</div>
-                      <div className="text-sm text-gray-600">Success Rate</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-300">Success Rate</div>
                     </div>
                   </div>
                 </div>
