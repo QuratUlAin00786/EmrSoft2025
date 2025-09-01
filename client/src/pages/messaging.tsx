@@ -2160,7 +2160,7 @@ export default function MessagingPage() {
                         <div key={template.id} className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className="w-2 h-2 rounded-full bg-blue-600"></div>
-                            <span className="text-sm text-gray-700">{template.name}</span>
+                            <span className="text-sm text-gray-700 dark:text-gray-300">{template.name}</span>
                           </div>
                           <span className="text-sm font-medium">{template.usageCount}</span>
                         </div>
@@ -2177,35 +2177,35 @@ export default function MessagingPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                       <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
                         <Mail className="h-4 w-4 text-green-600" />
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-medium">Campaign "Flu Vaccination Reminder" sent</p>
-                        <p className="text-xs text-gray-500">Reached 1,240 patients • 2 hours ago</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Reached 1,240 patients • 2 hours ago</p>
                       </div>
                       <Badge variant="outline">Completed</Badge>
                     </div>
                     
-                    <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                       <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                         <MessageSquare className="h-4 w-4 text-blue-600" />
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-medium">Template "Lab Results Available" used 12 times</p>
-                        <p className="text-xs text-gray-500">High engagement rate • 4 hours ago</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">High engagement rate • 4 hours ago</p>
                       </div>
                       <Badge variant="secondary">Active</Badge>
                     </div>
                     
-                    <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                       <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
                         <Users className="h-4 w-4 text-orange-600" />
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-medium">Bulk message sent to Cardiology department</p>
-                        <p className="text-xs text-gray-500">45 recipients • 6 hours ago</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">45 recipients • 6 hours ago</p>
                       </div>
                       <Badge variant="outline">Delivered</Badge>
                     </div>
