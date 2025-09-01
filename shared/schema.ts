@@ -2024,16 +2024,3 @@ export type InsertSaaSInvoice = z.infer<typeof insertSaaSInvoiceSchema>;
 
 export type SaaSSettings = typeof saasSettings.$inferSelect;
 export type InsertSaaSSettings = typeof saasSettings.$inferInsert;
-
-// Chatbot Types
-export type ChatbotConfig = typeof chatbotConfigs.$inferSelect;
-export type InsertChatbotConfig = z.infer<typeof insertChatbotConfigSchema>;
-
-export type ChatbotSession = typeof chatbotSessions.$inferSelect;
-export type InsertChatbotSession = z.infer<typeof insertChatbotSessionSchema>;
-
-export type ChatbotMessage = typeof chatbotMessages.$inferSelect;
-export type InsertChatbotMessage = z.infer<typeof insertChatbotMessageSchema>;
-
-export type ChatbotAnalytics = typeof chatbotAnalytics.$inferSelect;
-export type InsertChatbotAnalytics = z.infer<typeof insertChatbotAnalyticsSchema>;
