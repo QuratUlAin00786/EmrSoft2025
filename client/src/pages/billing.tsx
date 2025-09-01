@@ -983,22 +983,22 @@ export default function BillingPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                     <div className="text-2xl font-bold text-blue-600">{formatCurrency(getTotalRevenue())}</div>
                     <div className="text-sm text-gray-600 dark:text-gray-300">Total Revenue</div>
                     <div className="text-xs text-green-600 mt-1">+12% vs last month</div>
                   </div>
-                  <div className="text-center p-4 bg-red-50 rounded-lg">
+                  <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
                     <div className="text-2xl font-bold text-red-600">{formatCurrency(getOutstandingAmount())}</div>
                     <div className="text-sm text-gray-600 dark:text-gray-300">Outstanding</div>
                     <div className="text-xs text-red-600 mt-1">2 overdue invoices</div>
                   </div>
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                     <div className="text-2xl font-bold text-green-600">92%</div>
                     <div className="text-sm text-gray-600 dark:text-gray-300">Collection Rate</div>
                     <div className="text-xs text-green-600 mt-1">Above industry avg</div>
                   </div>
-                  <div className="text-center p-4 bg-orange-50 rounded-lg">
+                  <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
                     <div className="text-2xl font-bold text-orange-600">18 days</div>
                     <div className="text-sm text-gray-600 dark:text-gray-300">Avg Collection Time</div>
                     <div className="text-xs text-orange-600 mt-1">Industry: 25 days</div>
@@ -1091,7 +1091,7 @@ export default function BillingPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b bg-gray-50">
+                      <tr className="border-b bg-gray-50 dark:bg-gray-800">
                         <th className="text-left p-3">Service Type</th>
                         <th className="text-left p-3">Procedures</th>
                         <th className="text-left p-3">Revenue</th>
@@ -1101,7 +1101,7 @@ export default function BillingPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="border-b hover:bg-gray-50">
+                      <tr className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
                         <td className="p-3 font-medium">General Consultation</td>
                         <td className="p-3">24</td>
                         <td className="p-3 font-semibold">{formatCurrency(3600)}</td>
@@ -1111,7 +1111,7 @@ export default function BillingPage() {
                           <Badge className="bg-green-100 text-green-800">95%</Badge>
                         </td>
                       </tr>
-                      <tr className="border-b hover:bg-gray-50">
+                      <tr className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
                         <td className="p-3 font-medium">Specialist Consultation</td>
                         <td className="p-3">12</td>
                         <td className="p-3 font-semibold">{formatCurrency(2400)}</td>
@@ -1121,7 +1121,7 @@ export default function BillingPage() {
                           <Badge className="bg-green-100 text-green-800">92%</Badge>
                         </td>
                       </tr>
-                      <tr className="border-b hover:bg-gray-50">
+                      <tr className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
                         <td className="p-3 font-medium">Diagnostic Tests</td>
                         <td className="p-3">18</td>
                         <td className="p-3 font-semibold">{formatCurrency(1800)}</td>
@@ -1131,7 +1131,7 @@ export default function BillingPage() {
                           <Badge className="bg-yellow-100 text-yellow-800">88%</Badge>
                         </td>
                       </tr>
-                      <tr className="border-b hover:bg-gray-50">
+                      <tr className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
                         <td className="p-3 font-medium">Minor Procedures</td>
                         <td className="p-3">8</td>
                         <td className="p-3 font-semibold">{formatCurrency(1200)}</td>
@@ -1141,7 +1141,7 @@ export default function BillingPage() {
                           <Badge className="bg-green-100 text-green-800">94%</Badge>
                         </td>
                       </tr>
-                      <tr className="border-b bg-gray-50 font-semibold">
+                      <tr className="border-b bg-gray-50 dark:bg-gray-800 font-semibold">
                         <td className="p-3">Total</td>
                         <td className="p-3">62</td>
                         <td className="p-3">{formatCurrency(9000)}</td>
