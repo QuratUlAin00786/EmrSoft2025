@@ -216,74 +216,62 @@ export default function PurchaseOrderDialog({ open, onOpenChange, items }: Purch
             </div>
           </div>
 
-          {/* Direct Add Item - No Component */}
-          <div style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '8px', margin: '16px 0' }}>
-            <h3 style={{ marginBottom: '12px', fontSize: '16px', fontWeight: '500' }}>Quick Add Item</h3>
+          {/* Quick Add Item */}
+          <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+            <h3 className="mb-3 text-base font-medium text-gray-900 dark:text-gray-100">Quick Add Item</h3>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '12px', alignItems: 'end' }}>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
               <div>
-                <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px' }}>Item</label>
-                <select 
-                  value={newItem.itemId} 
-                  onChange={(e) => setNewItem({...newItem, itemId: e.target.value})}
-                  style={{ 
-                    width: '100%', 
-                    padding: '8px', 
-                    border: '1px solid #d1d5db', 
-                    borderRadius: '4px',
-                    fontSize: '14px'
-                  }}
-                >
-                  <option value="">Select item</option>
-                  {items.map(item => (
-                    <option key={item.id} value={item.id.toString()}>
-                      {item.name}
-                    </option>
-                  ))}
-                </select>
+                <Label htmlFor="item" className="text-sm">Item</Label>
+                <Select value={newItem.itemId} onValueChange={(value) => setNewItem({...newItem, itemId: value})}>
+                  <SelectTrigger className="bg-white dark:bg-gray-900">
+                    <SelectValue placeholder="Select item" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {items.map(item => (
+                      <SelectItem key={item.id} value={item.id.toString()}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div>
-                <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px' }}>Quantity</label>
-                <input
+                <Label htmlFor="quantity" className="text-sm">Quantity</Label>
+                <Input
                   type="number"
                   min="1"
                   value={newItem.quantity}
                   onChange={(e) => setNewItem({...newItem, quantity: parseInt(e.target.value) || 1})}
-                  style={{ 
-                    width: '100%', 
-                    padding: '8px', 
-                    border: '1px solid #d1d5db', 
-                    borderRadius: '4px',
-                    fontSize: '14px'
-                  }}
+                  className="bg-white dark:bg-gray-900"
                 />
               </div>
               
               <div>
-                <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px' }}>Unit Price</label>
-                <input
+                <Label htmlFor="unitPrice" className="text-sm">Unit Price</Label>
+                <Input
                   type="number"
                   step="0.01"
+                  placeholder="0.00"
                   value={newItem.unitPrice}
                   onChange={(e) => setNewItem({...newItem, unitPrice: e.target.value})}
-                  style={{ 
-                    width: '100%', 
-                    padding: '8px', 
-                    border: '1px solid #d1d5db', 
-                    borderRadius: '4px',
-                    fontSize: '14px'
-                  }}
+                  className="bg-white dark:bg-gray-900"
                 />
               </div>
               
-              <button
-                onMouseDown={(e) => {
+              <Button
+                onClick={(e) => {
                   e.preventDefault();
-                  console.log("DIRECT BUTTON MOUSEDOWN!");
+                  console.log("DIRECT BUTTON CLICKED!");
                   
                   if (!newItem.itemId || !newItem.unitPrice) {
                     console.log("Missing required fields");
+                    toast({
+                      title: "Error",
+                      description: "Please select an item and enter unit price",
+                      variant: "destructive",
+                    });
                     return;
                   }
 
@@ -306,26 +294,13 @@ export default function PurchaseOrderDialog({ open, onOpenChange, items }: Purch
                   setPOItems(prev => [...prev, itemToAdd]);
                   
                   // Reset form
-                  setNewItem({ itemId: "", quantity: 100, unitPrice: "2" });
+                  setNewItem({ itemId: "", quantity: 1, unitPrice: "" });
                 }}
-                style={{
-                  backgroundColor: '#059669',
-                  color: 'white',
-                  padding: '10px 16px',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  whiteSpace: 'nowrap'
-                }}
+                className="bg-green-600 hover:bg-green-700 text-white"
               >
-                <Plus size={16} />
+                <Plus className="h-4 w-4 mr-2" />
                 Add Item NOW
-              </button>
+              </Button>
             </div>
           </div>
 
