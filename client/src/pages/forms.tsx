@@ -2855,11 +2855,11 @@ export default function Forms() {
       </div>
 
       {/* Form Fields Section - Collapsible */}
-      <div style={{ backgroundColor: 'white', borderBottom: '1px solid #e5e7eb' }}>
+      <div className="bg-white dark:bg-[hsl(var(--cura-midnight))] border-b border-gray-200 dark:border-[hsl(var(--cura-steel))]">
         {/* Toggle Header */}
         <div className="px-4 py-2 flex items-center justify-between cursor-pointer" onClick={() => setShowFormFields(!showFormFields)}>
-          <span className="text-sm font-medium text-gray-900">Letter Details</span>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-gray-600 hover:bg-gray-100 hover:text-gray-900">
+          <span className="text-sm font-medium text-gray-900 dark:text-white">Letter Details</span>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white">
             {showFormFields ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </Button>
         </div>
@@ -2970,9 +2970,9 @@ export default function Forms() {
             {selectedHeader === "your-clinic" ? (
               <div>
                 <div className="text-[hsl(var(--cura-bluewave))] dark:text-[hsl(var(--cura-bluewave))] text-lg font-semibold">🏥 {clinicInfo.name}</div>
-                <div className="text-sm text-[hsl(var(--cura-steel))] dark:text-[hsl(var(--cura-steel))] mt-1">{clinicInfo.address}</div>
-                <div className="text-sm text-[hsl(var(--cura-steel))] dark:text-[hsl(var(--cura-steel))]">{clinicInfo.phone} • {clinicInfo.email}</div>
-                <div className="text-sm text-[hsl(var(--cura-steel))] dark:text-[hsl(var(--cura-steel))]">{clinicInfo.website}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">{clinicInfo.address}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">{clinicInfo.phone} • {clinicInfo.email}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">{clinicInfo.website}</div>
                 
                 {/* Edit Button */}
                 <Dialog open={showEditClinic} onOpenChange={setShowEditClinic}>
@@ -3052,7 +3052,7 @@ export default function Forms() {
             ) : (
               <div>
                 <div className="text-[hsl(var(--cura-bluewave))] dark:text-[hsl(var(--cura-bluewave))] text-lg font-semibold">🏥 {selectedHeader.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</div>
-                <div className="text-xs text-[hsl(var(--cura-steel))] dark:text-[hsl(var(--cura-steel))] mt-1">Header preview will appear here</div>
+                <div className="text-xs text-gray-600 dark:text-gray-300 mt-1">Header preview will appear here</div>
               </div>
             )}
           </div>
