@@ -2662,11 +2662,11 @@ export default function Forms() {
   };
 
   return (
-    <div className="h-screen flex flex-col" style={{ backgroundColor: '#E0E1F4' }}>
+    <div className="h-screen flex flex-col bg-gray-100 dark:bg-[hsl(var(--cura-midnight))]">
       {/* Scrollable Content Wrapper */}
       <div className="flex-1 overflow-y-auto">
         {/* Top Header - Professional Medical Theme */}
-        <div className="px-6 py-4 flex-shrink-0" style={{ backgroundColor: 'white', borderBottom: '2px solid #E5E7EB' }}>
+        <div className="px-6 py-4 flex-shrink-0 bg-white dark:bg-[hsl(var(--cura-midnight))] border-b-2 border-gray-200 dark:border-[hsl(var(--cura-steel))]">
         <div className="flex items-center justify-between gap-8">
           <div className="flex items-center gap-4">
             <Button 
@@ -2966,7 +2966,7 @@ export default function Forms() {
           </div>
           
           {/* Header Preview Area */}
-          <div className="mt-4 p-6 dark:bg-[hsl(var(--cura-midnight))] border dark:border-[hsl(var(--cura-steel))] rounded text-center relative" style={{ width: '700px', backgroundColor: 'rgba(114, 121, 251, 0.1)', borderColor: 'rgba(114, 121, 251, 0.2)' }}>
+          <div className="mt-4 p-6 bg-blue-50 dark:bg-[hsl(var(--cura-midnight))] border border-blue-200 dark:border-[hsl(var(--cura-steel))] rounded text-center relative" style={{ width: '700px' }}>
             {selectedHeader === "your-clinic" ? (
               <div>
                 <div className="text-[hsl(var(--cura-bluewave))] dark:text-[hsl(var(--cura-bluewave))] text-lg font-semibold">🏥 {clinicInfo.name}</div>
