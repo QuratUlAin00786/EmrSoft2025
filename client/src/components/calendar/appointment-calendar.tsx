@@ -440,20 +440,20 @@ Medical License: [License Number]
                 <div
                   key={day.toString()}
                   className={`
-                    min-h-[50px] p-1 border rounded cursor-pointer transition-colors
+                    h-[50px] p-1 border rounded cursor-pointer transition-colors flex flex-col
                     ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}
                     ${isCurrentDay ? 'bg-yellow-50 border-yellow-300' : ''}
                   `}
                   onClick={() => setSelectedDate(day)}
                 >
-                  <div className={`text-sm font-medium mb-2 ${isCurrentDay ? 'text-yellow-800' : 'text-gray-900'}`}>
+                  <div className={`text-sm font-medium ${isCurrentDay ? 'text-yellow-800' : 'text-gray-900'}`}>
                     {format(day, "d")}
                   </div>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {dayAppointments.slice(0, 6).map((appointment: any) => (
+                  <div className="flex flex-wrap gap-0.5 mt-0.5 flex-1">
+                    {dayAppointments.slice(0, 10).map((appointment: any) => (
                       <div
                         key={appointment.id}
-                        className="w-2 h-2 rounded-full cursor-pointer"
+                        className="w-1 h-1 rounded-full cursor-pointer"
                         style={{
                           backgroundColor: statusBgColors[appointment.status as keyof typeof statusBgColors] || statusBgColors.scheduled
                         }}
@@ -465,9 +465,9 @@ Medical License: [License Number]
                         title={`${formatTime(appointment.scheduledAt)} - ${appointment.patientName}`}
                       />
                     ))}
-                    {dayAppointments.length > 6 && (
-                      <div className="text-xs text-gray-500 ml-1">
-                        +{dayAppointments.length - 6}
+                    {dayAppointments.length > 10 && (
+                      <div className="text-xs text-gray-500 ml-0.5">
+                        +{dayAppointments.length - 10}
                       </div>
                     )}
                   </div>
