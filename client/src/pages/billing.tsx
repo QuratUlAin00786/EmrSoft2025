@@ -849,10 +849,10 @@ export default function BillingPage() {
             </div>
 
             {filteredInvoices.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
+              <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                 <Receipt className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No invoices found</h3>
-                <p className="text-gray-600">Try adjusting your search terms or filters</p>
+                <p className="text-gray-600 dark:text-gray-300">Try adjusting your search terms or filters</p>
               </div>
             )}
           </TabsContent>
@@ -863,7 +863,7 @@ export default function BillingPage() {
                 <CardTitle>Payment History</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600">Payment management interface coming soon...</p>
+                <p className="text-gray-600 dark:text-gray-300">Payment management interface coming soon...</p>
               </CardContent>
             </Card>
           </TabsContent>
@@ -874,7 +874,7 @@ export default function BillingPage() {
                 <CardTitle>Insurance Claims</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600">Insurance claims management interface coming soon...</p>
+                <p className="text-gray-600 dark:text-gray-300">Insurance claims management interface coming soon...</p>
               </CardContent>
             </Card>
           </TabsContent>
@@ -887,11 +887,11 @@ export default function BillingPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-semibold text-lg mb-2">Revenue Report</h3>
-                      <p className="text-sm text-gray-600">Monthly and yearly revenue analysis</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">Monthly and yearly revenue analysis</p>
                     </div>
                     <BarChart3 className="h-8 w-8 text-blue-600" />
                   </div>
-                  <div className="mt-3 text-sm text-gray-500">
+                  <div className="mt-3 text-sm text-gray-500 dark:text-gray-400">
                     Last updated: {format(new Date(), 'MMM d, yyyy')}
                   </div>
                 </CardContent>
@@ -902,11 +902,11 @@ export default function BillingPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-semibold text-lg mb-2">Outstanding Invoices</h3>
-                      <p className="text-sm text-gray-600">Unpaid and overdue invoices</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">Unpaid and overdue invoices</p>
                     </div>
                     <AlertTriangle className="h-8 w-8 text-red-600" />
                   </div>
-                  <div className="mt-3 text-sm text-gray-500">
+                  <div className="mt-3 text-sm text-gray-500 dark:text-gray-400">
                     Total: {formatCurrency(getOutstandingAmount())}
                   </div>
                 </CardContent>
@@ -917,11 +917,11 @@ export default function BillingPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-semibold text-lg mb-2">Insurance Analytics</h3>
-                      <p className="text-sm text-gray-600">Claims processing and reimbursements</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">Claims processing and reimbursements</p>
                     </div>
                     <PieChart className="h-8 w-8 text-green-600" />
                   </div>
-                  <div className="mt-3 text-sm text-gray-500">
+                  <div className="mt-3 text-sm text-gray-500 dark:text-gray-400">
                     Active claims: 12
                   </div>
                 </CardContent>
@@ -932,11 +932,11 @@ export default function BillingPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-semibold text-lg mb-2">Aging Report</h3>
-                      <p className="text-sm text-gray-600">Accounts receivable by age</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">Accounts receivable by age</p>
                     </div>
                     <Clock className="h-8 w-8 text-orange-600" />
                   </div>
-                  <div className="mt-3 text-sm text-gray-500">
+                  <div className="mt-3 text-sm text-gray-500 dark:text-gray-400">
                     30+ days: £1,250
                   </div>
                 </CardContent>
@@ -947,11 +947,11 @@ export default function BillingPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-semibold text-lg mb-2">Provider Performance</h3>
-                      <p className="text-sm text-gray-600">Revenue by healthcare provider</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">Revenue by healthcare provider</p>
                     </div>
                     <User className="h-8 w-8 text-purple-600" />
                   </div>
-                  <div className="mt-3 text-sm text-gray-500">
+                  <div className="mt-3 text-sm text-gray-500 dark:text-gray-400">
                     5 providers tracked
                   </div>
                 </CardContent>
@@ -962,11 +962,11 @@ export default function BillingPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-semibold text-lg mb-2">Procedure Analysis</h3>
-                      <p className="text-sm text-gray-600">Most profitable procedures and services</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">Most profitable procedures and services</p>
                     </div>
                     <Target className="h-8 w-8 text-teal-600" />
                   </div>
-                  <div className="mt-3 text-sm text-gray-500">
+                  <div className="mt-3 text-sm text-gray-500 dark:text-gray-400">
                     Top CPT: 99213
                   </div>
                 </CardContent>
@@ -985,22 +985,22 @@ export default function BillingPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
                     <div className="text-2xl font-bold text-blue-600">{formatCurrency(getTotalRevenue())}</div>
-                    <div className="text-sm text-gray-600">Total Revenue</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">Total Revenue</div>
                     <div className="text-xs text-green-600 mt-1">+12% vs last month</div>
                   </div>
                   <div className="text-center p-4 bg-red-50 rounded-lg">
                     <div className="text-2xl font-bold text-red-600">{formatCurrency(getOutstandingAmount())}</div>
-                    <div className="text-sm text-gray-600">Outstanding</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">Outstanding</div>
                     <div className="text-xs text-red-600 mt-1">2 overdue invoices</div>
                   </div>
                   <div className="text-center p-4 bg-green-50 rounded-lg">
                     <div className="text-2xl font-bold text-green-600">92%</div>
-                    <div className="text-sm text-gray-600">Collection Rate</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">Collection Rate</div>
                     <div className="text-xs text-green-600 mt-1">Above industry avg</div>
                   </div>
                   <div className="text-center p-4 bg-orange-50 rounded-lg">
                     <div className="text-2xl font-bold text-orange-600">18 days</div>
-                    <div className="text-sm text-gray-600">Avg Collection Time</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">Avg Collection Time</div>
                     <div className="text-xs text-orange-600 mt-1">Industry: 25 days</div>
                   </div>
                 </div>
@@ -1232,7 +1232,7 @@ export default function BillingPage() {
             <div>
               <Label>Services & Procedures</Label>
               <div className="border rounded-md p-4 space-y-3">
-                <div className="grid grid-cols-4 gap-2 text-sm font-medium text-gray-600">
+                <div className="grid grid-cols-4 gap-2 text-sm font-medium text-gray-600 dark:text-gray-300">
                   <span>Code</span>
                   <span>Description</span>
                   <span>Qty</span>
@@ -1404,7 +1404,7 @@ export default function BillingPage() {
               {/* Payment History */}
               <div>
                 <h3 className="font-semibold text-lg mb-3">Payment History</h3>
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-gray-600 dark:text-gray-300">
                   {selectedInvoice.paidAmount > 0 ? (
                     <div className="p-3 bg-green-50 rounded-lg">
                       Payment of £{selectedInvoice.paidAmount.toFixed(2)} received on {format(new Date(selectedInvoice.invoiceDate), 'MMM d, yyyy')}
