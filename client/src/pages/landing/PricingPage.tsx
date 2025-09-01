@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Check, X, Star, Shield, Users, Zap } from "lucide-react";
+import { Check, X, Star, Shield, Users, Zap, Award, Clock } from "lucide-react";
 import curaLogoPath from "@assets/Cura Logo Main AI_1751893631983.png";
 
 export default function PricingPage() {
@@ -155,8 +155,8 @@ export default function PricingPage() {
                 Pricing
               </span>
               <Link href="/auth/login">
-                <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md px-6 py-2">
-                  Login to Portal
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm px-6 py-2 rounded-lg font-medium">
+                  Client Portal
                 </Button>
               </Link>
             </div>
@@ -343,58 +343,82 @@ export default function PricingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white py-12">
+      <footer className="bg-gray-50 border-t border-gray-200 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
+            <div className="md:col-span-2">
+              <div className="flex items-center space-x-3 mb-6">
                 <img 
                   src={curaLogoPath} 
-                  alt="Cura EMR" 
-                  className="h-8 w-auto"
+                  alt="Cura EMR - Electronic Medical Records" 
+                  className="h-12 w-auto"
                 />
               </div>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                Transforming healthcare with intelligent EMR solutions.
+              <p className="text-gray-600 mb-6 text-lg leading-relaxed max-w-md">
+                Advanced Electronic Medical Records platform designed for modern healthcare professionals. 
+                Trusted, secure, and intelligent healthcare management.
               </p>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                <div>Halo Group Ltd</div>
-                <div>123 Healthcare Street</div>
-                <div>Manchester, M1 2AB</div>
-                <div>United Kingdom</div>
+              <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-600 shadow-sm">
+                <div className="font-semibold text-gray-900 mb-2">Cura Software Limited</div>
+                <div>Ground Floor Unit 2, Drayton Court</div>
+                <div>Drayton Road, Solihull, England B90 4NG</div>
+                <div className="mt-2">Company Registration: 16556912</div>
               </div>
             </div>
 
             <div>
-              <h4 className="font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                <li><Link href="/landing/features" className="hover:text-blue-600 dark:hover:text-white">Features</Link></li>
-                <li><Link href="/landing/pricing" className="hover:text-blue-600 dark:hover:text-white">Pricing</Link></li>
-                <li><Link href="/auth/login" className="hover:text-blue-600 dark:hover:text-white">Login</Link></li>
+              <h4 className="font-bold text-lg mb-6 text-gray-900">Navigation</h4>
+              <ul className="space-y-3 text-gray-600">
+                <li><Link href="/" className="hover:text-blue-600 transition-colors">Home</Link></li>
+                <li><Link href="/landing/features" className="hover:text-blue-600 transition-colors">Features</Link></li>
+                <li><Link href="/landing/pricing" className="hover:text-blue-600 transition-colors">Pricing</Link></li>
+                <li><Link href="/landing/about" className="hover:text-blue-600 transition-colors">About Us</Link></li>
+                <li><Link href="/auth/login" className="hover:text-blue-600 transition-colors">Client Portal</Link></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                <li><Link href="/landing/about" className="hover:text-blue-600 dark:hover:text-white">About Us</Link></li>
-                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">Contact</a></li>
-                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">Support</a></li>
+              <h4 className="font-bold text-lg mb-6 text-gray-900">Support & Contact</h4>
+              <ul className="space-y-3 text-gray-600">
+                <li><a href="mailto:support@curaemr.ai" className="hover:text-blue-600 transition-colors">Technical Support</a></li>
+                <li><a href="mailto:info@curaemr.ai" className="hover:text-blue-600 transition-colors">Contact Us</a></li>
+                <li><a href="mailto:demo@curaemr.ai" className="hover:text-blue-600 transition-colors">Request Demo</a></li>
+                <li><Link href="/legal/press" className="hover:text-blue-600 transition-colors">Press & Media</Link></li>
+                <li><a href="mailto:careers@curaemr.ai" className="hover:text-blue-600 transition-colors">Careers</a></li>
               </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-blue-600 dark:hover:text-white">GDPR Compliance</a></li>
-              </ul>
+              
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h5 className="font-medium text-gray-900 mb-3">Legal & Compliance</h5>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li><Link href="/legal/privacy" className="hover:text-blue-600 transition-colors">Privacy Policy</Link></li>
+                  <li><Link href="/legal/terms" className="hover:text-blue-600 transition-colors">Terms of Service</Link></li>
+                  <li><Link href="/legal/gdpr" className="hover:text-blue-600 transition-colors">GDPR Compliance</Link></li>
+                </ul>
+              </div>
             </div>
           </div>
 
-          <div className="border-t border-gray-300 dark:border-gray-600 mt-8 pt-8 text-center text-gray-600 dark:text-gray-400">
-            <p>&copy; 2025 Halo Group Ltd. All rights reserved.</p>
+          <div className="border-t border-gray-200 mt-12 pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center">
+              <div className="text-gray-600 text-sm mb-4 md:mb-0">
+                &copy; 2025 Cura Software Limited. All rights reserved. 
+                <span className="ml-2">Company No: 16556912</span>
+              </div>
+              <div className="flex items-center space-x-6 text-sm">
+                <div className="flex items-center text-gray-600">
+                  <Shield className="w-4 h-4 mr-2 text-blue-600" />
+                  GDPR Compliant
+                </div>
+                <div className="flex items-center text-gray-600">
+                  <Award className="w-4 h-4 mr-2 text-blue-600" />
+                  NHS Trusted
+                </div>
+                <div className="flex items-center text-gray-600">
+                  <Clock className="w-4 h-4 mr-2 text-blue-600" />
+                  99.9% Uptime SLA
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </footer>

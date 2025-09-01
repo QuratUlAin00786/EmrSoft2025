@@ -595,22 +595,22 @@ export default function LandingPage() {
             </div>
 
             <div>
-              <h4 className="font-bold text-lg mb-6 text-gray-900">Healthcare Solutions</h4>
+              <h4 className="font-bold text-lg mb-6 text-gray-900">Navigation</h4>
               <ul className="space-y-3 text-gray-600">
-                <li><Link href="/landing/features" className="hover:text-blue-600 transition-colors">EMR Platform</Link></li>
+                <li><Link href="/" className="hover:text-blue-600 transition-colors">Home</Link></li>
+                <li><Link href="/landing/features" className="hover:text-blue-600 transition-colors">Features</Link></li>
+                <li><Link href="/landing/pricing" className="hover:text-blue-600 transition-colors">Pricing</Link></li>
+                <li><Link href="/landing/about" className="hover:text-blue-600 transition-colors">About Us</Link></li>
                 <li><Link href="/auth/login" className="hover:text-blue-600 transition-colors">Client Portal</Link></li>
-                <li><Link href="/landing/pricing" className="hover:text-blue-600 transition-colors">Pricing Plans</Link></li>
-                <li><Link href="/landing/features#integrations" className="hover:text-blue-600 transition-colors">API Integration</Link></li>
-                <li><a href="mailto:demo@curaemr.ai" className="hover:text-blue-600 transition-colors">Request Demo</a></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-bold text-lg mb-6 text-gray-900">Professional Support</h4>
+              <h4 className="font-bold text-lg mb-6 text-gray-900">Support & Contact</h4>
               <ul className="space-y-3 text-gray-600">
-                <li><Link href="/landing/about" className="hover:text-blue-600 transition-colors">About Cura</Link></li>
                 <li><a href="mailto:support@curaemr.ai" className="hover:text-blue-600 transition-colors">Technical Support</a></li>
                 <li><a href="mailto:info@curaemr.ai" className="hover:text-blue-600 transition-colors">Contact Us</a></li>
+                <li><a href="mailto:demo@curaemr.ai" className="hover:text-blue-600 transition-colors">Request Demo</a></li>
                 <li><Link href="/legal/press" className="hover:text-blue-600 transition-colors">Press & Media</Link></li>
                 <li><a href="mailto:careers@curaemr.ai" className="hover:text-blue-600 transition-colors">Careers</a></li>
               </ul>
