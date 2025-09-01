@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
 import dashboardScreenshot from "@assets/Screenshot 2025-08-19 at 12.12.03_1755587692183.png";
+import medicalHeroImage from "@assets/generated_images/Medical_technology_hero_illustration_7e71c26d.png";
 import { WebsiteChatbot } from "@/components/WebsiteChatbot";
 
 export default function LandingPage() {
@@ -127,14 +128,14 @@ export default function LandingPage() {
             </div>
             
             <div className="relative">
-              <div className="bg-white/10 backdrop-blur rounded-2xl p-4 shadow-2xl">
+              <div className="bg-white/10 backdrop-blur rounded-2xl p-6 shadow-2xl">
                 <img 
-                  src={dashboardScreenshot} 
-                  alt="Cura EMR Dashboard - Professional Medical Interface"
-                  className="w-full h-auto rounded-xl shadow-lg"
+                  src={medicalHeroImage} 
+                  alt="Modern Healthcare Technology - AI-Powered Medical Solutions"
+                  className="w-full h-auto rounded-xl"
                 />
-                <div className="absolute -top-4 -right-4 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
-                  Live Platform
+                <div className="absolute -top-4 -right-4 bg-yellow-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
+                  AI-Powered
                 </div>
               </div>
             </div>
