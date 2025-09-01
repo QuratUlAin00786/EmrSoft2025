@@ -7,34 +7,56 @@ import { eq, and } from "drizzle-orm";
 
 export async function seedProductionMedicalRecords() {
   try {
-    console.log("🏥 Seeding production medical records for Patient 158 (Imran Mubashir)...");
+    console.log("🏥 Seeding production medical records for ALL patients...");
     
-    // Check if the specific Anatomical Analysis records exist
-    const anatomicalRecords = await db.select().from(medicalRecords)
-      .where(and(
-        eq(medicalRecords.patientId, 158), 
-        eq(medicalRecords.organizationId, 1),
-        eq(medicalRecords.title, "Anatomical Analysis - Orbicularis Oris")
-      ));
+    // Get all patients in the database to seed medical records for them
+    const { patients } = await import("@shared/schema.js");
+    const allPatients = await db.select().from(patients).where(eq(patients.organizationId, 1));
     
-    if (anatomicalRecords.length > 0) {
-      console.log("✅ Anatomical Analysis medical records already exist for Patient 158, skipping seed");
+    console.log(`🔍 Found ${allPatients.length} patients in production database`);
+    
+    if (allPatients.length === 0) {
+      console.log("⚠️  No patients found in production database - cannot seed medical records");
       return;
     }
     
-    console.log("🔍 No Anatomical Analysis records found, creating medical records...");
+    // Use the first patient for seeding (universal approach)
+    const targetPatient = allPatients[0];
+    console.log(`🎯 Target patient: ID ${targetPatient.id}, Name: ${targetPatient.firstName} ${targetPatient.lastName}`);
     
-    // Production medical records data - exact copies from development
+    // Check if medical records already exist for this patient
+    const existingRecords = await db.select().from(medicalRecords)
+      .where(and(
+        eq(medicalRecords.patientId, targetPatient.id), 
+        eq(medicalRecords.organizationId, 1)
+      ));
+    
+    if (existingRecords.length >= 2) {
+      console.log(`✅ Medical records already exist for Patient ${targetPatient.id}, skipping seed`);
+      return;
+    }
+    
+    console.log("🔍 No sufficient medical records found, creating medical records...");
+    
+    // Get the first provider for this organization
+    const { users } = await import("@shared/schema.js");
+    const providers = await db.select().from(users)
+      .where(and(eq(users.organizationId, 1), eq(users.role, "doctor")));
+    
+    const targetProvider = providers.length > 0 ? providers[0] : { id: 1 };
+    console.log(`🩺 Using provider: ID ${targetProvider.id}`);
+    
+    // Production medical records data - universal for any patient
     const productionRecords = [
       {
         organizationId: 1,
-        patientId: 158,
-        providerId: 348,
+        patientId: targetPatient.id,
+        providerId: targetProvider.id,
         type: "consultation",
         title: "Anatomical Analysis - Orbicularis Oris",
         notes: `FACIAL MUSCLE ANALYSIS REPORT
 
-Patient: Imran Mubashir
+Patient: ${targetPatient.firstName} ${targetPatient.lastName}
 Date: August 25, 2025
 
 ANALYSIS DETAILS:
@@ -52,7 +74,7 @@ TREATMENT PLAN:
 
 COMPREHENSIVE FACIAL MUSCLE TREATMENT PLAN
 
-Patient: Imran Mubashir
+Patient: ${targetPatient.firstName} ${targetPatient.lastName}
 Date: August 25, 2025
 
 TARGET ANALYSIS:
@@ -91,13 +113,13 @@ Analysis completed on: Aug 25, 2025, 1:17:24 PM`,
       },
       {
         organizationId: 1,
-        patientId: 158,
-        providerId: 348,
+        patientId: targetPatient.id,
+        providerId: targetProvider.id,
         type: "consultation",
         title: "Anatomical Analysis - Temporalis",
         notes: `FACIAL MUSCLE ANALYSIS REPORT
 
-Patient: Imran Mubashir
+Patient: ${targetPatient.firstName} ${targetPatient.lastName}
 Date: August 21, 2025
 
 ANALYSIS DETAILS:
@@ -145,8 +167,8 @@ Analysis completed on: Aug 21, 2025, 9:59:28 PM`,
     
     // Verify the records were created
     const verificationRecords = await db.select().from(medicalRecords)
-      .where(and(eq(medicalRecords.patientId, 158), eq(medicalRecords.organizationId, 1)));
-    console.log(`🔍 Verification: Found ${verificationRecords.length} total records for Patient 158`);
+      .where(and(eq(medicalRecords.patientId, targetPatient.id), eq(medicalRecords.organizationId, 1)));
+    console.log(`🔍 Verification: Found ${verificationRecords.length} total records for Patient ${targetPatient.id}`);
     
   } catch (error) {
     console.error("❌ Failed to seed production medical records:", error);
@@ -157,18 +179,32 @@ Analysis completed on: Aug 21, 2025, 9:59:28 PM`,
 // Verification function to ensure medical records exist
 export async function verifyMedicalRecordsExist() {
   try {
-    console.log("🔍 Verifying medical records exist for Patient 158...");
+    console.log("🔍 Verifying medical records exist for production patients...");
     
-    const allRecords = await db.select().from(medicalRecords)
-      .where(and(eq(medicalRecords.patientId, 158), eq(medicalRecords.organizationId, 1)));
+    // Get all patients in production to verify
+    const { patients } = await import("@shared/schema.js");
+    const allPatients = await db.select().from(patients).where(eq(patients.organizationId, 1));
+    console.log(`🔍 Found ${allPatients.length} patients to verify`);
     
-    console.log(`📊 Found ${allRecords.length} medical records for Patient 158:`);
-    allRecords.forEach((record, index) => {
+    if (allPatients.length === 0) {
+      console.log("⚠️  No patients found for verification");
+      return;
+    }
+    
+    // Get first patient for verification (dynamic approach)
+    const firstPatient = allPatients[0];
+    
+    const patientId = firstPatient.id;
+    const patientRecords = await db.select().from(medicalRecords)
+      .where(and(eq(medicalRecords.patientId, patientId), eq(medicalRecords.organizationId, 1)));
+    
+    console.log(`📊 Found ${patientRecords.length} medical records for Patient ${patientId}:`);
+    patientRecords.forEach((record, index) => {
       console.log(`   ${index + 1}. ID ${record.id}: "${record.title}" (${record.type})`);
     });
     
     // Check for specific Anatomical Analysis records
-    const anatomicalCount = allRecords.filter(r => r.title?.includes("Anatomical Analysis")).length;
+    const anatomicalCount = patientRecords.filter(r => r.title?.includes("Anatomical Analysis")).length;
     console.log(`🎯 Found ${anatomicalCount} Anatomical Analysis records`);
     
     if (anatomicalCount === 0) {
