@@ -165,7 +165,7 @@ export default function CalendarPage() {
 
         {/* Selected Doctor Indicator */}
         <div className="mt-6">
-          <div className="bg-yellow-100 border border-yellow-300 p-3 rounded">
+          <div className="bg-yellow-100 border border-yellow-300 p-3 rounded text-gray-900 dark:text-gray-900">
             Selected Doctor: {selectedDoctor ? `${selectedDoctor.firstName} ${selectedDoctor.lastName}` : 'None'}
           </div>
         </div>
