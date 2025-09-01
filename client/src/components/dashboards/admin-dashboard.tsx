@@ -21,6 +21,7 @@ function RecentPatientsList() {
       const response = await fetch('/api/patients', {
         headers: {
           ...headers,
+          'X-Tenant-Subdomain': 'demo',
           'Cache-Control': 'no-cache',
           'Pragma': 'no-cache'
         },

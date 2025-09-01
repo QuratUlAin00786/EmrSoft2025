@@ -65,25 +65,17 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
   const { data: patients, isLoading, error } = useQuery<Patient[]>({
     queryKey: ["/api/patients", { limit: 10 }],
     queryFn: async () => {
-      console.log("RecentPatients - Making API call to /api/patients?limit=10");
       const response = await fetch("/api/patients?limit=10", {
         headers: {
           "X-Tenant-Subdomain": "demo"
         }
       });
-      console.log("RecentPatients - Response status:", response.status, response.ok);
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("RecentPatients - API Error:", response.status, errorText);
         throw new Error(`Failed to fetch patients: ${response.status}`);
       }
-      const data = await response.json();
-      console.log("RecentPatients - Received data:", data);
-      return data;
+      return response.json();
     }
   });
-
-  console.log("RecentPatients - isLoading:", isLoading, "error:", error, "patients:", patients);
 
   const sendReminderMutation = useMutation({
     mutationFn: async (patientId: number) => {
