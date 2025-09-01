@@ -272,12 +272,12 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
         }
       }}
     >
-      <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b px-6 py-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b dark:border-gray-700 px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-blue-600" />
-              <h2 className="text-lg font-semibold">Schedule New Appointment</h2>
+              <h2 className="text-lg font-semibold dark:text-white">Schedule New Appointment</h2>
             </div>
             <Button
               variant="ghost"
@@ -288,7 +288,7 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
               ✕
             </Button>
           </div>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
             Fill in the details below to schedule a new patient appointment.
           </p>
         </div>
@@ -296,9 +296,9 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
         <div className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Patient *</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Patient *</label>
               <select 
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
                 value={formData.patientId}
                 onChange={(e) => setFormData(prev => ({ ...prev, patientId: e.target.value }))}
               >
@@ -311,9 +311,9 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
               </select>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Provider *</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Provider *</label>
               <select 
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
                 value={formData.providerId}
                 onChange={(e) => setFormData(prev => ({ ...prev, providerId: e.target.value }))}
               >
@@ -334,9 +334,9 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
           </div>
           
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">Department *</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Department *</label>
             <select 
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
               value={formData.department}
               onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
             >
@@ -355,19 +355,19 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Date *</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Date *</label>
               <input 
                 type="date"
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
                 value={formData.date}
                 onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Time *</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Time *</label>
               <input 
                 type="time"
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
                 value={formData.time}
                 onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
               />
@@ -375,16 +375,16 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
           </div>
 
           {availableProviders.length === 0 && formData.date && formData.time && allProviders.length > 0 && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
+            <div className="bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded-lg p-3 text-sm text-yellow-800 dark:text-yellow-200">
               ⚠️ No providers are available at the selected date and time. Please choose a different time.
             </div>
           )}
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Duration (minutes)</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Duration (minutes)</label>
               <select 
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
                 value={formData.duration}
                 onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))}
               >
@@ -396,9 +396,9 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
               </select>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Type</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Type</label>
               <select 
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
                 value={formData.type}
                 onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
               >
@@ -412,10 +412,10 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">Title</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Title</label>
             <input 
               type="text"
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
               placeholder="Appointment title..."
               value={formData.title}
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
@@ -423,9 +423,9 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">Description</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Description</label>
             <textarea 
-              className="w-full p-2 border border-gray-300 rounded-md h-20"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white h-20"
               placeholder="Additional notes..."
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
@@ -440,7 +440,7 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
               onChange={(e) => setFormData(prev => ({ ...prev, isVirtual: e.target.checked }))}
               className="rounded"
             />
-            <label htmlFor="isVirtual" className="text-sm font-medium text-gray-700">
+            <label htmlFor="isVirtual" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Virtual appointment
             </label>
           </div>
