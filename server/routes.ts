@@ -1325,7 +1325,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(appointment);
     } catch (error) {
       console.error("Appointment creation error:", error);
-      res.status(500).json({ error: "Failed to create appointment" });
+      
+      // Provide more specific error message if it's a validation error
+      const errorMessage = error instanceof Error ? error.message : "Failed to create appointment";
+      res.status(500).json({ 
+        error: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? error : undefined
+      });
     }
   });
 

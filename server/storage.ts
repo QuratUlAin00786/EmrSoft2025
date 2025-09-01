@@ -742,9 +742,9 @@ export class DatabaseStorage implements IStorage {
       errors.push(`Appointment duration must be one of: ${validDurations.join(', ')} minutes`);
     }
 
-    // Pattern 4: Validate appointment type
+    // Pattern 4: Validate appointment type (case insensitive)
     const validTypes = ['consultation', 'follow_up', 'procedure', 'emergency', 'routine_checkup'];
-    if (appointment.type && !validTypes.includes(appointment.type)) {
+    if (appointment.type && !validTypes.includes(appointment.type.toLowerCase())) {
       errors.push(`Appointment type must be one of: ${validTypes.join(', ')}`);
     }
 
@@ -766,18 +766,27 @@ export class DatabaseStorage implements IStorage {
     // Pattern 7: Validate required relationships exist
     try {
       // Check if patient exists
-      const patient = await this.getPatient(appointment.patientId, appointment.organizationId);
-      if (!patient) {
-        errors.push(`Patient with ID ${appointment.patientId} not found in organization ${appointment.organizationId}`);
+      if (!appointment.patientId) {
+        errors.push("Patient ID is required for appointment creation");
+      } else {
+        const patient = await this.getPatient(appointment.patientId, appointment.organizationId);
+        if (!patient) {
+          errors.push(`Patient with ID ${appointment.patientId} not found in organization ${appointment.organizationId}`);
+        }
       }
 
       // Check if provider exists
-      const provider = await this.getUser(appointment.providerId, appointment.organizationId);
-      if (!provider) {
-        errors.push(`Provider with ID ${appointment.providerId} not found in organization ${appointment.organizationId}`);
+      if (!appointment.providerId) {
+        errors.push("Provider ID is required for appointment creation");
+      } else {
+        const provider = await this.getUser(appointment.providerId, appointment.organizationId);
+        if (!provider) {
+          errors.push(`Provider with ID ${appointment.providerId} not found in organization ${appointment.organizationId}`);
+        }
       }
     } catch (error) {
-      errors.push("Failed to validate patient and provider relationships");
+      console.error("Error validating patient/provider relationships:", error);
+      errors.push(`Failed to validate patient and provider relationships: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 
     return {
