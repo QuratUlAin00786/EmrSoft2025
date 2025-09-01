@@ -8,43 +8,52 @@ import AppointmentCalendar from "../calendar/appointment-calendar";
 
 // Recent Patients List Component
 function RecentPatientsList() {
-  const { data: patients, isLoading, error } = useQuery({
-    queryKey: ["recent-patients-list"],
-    queryFn: async () => {
-      const response = await fetch('/api/patients', {
-        headers: {
-          'X-Tenant-Subdomain': 'demo',
-        },
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch patients: ${response.status}`);
+  const [patients, setPatients] = React.useState<any[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    async function fetchPatients() {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const response = await fetch('/api/patients', {
+          headers: {
+            'X-Tenant-Subdomain': 'demo',
+          },
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch patients: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setPatients(Array.isArray(data) ? data : []);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load patients');
+        setPatients([]);
+      } finally {
+        setIsLoading(false);
       }
-      
-      return response.json();
-    },
-    retry: 3,
-    refetchOnMount: true
-  });
+    }
+
+    fetchPatients();
+  }, []);
 
   if (isLoading) {
     return <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">Loading patients...</div>;
   }
 
-  if (error || !patients) {
-    return <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">Unable to load patient data. Please try again later.</div>;
-  }
-
-  // Ensure patients is an array
-  const patientsArray = Array.isArray(patients) ? patients : [];
-  
-  if (patientsArray.length === 0) {
-    return <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">No patients found.</div>;
+  if (error || patients.length === 0) {
+    return <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+      {error || "No patients found."}
+    </div>;
   }
 
   // Get the 5 most recent patients (sorted by creation date)
-  const recentPatients = patientsArray
+  const recentPatients = patients
     .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 5);
 
