@@ -311,8 +311,8 @@ Medical License: [License Number]
 
 
 
-  // Process and validate appointments - only when all data is loaded
-  const appointments = (appointmentsData && Array.isArray(appointmentsData) && patientsData && Array.isArray(patientsData) ? appointmentsData.filter((apt: any) => {
+  // Process and validate appointments - show appointments even if patient data is still loading
+  const appointments = (appointmentsData && Array.isArray(appointmentsData) ? appointmentsData.filter((apt: any) => {
     const isValid = apt && apt.id && apt.scheduledAt;
     if (!isValid) {
       console.warn('[Calendar] Invalid appointment filtered out:', apt);
