@@ -78,12 +78,12 @@ export function TaskManagement() {
 
   const { data: tasks, isLoading } = useQuery({
     queryKey: ["/api/tasks"],
-    queryFn: () => fetch("/api/tasks").then(res => res.json())
+    queryFn: () => apiRequest("GET", "/api/tasks")
   });
 
   const { data: patients } = useQuery({
     queryKey: ["/api/patients"],
-    queryFn: () => fetch("/api/patients").then(res => res.json())
+    queryFn: () => apiRequest("GET", "/api/patients")
   });
 
   const createTaskMutation = useMutation({

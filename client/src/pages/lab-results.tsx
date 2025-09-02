@@ -89,10 +89,6 @@ export default function LabResultsPage() {
     }
   });
 
-  // Debug: Log the patients data to understand its structure
-  console.log("DEBUG - Patients data:", patients);
-  console.log("DEBUG - Patients is array:", Array.isArray(patients));
-  console.log("DEBUG - Patients length:", patients?.length);
 
   const { data: users = [] } = useQuery({
     queryKey: ["/api/users"],
@@ -485,9 +481,7 @@ export default function LabResultsPage() {
                       </SelectItem>
                     ))
                   ) : (
-                    <SelectItem value="none" disabled>
-                      {patients ? `No patients found (${patients?.length || 0} items)` : "No patients available"}
-                    </SelectItem>
+                    <SelectItem value="none" disabled>No patients available</SelectItem>
                   )}
                 </SelectContent>
               </Select>
