@@ -1165,27 +1165,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Create patient communication record for flag (for audit trail)
-      const communication = await storage.createPatientCommunication({
-        organizationId: req.tenant!.id,
-        patientId,
-        type: 'flag',
-        method: 'system',
-        message: `Patient flagged: ${flagData.flagType} (${flagData.priority}) - ${flagData.reason}`,
-        sentBy: req.user!.id,
-        metadata: {
-          flagType: flagData.flagType,
-          priority: flagData.priority
-        }
-      });
-
       // Fetch updated patient to return current state
       const updatedPatient = await storage.getPatient(patientId, req.tenant!.id);
 
       res.json({ 
         success: true, 
         message: `${flagData.flagType} flag (${flagData.priority} priority) added to ${patient.firstName} ${patient.lastName}`,
-        communication,
         patientId,
         flagType: flagData.flagType,
         priority: flagData.priority,
