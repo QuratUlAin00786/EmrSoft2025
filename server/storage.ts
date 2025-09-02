@@ -428,7 +428,7 @@ export class DatabaseStorage implements IStorage {
       ...(user.permissions && typeof user.permissions === 'object' ? 
         { permissions: JSON.parse(JSON.stringify(user.permissions)) } : {})
     };
-    const [created] = await db.insert(users).values(userData).returning();
+    const [created] = await db.insert(users).values([userData]).returning();
     return created;
   }
 
@@ -2529,7 +2529,7 @@ export class DatabaseStorage implements IStorage {
     console.log("Storage: Doctor ID being inserted:", prescription.doctorId);
     const [newPrescription] = await db
       .insert(prescriptions)
-      .values(prescription)
+      .values([prescription])
       .returning();
     return newPrescription;
   }
@@ -2567,7 +2567,7 @@ export class DatabaseStorage implements IStorage {
   async createLabResult(labResult: InsertLabResult): Promise<LabResult> {
     const [result] = await db
       .insert(labResults)
-      .values(labResult)
+      .values([labResult])
       .returning();
     
     return result;
@@ -2886,11 +2886,11 @@ export class DatabaseStorage implements IStorage {
   async createDocument(document: InsertDocument): Promise<Document> {
     const [newDocument] = await db
       .insert(documents)
-      .values({
+      .values([{
         ...document,
         createdAt: new Date(),
         updatedAt: new Date(),
-      })
+      }])
       .returning();
     return newDocument;
   }
@@ -2943,11 +2943,11 @@ export class DatabaseStorage implements IStorage {
   async createMedicalImage(image: InsertMedicalImage): Promise<MedicalImage> {
     const [newImage] = await db
       .insert(medicalImages)
-      .values({
+      .values([{
         ...image,
         createdAt: new Date(),
         updatedAt: new Date(),
-      })
+      }])
       .returning();
     return newImage;
   }

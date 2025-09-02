@@ -94,7 +94,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const saasUser = await storage.createUser({
           username: 'saas_admin',
           email: 'saas_admin@curaemr.ai',
-          password: hashedPassword,
+          passwordHash: hashedPassword,
           firstName: 'SaaS',
           lastName: 'Administrator',
           organizationId: 0,
@@ -113,7 +113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         // Update existing user to ensure proper flags
         await storage.updateUser(existingUser.id, 0, {
-          password: hashedPassword,
+          passwordHash: hashedPassword,
           isActive: true,
           isSaaSOwner: true
         });
@@ -158,7 +158,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.createUser({
             username: 'saas_admin',
             email: 'saas_admin@curaemr.ai',
-            password: hashedPassword,
+            passwordHash: hashedPassword,
             firstName: 'SaaS',
             lastName: 'Administrator',
             organizationId: 0,
@@ -1396,7 +1396,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return true;
         })
         .map(user => {
-          const { password, ...safeUser } = user;
+          const { passwordHash, ...safeUser } = user;
           return safeUser;
         });
       
@@ -1421,9 +1421,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const users = await storage.getUsersByOrganization(req.tenant!.id);
       
-      // Remove password from response
+      // Remove passwordHash from response
       const safeUsers = users.map(user => {
-        const { password, ...safeUser } = user;
+        const { passwordHash, ...safeUser } = user;
         return safeUser;
       });
 
@@ -1687,8 +1687,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Force create user with unique email suffix for production fix
       const uniqueEmail = userData.email.includes('+') ? userData.email : userData.email.replace('@', `+${Date.now()}@`);
       
+      const { password, ...userDataWithoutPassword } = userData;
       const user = await storage.createUser({
-        ...userData,
+        ...userDataWithoutPassword,
         email: uniqueEmail,
         organizationId: req.tenant!.id,
         passwordHash: hashedPassword,

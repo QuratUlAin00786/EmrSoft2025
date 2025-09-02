@@ -564,6 +564,36 @@ export default function PrescriptionsPage() {
     ctx.moveTo(x, y);
   };
 
+  // Touch event handlers
+  const startDrawingTouch = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    setIsDrawing(true);
+    drawTouch(e);
+  };
+
+  const drawTouch = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawing || !canvasRef.current) return;
+    e.preventDefault();
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#000000';
+    
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  };
+
   const clearSignature = () => {
     if (!canvasRef.current) return;
     const canvas = canvasRef.current;
@@ -1730,8 +1760,8 @@ export default function PrescriptionsPage() {
                       onMouseMove={draw}
                       onMouseUp={stopDrawing}
                       onMouseLeave={stopDrawing}
-                      onTouchStart={startDrawing}
-                      onTouchMove={draw}
+                      onTouchStart={startDrawingTouch}
+                      onTouchMove={drawTouch}
                       onTouchEnd={stopDrawing}
                     />
                     <div className="absolute top-2 right-2 text-xs text-gray-400">
