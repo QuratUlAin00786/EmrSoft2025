@@ -78,7 +78,8 @@ export default function LabResultsPage() {
   const { data: labResults = [], isLoading } = useQuery({
     queryKey: ["/api/lab-results"],
     queryFn: async () => {
-      return await apiRequest("GET", "/api/lab-results");
+      const response = await apiRequest("GET", "/api/lab-results");
+      return await response.json();
     }
   });
 
