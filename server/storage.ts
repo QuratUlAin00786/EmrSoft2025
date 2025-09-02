@@ -716,6 +716,33 @@ export class DatabaseStorage implements IStorage {
   async createAppointment(appointment: InsertAppointment): Promise<Appointment> {
     console.log("Creating appointment with data:", appointment);
     try {
+      // Check for scheduling conflicts FIRST (double booking prevention)
+      const existingAppointments = await this.getAppointmentsByProvider(
+        appointment.providerId, 
+        appointment.organizationId, 
+        appointment.scheduledAt
+      );
+      
+      console.log("🔍 Conflict Detection in Storage:");
+      console.log("- Requested time:", appointment.scheduledAt);
+      console.log("- Provider ID:", appointment.providerId);
+      console.log("- Existing appointments found:", existingAppointments.length);
+      
+      // Check for time conflicts
+      const appointmentEnd = new Date(appointment.scheduledAt.getTime() + appointment.duration * 60 * 1000);
+      const conflicts = existingAppointments.filter(existing => {
+        const existingEnd = new Date(existing.scheduledAt.getTime() + existing.duration * 60 * 1000);
+        // Check if the time ranges overlap
+        return (appointment.scheduledAt < existingEnd && appointmentEnd > existing.scheduledAt);
+      });
+      
+      if (conflicts.length > 0) {
+        console.log("❌ SCHEDULING CONFLICT DETECTED:", conflicts.length, "conflicts");
+        throw new Error(`Doctor is already scheduled at this time. Please choose a different time.`);
+      }
+      
+      console.log("✅ No conflicts found, proceeding with appointment creation");
+
       // Validate appointment pattern compliance before creation
       const validationResult = await this.validateAppointmentPattern(appointment);
       if (!validationResult.isValid) {

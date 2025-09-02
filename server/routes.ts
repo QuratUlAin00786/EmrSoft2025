@@ -1319,6 +1319,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("Creating appointment with final data:", appointmentToCreate);
       
+      // Check for scheduling conflicts (double booking)
+      const existingAppointments = await storage.getAppointmentsByProvider(
+        appointmentToCreate.providerId, 
+        appointmentToCreate.organizationId, 
+        appointmentToCreate.scheduledAt
+      );
+      
+      console.log("🔍 Conflict Detection Debug:");
+      console.log("- Requested time:", appointmentToCreate.scheduledAt);
+      console.log("- Provider ID:", appointmentToCreate.providerId);
+      console.log("- Existing appointments found:", existingAppointments.length);
+      existingAppointments.forEach(apt => {
+        console.log(`  - Appointment ${apt.id}: ${apt.title} at ${apt.scheduledAt}`);
+      });
+      
+      // Check for conflicts at the exact same time
+      const appointmentEnd = new Date(appointmentToCreate.scheduledAt.getTime() + appointmentToCreate.duration * 60 * 1000);
+      const conflicts = existingAppointments.filter(existing => {
+        const existingEnd = new Date(existing.scheduledAt.getTime() + existing.duration * 60 * 1000);
+        
+        // Check if the time ranges overlap
+        const overlaps = (appointmentToCreate.scheduledAt < existingEnd && appointmentEnd > existing.scheduledAt);
+        console.log(`  - Checking overlap with ${existing.title}: ${overlaps}`);
+        console.log(`    Requested: ${appointmentToCreate.scheduledAt} to ${appointmentEnd}`);
+        console.log(`    Existing: ${existing.scheduledAt} to ${existingEnd}`);
+        
+        return overlaps;
+      });
+      
+      console.log("- Total conflicts found:", conflicts.length);
+      
+      if (conflicts.length > 0) {
+        console.log("Scheduling conflict detected:", conflicts);
+        
+        // Generate suggested alternative times (30-minute intervals)
+        const suggestedTimes = [];
+        const baseTime = new Date(appointmentToCreate.scheduledAt);
+        baseTime.setMinutes(0, 0, 0); // Round to hour
+        
+        for (let i = 0; i < 16; i++) { // 8 hours of suggestions
+          const suggestionTime = new Date(baseTime.getTime() + i * 30 * 60 * 1000);
+          
+          // Check if this suggestion conflicts
+          const hasConflict = existingAppointments.some(existing => {
+            const existingEnd = new Date(existing.scheduledAt.getTime() + existing.duration * 60 * 1000);
+            const suggestionEnd = new Date(suggestionTime.getTime() + appointmentToCreate.duration * 60 * 1000);
+            return (suggestionTime < existingEnd && suggestionEnd > existing.scheduledAt);
+          });
+          
+          if (!hasConflict && suggestionTime.getTime() !== appointmentToCreate.scheduledAt.getTime()) {
+            suggestedTimes.push(suggestionTime.toLocaleTimeString('en-US', { 
+              hour: '2-digit', 
+              minute: '2-digit',
+              hour12: true 
+            }));
+            if (suggestedTimes.length >= 3) break; // Limit to 3 suggestions
+          }
+        }
+        
+        return res.status(409).json({
+          error: "Doctor is already scheduled at this time. Please choose a different time.",
+          conflictType: "double_booking",
+          conflictingAppointment: {
+            time: conflicts[0].scheduledAt.toLocaleTimeString('en-US', { 
+              hour: '2-digit', 
+              minute: '2-digit',
+              hour12: true 
+            }),
+            title: conflicts[0].title,
+            patient: conflicts[0].patientId
+          },
+          suggestedTimes: suggestedTimes.length > 0 ? suggestedTimes : ["Please select a different time"],
+          requestedTime: appointmentToCreate.scheduledAt.toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: true 
+          })
+        });
+      }
+      
       const appointment = await storage.createAppointment(appointmentToCreate);
       
       console.log("Appointment creation completed, returning:", appointment);
