@@ -571,13 +571,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePatient(id: number, organizationId: number, updates: Partial<InsertPatient>): Promise<Patient | undefined> {
-    const { address, medicalHistory, communicationPreferences, ...baseUpdates } = updates;
+    const { address, medicalHistory, communicationPreferences, flags, ...baseUpdates } = updates;
     const updateData = {
       ...baseUpdates,
       updatedAt: new Date(),
       ...(address && { address: JSON.parse(JSON.stringify(address)) }),
       ...(medicalHistory && { medicalHistory: JSON.parse(JSON.stringify(medicalHistory)) }),
-      ...(communicationPreferences && { communicationPreferences: JSON.parse(JSON.stringify(communicationPreferences)) })
+      ...(communicationPreferences && { communicationPreferences: JSON.parse(JSON.stringify(communicationPreferences)) }),
+      ...(flags !== undefined && { flags })
     };
     const [updated] = await db.update(patients)
       .set(updateData)
