@@ -70,7 +70,7 @@ export async function seedDatabase() {
         }
         
         await db.update(users)
-          .set({ password: newPassword })
+          .set({ passwordHash: newPassword })
           .where(eq(users.id, user.id));
       }
       
@@ -90,7 +90,7 @@ export async function seedDatabase() {
           organizationId: org.id,
           email: "admin@cura.com",
           username: "admin",
-          password: hashedAdminPassword,
+          passwordHash: hashedAdminPassword,
           firstName: "John",
           lastName: "Administrator",
           role: "admin",
@@ -103,7 +103,7 @@ export async function seedDatabase() {
           organizationId: org.id,
           email: "doctor@cura.com",
           username: "doctor",
-          password: hashedDoctorPassword,
+          passwordHash: hashedDoctorPassword,
           firstName: "Sarah",
           lastName: "Smith",
           role: "doctor",
@@ -116,7 +116,7 @@ export async function seedDatabase() {
           organizationId: org.id,
           email: "nurse@cura.com",
           username: "nurse",
-          password: hashedNursePassword,
+          passwordHash: hashedNursePassword,
           firstName: "Emily",
           lastName: "Johnson",
           role: "nurse",
@@ -129,7 +129,7 @@ export async function seedDatabase() {
           organizationId: org.id,
           email: "patient@cura.com",
           username: "patient",
-          password: hashedPatientPassword,
+          passwordHash: hashedPatientPassword,
           firstName: "Michael",
           lastName: "Patient",
           role: "patient",
@@ -140,7 +140,7 @@ export async function seedDatabase() {
           organizationId: org.id,
           email: "labtech@cura.com",
           username: "labtech",
-          password: hashedLabTechPassword,
+          passwordHash: hashedLabTechPassword,
           firstName: "Maria",
           lastName: "Rodriguez",
           role: "lab_technician",
@@ -153,7 +153,7 @@ export async function seedDatabase() {
           organizationId: org.id,
           email: "doctor2@cura.com",
           username: "doctor2",
-          password: hashedDoctorPassword,
+          passwordHash: hashedDoctorPassword,
           firstName: "Michael",
           lastName: "Johnson",
           role: "doctor",
@@ -166,7 +166,7 @@ export async function seedDatabase() {
           organizationId: org.id,
           email: "doctor3@cura.com",
           username: "doctor3",
-          password: hashedDoctorPassword,
+          passwordHash: hashedDoctorPassword,
           firstName: "David",
           lastName: "Wilson",
           role: "doctor",
@@ -179,7 +179,7 @@ export async function seedDatabase() {
           organizationId: org.id,
           email: "doctor4@cura.com",
           username: "doctor4",
-          password: hashedDoctorPassword,
+          passwordHash: hashedDoctorPassword,
           firstName: "Lisa",
           lastName: "Anderson",
           role: "doctor",
@@ -192,7 +192,7 @@ export async function seedDatabase() {
           organizationId: org.id,
           email: "doctor5@cura.com",
           username: "doctor5",
-          password: hashedDoctorPassword,
+          passwordHash: hashedDoctorPassword,
           firstName: "Robert",
           lastName: "Brown",
           role: "doctor",
@@ -205,7 +205,7 @@ export async function seedDatabase() {
           organizationId: org.id,
           email: "receptionist@cura.com",
           username: "receptionist",
-          password: hashedAdminPassword,
+          passwordHash: hashedAdminPassword,
           firstName: "Jane",
           lastName: "Thompson",
           role: "receptionist",
@@ -450,7 +450,7 @@ export async function seedDatabase() {
         {
           organizationId: org.id,
           patientId: createdPatients[0].id, // Sarah Johnson
-          providerId: createdUsers[1].id, // Dr. Smith
+          doctorId: createdUsers[1].id, // Dr. Smith
           prescriptionNumber: `RX-${Date.now()}-001`,
           status: "active" as const,
           diagnosis: "Hypertension",
@@ -476,7 +476,7 @@ export async function seedDatabase() {
         {
           organizationId: org.id,
           patientId: createdPatients[1].id, // Robert Davis
-          providerId: createdUsers[1].id, // Dr. Smith
+          doctorId: createdUsers[1].id, // Dr. Smith
           prescriptionNumber: `RX-${Date.now()}-002`,
           status: "active" as const,
           diagnosis: "Type 2 Diabetes",
@@ -666,7 +666,9 @@ export async function seedDatabase() {
               medicalRecords: { view: true, create: true, edit: true, delete: false },
               prescriptions: { view: true, create: true, edit: true, delete: false },
               billing: { view: true, create: false, edit: false, delete: false },
-              analytics: { view: true, create: false, edit: false, delete: false }
+              analytics: { view: true, create: false, edit: false, delete: false },
+              userManagement: { view: false, create: false, edit: false, delete: false },
+              settings: { view: false, create: false, edit: false, delete: false }
             },
             fields: {
               patientSensitiveInfo: { view: true, edit: true },
@@ -686,11 +688,16 @@ export async function seedDatabase() {
               patients: { view: true, create: false, edit: true, delete: false },
               appointments: { view: true, create: true, edit: true, delete: false },
               medicalRecords: { view: true, create: true, edit: false, delete: false },
-              prescriptions: { view: true, create: false, edit: false, delete: false }
+              prescriptions: { view: true, create: false, edit: false, delete: false },
+              billing: { view: false, create: false, edit: false, delete: false },
+              analytics: { view: false, create: false, edit: false, delete: false },
+              userManagement: { view: false, create: false, edit: false, delete: false },
+              settings: { view: false, create: false, edit: false, delete: false }
             },
             fields: {
               patientSensitiveInfo: { view: true, edit: false },
-              medicalHistory: { view: true, edit: false }
+              medicalHistory: { view: true, edit: false },
+              financialData: { view: false, edit: false }
             }
           },
           isSystem: true
@@ -714,7 +721,7 @@ export async function seedDatabase() {
         const saasUser = await storage.createUser({
           username: 'saas_admin',
           email: 'saas_admin@curaemr.ai',
-          password: hashedSaaSPassword,
+          passwordHash: hashedSaaSPassword,
           firstName: 'SaaS',
           lastName: 'Administrator',
           organizationId: 0, // System-wide SaaS owner
@@ -726,7 +733,7 @@ export async function seedDatabase() {
       } else {
         // Update existing SaaS user to ensure proper credentials
         await storage.updateUser(existingSaaSUser.id, 0, {
-          password: hashedSaaSPassword,
+          passwordHash: hashedSaaSPassword,
           isActive: true,
           isSaaSOwner: true
         });
