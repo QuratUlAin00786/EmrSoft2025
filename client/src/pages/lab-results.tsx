@@ -83,9 +83,13 @@ export default function LabResultsPage() {
   });
 
   const { data: patients = [], isLoading: patientsLoading } = useQuery({
-    queryKey: ["/api/patients"],
+    queryKey: ["/api/patients", "lab-order", Date.now()],
     queryFn: async () => {
-      return await apiRequest("GET", "/api/patients");
+      const data = await apiRequest("GET", "/api/patients");
+      console.log("🔧 LAB ORDER: Patients received:", data);
+      console.log("🔧 LAB ORDER: Is array?", Array.isArray(data));
+      console.log("🔧 LAB ORDER: Length:", data?.length);
+      return data;
     },
     staleTime: 0,
     gcTime: 0
