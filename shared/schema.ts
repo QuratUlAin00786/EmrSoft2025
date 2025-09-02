@@ -479,9 +479,17 @@ export const prescriptions = pgTable("prescriptions", {
   patientId: integer("patient_id").notNull().references(() => patients.id),
   doctorId: integer("doctor_id").notNull().references(() => users.id),
   consultationId: integer("consultation_id").references(() => consultations.id),
-  prescriptionNumber: varchar("prescription_number", { length: 50 }).notNull(),
-  status: varchar("status", { length: 20 }).notNull().default("active"), // active, completed, cancelled, expired
+  prescriptionNumber: varchar("prescription_number", { length: 50 }),
+  status: text("status").notNull().default("active"), // active, completed, cancelled, expired
   diagnosis: text("diagnosis"),
+  // Legacy columns (for backward compatibility)
+  medicationName: text("medication_name").notNull(),
+  dosage: text("dosage"),
+  frequency: text("frequency"),
+  duration: text("duration"),
+  instructions: text("instructions"),
+  issuedDate: timestamp("issued_date").defaultNow(),
+  // Modern JSONB columns
   medications: jsonb("medications").$type<Array<{
     name: string;
     dosage: string;
@@ -503,7 +511,7 @@ export const prescriptions = pgTable("prescriptions", {
     fax?: string;
     npi?: string; // National Provider Identifier
   }>().default({}),
-  prescribedAt: timestamp("prescribed_at").defaultNow().notNull(),
+  prescribedAt: timestamp("prescribed_at").defaultNow(),
   validUntil: timestamp("valid_until"),
   notes: text("notes"),
   isElectronic: boolean("is_electronic").notNull().default(true),
@@ -518,8 +526,8 @@ export const prescriptions = pgTable("prescriptions", {
     signedAt?: string; // ISO timestamp
     signerId?: number; // user ID who signed
   }>().default({}),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Medical Images

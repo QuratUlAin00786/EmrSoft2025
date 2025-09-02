@@ -454,6 +454,13 @@ export async function seedDatabase() {
           prescriptionNumber: `RX-${Date.now()}-001`,
           status: "active" as const,
           diagnosis: "Hypertension",
+          // Legacy columns (for backward compatibility)
+          medicationName: "Lisinopril",
+          dosage: "10mg",
+          frequency: "Once daily",
+          duration: "30 days",
+          instructions: "Take with or without food. Monitor blood pressure.",
+          // Modern JSONB columns
           medications: [
             {
               name: "Lisinopril",
@@ -480,6 +487,13 @@ export async function seedDatabase() {
           prescriptionNumber: `RX-${Date.now()}-002`,
           status: "active" as const,
           diagnosis: "Type 2 Diabetes",
+          // Legacy columns (for backward compatibility)
+          medicationName: "Metformin",
+          dosage: "500mg",
+          frequency: "Twice daily with meals",
+          duration: "90 days",
+          instructions: "Take with breakfast and dinner",
+          // Modern JSONB columns
           medications: [
             {
               name: "Metformin",

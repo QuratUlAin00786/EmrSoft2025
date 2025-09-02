@@ -2105,6 +2105,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "A similar active prescription already exists for this patient" });
       }
       
+      // Extract first medication for legacy columns (required for backward compatibility)
+      const firstMedication = prescriptionData.medications?.[0] || {};
+      
       // Create prescription data for database
       const prescriptionToInsert = {
         organizationId: req.tenant!.id,
@@ -2113,6 +2116,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         prescriptionNumber: `RX-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
         status: prescriptionData.status || "active",
         diagnosis: prescriptionData.diagnosis,
+        // Legacy columns (for backward compatibility with database constraints)
+        medicationName: firstMedication.name || 'Not specified',
+        dosage: firstMedication.dosage || '',
+        frequency: firstMedication.frequency || '',
+        duration: firstMedication.duration || '',
+        instructions: firstMedication.instructions || '',
+        // Modern JSONB columns
         medications: prescriptionData.medications || [],
         pharmacy: prescriptionData.pharmacy || {},
         notes: prescriptionData.notes,
