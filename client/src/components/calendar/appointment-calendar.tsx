@@ -291,6 +291,13 @@ Medical License: [License Number]
   const { data: patientsData, isLoading: isPatientsLoading } = useQuery({
     queryKey: ["/api/patients"],
     staleTime: 60000,
+    queryFn: async () => {
+      console.log("[Calendar] Fetching patients data...");
+      const response = await apiRequest('GET', '/api/patients');
+      const data = await response.json();
+      console.log("[Calendar] Patients data received:", data);
+      return data;
+    },
   });
 
   const isDataLoaded = !isUsersLoading && !isPatientsLoading;
