@@ -165,15 +165,13 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
 
   const saveSocialHistory = () => {
     try {
-      onUpdate({
-        medicalHistory: {
-          ...patient.medicalHistory,
-          socialHistory: editedSocialHistory as any
-        }
-      });
-      toast({
-        title: "Social History Saved",
-        description: "Patient social history has been updated successfully.",
+      updateMedicalHistoryMutation.mutate({
+        allergies: patient.medicalHistory?.allergies || [],
+        chronicConditions: patient.medicalHistory?.chronicConditions || [],
+        medications: patient.medicalHistory?.medications || [],
+        familyHistory: patient.medicalHistory?.familyHistory || {},
+        socialHistory: editedSocialHistory as any,
+        immunizations: patient.medicalHistory?.immunizations || []
       });
     } catch (error) {
       toast({
