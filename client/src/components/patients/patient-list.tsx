@@ -334,7 +334,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
 
             
             return (
-              <Card key={patient.id} className="hover:shadow-md transition-shadow h-fit">
+              <Card key={patient.id} className="hover:shadow-md transition-shadow h-[400px] flex flex-col">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3">
@@ -374,7 +374,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                       </p>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end space-y-1">
+                  <div className="flex flex-col items-end space-y-1 h-20 overflow-hidden">
                     {patient.riskLevel && (
                       <Badge 
                         className={`text-xs ${getRiskLevelColor(patient.riskLevel)}`}
@@ -389,8 +389,8 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                       </Badge>
                     )}
                     {patient.flags && patient.flags.length > 0 && (
-                      <div className="flex flex-col items-end space-y-1">
-                        {patient.flags.slice(0, 2).map((flag: string, index: number) => {
+                      <div className="flex flex-col items-end space-y-1 max-h-12 overflow-hidden">
+                        {patient.flags.slice(0, 1).map((flag: string, index: number) => {
                           const [type, priority, reason] = flag.split(':');
                           const flagColor = priority === 'urgent' ? 'text-white' :
                                           priority === 'high' ? 'text-white' :
@@ -408,9 +408,9 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                             </Badge>
                           );
                         })}
-                        {patient.flags.length > 2 && (
+                        {patient.flags.length > 1 && (
                           <Badge variant="outline" className="text-xs text-gray-600 dark:text-gray-300">
-                            +{patient.flags.length - 2} more flags
+                            +{patient.flags.length - 1} more
                           </Badge>
                         )}
                       </div>
@@ -419,7 +419,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                 </div>
               </CardHeader>
               
-              <CardContent className="space-y-3 overflow-visible pb-6">
+              <CardContent className="space-y-3 overflow-visible pb-6 flex-1 flex flex-col justify-between">
                 <div className="space-y-2 text-sm">
                   {patient.phone && (
                     <div className="flex items-center">
