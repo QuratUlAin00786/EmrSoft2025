@@ -1140,76 +1140,136 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
             )}
 
             {/* Allergies Section */}
-            <div className="border-2 border-red-200 rounded-lg p-4 bg-red-50/20">
-              <h4 className="font-medium mb-3 flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-red-500" />
-                Allergies
-              </h4>
-              <div className="space-y-2 mb-4">
-                {(patient.medicalHistory?.allergies || []).length > 0 ? (
-                  (patient.medicalHistory?.allergies || []).map((allergy, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-red-50 rounded">
-                      <span className="text-red-800">{allergy}</span>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => removeAllergy(index)}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-600" />
-                      </Button>
+            <div className="relative overflow-hidden bg-gradient-to-br from-red-50 to-red-100/30 border border-red-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-red-500/5 rounded-full -translate-y-10 translate-x-10"></div>
+              <div className="absolute bottom-0 left-0 w-16 h-16 bg-red-500/3 rounded-full translate-y-8 -translate-x-8"></div>
+              
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-red-500/10 rounded-lg">
+                    <AlertTriangle className="h-5 w-5 text-red-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-red-900 text-lg">Allergies</h4>
+                    <p className="text-xs text-red-600/70">Known allergic reactions</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3 mb-5">
+                  {(patient.medicalHistory?.allergies || []).length > 0 ? (
+                    (patient.medicalHistory?.allergies || []).map((allergy, index) => (
+                      <div key={index} className="group flex items-center justify-between p-3 bg-white/70 backdrop-blur-sm rounded-lg border border-red-100 hover:bg-white/90 transition-all duration-200">
+                        <div className="flex items-center gap-3">
+                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                          <span className="font-medium text-red-900">{allergy}</span>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => removeAllergy(index)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-100 text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <AlertTriangle className="h-6 w-6 text-red-400" />
+                      </div>
+                      <p className="text-sm text-red-600/70 font-medium">No known allergies</p>
+                      <p className="text-xs text-red-500/50 mt-1">Patient has no recorded allergic reactions</p>
                     </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-500">No known allergies</p>
-                )}
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Add allergy"
-                  value={newAllergy}
-                  onChange={(e) => setNewAllergy(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && addAllergy()}
-                />
-                <Button onClick={addAllergy} size="sm">
-                  <Plus className="h-4 w-4" />
-                </Button>
+                  )}
+                </div>
+                
+                <div className="flex gap-3">
+                  <div className="flex-1 relative">
+                    <Input
+                      placeholder="Enter allergy (e.g., Penicillin, Peanuts)"
+                      value={newAllergy}
+                      onChange={(e) => setNewAllergy(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && addAllergy()}
+                      className="bg-white/80 border-red-200 focus:border-red-400 focus:ring-red-400/20 placeholder:text-red-400/60"
+                    />
+                  </div>
+                  <Button 
+                    onClick={addAllergy} 
+                    size="sm"
+                    className="bg-red-500 hover:bg-red-600 text-white shadow-md hover:shadow-lg transition-all duration-200 px-4"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add
+                  </Button>
+                </div>
               </div>
             </div>
 
             {/* Chronic Conditions Section */}
-            <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50/20">
-              <h4 className="font-medium mb-3 flex items-center gap-2">
-                <Activity className="h-4 w-4 text-blue-500" />
-                Chronic Conditions
-              </h4>
-              <div className="space-y-2 mb-4">
-                {(patient.medicalHistory?.chronicConditions || []).length > 0 ? (
-                  (patient.medicalHistory?.chronicConditions || []).map((condition, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-blue-50 rounded">
-                      <span className="text-blue-800">{condition}</span>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => removeChronicCondition(index)}
-                      >
-                        <Trash2 className="h-4 w-4 text-blue-600" />
-                      </Button>
+            <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100/30 border border-blue-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/5 rounded-full -translate-y-10 translate-x-10"></div>
+              <div className="absolute bottom-0 left-0 w-16 h-16 bg-blue-500/3 rounded-full translate-y-8 -translate-x-8"></div>
+              
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-blue-500/10 rounded-lg">
+                    <Activity className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-blue-900 text-lg">Chronic Conditions</h4>
+                    <p className="text-xs text-blue-600/70">Long-term health conditions</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3 mb-5">
+                  {(patient.medicalHistory?.chronicConditions || []).length > 0 ? (
+                    (patient.medicalHistory?.chronicConditions || []).map((condition, index) => (
+                      <div key={index} className="group flex items-center justify-between p-3 bg-white/70 backdrop-blur-sm rounded-lg border border-blue-100 hover:bg-white/90 transition-all duration-200">
+                        <div className="flex items-center gap-3">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <span className="font-medium text-blue-900">{condition}</span>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => removeChronicCondition(index)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-blue-100 text-blue-600"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <Activity className="h-6 w-6 text-blue-400" />
+                      </div>
+                      <p className="text-sm text-blue-600/70 font-medium">No chronic conditions</p>
+                      <p className="text-xs text-blue-500/50 mt-1">Patient has no long-term health conditions</p>
                     </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-500">No chronic conditions</p>
-                )}
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Add chronic condition"
-                  value={newChronicCondition}
-                  onChange={(e) => setNewChronicCondition(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && addChronicCondition()}
-                />
-                <Button onClick={addChronicCondition} size="sm">
-                  <Plus className="h-4 w-4" />
-                </Button>
+                  )}
+                </div>
+                
+                <div className="flex gap-3">
+                  <div className="flex-1 relative">
+                    <Input
+                      placeholder="Enter condition (e.g., Diabetes, Hypertension)"
+                      value={newChronicCondition}
+                      onChange={(e) => setNewChronicCondition(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && addChronicCondition()}
+                      className="bg-white/80 border-blue-200 focus:border-blue-400 focus:ring-blue-400/20 placeholder:text-blue-400/60"
+                    />
+                  </div>
+                  <Button 
+                    onClick={addChronicCondition} 
+                    size="sm"
+                    className="bg-blue-500 hover:bg-blue-600 text-white shadow-md hover:shadow-lg transition-all duration-200 px-4"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add
+                  </Button>
+                </div>
               </div>
             </div>
           </TabsContent>
