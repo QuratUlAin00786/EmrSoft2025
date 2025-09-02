@@ -816,7 +816,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                   </div>
 
                   {/* Allergies Section */}
-                  <div className="border rounded-lg p-4">
+                  <div className="border-2 border-red-200 rounded-lg p-4 bg-red-50/20">
                     <h4 className="font-medium mb-3 flex items-center gap-2">
                       <AlertTriangle className="h-4 w-4 text-red-500" />
                       Allergies
@@ -853,7 +853,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                   </div>
 
                   {/* Chronic Conditions Section */}
-                  <div className="border rounded-lg p-4">
+                  <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50/20">
                     <h4 className="font-medium mb-3 flex items-center gap-2">
                       <Activity className="h-4 w-4 text-blue-500" />
                       Chronic Conditions
