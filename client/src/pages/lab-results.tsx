@@ -86,7 +86,9 @@ export default function LabResultsPage() {
     queryKey: ["/api/patients"],
     queryFn: async () => {
       return await apiRequest("GET", "/api/patients");
-    }
+    },
+    staleTime: 0,
+    gcTime: 0
   });
 
 
