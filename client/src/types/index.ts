@@ -127,7 +127,7 @@ export interface Appointment {
 
 export interface Subscription {
   id: number;
-  plan: "starter" | "professional" | "enterprise";
+  plan: "starter" | "professional" | "enterprise" | "pro";
   status: "trial" | "active" | "suspended" | "cancelled";
   userLimit: number;
   currentUsers: number;
