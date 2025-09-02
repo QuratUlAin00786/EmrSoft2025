@@ -1734,7 +1734,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Created user with role: ${userData.role} and permissions:`, defaultPermissions);
 
       // Remove password from response
-      const { password, ...safeUser } = user;
+      const { passwordHash, ...safeUser } = user;
       res.status(201).json(safeUser);
     } catch (error: any) {
       console.error("User creation error:", error);
@@ -1797,7 +1797,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Remove password from response
-      const { password, ...safeUser } = user;
+      const { passwordHash, ...safeUser } = user;
       res.json(safeUser);
     } catch (error) {
       console.error("User update error:", error);
