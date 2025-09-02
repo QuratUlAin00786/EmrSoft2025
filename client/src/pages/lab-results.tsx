@@ -472,7 +472,7 @@ export default function LabResultsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   {patientsLoading ? (
-                    <SelectItem value="" disabled>Loading patients...</SelectItem>
+                    <SelectItem value="loading" disabled>Loading patients...</SelectItem>
                   ) : Array.isArray(patients) && patients.length > 0 ? (
                     patients.map((patient: any) => (
                       <SelectItem key={patient.id} value={patient.id.toString()}>
@@ -480,7 +480,7 @@ export default function LabResultsPage() {
                       </SelectItem>
                     ))
                   ) : (
-                    <SelectItem value="" disabled>No patients available</SelectItem>
+                    <SelectItem value="none" disabled>No patients available</SelectItem>
                   )}
                 </SelectContent>
               </Select>
