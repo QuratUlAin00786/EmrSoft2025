@@ -422,7 +422,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(user: InsertUser): Promise<User> {
-    const [created] = await db.insert(users).values(user).returning();
+    // Handle permissions as JSON, not array
+    const userData = {
+      ...user,
+      ...(user.permissions && typeof user.permissions === 'object' ? 
+        { permissions: JSON.parse(JSON.stringify(user.permissions)) } : {})
+    };
+    const [created] = await db.insert(users).values(userData).returning();
     return created;
   }
 
@@ -479,9 +485,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getRolesByOrganization(organizationId: number): Promise<Role[]> {
-    return await db.select().from(roles)
-      .where(eq(roles.organizationId, organizationId))
-      .orderBy(desc(roles.createdAt));
+    try {
+      return await db.select().from(roles)
+        .where(eq(roles.organizationId, organizationId))
+        .orderBy(desc(roles.createdAt));
+    } catch (error: any) {
+      if (error.code === '42P01') {
+        // Table doesn't exist, return empty array
+        return [];
+      }
+      throw error;
+    }
   }
 
   async createRole(role: InsertRole): Promise<Role> {
