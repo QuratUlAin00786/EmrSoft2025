@@ -477,7 +477,7 @@ export const prescriptions = pgTable("prescriptions", {
   id: serial("id").primaryKey(),
   organizationId: integer("organization_id").notNull().references(() => organizations.id),
   patientId: integer("patient_id").notNull().references(() => patients.id),
-  providerId: integer("provider_id").notNull().references(() => users.id),
+  doctorId: integer("doctor_id").notNull().references(() => users.id),
   consultationId: integer("consultation_id").references(() => consultations.id),
   prescriptionNumber: varchar("prescription_number", { length: 50 }).notNull(),
   status: varchar("status", { length: 20 }).notNull().default("active"), // active, completed, cancelled, expired
@@ -1239,8 +1239,8 @@ export const prescriptionsRelations = relations(prescriptions, ({ one }) => ({
     fields: [prescriptions.patientId],
     references: [patients.id],
   }),
-  provider: one(users, {
-    fields: [prescriptions.providerId],
+  doctor: one(users, {
+    fields: [prescriptions.doctorId],
     references: [users.id],
   }),
   consultation: one(consultations, {

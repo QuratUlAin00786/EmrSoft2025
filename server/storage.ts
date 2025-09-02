@@ -458,8 +458,8 @@ export class DatabaseStorage implements IStorage {
     await db.delete(notifications).where(eq(notifications.userId, id));
     console.log(`Storage: Deleted notifications for user ${id}`);
     
-    // Delete prescriptions where user is the provider
-    await db.delete(prescriptions).where(eq(prescriptions.providerId, id));
+    // Delete prescriptions where user is the doctor
+    await db.delete(prescriptions).where(eq(prescriptions.doctorId, id));
     console.log(`Storage: Deleted prescriptions for provider ${id}`);
     
     // Delete appointments where user is the provider
@@ -2500,13 +2500,13 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(prescriptions)
-      .where(and(eq(prescriptions.providerId, providerId), eq(prescriptions.organizationId, organizationId)))
+      .where(and(eq(prescriptions.doctorId, providerId), eq(prescriptions.organizationId, organizationId)))
       .orderBy(desc(prescriptions.createdAt));
   }
 
   async createPrescription(prescription: InsertPrescription): Promise<Prescription> {
     console.log("Storage: Creating prescription with data:", prescription);
-    console.log("Storage: Provider ID being inserted:", prescription.providerId);
+    console.log("Storage: Doctor ID being inserted:", prescription.doctorId);
     const [newPrescription] = await db
       .insert(prescriptions)
       .values(prescription)
