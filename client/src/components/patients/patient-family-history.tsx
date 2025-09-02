@@ -1140,62 +1140,62 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
             )}
 
             {/* Allergies Section */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-red-50 to-red-100/30 border border-red-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-200">
-              <div className="absolute top-0 right-0 w-12 h-12 bg-red-500/5 rounded-full -translate-y-6 translate-x-6"></div>
+            <div className="relative overflow-hidden bg-gradient-to-br from-red-50 to-red-100/30 border border-red-200 rounded-lg p-2 shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="absolute top-0 right-0 w-8 h-8 bg-red-500/5 rounded-full -translate-y-4 translate-x-4"></div>
               
               <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="p-1.5 bg-red-500/10 rounded">
-                    <AlertTriangle className="h-4 w-4 text-red-600" />
+                <div className="flex items-center gap-1.5 mb-2">
+                  <div className="p-1 bg-red-500/10 rounded">
+                    <AlertTriangle className="h-3 w-3 text-red-600" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-red-900">Allergies</h4>
+                    <h4 className="font-medium text-red-900 text-sm">Allergies</h4>
                     <p className="text-xs text-red-600/70">Known allergic reactions</p>
                   </div>
                 </div>
                 
-                <div className="space-y-2 mb-3">
+                <div className="space-y-1.5 mb-2">
                   {(patient.medicalHistory?.allergies || []).length > 0 ? (
                     (patient.medicalHistory?.allergies || []).map((allergy, index) => (
-                      <div key={index} className="group flex items-center justify-between p-2 bg-white/70 backdrop-blur-sm rounded border border-red-100 hover:bg-white/90 transition-all duration-200">
-                        <div className="flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
-                          <span className="text-sm font-medium text-red-900">{allergy}</span>
+                      <div key={index} className="group flex items-center justify-between p-1.5 bg-white/70 backdrop-blur-sm rounded border border-red-100 hover:bg-white/90 transition-all duration-200">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-1 h-1 bg-red-500 rounded-full"></div>
+                          <span className="text-xs font-medium text-red-900">{allergy}</span>
                         </div>
                         <Button 
                           variant="ghost" 
                           size="sm"
                           onClick={() => removeAllergy(index)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-100 text-red-600 h-6 w-6 p-0"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-100 text-red-600 h-5 w-5 p-0"
                         >
-                          <Trash2 className="h-3 w-3" />
+                          <Trash2 className="h-2.5 w-2.5" />
                         </Button>
                       </div>
                     ))
                   ) : (
-                    <div className="text-center py-4">
-                      <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                        <AlertTriangle className="h-4 w-4 text-red-400" />
+                    <div className="text-center py-2">
+                      <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-1">
+                        <AlertTriangle className="h-3 w-3 text-red-400" />
                       </div>
                       <p className="text-xs text-red-600/70 font-medium">No known allergies</p>
                     </div>
                   )}
                 </div>
                 
-                <div className="flex gap-2">
+                <div className="flex gap-1.5">
                   <Input
                     placeholder="Add allergy"
                     value={newAllergy}
                     onChange={(e) => setNewAllergy(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && addAllergy()}
-                    className="bg-white/80 border-red-200 focus:border-red-400 focus:ring-red-400/20 placeholder:text-red-400/60 text-sm h-8"
+                    className="bg-white/80 border-red-200 focus:border-red-400 focus:ring-red-400/20 placeholder:text-red-400/60 text-xs h-7"
                   />
                   <Button 
                     onClick={addAllergy} 
                     size="sm"
-                    className="bg-red-500 hover:bg-red-600 text-white shadow-sm hover:shadow transition-all duration-200 h-8 px-3"
+                    className="bg-red-500 hover:bg-red-600 text-white shadow-sm hover:shadow transition-all duration-200 h-7 px-2 text-xs"
                   >
-                    <Plus className="h-3 w-3 mr-1" />
+                    <Plus className="h-2.5 w-2.5 mr-0.5" />
                     Add
                   </Button>
                 </div>
@@ -1203,62 +1203,62 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
             </div>
 
             {/* Chronic Conditions Section */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100/30 border border-blue-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-200">
-              <div className="absolute top-0 right-0 w-12 h-12 bg-blue-500/5 rounded-full -translate-y-6 translate-x-6"></div>
+            <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100/30 border border-blue-200 rounded-lg p-2 shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="absolute top-0 right-0 w-8 h-8 bg-blue-500/5 rounded-full -translate-y-4 translate-x-4"></div>
               
               <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="p-1.5 bg-blue-500/10 rounded">
-                    <Activity className="h-4 w-4 text-blue-600" />
+                <div className="flex items-center gap-1.5 mb-2">
+                  <div className="p-1 bg-blue-500/10 rounded">
+                    <Activity className="h-3 w-3 text-blue-600" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-blue-900">Chronic Conditions</h4>
+                    <h4 className="font-medium text-blue-900 text-sm">Chronic Conditions</h4>
                     <p className="text-xs text-blue-600/70">Long-term health conditions</p>
                   </div>
                 </div>
                 
-                <div className="space-y-2 mb-3">
+                <div className="space-y-1.5 mb-2">
                   {(patient.medicalHistory?.chronicConditions || []).length > 0 ? (
                     (patient.medicalHistory?.chronicConditions || []).map((condition, index) => (
-                      <div key={index} className="group flex items-center justify-between p-2 bg-white/70 backdrop-blur-sm rounded border border-blue-100 hover:bg-white/90 transition-all duration-200">
-                        <div className="flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                          <span className="text-sm font-medium text-blue-900">{condition}</span>
+                      <div key={index} className="group flex items-center justify-between p-1.5 bg-white/70 backdrop-blur-sm rounded border border-blue-100 hover:bg-white/90 transition-all duration-200">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-1 h-1 bg-blue-500 rounded-full"></div>
+                          <span className="text-xs font-medium text-blue-900">{condition}</span>
                         </div>
                         <Button 
                           variant="ghost" 
                           size="sm"
                           onClick={() => removeChronicCondition(index)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-blue-100 text-blue-600 h-6 w-6 p-0"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-blue-100 text-blue-600 h-5 w-5 p-0"
                         >
-                          <Trash2 className="h-3 w-3" />
+                          <Trash2 className="h-2.5 w-2.5" />
                         </Button>
                       </div>
                     ))
                   ) : (
-                    <div className="text-center py-4">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                        <Activity className="h-4 w-4 text-blue-400" />
+                    <div className="text-center py-2">
+                      <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-1">
+                        <Activity className="h-3 w-3 text-blue-400" />
                       </div>
                       <p className="text-xs text-blue-600/70 font-medium">No chronic conditions</p>
                     </div>
                   )}
                 </div>
                 
-                <div className="flex gap-2">
+                <div className="flex gap-1.5">
                   <Input
                     placeholder="Add condition"
                     value={newChronicCondition}
                     onChange={(e) => setNewChronicCondition(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && addChronicCondition()}
-                    className="bg-white/80 border-blue-200 focus:border-blue-400 focus:ring-blue-400/20 placeholder:text-blue-400/60 text-sm h-8"
+                    className="bg-white/80 border-blue-200 focus:border-blue-400 focus:ring-blue-400/20 placeholder:text-blue-400/60 text-xs h-7"
                   />
                   <Button 
                     onClick={addChronicCondition} 
                     size="sm"
-                    className="bg-blue-500 hover:bg-blue-600 text-white shadow-sm hover:shadow transition-all duration-200 h-8 px-3"
+                    className="bg-blue-500 hover:bg-blue-600 text-white shadow-sm hover:shadow transition-all duration-200 h-7 px-2 text-xs"
                   >
-                    <Plus className="h-3 w-3 mr-1" />
+                    <Plus className="h-2.5 w-2.5 mr-0.5" />
                     Add
                   </Button>
                 </div>
