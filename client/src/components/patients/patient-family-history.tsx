@@ -691,35 +691,22 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                       Known Allergies
                     </h4>
                     <div className="space-y-2 mb-4">
-                      {(() => {
-                        // Combine allergies from medicalHistory and extract from flags
-                        const medicalAllergies = patient.medicalHistory?.allergies || [];
-                        const flagAllergies = patient.flags 
-                          ? patient.flags
-                              .filter(flag => typeof flag === 'string' && flag.includes(':'))
-                              .map(flag => flag.split(':')[2]) // Extract the allergy text after "general:medium:"
-                              .filter(allergy => allergy && allergy.trim().length > 0)
-                          : [];
-                        
-                        const allAllergies = [...medicalAllergies, ...flagAllergies];
-                        
-                        return allAllergies.length > 0 ? (
-                          allAllergies.map((allergy, index) => (
-                            <div key={index} className="flex items-center justify-between p-2 bg-red-50 rounded">
-                              <span className="text-red-800">{allergy}</span>
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={() => removeAllergy(index)}
-                              >
-                                <Trash2 className="h-4 w-4 text-red-600" />
-                              </Button>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-sm text-gray-500">No known allergies</p>
-                        );
-                      })()}
+                      {(patient.medicalHistory?.allergies || []).length > 0 ? (
+                        (patient.medicalHistory.allergies || []).map((allergy, index) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-red-50 rounded">
+                            <span className="text-red-800">{allergy}</span>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => removeAllergy(index)}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-600" />
+                            </Button>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500">No known allergies</p>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       <Input
