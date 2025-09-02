@@ -1212,7 +1212,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                       <Activity className="h-2.5 w-2.5 text-blue-600" />
                     </div>
                     <div>
-                      <h4 className="font-medium text-blue-900 text-xs">Conditions</h4>
+                      <h4 className="font-medium text-blue-900 text-xs">Chronic Conditions</h4>
                     </div>
                   </div>
                   
