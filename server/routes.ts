@@ -2108,7 +2108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const prescriptionToInsert = {
         organizationId: req.tenant!.id,
         patientId: parseInt(prescriptionData.patientId),
-        providerId: providerId,
+        doctorId: providerId,
         prescriptionNumber: `RX-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
         status: prescriptionData.status || "active",
         diagnosis: prescriptionData.diagnosis,
