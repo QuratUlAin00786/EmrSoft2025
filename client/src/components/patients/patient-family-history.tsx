@@ -207,8 +207,20 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
   };
 
   const removeAllergy = (index: number) => {
-    const currentAllergies = patient.medicalHistory?.allergies || [];
-    const updatedAllergies = currentAllergies.filter((_, i) => i !== index);
+    // Get combined allergies just like in display logic
+    const medicalAllergies = patient.medicalHistory?.allergies || [];
+    const flagAllergies = patient.flags 
+      ? patient.flags
+          .filter(flag => typeof flag === 'string' && flag.includes(':'))
+          .map(flag => flag.split(':')[2])
+          .filter(allergy => allergy && allergy.trim().length > 0)
+      : [];
+    
+    const allAllergies = [...medicalAllergies, ...flagAllergies];
+    const allergyToRemove = allAllergies[index];
+    
+    // Only remove from medicalHistory.allergies if it exists there
+    const updatedAllergies = medicalAllergies.filter(allergy => allergy !== allergyToRemove);
     
     updateMedicalHistoryMutation.mutate({
       allergies: updatedAllergies,
