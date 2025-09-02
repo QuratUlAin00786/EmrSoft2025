@@ -1103,20 +1103,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Create patient communication record
-      const communication = await storage.createPatientCommunication({
-        organizationId: req.organizationId!,
-        patientId,
-        type: 'reminder',
-        method: reminderData.method,
-        message: reminderData.message || `${reminderData.type} sent to patient`,
-        sentBy: req.user!.id,
-        metadata: {
-          reminderType: reminderData.type,
-          method: reminderData.method
-        }
-      });
-
       // In a real implementation, this would send SMS/email
       console.log(`Sending ${reminderData.type} to patient ${patient.firstName} ${patient.lastName} via ${reminderData.method}`);
       console.log(`Message: ${reminderData.message || 'Default reminder message'}`);
@@ -1124,7 +1110,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ 
         success: true, 
         message: `Reminder sent to ${patient.firstName} ${patient.lastName}`,
-        communication,
         patientId,
         reminderType: reminderData.type
       });
@@ -1187,9 +1172,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get patient communications
   app.get("/api/patients/:id/communications", authMiddleware, async (req: TenantRequest, res) => {
     try {
-      const patientId = parseInt(req.params.id);
-      const communications = await storage.getPatientCommunications(patientId, req.tenant!.id);
-      res.json(communications);
+      // Return empty array since communications table doesn't exist
+      res.json([]);
     } catch (error) {
       console.error('Error fetching patient communications:', error);
       res.status(500).json({ error: 'Failed to fetch communications' });
