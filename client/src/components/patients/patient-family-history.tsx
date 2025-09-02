@@ -684,80 +684,6 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                 </TabsContent>
 
                 <TabsContent value="immunizations" className="space-y-4">
-                  {/* Allergies Section */}
-                  <div className="border rounded-lg p-4">
-                    <h4 className="font-medium mb-3 flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-red-500" />
-                      Allergies
-                    </h4>
-                    <div className="space-y-2 mb-4">
-                      {(patient.medicalHistory?.allergies || []).length > 0 ? (
-                        (patient.medicalHistory?.allergies || []).map((allergy, index) => (
-                          <div key={index} className="flex items-center justify-between p-2 bg-red-50 rounded">
-                            <span className="text-red-800">{allergy}</span>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => removeAllergy(index)}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-600" />
-                            </Button>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-sm text-gray-500">No known allergies</p>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Add allergy"
-                        value={newAllergy}
-                        onChange={(e) => setNewAllergy(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && addAllergy()}
-                      />
-                      <Button onClick={addAllergy} size="sm">
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Chronic Conditions Section */}
-                  <div className="border rounded-lg p-4">
-                    <h4 className="font-medium mb-3 flex items-center gap-2">
-                      <Activity className="h-4 w-4 text-blue-500" />
-                      Chronic Conditions
-                    </h4>
-                    <div className="space-y-2 mb-4">
-                      {(patient.medicalHistory?.chronicConditions || []).length > 0 ? (
-                        (patient.medicalHistory?.chronicConditions || []).map((condition, index) => (
-                          <div key={index} className="flex items-center justify-between p-2 bg-blue-50 rounded">
-                            <span className="text-blue-800">{condition}</span>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => removeChronicCondition(index)}
-                            >
-                              <Trash2 className="h-4 w-4 text-blue-600" />
-                            </Button>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-sm text-gray-500">No chronic conditions</p>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Add chronic condition"
-                        value={newChronicCondition}
-                        onChange={(e) => setNewChronicCondition(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && addChronicCondition()}
-                      />
-                      <Button onClick={addChronicCondition} size="sm">
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-
                   <div className="border rounded-lg p-4">
                     <h4 className="font-medium mb-4">Immunization Record</h4>
                     <div className="space-y-3">
@@ -887,6 +813,80 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                         </div>
                       </div>
                     )}
+                  </div>
+
+                  {/* Allergies Section */}
+                  <div className="border rounded-lg p-4">
+                    <h4 className="font-medium mb-3 flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-red-500" />
+                      Allergies
+                    </h4>
+                    <div className="space-y-2 mb-4">
+                      {(patient.medicalHistory?.allergies || []).length > 0 ? (
+                        (patient.medicalHistory?.allergies || []).map((allergy, index) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-red-50 rounded">
+                            <span className="text-red-800">{allergy}</span>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => removeAllergy(index)}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-600" />
+                            </Button>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500">No known allergies</p>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Add allergy"
+                        value={newAllergy}
+                        onChange={(e) => setNewAllergy(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && addAllergy()}
+                      />
+                      <Button onClick={addAllergy} size="sm">
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Chronic Conditions Section */}
+                  <div className="border rounded-lg p-4">
+                    <h4 className="font-medium mb-3 flex items-center gap-2">
+                      <Activity className="h-4 w-4 text-blue-500" />
+                      Chronic Conditions
+                    </h4>
+                    <div className="space-y-2 mb-4">
+                      {(patient.medicalHistory?.chronicConditions || []).length > 0 ? (
+                        (patient.medicalHistory?.chronicConditions || []).map((condition, index) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-blue-50 rounded">
+                            <span className="text-blue-800">{condition}</span>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => removeChronicCondition(index)}
+                            >
+                              <Trash2 className="h-4 w-4 text-blue-600" />
+                            </Button>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500">No chronic conditions</p>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Add chronic condition"
+                        value={newChronicCondition}
+                        onChange={(e) => setNewChronicCondition(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && addChronicCondition()}
+                      />
+                      <Button onClick={addChronicCondition} size="sm">
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </TabsContent>
 
