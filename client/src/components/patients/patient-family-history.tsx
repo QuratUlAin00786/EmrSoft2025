@@ -380,6 +380,15 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
 
     const updatedImmunizations = [...immunizations, immunization];
 
+    updateMedicalHistoryMutation.mutate({
+      allergies: patient.medicalHistory?.allergies || [],
+      chronicConditions: patient.medicalHistory?.chronicConditions || [],
+      medications: patient.medicalHistory?.medications || [],
+      familyHistory: patient.medicalHistory?.familyHistory || {},
+      socialHistory: patient.medicalHistory?.socialHistory || {},
+      immunizations: updatedImmunizations
+    });
+
     onUpdate({
       medicalHistory: {
         ...patient.medicalHistory,
