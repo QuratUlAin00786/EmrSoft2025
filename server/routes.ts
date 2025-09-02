@@ -252,7 +252,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Authentication failed. Please check your credentials." });
       }
 
-      const isValidPassword = await bcrypt.compare(password, user.password);
+      const isValidPassword = await bcrypt.compare(password, user.passwordHash);
       if (!isValidPassword) {
         return res.status(401).json({ error: "Authentication failed. Please check your credentials." });
       }
@@ -312,7 +312,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Found user: ${user.email} (${user.username}) - Role: ${user.role}`);
 
-      const isValidPassword = await authService.comparePassword(password, user.password);
+      const isValidPassword = await authService.comparePassword(password, user.passwordHash);
       if (!isValidPassword) {
         console.log(`Invalid password for user: ${email}`);
         return res.status(401).json({ error: "Invalid credentials" });
