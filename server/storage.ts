@@ -904,7 +904,19 @@ export class DatabaseStorage implements IStorage {
   async getSubscription(organizationId: number): Promise<Subscription | undefined> {
     try {
       const [subscription] = await db.select().from(subscriptions).where(eq(subscriptions.organizationId, organizationId));
-      return subscription || undefined;
+      if (!subscription) return undefined;
+      
+      // Transform data to match frontend type expectations
+      return {
+        ...subscription,
+        monthlyPrice: subscription.monthlyPrice ? parseFloat(subscription.monthlyPrice) : undefined,
+        features: subscription.features || {
+          aiInsights: true,
+          advancedReporting: true,
+          apiAccess: true,
+          whiteLabel: false
+        }
+      };
     } catch (error) {
       console.error('[STORAGE] Error fetching subscription for org', organizationId, ':', error);
       return undefined;
