@@ -578,7 +578,7 @@ export class DatabaseStorage implements IStorage {
       ...(address && { address: JSON.parse(JSON.stringify(address)) }),
       ...(medicalHistory && { medicalHistory: JSON.parse(JSON.stringify(medicalHistory)) }),
       ...(communicationPreferences && { communicationPreferences: JSON.parse(JSON.stringify(communicationPreferences)) }),
-      ...(flags !== undefined && { flags })
+      ...(flags !== undefined && { flags: Array.isArray(flags) ? flags : [] })
     };
     const [updated] = await db.update(patients)
       .set(updateData)
