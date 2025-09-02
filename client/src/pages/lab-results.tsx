@@ -82,7 +82,7 @@ export default function LabResultsPage() {
     }
   });
 
-  const { data: patients = [] } = useQuery({
+  const { data: patients = [], isLoading: patientsLoading } = useQuery({
     queryKey: ["/api/patients"],
     queryFn: async () => {
       return await apiRequest("GET", "/api/patients");
@@ -471,11 +471,17 @@ export default function LabResultsPage() {
                   <SelectValue placeholder="Select a patient" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Array.isArray(patients) && patients.map((patient: any) => (
-                    <SelectItem key={patient.id} value={patient.id.toString()}>
-                      {`${patient.firstName} ${patient.lastName} (${patient.patientId})`}
-                    </SelectItem>
-                  ))}
+                  {patientsLoading ? (
+                    <SelectItem value="" disabled>Loading patients...</SelectItem>
+                  ) : Array.isArray(patients) && patients.length > 0 ? (
+                    patients.map((patient: any) => (
+                      <SelectItem key={patient.id} value={patient.id.toString()}>
+                        {`${patient.firstName} ${patient.lastName} (${patient.patientId})`}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="" disabled>No patients available</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
