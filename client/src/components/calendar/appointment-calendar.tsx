@@ -520,7 +520,7 @@ Medical License: [License Number]
                       </div>
                       <div className="flex items-center space-x-2 mt-1">
                         <User className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm text-gray-600 dark:text-gray-300">{appointment.patientName}</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-300">{getPatientName(appointment.patientId)}</span>
                       </div>
                     </div>
                   </div>
@@ -553,7 +553,7 @@ Medical License: [License Number]
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Patient</Label>
-                    <p className="text-lg">{selectedAppointment.patientName}</p>
+                    <p className="text-lg">{getPatientName(selectedAppointment.patientId)}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Provider</Label>
