@@ -82,13 +82,15 @@ export default function LabResultsPage() {
     }
   });
 
-  // Simple direct state management for patients
-  const [patients, setPatients] = useState<any[]>([
-    { id: 1, firstName: "John", lastName: "Doe", patientId: "P001" },
-    { id: 2, firstName: "Jane", lastName: "Smith", patientId: "P002" },
-    { id: 3, firstName: "Bob", lastName: "Johnson", patientId: "P003" }
-  ]);
-  const [patientsLoading, setPatientsLoading] = useState(false);
+  // Real API data fetching for patients
+  const { data: patients = [], isLoading: patientsLoading } = useQuery({
+    queryKey: ["/api/patients"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/patients");
+      const data = await response.json();
+      return data;
+    }
+  });
 
 
   const { data: users = [] } = useQuery({
