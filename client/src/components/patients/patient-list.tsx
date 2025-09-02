@@ -424,13 +424,13 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                   {patient.phone && (
                     <div className="flex items-center">
                       <Phone className="h-4 w-4 mr-2 text-gray-600 dark:text-gray-300" />
-                      <span style={{ color: '#ffffff' }}>{patient.phone}</span>
+                      <span className="text-neutral-600 dark:text-neutral-300">{patient.phone}</span>
                     </div>
                   )}
                   {patient.email && (
                     <div className="flex items-center truncate">
                       <User className="h-4 w-4 mr-2 text-gray-600 dark:text-gray-300" />
-                      <span style={{ color: '#ffffff' }}>{patient.email}</span>
+                      <span className="text-neutral-600 dark:text-neutral-300 truncate">{patient.email}</span>
                     </div>
                   )}
                   {patient.nhsNumber && (
