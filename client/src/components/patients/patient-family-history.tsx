@@ -692,7 +692,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                     </h4>
                     <div className="space-y-2 mb-4">
                       {(patient.medicalHistory?.allergies || []).length > 0 ? (
-                        (patient.medicalHistory.allergies || []).map((allergy, index) => (
+                        (patient.medicalHistory?.allergies || []).map((allergy, index) => (
                           <div key={index} className="flex items-center justify-between p-2 bg-red-50 rounded">
                             <span className="text-red-800">{allergy}</span>
                             <Button 
@@ -729,7 +729,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                     </h4>
                     <div className="space-y-2 mb-4">
                       {(patient.medicalHistory?.allergies || []).length > 0 ? (
-                        (patient.medicalHistory.allergies || []).map((allergy, index) => (
+                        (patient.medicalHistory?.allergies || []).map((allergy, index) => (
                           <div key={`drug-${index}`} className="flex items-center justify-between p-2 bg-orange-50 rounded">
                             <span className="text-orange-800">{allergy}</span>
                             <Button 
