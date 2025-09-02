@@ -315,7 +315,7 @@ export const patients = pgTable("patients", {
     }>;
   }>().default({}),
   riskLevel: varchar("risk_level", { length: 10 }).notNull().default("low"), // low, medium, high
-  flags: jsonb("flags").$type<string[]>().default([]),
+  flags: text("flags").array().default([]),
   communicationPreferences: jsonb("communication_preferences").$type<{
     preferredMethod?: "email" | "sms" | "phone" | "whatsapp";
     emailNotifications?: boolean;
