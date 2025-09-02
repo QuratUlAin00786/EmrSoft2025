@@ -1727,7 +1727,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...userData,
         email: uniqueEmail,
         organizationId: req.tenant!.id,
-        password: hashedPassword,
+        passwordHash: hashedPassword,
         permissions: defaultPermissions
       });
 

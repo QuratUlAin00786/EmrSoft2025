@@ -162,7 +162,7 @@ export const users = pgTable("users", {
   organizationId: integer("organization_id").notNull(),
   email: text("email").notNull(),
   username: text("username").notNull(),
-  password: text("password").notNull(),
+  passwordHash: text("password_hash").notNull(),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   role: varchar("role", { length: 20 }).notNull().default("doctor"), // admin, doctor, nurse, receptionist, patient, sample_taker
