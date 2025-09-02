@@ -587,10 +587,6 @@ export class DatabaseStorage implements IStorage {
       await db.delete(aiInsights)
         .where(and(eq(aiInsights.patientId, id), eq(aiInsights.organizationId, organizationId)));
       
-      // Delete patient communications
-      await db.delete(patientCommunications)
-        .where(and(eq(patientCommunications.patientId, id), eq(patientCommunications.organizationId, organizationId)));
-      
       // Delete prescriptions
       await db.delete(prescriptions)
         .where(and(eq(prescriptions.patientId, id), eq(prescriptions.organizationId, organizationId)));
