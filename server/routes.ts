@@ -1736,7 +1736,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Remove password from response
       const { password, ...safeUser } = user;
       res.status(201).json(safeUser);
-    } catch (error) {
+    } catch (error: any) {
       console.error("User creation error:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
@@ -1744,6 +1744,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
         });
       }
+      
+      // Handle duplicate username error
+      if (error.code === '23505' && error.constraint === 'users_username_key') {
+        return res.status(400).json({ 
+          error: "Username already exists. Please choose a different username." 
+        });
+      }
+      
+      // Handle duplicate email error
+      if (error.code === '23505' && error.constraint === 'users_email_key') {
+        return res.status(400).json({ 
+          error: "Email address already exists. Please use a different email." 
+        });
+      }
+      
       res.status(500).json({ error: "Failed to create user" });
     }
   });
