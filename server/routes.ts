@@ -5142,8 +5142,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/medical-images", authMiddleware, async (req: TenantRequest, res) => {
     try {
       const medicalImages = await storage.getMedicalImagesByOrganization(req.tenant!.id);
-      console.log("🔍 Raw medical images from DB:", medicalImages.length, "images");
-      console.log("🔍 First image has imageData:", !!medicalImages[0]?.imageData, "length:", medicalImages[0]?.imageData?.length || 0);
       
       // Transform the data to include patient information
       const imagesWithPatients = await Promise.all(
@@ -5160,7 +5158,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
       );
       
-      console.log("🔍 Transformed first image has imageData:", !!imagesWithPatients[0]?.imageData, "length:", imagesWithPatients[0]?.imageData?.length || 0);
       res.json(imagesWithPatients);
     } catch (error) {
       console.error("Error fetching medical images:", error);
