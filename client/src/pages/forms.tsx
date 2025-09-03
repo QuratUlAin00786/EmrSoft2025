@@ -3891,7 +3891,11 @@ export default function Forms() {
             </div>
             
             <div className="flex justify-end">
-              <Button variant="outline" onClick={() => setShowTemplateDialog(false)}>
+              <Button variant="ghost" className="border transition-all duration-200" 
+                style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
+                onClick={() => setShowTemplateDialog(false)}>
                 Cancel
               </Button>
             </div>
@@ -4002,7 +4006,11 @@ export default function Forms() {
             </div>
             
             <div className="flex justify-end">
-              <Button variant="outline" onClick={() => setShowLogoDialog(false)}>
+              <Button variant="ghost" className="border transition-all duration-200" 
+                style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
+                onClick={() => setShowLogoDialog(false)}>
                 Cancel
               </Button>
             </div>
@@ -4286,7 +4294,11 @@ export default function Forms() {
             </div>
             
             <div className="flex justify-end">
-              <Button variant="outline" onClick={() => setShowPatientDialog(false)}>
+              <Button variant="ghost" className="border transition-all duration-200" 
+                style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
+                onClick={() => setShowPatientDialog(false)}>
                 Cancel
               </Button>
             </div>
@@ -4376,7 +4388,11 @@ export default function Forms() {
             </div>
             
             <div className="flex justify-end">
-              <Button variant="outline" onClick={() => setShowRecipientDialog(false)}>
+              <Button variant="ghost" className="border transition-all duration-200" 
+                style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
+                onClick={() => setShowRecipientDialog(false)}>
                 Cancel
               </Button>
             </div>
@@ -4466,7 +4482,11 @@ export default function Forms() {
             </div>
             
             <div className="flex justify-end">
-              <Button variant="outline" onClick={() => setShowAppointmentsDialog(false)}>
+              <Button variant="ghost" className="border transition-all duration-200" 
+                style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
+                onClick={() => setShowAppointmentsDialog(false)}>
                 Cancel
               </Button>
             </div>
@@ -4556,7 +4576,11 @@ export default function Forms() {
             </div>
             
             <div className="flex justify-end">
-              <Button variant="outline" onClick={() => setShowLabsDialog(false)}>
+              <Button variant="ghost" className="border transition-all duration-200" 
+                style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
+                onClick={() => setShowLabsDialog(false)}>
                 Cancel
               </Button>
             </div>
@@ -4646,7 +4670,11 @@ export default function Forms() {
             </div>
             
             <div className="flex justify-end">
-              <Button variant="outline" onClick={() => setShowPatientRecordsDialog(false)}>
+              <Button variant="ghost" className="border transition-all duration-200" 
+                style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
+                onClick={() => setShowPatientRecordsDialog(false)}>
                 Cancel
               </Button>
             </div>
@@ -4841,7 +4869,11 @@ export default function Forms() {
             </div>
             
             <div className="flex justify-end">
-              <Button variant="outline" onClick={() => setShowMoreOptionsDialog(false)}>
+              <Button variant="ghost" className="border transition-all duration-200" 
+                style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
+                onClick={() => setShowMoreOptionsDialog(false)}>
                 Cancel
               </Button>
             </div>
@@ -4930,7 +4962,11 @@ export default function Forms() {
             )}
             
             <div className="flex justify-end">
-              <Button variant="outline" onClick={() => setShowSavedTemplatesDialog(false)}>
+              <Button variant="ghost" className="border transition-all duration-200" 
+                style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
+                onClick={() => setShowSavedTemplatesDialog(false)}>
                 Close
               </Button>
             </div>
