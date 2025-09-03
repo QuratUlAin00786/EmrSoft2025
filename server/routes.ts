@@ -5122,15 +5122,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Medical Images API endpoints
-  app.get("/api/medical-images", authMiddleware, async (req: TenantRequest, res) => {
-    try {
-      const images = await storage.getMedicalImagesByOrganization(req.tenant!.id);
-      res.json(images);
-    } catch (error) {
-      console.error("Error fetching medical images:", error);
-      res.status(500).json({ error: "Failed to fetch medical images" });
-    }
-  });
 
   app.get("/api/medical-images/patient/:patientId", authMiddleware, async (req: TenantRequest, res) => {
     try {
