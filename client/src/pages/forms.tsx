@@ -2478,42 +2478,33 @@ export default function Forms() {
       return;
     }
 
-    // Preserve line breaks and original text case
-    const lines = selectedText.split('\n').filter(line => line.trim() !== '');
-    let formattedHTML = '';
+    // Apply inline styling without changing document structure
+    let styleAttributes = '';
     
     switch (formatType) {
       case 'paragraph':
-        formattedHTML = lines.map(line => 
-          `<p style="font-size: 14px; margin: 4px 0;">${line.trim()}</p>`
-        ).join('');
+        styleAttributes = 'font-size: 14px; font-weight: normal;';
         break;
       case 'heading1':
-        formattedHTML = lines.map(line => 
-          `<h1 style="font-size: 24px; font-weight: bold; margin: 8px 0; color: #1a1a1a;">${line.trim()}</h1>`
-        ).join('');
+        styleAttributes = 'font-size: 24px; font-weight: bold; color: #1a1a1a;';
         break;
       case 'heading2':
-        formattedHTML = lines.map(line => 
-          `<h2 style="font-size: 18px; font-weight: bold; margin: 6px 0; color: #2a2a2a;">${line.trim()}</h2>`
-        ).join('');
+        styleAttributes = 'font-size: 18px; font-weight: bold; color: #2a2a2a;';
         break;
     }
     
-    // Create a new element from the formatted HTML
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = formattedHTML;
-    const newElement = tempDiv.firstChild;
+    // Create a span with inline styling to preserve document structure
+    const span = document.createElement('span');
+    span.style.cssText = styleAttributes;
+    span.textContent = selectedText;
     
-    // Replace the selected content with the new formatted element
-    if (newElement) {
-      range.deleteContents();
-      range.insertNode(newElement);
-      
-      // Update the document content state
-      if (textareaRef) {
-        setDocumentContent(textareaRef.innerHTML);
-      }
+    // Replace the selected content with the styled span
+    range.deleteContents();
+    range.insertNode(span);
+    
+    // Update the document content state
+    if (textareaRef) {
+      setDocumentContent(textareaRef.innerHTML);
     }
     
     // Clear selection
