@@ -3606,7 +3606,11 @@ export default function Forms() {
           <Button variant="outline" size="sm" className="text-xs h-5 px-2 bg-[hsl(var(--cura-bluewave))] text-white border-[hsl(var(--cura-bluewave))] hover:bg-[hsl(var(--cura-bluewave),0.8)]" onClick={handleSave}>
             Save Template
           </Button>
-          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border border-[hsl(var(--cura-steel))]" onClick={() => setShowSavedTemplatesDialog(true)}>
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border transition-all duration-200" 
+            style={{ backgroundColor: '#7279FB', borderColor: '#7279FB', color: 'white' }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+            onClick={() => setShowSavedTemplatesDialog(true)}>
             View Saved Templates
           </Button>
         </div>
