@@ -2990,9 +2990,12 @@ export default function Forms() {
                 <Dialog open={showEditClinic} onOpenChange={setShowEditClinic}>
                   <DialogTrigger asChild>
                     <Button 
-                      variant="outline" 
+                      variant="ghost"
                       size="sm" 
-                      className="absolute top-2 right-2"
+                      className="absolute top-2 right-2 border transition-all duration-200"
+                      style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
                       onClick={() => setShowEditClinic(true)}
                     >
                       <Edit className="h-4 w-4 mr-1" />
@@ -3050,10 +3053,18 @@ export default function Forms() {
                         />
                       </div>
                       <div className="flex justify-end space-x-2">
-                        <Button variant="outline" onClick={() => setShowEditClinic(false)}>
+                        <Button variant="ghost" className="border transition-all duration-200" 
+                          style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
+                          onClick={() => setShowEditClinic(false)}>
                           Cancel
                         </Button>
-                        <Button onClick={handleSaveClinicInfo}>
+                        <Button variant="ghost" className="border transition-all duration-200" 
+                          style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
+                          onClick={handleSaveClinicInfo}>
                           Save Changes
                         </Button>
                       </div>
