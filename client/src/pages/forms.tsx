@@ -2478,17 +2478,25 @@ export default function Forms() {
       return;
     }
 
+    // Preserve line breaks and original text case
+    const lines = selectedText.split('\n').filter(line => line.trim() !== '');
     let formattedHTML = '';
     
     switch (formatType) {
       case 'paragraph':
-        formattedHTML = `<p style="font-size: 14px; margin: 4px 0;">${selectedText.toLowerCase()}</p>`;
+        formattedHTML = lines.map(line => 
+          `<p style="font-size: 14px; margin: 4px 0;">${line.trim()}</p>`
+        ).join('');
         break;
       case 'heading1':
-        formattedHTML = `<h1 style="font-size: 24px; font-weight: bold; margin: 8px 0; color: #1a1a1a;">${selectedText.toUpperCase()}</h1>`;
+        formattedHTML = lines.map(line => 
+          `<h1 style="font-size: 24px; font-weight: bold; margin: 8px 0; color: #1a1a1a;">${line.trim()}</h1>`
+        ).join('');
         break;
       case 'heading2':
-        formattedHTML = `<h2 style="font-size: 18px; font-weight: bold; margin: 6px 0; color: #2a2a2a;">${selectedText.toUpperCase()}</h2>`;
+        formattedHTML = lines.map(line => 
+          `<h2 style="font-size: 18px; font-weight: bold; margin: 6px 0; color: #2a2a2a;">${line.trim()}</h2>`
+        ).join('');
         break;
     }
     

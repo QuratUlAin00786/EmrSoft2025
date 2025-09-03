@@ -1790,10 +1790,16 @@ export default function ImagingPage() {
                   {selectedImageSeries.imageData ? (
                     <div className="w-full h-full flex items-center justify-center">
                       <img 
-                        src={`data:${selectedImageSeries.mimeType || 'image/jpeg'};base64,${selectedImageSeries.imageData}`}
+                        src={`data:${selectedImageSeries.mimeType || 'image/png'};base64,${selectedImageSeries.imageData}`}
                         alt={`Medical Image - ${selectedImageSeries.seriesDescription}`}
                         className="max-w-full max-h-96 object-contain rounded-lg border border-gray-600"
                         style={{ maxHeight: '400px' }}
+                        onLoad={() => console.log("🔍 Image loaded successfully!")}
+                        onError={(e) => {
+                          console.error("🔍 Image failed to load:", e);
+                          console.log("🔍 Image src length:", `data:${selectedImageSeries.mimeType || 'image/png'};base64,${selectedImageSeries.imageData}`.length);
+                          console.log("🔍 MIME type:", selectedImageSeries.mimeType);
+                        }}
                       />
                     </div>
                   ) : (
