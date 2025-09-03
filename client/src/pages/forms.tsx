@@ -3544,9 +3544,9 @@ export default function Forms() {
             Insert template
           </Button>
           <Button variant="outline" size="sm" className="text-xs h-5 px-2 border transition-all duration-200" 
-            style={{ backgroundColor: '#7279FB !important', borderColor: '#7279FB !important', color: 'white !important' }}
-            onMouseEnter={(e) => { e.currentTarget.style.setProperty('background-color', '#4A7DFF', 'important'); e.currentTarget.style.setProperty('border-color', '#4A7DFF', 'important'); }}
-            onMouseLeave={(e) => { e.currentTarget.style.setProperty('background-color', '#7279FB', 'important'); e.currentTarget.style.setProperty('border-color', '#7279FB', 'important'); }}
+            style={{ backgroundColor: '#4A7DFF !important', borderColor: '#4A7DFF !important', color: 'white !important' }}
+            onMouseEnter={(e) => { e.currentTarget.style.setProperty('background-color', '#7279FB', 'important'); e.currentTarget.style.setProperty('border-color', '#7279FB', 'important'); }}
+            onMouseLeave={(e) => { e.currentTarget.style.setProperty('background-color', '#4A7DFF', 'important'); e.currentTarget.style.setProperty('border-color', '#4A7DFF', 'important'); }}
             onClick={handleInsertLogo}>
             Insert logo
           </Button>
@@ -3558,44 +3558,44 @@ export default function Forms() {
             Clinic
           </Button>
           <Button variant="outline" size="sm" className="text-xs h-5 px-2 border transition-all duration-200" 
-            style={{ backgroundColor: '#7279FB', borderColor: '#7279FB', color: 'white' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+            style={{ backgroundColor: '#4A7DFF !important', borderColor: '#4A7DFF !important', color: 'white !important' }}
+            onMouseEnter={(e) => { e.currentTarget.style.setProperty('background-color', '#7279FB', 'important'); e.currentTarget.style.setProperty('border-color', '#7279FB', 'important'); }}
+            onMouseLeave={(e) => { e.currentTarget.style.setProperty('background-color', '#4A7DFF', 'important'); e.currentTarget.style.setProperty('border-color', '#4A7DFF', 'important'); }}
             onClick={handlePatient}>
             Patient
           </Button>
           <Button variant="outline" size="sm" className="text-xs h-5 px-2 border transition-all duration-200" 
-            style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
+            style={{ backgroundColor: '#4A7DFF !important', borderColor: '#4A7DFF !important', color: 'white !important' }}
+            onMouseEnter={(e) => { e.currentTarget.style.setProperty('background-color', '#7279FB', 'important'); e.currentTarget.style.setProperty('border-color', '#7279FB', 'important'); }}
+            onMouseLeave={(e) => { e.currentTarget.style.setProperty('background-color', '#4A7DFF', 'important'); e.currentTarget.style.setProperty('border-color', '#4A7DFF', 'important'); }}
             onClick={handleRecipient}>
             Recipient
           </Button>
           <Button variant="outline" size="sm" className="text-xs h-5 px-2 border transition-all duration-200" 
-            style={{ backgroundColor: '#7279FB', borderColor: '#7279FB', color: 'white' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+            style={{ backgroundColor: '#4A7DFF !important', borderColor: '#4A7DFF !important', color: 'white !important' }}
+            onMouseEnter={(e) => { e.currentTarget.style.setProperty('background-color', '#7279FB', 'important'); e.currentTarget.style.setProperty('border-color', '#7279FB', 'important'); }}
+            onMouseLeave={(e) => { e.currentTarget.style.setProperty('background-color', '#4A7DFF', 'important'); e.currentTarget.style.setProperty('border-color', '#4A7DFF', 'important'); }}
             onClick={handleAppointments}>
             Appointments
           </Button>
           <Button variant="outline" size="sm" className="text-xs h-5 px-2 border transition-all duration-200" 
-            style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
+            style={{ backgroundColor: '#4A7DFF !important', borderColor: '#4A7DFF !important', color: 'white !important' }}
+            onMouseEnter={(e) => { e.currentTarget.style.setProperty('background-color', '#7279FB', 'important'); e.currentTarget.style.setProperty('border-color', '#7279FB', 'important'); }}
+            onMouseLeave={(e) => { e.currentTarget.style.setProperty('background-color', '#4A7DFF', 'important'); e.currentTarget.style.setProperty('border-color', '#4A7DFF', 'important'); }}
             onClick={handleLabs}>
             Labs
           </Button>
           <Button variant="outline" size="sm" className="text-xs h-5 px-2 border transition-all duration-200" 
-            style={{ backgroundColor: '#7279FB', borderColor: '#7279FB', color: 'white' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+            style={{ backgroundColor: '#4A7DFF !important', borderColor: '#4A7DFF !important', color: 'white !important' }}
+            onMouseEnter={(e) => { e.currentTarget.style.setProperty('background-color', '#7279FB', 'important'); e.currentTarget.style.setProperty('border-color', '#7279FB', 'important'); }}
+            onMouseLeave={(e) => { e.currentTarget.style.setProperty('background-color', '#4A7DFF', 'important'); e.currentTarget.style.setProperty('border-color', '#4A7DFF', 'important'); }}
             onClick={handlePatientRecords}>
             Patient records
           </Button>
           <Button variant="outline" size="sm" className="text-xs h-5 px-2 border transition-all duration-200" 
-            style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
+            style={{ backgroundColor: '#4A7DFF !important', borderColor: '#4A7DFF !important', color: 'white !important' }}
+            onMouseEnter={(e) => { e.currentTarget.style.setProperty('background-color', '#7279FB', 'important'); e.currentTarget.style.setProperty('border-color', '#7279FB', 'important'); }}
+            onMouseLeave={(e) => { e.currentTarget.style.setProperty('background-color', '#4A7DFF', 'important'); e.currentTarget.style.setProperty('border-color', '#4A7DFF', 'important'); }}
             onClick={handleInsertProduct}>
             Insert product
           </Button>
@@ -3603,13 +3603,17 @@ export default function Forms() {
         
         {/* Save and View buttons - medical theme colors */}
         <div className="flex justify-center items-center gap-1">
-          <Button variant="outline" size="sm" className="text-xs h-5 px-2 bg-[hsl(var(--cura-bluewave))] text-white border-[hsl(var(--cura-bluewave))] hover:bg-[hsl(var(--cura-bluewave),0.8)]" onClick={handleSave}>
+          <Button variant="outline" size="sm" className="text-xs h-5 px-2 border transition-all duration-200" 
+            style={{ backgroundColor: '#4A7DFF !important', borderColor: '#4A7DFF !important', color: 'white !important' }}
+            onMouseEnter={(e) => { e.currentTarget.style.setProperty('background-color', '#7279FB', 'important'); e.currentTarget.style.setProperty('border-color', '#7279FB', 'important'); }}
+            onMouseLeave={(e) => { e.currentTarget.style.setProperty('background-color', '#4A7DFF', 'important'); e.currentTarget.style.setProperty('border-color', '#4A7DFF', 'important'); }}
+            onClick={handleSave}>
             Save Template
           </Button>
           <Button variant="outline" size="sm" className="text-xs h-5 px-2 border transition-all duration-200" 
-            style={{ backgroundColor: '#7279FB', borderColor: '#7279FB', color: 'white' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+            style={{ backgroundColor: '#4A7DFF !important', borderColor: '#4A7DFF !important', color: 'white !important' }}
+            onMouseEnter={(e) => { e.currentTarget.style.setProperty('background-color', '#7279FB', 'important'); e.currentTarget.style.setProperty('border-color', '#7279FB', 'important'); }}
+            onMouseLeave={(e) => { e.currentTarget.style.setProperty('background-color', '#4A7DFF', 'important'); e.currentTarget.style.setProperty('border-color', '#4A7DFF', 'important'); }}
             onClick={() => setShowSavedTemplatesDialog(true)}>
             View Saved Templates
           </Button>
