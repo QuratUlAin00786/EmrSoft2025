@@ -2472,27 +2472,41 @@ export default function Forms() {
     console.log("applyTextFormatting called with:", formatType);
     
     const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) {
-      toast({ 
-        title: "Select Text", 
-        description: `Please select text to apply ${formatType} formatting`,
-        duration: 3000
-      });
-      return;
+    let selectedText = '';
+    let range: Range;
+    
+    // Check if text is selected
+    if (selection && selection.rangeCount > 0) {
+      range = selection.getRangeAt(0);
+      selectedText = range.toString();
     }
-
-    const range = selection.getRangeAt(0);
-    const selectedText = range.toString();
     
     console.log("Selection:", { selectedText });
     
+    // If no text selected, create formatting at cursor or use placeholder
     if (!selectedText) {
-      toast({ 
-        title: "Select Text", 
-        description: `Please select text to apply ${formatType} formatting`,
-        duration: 3000
-      });
-      return;
+      const placeholder = `Sample ${formatType === 'heading1' ? 'Heading 1' : formatType === 'heading2' ? 'Heading 2' : 'paragraph'} text`;
+      
+      if (selection && selection.rangeCount > 0) {
+        range = selection.getRangeAt(0);
+        selectedText = placeholder;
+      } else if (textareaRef) {
+        // Insert at the end of document if no cursor position
+        textareaRef.focus();
+        const content = textareaRef.value;
+        const newContent = content + (content.endsWith('\n') ? '' : '\n') + placeholder;
+        textareaRef.value = newContent;
+        setDocumentContent(newContent);
+        
+        toast({ 
+          title: `✓ ${formatType === 'heading1' ? 'Heading 1' : formatType === 'heading2' ? 'Heading 2' : 'Paragraph'}`,
+          description: `${formatType} formatting added with sample text`,
+          duration: 2000
+        });
+        return;
+      } else {
+        selectedText = placeholder;
+      }
     }
 
     // Apply styling by wrapping selection in a span without changing document structure
@@ -2570,25 +2584,39 @@ export default function Forms() {
 
   const applyFontFamily = (fontFamilyValue: string) => {
     const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) {
-      toast({ 
-        title: "Select Text", 
-        description: "Please select text to apply font family",
-        duration: 3000
-      });
-      return;
-    }
-
-    const range = selection.getRangeAt(0);
-    const selectedText = range.toString();
+    let selectedText = '';
+    let range: Range;
     
+    // Check if text is selected
+    if (selection && selection.rangeCount > 0) {
+      range = selection.getRangeAt(0);
+      selectedText = range.toString();
+    }
+    
+    // If no text selected, create sample text with font
     if (!selectedText) {
-      toast({ 
-        title: "Select Text", 
-        description: "Please select text to apply font family",
-        duration: 3000
-      });
-      return;
+      const placeholder = `Sample text in ${fontFamilyValue}`;
+      
+      if (selection && selection.rangeCount > 0) {
+        range = selection.getRangeAt(0);
+        selectedText = placeholder;
+      } else if (textareaRef) {
+        // Insert at cursor or end of document
+        textareaRef.focus();
+        const content = textareaRef.value;
+        const newContent = content + (content.endsWith('\n') ? '' : '\n') + placeholder;
+        textareaRef.value = newContent;
+        setDocumentContent(newContent);
+        
+        toast({ 
+          title: "✓ Font Applied",
+          description: `Font family changed to ${fontFamilyValue} with sample text`,
+          duration: 2000
+        });
+        return;
+      } else {
+        selectedText = placeholder;
+      }
     }
 
     // Get the font family name for CSS with distinct fallbacks
@@ -2645,25 +2673,39 @@ export default function Forms() {
 
   const applyFontSize = (fontSizeValue: string) => {
     const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) {
-      toast({ 
-        title: "Select Text", 
-        description: "Please select text to apply font size",
-        duration: 3000
-      });
-      return;
-    }
-
-    const range = selection.getRangeAt(0);
-    const selectedText = range.toString();
+    let selectedText = '';
+    let range: Range;
     
+    // Check if text is selected
+    if (selection && selection.rangeCount > 0) {
+      range = selection.getRangeAt(0);
+      selectedText = range.toString();
+    }
+    
+    // If no text selected, create sample text with font size
     if (!selectedText) {
-      toast({ 
-        title: "Select Text", 
-        description: "Please select text to apply font size",
-        duration: 3000
-      });
-      return;
+      const placeholder = `Sample text at ${fontSizeValue}`;
+      
+      if (selection && selection.rangeCount > 0) {
+        range = selection.getRangeAt(0);
+        selectedText = placeholder;
+      } else if (textareaRef) {
+        // Insert at cursor or end of document
+        textareaRef.focus();
+        const content = textareaRef.value;
+        const newContent = content + (content.endsWith('\n') ? '' : '\n') + placeholder;
+        textareaRef.value = newContent;
+        setDocumentContent(newContent);
+        
+        toast({ 
+          title: "✓ Font Size Applied",
+          description: `Font size changed to ${fontSizeValue} with sample text`,
+          duration: 2000
+        });
+        return;
+      } else {
+        selectedText = placeholder;
+      }
     }
 
     // Create a span with the font size applied
