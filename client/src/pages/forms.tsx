@@ -309,7 +309,7 @@ export default function Forms() {
     
     // Get all direct child nodes to preserve line structure
     const childNodes = Array.from(tempDiv.childNodes);
-    const lines = [];
+    const lines: string[] = [];
     
     // Process each child node to extract text while preserving line breaks
     childNodes.forEach(node => {
@@ -406,7 +406,7 @@ export default function Forms() {
     
     // Get all direct child nodes to preserve line structure
     const childNodes = Array.from(tempDiv.childNodes);
-    const lines = [];
+    const lines: string[] = [];
     
     // Process each child node to extract text while preserving line breaks
     childNodes.forEach(node => {
@@ -2828,6 +2828,7 @@ export default function Forms() {
               Save as draft
             </Button>
           </div>
+          </div>
           
           <div className="flex items-center gap-4">
             <Button 
@@ -3217,6 +3218,7 @@ export default function Forms() {
               <SelectItem value="verdana">Verdana</SelectItem>
             </SelectContent>
           </Select>
+            </div>
           
             {/* Font Size Dropdown - Enhanced */}
             <div className="flex flex-col gap-1">
