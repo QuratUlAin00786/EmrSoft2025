@@ -2357,6 +2357,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/lab-results/:id", authMiddleware, requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      const labResultId = parseInt(req.params.id);
+      
+      if (isNaN(labResultId)) {
+        return res.status(400).json({ error: "Invalid lab result ID" });
+      }
+      
+      // Verify lab result exists and belongs to organization
+      const labResults = await storage.getLabResults(req.organizationId!);
+      const labResult = labResults.find(result => result.id === labResultId);
+      
+      if (!labResult) {
+        return res.status(404).json({ error: "Lab result not found" });
+      }
+
+      const deleted = await storage.deleteLabResult(labResultId, req.organizationId!);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Failed to delete lab result" });
+      }
+
+      res.json({ success: true, message: "Lab result deleted successfully" });
+    } catch (error) {
+      console.error("Lab result deletion error:", error);
+      res.status(500).json({ error: "Failed to delete lab result" });
+    }
+  });
+
   // Imaging Routes
   app.get("/api/imaging", authMiddleware, async (req: TenantRequest, res) => {
     try {

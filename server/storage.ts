@@ -3003,6 +3003,13 @@ export class DatabaseStorage implements IStorage {
     return result || undefined;
   }
 
+  async deleteLabResult(id: number, organizationId: number): Promise<boolean> {
+    const result = await db
+      .delete(labResults)
+      .where(and(eq(labResults.id, id), eq(labResults.organizationId, organizationId)));
+    return (result.rowCount ?? 0) > 0;
+  }
+
   // Claims (Database-driven)
   async getClaim(id: number, organizationId: number): Promise<Claim | undefined> {
     const [claim] = await db.select()
