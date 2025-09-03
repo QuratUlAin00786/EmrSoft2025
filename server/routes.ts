@@ -5205,7 +5205,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         fileName: imageData.filename,
         fileSize: imageData.fileSize,
         mimeType: imageData.mimeType || "image/jpeg", // Use provided MIME type or default
-        uploadedBy: imageData.uploadedBy,
+        uploadedBy: req.user!.id, // Use authenticated user's ID instead of frontend value
         organizationId: req.tenant!.id,
         imageData: imageData.imageData || null, // Store the base64 image data
         status: imageData.status || "uploaded" // Use provided status or default to uploaded
