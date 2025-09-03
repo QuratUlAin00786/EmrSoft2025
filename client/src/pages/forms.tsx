@@ -98,6 +98,23 @@ export default function Forms() {
     }
   }, [organization]);
 
+  // NUCLEAR OPTION: Force bluewave color on all toolbar buttons
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const buttons = document.querySelectorAll('[data-bluewave="true"]');
+      buttons.forEach((button: any) => {
+        button.style.setProperty('background-color', '#4A7DFF', 'important');
+        button.style.setProperty('border-color', '#4A7DFF', 'important');  
+        button.style.setProperty('color', 'white', 'important');
+        button.style.setProperty('border-width', '1px', 'important');
+        button.style.setProperty('border-style', 'solid', 'important');
+        // Remove any conflicting classes
+        button.className = button.className.replace(/bg-\w+/g, '').replace(/border-\w+/g, '').replace(/text-\w+/g, '');
+      });
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleSaveClinicInfo = async () => {
     try {
       const response = await fetch('/api/organization/settings', {
@@ -3548,62 +3565,20 @@ export default function Forms() {
         {/* Medical data buttons row - medical theme colors */}
         <div className="flex justify-center items-center gap-1">
           <Button 
-            ref={(el) => {
-              if (el) {
-                el.style.setProperty('background-color', '#4A7DFF', 'important');
-                el.style.setProperty('border-color', '#4A7DFF', 'important');
-                el.style.setProperty('color', 'white', 'important');
-              }
-            }}
-            variant="ghost" size="sm" className="text-xs h-5 px-2 border transition-all duration-200" 
-            onMouseEnter={(e) => { 
-              e.currentTarget.style.setProperty('background-color', '#7279FB', 'important'); 
-              e.currentTarget.style.setProperty('border-color', '#7279FB', 'important'); 
-            }}
-            onMouseLeave={(e) => { 
-              e.currentTarget.style.setProperty('background-color', '#4A7DFF', 'important'); 
-              e.currentTarget.style.setProperty('border-color', '#4A7DFF', 'important'); 
-            }}
+            data-bluewave="true"
+            size="sm" className="text-xs h-5 px-2" 
             onClick={handleInsertTemplate}>
             Insert template
           </Button>
           <Button 
-            ref={(el) => {
-              if (el) {
-                el.style.setProperty('background-color', '#4A7DFF', 'important');
-                el.style.setProperty('border-color', '#4A7DFF', 'important');
-                el.style.setProperty('color', 'white', 'important');
-              }
-            }}
-            variant="ghost" size="sm" className="text-xs h-5 px-2 border transition-all duration-200" 
-            onMouseEnter={(e) => { 
-              e.currentTarget.style.setProperty('background-color', '#7279FB', 'important'); 
-              e.currentTarget.style.setProperty('border-color', '#7279FB', 'important'); 
-            }}
-            onMouseLeave={(e) => { 
-              e.currentTarget.style.setProperty('background-color', '#4A7DFF', 'important'); 
-              e.currentTarget.style.setProperty('border-color', '#4A7DFF', 'important'); 
-            }}
+            data-bluewave="true"
+            size="sm" className="text-xs h-5 px-2" 
             onClick={handleInsertLogo}>
             Insert logo
           </Button>
           <Button 
-            ref={(el) => {
-              if (el) {
-                el.style.setProperty('background-color', '#4A7DFF', 'important');
-                el.style.setProperty('border-color', '#4A7DFF', 'important');
-                el.style.setProperty('color', 'white', 'important');
-              }
-            }}
-            variant="ghost" size="sm" className="text-xs h-5 px-2 border transition-all duration-200" 
-            onMouseEnter={(e) => { 
-              e.currentTarget.style.setProperty('background-color', '#7279FB', 'important'); 
-              e.currentTarget.style.setProperty('border-color', '#7279FB', 'important'); 
-            }}
-            onMouseLeave={(e) => { 
-              e.currentTarget.style.setProperty('background-color', '#4A7DFF', 'important'); 
-              e.currentTarget.style.setProperty('border-color', '#4A7DFF', 'important'); 
-            }}
+            data-bluewave="true"
+            size="sm" className="text-xs h-5 px-2" 
             onClick={handleClinic}>
             Clinic
           </Button>
