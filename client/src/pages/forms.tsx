@@ -3149,41 +3149,49 @@ export default function Forms() {
         </div>
       </div>
 
-      {/* Toolbar - medical theme colors */}
-      <div className="bg-white dark:bg-[hsl(var(--cura-midnight))] border-b border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))] px-2 py-2 flex-shrink-0">
-        {/* Main formatting row */}
-        <div className="flex justify-center items-center gap-0.5 mb-2">
-          {/* Font controls */}
-          <Select value={textStyle} onValueChange={(value) => {
-            console.log("Dropdown changed to:", value);
-            setTextStyle(value);
-            setTimeout(() => {
-              if (value === "paragraph") handleParagraph();
-              else if (value === "heading1") handleH1();
-              else if (value === "heading2") handleH2();
-            }, 100);
-          }}>
-            <SelectTrigger className="w-20 h-6 text-xs border border-[hsl(var(--cura-steel))]">
-              <SelectValue placeholder="H2" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="paragraph">Paragraph</SelectItem>
-              <SelectItem value="heading1">H1</SelectItem>
-              <SelectItem value="heading2">H2</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Select value={fontFamily} onValueChange={(value) => {
-            setFontFamily(value);
-            // Only apply font family if there's a valid selection
-            const selection = window.getSelection();
-            if (selection && selection.rangeCount > 0 && selection.toString().trim()) {
-              applyFontFamily(value);
-            }
-          }}>
-            <SelectTrigger className="w-24 h-5 text-xs border border-[hsl(var(--cura-steel))] bg-white dark:bg-[hsl(var(--cura-midnight))] dark:border-[hsl(var(--cura-steel))] dark:text-white">
-              <SelectValue placeholder="Verdana" />
-            </SelectTrigger>
+      {/* Enhanced Toolbar - Improved Visual Clarity */}
+      <div className="bg-white dark:bg-[hsl(var(--cura-midnight))] border-b-2 border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))] px-6 py-4 flex-shrink-0 shadow-sm">
+        
+        {/* Text Formatting Controls Section */}
+        <div className="mb-4">
+          <div className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">Text Formatting</div>
+          <div className="flex items-center gap-3">
+            {/* Text Style Dropdown - Enhanced */}
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-gray-500 dark:text-gray-400 font-medium">Style</label>
+              <Select value={textStyle} onValueChange={(value) => {
+                console.log("Dropdown changed to:", value);
+                setTextStyle(value);
+                setTimeout(() => {
+                  if (value === "paragraph") handleParagraph();
+                  else if (value === "heading1") handleH1();
+                  else if (value === "heading2") handleH2();
+                }, 100);
+              }}>
+                <SelectTrigger className="w-24 h-8 text-sm border-2 border-[hsl(var(--cura-steel))] rounded-md bg-white dark:bg-[hsl(var(--cura-midnight))] hover:border-[hsl(var(--cura-bluewave))] transition-colors">
+                  <SelectValue placeholder="H2" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="paragraph">Paragraph</SelectItem>
+                  <SelectItem value="heading1">H1</SelectItem>
+                  <SelectItem value="heading2">H2</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Font Family Dropdown - Enhanced */}
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-gray-500 dark:text-gray-400 font-medium">Font</label>
+              <Select value={fontFamily} onValueChange={(value) => {
+                setFontFamily(value);
+                const selection = window.getSelection();
+                if (selection && selection.rangeCount > 0 && selection.toString().trim()) {
+                  applyFontFamily(value);
+                }
+              }}>
+                <SelectTrigger className="w-32 h-8 text-sm border-2 border-[hsl(var(--cura-steel))] rounded-md bg-white dark:bg-[hsl(var(--cura-midnight))] hover:border-[hsl(var(--cura-bluewave))] transition-colors">
+                  <SelectValue placeholder="Verdana" />
+                </SelectTrigger>
             <SelectContent>
               <SelectItem value="arial">Arial</SelectItem>
               <SelectItem value="calibri">Calibri</SelectItem>
@@ -3210,17 +3218,19 @@ export default function Forms() {
             </SelectContent>
           </Select>
           
-          <Select value={fontSize} onValueChange={(value) => {
-            setFontSize(value);
-            // Only apply font size if there's a valid selection
-            const selection = window.getSelection();
-            if (selection && selection.rangeCount > 0 && selection.toString().trim()) {
-              applyFontSize(value);
-            }
-          }}>
-            <SelectTrigger className="w-16 h-5 text-xs border border-[hsl(var(--cura-steel))] bg-white dark:bg-[hsl(var(--cura-midnight))] dark:border-[hsl(var(--cura-steel))] dark:text-white">
-              <SelectValue placeholder="12pt" />
-            </SelectTrigger>
+            {/* Font Size Dropdown - Enhanced */}
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-gray-500 dark:text-gray-400 font-medium">Size</label>
+              <Select value={fontSize} onValueChange={(value) => {
+                setFontSize(value);
+                const selection = window.getSelection();
+                if (selection && selection.rangeCount > 0 && selection.toString().trim()) {
+                  applyFontSize(value);
+                }
+              }}>
+                <SelectTrigger className="w-20 h-8 text-sm border-2 border-[hsl(var(--cura-steel))] rounded-md bg-white dark:bg-[hsl(var(--cura-midnight))] hover:border-[hsl(var(--cura-bluewave))] transition-colors">
+                  <SelectValue placeholder="12pt" />
+                </SelectTrigger>
             <SelectContent>
               <SelectItem value="8pt">8pt</SelectItem>
               <SelectItem value="9pt">9pt</SelectItem>
@@ -3238,13 +3248,24 @@ export default function Forms() {
               <SelectItem value="36pt">36pt</SelectItem>
               <SelectItem value="48pt">48pt</SelectItem>
               <SelectItem value="72pt">72pt</SelectItem>
-            </SelectContent>
-          </Select>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+        
+        {/* Separator */}
+        <div className="w-full h-px bg-gray-200 dark:bg-gray-600 my-3"></div>
+        
+        {/* Text Styling Controls Section */}
+        <div className="mb-3">
+          <div className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">Text Styling</div>
+          <div className="flex justify-center items-center gap-3">
           
-          <div className="h-4 w-px bg-[hsl(var(--cura-steel))] dark:bg-[hsl(var(--cura-steel))] mx-1"></div>
+          <div className="h-6 w-px bg-gray-300 dark:bg-gray-500 mx-1"></div>
           
-          {/* Text formatting - more visible */}
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border transition-all duration-200" 
+          {/* Bold, Italic, Underline - Enhanced Visibility */}
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 border-2 rounded-lg transition-all duration-200 hover:scale-105" 
             style={{ 
               backgroundColor: '#4A7DFF', 
               borderColor: '#4A7DFF',
@@ -3296,10 +3317,10 @@ export default function Forms() {
             <Underline className="h-3 w-3" />
           </Button>
           
-          <div className="h-4 w-px bg-[hsl(var(--cura-steel))] dark:bg-[hsl(var(--cura-steel))] mx-1"></div>
+          <div className="h-6 w-px bg-gray-300 dark:bg-gray-500 mx-2"></div>
           
-          {/* Lists */}
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border transition-all duration-200" 
+          {/* List Controls - Enhanced */}
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 border-2 rounded-lg transition-all duration-200 hover:scale-105" 
             style={{ 
               backgroundColor: '#7279FB', 
               borderColor: '#7279FB',
@@ -3314,7 +3335,7 @@ export default function Forms() {
               e.currentTarget.style.borderColor = '#7279FB';
             }}
             onClick={handleBulletList}>
-            <List className="h-3 w-3" />
+            <List className="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border transition-all duration-200" 
             style={{ 
