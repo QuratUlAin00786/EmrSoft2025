@@ -3332,7 +3332,23 @@ export default function Forms() {
           
           {/* Text color and tools */}
           <div className="relative">
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))]" onClick={() => setShowColorPicker(!showColorPicker)}>
+            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border transition-all duration-200" 
+              style={{ 
+                backgroundColor: '#6CFFEB', 
+                borderColor: '#6CFFEB',
+                color: '#1a1a1a'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#4A7DFF';
+                e.currentTarget.style.borderColor = '#4A7DFF';
+                e.currentTarget.style.color = 'white';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#6CFFEB';
+                e.currentTarget.style.borderColor = '#6CFFEB';
+                e.currentTarget.style.color = '#1a1a1a';
+              }}
+              onClick={() => setShowColorPicker(!showColorPicker)}>
               <Type className="h-3 w-3" />
             </Button>
             {showColorPicker && (
@@ -3392,28 +3408,128 @@ export default function Forms() {
             )}
           </div>
           
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-[hsl(var(--cura-steel))]" onClick={handleHighlight}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border transition-all duration-200" 
+            style={{ 
+              backgroundColor: '#4A7DFF', 
+              borderColor: '#4A7DFF',
+              color: 'white'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#7279FB';
+              e.currentTarget.style.borderColor = '#7279FB';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#4A7DFF';
+              e.currentTarget.style.borderColor = '#4A7DFF';
+            }}
+            onClick={handleHighlight}>
             <Highlighter className="h-3 w-3" />
           </Button>
           
           <div className="h-4 w-px bg-[hsl(var(--cura-steel))] mx-1"></div>
           
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-[hsl(var(--cura-steel))]" onClick={handleClock}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border transition-all duration-200" 
+            style={{ 
+              backgroundColor: '#7279FB', 
+              borderColor: '#7279FB',
+              color: 'white'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#4A7DFF';
+              e.currentTarget.style.borderColor = '#4A7DFF';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#7279FB';
+              e.currentTarget.style.borderColor = '#7279FB';
+            }}
+            onClick={handleClock}>
             <Clock className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-[hsl(var(--cura-steel))]" onClick={handleTable}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border transition-all duration-200" 
+            style={{ 
+              backgroundColor: '#4A7DFF', 
+              borderColor: '#4A7DFF',
+              color: 'white'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#7279FB';
+              e.currentTarget.style.borderColor = '#7279FB';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#4A7DFF';
+              e.currentTarget.style.borderColor = '#4A7DFF';
+            }}
+            onClick={handleTable}>
             <Table className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-[hsl(var(--cura-steel))]" onClick={handleAttachFile}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border transition-all duration-200" 
+            style={{ 
+              backgroundColor: '#7279FB', 
+              borderColor: '#7279FB',
+              color: 'white'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#4A7DFF';
+              e.currentTarget.style.borderColor = '#4A7DFF';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#7279FB';
+              e.currentTarget.style.borderColor = '#7279FB';
+            }}
+            onClick={handleAttachFile}>
             <Paperclip className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-[hsl(var(--cura-steel))]" onClick={handleImage}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border transition-all duration-200" 
+            style={{ 
+              backgroundColor: '#4A7DFF', 
+              borderColor: '#4A7DFF',
+              color: 'white'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#7279FB';
+              e.currentTarget.style.borderColor = '#7279FB';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#4A7DFF';
+              e.currentTarget.style.borderColor = '#4A7DFF';
+            }}
+            onClick={handleImage}>
             <Image className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-[hsl(var(--cura-steel))]" onClick={handleLink}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border transition-all duration-200" 
+            style={{ 
+              backgroundColor: '#7279FB', 
+              borderColor: '#7279FB',
+              color: 'white'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#4A7DFF';
+              e.currentTarget.style.borderColor = '#4A7DFF';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#7279FB';
+              e.currentTarget.style.borderColor = '#7279FB';
+            }}
+            onClick={handleLink}>
             <Link className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border border-[hsl(var(--cura-steel))]" onClick={handleMore}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border transition-all duration-200" 
+            style={{ 
+              backgroundColor: '#6CFFEB', 
+              borderColor: '#6CFFEB',
+              color: '#1a1a1a'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#4A7DFF';
+              e.currentTarget.style.borderColor = '#4A7DFF';
+              e.currentTarget.style.color = 'white';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#6CFFEB';
+              e.currentTarget.style.borderColor = '#6CFFEB';
+              e.currentTarget.style.color = '#1a1a1a';
+            }}
+            onClick={handleMore}>
             <MoreHorizontal className="h-3 w-3" />
           </Button>
         </div>
