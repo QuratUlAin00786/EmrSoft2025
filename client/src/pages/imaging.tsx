@@ -1201,6 +1201,11 @@ export default function ImagingPage() {
                           variant="outline" 
                           size="sm"
                           onClick={() => {
+                            // Debug: Check what image data we have
+                            console.log("🔍 Image object:", image);
+                            console.log("🔍 Image data available:", !!image.imageData);
+                            console.log("🔍 Image data length:", image.imageData?.length || 0);
+                            
                             // Convert the uploaded medical image to the viewer format
                             const imageForViewer = {
                               seriesDescription: image.seriesDescription,
@@ -1210,6 +1215,7 @@ export default function ImagingPage() {
                               imageData: image.imageData, // This should come from the database
                               mimeType: image.mimeType || 'image/jpeg'
                             };
+                            console.log("🔍 Image for viewer:", imageForViewer);
                             setSelectedImageSeries(imageForViewer);
                             setShowImageViewer(true);
                           }}
