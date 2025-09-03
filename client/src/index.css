@@ -75,6 +75,13 @@ h1, h2, h3, h4, h5, h6, p, div, span, button, input, textarea, select, label, a,
   font-family: var(--figtree-stack) !important;
 }
 
+/* FORCE BLUEWAVE COLOR ON BUTTONS - Maximum priority override */
+.force-bluewave {
+  background-color: #4A7DFF !important;
+  border-color: #4A7DFF !important;
+  color: white !important;
+}
+
 /* PRODUCTION-BULLETPROOF DELETE BUTTON STYLES */
 /* These styles guarantee DELETE button visibility in all environments */
 .production-delete-btn {
