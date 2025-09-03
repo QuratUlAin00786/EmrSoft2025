@@ -2478,34 +2478,46 @@ export default function Forms() {
       return;
     }
 
-    // Apply styling using execCommand to preserve document structure
-    document.designMode = 'on';
+    // Apply styling by wrapping selection in a span without changing document structure
+    const span = document.createElement('span');
     
+    // Set the appropriate styling based on format type
+    switch (formatType) {
+      case 'paragraph':
+        span.style.fontSize = '14px';
+        span.style.fontWeight = 'normal';
+        break;
+      case 'heading1':
+        span.style.fontSize = '24px';
+        span.style.fontWeight = 'bold';
+        span.style.color = '#1a1a1a';
+        break;
+      case 'heading2':
+        span.style.fontSize = '18px';
+        span.style.fontWeight = 'bold';
+        span.style.color = '#2a2a2a';
+        break;
+    }
+    
+    // Extract the selected content and wrap it in the span
     try {
-      switch (formatType) {
-        case 'paragraph':
-          // Reset to normal paragraph formatting
-          document.execCommand('fontSize', false, '3'); // Medium size
-          document.execCommand('bold', false, false);
-          break;
-        case 'heading1':
-          // Apply heading 1 formatting
-          document.execCommand('fontSize', false, '7'); // Large size
-          document.execCommand('bold', false, true);
-          break;
-        case 'heading2':
-          // Apply heading 2 formatting  
-          document.execCommand('fontSize', false, '5'); // Medium-large size
-          document.execCommand('bold', false, true);
-          break;
-      }
+      const contents = range.extractContents();
+      span.appendChild(contents);
+      range.insertNode(span);
+      
+      // Clear the selection
+      selection.removeAllRanges();
       
       // Update the document content state
       if (textareaRef) {
         setDocumentContent(textareaRef.innerHTML);
       }
-    } finally {
-      document.designMode = 'off';
+    } catch (error) {
+      console.error('Error applying text formatting:', error);
+      // If there's an error, just insert the text back
+      span.textContent = selectedText;
+      range.deleteContents();
+      range.insertNode(span);
     }
     
     // Clear selection
