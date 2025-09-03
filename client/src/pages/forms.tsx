@@ -2478,33 +2478,34 @@ export default function Forms() {
       return;
     }
 
-    // Apply inline styling without changing document structure
-    let styleAttributes = '';
+    // Apply styling using execCommand to preserve document structure
+    document.designMode = 'on';
     
-    switch (formatType) {
-      case 'paragraph':
-        styleAttributes = 'font-size: 14px; font-weight: normal;';
-        break;
-      case 'heading1':
-        styleAttributes = 'font-size: 24px; font-weight: bold; color: #1a1a1a;';
-        break;
-      case 'heading2':
-        styleAttributes = 'font-size: 18px; font-weight: bold; color: #2a2a2a;';
-        break;
-    }
-    
-    // Create a span with inline styling to preserve document structure
-    const span = document.createElement('span');
-    span.style.cssText = styleAttributes;
-    span.textContent = selectedText;
-    
-    // Replace the selected content with the styled span
-    range.deleteContents();
-    range.insertNode(span);
-    
-    // Update the document content state
-    if (textareaRef) {
-      setDocumentContent(textareaRef.innerHTML);
+    try {
+      switch (formatType) {
+        case 'paragraph':
+          // Reset to normal paragraph formatting
+          document.execCommand('fontSize', false, '3'); // Medium size
+          document.execCommand('bold', false, false);
+          break;
+        case 'heading1':
+          // Apply heading 1 formatting
+          document.execCommand('fontSize', false, '7'); // Large size
+          document.execCommand('bold', false, true);
+          break;
+        case 'heading2':
+          // Apply heading 2 formatting  
+          document.execCommand('fontSize', false, '5'); // Medium-large size
+          document.execCommand('bold', false, true);
+          break;
+      }
+      
+      // Update the document content state
+      if (textareaRef) {
+        setDocumentContent(textareaRef.innerHTML);
+      }
+    } finally {
+      document.designMode = 'off';
     }
     
     // Clear selection
