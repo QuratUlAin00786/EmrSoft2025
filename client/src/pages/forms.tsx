@@ -3712,7 +3712,11 @@ export default function Forms() {
                 onClick={() => setShowLinkDialog(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleInsertLink}>
+              <Button variant="ghost" className="border transition-all duration-200" 
+                style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
+                onClick={handleInsertLink}>
                 Insert Link
               </Button>
             </div>
@@ -4177,12 +4181,22 @@ export default function Forms() {
             
             <div className="flex justify-end gap-2">
               <Button 
-                variant="outline" 
+                variant="ghost"
+                className="border transition-all duration-200" 
+                style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
                 onClick={() => setShowEditClinicDialog(false)}
               >
                 Cancel
               </Button>
-              <Button onClick={saveClinicInfo}>
+              <Button 
+                variant="ghost"
+                className="border transition-all duration-200" 
+                style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
+                onClick={saveClinicInfo}>
                 Save Changes
               </Button>
             </div>
@@ -4722,7 +4736,11 @@ export default function Forms() {
             </div>
             
             <div className="flex justify-end">
-              <Button variant="outline" onClick={() => setShowInsertProductDialog(false)}>
+              <Button variant="ghost" className="border transition-all duration-200" 
+                style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
+                onClick={() => setShowInsertProductDialog(false)}>
                 Cancel
               </Button>
             </div>
