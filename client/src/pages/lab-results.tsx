@@ -24,7 +24,8 @@ import {
   FileText,
   TrendingUp,
   TrendingDown,
-  Minus
+  Minus,
+  Trash2
 } from "lucide-react";
 
 interface DatabaseLabResult {
@@ -127,6 +128,26 @@ export default function LabResultsPage() {
       toast({
         title: "Error",
         description: error.message || "Failed to create lab order",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteLabResultMutation = useMutation({
+    mutationFn: async (resultId: number) => {
+      return await apiRequest("DELETE", `/api/lab-results/${resultId}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Lab result deleted successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete lab result",
         variant: "destructive",
       });
     },
@@ -441,6 +462,15 @@ export default function LabResultsPage() {
                         <Button variant="outline" size="sm" onClick={() => handleShareResult(result)}>
                           <User className="h-4 w-4 mr-1" />
                           Review
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => deleteLabResultMutation.mutate(result.id)}
+                          disabled={deleteLabResultMutation.isPending}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Delete
                         </Button>
                       </div>
                     </div>
