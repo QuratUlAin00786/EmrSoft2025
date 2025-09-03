@@ -2531,28 +2531,32 @@ export default function Forms() {
     }
     
     // Extract the selected content and wrap it in the span
-    try {
-      const contents = range.extractContents();
-      span.appendChild(contents);
-      range.insertNode(span);
-      
-      // Clear the selection
-      selection.removeAllRanges();
-      
-      // Update the document content state
-      if (textareaRef) {
-        setDocumentContent(textareaRef.innerHTML);
+    if (selection && range!) {
+      try {
+        const contents = range.extractContents();
+        span.appendChild(contents);
+        range.insertNode(span);
+        
+        // Clear the selection
+        selection.removeAllRanges();
+        
+        // Update the document content state
+        if (textareaRef) {
+          setDocumentContent(textareaRef.innerHTML);
+        }
+      } catch (error) {
+        console.error('Error applying text formatting:', error);
+        // If there's an error, just insert the text back
+        span.textContent = selectedText;
+        if (range!) {
+          range.deleteContents();
+          range.insertNode(span);
+        }
       }
-    } catch (error) {
-      console.error('Error applying text formatting:', error);
-      // If there's an error, just insert the text back
-      span.textContent = selectedText;
-      range.deleteContents();
-      range.insertNode(span);
+      
+      // Clear selection
+      selection.removeAllRanges();
     }
-    
-    // Clear selection
-    selection.removeAllRanges();
     
     const titles = {
       paragraph: "✓ Paragraph",
@@ -2653,16 +2657,18 @@ export default function Forms() {
     span.textContent = selectedText;
     
     // Replace the selected content with the new span
-    range.deleteContents();
-    range.insertNode(span);
-    
-    // Update the document content state
-    if (textareaRef) {
-      setDocumentContent(textareaRef.innerHTML);
+    if (selection && range!) {
+      range.deleteContents();
+      range.insertNode(span);
+      
+      // Update the document content state
+      if (textareaRef) {
+        setDocumentContent(textareaRef.innerHTML);
+      }
+      
+      // Clear selection
+      selection.removeAllRanges();
     }
-    
-    // Clear selection
-    selection.removeAllRanges();
     
     toast({ 
       title: "✓ Font Applied",
@@ -2714,16 +2720,18 @@ export default function Forms() {
     span.textContent = selectedText;
     
     // Replace the selected content with the new span
-    range.deleteContents();
-    range.insertNode(span);
-    
-    // Update the document content state
-    if (textareaRef) {
-      setDocumentContent(textareaRef.innerHTML);
+    if (selection && range!) {
+      range.deleteContents();
+      range.insertNode(span);
+      
+      // Update the document content state
+      if (textareaRef) {
+        setDocumentContent(textareaRef.innerHTML);
+      }
+      
+      // Clear selection
+      selection.removeAllRanges();
     }
-    
-    // Clear selection
-    selection.removeAllRanges();
     
     toast({ 
       title: "✓ Font Size Applied",
