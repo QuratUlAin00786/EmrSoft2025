@@ -3705,7 +3705,11 @@ export default function Forms() {
               />
             </div>
             <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setShowLinkDialog(false)}>
+              <Button variant="ghost" className="border transition-all duration-200" 
+                style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
+                onClick={() => setShowLinkDialog(false)}>
                 Cancel
               </Button>
               <Button onClick={handleInsertLink}>
@@ -4082,8 +4086,11 @@ export default function Forms() {
                   <div><strong>Website:</strong> {clinicInfo.website || 'Not set'}</div>
                   <Button 
                     onClick={handleEditClinicInfo} 
-                    className="mt-3 w-full"
-                    variant="default"
+                    className="mt-3 w-full border transition-all duration-200"
+                    variant="ghost"
+                    style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
                   >
                     Edit Clinic Info
                   </Button>
@@ -4092,7 +4099,11 @@ export default function Forms() {
             </div>
             
             <div className="flex justify-end">
-              <Button variant="outline" onClick={() => setShowClinicDialog(false)}>
+              <Button variant="ghost" className="border transition-all duration-200" 
+                style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
+                onClick={() => setShowClinicDialog(false)}>
                 Cancel
               </Button>
             </div>
