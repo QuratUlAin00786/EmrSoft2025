@@ -3582,64 +3582,32 @@ export default function Forms() {
             onClick={handleClinic}>
             Clinic
           </Button>
-          <Button variant="ghost" size="sm" className="text-xs h-5 px-2 border transition-all duration-200 force-bluewave" 
-            style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
-            onClick={handlePatient}>
+          <Button data-bluewave="true" size="sm" className="text-xs h-5 px-2" onClick={handlePatient}>
             Patient
           </Button>
-          <Button variant="ghost" size="sm" className="text-xs h-5 px-2 border transition-all duration-200 force-bluewave" 
-            style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
-            onClick={handleRecipient}>
+          <Button data-bluewave="true" size="sm" className="text-xs h-5 px-2" onClick={handleRecipient}>
             Recipient
           </Button>
-          <Button variant="ghost" size="sm" className="text-xs h-5 px-2 border transition-all duration-200 force-bluewave" 
-            style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
-            onClick={handleAppointments}>
+          <Button data-bluewave="true" size="sm" className="text-xs h-5 px-2" onClick={handleAppointments}>
             Appointments
           </Button>
-          <Button variant="ghost" size="sm" className="text-xs h-5 px-2 border transition-all duration-200 force-bluewave" 
-            style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
-            onClick={handleLabs}>
+          <Button data-bluewave="true" size="sm" className="text-xs h-5 px-2" onClick={handleLabs}>
             Labs
           </Button>
-          <Button variant="ghost" size="sm" className="text-xs h-5 px-2 border transition-all duration-200 force-bluewave" 
-            style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
-            onClick={handlePatientRecords}>
+          <Button data-bluewave="true" size="sm" className="text-xs h-5 px-2" onClick={handlePatientRecords}>
             Patient records
           </Button>
-          <Button variant="ghost" size="sm" className="text-xs h-5 px-2 border transition-all duration-200 force-bluewave" 
-            style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
-            onClick={handleInsertProduct}>
+          <Button data-bluewave="true" size="sm" className="text-xs h-5 px-2" onClick={handleInsertProduct}>
             Insert product
           </Button>
         </div>
         
         {/* Save and View buttons - medical theme colors */}
         <div className="flex justify-center items-center gap-1">
-          <Button variant="ghost" size="sm" className="text-xs h-5 px-2 border transition-all duration-200 force-bluewave" 
-            style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
-            onClick={handleSave}>
+          <Button data-bluewave="true" size="sm" className="text-xs h-5 px-2" onClick={handleSave}>
             Save Template
           </Button>
-          <Button variant="ghost" size="sm" className="text-xs h-5 px-2 border transition-all duration-200 force-bluewave" 
-            style={{ backgroundColor: '#4A7DFF', borderColor: '#4A7DFF', color: 'white' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7279FB'; e.currentTarget.style.borderColor = '#7279FB'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#4A7DFF'; e.currentTarget.style.borderColor = '#4A7DFF'; }}
-            onClick={() => setShowSavedTemplatesDialog(true)}>
+          <Button data-bluewave="true" size="sm" className="text-xs h-5 px-2" onClick={() => setShowSavedTemplatesDialog(true)}>
             View Saved Templates
           </Button>
         </div>
