@@ -2201,7 +2201,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get prescribing doctor details
-      const doctor = await storage.getUser(prescription.providerId, req.tenant!.id);
+      const doctor = await storage.getUser(prescription.doctorId, req.tenant!.id);
       if (!doctor) {
         return res.status(404).json({ error: "Doctor not found" });
       }
@@ -6261,7 +6261,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: prescription.id,
           patientId: prescription.patientId,
           patientName: patient ? `${patient.firstName} ${patient.lastName}` : `Patient ${prescription.patientId}`,
-          medication: prescription.medication,
+          medication: prescription.medicationName,
           dosage: prescription.dosage,
           frequency: prescription.frequency,
           duration: prescription.duration,
@@ -6283,7 +6283,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user?.id;
       const prescriptionData = {
         ...req.body,
-        providerId: userId,
+        doctorId: userId,
         organizationId: req.tenant!.id,
         status: 'active'
       };
@@ -6402,10 +6402,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const users = await storage.getUsersByOrganization(req.tenant!.id);
       
       const mobilePrescriptions = prescriptions.map(prescription => {
-        const provider = users.find(u => u.id === prescription.providerId);
+        const provider = users.find(u => u.id === prescription.doctorId);
         return {
           id: prescription.id,
-          medication: prescription.medication,
+          medication: prescription.medicationName,
           dosage: prescription.dosage,
           frequency: prescription.frequency,
           duration: prescription.duration,
