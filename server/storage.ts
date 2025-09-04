@@ -2526,7 +2526,7 @@ export class DatabaseStorage implements IStorage {
     console.log("Storage: Doctor ID being inserted:", prescription.doctorId);
     const [newPrescription] = await db
       .insert(prescriptions)
-      .values([prescription])
+      .values(prescription)
       .returning();
     return newPrescription;
   }
@@ -2534,7 +2534,7 @@ export class DatabaseStorage implements IStorage {
   async updatePrescription(id: number, organizationId: number, updates: Partial<InsertPrescription>): Promise<Prescription | undefined> {
     const [updatedPrescription] = await db
       .update(prescriptions)
-      .set({ ...updates, updatedAt: new Date() })
+      .set(updates as any)
       .where(and(eq(prescriptions.id, id), eq(prescriptions.organizationId, organizationId)))
       .returning();
     return updatedPrescription;
@@ -2564,7 +2564,7 @@ export class DatabaseStorage implements IStorage {
   async createLabResult(labResult: InsertLabResult): Promise<LabResult> {
     const [result] = await db
       .insert(labResults)
-      .values([labResult])
+      .values(labResult)
       .returning();
     
     return result;
@@ -2853,41 +2853,29 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getDocumentsByOrganization(organizationId: number, limit?: number): Promise<Document[]> {
-    let query = db
+    const query = db
       .select()
       .from(documents)
       .where(eq(documents.organizationId, organizationId))
       .orderBy(desc(documents.createdAt));
 
-    if (limit) {
-      query = query.limit(limit);
-    }
-
-    return await query;
+    return await (limit ? query.limit(limit) : query);
   }
 
   async getTemplatesByOrganization(organizationId: number, limit?: number): Promise<Document[]> {
-    let query = db
+    const query = db
       .select()
       .from(documents)
       .where(and(eq(documents.organizationId, organizationId), eq(documents.isTemplate, true)))
       .orderBy(desc(documents.createdAt));
 
-    if (limit) {
-      query = query.limit(limit);
-    }
-
-    return await query;
+    return await (limit ? query.limit(limit) : query);
   }
 
   async createDocument(document: InsertDocument): Promise<Document> {
     const [newDocument] = await db
       .insert(documents)
-      .values({
-        ...document,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
+      .values(document)
       .returning();
     return newDocument;
   }
@@ -2895,10 +2883,7 @@ export class DatabaseStorage implements IStorage {
   async updateDocument(id: number, organizationId: number, updates: Partial<InsertDocument>): Promise<Document | undefined> {
     const [updatedDocument] = await db
       .update(documents)
-      .set({
-        ...updates,
-        updatedAt: new Date(),
-      })
+      .set(updates as any)
       .where(and(eq(documents.id, id), eq(documents.organizationId, organizationId)))
       .returning();
     return updatedDocument;
@@ -2994,7 +2979,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateLabResult(id: number, organizationId: number, updates: Partial<InsertLabResult>): Promise<LabResult | undefined> {
     const [result] = await db.update(labResults)
-      .set({ ...updates, updatedAt: new Date() })
+      .set(updates as any)
       .where(and(eq(labResults.id, id), eq(labResults.organizationId, organizationId)))
       .returning();
     return result || undefined;
@@ -3037,7 +3022,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateClaim(id: number, organizationId: number, updates: Partial<InsertClaim>): Promise<Claim | undefined> {
     const [claim] = await db.update(claims)
-      .set({ ...updates, updatedAt: new Date() })
+      .set(updates as any)
       .where(and(eq(claims.id, id), eq(claims.organizationId, organizationId)))
       .returning();
     return claim || undefined;
@@ -3073,7 +3058,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateClinicalProcedure(id: number, organizationId: number, updates: Partial<InsertClinicalProcedure>): Promise<ClinicalProcedure | undefined> {
     const [procedure] = await db.update(clinicalProcedures)
-      .set({ ...updates, updatedAt: new Date() })
+      .set(updates as any)
       .where(and(eq(clinicalProcedures.id, id), eq(clinicalProcedures.organizationId, organizationId)))
       .returning();
     return procedure || undefined;
@@ -3095,7 +3080,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateEmergencyProtocol(id: number, organizationId: number, updates: Partial<InsertEmergencyProtocol>): Promise<EmergencyProtocol | undefined> {
     const [protocol] = await db.update(emergencyProtocols)
-      .set({ ...updates, updatedAt: new Date() })
+      .set(updates as any)
       .where(and(eq(emergencyProtocols.id, id), eq(emergencyProtocols.organizationId, organizationId)))
       .returning();
     return protocol || undefined;
@@ -3117,7 +3102,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateMedication(id: number, organizationId: number, updates: Partial<InsertMedicationsDatabase>): Promise<MedicationsDatabase | undefined> {
     const [medication] = await db.update(medicationsDatabase)
-      .set({ ...updates, updatedAt: new Date() })
+      .set(updates as any)
       .where(and(eq(medicationsDatabase.id, id), eq(medicationsDatabase.organizationId, organizationId)))
       .returning();
     return medication || undefined;
@@ -3132,40 +3117,38 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getStaffShiftsByOrganization(organizationId: number, date?: string): Promise<StaffShift[]> {
-    let query = db.select()
-      .from(staffShifts)
-      .where(eq(staffShifts.organizationId, organizationId));
+    let conditions = [eq(staffShifts.organizationId, organizationId)];
 
     if (date) {
-      query = query.where(
-        and(
-          eq(staffShifts.organizationId, organizationId),
-          gte(staffShifts.date, new Date(date)),
-          lt(staffShifts.date, new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000))
-        )
+      conditions.push(
+        gte(staffShifts.date, new Date(date)),
+        lt(staffShifts.date, new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000))
       );
     }
 
-    return await query.orderBy(asc(staffShifts.date), asc(staffShifts.startTime));
+    return await db.select()
+      .from(staffShifts)
+      .where(and(...conditions))
+      .orderBy(asc(staffShifts.date), asc(staffShifts.startTime));
   }
 
   async getStaffShiftsByStaff(staffId: number, organizationId: number, date?: string): Promise<StaffShift[]> {
-    let query = db.select()
-      .from(staffShifts)
-      .where(and(eq(staffShifts.staffId, staffId), eq(staffShifts.organizationId, organizationId)));
+    let conditions = [
+      eq(staffShifts.staffId, staffId),
+      eq(staffShifts.organizationId, organizationId)
+    ];
 
     if (date) {
-      query = query.where(
-        and(
-          eq(staffShifts.staffId, staffId),
-          eq(staffShifts.organizationId, organizationId),
-          gte(staffShifts.date, new Date(date)),
-          lt(staffShifts.date, new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000))
-        )
+      conditions.push(
+        gte(staffShifts.date, new Date(date)),
+        lt(staffShifts.date, new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000))
       );
     }
 
-    return await query.orderBy(asc(staffShifts.date), asc(staffShifts.startTime));
+    return await db.select()
+      .from(staffShifts)
+      .where(and(...conditions))
+      .orderBy(asc(staffShifts.date), asc(staffShifts.startTime));
   }
 
   async createStaffShift(shift: InsertStaffShift): Promise<StaffShift> {
