@@ -2721,19 +2721,40 @@ export default function Forms() {
     }
 
     try {
-      // Create a span with the font family applied
-      const span = document.createElement('span');
-      span.style.fontFamily = fontFamilyCSS;
-      span.style.display = 'inline'; // Ensure proper display
+      // Check if selected content is already in a font span, replace it instead of nesting
+      const parentElement = range.commonAncestorContainer.nodeType === Node.TEXT_NODE 
+        ? range.commonAncestorContainer.parentElement 
+        : range.commonAncestorContainer;
       
-      // Extract the selected content and wrap it
-      const contents = range.extractContents();
-      span.appendChild(contents);
+      // If the selection is within a font-family span, replace that span's font instead of nesting
+      let fontSpan = null;
+      let currentElement = parentElement;
+      while (currentElement && currentElement !== textareaRef) {
+        if (currentElement.style && currentElement.style.fontFamily) {
+          fontSpan = currentElement;
+          break;
+        }
+        currentElement = currentElement.parentElement;
+      }
+      
+      if (fontSpan && range.toString() === fontSpan.textContent) {
+        // Replace the existing font-family style
+        fontSpan.style.fontFamily = fontFamilyCSS;
+      } else {
+        // Create a new span with the font family applied
+        const span = document.createElement('span');
+        span.style.fontFamily = fontFamilyCSS;
+        span.style.display = 'inline';
+        
+        // Extract the selected content and wrap it
+        const contents = range.extractContents();
+        span.appendChild(contents);
+        
+        // Insert the new span at the selection
+        range.insertNode(span);
+      }
       
       console.log("Applying font:", { fontFamilyCSS, selectedText });
-      
-      // Insert the new span at the selection
-      range.insertNode(span);
       
       // Update the document content state from the contentEditable div
       if (textareaRef) {
