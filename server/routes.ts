@@ -4782,11 +4782,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           organizationId: tenant.id,
           patientId: `P${String(Date.now()).slice(-6)}`, // Generate patient ID
           dateOfBirth: new Date(), // Default date
-          gender: 'other',
-          address: '',
-          emergencyContact: patientPhone,
-          medicalHistory: '',
-          allergies: ''
+          address: {},
+          emergencyContact: {
+            phone: patientPhone
+          },
+          medicalHistory: {
+            allergies: [],
+            chronicConditions: [],
+            medications: []
+          }
         };
         
         patient = await storage.createPatient(patientData);
@@ -6156,7 +6160,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: patient.email,
         phone: patient.phone,
         dateOfBirth: patient.dateOfBirth,
-        gender: patient.gender,
+        // gender: not available in schema,
         emergencyContact: patient.emergencyContact,
         lastVisit: patient.updatedAt,
         riskLevel: patient.riskLevel || 'low'
@@ -6469,15 +6473,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: patient.email,
         phone: patient.phone,
         dateOfBirth: patient.dateOfBirth,
-        gender: patient.gender,
+        // gender: not available in schema,
         address: patient.address,
         emergencyContact: patient.emergencyContact,
-        insuranceProvider: patient.insuranceProvider,
-        insuranceNumber: patient.insuranceNumber,
+        insuranceProvider: patient.insuranceInfo?.provider || '',
+        insuranceNumber: patient.insuranceInfo?.policyNumber || '',
         medicalHistory: patient.medicalHistory,
-        allergies: patient.allergies,
-        currentMedications: patient.currentMedications,
-        bloodType: patient.bloodType,
+        allergies: patient.medicalHistory?.allergies || [],
+        currentMedications: patient.medicalHistory?.medications || [],
+        // bloodType: not available in schema,
         riskLevel: patient.riskLevel,
         createdAt: patient.createdAt,
         updatedAt: patient.updatedAt
@@ -6574,7 +6578,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: patient.email,
         phone: patient.phone,
         dateOfBirth: patient.dateOfBirth,
-        gender: patient.gender,
+        // gender: not available in schema,
         lastVisit: patient.lastVisit,
         riskLevel: patient.riskLevel || 'low'
       }));
