@@ -428,7 +428,7 @@ export class DatabaseStorage implements IStorage {
       ...(user.permissions && typeof user.permissions === 'object' ? 
         { permissions: JSON.parse(JSON.stringify(user.permissions)) } : {})
     };
-    const [created] = await db.insert(users).values(userData).returning();
+    const [created] = await db.insert(users).values([userData]).returning();
     return created;
   }
 
@@ -566,7 +566,7 @@ export class DatabaseStorage implements IStorage {
       medicalHistory: medicalHistory ? JSON.parse(JSON.stringify(medicalHistory)) : null,
       communicationPreferences: communicationPreferences ? JSON.parse(JSON.stringify(communicationPreferences)) : null
     };
-    const [created] = await db.insert(patients).values(insertData as any).returning();
+    const [created] = await db.insert(patients).values([insertData as any]).returning();
     return created;
   }
 
@@ -641,7 +641,7 @@ export class DatabaseStorage implements IStorage {
   async createMedicalRecord(record: InsertMedicalRecord): Promise<MedicalRecord> {
     const cleanRecord: any = { ...record };
     delete cleanRecord.data; // Remove complex nested type to avoid compilation errors
-    const [created] = await db.insert(medicalRecords).values(cleanRecord as any).returning();
+    const [created] = await db.insert(medicalRecords).values([cleanRecord as any]).returning();
     return created;
   }
 
@@ -913,7 +913,7 @@ export class DatabaseStorage implements IStorage {
       ...baseFields,
       metadata: metadata ? JSON.parse(JSON.stringify(metadata)) : null
     };
-    const [created] = await db.insert(aiInsights).values(insertData as any).returning();
+    const [created] = await db.insert(aiInsights).values([insertData as any]).returning();
     return created;
   }
 
@@ -959,7 +959,7 @@ export class DatabaseStorage implements IStorage {
       ...baseFields,
       features: features && typeof features === 'object' ? JSON.parse(JSON.stringify(features)) : {}
     };
-    const [created] = await db.insert(subscriptions).values(insertData as any).returning();
+    const [created] = await db.insert(subscriptions).values([insertData as any]).returning();
     return created;
   }
 
@@ -2019,7 +2019,7 @@ export class DatabaseStorage implements IStorage {
     
     console.log(`🔍 DEBUG - Message insert data:`, JSON.stringify(messageInsertData, null, 2));
     
-    const [createdMessage] = await db.insert(messages).values(messageInsertData).returning();
+    const [createdMessage] = await db.insert(messages).values([messageInsertData]).returning();
     console.log(`✅ MESSAGE INSERTED:`, createdMessage?.id);
     
     // Force database synchronization by immediately reading back all messages
@@ -2144,7 +2144,7 @@ export class DatabaseStorage implements IStorage {
       
       console.log(`🔍 DEBUG - Conversation insert data:`, JSON.stringify(conversationInsertData, null, 2));
       
-      const [createdConversation] = await db.insert(conversations).values(conversationInsertData).returning();
+      const [createdConversation] = await db.insert(conversations).values([conversationInsertData]).returning();
       console.log(`✅ CONVERSATION INSERTED:`, createdConversation?.id);
       
       console.log(`✅ Created new conversation: ${conversationId} and message: ${messageId}`);
@@ -2526,7 +2526,7 @@ export class DatabaseStorage implements IStorage {
     console.log("Storage: Doctor ID being inserted:", prescription.doctorId);
     const [newPrescription] = await db
       .insert(prescriptions)
-      .values(prescription)
+      .values([prescription])
       .returning();
     return newPrescription;
   }
@@ -2564,7 +2564,7 @@ export class DatabaseStorage implements IStorage {
   async createLabResult(labResult: InsertLabResult): Promise<LabResult> {
     const [result] = await db
       .insert(labResults)
-      .values(labResult)
+      .values([labResult])
       .returning();
     
     return result;
@@ -2875,7 +2875,7 @@ export class DatabaseStorage implements IStorage {
   async createDocument(document: InsertDocument): Promise<Document> {
     const [newDocument] = await db
       .insert(documents)
-      .values(document)
+      .values([document])
       .returning();
     return newDocument;
   }
@@ -3016,7 +3016,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createClaim(claim: InsertClaim): Promise<Claim> {
-    const [result] = await db.insert(claims).values(claim).returning();
+    const [result] = await db.insert(claims).values([claim]).returning();
     return result;
   }
 
@@ -3038,7 +3038,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createRevenueRecord(revenueRecord: InsertRevenueRecord): Promise<RevenueRecord> {
-    const [result] = await db.insert(revenueRecords).values(revenueRecord).returning();
+    const [result] = await db.insert(revenueRecords).values([revenueRecord]).returning();
     return result;
   }
 
@@ -3052,7 +3052,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createClinicalProcedure(procedure: InsertClinicalProcedure): Promise<ClinicalProcedure> {
-    const [result] = await db.insert(clinicalProcedures).values(procedure).returning();
+    const [result] = await db.insert(clinicalProcedures).values([procedure]).returning();
     return result;
   }
 
@@ -3074,7 +3074,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createEmergencyProtocol(protocol: InsertEmergencyProtocol): Promise<EmergencyProtocol> {
-    const [result] = await db.insert(emergencyProtocols).values(protocol).returning();
+    const [result] = await db.insert(emergencyProtocols).values([protocol]).returning();
     return result;
   }
 
@@ -3096,7 +3096,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createMedication(medication: InsertMedicationsDatabase): Promise<MedicationsDatabase> {
-    const [result] = await db.insert(medicationsDatabase).values(medication).returning();
+    const [result] = await db.insert(medicationsDatabase).values([medication]).returning();
     return result;
   }
 
@@ -3152,7 +3152,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createStaffShift(shift: InsertStaffShift): Promise<StaffShift> {
-    const [result] = await db.insert(staffShifts).values(shift).returning();
+    const [result] = await db.insert(staffShifts).values([shift]).returning();
     return result;
   }
 
@@ -3172,7 +3172,7 @@ export class DatabaseStorage implements IStorage {
 
   // GDPR Compliance Methods
   async createGdprConsent(consent: InsertGdprConsent): Promise<GdprConsent> {
-    const [result] = await db.insert(gdprConsents).values(consent).returning();
+    const [result] = await db.insert(gdprConsents).values([consent]).returning();
     return result;
   }
 
@@ -3203,7 +3203,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createGdprDataRequest(request: InsertGdprDataRequest): Promise<GdprDataRequest> {
-    const [result] = await db.insert(gdprDataRequests).values(request).returning();
+    const [result] = await db.insert(gdprDataRequests).values([request]).returning();
     return result;
   }
 
@@ -3227,7 +3227,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createGdprAuditTrail(audit: InsertGdprAuditTrail): Promise<GdprAuditTrail> {
-    const [result] = await db.insert(gdprAuditTrail).values(audit).returning();
+    const [result] = await db.insert(gdprAuditTrail).values([audit]).returning();
     return result;
   }
 
@@ -3735,7 +3735,7 @@ export class DatabaseStorage implements IStorage {
   async createPackage(packageData: InsertSaaSPackage): Promise<SaaSPackage> {
     const [saasPackage] = await db
       .insert(saasPackages)
-      .values(packageData)
+      .values([packageData])
       .returning();
     return saasPackage;
   }
@@ -4318,7 +4318,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createChatbotConfig(config: InsertChatbotConfig): Promise<ChatbotConfig> {
-    const [created] = await db.insert(chatbotConfigs).values(config).returning();
+    const [created] = await db.insert(chatbotConfigs).values([config]).returning();
     return created;
   }
 
@@ -4338,7 +4338,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createChatbotSession(session: InsertChatbotSession): Promise<ChatbotSession> {
-    const [created] = await db.insert(chatbotSessions).values(session).returning();
+    const [created] = await db.insert(chatbotSessions).values([session]).returning();
     return created;
   }
 
@@ -4371,7 +4371,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createChatbotMessage(message: InsertChatbotMessage): Promise<ChatbotMessage> {
-    const [created] = await db.insert(chatbotMessages).values(message).returning();
+    const [created] = await db.insert(chatbotMessages).values([message]).returning();
     return created;
   }
 
@@ -4402,7 +4402,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createChatbotAnalytics(analytics: InsertChatbotAnalytics): Promise<ChatbotAnalytics> {
-    const [created] = await db.insert(chatbotAnalytics).values(analytics).returning();
+    const [created] = await db.insert(chatbotAnalytics).values([analytics]).returning();
     return created;
   }
 

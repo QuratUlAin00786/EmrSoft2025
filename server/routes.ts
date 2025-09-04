@@ -2739,7 +2739,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // If SMS failed due to missing configuration, treat as internal message
             if (result.error?.includes('not properly configured')) {
               console.log(`📱 Twilio not configured, treating SMS as internal message`);
-              await storage.updateMessageDeliveryStatus(message.id, 'delivered', null, null);
+              await storage.updateMessageDeliveryStatus(message.id, 'delivered', undefined, undefined);
               return res.json(message);
             }
             
@@ -2756,7 +2756,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // If Twilio fails due to missing credentials, treat as internal message
           if (twilioError.message?.includes('not properly configured')) {
             console.log(`📱 Twilio not configured, treating SMS as internal message`);
-            await storage.updateMessageDeliveryStatus(message.id, 'delivered', null, null);
+            await storage.updateMessageDeliveryStatus(message.id, 'delivered', undefined, undefined);
             return res.json(message);
           }
           
@@ -2770,7 +2770,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } else {
         // For internal messages, mark as delivered immediately since they don't go through SMS/WhatsApp
-        await storage.updateMessageDeliveryStatus(message.id, 'delivered', null, null);
+        await storage.updateMessageDeliveryStatus(message.id, 'delivered', undefined, undefined);
         console.log(`✅ Internal message ${message.id} marked as delivered`);
         
         // For internal messages, broadcast to other users via WebSocket
