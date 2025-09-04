@@ -197,67 +197,26 @@ export default function Forms() {
   };
 
   const handleItalic = () => {
-    console.log("🎯 ITALIC BUTTON CLICKED!");
+    if (!textareaRef) return;
     
-    if (!textareaRef) {
-      console.log("❌ No textareaRef found");
-      return;
-    }
+    // Focus the editor first
+    textareaRef.focus();
     
-    const selection = window.getSelection();
-    console.log("Selection:", selection);
+    // Use document.execCommand directly on the contenteditable element
+    document.execCommand('italic', false, null);
     
-    if (!selection || selection.rangeCount === 0) {
-      console.log("❌ No selection found");
-      toast({ 
-        title: "Select Text", 
-        description: "Please select text to apply italic formatting",
-        duration: 3000
-      });
-      return;
-    }
-
-    const range = selection.getRangeAt(0);
-    const selectedText = range.toString();
-    console.log("Selected text for italic:", selectedText);
+    // Update state
+    setTimeout(() => {
+      if (textareaRef) {
+        setDocumentContent(textareaRef.innerHTML);
+      }
+    }, 10);
     
-    if (!selectedText) {
-      console.log("❌ No selected text");
-      toast({ 
-        title: "Select Text", 
-        description: "Please select text to apply italic formatting",
-        duration: 3000
-      });
-      return;
-    }
-
-    // Use document.execCommand for simplicity and reliability
-    try {
-      console.log("Applying italic with execCommand...");
-      const success = document.execCommand('italic', false, null);
-      console.log("ExecCommand result:", success);
-      
-      // Update the document content state
-      const updatedContent = textareaRef.innerHTML;
-      setDocumentContent(updatedContent);
-      console.log("Updated content after italic:", updatedContent);
-      
-      // Maintain focus
-      textareaRef.focus();
-      
-      toast({ 
-        title: "✓ Italic Applied",
-        description: "Text styled in italic successfully",
-        duration: 2000
-      });
-    } catch (error) {
-      console.error('Error applying italic:', error);
-      toast({ 
-        title: "Error",
-        description: "Failed to apply italic formatting",
-        duration: 3000
-      });
-    }
+    toast({ 
+      title: "✓ Italic Applied",
+      description: "Text styled in italic",
+      duration: 2000
+    });
   };
 
   const handleUnderline = () => {
