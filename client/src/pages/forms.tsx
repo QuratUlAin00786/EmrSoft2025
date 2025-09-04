@@ -2583,25 +2583,13 @@ export default function Forms() {
   };
 
   const applyFontFamily = (fontFamilyValue: string) => {
+    console.log("applyFontFamily called with:", fontFamilyValue);
+    
     const selection = window.getSelection();
-    let selectedText = '';
-    let range: Range;
-    
-    // Check if text is selected
-    if (selection && selection.rangeCount > 0) {
-      range = selection.getRangeAt(0);
-      selectedText = range.toString();
-    }
-    
-    // If no text selected, create sample text with font
-    if (!selectedText) {
+    if (!selection || selection.rangeCount === 0) {
+      // No selection, insert sample text
       const placeholder = `Sample text in ${fontFamilyValue}`;
-      
-      if (selection && selection.rangeCount > 0) {
-        range = selection.getRangeAt(0);
-        selectedText = placeholder;
-      } else if (textareaRef) {
-        // Insert at cursor or end of document
+      if (textareaRef) {
         textareaRef.focus();
         const content = textareaRef.value;
         const newContent = content + (content.endsWith('\n') ? '' : '\n') + placeholder;
@@ -2613,10 +2601,31 @@ export default function Forms() {
           description: `Font family changed to ${fontFamilyValue} with sample text`,
           duration: 2000
         });
-        return;
-      } else {
-        selectedText = placeholder;
       }
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    const selectedText = range.toString();
+    
+    console.log("Font family selection:", { selectedText, fontFamilyValue });
+    
+    if (!selectedText) {
+      // No text selected, insert sample text at cursor
+      const placeholder = `Sample text in ${fontFamilyValue}`;
+      const textNode = document.createTextNode(placeholder);
+      range.insertNode(textNode);
+      
+      if (textareaRef) {
+        setDocumentContent(textareaRef.innerHTML);
+      }
+      
+      toast({ 
+        title: "✓ Font Applied",
+        description: `Font family changed to ${fontFamilyValue} with sample text`,
+        duration: 2000
+      });
+      return;
     }
 
     // Get the font family name for CSS with distinct fallbacks
@@ -2643,32 +2652,82 @@ export default function Forms() {
       case 'courier':
         fontFamilyCSS = '"Courier New", Courier, "Lucida Console", monospace';
         break;
+      case 'open-sans':
+        fontFamilyCSS = '"Open Sans", "Helvetica Neue", Arial, sans-serif';
+        break;
+      case 'georgia':
+        fontFamilyCSS = 'Georgia, "Times New Roman", serif';
+        break;
+      case 'helvetica':
+        fontFamilyCSS = 'Helvetica, Arial, sans-serif';
+        break;
+      case 'consolas':
+        fontFamilyCSS = 'Consolas, "Lucida Console", monospace';
+        break;
+      case 'franklin':
+        fontFamilyCSS = '"Franklin Gothic Medium", Arial, sans-serif';
+        break;
+      case 'garamond':
+        fontFamilyCSS = 'Garamond, "Times New Roman", serif';
+        break;
+      case 'impact':
+        fontFamilyCSS = 'Impact, Arial Black, sans-serif';
+        break;
+      case 'lato':
+        fontFamilyCSS = 'Lato, Arial, sans-serif';
+        break;
+      case 'lucida':
+        fontFamilyCSS = '"Lucida Console", Consolas, monospace';
+        break;
+      case 'palatino':
+        fontFamilyCSS = 'Palatino, "Times New Roman", serif';
+        break;
+      case 'segoe':
+        fontFamilyCSS = '"Segoe UI", Arial, sans-serif';
+        break;
+      case 'tahoma':
+        fontFamilyCSS = 'Tahoma, Arial, sans-serif';
+        break;
+      case 'trebuchet':
+        fontFamilyCSS = '"Trebuchet MS", Arial, sans-serif';
+        break;
       default:
         fontFamilyCSS = 'Verdana, Geneva, "DejaVu Sans", sans-serif';
     }
 
-    // Create a span with the font family applied
-    const span = document.createElement('span');
-    span.style.fontFamily = fontFamilyCSS;
-    span.textContent = selectedText;
-    
-    // Replace the selected content with the new span
-    range.deleteContents();
-    range.insertNode(span);
-    
-    // Update the document content state
-    if (textareaRef) {
-      setDocumentContent(textareaRef.innerHTML);
+    try {
+      // Create a span with the font family applied
+      const span = document.createElement('span');
+      span.style.fontFamily = fontFamilyCSS;
+      span.textContent = selectedText;
+      
+      console.log("Applying font:", { fontFamilyCSS, selectedText });
+      
+      // Replace the selected content with the new span
+      range.deleteContents();
+      range.insertNode(span);
+      
+      // Update the document content state
+      if (textareaRef) {
+        setDocumentContent(textareaRef.innerHTML);
+      }
+      
+      // Clear selection
+      selection.removeAllRanges();
+      
+      toast({ 
+        title: "✓ Font Applied",
+        description: `Font family changed to ${fontFamilyValue}`,
+        duration: 2000
+      });
+    } catch (error) {
+      console.error('Error applying font family:', error);
+      toast({ 
+        title: "Error",
+        description: `Failed to apply font family`,
+        duration: 3000
+      });
     }
-    
-    // Clear selection
-    selection.removeAllRanges();
-    
-    toast({ 
-      title: "✓ Font Applied",
-      description: `Font family changed to ${fontFamilyValue}`,
-      duration: 2000
-    });
   };
 
   const applyFontSize = (fontSizeValue: string) => {
