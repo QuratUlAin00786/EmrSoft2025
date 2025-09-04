@@ -2711,21 +2711,29 @@ export default function Forms() {
       // Create a span with the font family applied
       const span = document.createElement('span');
       span.style.fontFamily = fontFamilyCSS;
-      span.textContent = selectedText;
+      span.style.display = 'inline'; // Ensure proper display
+      
+      // Extract the selected content and wrap it
+      const contents = range.extractContents();
+      span.appendChild(contents);
       
       console.log("Applying font:", { fontFamilyCSS, selectedText });
       
-      // Replace the selected content with the new span
-      range.deleteContents();
+      // Insert the new span at the selection
       range.insertNode(span);
       
-      // Update the document content state
+      // Update the document content state from the contentEditable div
       if (textareaRef) {
-        setDocumentContent(textareaRef.innerHTML);
+        const updatedContent = textareaRef.innerHTML;
+        setDocumentContent(updatedContent);
+        console.log("Updated content:", updatedContent);
       }
       
-      // Clear selection
+      // Clear selection and refocus
       selection.removeAllRanges();
+      if (textareaRef) {
+        textareaRef.focus();
+      }
       
       toast({ 
         title: "✓ Font Applied",
