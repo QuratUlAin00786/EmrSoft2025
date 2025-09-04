@@ -2640,7 +2640,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/messaging/consolidate", authMiddleware, async (req: TenantRequest, res) => {
     try {
       console.log("🔄 Manual consolidation triggered");
-      await storage.fixZahraConversations(req.tenant!.id);
+      await storage.consolidateAllDuplicateConversations(req.tenant!.id);
       res.json({ success: true, message: "Duplicate conversations consolidated" });
     } catch (error) {
       console.error("Error consolidating conversations:", error);

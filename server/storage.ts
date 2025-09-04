@@ -1,5 +1,5 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations, messages, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics,
+  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Role, type InsertRole,
@@ -1481,9 +1481,9 @@ export class DatabaseStorage implements IStorage {
   async getConversations(organizationId: number): Promise<any[]> {
     // Get conversations from database instead of in-memory storage
     const storedConversations = await db.select()
-      .from(conversations)
-      .where(eq(conversations.organizationId, organizationId))
-      .orderBy(desc(conversations.updatedAt));
+      .from(conversationsTable)
+      .where(eq(conversationsTable.organizationId, organizationId))
+      .orderBy(desc(conversationsTable.updatedAt));
 
     console.log(`💬 GET CONVERSATIONS - Database: ${storedConversations.length} found for org ${organizationId}`);
     console.log(`💬 CONVERSATION IDS:`, storedConversations.map(c => c.id));
@@ -1570,8 +1570,8 @@ export class DatabaseStorage implements IStorage {
     
     // Get all conversations for this organization
     const allConversations = await db.select()
-      .from(conversations)
-      .where(eq(conversations.organizationId, organizationId));
+      .from(conversationsTable)
+      .where(eq(conversationsTable.organizationId, organizationId));
     
     console.log(`🔧 Found ${allConversations.length} conversations to check`);
     
@@ -1651,9 +1651,9 @@ export class DatabaseStorage implements IStorage {
       
       // Update conversation if needed
       if (needsUpdate) {
-        await db.update(conversations)
+        await db.update(conversationsTable)
           .set({ participants: updatedParticipants })
-          .where(eq(conversations.id, conv.id));
+          .where(eq(conversationsTable.id, conv.id));
         console.log(`🔧 Updated conversation ${conv.id} with correct participant names`);
       }
     }
@@ -1666,8 +1666,8 @@ export class DatabaseStorage implements IStorage {
     
     // Get all conversations for this organization
     const allConversations = await db.select()
-      .from(conversations)
-      .where(eq(conversations.organizationId, organizationId));
+      .from(conversationsTable)
+      .where(eq(conversationsTable.organizationId, organizationId));
     
     // Find all conversations that involve both participants
     const matchingConversations = [];
@@ -1707,8 +1707,8 @@ export class DatabaseStorage implements IStorage {
         .where(eq(messages.conversationId, dupConv.id));
       
       // Delete the duplicate conversation
-      await db.delete(conversations)
-        .where(eq(conversations.id, dupConv.id));
+      await db.delete(conversationsTable)
+        .where(eq(conversationsTable.id, dupConv.id));
       
       console.log(`🔄 Deleted duplicate conversation ${dupConv.id}`);
     }
@@ -1721,7 +1721,7 @@ export class DatabaseStorage implements IStorage {
     
     if (allMessagesInConv.length > 0) {
       const lastMessage = allMessagesInConv[allMessagesInConv.length - 1];
-      await db.update(conversations)
+      await db.update(conversationsTable)
         .set({
           lastMessage: {
             id: lastMessage.id,
@@ -1734,7 +1734,7 @@ export class DatabaseStorage implements IStorage {
           unreadCount: allMessagesInConv.filter(m => !m.isRead).length,
           updatedAt: new Date()
         })
-        .where(eq(conversations.id, keepConversation.id));
+        .where(eq(conversationsTable.id, keepConversation.id));
     }
     
     console.log(`✅ Consolidated ${duplicateConversations.length} duplicate conversations into ${keepConversation.id}`);
@@ -1745,8 +1745,93 @@ export class DatabaseStorage implements IStorage {
     
     // Get all conversations for this organization
     const allConversations = await db.select()
-      .from(conversations)
-      .where(eq(conversations.organizationId, organizationId));
+      .from(conversationsTable)
+      .where(eq(conversationsTable.organizationId, organizationId));
+    
+    console.log(`🔄 Found ${allConversations.length} total conversations`);
+    
+    // Group conversations by participant pairs
+    const conversationGroups = new Map<string, typeof allConversations>();
+    
+    for (const conv of allConversations) {
+      const participants = conv.participants as Array<{id: string | number; name: string; role: string}>;
+      // Create a unique key for participant pairs, sorted to ensure consistency
+      const participantIds = participants
+        .map(p => p.id)
+        .sort()
+        .join('-');
+      
+      if (!conversationGroups.has(participantIds)) {
+        conversationGroups.set(participantIds, []);
+      }
+      conversationGroups.get(participantIds)!.push(conv);
+    }
+    
+    let totalConsolidated = 0;
+    
+    // Process each group and consolidate duplicates
+    for (const [participantKey, conversations] of conversationGroups.entries()) {
+      if (conversations.length > 1) {
+        console.log(`🔄 Found ${conversations.length} conversations for participants: ${participantKey}`);
+        
+        // Sort by creation date to keep the oldest one
+        conversations.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        const keepConversation = conversations[0];
+        const duplicateConversations = conversations.slice(1);
+        
+        // Move all messages from duplicate conversations to the main one
+        for (const dupConv of duplicateConversations) {
+          console.log(`🔄 Moving messages from ${dupConv.id} to ${keepConversation.id}`);
+          
+          // Update all messages to point to the main conversation
+          await db.update(messages)
+            .set({ conversationId: keepConversation.id })
+            .where(eq(messages.conversationId, dupConv.id));
+          
+          // Delete the duplicate conversation
+          await db.delete(conversationsTable)
+            .where(eq(conversationsTable.id, dupConv.id));
+          
+          console.log(`🔄 Deleted duplicate conversation ${dupConv.id}`);
+          totalConsolidated++;
+        }
+        
+        // Update the main conversation's lastMessage and unreadCount
+        const allMessagesInConv = await db.select()
+          .from(messages)
+          .where(eq(messages.conversationId, keepConversation.id))
+          .orderBy(asc(messages.timestamp));
+        
+        if (allMessagesInConv.length > 0) {
+          const lastMessage = allMessagesInConv[allMessagesInConv.length - 1];
+          await db.update(conversationsTable)
+            .set({
+              lastMessage: {
+                id: lastMessage.id,
+                senderId: lastMessage.senderId,
+                subject: lastMessage.subject,
+                content: lastMessage.content,
+                timestamp: lastMessage.timestamp.toISOString(),
+                priority: lastMessage.priority || 'normal'
+              },
+              unreadCount: allMessagesInConv.filter(m => !m.isRead).length,
+              updatedAt: new Date()
+            })
+            .where(eq(conversationsTable.id, keepConversation.id));
+        }
+      }
+    }
+    
+    console.log(`✅ Consolidated ${totalConsolidated} duplicate conversations total`);
+  }
+
+  async consolidateAllDuplicateConversationsOld(organizationId: number): Promise<void> {
+    console.log(`🔄 CONSOLIDATING ALL duplicate conversations for organization ${organizationId}`);
+    
+    // Get all conversations for this organization
+    const allConversations = await db.select()
+      .from(conversationsTable)
+      .where(eq(conversationsTable.organizationId, organizationId));
     
     console.log(`🔄 Found ${allConversations.length} total conversations to analyze`);
     
@@ -1801,8 +1886,8 @@ export class DatabaseStorage implements IStorage {
             .where(eq(messages.conversationId, dupConv.id));
           
           // Delete the duplicate conversation
-          await db.delete(conversations)
-            .where(eq(conversations.id, dupConv.id));
+          await db.delete(conversationsTable)
+            .where(eq(conversationsTable.id, dupConv.id));
           
           console.log(`🔄 Deleted duplicate conversation ${dupConv.id}`);
           totalConsolidated++;
@@ -1816,7 +1901,7 @@ export class DatabaseStorage implements IStorage {
         
         if (allMessagesInConv.length > 0) {
           const lastMessage = allMessagesInConv[allMessagesInConv.length - 1];
-          await db.update(conversations)
+          await db.update(conversationsTable)
             .set({
               lastMessage: {
                 id: lastMessage.id,
@@ -1829,7 +1914,7 @@ export class DatabaseStorage implements IStorage {
               unreadCount: allMessagesInConv.filter(m => !m.isRead).length,
               updatedAt: new Date()
             })
-            .where(eq(conversations.id, keepConversation.id));
+            .where(eq(conversationsTable.id, keepConversation.id));
         }
       }
     }
@@ -1842,18 +1927,19 @@ export class DatabaseStorage implements IStorage {
     
     // Get all conversations for this organization
     const allConversations = await db.select()
-      .from(conversations)
-      .where(eq(conversations.organizationId, organizationId));
+      .from(conversationsTable)
+      .where(eq(conversationsTable.organizationId, organizationId));
     
     console.log(`🔧 Found ${allConversations.length} total conversations`);
     
-    // Find conversations with Zahra
+    // Find conversations with Zahra (handle spacing and name variations)
     const zahraConversations = [];
     for (const conv of allConversations) {
       const participants = conv.participants as Array<{id: string | number; name: string; role: string}>;
       const hasZahra = participants.some(p => 
-        p.name === "Zahra Qureshi" || 
-        p.id === "Zahra Qureshi" ||
+        (p.name && p.name.replace(/\s+/g, ' ').trim() === "Zahra Qureshi") || 
+        (p.id && p.id.toString().replace(/\s+/g, ' ').trim() === "Zahra Qureshi") ||
+        (typeof p.id === 'number' && p.id === 7) || // Match by user ID 7
         (p.role === "patient" && (!p.id || !p.name)) // incomplete patient data
       );
       
@@ -1901,9 +1987,9 @@ export class DatabaseStorage implements IStorage {
         return p;
       });
       
-      await db.update(conversations)
+      await db.update(conversationsTable)
         .set({ participants: updatedParticipants })
-        .where(eq(conversations.id, keepConversation.id));
+        .where(eq(conversationsTable.id, keepConversation.id));
       
       console.log(`🔧 Fixed participant data for conversation ${keepConversation.id}`);
     }
@@ -1918,8 +2004,8 @@ export class DatabaseStorage implements IStorage {
         .where(eq(messages.conversationId, dupConv.id));
       
       // Delete the duplicate conversation
-      await db.delete(conversations)
-        .where(eq(conversations.id, dupConv.id));
+      await db.delete(conversationsTable)
+        .where(eq(conversationsTable.id, dupConv.id));
       
       console.log(`🔧 Deleted duplicate conversation ${dupConv.id}`);
     }
@@ -1932,7 +2018,7 @@ export class DatabaseStorage implements IStorage {
     
     if (allMessagesInConv.length > 0) {
       const lastMessage = allMessagesInConv[allMessagesInConv.length - 1];
-      await db.update(conversations)
+      await db.update(conversationsTable)
         .set({
           lastMessage: {
             id: lastMessage.id,
@@ -1945,7 +2031,7 @@ export class DatabaseStorage implements IStorage {
           unreadCount: allMessagesInConv.filter(m => !m.isRead).length,
           updatedAt: new Date()
         })
-        .where(eq(conversations.id, keepConversation.id));
+        .where(eq(conversationsTable.id, keepConversation.id));
     }
     
     console.log(`✅ Fixed Zahra conversations - consolidated ${duplicateConversations.length} duplicates into ${keepConversation.id}`);
@@ -1962,10 +2048,10 @@ export class DatabaseStorage implements IStorage {
     // If conversationId is provided, verify it exists in the database
     if (conversationId) {
       const existingConv = await db.select()
-        .from(conversations)
+        .from(conversationsTable)
         .where(and(
-          eq(conversations.id, conversationId),
-          eq(conversations.organizationId, organizationId)
+          eq(conversationsTable.id, conversationId),
+          eq(conversationsTable.organizationId, organizationId)
         ))
         .limit(1);
       
@@ -2032,8 +2118,8 @@ export class DatabaseStorage implements IStorage {
 
     // Check if conversation exists, if not create it
     let existingConversation = await db.select()
-      .from(conversations)
-      .where(eq(conversations.id, conversationId))
+      .from(conversationsTable)
+      .where(eq(conversationsTable.id, conversationId))
       .limit(1);
 
     // If no conversation found by ID, check if there's already a conversation between these participants
@@ -2041,8 +2127,8 @@ export class DatabaseStorage implements IStorage {
       console.log(`🔍 Searching for existing conversation between sender ${messageData.senderId} and recipient ${messageData.recipientId}`);
       
       const allConversations = await db.select()
-        .from(conversations)
-        .where(eq(conversations.organizationId, organizationId));
+        .from(conversationsTable)
+        .where(eq(conversationsTable.organizationId, organizationId));
       
       // Look for conversation that includes both participants
       for (const conv of allConversations) {
@@ -2150,7 +2236,7 @@ export class DatabaseStorage implements IStorage {
       console.log(`✅ Created new conversation: ${conversationId} and message: ${messageId}`);
     } else {
       // Update existing conversation (unreadCount will be calculated in getConversations)
-      await db.update(conversations)
+      await db.update(conversationsTable)
         .set({
           lastMessage: {
             id: messageId,
@@ -2162,7 +2248,7 @@ export class DatabaseStorage implements IStorage {
           },
           updatedAt: timestamp
         })
-        .where(eq(conversations.id, conversationId));
+        .where(eq(conversationsTable.id, conversationId));
       
       console.log(`✅ Updated existing conversation: ${conversationId} with message: ${messageId}`);
     }
@@ -2184,10 +2270,10 @@ export class DatabaseStorage implements IStorage {
       console.log(`🗑️ DELETED MESSAGES for conversation ${conversationId}`);
       
       // Then delete the conversation itself
-      const deleteConversationResult = await db.delete(conversations)
+      const deleteConversationResult = await db.delete(conversationsTable)
         .where(and(
-          eq(conversations.id, conversationId),
-          eq(conversations.organizationId, organizationId)
+          eq(conversationsTable.id, conversationId),
+          eq(conversationsTable.organizationId, organizationId)
         ));
       
       console.log(`🗑️ DELETED CONVERSATION ${conversationId}`);
