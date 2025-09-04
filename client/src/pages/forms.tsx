@@ -111,18 +111,6 @@ export default function Forms() {
         // Remove any conflicting classes
         button.className = button.className.replace(/bg-\w+/g, '').replace(/border-\w+/g, '').replace(/text-\w+/g, '');
       });
-      
-      // Restore mint drift color for specific buttons that should not be bluewave
-      const typeButton = document.querySelector('button[style*="#6CFFEB"]');
-      const moreButton = document.querySelectorAll('button[style*="#6CFFEB"]')[1];
-      
-      [typeButton, moreButton].forEach(button => {
-        if (button && !button.hasAttribute('data-bluewave')) {
-          button.style.setProperty('background-color', '#6CFFEB', 'important');
-          button.style.setProperty('border-color', '#6CFFEB', 'important');  
-          button.style.setProperty('color', '#1a1a1a', 'important');
-        }
-      });
     }, 100);
     return () => clearTimeout(timer);
   }, []);
@@ -3481,22 +3469,7 @@ export default function Forms() {
           
           {/* Text color and tools */}
           <div className="relative">
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border transition-all duration-200" 
-              style={{ 
-                backgroundColor: '#6CFFEB', 
-                borderColor: '#6CFFEB',
-                color: '#1a1a1a'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#4A7DFF';
-                e.currentTarget.style.borderColor = '#4A7DFF';
-                e.currentTarget.style.color = 'white';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#6CFFEB';
-                e.currentTarget.style.borderColor = '#6CFFEB';
-                e.currentTarget.style.color = '#1a1a1a';
-              }}
+            <Button data-bluewave="true" size="sm" className="h-6 w-6 p-0" 
               onClick={() => setShowColorPicker(!showColorPicker)}>
               <Type className="h-3 w-3" />
             </Button>
@@ -3662,22 +3635,7 @@ export default function Forms() {
             onClick={handleLink}>
             <Link className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 border transition-all duration-200" 
-            style={{ 
-              backgroundColor: '#6CFFEB', 
-              borderColor: '#6CFFEB',
-              color: '#1a1a1a'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#4A7DFF';
-              e.currentTarget.style.borderColor = '#4A7DFF';
-              e.currentTarget.style.color = 'white';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#6CFFEB';
-              e.currentTarget.style.borderColor = '#6CFFEB';
-              e.currentTarget.style.color = '#1a1a1a';
-            }}
+          <Button data-bluewave="true" size="sm" className="h-6 w-6 p-0" 
             onClick={handleMore}>
             <MoreHorizontal className="h-3 w-3" />
           </Button>
