@@ -202,7 +202,7 @@ export default function MessagingPage() {
 
   const { data: conversations = [], isLoading: conversationsLoading, error: conversationsError, refetch: refetchConversations } = useQuery({
     queryKey: ['/api/messaging/conversations'],
-    enabled: false, // Disable automatic execution to prevent loop
+    enabled: true, // Enable automatic execution to load conversations
     staleTime: 300000, // Consider data fresh for 5 minutes
     gcTime: 600000, // Keep in cache for 10 minutes
     refetchOnMount: false, // Don't auto-refetch on mount
@@ -619,7 +619,7 @@ export default function MessagingPage() {
       }
       
       // Less frequent conversation refresh to reduce API calls
-      // refetchConversations();
+      refetchConversations();
     }, 5000); // Check every 5 seconds instead of 2
     
     // Also attempt WebSocket as primary method
@@ -665,7 +665,7 @@ export default function MessagingPage() {
           
           // Always refresh conversations to update sidebar
           console.log('🔥 FORCE REFETCH ALL CONVERSATIONS - WebSocket triggered');
-          // refetchConversations();
+          refetchConversations();
           
           // Show toast notification
           toast({
