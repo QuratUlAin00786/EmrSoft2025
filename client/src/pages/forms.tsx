@@ -197,6 +197,10 @@ export default function Forms() {
   };
 
   const handleItalic = () => {
+    // Always show this alert first to confirm the function is being called
+    alert("Italic button clicked!");
+    console.log("🎯 ITALIC FUNCTION CALLED!");
+    
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) {
       toast({ 
