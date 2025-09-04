@@ -332,7 +332,7 @@ export default function Forms() {
     
     // Get all direct child nodes to preserve line structure
     const childNodes = Array.from(tempDiv.childNodes);
-    const lines = [];
+    const lines: string[] = [];
     
     // Process each child node to extract text while preserving line breaks
     childNodes.forEach(node => {
@@ -429,7 +429,7 @@ export default function Forms() {
     
     // Get all direct child nodes to preserve line structure
     const childNodes = Array.from(tempDiv.childNodes);
-    const lines = [];
+    const lines: string[] = [];
     
     // Process each child node to extract text while preserving line breaks
     childNodes.forEach(node => {
@@ -2496,7 +2496,7 @@ export default function Forms() {
     
     const selection = window.getSelection();
     let selectedText = '';
-    let range: Range;
+    let range: Range | undefined;
     
     // Check if text is selected
     if (selection && selection.rangeCount > 0) {
@@ -2554,28 +2554,37 @@ export default function Forms() {
     }
     
     // Extract the selected content and wrap it in the span
-    try {
-      const contents = range.extractContents();
-      span.appendChild(contents);
-      range.insertNode(span);
-      
-      // Clear the selection
-      selection.removeAllRanges();
-      
-      // Update the document content state
+    if (range) {
+      try {
+        const contents = range.extractContents();
+        span.appendChild(contents);
+        range.insertNode(span);
+        
+        // Clear the selection
+        selection?.removeAllRanges();
+        
+        // Update the document content state
+        if (textareaRef) {
+          setDocumentContent(textareaRef.innerHTML);
+        }
+      } catch (error) {
+        console.error('Error applying text formatting:', error);
+        // If there's an error, just insert the text back
+        span.textContent = selectedText;
+        range.deleteContents();
+        range.insertNode(span);
+      }
+    } else {
+      // If no range, just create the span with text content
+      span.textContent = selectedText;
       if (textareaRef) {
+        textareaRef.innerHTML += span.outerHTML;
         setDocumentContent(textareaRef.innerHTML);
       }
-    } catch (error) {
-      console.error('Error applying text formatting:', error);
-      // If there's an error, just insert the text back
-      span.textContent = selectedText;
-      range.deleteContents();
-      range.insertNode(span);
     }
     
     // Clear selection
-    selection.removeAllRanges();
+    selection?.removeAllRanges();
     
     const titles = {
       paragraph: "✓ Paragraph",
@@ -2790,7 +2799,7 @@ export default function Forms() {
   const applyFontSize = (fontSizeValue: string) => {
     const selection = window.getSelection();
     let selectedText = '';
-    let range: Range;
+    let range: Range | undefined;
     
     // Check if text is selected
     if (selection && selection.rangeCount > 0) {
@@ -2830,8 +2839,12 @@ export default function Forms() {
     span.textContent = selectedText;
     
     // Replace the selected content with the new span
-    range.deleteContents();
-    range.insertNode(span);
+    if (range) {
+      range.deleteContents();
+      range.insertNode(span);
+    } else if (textareaRef) {
+      textareaRef.innerHTML += span.outerHTML;
+    }
     
     // Update the document content state
     if (textareaRef) {
@@ -2839,7 +2852,7 @@ export default function Forms() {
     }
     
     // Clear selection
-    selection.removeAllRanges();
+    selection?.removeAllRanges();
     
     toast({ 
       title: "✓ Font Size Applied",
