@@ -98,7 +98,7 @@ export default function Forms() {
     }
   }, [organization]);
 
-  // NUCLEAR OPTION: Force bluewave color on all toolbar buttons
+  // NUCLEAR OPTION: Force bluewave color on all toolbar buttons with data-bluewave attribute
   useEffect(() => {
     const timer = setTimeout(() => {
       const buttons = document.querySelectorAll('[data-bluewave="true"]');
@@ -110,6 +110,18 @@ export default function Forms() {
         button.style.setProperty('border-style', 'solid', 'important');
         // Remove any conflicting classes
         button.className = button.className.replace(/bg-\w+/g, '').replace(/border-\w+/g, '').replace(/text-\w+/g, '');
+      });
+      
+      // Restore mint drift color for specific buttons that should not be bluewave
+      const typeButton = document.querySelector('button[style*="#6CFFEB"]');
+      const moreButton = document.querySelectorAll('button[style*="#6CFFEB"]')[1];
+      
+      [typeButton, moreButton].forEach(button => {
+        if (button && !button.hasAttribute('data-bluewave')) {
+          button.style.setProperty('background-color', '#6CFFEB', 'important');
+          button.style.setProperty('border-color', '#6CFFEB', 'important');  
+          button.style.setProperty('color', '#1a1a1a', 'important');
+        }
       });
     }, 100);
     return () => clearTimeout(timer);
