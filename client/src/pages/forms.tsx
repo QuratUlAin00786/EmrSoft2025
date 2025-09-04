@@ -197,10 +197,18 @@ export default function Forms() {
   };
 
   const handleItalic = () => {
-    if (!textareaRef) return;
+    console.log("🎯 ITALIC BUTTON CLICKED!");
+    
+    if (!textareaRef) {
+      console.log("❌ No textareaRef found");
+      return;
+    }
     
     const selection = window.getSelection();
+    console.log("Selection:", selection);
+    
     if (!selection || selection.rangeCount === 0) {
+      console.log("❌ No selection found");
       toast({ 
         title: "Select Text", 
         description: "Please select text to apply italic formatting",
@@ -211,8 +219,10 @@ export default function Forms() {
 
     const range = selection.getRangeAt(0);
     const selectedText = range.toString();
+    console.log("Selected text for italic:", selectedText);
     
     if (!selectedText) {
+      console.log("❌ No selected text");
       toast({ 
         title: "Select Text", 
         description: "Please select text to apply italic formatting",
@@ -223,11 +233,14 @@ export default function Forms() {
 
     // Use document.execCommand for simplicity and reliability
     try {
-      document.execCommand('italic', false, null);
+      console.log("Applying italic with execCommand...");
+      const success = document.execCommand('italic', false, null);
+      console.log("ExecCommand result:", success);
       
       // Update the document content state
       const updatedContent = textareaRef.innerHTML;
       setDocumentContent(updatedContent);
+      console.log("Updated content after italic:", updatedContent);
       
       // Maintain focus
       textareaRef.focus();
