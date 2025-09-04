@@ -210,6 +210,8 @@ export default function Forms() {
     const range = selection.getRangeAt(0);
     const selectedText = range.toString();
     
+    console.log("handleItalic called with:", { selectedText });
+    
     if (!selectedText) {
       toast({ 
         title: "Select Text", 
@@ -219,35 +221,47 @@ export default function Forms() {
       return;
     }
 
-    // Create a span with italic styling
-    const span = document.createElement('span');
-    span.style.fontStyle = 'italic';
-    span.style.display = 'inline'; // Ensure proper display
-    
-    // Extract the selected content and wrap it
-    const contents = range.extractContents();
-    span.appendChild(contents);
-    
-    // Insert the new span at the selection
-    range.insertNode(span);
-    
-    // Update the document content state from the contentEditable div
-    if (textareaRef) {
-      const updatedContent = textareaRef.innerHTML;
-      setDocumentContent(updatedContent);
+    try {
+      // Create a span with italic styling
+      const span = document.createElement('span');
+      span.style.fontStyle = 'italic';
+      span.style.display = 'inline'; // Ensure proper display
+      
+      console.log("Applying italic to:", selectedText);
+      
+      // Extract the selected content and wrap it
+      const contents = range.extractContents();
+      span.appendChild(contents);
+      
+      // Insert the new span at the selection
+      range.insertNode(span);
+      
+      // Update the document content state from the contentEditable div
+      if (textareaRef) {
+        const updatedContent = textareaRef.innerHTML;
+        setDocumentContent(updatedContent);
+        console.log("Updated content after italic:", updatedContent);
+      }
+      
+      // Clear selection and refocus
+      selection.removeAllRanges();
+      if (textareaRef) {
+        textareaRef.focus();
+      }
+      
+      toast({ 
+        title: "✓ Italic Applied",
+        description: "Italic formatting applied to selected text",
+        duration: 2000
+      });
+    } catch (error) {
+      console.error('Error applying italic:', error);
+      toast({ 
+        title: "Error",
+        description: "Failed to apply italic formatting",
+        duration: 3000
+      });
     }
-    
-    // Clear selection and refocus
-    selection.removeAllRanges();
-    if (textareaRef) {
-      textareaRef.focus();
-    }
-    
-    toast({ 
-      title: "✓ Italic Applied",
-      description: "Italic formatting applied to selected text",
-      duration: 2000
-    });
   };
 
   const handleUnderline = () => {
