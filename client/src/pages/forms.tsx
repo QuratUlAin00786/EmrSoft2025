@@ -222,19 +222,26 @@ export default function Forms() {
     // Create a span with italic styling
     const span = document.createElement('span');
     span.style.fontStyle = 'italic';
-    span.textContent = selectedText;
+    span.style.display = 'inline'; // Ensure proper display
     
-    // Replace the selected content with the new span
-    range.deleteContents();
+    // Extract the selected content and wrap it
+    const contents = range.extractContents();
+    span.appendChild(contents);
+    
+    // Insert the new span at the selection
     range.insertNode(span);
     
-    // Update the document content state
+    // Update the document content state from the contentEditable div
     if (textareaRef) {
-      setDocumentContent(textareaRef.innerHTML);
+      const updatedContent = textareaRef.innerHTML;
+      setDocumentContent(updatedContent);
     }
     
-    // Clear selection
+    // Clear selection and refocus
     selection.removeAllRanges();
+    if (textareaRef) {
+      textareaRef.focus();
+    }
     
     toast({ 
       title: "✓ Italic Applied",
