@@ -197,8 +197,13 @@ export default function Forms() {
   };
 
   const handleItalic = () => {
+    console.log("🎯 handleItalic called!");
+    
     const selection = window.getSelection();
+    console.log("Selection object:", selection);
+    
     if (!selection || selection.rangeCount === 0) {
+      console.log("❌ No selection found");
       toast({ 
         title: "Select Text", 
         description: "Please select text to apply italic formatting",
@@ -210,7 +215,10 @@ export default function Forms() {
     const range = selection.getRangeAt(0);
     const selectedText = range.toString();
     
+    console.log("Selected text for italic:", selectedText);
+    
     if (!selectedText) {
+      console.log("❌ Empty selected text");
       toast({ 
         title: "Select Text", 
         description: "Please select text to apply italic formatting",
@@ -219,28 +227,43 @@ export default function Forms() {
       return;
     }
 
-    // Create a span with italic styling
-    const span = document.createElement('span');
-    span.style.fontStyle = 'italic';
-    span.textContent = selectedText;
-    
-    // Replace the selected content with the new span
-    range.deleteContents();
-    range.insertNode(span);
-    
-    // Update the document content state
-    if (textareaRef) {
-      setDocumentContent(textareaRef.innerHTML);
+    try {
+      // Create a span with italic styling
+      const span = document.createElement('span');
+      span.style.fontStyle = 'italic';
+      span.textContent = selectedText;
+      
+      console.log("Created italic span:", span);
+      
+      // Replace the selected content with the new span
+      range.deleteContents();
+      range.insertNode(span);
+      
+      console.log("Inserted italic span successfully");
+      
+      // Update the document content state
+      if (textareaRef) {
+        const updatedContent = textareaRef.innerHTML;
+        setDocumentContent(updatedContent);
+        console.log("Updated content after italic:", updatedContent);
+      }
+      
+      // Clear selection
+      selection.removeAllRanges();
+      
+      toast({ 
+        title: "✓ Italic Applied",
+        description: "Italic formatting applied to selected text",
+        duration: 2000
+      });
+    } catch (error) {
+      console.error("Error in handleItalic:", error);
+      toast({ 
+        title: "Error",
+        description: "Failed to apply italic formatting",
+        duration: 3000
+      });
     }
-    
-    // Clear selection
-    selection.removeAllRanges();
-    
-    toast({ 
-      title: "✓ Italic Applied",
-      description: "Italic formatting applied to selected text",
-      duration: 2000
-    });
   };
 
   const handleUnderline = () => {
@@ -2696,14 +2719,43 @@ export default function Forms() {
     }
 
     try {
-      // Create a new span with the font family applied
-      const span = document.createElement('span');
-      span.style.fontFamily = fontFamilyCSS;
-      span.textContent = selectedText;
+      // Check if selection is within an existing font-family span
+      const startContainer = range.startContainer;
+      const parentElement = startContainer.nodeType === Node.TEXT_NODE 
+        ? startContainer.parentElement 
+        : startContainer;
       
-      // Replace the selected content with the new span
-      range.deleteContents();
-      range.insertNode(span);
+      // Look for an existing font-family span that contains our selection
+      let existingFontSpan = null;
+      let current = parentElement;
+      while (current && current !== textareaRef) {
+        if (current instanceof HTMLElement && current.style && current.style.fontFamily) {
+          // Check if this span completely contains our selection
+          const spanText = current.textContent || '';
+          const selectionText = selectedText;
+          if (spanText === selectionText || spanText.includes(selectionText)) {
+            existingFontSpan = current;
+            break;
+          }
+        }
+        current = current.parentElement;
+      }
+      
+      if (existingFontSpan) {
+        // Update existing span's font family instead of creating nested span
+        existingFontSpan.style.fontFamily = fontFamilyCSS;
+        console.log("Updated existing span font:", fontFamilyCSS);
+      } else {
+        // Create a new span with the font family applied
+        const span = document.createElement('span');
+        span.style.fontFamily = fontFamilyCSS;
+        span.textContent = selectedText;
+        
+        // Replace the selected content with the new span
+        range.deleteContents();
+        range.insertNode(span);
+        console.log("Created new font span:", fontFamilyCSS);
+      }
       
       console.log("Applying font:", { fontFamilyCSS, selectedText });
       
