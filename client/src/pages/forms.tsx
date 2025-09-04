@@ -3155,7 +3155,7 @@ export default function Forms() {
               else if (value === "heading2") handleH2();
             }, 100);
           }}>
-            <SelectTrigger className="w-20 h-6 text-xs border border-[hsl(var(--cura-steel))]">
+            <SelectTrigger data-bluewave="true" className="w-20 h-6 text-xs">
               <SelectValue placeholder="H2" />
             </SelectTrigger>
             <SelectContent>
@@ -3173,7 +3173,7 @@ export default function Forms() {
               applyFontFamily(value);
             }
           }}>
-            <SelectTrigger className="w-24 h-5 text-xs border border-[hsl(var(--cura-steel))] bg-white dark:bg-[hsl(var(--cura-midnight))] dark:border-[hsl(var(--cura-steel))] dark:text-white">
+            <SelectTrigger data-bluewave="true" className="w-24 h-5 text-xs">
               <SelectValue placeholder="Verdana" />
             </SelectTrigger>
             <SelectContent>
@@ -3210,7 +3210,7 @@ export default function Forms() {
               applyFontSize(value);
             }
           }}>
-            <SelectTrigger className="w-16 h-5 text-xs border border-[hsl(var(--cura-steel))] bg-white dark:bg-[hsl(var(--cura-midnight))] dark:border-[hsl(var(--cura-steel))] dark:text-white">
+            <SelectTrigger data-bluewave="true" className="w-16 h-5 text-xs">
               <SelectValue placeholder="12pt" />
             </SelectTrigger>
             <SelectContent>
