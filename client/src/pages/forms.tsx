@@ -197,9 +197,7 @@ export default function Forms() {
   };
 
   const handleItalic = () => {
-    // Always show this alert first to confirm the function is being called
-    alert("Italic button clicked!");
-    console.log("🎯 ITALIC FUNCTION CALLED!");
+    if (!textareaRef) return;
     
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) {
@@ -214,8 +212,6 @@ export default function Forms() {
     const range = selection.getRangeAt(0);
     const selectedText = range.toString();
     
-    console.log("handleItalic called with:", { selectedText });
-    
     if (!selectedText) {
       toast({ 
         title: "Select Text", 
@@ -225,37 +221,20 @@ export default function Forms() {
       return;
     }
 
+    // Use document.execCommand for simplicity and reliability
     try {
-      // Create a span with italic styling
-      const span = document.createElement('span');
-      span.style.fontStyle = 'italic';
-      span.style.display = 'inline'; // Ensure proper display
+      document.execCommand('italic', false, null);
       
-      console.log("Applying italic to:", selectedText);
+      // Update the document content state
+      const updatedContent = textareaRef.innerHTML;
+      setDocumentContent(updatedContent);
       
-      // Extract the selected content and wrap it
-      const contents = range.extractContents();
-      span.appendChild(contents);
-      
-      // Insert the new span at the selection
-      range.insertNode(span);
-      
-      // Update the document content state from the contentEditable div
-      if (textareaRef) {
-        const updatedContent = textareaRef.innerHTML;
-        setDocumentContent(updatedContent);
-        console.log("Updated content after italic:", updatedContent);
-      }
-      
-      // Clear selection and refocus
-      selection.removeAllRanges();
-      if (textareaRef) {
-        textareaRef.focus();
-      }
+      // Maintain focus
+      textareaRef.focus();
       
       toast({ 
         title: "✓ Italic Applied",
-        description: "Italic formatting applied to selected text",
+        description: "Text styled in italic successfully",
         duration: 2000
       });
     } catch (error) {
@@ -2728,7 +2707,7 @@ export default function Forms() {
       
       // If the selection is within a font-family span, replace that span's font instead of nesting
       let fontSpan = null;
-      let currentElement = parentElement;
+      let currentElement = parentElement as HTMLElement;
       while (currentElement && currentElement !== textareaRef) {
         if (currentElement.style && currentElement.style.fontFamily) {
           fontSpan = currentElement;
@@ -2739,7 +2718,7 @@ export default function Forms() {
       
       if (fontSpan && range.toString() === fontSpan.textContent) {
         // Replace the existing font-family style
-        fontSpan.style.fontFamily = fontFamilyCSS;
+        (fontSpan as HTMLElement).style.fontFamily = fontFamilyCSS;
       } else {
         // Create a new span with the font family applied
         const span = document.createElement('span');
