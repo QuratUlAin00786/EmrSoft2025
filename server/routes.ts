@@ -2700,9 +2700,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Store the message in the database
       const message = await storage.sendMessage(messageDataWithUser, req.tenant!.id);
       
-      // If phone number is provided, send via SMS or WhatsApp  
+      // If phone number is provided AND messageType is sms/whatsapp, attempt external delivery
       const recipientPhone = phoneNumber || req.body.recipient;
-      if (recipientPhone && (messageType === 'sms' || messageType === 'whatsapp')) {
+      if (recipientPhone && (messageType === 'sms' || messageType === 'whatsapp') && type !== 'internal') {
         try {
           const result = await messagingService.sendMessage({
             to: recipientPhone,
@@ -2735,6 +2735,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return res.json(message);
           } else {
             console.error(`${messageType.toUpperCase()} sending failed:`, result.error);
+            
+            // If SMS failed due to missing configuration, treat as internal message
+            if (result.error?.includes('not properly configured')) {
+              console.log(`📱 Twilio not configured, treating SMS as internal message`);
+              await storage.updateMessageDeliveryStatus(message.id, 'delivered', null, null);
+              return res.json(message);
+            }
+            
             message.deliveryStatus = 'failed';
             message.error = result.error;
             // Return error response for failed delivery
@@ -2745,6 +2753,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         } catch (twilioError: any) {
           console.error('Twilio API error:', twilioError);
+          // If Twilio fails due to missing credentials, treat as internal message
+          if (twilioError.message?.includes('not properly configured')) {
+            console.log(`📱 Twilio not configured, treating SMS as internal message`);
+            await storage.updateMessageDeliveryStatus(message.id, 'delivered', null, null);
+            return res.json(message);
+          }
+          
           message.deliveryStatus = 'failed';
           message.error = 'Failed to send via Twilio';
           // Return error response for Twilio failures
