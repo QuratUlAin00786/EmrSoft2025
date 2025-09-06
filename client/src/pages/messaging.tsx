@@ -763,72 +763,62 @@ export default function MessagingPage() {
     console.log('Message content:', messageContent);
     setNewMessageContent(""); // Clear immediately
     
-    try {
-      // Find the other participant (patient) in the conversation
-      const currentConversation = conversations.find((c: Conversation) => c.id === selectedConversation);
-      const otherParticipant = currentConversation?.participants?.find((p: any) => 
-        p.id !== currentUser?.id
-      );
-      
-      // For patient conversations, get phone from stored messages or participant
-      const phoneNumber = messages?.[0]?.phoneNumber || otherParticipant?.phone;
-      const messageType = 'sms'; // Default to SMS for external messages
-      
-      // Determine if this should be sent as external SMS (only for patients with phone numbers)
-      const isExternalMessage = phoneNumber && messageType && otherParticipant?.role === 'patient';
-      
-      // Debug logging
-      console.log('🔍 SMS DETECTION DEBUG:');
-      console.log('  Other participant:', otherParticipant);
-      console.log('  Phone number:', phoneNumber);
-      console.log('  Message type:', messageType);
-      console.log('  Is external:', isExternalMessage);
-      
-      const messageData = {
-        conversationId: selectedConversation,
-        content: messageContent,
-        priority: 'normal',
-        type: isExternalMessage ? 'patient' : 'internal',
-        phoneNumber: isExternalMessage ? phoneNumber : undefined,
-        messageType: isExternalMessage ? messageType : undefined
-      };
-      console.log('🔥 CONVERSATION MESSAGE DATA:', messageData);
-      console.log('🔥 Selected conversation ID:', selectedConversation);
-      
-      // Use the same apiRequest method that works for other API calls
-      const response = await apiRequest('POST', '/api/messaging/send', messageData);
-      const responseData = await response.json();
-      console.log('🔥 CONVERSATION MESSAGE RESPONSE:', responseData);
-      
-      // Message sent successfully - trigger immediate UI update using direct fetch
-      console.log('🔥 MESSAGE SENT - WebSocket will update UI automatically');
-      
-      // CRITICAL FIX: Force immediate UI update using direct fetch to ensure message appears
-      console.log('🔥 FORCE IMMEDIATE UI UPDATE: Triggering direct fetch after send');
-      if (selectedConversation && fetchMessages) {
-        console.log('🔥 Using direct fetch for immediate message visibility');
-        await fetchMessages(selectedConversation);
-        console.log('🔥 DIRECT FETCH COMPLETED after message send');
+    // Find the other participant (patient) in the conversation
+    const currentConversation = conversations.find((c: Conversation) => c.id === selectedConversation);
+    const otherParticipant = currentConversation?.participants?.find((p: any) => 
+      p.id !== currentUser?.id
+    );
+    
+    // For patient conversations, get phone from stored messages or participant
+    const phoneNumber = messages?.[0]?.phoneNumber || otherParticipant?.phone;
+    const messageType = 'sms'; // Default to SMS for external messages
+    
+    // Determine if this should be sent as external SMS (only for patients with phone numbers)
+    const isExternalMessage = phoneNumber && messageType && otherParticipant?.role === 'patient';
+    
+    // Debug logging
+    console.log('🔍 SMS DETECTION DEBUG:');
+    console.log('  Other participant:', otherParticipant);
+    console.log('  Phone number:', phoneNumber);
+    console.log('  Message type:', messageType);
+    console.log('  Is external:', isExternalMessage);
+    
+    const messageData = {
+      conversationId: selectedConversation,
+      content: messageContent,
+      priority: 'normal',
+      type: isExternalMessage ? 'patient' : 'internal',
+      phoneNumber: isExternalMessage ? phoneNumber : undefined,
+      messageType: isExternalMessage ? messageType : undefined
+    };
+    console.log('🔥 CONVERSATION MESSAGE DATA:', messageData);
+    console.log('🔥 Selected conversation ID:', selectedConversation);
+    
+    // Use the sendMessageMutation to ensure proper success/error handling and conversation persistence
+    sendMessageMutation.mutate(messageData, {
+      onSuccess: (data) => {
+        console.log('🔥 CONVERSATION MESSAGE SUCCESS:', data);
+        
+        // CRITICAL FIX: Force immediate UI update using direct fetch to ensure message appears
+        console.log('🔥 FORCE IMMEDIATE UI UPDATE: Triggering direct fetch after send');
+        if (selectedConversation && fetchMessages) {
+          console.log('🔥 Using direct fetch for immediate message visibility');
+          fetchMessages(selectedConversation);
+          console.log('🔥 DIRECT FETCH COMPLETED after message send');
+        }
+        
+        // Show success toast only for conversation messages (not handled in mutation's onSuccess)
+        toast({
+          title: "Message Sent",
+          description: "Your message has been sent successfully.",
+        });
+      },
+      onError: (error) => {
+        // Restore the message content if send failed
+        setNewMessageContent(messageContent);
+        // Error toast is already handled by sendMessageMutation.onError
       }
-      
-      // Also refetch conversations to update last message info
-      // await refetchConversations();
-      
-      toast({
-        title: "Message Sent",
-        description: "Your message has been sent successfully.",
-      });
-    } catch (error) {
-      // Restore the message content if send failed
-      setNewMessageContent(messageContent);
-      toast({
-        title: "Error", 
-        description: "Failed to send message. Please try again.",
-        variant: "destructive"
-      });
-      console.error('🔥 CONVERSATION MESSAGE ERROR:', error);
-      console.error('🔥 ERROR DETAILS:', JSON.stringify(error, null, 2));
-    }
+    });
   };
 
 
