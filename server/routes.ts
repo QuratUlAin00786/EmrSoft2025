@@ -4061,7 +4061,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Patient consent management endpoints
   app.get("/api/mobile-health/patient-consent", authMiddleware, async (req: TenantRequest, res) => {
     try {
-      res.json(patientConsents);
+      // Get real patients from database and create consent records for them
+      const realPatients = await storage.getPatients(req.organizationId!);
+      
+      const realPatientConsents = realPatients.map(patient => {
+        // Check if we have existing consent data for this patient
+        const existingConsent = patientConsents.find(consent => consent.patientId === patient.patientId);
+        
+        if (existingConsent) {
+          // Update with real patient data
+          return {
+            ...existingConsent,
+            patientName: `${patient.firstName} ${patient.lastName}`,
+            email: patient.email || existingConsent.email
+          };
+        } else {
+          // Create new consent record for real patient
+          return {
+            id: `consent_${patient.patientId}`,
+            patientId: patient.patientId,
+            patientName: `${patient.firstName} ${patient.lastName}`,
+            email: patient.email || '',
+            consentStatus: "pending",
+            monitoringTypes: {
+              heartRate: false,
+              bloodPressure: false,
+              glucose: false,
+              activity: false,
+              sleep: false
+            },
+            deviceAccess: false,
+            dataSharing: false,
+            emergencyContact: false,
+            lastUpdated: new Date().toISOString()
+          };
+        }
+      });
+      
+      res.json(realPatientConsents);
     } catch (error) {
       console.error("Error fetching patient consent data:", error);
       res.status(500).json({ error: "Failed to fetch patient consent data" });
@@ -4081,7 +4118,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (consentIndex === -1) {
         // Patient consent record doesn't exist - create it
         // First get the patient data from storage
+        console.log(`Looking up patient ${patientId} for organization ${req.organizationId}`);
         const patient = await storage.getPatientByPatientId(patientId, req.organizationId!);
+        console.log(`Patient lookup result:`, patient ? 'Found' : 'Not found');
         if (!patient) {
           return res.status(404).json({ error: "Patient not found" });
         }
