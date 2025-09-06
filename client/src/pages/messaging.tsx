@@ -764,12 +764,25 @@ export default function MessagingPage() {
     setNewMessageContent(""); // Clear immediately
     
     try {
-      // Get phone number from existing messages in this conversation
-      const phoneNumber = messages?.[0]?.phoneNumber;
+      // Find the other participant (patient) in the conversation
+      const currentConversation = conversations.find((c: Conversation) => c.id === selectedConversation);
+      const otherParticipant = currentConversation?.participants?.find((p: any) => 
+        p.id !== currentUser?.id
+      );
+      
+      // For patient conversations, get phone from stored messages or participant
+      const phoneNumber = messages?.[0]?.phoneNumber || otherParticipant?.phone;
       const messageType = 'sms'; // Default to SMS for external messages
       
-      // Determine message type based on whether we have SMS delivery info
-      const isExternalMessage = phoneNumber && messageType;
+      // Determine if this should be sent as external SMS (only for patients with phone numbers)
+      const isExternalMessage = phoneNumber && messageType && otherParticipant?.role === 'patient';
+      
+      // Debug logging
+      console.log('🔍 SMS DETECTION DEBUG:');
+      console.log('  Other participant:', otherParticipant);
+      console.log('  Phone number:', phoneNumber);
+      console.log('  Message type:', messageType);
+      console.log('  Is external:', isExternalMessage);
       
       const messageData = {
         conversationId: selectedConversation,
