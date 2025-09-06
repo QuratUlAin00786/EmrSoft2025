@@ -142,10 +142,25 @@ export class MessagingService {
       // Mark credentials as invalid if authentication fails
       if (error.code === 20003 || error.message?.includes('Authentication Error')) {
         authenticationFailed = true;
-        console.error('Twilio authentication failed - marking credentials as invalid');
+        console.error('🚨 TWILIO AUTHENTICATION FAILED - DETAILED ERROR:', {
+          code: error.code,
+          message: error.message,
+          moreInfo: error.moreInfo,
+          details: error.details,
+          status: error.status
+        });
+        
+        // Check for specific payment/billing issues
+        let errorMessage = 'SMS service not properly configured. ';
+        if (error.code === 20003) {
+          errorMessage += '🚨 POSSIBLE CAUSES: 1) Invalid Twilio credentials, 2) Account suspended due to non-payment, 3) Trial account expired/out of credit, 4) Account deactivated. Please check your Twilio Console billing and account status.';
+        } else {
+          errorMessage += 'Please check Twilio credentials (Account SID, Auth Token, and Phone Number).';
+        }
+        
         return {
           success: false,
-          error: 'SMS service not properly configured. Please check Twilio credentials (Account SID, Auth Token, and Phone Number).'
+          error: errorMessage
         };
       }
       
