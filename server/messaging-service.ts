@@ -142,25 +142,27 @@ export class MessagingService {
       // Mark credentials as invalid if authentication fails
       if (error.code === 20003 || error.message?.includes('Authentication Error')) {
         authenticationFailed = true;
-        console.error('🚨 TWILIO AUTHENTICATION FAILED - DETAILED ERROR:', {
+        
+        console.error('🚨 TWILIO ERROR 20003 - AUTHENTICATION FAILED');
+        console.error('🔍 ERROR DETAILS:', {
           code: error.code,
+          status: error.status,
           message: error.message,
           moreInfo: error.moreInfo,
-          details: error.details,
-          status: error.status
+          details: error.details
         });
-        
-        // Check for specific payment/billing issues
-        let errorMessage = 'SMS service not properly configured. ';
-        if (error.code === 20003) {
-          errorMessage += '🚨 POSSIBLE CAUSES: 1) Invalid Twilio credentials, 2) Account suspended due to non-payment, 3) Trial account expired/out of credit, 4) Account deactivated. Please check your Twilio Console billing and account status.';
-        } else {
-          errorMessage += 'Please check Twilio credentials (Account SID, Auth Token, and Phone Number).';
-        }
+        console.error('💰 BILLING CHECK REQUIRED - Error 20003 typically indicates:');
+        console.error('   1. ❌ Account suspended due to UNPAID BILLS');
+        console.error('   2. ❌ Trial account EXPIRED or OUT OF CREDIT');
+        console.error('   3. ❌ Invalid Account SID/Auth Token combination');
+        console.error('   4. ❌ Account DEACTIVATED or CLOSED');
+        console.error('🌐 CHECK YOUR TWILIO CONSOLE: https://console.twilio.com');
+        console.error('💳 CHECK BILLING SECTION for overdue payments');
+        console.error('📊 CHECK ACCOUNT STATUS for suspension notices');
         
         return {
           success: false,
-          error: errorMessage
+          error: '🚨 TWILIO AUTHENTICATION ERROR (Code 20003): Your Twilio account has AUTHENTICATION issues. MOST LIKELY CAUSES: (1) Unpaid bills - check your Twilio Console billing section, (2) Trial account expired - upgrade to paid account, (3) Invalid credentials - verify Account SID and Auth Token match. Visit https://console.twilio.com to resolve billing/account issues.'
         };
       }
       
