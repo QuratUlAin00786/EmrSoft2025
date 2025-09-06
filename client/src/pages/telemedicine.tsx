@@ -138,22 +138,16 @@ function PatientList() {
         // Popup was blocked - provide fallback
         toast({
           title: "Popup Blocked",
-          description: (
-            <div className="space-y-2">
-              <p>Your browser blocked the meeting popup. Please click the link below to join:</p>
-              <a 
-                href={meetingData.moderatorJoinUrl} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-blue-600 underline hover:text-blue-800"
-              >
-                Join Video Meeting
-              </a>
-            </div>
-          ),
+          description: "Your browser blocked the meeting popup. Please allow popups and try again, or copy the meeting URL from the browser console.",
           variant: "default",
         });
-        return; // Don't throw error, just show the fallback
+        
+        // Log the meeting URL for users to manually open
+        console.log("BigBlueButton Meeting URL:", meetingData.moderatorJoinUrl);
+        
+        // Also try to open in the same tab as fallback
+        window.location.href = meetingData.moderatorJoinUrl;
+        return; // Don't throw error, just redirect
       }
       
       toast({
@@ -216,22 +210,16 @@ function PatientList() {
         // Popup was blocked - provide fallback
         toast({
           title: "Popup Blocked",
-          description: (
-            <div className="space-y-2">
-              <p>Your browser blocked the meeting popup. Please click the link below to join:</p>
-              <a 
-                href={meetingData.moderatorJoinUrl} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-blue-600 underline hover:text-blue-800"
-              >
-                Join Audio Meeting
-              </a>
-            </div>
-          ),
+          description: "Your browser blocked the meeting popup. Please allow popups and try again, or copy the meeting URL from the browser console.",
           variant: "default",
         });
-        return; // Don't throw error, just show the fallback
+        
+        // Log the meeting URL for users to manually open
+        console.log("BigBlueButton Audio Meeting URL:", meetingData.moderatorJoinUrl);
+        
+        // Also try to open in the same tab as fallback
+        window.location.href = meetingData.moderatorJoinUrl;
+        return; // Don't throw error, just redirect
       }
       
       toast({
