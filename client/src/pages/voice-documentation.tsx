@@ -259,11 +259,16 @@ export default function VoiceDocumentation() {
         setCurrentTranscript("");
       }
       
-      // Force immediate refresh with both invalidate and refetch
-      await queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
-      await queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      // Optimistically update the cache with the new note
+      queryClient.setQueryData(["/api/voice-documentation/notes"], (oldData: any) => {
+        if (!oldData) return [newNote];
+        return [newNote, ...oldData];
+      });
       
       toast({ title: "Voice note saved successfully!" });
+      
+      // Also invalidate and refetch to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
     },
     onError: (err, variables) => {
       toast({ title: "Failed to save voice note", variant: "destructive" });
