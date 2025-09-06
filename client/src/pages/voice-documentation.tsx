@@ -259,13 +259,11 @@ export default function VoiceDocumentation() {
         setCurrentTranscript("");
       }
       
-      // Optimistically update the cache by adding the new note
-      queryClient.setQueryData(["/api/voice-documentation/notes"], (oldData: any) => {
-        if (!oldData) return [newNote];
-        return [newNote, ...oldData];
-      });
-      
       toast({ title: "Voice note saved successfully!" });
+      
+      // Force complete cache refresh like delete operations
+      await queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
     },
     onError: (err, variables) => {
       toast({ title: "Failed to save voice note", variant: "destructive" });
