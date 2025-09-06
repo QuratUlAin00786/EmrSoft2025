@@ -134,8 +134,26 @@ function PatientList() {
         'width=1200,height=800,scrollbars=yes,resizable=yes'
       );
       
-      if (!meetingWindow) {
-        throw new Error("Popup blocked. Please allow popups for this site.");
+      if (!meetingWindow || meetingWindow.closed || typeof meetingWindow.closed == 'undefined') {
+        // Popup was blocked - provide fallback
+        toast({
+          title: "Popup Blocked",
+          description: (
+            <div className="space-y-2">
+              <p>Your browser blocked the meeting popup. Please click the link below to join:</p>
+              <a 
+                href={meetingData.moderatorJoinUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 underline hover:text-blue-800"
+              >
+                Join Video Meeting
+              </a>
+            </div>
+          ),
+          variant: "default",
+        });
+        return; // Don't throw error, just show the fallback
       }
       
       toast({
@@ -194,8 +212,26 @@ function PatientList() {
         'width=800,height=600,scrollbars=yes,resizable=yes'
       );
       
-      if (!meetingWindow) {
-        throw new Error("Popup blocked. Please allow popups for this site.");
+      if (!meetingWindow || meetingWindow.closed || typeof meetingWindow.closed == 'undefined') {
+        // Popup was blocked - provide fallback
+        toast({
+          title: "Popup Blocked",
+          description: (
+            <div className="space-y-2">
+              <p>Your browser blocked the meeting popup. Please click the link below to join:</p>
+              <a 
+                href={meetingData.moderatorJoinUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 underline hover:text-blue-800"
+              >
+                Join Audio Meeting
+              </a>
+            </div>
+          ),
+          variant: "default",
+        });
+        return; // Don't throw error, just show the fallback
       }
       
       toast({
