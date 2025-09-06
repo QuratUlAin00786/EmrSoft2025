@@ -160,7 +160,9 @@ export default function VoiceDocumentation() {
         }
       });
       if (!response.ok) throw new Error('Failed to fetch voice notes');
-      return response.json();
+      const data = await response.json();
+      console.log("📊 Voice notes fetched:", data.length, "notes -", data.map(n => `${n.patientName} (${n.id.slice(-6)})`));
+      return data;
     }
   });
 
@@ -261,9 +263,11 @@ export default function VoiceDocumentation() {
       
       toast({ title: "Voice note saved successfully!" });
       
-      // Invalidate and refetch the cache  
+      // Invalidate and refetch the cache with debug logging
+      console.log("🔄 Starting cache update...");
       await queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
-      await queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      const refetchResult = await queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      console.log("🔄 Refetch result:", refetchResult);
     },
     onError: (err, variables) => {
       toast({ title: "Failed to save voice note", variant: "destructive" });
