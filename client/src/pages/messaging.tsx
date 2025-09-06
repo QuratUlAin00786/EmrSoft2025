@@ -764,11 +764,21 @@ export default function MessagingPage() {
     setNewMessageContent(""); // Clear immediately
     
     try {
+      // Get phone number and message type from selected conversation participant
+      const otherParticipant = getOtherParticipant();
+      const phoneNumber = otherParticipant?.phone || messages?.[0]?.phoneNumber;
+      const messageType = 'sms'; // Default to SMS for external messages
+      
+      // Determine message type based on whether we have SMS delivery info
+      const isExternalMessage = phoneNumber && messageType;
+      
       const messageData = {
         conversationId: selectedConversation,
         content: messageContent,
         priority: 'normal',
-        type: 'internal'
+        type: isExternalMessage ? 'patient' : 'internal',
+        phoneNumber: isExternalMessage ? phoneNumber : undefined,
+        messageType: isExternalMessage ? messageType : undefined
       };
       console.log('🔥 CONVERSATION MESSAGE DATA:', messageData);
       console.log('🔥 Selected conversation ID:', selectedConversation);
