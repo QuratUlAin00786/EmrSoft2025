@@ -4079,7 +4079,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const consentIndex = patientConsents.findIndex(consent => consent.patientId === patientId);
       
       if (consentIndex === -1) {
-        return res.status(404).json({ error: "Patient consent record not found" });
+        // Patient consent record doesn't exist - create it
+        // First get the patient data from storage
+        const patient = await storage.getPatientById(req.organizationId!, patientId);
+        if (!patient) {
+          return res.status(404).json({ error: "Patient not found" });
+        }
+        
+        const newConsentRecord = {
+          id: `consent_${patientId}`,
+          patientId: patientId,
+          patientName: `${patient.firstName} ${patient.lastName}`,
+          email: patient.email,
+          consentStatus: consentData.consentStatus || 'pending',
+          monitoringTypes: {
+            heartRate: false,
+            bloodPressure: false,
+            glucose: false,
+            activity: false,
+            sleep: false
+          },
+          deviceAccess: false,
+          dataSharing: false,
+          emergencyContact: false,
+          lastUpdated: new Date().toISOString(),
+          ...consentData
+        };
+        
+        patientConsents.push(newConsentRecord);
+        
+        // Handle consent status specific updates for new record
+        if (consentData.consentStatus === 'consented') {
+          newConsentRecord.deviceAccess = true;
+          newConsentRecord.dataSharing = true;
+          newConsentRecord.monitoringTypes = {
+            heartRate: true,
+            bloodPressure: true,
+            glucose: true,
+            activity: true,
+            sleep: true
+          };
+        }
+        
+        res.json({ success: true, consent: newConsentRecord });
+        return;
       }
       
       // Update the consent record with new data
