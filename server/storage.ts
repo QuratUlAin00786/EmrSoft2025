@@ -1269,6 +1269,12 @@ export class DatabaseStorage implements IStorage {
       const patientsList = await db.select().from(patients).where(eq(patients.organizationId, organizationId));
       const appointmentsList = await db.select().from(appointments).where(eq(appointments.organizationId, organizationId));
       
+      // Get clinical data from database
+      const medicalRecordsList = await db.select().from(medicalRecords).where(eq(medicalRecords.organizationId, organizationId));
+      const consultationsList = await db.select().from(consultations).where(eq(consultations.organizationId, organizationId));
+      const prescriptionsList = await db.select().from(prescriptions).where(eq(prescriptions.organizationId, organizationId));
+      const aiInsightsList = await db.select().from(aiInsights).where(eq(aiInsights.organizationId, organizationId));
+      
       const totalPatients = patientsList.length;
       const totalAppointments = appointmentsList.length;
       
@@ -1280,6 +1286,54 @@ export class DatabaseStorage implements IStorage {
       const completedAppointments = appointmentsList.filter(a => a.status === 'completed').length;
       const cancelledAppointments = appointmentsList.filter(a => a.status === 'cancelled').length;
       const noShowAppointments = appointmentsList.filter(a => a.status === 'no-show').length;
+      
+      // Clinical Analytics Data
+      const totalConsultations = consultationsList.length;
+      const completedConsultations = consultationsList.filter(c => c.status === 'completed').length;
+      const totalPrescriptions = prescriptionsList.length;
+      const activePrescriptions = prescriptionsList.filter(p => p.status === 'active').length;
+      const totalMedicalRecords = medicalRecordsList.length;
+      const totalAiInsights = aiInsightsList.length;
+      const criticalInsights = aiInsightsList.filter(i => i.severity === 'critical').length;
+      
+      // Prescription analysis by medication type
+      const prescriptionAnalysis = prescriptionsList.reduce((acc, prescription) => {
+        const medication = prescription.medicationName || 'Unknown';
+        acc[medication] = (acc[medication] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      
+      const topMedications = Object.entries(prescriptionAnalysis)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 5)
+        .map(([medication, count]) => ({ medication, count }));
+      
+      // Consultation type distribution
+      const consultationTypes = consultationsList.reduce((acc, consultation) => {
+        const type = consultation.consultationType || 'routine';
+        acc[type] = (acc[type] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      
+      // AI insights severity distribution
+      const insightsSeverity = aiInsightsList.reduce((acc, insight) => {
+        const severity = insight.severity || 'medium';
+        acc[severity] = (acc[severity] || 0) + 1;
+        return acc;
+      }, { low: 0, medium: 0, high: 0, critical: 0 });
+      
+      // Medical record types
+      const recordTypes = medicalRecordsList.reduce((acc, record) => {
+        const type = record.type || 'consultation';
+        acc[type] = (acc[type] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      
+      // Recent clinical activity (last 7 days)
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      const recentConsultations = consultationsList.filter(c => new Date(c.createdAt) > sevenDaysAgo).length;
+      const recentPrescriptions = prescriptionsList.filter(p => new Date(p.prescribedAt || p.issuedDate || '') > sevenDaysAgo).length;
+      const recentInsights = aiInsightsList.filter(i => new Date(i.createdAt) > sevenDaysAgo).length;
       
       // Patient age distribution
       const ageDistribution = patientsList.reduce((acc, patient) => {
@@ -1373,6 +1427,35 @@ export class DatabaseStorage implements IStorage {
             noShow: noShowAppointments,
             completionRate: totalAppointments > 0 ? Math.round((completedAppointments / totalAppointments) * 100) : 0
           }
+        },
+        clinicalAnalytics: {
+          overview: {
+            totalConsultations,
+            completedConsultations,
+            totalPrescriptions,
+            activePrescriptions,
+            totalMedicalRecords,
+            totalAiInsights,
+            criticalInsights,
+            consultationCompletionRate: totalConsultations > 0 ? Math.round((completedConsultations / totalConsultations) * 100) : 0,
+            prescriptionActiveRate: totalPrescriptions > 0 ? Math.round((activePrescriptions / totalPrescriptions) * 100) : 0
+          },
+          recentActivity: {
+            consultations: recentConsultations,
+            prescriptions: recentPrescriptions,
+            insights: recentInsights
+          },
+          medications: {
+            topMedications,
+            totalTypes: Object.keys(prescriptionAnalysis).length
+          },
+          consultationTypes,
+          recordTypes,
+          aiInsights: {
+            severityDistribution: insightsSeverity,
+            total: totalAiInsights,
+            criticalCount: criticalInsights
+          }
         }
       };
     } catch (error) {
@@ -1408,6 +1491,35 @@ export class DatabaseStorage implements IStorage {
             cancelled: 0,
             noShow: 0,
             completionRate: 0
+          }
+        },
+        clinicalAnalytics: {
+          overview: {
+            totalConsultations: 0,
+            completedConsultations: 0,
+            totalPrescriptions: 0,
+            activePrescriptions: 0,
+            totalMedicalRecords: 0,
+            totalAiInsights: 0,
+            criticalInsights: 0,
+            consultationCompletionRate: 0,
+            prescriptionActiveRate: 0
+          },
+          recentActivity: {
+            consultations: 0,
+            prescriptions: 0,
+            insights: 0
+          },
+          medications: {
+            topMedications: [],
+            totalTypes: 0
+          },
+          consultationTypes: {},
+          recordTypes: {},
+          aiInsights: {
+            severityDistribution: { low: 0, medium: 0, high: 0, critical: 0 },
+            total: 0,
+            criticalCount: 0
           }
         }
       };
