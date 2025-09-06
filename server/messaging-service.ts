@@ -96,13 +96,10 @@ export class MessagingService {
         };
       }
 
-      // If authentication has failed before, block further attempts
+      // Check current authentication status, but don't permanently block attempts
       if (authenticationFailed) {
-        console.error('SMS blocked - Twilio credentials previously failed authentication');
-        return {
-          success: false,
-          error: 'SMS service not properly configured. Please check Twilio credentials (Account SID, Auth Token, and Phone Number).'
-        };
+        console.warn('Previous authentication failed - will retry with current credentials');
+        authenticationFailed = false; // Reset flag to allow retry
       }
 
       // Additional validation for Twilio configuration
