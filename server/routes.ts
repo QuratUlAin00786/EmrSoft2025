@@ -2597,7 +2597,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const orgId = req.user?.organizationId || req.tenant?.id || 1; // Fallback to org 1
       console.log(`🔍 USING ORG ID: ${orgId}`);
       
-      const conversations = await storage.getConversations(orgId);
+      const conversations = await storage.getConversations(orgId, req.user?.id);
       console.log(`🔍 RETURNED CONVERSATIONS: ${conversations.length}`);
       res.json(conversations);
     } catch (error) {
@@ -2627,7 +2627,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint to debug conversations
   app.get("/api/messaging/debug", authMiddleware, async (req: TenantRequest, res) => {
     try {
-      const conversations = await storage.getConversations(req.tenant!.id);
+      const conversations = await storage.getConversations(req.tenant!.id, req.user?.id);
       console.log("🔍 DEBUG - Raw conversations:", JSON.stringify(conversations, null, 2));
       res.json({ conversations, count: conversations.length });
     } catch (error) {

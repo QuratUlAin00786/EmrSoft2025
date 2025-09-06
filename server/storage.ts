@@ -1478,7 +1478,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Messaging implementations - PERSISTENT DATABASE STORAGE
-  async getConversations(organizationId: number): Promise<any[]> {
+  async getConversations(organizationId: number, currentUserId?: number): Promise<any[]> {
     // Get conversations from database instead of in-memory storage
     const storedConversations = await db.select()
       .from(conversationsTable)
@@ -1534,12 +1534,20 @@ export class DatabaseStorage implements IStorage {
       }));
       
       // Calculate actual unread count based on isRead status of messages
+      // Only count messages received by current user (not sent by them)
+      const unreadQuery = [
+        eq(messages.conversationId, conv.id),
+        eq(messages.isRead, false)
+      ];
+      
+      // If currentUserId is provided, exclude messages sent by the current user
+      if (currentUserId !== undefined) {
+        unreadQuery.push(ne(messages.senderId, currentUserId));
+      }
+      
       const unreadMessages = await db.select()
         .from(messages)
-        .where(and(
-          eq(messages.conversationId, conv.id),
-          eq(messages.isRead, false)
-        ));
+        .where(and(...unreadQuery));
       
       return {
         ...conv,
