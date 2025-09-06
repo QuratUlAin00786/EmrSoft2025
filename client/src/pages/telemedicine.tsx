@@ -153,6 +153,66 @@ function PatientList() {
     }
   };
 
+  // BigBlueButton audio call function
+  const startBigBlueButtonAudioCall = async (patient: any) => {
+    try {
+      const response = await fetch("/api/video-conference/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          meetingName: `Audio Consultation with ${patient.firstName} ${patient.lastName}`,
+          participantName: `${patient.firstName} ${patient.lastName}`,
+          duration: 30,
+          maxParticipants: 10,
+          disableVideo: true, // Audio-only mode
+          webcamsOnlyForModerator: false
+        }),
+        credentials: "include"
+      });
+      
+      if (!response.ok) throw new Error("Failed to create audio meeting");
+      
+      const meetingData = await response.json();
+      
+      // Open BigBlueButton audio meeting in new window - use moderator URL for doctor
+      const meetingWindow = window.open(
+        meetingData.moderatorJoinUrl,
+        '_blank',
+        'width=800,height=600,scrollbars=yes,resizable=yes'
+      );
+      
+      if (!meetingWindow) {
+        throw new Error("Popup blocked. Please allow popups for this site.");
+      }
+      
+      toast({
+        title: "Audio Call Started",
+        description: `Opening audio consultation with ${patient.firstName} ${patient.lastName}`
+      });
+      
+      // Create consultation record
+      await fetch("/api/telemedicine/consultations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patientId: patient.id,
+          type: "audio",
+          scheduledTime: new Date().toISOString(),
+          duration: 30,
+          meetingId: meetingData.meetingID
+        }),
+        credentials: "include"
+      });
+      
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to start audio call. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   if (patientsLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -228,12 +288,7 @@ function PatientList() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  toast({
-                    title: "Audio Call",
-                    description: "Audio consultation feature will be available soon."
-                  });
-                }}
+                onClick={() => startBigBlueButtonAudioCall(patient)}
               >
                 <Phone className="w-4 h-4" />
               </Button>
