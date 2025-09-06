@@ -1495,20 +1495,50 @@ export class DatabaseStorage implements IStorage {
         if (typeof participant.id === 'number') {
           const user = await this.getUser(participant.id, organizationId);
           if (user && user.firstName && user.lastName) {
-            return {
+            let participantData = {
               ...participant,
               name: `${user.firstName} ${user.lastName}`
             };
+            
+            // If user is a patient, get their phone number
+            if (user.role === 'patient') {
+              const patient = await this.getPatientByUserId(user.id, organizationId);
+              if (patient && patient.phone) {
+                participantData.phone = patient.phone;
+              }
+            }
+            
+            return participantData;
           } else if (user && user.firstName) {
-            return {
+            let participantData = {
               ...participant,
               name: user.firstName
             };
+            
+            // If user is a patient, get their phone number
+            if (user.role === 'patient') {
+              const patient = await this.getPatientByUserId(user.id, organizationId);
+              if (patient && patient.phone) {
+                participantData.phone = patient.phone;
+              }
+            }
+            
+            return participantData;
           } else if (user) {
-            return {
+            let participantData = {
               ...participant,
               name: user.email
             };
+            
+            // If user is a patient, get their phone number
+            if (user.role === 'patient') {
+              const patient = await this.getPatientByUserId(user.id, organizationId);
+              if (patient && patient.phone) {
+                participantData.phone = patient.phone;
+              }
+            }
+            
+            return participantData;
           }
         } else if (typeof participant.id === 'string') {
           // If it's a patient name string, preserve it as-is unless it's clearly a user email
@@ -1519,11 +1549,21 @@ export class DatabaseStorage implements IStorage {
             
             if (matchedUser) {
               console.log(`🔧 Fixed participant mapping: "${participant.id}" -> ${matchedUser.id} (${matchedUser.firstName} ${matchedUser.lastName})`);
-              return {
+              let participantData = {
                 id: matchedUser.id, // Use actual numeric user ID
                 name: `${matchedUser.firstName} ${matchedUser.lastName}`,
                 role: matchedUser.role
               };
+              
+              // If user is a patient, get their phone number
+              if (matchedUser.role === 'patient') {
+                const patient = await this.getPatientByUserId(matchedUser.id, organizationId);
+                if (patient && patient.phone) {
+                  participantData.phone = patient.phone;
+                }
+              }
+              
+              return participantData;
             }
           }
           // For patient names (non-email strings), preserve them exactly as they are
