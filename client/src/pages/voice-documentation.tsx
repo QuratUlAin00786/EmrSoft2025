@@ -261,10 +261,8 @@ export default function VoiceDocumentation() {
       
       toast({ title: "Voice note saved successfully!" });
       
-      // Immediately update the cache with the new note
-      queryClient.setQueryData(["/api/voice-documentation/notes"], (oldData: any[]) => {
-        return oldData ? [newNote, ...oldData] : [newNote];
-      });
+      // Force immediate refetch to update the UI
+      queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
     },
     onError: (err, variables) => {
       toast({ title: "Failed to save voice note", variant: "destructive" });
