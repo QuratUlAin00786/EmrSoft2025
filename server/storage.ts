@@ -1495,7 +1495,7 @@ export class DatabaseStorage implements IStorage {
         if (typeof participant.id === 'number') {
           const user = await this.getUser(participant.id, organizationId);
           if (user && user.firstName && user.lastName) {
-            let participantData = {
+            let participantData: any = {
               ...participant,
               name: `${user.firstName} ${user.lastName}`
             };
@@ -1510,7 +1510,7 @@ export class DatabaseStorage implements IStorage {
             
             return participantData;
           } else if (user && user.firstName) {
-            let participantData = {
+            let participantData: any = {
               ...participant,
               name: user.firstName
             };
@@ -1525,7 +1525,7 @@ export class DatabaseStorage implements IStorage {
             
             return participantData;
           } else if (user) {
-            let participantData = {
+            let participantData: any = {
               ...participant,
               name: user.email
             };
@@ -1549,7 +1549,7 @@ export class DatabaseStorage implements IStorage {
             
             if (matchedUser) {
               console.log(`🔧 Fixed participant mapping: "${participant.id}" -> ${matchedUser.id} (${matchedUser.firstName} ${matchedUser.lastName})`);
-              let participantData = {
+              let participantData: any = {
                 id: matchedUser.id, // Use actual numeric user ID
                 name: `${matchedUser.firstName} ${matchedUser.lastName}`,
                 role: matchedUser.role
