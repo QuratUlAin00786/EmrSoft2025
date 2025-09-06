@@ -446,28 +446,28 @@ This is an urgent medical notification.`;
       const account = await client.api.accounts(process.env.TWILIO_ACCOUNT_SID).fetch();
       
       // Try to get verified numbers (for trial account diagnostics)
-      let verifiedNumbers = [];
+      let verifiedNumbers: string[] = [];
       try {
         const outgoingCallerIds = await client.outgoingCallerIds.list();
         verifiedNumbers = outgoingCallerIds.map(id => id.phoneNumber);
-      } catch (error) {
-        console.log('Could not fetch verified numbers:', error.message);
+      } catch (error: any) {
+        console.log('Could not fetch verified numbers:', error?.message || 'Unknown error');
       }
       
       return {
         accountType: account.type === 'Trial' ? 'trial' : 'paid',
         balance: account.balance,
         status: account.status,
-        verifiedNumbers: verifiedNumbers
+        verifiedNumbers
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching account info:', error);
       return {
         accountType: 'error',
         balance: 'error',
         status: 'authentication failed',
         verifiedNumbers: [],
-        error: error.message
+        error: error?.message || 'Unknown error'
       };
     }
   }
