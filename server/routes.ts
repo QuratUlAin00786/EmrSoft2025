@@ -4062,7 +4062,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/mobile-health/patient-consent", authMiddleware, async (req: TenantRequest, res) => {
     try {
       // Get real patients from database and create consent records for them
-      const realPatients = await storage.getPatients(req.organizationId!);
+      const realPatients = await storage.getPatientsByOrganization(req.organizationId!);
       
       const realPatientConsents = realPatients.map(patient => {
         // Check if we have existing consent data for this patient
@@ -4111,6 +4111,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const consentData = req.body;
       
       console.log(`Updating consent for patient ${patientId}:`, consentData);
+      console.log(`Organization ID: ${req.organizationId}`);
       
       // Find and update the consent record
       const consentIndex = patientConsents.findIndex(consent => consent.patientId === patientId);
@@ -4119,49 +4120,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Patient consent record doesn't exist - create it
         // First get the patient data from storage
         console.log(`Looking up patient ${patientId} for organization ${req.organizationId}`);
-        const patient = await storage.getPatientByPatientId(patientId, req.organizationId!);
-        console.log(`Patient lookup result:`, patient ? 'Found' : 'Not found');
-        if (!patient) {
-          return res.status(404).json({ error: "Patient not found" });
-        }
         
-        const newConsentRecord = {
-          id: `consent_${patientId}`,
-          patientId: patientId,
-          patientName: `${patient.firstName} ${patient.lastName}`,
-          email: patient.email,
-          consentStatus: consentData.consentStatus || 'pending',
-          monitoringTypes: {
-            heartRate: false,
-            bloodPressure: false,
-            glucose: false,
-            activity: false,
-            sleep: false
-          },
-          deviceAccess: false,
-          dataSharing: false,
-          emergencyContact: false,
-          lastUpdated: new Date().toISOString(),
-          ...consentData
-        };
-        
-        patientConsents.push(newConsentRecord);
-        
-        // Handle consent status specific updates for new record
-        if (consentData.consentStatus === 'consented') {
-          newConsentRecord.deviceAccess = true;
-          newConsentRecord.dataSharing = true;
-          newConsentRecord.monitoringTypes = {
-            heartRate: true,
-            bloodPressure: true,
-            glucose: true,
-            activity: true,
-            sleep: true
+        try {
+          const patient = await storage.getPatientByPatientId(patientId, req.organizationId!);
+          console.log(`Patient lookup result:`, patient ? 'Found' : 'Not found');
+          if (patient) {
+            console.log(`Patient details: ${patient.firstName} ${patient.lastName}`);
+          }
+          
+          if (!patient) {
+            console.log(`Patient ${patientId} not found in organization ${req.organizationId}`);
+            return res.status(404).json({ error: "Patient not found" });
+          }
+          
+          const newConsentRecord = {
+            id: `consent_${patientId}`,
+            patientId: patientId,
+            patientName: `${patient.firstName} ${patient.lastName}`,
+            email: patient.email || '',
+            consentStatus: consentData.consentStatus || 'pending',
+            monitoringTypes: {
+              heartRate: false,
+              bloodPressure: false,
+              glucose: false,
+              activity: false,
+              sleep: false
+            },
+            deviceAccess: false,
+            dataSharing: false,
+            emergencyContact: false,
+            lastUpdated: new Date().toISOString(),
+            ...consentData
           };
+          
+          // Handle consent status specific updates for new record
+          if (consentData.consentStatus === 'consented') {
+            newConsentRecord.deviceAccess = true;
+            newConsentRecord.dataSharing = true;
+            newConsentRecord.monitoringTypes = {
+              heartRate: true,
+              bloodPressure: true,
+              glucose: true,
+              activity: true,
+              sleep: true
+            };
+          }
+          
+          patientConsents.push(newConsentRecord);
+          console.log(`Created new consent record for patient ${patientId}`);
+          
+          res.json({ success: true, consent: newConsentRecord });
+          return;
+          
+        } catch (storageError) {
+          console.error(`Storage error when looking up patient ${patientId}:`, storageError);
+          return res.status(500).json({ error: "Failed to lookup patient" });
         }
-        
-        res.json({ success: true, consent: newConsentRecord });
-        return;
       }
       
       // Update the consent record with new data
