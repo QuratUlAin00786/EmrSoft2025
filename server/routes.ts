@@ -2736,9 +2736,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } else {
             console.error(`${messageType.toUpperCase()} sending failed:`, result.error);
             
-            // If SMS failed due to missing configuration, treat as internal message
-            if (result.error?.includes('not properly configured')) {
-              console.log(`📱 Twilio not configured, treating SMS as internal message`);
+            // Only treat as internal if credentials are completely missing (not authentication failures)
+            if (result.error?.includes('not properly configured') && !process.env.TWILIO_ACCOUNT_SID) {
+              console.log(`📱 Twilio not configured (missing credentials), treating SMS as internal message`);
               await storage.updateMessageDeliveryStatus(message.id, 'delivered', undefined, undefined);
               return res.json(message);
             }
@@ -2753,9 +2753,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         } catch (twilioError: any) {
           console.error('Twilio API error:', twilioError);
-          // If Twilio fails due to missing credentials, treat as internal message
-          if (twilioError.message?.includes('not properly configured')) {
-            console.log(`📱 Twilio not configured, treating SMS as internal message`);
+          // Only treat as internal if credentials are completely missing (not authentication failures)
+          if (twilioError.message?.includes('not properly configured') && !process.env.TWILIO_ACCOUNT_SID) {
+            console.log(`📱 Twilio not configured (missing credentials), treating SMS as internal message`);
             await storage.updateMessageDeliveryStatus(message.id, 'delivered', undefined, undefined);
             return res.json(message);
           }
