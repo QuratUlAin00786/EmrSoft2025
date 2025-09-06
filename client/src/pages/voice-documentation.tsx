@@ -160,9 +160,7 @@ export default function VoiceDocumentation() {
         }
       });
       if (!response.ok) throw new Error('Failed to fetch voice notes');
-      const data = await response.json();
-      console.log("🔍 Voice notes fetched from API:", data.length, "notes:", data.map(n => ({ id: n.id, patient: n.patientName })));
-      return data;
+      return response.json();
     }
   });
 
@@ -304,12 +302,17 @@ export default function VoiceDocumentation() {
         return newMap;
       });
       
-      // Force immediate refresh with both invalidate and refetch
-      await queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
-      await queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      // Optimistically update the cache by removing the deleted note
+      queryClient.setQueryData(["/api/voice-documentation/notes"], (oldData: any) => {
+        if (!oldData) return [];
+        return oldData.filter((note: any) => note.id !== noteId);
+      });
       
       toast({ title: "Voice note deleted successfully!" });
       console.log("Voice note deleted from backend:", noteId);
+      
+      // Single invalidate to ensure consistency (no refetch to avoid double calls)
+      queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
     },
     onError: (err, noteId) => {
       toast({ title: "Failed to delete voice note", variant: "destructive" });
@@ -1065,7 +1068,6 @@ export default function VoiceDocumentation() {
 
           {/* Voice Notes List */}
           <div className="grid gap-4">
-            {console.log("🎯 Rendering voice notes in UI:", voiceNotes?.length, "notes")}
             {voiceNotes?.map((note) => (
               <Card key={note.id}>
                 <CardHeader>
