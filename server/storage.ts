@@ -1,5 +1,5 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics,
+  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Role, type InsertRole,
@@ -27,6 +27,7 @@ import {
   type GdprProcessingActivity, type InsertGdprProcessingActivity,
   type Conversation, type InsertConversation,
   type Message, type InsertMessage,
+  type VoiceNote, type InsertVoiceNote,
   type SaaSOwner, type InsertSaaSOwner,
   type SaaSPackage, type InsertSaaSPackage,
   type SaaSSubscription, type InsertSaaSSubscription,
@@ -304,6 +305,14 @@ export interface IStorage {
   getChatbotAnalytics(organizationId: number, date?: Date): Promise<ChatbotAnalytics[]>;
   createChatbotAnalytics(analytics: InsertChatbotAnalytics): Promise<ChatbotAnalytics>;
   updateChatbotAnalytics(id: number, organizationId: number, updates: Partial<InsertChatbotAnalytics>): Promise<ChatbotAnalytics | undefined>;
+
+  // Voice Notes
+  getVoiceNote(id: string, organizationId: number): Promise<VoiceNote | undefined>;
+  getVoiceNotesByOrganization(organizationId: number, limit?: number): Promise<VoiceNote[]>;
+  getVoiceNotesByPatient(patientId: string, organizationId: number): Promise<VoiceNote[]>;
+  createVoiceNote(voiceNote: InsertVoiceNote): Promise<VoiceNote>;
+  updateVoiceNote(id: string, organizationId: number, updates: Partial<InsertVoiceNote>): Promise<VoiceNote | undefined>;
+  deleteVoiceNote(id: string, organizationId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -4658,6 +4667,57 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(chatbotAnalytics.id, id), eq(chatbotAnalytics.organizationId, organizationId)))
       .returning();
     return updated || undefined;
+  }
+
+  // Voice Notes Methods
+  async getVoiceNote(id: string, organizationId: number): Promise<VoiceNote | undefined> {
+    const [voiceNote] = await db
+      .select()
+      .from(voiceNotes)
+      .where(and(eq(voiceNotes.id, id), eq(voiceNotes.organizationId, organizationId)));
+    return voiceNote || undefined;
+  }
+
+  async getVoiceNotesByOrganization(organizationId: number, limit = 50): Promise<VoiceNote[]> {
+    return await db
+      .select()
+      .from(voiceNotes)
+      .where(eq(voiceNotes.organizationId, organizationId))
+      .orderBy(desc(voiceNotes.createdAt))
+      .limit(limit);
+  }
+
+  async getVoiceNotesByPatient(patientId: string, organizationId: number): Promise<VoiceNote[]> {
+    return await db
+      .select()
+      .from(voiceNotes)
+      .where(and(eq(voiceNotes.patientId, patientId), eq(voiceNotes.organizationId, organizationId)))
+      .orderBy(desc(voiceNotes.createdAt));
+  }
+
+  async createVoiceNote(voiceNote: InsertVoiceNote): Promise<VoiceNote> {
+    const [created] = await db.insert(voiceNotes).values([voiceNote]).returning();
+    return created;
+  }
+
+  async updateVoiceNote(id: string, organizationId: number, updates: Partial<InsertVoiceNote>): Promise<VoiceNote | undefined> {
+    const updateData = {
+      ...updates,
+      updatedAt: new Date()
+    };
+    const [updated] = await db
+      .update(voiceNotes)
+      .set(updateData)
+      .where(and(eq(voiceNotes.id, id), eq(voiceNotes.organizationId, organizationId)))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteVoiceNote(id: string, organizationId: number): Promise<boolean> {
+    const result = await db
+      .delete(voiceNotes)
+      .where(and(eq(voiceNotes.id, id), eq(voiceNotes.organizationId, organizationId)));
+    return result.rowCount > 0;
   }
 }
 

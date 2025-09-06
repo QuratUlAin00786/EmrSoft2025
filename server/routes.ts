@@ -4226,10 +4226,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "User not authenticated" });
       }
 
-      // Initialize with sample data only if empty
-      if (voiceNotes.length === 0) {
-        voiceNotes.push({
-          id: "note_1",
+      // Get voice notes from database storage
+      const notes = await storage.getVoiceNotesByOrganization(req.organizationId!);
+      
+      // If no notes exist, create a sample note for backwards compatibility
+      if (notes.length === 0) {
+        const sampleNote = {
+          id: "note_sample_" + Date.now(),
+          organizationId: req.organizationId!,
           patientId: "158",
           patientName: "Imran Mubashir",
           providerId: "1",
@@ -4247,13 +4251,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             chiefComplaint: "Chest pain",
             assessment: "Possible cardiac involvement",
             plan: "EKG, troponin levels, cardiology consult"
-          },
-          createdAt: "2024-06-26T15:00:00Z"
-        });
+          }
+        };
+        
+        await storage.createVoiceNote(sampleNote);
+        const updatedNotes = await storage.getVoiceNotesByOrganization(req.organizationId!);
+        return res.json(updatedNotes);
       }
 
-      // Return voice notes from in-memory storage
-      res.json(voiceNotes);
+      res.json(notes);
     } catch (error) {
       console.error("Error fetching voice notes:", error);
       res.status(500).json({ error: "Failed to fetch voice notes" });
@@ -4284,6 +4290,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const newNote = {
         id: `note_${Date.now()}`,
+        organizationId: req.organizationId!,
         patientId: patientId,
         patientName: `${patient.firstName} ${patient.lastName}`,
         providerId: req.user.id.toString(),
@@ -4294,14 +4301,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         transcript: transcript || "Processing audio...",
         confidence: confidence || 0.0,
         medicalTerms: [],
-        structuredData: {},
-        createdAt: new Date().toISOString()
+        structuredData: {}
       };
 
-      // Add the new note to the voiceNotes array
-      voiceNotes.push(newNote);
+      // Save the new note to database
+      const createdNote = await storage.createVoiceNote(newNote);
 
-      res.status(201).json(newNote);
+      res.status(201).json(createdNote);
     } catch (error) {
       console.error("Error creating voice note:", error);
       res.status(500).json({ error: "Failed to create voice note" });
@@ -4316,24 +4322,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const noteId = req.params.id;
       console.log("DELETE request for noteId:", noteId);
-      console.log("Current voiceNotes array:", voiceNotes.map(note => ({ id: note.id, patientName: note.patientName })));
       
-      const noteIndex = voiceNotes.findIndex(note => note.id === noteId);
-      console.log("Found noteIndex:", noteIndex);
-      
-      if (noteIndex === -1) {
-        console.log("Voice note not found in array. Available IDs:", voiceNotes.map(note => note.id));
+      // Check if note exists before deletion
+      const existingNote = await storage.getVoiceNote(noteId, req.organizationId!);
+      if (!existingNote) {
+        console.log("Voice note not found in database:", noteId);
         return res.status(404).json({ error: "Voice note not found" });
       }
 
-      // Remove the note from the array
-      const deletedNote = voiceNotes.splice(noteIndex, 1)[0];
-      console.log("Successfully deleted note:", deletedNote.id);
-      console.log("Remaining voiceNotes count:", voiceNotes.length);
+      // Delete the note from database
+      const deleted = await storage.deleteVoiceNote(noteId, req.organizationId!);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Voice note not found" });
+      }
+      
+      console.log("Successfully deleted note:", noteId);
       
       res.status(200).json({ 
         message: "Voice note deleted successfully", 
-        deletedNoteId: deletedNote.id 
+        deletedNoteId: noteId 
       });
     } catch (error) {
       console.error("Error deleting voice note:", error);
