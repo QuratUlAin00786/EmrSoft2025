@@ -156,7 +156,8 @@ export class MessagingService {
       if (error.code === 21211) {
         errorMessage = 'Invalid phone number format. Please check the recipient phone number.';
       } else if (error.code === 21610) {
-        errorMessage = 'Message cannot be sent to unverified number in trial account.';
+        errorMessage = `🚫 TWILIO TRIAL ACCOUNT LIMITATION: This phone number (${to}) is not verified in your Twilio trial account. Trial accounts can only send messages to verified numbers. To fix this: 1) Verify this number in your Twilio console, or 2) Upgrade to a paid Twilio account to send to any number.`;
+        console.error(`🚫 TRIAL ACCOUNT BLOCK: ${to} - ${errorMessage}`);
       }
       
       return {
@@ -227,7 +228,8 @@ export class MessagingService {
       if (error.code === 21211) {
         errorMessage = 'Invalid phone number format. Please check the recipient phone number.';
       } else if (error.code === 21610) {
-        errorMessage = 'Message cannot be sent to unverified number in trial account.';
+        errorMessage = `🚫 TWILIO TRIAL ACCOUNT LIMITATION: This phone number (${to}) is not verified in your Twilio trial account. Trial accounts can only send messages to verified numbers. To fix this: 1) Verify this number in your Twilio console, or 2) Upgrade to a paid Twilio account to send to any number.`;
+        console.error(`🚫 TRIAL ACCOUNT BLOCK: ${to} - ${errorMessage}`);
       }
       
       return {
