@@ -261,7 +261,8 @@ export default function VoiceDocumentation() {
       
       toast({ title: "Voice note saved successfully!" });
       
-      // Force hard refetch immediately
+      // Invalidate and refetch the cache  
+      await queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
       await queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
     },
     onError: (err, variables) => {
@@ -296,17 +297,12 @@ export default function VoiceDocumentation() {
         return newMap;
       });
       
-      // Optimistically update the cache by removing the deleted note
-      queryClient.setQueryData(["/api/voice-documentation/notes"], (oldData: any) => {
-        if (!oldData) return [];
-        return oldData.filter((note: any) => note.id !== noteId);
-      });
-      
       toast({ title: "Voice note deleted successfully!" });
       console.log("Voice note deleted from backend:", noteId);
       
-      // Single invalidate to ensure consistency (no refetch to avoid double calls)
-      queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      // Invalidate and refetch the cache
+      await queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
     },
     onError: (err, noteId) => {
       toast({ title: "Failed to delete voice note", variant: "destructive" });
