@@ -4081,7 +4081,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (consentIndex === -1) {
         // Patient consent record doesn't exist - create it
         // First get the patient data from storage
-        const patient = await storage.getPatientById(req.organizationId!, patientId);
+        const patient = await storage.getPatientByPatientId(patientId, req.organizationId!);
         if (!patient) {
           return res.status(404).json({ error: "Patient not found" });
         }
