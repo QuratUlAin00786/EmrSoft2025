@@ -160,7 +160,9 @@ export default function VoiceDocumentation() {
         }
       });
       if (!response.ok) throw new Error('Failed to fetch voice notes');
-      return response.json();
+      const data = await response.json();
+      console.log("🔍 Voice notes fetched from API:", data.length, "notes:", data.map(n => ({ id: n.id, patient: n.patientName })));
+      return data;
     }
   });
 
@@ -1063,6 +1065,7 @@ export default function VoiceDocumentation() {
 
           {/* Voice Notes List */}
           <div className="grid gap-4">
+            {console.log("🎯 Rendering voice notes in UI:", voiceNotes?.length, "notes")}
             {voiceNotes?.map((note) => (
               <Card key={note.id}>
                 <CardHeader>
