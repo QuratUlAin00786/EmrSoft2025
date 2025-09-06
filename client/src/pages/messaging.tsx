@@ -764,9 +764,8 @@ export default function MessagingPage() {
     setNewMessageContent(""); // Clear immediately
     
     try {
-      // Get phone number and message type from selected conversation participant
-      const otherParticipant = getOtherParticipant();
-      const phoneNumber = otherParticipant?.phone || messages?.[0]?.phoneNumber;
+      // Get phone number from existing messages in this conversation
+      const phoneNumber = messages?.[0]?.phoneNumber;
       const messageType = 'sms'; // Default to SMS for external messages
       
       // Determine message type based on whether we have SMS delivery info
