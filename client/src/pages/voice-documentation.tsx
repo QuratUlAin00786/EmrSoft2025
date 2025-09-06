@@ -267,8 +267,10 @@ export default function VoiceDocumentation() {
       
       toast({ title: "Voice note saved successfully!" });
       
-      // Also invalidate and refetch to ensure consistency
-      queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      // Delay invalidation to allow optimistic update to take effect
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      }, 500);
     },
     onError: (err, variables) => {
       toast({ title: "Failed to save voice note", variant: "destructive" });
