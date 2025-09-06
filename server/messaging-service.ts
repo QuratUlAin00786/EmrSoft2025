@@ -54,6 +54,7 @@ initializeTwilioClient();
 // Export function to reset client with new credentials
 export function resetTwilioClient() {
   console.log('Resetting Twilio client with new credentials...');
+  authenticationFailed = false; // Reset authentication flag
   return initializeTwilioClient();
 }
 
