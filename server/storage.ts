@@ -2278,7 +2278,7 @@ export class DatabaseStorage implements IStorage {
       
       console.log(`🔍 DEBUG - Conversation insert data:`, JSON.stringify(conversationInsertData, null, 2));
       
-      const [createdConversation] = await db.insert(conversations).values([conversationInsertData]).returning();
+      const [createdConversation] = await db.insert(conversationsTable).values([conversationInsertData]).returning();
       console.log(`✅ CONVERSATION INSERTED:`, createdConversation?.id);
       
       console.log(`✅ Created new conversation: ${conversationId} and message: ${messageId}`);
