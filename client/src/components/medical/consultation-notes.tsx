@@ -1096,7 +1096,7 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                                 />
                                 
                                 {/* Selected Muscle Highlight - Light yellow dot for selected muscle */}
-                                {selectedMuscleGroup && muscleCoordinates[selectedMuscleGroup as keyof typeof muscleCoordinates] && currentImageIndex === 0 && (
+                                {selectedMuscleGroup && muscleCoordinates[selectedMuscleGroup as keyof typeof muscleCoordinates] && (
                                   <div
                                     className="absolute w-4 h-4 rounded-full bg-yellow-300 border-2 border-yellow-500 transform -translate-x-1/2 -translate-y-1/2 shadow-lg animate-pulse"
                                     style={{ 
