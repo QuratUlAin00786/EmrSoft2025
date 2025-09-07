@@ -21,6 +21,8 @@ import { useToast } from "@/hooks/use-toast";
 import { FileText, Plus, Calendar, User, Stethoscope, Pill, AlertTriangle, Mic, Square, Heart, Thermometer, Activity, Weight, Ruler, Calculator, History, Eye, ClipboardCheck, FileSpreadsheet, BookOpen, X, Printer, Save, CheckCircle, Clock } from "lucide-react";
 import { format } from "date-fns";
 import type { MedicalRecord } from "@/types";
+import anatomicalDiagramImage from "@assets/2_1754469563272.png";
+import facialDiagramImage from "@assets/1_1754469776185.png";
 
 const consultationSchema = z.object({
   type: z.enum(["consultation", "prescription", "lab_result", "imaging", "procedure"]),
@@ -80,9 +82,197 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
     bmi: ""
   });
 
+  // Clinical notes state
+  const [selectedExaminationType, setSelectedExaminationType] = useState<string>("");
+  const [clinicalNotes, setClinicalNotes] = useState<string>("");
+  const [diagnosis, setDiagnosis] = useState<string>("");
+  const [treatmentPlan, setTreatmentPlan] = useState<string>("");
+  const [showAnatomicalViewer, setShowAnatomicalViewer] = useState(false);
+  
+  // Audio transcription state
+  const [isRecording, setIsRecording] = useState(false);
+  const [transcript, setTranscript] = useState("");
+  const recognitionRef = React.useRef<SpeechRecognition | null>(null);
+  const [isTranscriptionSupported, setIsTranscriptionSupported] = useState(false);
+
+  // Anatomical analysis state
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string>("");
+  const [selectedAnalysisType, setSelectedAnalysisType] = useState<string>("");
+  const [selectedTreatment, setSelectedTreatment] = useState<string>("");
+  const [generatedTreatmentPlan, setGeneratedTreatmentPlan] = useState<string>("");
+  const [isGeneratingPlan, setIsGeneratingPlan] = useState<boolean>(false);
+  const [isSavingAnalysis, setIsSavingAnalysis] = useState<boolean>(false);
+
   const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [patient, setPatient] = useState<any>(null);
+
+  // Define muscle coordinates for interactive highlighting
+  const muscleCoordinates = {
+    frontalis: { x: 350, y: 180 },
+    temporalis: { x: 280, y: 220 },
+    corrugator: { x: 320, y: 200 },
+    procerus: { x: 350, y: 220 },
+    orbicularis_oculi: { x: 320, y: 240 },
+    levator_labii: { x: 340, y: 280 },
+    zygomaticus_major: { x: 380, y: 310 },
+    zygomaticus_minor: { x: 370, y: 290 },
+    masseter: { x: 400, y: 350 },
+    buccinator: { x: 380, y: 340 },
+    orbicularis_oris: { x: 350, y: 380 },
+    mentalis: { x: 350, y: 420 },
+    depressor_anguli: { x: 370, y: 400 },
+    platysma: { x: 350, y: 450 }
+  };
+
+  // Generate comprehensive treatment plan
+  const generateTreatmentPlan = async () => {
+    if (!selectedMuscleGroup || !selectedAnalysisType || !selectedTreatment) {
+      toast({
+        title: "Missing Information",
+        description: "Please select muscle group, analysis type, and treatment before generating plan.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGeneratingPlan(true);
+    
+    const treatmentPlan = `
+COMPREHENSIVE FACIAL MUSCLE TREATMENT PLAN
+
+Patient: ${patientName || 'Patient'}
+Date: ${format(new Date(), 'MMMM dd, yyyy')}
+
+TARGET ANALYSIS:
+• Muscle Group: ${selectedMuscleGroup.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+• Analysis Type: ${selectedAnalysisType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+• Primary Treatment: ${selectedTreatment.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+
+TREATMENT PROTOCOL:
+1. Initial Assessment & Baseline Documentation
+2. Pre-treatment Preparation & Patient Consultation
+3. ${selectedTreatment.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} Implementation
+4. Post-treatment Monitoring & Assessment
+5. Follow-up Care & Progress Evaluation
+
+EXPECTED OUTCOMES:
+• Improved muscle function and symmetry
+• Reduced symptoms and enhanced patient comfort
+• Optimized aesthetic and functional results
+• Long-term maintenance planning
+
+NEXT STEPS:
+• Schedule follow-up appointment in 1-2 weeks
+• Monitor patient response and adjust treatment as needed
+• Document progress with photographic evidence
+• Review treatment effectiveness and make modifications if required
+
+Generated on: ${format(new Date(), 'PPpp')}
+`;
+
+    setGeneratedTreatmentPlan(treatmentPlan);
+    setIsGeneratingPlan(false);
+    
+    toast({
+      title: "Treatment Plan Generated",
+      description: "Comprehensive treatment plan has been created successfully.",
+    });
+  };
+
+  // Save anatomical analysis as medical record
+  const saveAnalysis = async () => {
+    if (!selectedMuscleGroup || !selectedAnalysisType) {
+      toast({
+        title: "Missing Information",
+        description: "Please select at least muscle group and analysis type before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSavingAnalysis(true);
+    
+    try {
+      const analysisData = {
+        type: "consultation",
+        title: `Anatomical Analysis - ${selectedMuscleGroup.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`,
+        notes: `FACIAL MUSCLE ANALYSIS REPORT
+
+Patient: ${patientName || 'Patient'}
+Date: ${format(new Date(), 'MMMM dd, yyyy')}
+
+ANALYSIS DETAILS:
+• Target Muscle Group: ${selectedMuscleGroup.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+• Analysis Type: ${selectedAnalysisType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+${selectedTreatment ? `• Primary Treatment: ${selectedTreatment.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}` : ''}
+
+CLINICAL OBSERVATIONS:
+- Comprehensive anatomical assessment completed
+- Interactive muscle group identification performed
+- Professional analysis methodology applied
+
+${generatedTreatmentPlan ? `\nTREATMENT PLAN:\n${generatedTreatmentPlan}` : ''}
+
+Analysis completed on: ${format(new Date(), 'PPpp')}`,
+        diagnosis: `Anatomical analysis of ${selectedMuscleGroup.replace(/_/g, ' ')} - ${selectedAnalysisType.replace(/_/g, ' ')}`,
+        treatment: selectedTreatment ? selectedTreatment.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : undefined
+      };
+
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/patients/${patientId}/records`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(analysisData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      // Refresh medical records by re-fetching them
+      const refreshResponse = await fetch(`/api/patients/${patientId}/records`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+      
+      if (refreshResponse.ok) {
+        const refreshedData = await refreshResponse.json();
+        setMedicalRecords(refreshedData || []);
+      }
+      
+      toast({
+        title: "Analysis Saved",
+        description: "Anatomical analysis has been saved to medical records successfully.",
+      });
+
+      // Reset the form
+      setSelectedMuscleGroup("");
+      setSelectedAnalysisType("");
+      setSelectedTreatment("");
+      setGeneratedTreatmentPlan("");
+      setShowAnatomicalViewer(false);
+      
+    } catch (error) {
+      console.error('Error saving analysis:', error);
+      toast({
+        title: "Save Failed",
+        description: "Failed to save anatomical analysis. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingAnalysis(false);
+    }
+  };
 
   // Calculate BMI
   const calculateBMI = () => {
@@ -97,6 +287,78 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
   };
 
   // Fetch patient data
+  // Initialize speech recognition
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        setIsTranscriptionSupported(true);
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        recognition.onresult = (event) => {
+          let finalTranscript = '';
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            if (event.results[i].isFinal) {
+              finalTranscript += event.results[i][0].transcript + ' ';
+            }
+          }
+          if (finalTranscript) {
+            setTranscript(prev => prev + finalTranscript);
+            setClinicalNotes(prev => prev + finalTranscript);
+          }
+        };
+
+        recognition.onerror = (event) => {
+          console.error('Speech recognition error:', event.error);
+          toast({
+            title: "Transcription Error",
+            description: "Unable to transcribe audio. Please try again.",
+            variant: "destructive",
+          });
+          setIsRecording(false);
+        };
+
+        recognition.onend = () => {
+          setIsRecording(false);
+        };
+
+        recognitionRef.current = recognition;
+      }
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, [toast]);
+
+  const startRecording = () => {
+    if (recognitionRef.current && !isRecording) {
+      setTranscript("");
+      recognitionRef.current.start();
+      setIsRecording(true);
+      toast({
+        title: "Recording Started",
+        description: "Speak clearly to transcribe your clinical notes",
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (recognitionRef.current && isRecording) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+      toast({
+        title: "Recording Stopped",
+        description: "Transcription has been added to your clinical notes",
+      });
+    }
+  };
+
   useEffect(() => {
     const fetchPatientData = async () => {
       if (!patientId) return;
@@ -620,15 +882,124 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                       </Card>
                     </TabsContent>
 
-                    <TabsContent value="examination" className="flex-1 overflow-y-auto">
+                    <TabsContent value="examination" className="flex-1 overflow-y-auto space-y-6">
+                      {/* Examination Section */}
                       <Card>
                         <CardHeader>
-                          <CardTitle>Physical Examination</CardTitle>
+                          <CardTitle>Examination</CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <p className="text-muted-foreground">Physical examination findings will be recorded here.</p>
+                          <div className="space-y-2">
+                            <Label htmlFor="examination-type">Select examination type</Label>
+                            <Select
+                              value={selectedExaminationType}
+                              onValueChange={(value) => {
+                                setSelectedExaminationType(value);
+                                if (value === "anatomical") {
+                                  setShowAnatomicalViewer(true);
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select examination type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="general">General Examination</SelectItem>
+                                <SelectItem value="cardiovascular">Cardiovascular</SelectItem>
+                                <SelectItem value="respiratory">Respiratory</SelectItem>
+                                <SelectItem value="neurological">Neurological</SelectItem>
+                                <SelectItem value="anatomical" className="flex items-center gap-2">
+                                  <div className="flex items-center gap-2">
+                                    🏋️ Anatomical (View Muscles)
+                                  </div>
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </CardContent>
                       </Card>
+
+                      {/* Clinical Notes Section */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center justify-between">
+                            Clinical Notes
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={isRecording ? stopRecording : startRecording}
+                              disabled={!isTranscriptionSupported}
+                              className={`flex items-center gap-2 ${isRecording ? 'bg-red-50 border-red-200 text-red-700' : ''}`}
+                            >
+                              {isRecording ? (
+                                <>
+                                  <Square className="h-4 w-4" />
+                                  Stop Recording
+                                </>
+                              ) : (
+                                <>
+                                  <Mic className="h-4 w-4" />
+                                  Transcribe Audio
+                                </>
+                              )}
+                            </Button>
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
+                            <Label htmlFor="clinical-notes">Detailed consultation notes, observations, and findings. Click 'Transcribe Audio' to dictate your notes.</Label>
+                            <Textarea
+                              id="clinical-notes"
+                              placeholder="Enter detailed clinical notes, observations, and examination findings..."
+                              value={clinicalNotes}
+                              onChange={(e) => setClinicalNotes(e.target.value)}
+                              className="min-h-[120px] resize-y"
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Diagnosis and Treatment Plan Row */}
+                      <div className="grid grid-cols-2 gap-6">
+                        {/* Diagnosis */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>Diagnosis</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-2">
+                              <Label htmlFor="diagnosis">Primary and secondary diagnoses with ICD codes...</Label>
+                              <Textarea
+                                id="diagnosis"
+                                placeholder="Enter primary and secondary diagnoses with ICD codes..."
+                                value={diagnosis}
+                                onChange={(e) => setDiagnosis(e.target.value)}
+                                className="min-h-[120px] resize-y"
+                              />
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        {/* Treatment Plan */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>Treatment Plan</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-2">
+                              <Label htmlFor="treatment-plan">Treatment recommendations and care plan...</Label>
+                              <Textarea
+                                id="treatment-plan"
+                                placeholder="Enter treatment recommendations and care plan..."
+                                value={treatmentPlan}
+                                onChange={(e) => setTreatmentPlan(e.target.value)}
+                                className="min-h-[120px] resize-y"
+                              />
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
                     </TabsContent>
 
                     <TabsContent value="assessment" className="flex-1 overflow-y-auto">
@@ -664,6 +1035,148 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
                       </Card>
                     </TabsContent>
                   </Tabs>
+
+                  {/* Anatomical Viewer Dialog */}
+                  {showAnatomicalViewer && (
+                    <Dialog open={showAnatomicalViewer} onOpenChange={setShowAnatomicalViewer}>
+                      <DialogContent className="max-w-6xl h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-2">
+                            🏋️ Anatomical Muscle Viewer
+                            <Badge variant="secondary">Interactive Analysis</Badge>
+                          </DialogTitle>
+                        </DialogHeader>
+                        
+                        <div className="grid grid-cols-2 gap-6">
+                          {/* Left Side - Interactive Muscle Diagram */}
+                          <div className="space-y-4">
+                            <div className="relative">
+                              <img 
+                                src={facialDiagramImage} 
+                                alt="Facial Muscle Diagram" 
+                                className="w-full max-w-md mx-auto border rounded-lg"
+                              />
+                              
+                              {/* Interactive Muscle Points */}
+                              {Object.entries(muscleCoordinates).map(([muscleName, coords]) => (
+                                <button
+                                  key={muscleName}
+                                  className={`absolute w-4 h-4 rounded-full border-2 transform -translate-x-1/2 -translate-y-1/2 transition-all hover:scale-125 ${
+                                    selectedMuscleGroup === muscleName 
+                                      ? 'bg-blue-600 border-blue-700 shadow-lg' 
+                                      : 'bg-red-500 border-red-600 hover:bg-red-600'
+                                  }`}
+                                  style={{ 
+                                    left: `${(coords.x / 700) * 100}%`, 
+                                    top: `${(coords.y / 700) * 100}%` 
+                                  }}
+                                  onClick={() => setSelectedMuscleGroup(muscleName)}
+                                  title={muscleName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                />
+                              ))}
+                            </div>
+                            
+                            <div className="text-center">
+                              <p className="text-sm text-muted-foreground">
+                                Click on the red dots to select muscle groups for analysis
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {/* Right Side - Analysis Controls */}
+                          <div className="space-y-6">
+                            <Card>
+                              <CardHeader>
+                                <CardTitle>Muscle Analysis</CardTitle>
+                              </CardHeader>
+                              <CardContent className="space-y-4">
+                                {/* Selected Muscle Group */}
+                                <div>
+                                  <Label>Selected Muscle Group</Label>
+                                  <Input 
+                                    value={selectedMuscleGroup ? selectedMuscleGroup.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'None selected'}
+                                    readOnly
+                                    className="bg-gray-50"
+                                  />
+                                </div>
+                                
+                                {/* Analysis Type */}
+                                <div>
+                                  <Label>Analysis Type</Label>
+                                  <Select value={selectedAnalysisType} onValueChange={setSelectedAnalysisType}>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select analysis type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="symmetry_assessment">Symmetry Assessment</SelectItem>
+                                      <SelectItem value="function_evaluation">Function Evaluation</SelectItem>
+                                      <SelectItem value="aesthetic_analysis">Aesthetic Analysis</SelectItem>
+                                      <SelectItem value="treatment_planning">Treatment Planning</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                
+                                {/* Treatment Option */}
+                                <div>
+                                  <Label>Treatment Option</Label>
+                                  <Select value={selectedTreatment} onValueChange={setSelectedTreatment}>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select treatment" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="botulinum_toxin">Botulinum Toxin</SelectItem>
+                                      <SelectItem value="dermal_fillers">Dermal Fillers</SelectItem>
+                                      <SelectItem value="muscle_therapy">Muscle Therapy</SelectItem>
+                                      <SelectItem value="surgical_intervention">Surgical Intervention</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                
+                                {/* Generate Treatment Plan */}
+                                <Button 
+                                  onClick={generateTreatmentPlan}
+                                  disabled={!selectedMuscleGroup || !selectedAnalysisType || !selectedTreatment || isGeneratingPlan}
+                                  className="w-full"
+                                >
+                                  {isGeneratingPlan ? 'Generating...' : 'Generate Treatment Plan'}
+                                </Button>
+                                
+                                {/* Generated Treatment Plan Display */}
+                                {generatedTreatmentPlan && (
+                                  <div className="mt-4">
+                                    <Label>Generated Treatment Plan</Label>
+                                    <Textarea 
+                                      value={generatedTreatmentPlan}
+                                      readOnly
+                                      className="min-h-[200px] text-sm bg-gray-50"
+                                    />
+                                  </div>
+                                )}
+                              </CardContent>
+                            </Card>
+                            
+                            {/* Action Buttons */}
+                            <div className="flex gap-2">
+                              <Button 
+                                variant="outline" 
+                                onClick={() => setShowAnatomicalViewer(false)}
+                                className="flex-1"
+                              >
+                                Close
+                              </Button>
+                              <Button 
+                                onClick={saveAnalysis}
+                                disabled={!selectedMuscleGroup || !selectedAnalysisType || isSavingAnalysis}
+                                className="flex-1"
+                              >
+                                {isSavingAnalysis ? 'Saving...' : 'Save Analysis'}
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  )}
 
                   {/* Bottom Action Buttons */}
                   <div className="flex justify-between items-center pt-4 border-t bg-white dark:bg-gray-900">
