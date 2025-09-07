@@ -2494,6 +2494,15 @@ export default function Forms() {
   const applyTextFormatting = (formatType: 'paragraph' | 'heading1' | 'heading2') => {
     console.log("applyTextFormatting called with:", formatType);
     
+    if (!textareaRef) {
+      toast({
+        title: "Editor Not Ready",
+        description: "Please wait for the editor to load",
+        duration: 2000
+      });
+      return;
+    }
+
     const selection = window.getSelection();
     let selectedText = '';
     let range: Range | undefined;
@@ -2506,97 +2515,107 @@ export default function Forms() {
     
     console.log("Selection:", { selectedText });
     
-    // If no text selected, create formatting at cursor or use placeholder
-    if (!selectedText) {
-      const placeholder = `Sample ${formatType === 'heading1' ? 'Heading 1' : formatType === 'heading2' ? 'Heading 2' : 'paragraph'} text`;
+    // If no text selected, insert placeholder text at cursor
+    if (!selectedText.trim()) {
+      const placeholder = formatType === 'heading1' ? 'Heading 1' : formatType === 'heading2' ? 'Heading 2' : 'Paragraph text';
       
       if (selection && selection.rangeCount > 0) {
         range = selection.getRangeAt(0);
-        selectedText = placeholder;
-      } else if (textareaRef) {
-        // Insert at the end of document if no cursor position
-        textareaRef.focus();
-        const content = textareaRef.value;
-        const newContent = content + (content.endsWith('\n') ? '' : '\n') + placeholder;
-        textareaRef.value = newContent;
-        setDocumentContent(newContent);
-        
-        toast({ 
-          title: `✓ ${formatType === 'heading1' ? 'Heading 1' : formatType === 'heading2' ? 'Heading 2' : 'Paragraph'}`,
-          description: `${formatType} formatting added with sample text`,
-          duration: 2000
-        });
-        return;
       } else {
-        selectedText = placeholder;
+        // Create a range at the end of the content
+        range = document.createRange();
+        range.selectNodeContents(textareaRef);
+        range.collapse(false);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
       }
+      
+      selectedText = placeholder;
     }
 
-    // Apply styling by wrapping selection in a span without changing document structure
-    const span = document.createElement('span');
+    // Create appropriate element based on format type
+    let element: HTMLElement;
     
-    // Set the appropriate styling based on format type
     switch (formatType) {
-      case 'paragraph':
-        span.style.fontSize = '14px';
-        span.style.fontWeight = 'normal';
-        break;
       case 'heading1':
-        span.style.fontSize = '24px';
-        span.style.fontWeight = 'bold';
-        span.style.color = '#1a1a1a';
+        element = document.createElement('h1');
+        element.style.fontSize = '24px';
+        element.style.fontWeight = 'bold';
+        element.style.color = '#1a1a1a';
+        element.style.margin = '16px 0 8px 0';
+        element.style.lineHeight = '1.2';
         break;
       case 'heading2':
-        span.style.fontSize = '18px';
-        span.style.fontWeight = 'bold';
-        span.style.color = '#2a2a2a';
+        element = document.createElement('h2');
+        element.style.fontSize = '20px';
+        element.style.fontWeight = 'bold';
+        element.style.color = '#2a2a2a';
+        element.style.margin = '14px 0 6px 0';
+        element.style.lineHeight = '1.3';
+        break;
+      default: // paragraph
+        element = document.createElement('p');
+        element.style.fontSize = '14px';
+        element.style.fontWeight = 'normal';
+        element.style.margin = '8px 0';
+        element.style.lineHeight = '1.6';
         break;
     }
     
-    // Extract the selected content and wrap it in the span
+    // Set text content
+    element.textContent = selectedText;
+    
+    // Insert the new element
     if (range) {
       try {
-        const contents = range.extractContents();
-        span.appendChild(contents);
-        range.insertNode(span);
-        
-        // Clear the selection
-        selection?.removeAllRanges();
-        
-        // Update the document content state
-        if (textareaRef) {
-          setDocumentContent(textareaRef.innerHTML);
+        // Delete selected content if any
+        if (selectedText !== (formatType === 'heading1' ? 'Heading 1' : formatType === 'heading2' ? 'Heading 2' : 'Paragraph text')) {
+          range.deleteContents();
         }
+        
+        // Insert the new element
+        range.insertNode(element);
+        
+        // Add a line break after the element for better formatting
+        const br = document.createElement('br');
+        range.setStartAfter(element);
+        range.insertNode(br);
+        
+        // Position cursor after the new element
+        range.setStartAfter(br);
+        range.collapse(true);
+        
+        // Update selection
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+        
+        // Update document content
+        setDocumentContent(textareaRef.innerHTML);
+        
+        // Focus the editor
+        textareaRef.focus();
+        
+        const titles = {
+          paragraph: "✓ Paragraph",
+          heading1: "✓ Heading 1", 
+          heading2: "✓ Heading 2"
+        };
+        
+        toast({ 
+          title: titles[formatType],
+          description: `${formatType} formatting applied successfully`,
+          duration: 2000
+        });
+        
       } catch (error) {
         console.error('Error applying text formatting:', error);
-        // If there's an error, just insert the text back
-        span.textContent = selectedText;
-        range.deleteContents();
-        range.insertNode(span);
-      }
-    } else {
-      // If no range, just create the span with text content
-      span.textContent = selectedText;
-      if (textareaRef) {
-        textareaRef.innerHTML += span.outerHTML;
-        setDocumentContent(textareaRef.innerHTML);
+        toast({
+          title: "Formatting Error",
+          description: "Failed to apply text formatting. Please try again.",
+          duration: 3000
+        });
       }
     }
-    
-    // Clear selection
-    selection?.removeAllRanges();
-    
-    const titles = {
-      paragraph: "✓ Paragraph",
-      heading1: "✓ Heading 1", 
-      heading2: "✓ Heading 2"
-    };
-    
-    toast({ 
-      title: titles[formatType],
-      description: `${formatType} formatting applied successfully`,
-      duration: 3000
-    });
   };
 
   const handleParagraph = () => {
