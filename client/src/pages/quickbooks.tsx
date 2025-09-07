@@ -562,33 +562,8 @@ export default function QuickBooks() {
         description: `Quarterly tax: $${quarterlyTax} | Annual projection: $${annualProjection}`,
       });
 
-      // Also show detailed popup for comprehensive view
-      if (window.confirm(`${taxResults}\n\nWould you like to export this tax calculation report?`)) {
-        // Export functionality
-        const exportData = {
-          calculationDate: new Date().toISOString(),
-          netIncome: accountingSummary.netIncome,
-          quarterlyTax: quarterlyTax,
-          annualProjection: annualProjection,
-          federalTax: federalTax,
-          stateTax: stateTax,
-          effectiveRate: "25%"
-        };
-        
-        const dataStr = JSON.stringify(exportData, null, 2);
-        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-        const exportFileDefaultName = `tax-calculation-${new Date().toISOString().split('T')[0]}.json`;
-        
-        const linkElement = document.createElement('a');
-        linkElement.setAttribute('href', dataUri);
-        linkElement.setAttribute('download', exportFileDefaultName);
-        linkElement.click();
-        
-        toast({
-          title: "Export Complete",
-          description: "Tax calculation report has been downloaded.",
-        });
-      }
+      // Show detailed popup for comprehensive view without automatic download
+      window.alert(`${taxResults}\n\nTax calculation completed successfully! Use the Export Reports feature if you need to download financial data.`);
       
     } catch (error) {
       console.error("Tax calculation error:", error);
