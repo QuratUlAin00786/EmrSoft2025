@@ -2528,16 +2528,27 @@ IMPORTANT: Review the full conversation history and remember all details mention
           }
         }
         
-        // Additional fuzzy matching for common name patterns
+        // Additional fuzzy matching for common name patterns (stricter)
         if (!isMatch && (firstName.length > 2 && lastName.length > 2)) {
           // Check if message contains both first and last name words (order independent)
           const messageWords = lowerMessage.split(/\s+/);
-          const hasFirstName = messageWords.some((word: string) => word.includes(firstName) || firstName.includes(word));
-          const hasLastName = messageWords.some((word: string) => word.includes(lastName) || lastName.includes(word));
+          // More strict matching: only if the word is at least 80% similar OR exact substring match
+          const hasFirstName = messageWords.some((word: string) => {
+            return word === firstName || 
+                   (word.length >= 3 && firstName.length >= 3 && 
+                    (word.includes(firstName) || firstName.includes(word)) &&
+                    Math.abs(word.length - firstName.length) <= 2);
+          });
+          const hasLastName = messageWords.some((word: string) => {
+            return word === lastName || 
+                   (word.length >= 3 && lastName.length >= 3 && 
+                    (word.includes(lastName) || lastName.includes(word)) &&
+                    Math.abs(word.length - lastName.length) <= 2);
+          });
           
           if (hasFirstName && hasLastName) {
             isMatch = true;
-            console.log(`[PRESCRIPTION_SEARCH] Found fuzzy match for ${patient.firstName} ${patient.lastName}`);
+            console.log(`[PRESCRIPTION_SEARCH] Found strict fuzzy match for ${patient.firstName} ${patient.lastName}`);
           }
         }
         
@@ -2842,15 +2853,26 @@ IMPORTANT: Review the full conversation history and remember all details mention
               }
             }
             
-            // Method 3: Fuzzy matching for common name patterns
+            // Method 3: Fuzzy matching for common name patterns (stricter)
             if (!isMatch && (firstName.length > 2 && lastName.length > 2)) {
               const messageWords = lowerMessage.split(/\s+/);
-              const hasFirstName = messageWords.some((word: string) => word.includes(firstName) || firstName.includes(word));
-              const hasLastName = messageWords.some((word: string) => word.includes(lastName) || lastName.includes(word));
+              // More strict matching: only if the word is at least 80% similar OR exact substring match
+              const hasFirstName = messageWords.some((word: string) => {
+                return word === firstName || 
+                       (word.length >= 3 && firstName.length >= 3 && 
+                        (word.includes(firstName) || firstName.includes(word)) &&
+                        Math.abs(word.length - firstName.length) <= 2);
+              });
+              const hasLastName = messageWords.some((word: string) => {
+                return word === lastName || 
+                       (word.length >= 3 && lastName.length >= 3 && 
+                        (word.includes(lastName) || lastName.includes(word)) &&
+                        Math.abs(word.length - lastName.length) <= 2);
+              });
               
               if (hasFirstName && hasLastName) {
                 isMatch = true;
-                console.log(`[PRESCRIPTION_SEARCH] Found fuzzy match for ${patient.firstName} ${patient.lastName}`);
+                console.log(`[PRESCRIPTION_SEARCH] Found strict fuzzy match for ${patient.firstName} ${patient.lastName}`);
               }
             }
             
