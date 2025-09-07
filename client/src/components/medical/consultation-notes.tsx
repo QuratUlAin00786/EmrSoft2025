@@ -102,6 +102,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
   const [selectedTreatment, setSelectedTreatment] = useState<string>("");
   const [selectedTreatmentIntensity, setSelectedTreatmentIntensity] = useState<string>("");
   const [selectedSessionFrequency, setSelectedSessionFrequency] = useState<string>("");
+  const [selectedSymptom, setSelectedSymptom] = useState<string>("");
   const [generatedTreatmentPlan, setGeneratedTreatmentPlan] = useState<string>("");
   const [isGeneratingPlan, setIsGeneratingPlan] = useState<boolean>(false);
   const [isSavingAnalysis, setIsSavingAnalysis] = useState<boolean>(false);
@@ -1280,10 +1281,21 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                                 <CardTitle className="text-purple-600 text-base">Symptom Assessment</CardTitle>
                               </CardHeader>
                               <CardContent>
-                                <Textarea 
-                                  placeholder="Primary symptoms"
-                                  className="min-h-[100px] text-sm"
-                                />
+                                <Select value={selectedSymptom} onValueChange={setSelectedSymptom}>
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select primary symptom" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="facial_pain">Facial Pain</SelectItem>
+                                    <SelectItem value="muscle_spasms">Muscle Spasms</SelectItem>
+                                    <SelectItem value="facial_asymmetry">Facial Asymmetry</SelectItem>
+                                    <SelectItem value="muscle_weakness">Muscle Weakness</SelectItem>
+                                    <SelectItem value="chronic_tension">Chronic Tension</SelectItem>
+                                    <SelectItem value="muscle_twitching">Muscle Twitching</SelectItem>
+                                    <SelectItem value="joint_stiffness">Joint Stiffness</SelectItem>
+                                    <SelectItem value="numbness_tingling">Numbness/Tingling</SelectItem>
+                                  </SelectContent>
+                                </Select>
                               </CardContent>
                             </Card>
                             
