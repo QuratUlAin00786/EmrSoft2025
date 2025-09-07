@@ -350,17 +350,7 @@ export class AiService {
     if (!hasDateTime) hasDateTime = this.looksLikeDateTime(message);
     if (!hasTimeReference) hasTimeReference = /\b(tomorrow|today|monday|tuesday|wednesday|thursday|friday|saturday|sunday|morning|afternoon|evening|noon|\d{1,2}(:\d{2})?\s*(am|pm)|\d{1,2}[-\/]\d{1,2})\b/i.test(lowerMessage);
     
-    // If message contains structured appointment components, classify as appointment booking
-    if ((hasPatientName && (hasDateTime || hasTimeReference)) || 
-        (hasDoctorName && (hasDateTime || hasTimeReference)) ||
-        (hasPatientName && hasDoctorName)) {
-      console.log('[INTENT] Detected structured appointment data:', {
-        hasPatientName, hasDateTime, hasDoctorName, hasTimeReference, messageLines
-      });
-      return 'appointment_booking';
-    }
-    
-    // PRIORITY 3: Context-aware classification (only if no direct keywords found)
+    // PRIORITY 3: Context-aware classification (check context FIRST before structured appointment detection)
     if (conversationHistory && conversationHistory.length > 0) {
       const recentMessages = conversationHistory.slice(-4).map(msg => msg.content.toLowerCase()).join(' ');
       // Check for prescription context first (including variations)
@@ -373,11 +363,37 @@ export class AiService {
                                      recentMessages.includes('show prescriptions') ||
                                      /prescription.*information|prescription.*data/.test(recentMessages);
       
-      if (hasPrescriptionContext && this.looksLikePatientName(message)) {
+      // If user just mentioned a patient name after prescription context, stay in prescription mode
+      if (hasPrescriptionContext && this.looksLikePatientName(message) && !hasDateTime && !hasTimeReference) {
+        console.log('[INTENT] Prescription context detected with patient name:', message);
         return 'prescription_inquiry';
       }
+    }
+    
+    // PRIORITY 4: If message contains structured appointment components, classify as appointment booking
+    if ((hasPatientName && (hasDateTime || hasTimeReference)) || 
+        (hasDoctorName && (hasDateTime || hasTimeReference)) ||
+        (hasPatientName && hasDoctorName)) {
+      console.log('[INTENT] Detected structured appointment data:', {
+        hasPatientName, hasDateTime, hasDoctorName, hasTimeReference, messageLines
+      });
+      return 'appointment_booking';
+    }
+    
+    // PRIORITY 5: Additional context-aware classification for appointment booking
+    if (conversationHistory && conversationHistory.length > 0) {
+      const recentMessages = conversationHistory.slice(-4).map(msg => msg.content.toLowerCase()).join(' ');
       
       // Check for appointment booking context only if no prescription context
+      const hasPrescriptionContext = recentMessages.includes('prescription') || 
+                                     recentMessages.includes('medication') ||
+                                     recentMessages.includes('medicine') ||
+                                     recentMessages.includes('drug') ||
+                                     recentMessages.includes('pills') ||
+                                     recentMessages.includes('recent prescriptions') ||
+                                     recentMessages.includes('show prescriptions') ||
+                                     /prescription.*information|prescription.*data/.test(recentMessages);
+                                     
       const hasAppointmentContext = recentMessages.includes('appointment') || 
                                    recentMessages.includes('book') || 
                                    recentMessages.includes('schedule') ||
