@@ -1095,6 +1095,17 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                                   className="w-full max-w-lg border rounded-lg bg-white shadow-sm"
                                 />
                                 
+                                {/* Selected Muscle Highlight - Light yellow dot for selected muscle */}
+                                {selectedMuscleGroup && muscleCoordinates[selectedMuscleGroup as keyof typeof muscleCoordinates] && currentImageIndex === 0 && (
+                                  <div
+                                    className="absolute w-4 h-4 rounded-full bg-yellow-300 border-2 border-yellow-500 transform -translate-x-1/2 -translate-y-1/2 shadow-lg animate-pulse"
+                                    style={{ 
+                                      left: `${(muscleCoordinates[selectedMuscleGroup as keyof typeof muscleCoordinates].x / 700) * 100}%`, 
+                                      top: `${(muscleCoordinates[selectedMuscleGroup as keyof typeof muscleCoordinates].y / 500) * 100}%` 
+                                    }}
+                                    title={selectedMuscleGroup.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                  />
+                                )}
                               </div>
                               
                               {/* Right Navigation Arrow */}
