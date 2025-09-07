@@ -82,6 +82,16 @@ h1, h2, h3, h4, h5, h6, p, div, span, button, input, textarea, select, label, a,
   color: white !important;
 }
 
+/* ALLOW CUSTOM FONTS IN EDITOR - Override Figtree enforcement */
+.custom-font-override {
+  font-family: inherit !important;
+}
+
+/* Specific font enforcement for editor spans */
+.custom-font-override[style*="font-family"] {
+  font-family: inherit !important;
+}
+
 /* PRODUCTION-BULLETPROOF DELETE BUTTON STYLES */
 /* These styles guarantee DELETE button visibility in all environments */
 .production-delete-btn {
