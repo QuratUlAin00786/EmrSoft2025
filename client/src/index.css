@@ -87,9 +87,18 @@ h1, h2, h3, h4, h5, h6, p, div, span, button, input, textarea, select, label, a,
   font-family: inherit !important;
 }
 
-/* Specific font enforcement for editor spans */
-.custom-font-override[style*="font-family"] {
+/* Ultra-aggressive font override - bypasses all global rules */
+span.custom-font-override[style*="font-family"] {
+  font-family: attr(data-font-family) !important;
+}
+
+/* Nuclear font override - maximum specificity */
+div span.custom-font-override[style*="font-family"],
+.custom-font-override[style*="font-family"],
+*[contenteditable] .custom-font-override[style*="font-family"] {
   font-family: inherit !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
 }
 
 /* PRODUCTION-BULLETPROOF DELETE BUTTON STYLES */

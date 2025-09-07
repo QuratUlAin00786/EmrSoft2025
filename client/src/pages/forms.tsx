@@ -2786,13 +2786,15 @@ export default function Forms() {
       if (existingFontSpan) {
         // Update existing span's font family instead of creating nested span
         existingFontSpan.className = 'custom-font-override';
-        existingFontSpan.style.setProperty('font-family', fontFamilyCSS, 'important');
+        existingFontSpan.setAttribute('data-font-family', fontFamilyCSS);
+        existingFontSpan.setAttribute('style', `font-family: ${fontFamilyCSS} !important;`);
         console.log("Updated existing span font:", fontFamilyCSS);
       } else {
         // Create a new span with the font family applied
         const span = document.createElement('span');
         span.className = 'custom-font-override';
-        span.style.setProperty('font-family', fontFamilyCSS, 'important');
+        span.setAttribute('data-font-family', fontFamilyCSS);
+        span.setAttribute('style', `font-family: ${fontFamilyCSS} !important;`);
         span.textContent = selectedText;
         
         // Replace the selected content with the new span
@@ -2871,7 +2873,7 @@ export default function Forms() {
     // Create a span with the font size applied
     const span = document.createElement('span');
     span.className = 'custom-font-override';
-    span.style.setProperty('font-size', fontSizeValue, 'important');
+    span.setAttribute('style', `font-size: ${fontSizeValue} !important;`);
     span.textContent = selectedText;
     
     // Replace the selected content with the new span
