@@ -638,7 +638,7 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                 Add Record
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-7xl h-[90vh] overflow-hidden" id="medical-record-dialog">
+            <DialogContent className="max-w-7xl h-[90vh] overflow-y-auto" id="medical-record-dialog">
               <DialogHeader className="pb-4">
                 <DialogTitle className="flex items-center gap-2 text-xl">
                   <Stethoscope className="h-6 w-6 text-blue-600" />
