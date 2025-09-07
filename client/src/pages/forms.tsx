@@ -2642,53 +2642,7 @@ export default function Forms() {
     applyTextFormatting('heading2');
   };
 
-  const applyFontFamily = (fontFamilyValue: string) => {
-    console.log("applyFontFamily called with:", fontFamilyValue);
-    
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) {
-      // No selection, insert sample text
-      const placeholder = `Sample text in ${fontFamilyValue}`;
-      if (textareaRef) {
-        textareaRef.focus();
-        const content = textareaRef.value;
-        const newContent = content + (content.endsWith('\n') ? '' : '\n') + placeholder;
-        textareaRef.value = newContent;
-        setDocumentContent(newContent);
-        
-        toast({ 
-          title: "✓ Font Applied",
-          description: `Font family changed to ${fontFamilyValue} with sample text`,
-          duration: 2000
-        });
-      }
-      return;
-    }
-
-    const range = selection.getRangeAt(0);
-    const selectedText = range.toString();
-    
-    console.log("Font family selection:", { selectedText, fontFamilyValue });
-    
-    if (!selectedText) {
-      // No text selected, insert sample text at cursor
-      const placeholder = `Sample text in ${fontFamilyValue}`;
-      const textNode = document.createTextNode(placeholder);
-      range.insertNode(textNode);
-      
-      if (textareaRef) {
-        setDocumentContent(textareaRef.innerHTML);
-      }
-      
-      toast({ 
-        title: "✓ Font Applied",
-        description: `Font family changed to ${fontFamilyValue} with sample text`,
-        duration: 2000
-      });
-      return;
-    }
-
-    // Get the font family name for CSS with distinct fallbacks
+  const getFontFamilyCSS = (fontFamilyValue: string) => {
     let fontFamilyCSS = '';
     switch (fontFamilyValue) {
       case 'arial':
@@ -2754,6 +2708,57 @@ export default function Forms() {
       default:
         fontFamilyCSS = 'Verdana, Geneva, "DejaVu Sans", sans-serif';
     }
+    return fontFamilyCSS;
+  };
+
+  const applyFontFamily = (fontFamilyValue: string) => {
+    console.log("applyFontFamily called with:", fontFamilyValue);
+    
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      // No selection, insert sample text
+      const placeholder = `Sample text in ${fontFamilyValue}`;
+      if (textareaRef) {
+        textareaRef.focus();
+        const content = textareaRef.value;
+        const newContent = content + (content.endsWith('\n') ? '' : '\n') + placeholder;
+        textareaRef.value = newContent;
+        setDocumentContent(newContent);
+        
+        toast({ 
+          title: "✓ Font Applied",
+          description: `Font family changed to ${fontFamilyValue} with sample text`,
+          duration: 2000
+        });
+      }
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    const selectedText = range.toString();
+    
+    console.log("Font family selection:", { selectedText, fontFamilyValue });
+    
+    if (!selectedText) {
+      // No text selected, insert sample text at cursor
+      const placeholder = `Sample text in ${fontFamilyValue}`;
+      const textNode = document.createTextNode(placeholder);
+      range.insertNode(textNode);
+      
+      if (textareaRef) {
+        setDocumentContent(textareaRef.innerHTML);
+      }
+      
+      toast({ 
+        title: "✓ Font Applied",
+        description: `Font family changed to ${fontFamilyValue} with sample text`,
+        duration: 2000
+      });
+      return;
+    }
+
+    // Get the font family name for CSS with distinct fallbacks
+    const fontFamilyCSS = getFontFamilyCSS(fontFamilyValue);
 
     try {
       // Check if selection is within an existing font-family span
@@ -3324,7 +3329,14 @@ export default function Forms() {
           
           <Select value={fontFamily} onValueChange={(value) => {
             setFontFamily(value);
-            // Only apply font family if there's a valid selection
+            
+            // Apply font to editor for new text
+            if (textareaRef) {
+              const fontFamilyCSS = getFontFamilyCSS(value);
+              textareaRef.style.fontFamily = fontFamilyCSS;
+            }
+            
+            // Also apply font family to selected text if any exists
             const selection = window.getSelection();
             if (selection && selection.rangeCount > 0 && selection.toString().trim()) {
               applyFontFamily(value);
@@ -3338,8 +3350,6 @@ export default function Forms() {
               <SelectItem value="calibri">Calibri</SelectItem>
               <SelectItem value="cambria">Cambria</SelectItem>
               <SelectItem value="comic-sans">Comic Sans MS</SelectItem>
-              <SelectItem value="times">Times New Roman</SelectItem>
-              <SelectItem value="courier">Courier New</SelectItem>
               <SelectItem value="consolas">Consolas</SelectItem>
               <SelectItem value="courier">Courier New</SelectItem>
               <SelectItem value="franklin">Franklin Gothic</SelectItem>
