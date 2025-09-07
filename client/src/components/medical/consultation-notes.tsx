@@ -115,22 +115,44 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
   const [isLoading, setIsLoading] = useState(true);
   const [patient, setPatient] = useState<any>(null);
 
-  // Define muscle coordinates for interactive highlighting (based on actual image positions)
-  const muscleCoordinates = {
-    frontalis: { x: 50, y: 15 },        // Top center forehead
-    temporalis: { x: 25, y: 35 },       // Left side temple area
-    corrugator_supercilii: { x: 40, y: 25 }, // Between eyebrows
-    procerus: { x: 50, y: 30 },         // Center between eyebrows
-    orbicularis_oculi: { x: 35, y: 35 }, // Around eye area
-    levator_labii_superioris: { x: 45, y: 50 }, // Upper lip elevator
-    zygomaticus_major: { x: 30, y: 55 }, // Cheek muscle (major)
-    zygomaticus_minor: { x: 40, y: 52 }, // Cheek muscle (minor)
-    masseter: { x: 25, y: 65 },         // Jaw muscle
-    buccinator: { x: 35, y: 60 },       // Cheek muscle
-    orbicularis_oris: { x: 50, y: 70 }, // Around mouth
-    mentalis: { x: 50, y: 80 },         // Chin muscle
-    depressor_anguli_oris: { x: 45, y: 75 }, // Lower mouth corner
-    platysma: { x: 40, y: 85 }          // Neck muscle
+  // Define muscle coordinates for each anatomical image separately
+  const muscleCoordinatesForImages = {
+    // Image 0: Labeled muscle diagram (horizontal layout, includes neck)
+    0: {
+      frontalis: { x: 50, y: 18 },        // Top center forehead
+      temporalis: { x: 28, y: 25 },       // Left side temple area
+      corrugator_supercilii: { x: 43, y: 23 }, // Between eyebrows
+      procerus: { x: 50, y: 28 },         // Center between eyebrows
+      orbicularis_oculi: { x: 38, y: 32 }, // Around eye area
+      levator_labii_superioris: { x: 46, y: 42 }, // Upper lip elevator
+      zygomaticus_major: { x: 32, y: 48 }, // Cheek muscle (major)
+      zygomaticus_minor: { x: 42, y: 45 }, // Cheek muscle (minor)
+      masseter: { x: 28, y: 58 },         // Jaw muscle
+      buccinator: { x: 38, y: 52 },       // Cheek muscle
+      orbicularis_oris: { x: 50, y: 58 }, // Around mouth
+      mentalis: { x: 50, y: 68 },         // Chin muscle
+      depressor_anguli_oris: { x: 46, y: 62 }, // Lower mouth corner
+      depressor_labii_inferioris: { x: 48, y: 65 }, // Lower lip depressor
+      platysma: { x: 42, y: 75 }          // Neck muscle
+    },
+    // Image 1: Clean outline (vertical layout, more focused on face)
+    1: {
+      frontalis: { x: 50, y: 12 },        // Top center forehead
+      temporalis: { x: 22, y: 28 },       // Left side temple area
+      corrugator_supercilii: { x: 42, y: 22 }, // Between eyebrows
+      procerus: { x: 50, y: 26 },         // Center between eyebrows
+      orbicularis_oculi: { x: 35, y: 30 }, // Around eye area
+      levator_labii_superioris: { x: 45, y: 45 }, // Upper lip elevator
+      zygomaticus_major: { x: 28, y: 52 }, // Cheek muscle (major)
+      zygomaticus_minor: { x: 38, y: 48 }, // Cheek muscle (minor)
+      masseter: { x: 22, y: 62 },         // Jaw muscle
+      buccinator: { x: 32, y: 55 },       // Cheek muscle
+      orbicularis_oris: { x: 50, y: 62 }, // Around mouth
+      mentalis: { x: 50, y: 75 },         // Chin muscle
+      depressor_anguli_oris: { x: 45, y: 68 }, // Lower mouth corner
+      depressor_labii_inferioris: { x: 42, y: 72 }, // Lower lip depressor
+      platysma: { x: 38, y: 82 }          // Neck muscle
+    }
   };
 
   const navigateImage = (direction: 'prev' | 'next') => {
@@ -1101,12 +1123,12 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                                 />
                                 
                                 {/* Selected Muscle Highlight - Light yellow dot for selected muscle */}
-                                {selectedMuscleGroup && muscleCoordinates[selectedMuscleGroup as keyof typeof muscleCoordinates] && (
+                                {selectedMuscleGroup && muscleCoordinatesForImages[currentImageIndex as keyof typeof muscleCoordinatesForImages][selectedMuscleGroup as keyof typeof muscleCoordinatesForImages[0]] && (
                                   <div
                                     className="absolute w-4 h-4 rounded-full bg-yellow-300 border-2 border-yellow-500 transform -translate-x-1/2 -translate-y-1/2 shadow-lg animate-pulse"
                                     style={{ 
-                                      left: `${muscleCoordinates[selectedMuscleGroup as keyof typeof muscleCoordinates].x}%`, 
-                                      top: `${muscleCoordinates[selectedMuscleGroup as keyof typeof muscleCoordinates].y}%` 
+                                      left: `${muscleCoordinatesForImages[currentImageIndex as keyof typeof muscleCoordinatesForImages][selectedMuscleGroup as keyof typeof muscleCoordinatesForImages[0]].x}%`, 
+                                      top: `${muscleCoordinatesForImages[currentImageIndex as keyof typeof muscleCoordinatesForImages][selectedMuscleGroup as keyof typeof muscleCoordinatesForImages[0]].y}%` 
                                     }}
                                     title={selectedMuscleGroup.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                   />
