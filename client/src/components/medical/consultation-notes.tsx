@@ -115,22 +115,22 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
   const [isLoading, setIsLoading] = useState(true);
   const [patient, setPatient] = useState<any>(null);
 
-  // Define muscle coordinates for interactive highlighting
+  // Define muscle coordinates for interactive highlighting (based on actual image positions)
   const muscleCoordinates = {
-    frontalis: { x: 350, y: 120 },
-    temporalis: { x: 180, y: 200 },
-    corrugator_supercilii: { x: 300, y: 160 },
-    procerus: { x: 350, y: 200 },
-    orbicularis_oculi: { x: 280, y: 220 },
-    levator_labii_superioris: { x: 320, y: 280 },
-    zygomaticus_major: { x: 250, y: 320 },
-    zygomaticus_minor: { x: 290, y: 300 },
-    masseter: { x: 200, y: 380 },
-    buccinator: { x: 240, y: 350 },
-    orbicularis_oris: { x: 350, y: 400 },
-    mentalis: { x: 350, y: 450 },
-    depressor_anguli_oris: { x: 320, y: 420 },
-    depressor_labii_inferioris: { x: 340, y: 430 }
+    frontalis: { x: 50, y: 15 },        // Top center forehead
+    temporalis: { x: 25, y: 35 },       // Left side temple area
+    corrugator_supercilii: { x: 40, y: 25 }, // Between eyebrows
+    procerus: { x: 50, y: 30 },         // Center between eyebrows
+    orbicularis_oculi: { x: 35, y: 35 }, // Around eye area
+    levator_labii_superioris: { x: 45, y: 50 }, // Upper lip elevator
+    zygomaticus_major: { x: 30, y: 55 }, // Cheek muscle (major)
+    zygomaticus_minor: { x: 40, y: 52 }, // Cheek muscle (minor)
+    masseter: { x: 25, y: 65 },         // Jaw muscle
+    buccinator: { x: 35, y: 60 },       // Cheek muscle
+    orbicularis_oris: { x: 50, y: 70 }, // Around mouth
+    mentalis: { x: 50, y: 80 },         // Chin muscle
+    depressor_anguli_oris: { x: 45, y: 75 }, // Lower mouth corner
+    platysma: { x: 40, y: 85 }          // Neck muscle
   };
 
   const navigateImage = (direction: 'prev' | 'next') => {
@@ -1105,8 +1105,8 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                                   <div
                                     className="absolute w-4 h-4 rounded-full bg-yellow-300 border-2 border-yellow-500 transform -translate-x-1/2 -translate-y-1/2 shadow-lg animate-pulse"
                                     style={{ 
-                                      left: `${(muscleCoordinates[selectedMuscleGroup as keyof typeof muscleCoordinates].x / 700) * 100}%`, 
-                                      top: `${(muscleCoordinates[selectedMuscleGroup as keyof typeof muscleCoordinates].y / 500) * 100}%` 
+                                      left: `${muscleCoordinates[selectedMuscleGroup as keyof typeof muscleCoordinates].x}%`, 
+                                      top: `${muscleCoordinates[selectedMuscleGroup as keyof typeof muscleCoordinates].y}%` 
                                     }}
                                     title={selectedMuscleGroup.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                   />
