@@ -2599,7 +2599,7 @@ IMPORTANT: Review the full conversation history and remember all details mention
           if (prescriptionsWithMeds.length > 0) {
             response += prescriptionsWithMeds.slice(0, 5).map(p => {
               const medList = (p.medications || []).map((med: any) => `${med.name} (${med.dosage || 'standard dose'})`).join(', ');
-              const createdDate = new Date(p.createdAt).toLocaleDateString();
+              const createdDate = p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'Unknown date';
               return `• **${medList}** - Status: ${p.status} (${createdDate})`;
             }).join('\n');
           }
@@ -2892,7 +2892,7 @@ IMPORTANT: Review the full conversation history and remember all details mention
               const medList = p.medications && p.medications.length > 0 
                 ? p.medications.map((med: any) => `${med.name} (${med.dosage || 'standard dose'})`).join(', ')
                 : (p.diagnosis || 'Prescription details available');
-              const createdDate = new Date(p.createdAt).toLocaleDateString();
+              const createdDate = p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'Unknown date';
               const statusInfo = p.status;
               const additionalInfo = p.notes ? ` - ${p.notes}` : '';
               return `• **${medList}** - Status: ${statusInfo} (${createdDate})${additionalInfo}`;
