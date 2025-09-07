@@ -2536,6 +2536,9 @@ export default function Forms() {
     // Create appropriate element based on format type
     let element: HTMLElement;
     
+    // Get the current font family from the parent editor
+    const currentFontFamily = textareaRef.style.fontFamily || fontFamily;
+    
     switch (formatType) {
       case 'heading1':
         element = document.createElement('h1');
@@ -2545,6 +2548,7 @@ export default function Forms() {
         element.style.setProperty('margin', '0', 'important');
         element.style.setProperty('line-height', '1.2', 'important');
         element.style.setProperty('display', 'inline', 'important');
+        element.style.setProperty('font-family', currentFontFamily, 'important');
         break;
       case 'heading2':
         element = document.createElement('h2');
@@ -2554,6 +2558,7 @@ export default function Forms() {
         element.style.setProperty('margin', '0', 'important');
         element.style.setProperty('line-height', '1.3', 'important');
         element.style.setProperty('display', 'inline', 'important');
+        element.style.setProperty('font-family', currentFontFamily, 'important');
         break;
       default: // paragraph
         element = document.createElement('p');
@@ -2562,6 +2567,7 @@ export default function Forms() {
         element.style.setProperty('margin', '0', 'important');
         element.style.setProperty('line-height', '1.6', 'important');
         element.style.setProperty('display', 'inline', 'important');
+        element.style.setProperty('font-family', currentFontFamily, 'important');
         break;
     }
     
