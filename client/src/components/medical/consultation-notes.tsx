@@ -103,6 +103,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
   const [selectedTreatmentIntensity, setSelectedTreatmentIntensity] = useState<string>("");
   const [selectedSessionFrequency, setSelectedSessionFrequency] = useState<string>("");
   const [selectedSymptom, setSelectedSymptom] = useState<string>("");
+  const [selectedSeverity, setSelectedSeverity] = useState<string>("");
   const [generatedTreatmentPlan, setGeneratedTreatmentPlan] = useState<string>("");
   const [isGeneratingPlan, setIsGeneratingPlan] = useState<boolean>(false);
   const [isSavingAnalysis, setIsSavingAnalysis] = useState<boolean>(false);
@@ -1305,10 +1306,18 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                                 <CardTitle className="text-orange-600 text-base">Severity Scale</CardTitle>
                               </CardHeader>
                               <CardContent>
-                                <Textarea 
-                                  placeholder="Rate severity"
-                                  className="min-h-[100px] text-sm"
-                                />
+                                <Select value={selectedSeverity} onValueChange={setSelectedSeverity}>
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Rate severity" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="minimal">1 - Minimal (Barely noticeable)</SelectItem>
+                                    <SelectItem value="mild">2 - Mild (Minor discomfort)</SelectItem>
+                                    <SelectItem value="moderate">3 - Moderate (Noticeable symptoms)</SelectItem>
+                                    <SelectItem value="severe">4 - Severe (Significant impact)</SelectItem>
+                                    <SelectItem value="critical">5 - Critical (Immediate attention)</SelectItem>
+                                  </SelectContent>
+                                </Select>
                               </CardContent>
                             </Card>
                             
