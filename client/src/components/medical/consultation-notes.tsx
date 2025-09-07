@@ -1278,11 +1278,11 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                           {/* Bottom Analysis Sections */}
                           <div className="grid grid-cols-3 gap-4">
                             {/* Symptom Assessment */}
-                            <Card>
-                              <CardHeader>
+                            <Card className="h-28">
+                              <CardHeader className="pb-2">
                                 <CardTitle className="text-purple-600 text-base">Symptom Assessment</CardTitle>
                               </CardHeader>
-                              <CardContent>
+                              <CardContent className="pt-0">
                                 <Select value={selectedSymptom} onValueChange={setSelectedSymptom}>
                                   <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Select primary symptom" />
@@ -1302,11 +1302,11 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                             </Card>
                             
                             {/* Severity Scale */}
-                            <Card>
-                              <CardHeader>
+                            <Card className="h-28">
+                              <CardHeader className="pb-2">
                                 <CardTitle className="text-orange-600 text-base">Severity Scale</CardTitle>
                               </CardHeader>
-                              <CardContent>
+                              <CardContent className="pt-0">
                                 <Select value={selectedSeverity} onValueChange={setSelectedSeverity}>
                                   <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Rate severity" />
@@ -1323,11 +1323,11 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                             </Card>
                             
                             {/* Follow-up Plan */}
-                            <Card>
-                              <CardHeader>
+                            <Card className="h-28">
+                              <CardHeader className="pb-2">
                                 <CardTitle className="text-teal-600 text-base">Follow-up Plan</CardTitle>
                               </CardHeader>
-                              <CardContent>
+                              <CardContent className="pt-0">
                                 <Select value={selectedFollowUp} onValueChange={setSelectedFollowUp}>
                                   <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Follow-up timeline" />
