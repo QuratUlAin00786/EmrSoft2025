@@ -2711,6 +2711,29 @@ export default function Forms() {
     return fontFamilyCSS;
   };
 
+  // Map font values to CSS classes (avoiding inline styles)
+  const getFontClass = (fontValue: string): string => {
+    const fontClasses: Record<string, string> = {
+      'arial': 'font-arial',
+      'cambria': 'font-cambria',
+      'courier': 'font-courier',
+      'garamond': 'font-garamond',
+      'comic-sans': 'font-comic-sans',
+      'georgia': 'font-georgia',
+      'helvetica': 'font-helvetica',
+      'times': 'font-times',
+      'trebuchet': 'font-trebuchet',
+      'verdana': 'font-verdana',
+      'tahoma': 'font-tahoma',
+      'consolas': 'font-consolas',
+      'lato': 'font-lato',
+      'open-sans': 'font-open-sans',
+      'franklin': 'font-franklin'
+    };
+    
+    return fontClasses[fontValue] || 'font-arial';
+  };
+
   const applyFontFamily = (fontFamilyValue: string) => {
     console.log("applyFontFamily called with:", fontFamilyValue);
     
@@ -2785,25 +2808,25 @@ export default function Forms() {
       
       if (existingFontSpan) {
         // Update existing span's font family instead of creating nested span
-        existingFontSpan.className = 'custom-font-override';
-        existingFontSpan.setAttribute('data-font-family', fontFamilyCSS);
-        existingFontSpan.setAttribute('style', `font-family: ${fontFamilyCSS} !important;`);
-        console.log("Updated existing span font:", fontFamilyCSS);
+        const fontClass = getFontClass(fontFamilyValue);
+        existingFontSpan.className = fontClass;
+        existingFontSpan.removeAttribute('style');
+        existingFontSpan.removeAttribute('data-font-family');
+        console.log("Updated existing span with class:", fontClass);
       } else {
         // Create a new span with the font family applied
         const span = document.createElement('span');
-        span.className = 'custom-font-override';
-        span.setAttribute('data-font-family', fontFamilyCSS);
-        span.setAttribute('style', `font-family: ${fontFamilyCSS} !important;`);
+        const fontClass = getFontClass(fontFamilyValue);
+        span.className = fontClass;
         span.textContent = selectedText;
         
         // Replace the selected content with the new span
         range.deleteContents();
         range.insertNode(span);
-        console.log("Created new font span:", fontFamilyCSS);
+        console.log("Created new font span with class:", fontClass);
       }
       
-      console.log("Applying font:", { fontFamilyCSS, selectedText });
+      console.log("Applied font class:", { fontClass: getFontClass(fontFamilyValue), selectedText });
       
       // Update the document content state from the contentEditable div
       if (textareaRef) {
