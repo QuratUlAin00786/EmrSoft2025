@@ -1369,6 +1369,18 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                               Close Analysis
                             </Button>
                           </div>
+                          
+                          {/* Generated Treatment Plan Display */}
+                          {generatedTreatmentPlan && (
+                            <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                              <h3 className="text-lg font-semibold text-green-800 mb-3">Generated Treatment Plan</h3>
+                              <div className="bg-white p-4 rounded border">
+                                <pre className="whitespace-pre-wrap text-sm text-gray-800 font-mono">
+                                  {generatedTreatmentPlan}
+                                </pre>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </DialogContent>
                     </Dialog>
