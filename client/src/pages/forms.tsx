@@ -2539,26 +2539,29 @@ export default function Forms() {
     switch (formatType) {
       case 'heading1':
         element = document.createElement('h1');
-        element.style.fontSize = '24px';
-        element.style.fontWeight = 'bold';
-        element.style.color = '#1a1a1a';
-        element.style.margin = '16px 0 8px 0';
-        element.style.lineHeight = '1.2';
+        element.style.setProperty('font-size', '24px', 'important');
+        element.style.setProperty('font-weight', 'bold', 'important');
+        element.style.setProperty('color', '#1a1a1a', 'important');
+        element.style.setProperty('margin', '16px 0 8px 0', 'important');
+        element.style.setProperty('line-height', '1.2', 'important');
+        element.style.setProperty('display', 'block', 'important');
         break;
       case 'heading2':
         element = document.createElement('h2');
-        element.style.fontSize = '20px';
-        element.style.fontWeight = 'bold';
-        element.style.color = '#2a2a2a';
-        element.style.margin = '14px 0 6px 0';
-        element.style.lineHeight = '1.3';
+        element.style.setProperty('font-size', '20px', 'important');
+        element.style.setProperty('font-weight', 'bold', 'important');
+        element.style.setProperty('color', '#2a2a2a', 'important');
+        element.style.setProperty('margin', '14px 0 6px 0', 'important');
+        element.style.setProperty('line-height', '1.3', 'important');
+        element.style.setProperty('display', 'block', 'important');
         break;
       default: // paragraph
         element = document.createElement('p');
-        element.style.fontSize = '14px';
-        element.style.fontWeight = 'normal';
-        element.style.margin = '8px 0';
-        element.style.lineHeight = '1.6';
+        element.style.setProperty('font-size', '14px', 'important');
+        element.style.setProperty('font-weight', 'normal', 'important');
+        element.style.setProperty('margin', '8px 0', 'important');
+        element.style.setProperty('line-height', '1.6', 'important');
+        element.style.setProperty('display', 'block', 'important');
         break;
     }
     
