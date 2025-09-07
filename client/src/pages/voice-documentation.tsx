@@ -132,6 +132,7 @@ export default function VoiceDocumentation() {
   const [selectedPatient, setSelectedPatient] = useState<string>("");
   const [selectedNoteType, setSelectedNoteType] = useState<string>("");
   const [currentTranscript, setCurrentTranscript] = useState("");
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<VoiceNote | null>(null);
   const [editedTranscript, setEditedTranscript] = useState("");
@@ -150,7 +151,7 @@ export default function VoiceDocumentation() {
 
   // Fetch voice notes
   const { data: voiceNotes, isLoading: notesLoading } = useQuery({
-    queryKey: ["/api/voice-documentation/notes"],
+    queryKey: ["/api/voice-documentation/notes", refreshTrigger],
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
       const response = await fetch('/api/voice-documentation/notes', {
@@ -261,8 +262,8 @@ export default function VoiceDocumentation() {
       
       toast({ title: "Voice note saved successfully!" });
       
-      // Force immediate refetch and await it to ensure UI updates
-      await queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      // Trigger UI refresh by updating the refresh trigger
+      setRefreshTrigger(prev => prev + 1);
     },
     onError: (err, variables) => {
       toast({ title: "Failed to save voice note", variant: "destructive" });
@@ -299,8 +300,8 @@ export default function VoiceDocumentation() {
       toast({ title: "Voice note deleted successfully!" });
       console.log("Voice note deleted from backend:", noteId);
       
-      // Force immediate refetch and await it to ensure UI updates
-      await queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      // Trigger UI refresh by updating the refresh trigger
+      setRefreshTrigger(prev => prev + 1);
     },
     onError: (err, noteId) => {
       toast({ title: "Failed to delete voice note", variant: "destructive" });
