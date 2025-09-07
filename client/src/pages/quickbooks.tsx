@@ -1242,7 +1242,7 @@ export default function QuickBooks() {
 
       {/* Tax Calculation Results Dialog */}
       <Dialog open={taxCalculationOpen} onOpenChange={setTaxCalculationOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Calculator className="h-5 w-5" />
@@ -1254,7 +1254,7 @@ export default function QuickBooks() {
           </DialogHeader>
           
           {taxResults && (
-            <div className="space-y-6">
+            <div className="space-y-6 overflow-y-auto max-h-[60vh]">
               {/* Current Quarter Section */}
               <div className="bg-blue-50 p-4 rounded-lg">
                 <h3 className="font-semibold text-lg mb-3 text-blue-900">💰 Current Quarter</h3>
