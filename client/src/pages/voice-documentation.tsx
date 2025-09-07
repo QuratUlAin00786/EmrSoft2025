@@ -261,8 +261,8 @@ export default function VoiceDocumentation() {
       
       toast({ title: "Voice note saved successfully!" });
       
-      // Force immediate refetch to update the UI
-      queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      // Force immediate refetch and await it to ensure UI updates
+      await queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
     },
     onError: (err, variables) => {
       toast({ title: "Failed to save voice note", variant: "destructive" });
@@ -299,8 +299,7 @@ export default function VoiceDocumentation() {
       toast({ title: "Voice note deleted successfully!" });
       console.log("Voice note deleted from backend:", noteId);
       
-      // Invalidate and refetch the cache
-      await queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      // Force immediate refetch and await it to ensure UI updates
       await queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
     },
     onError: (err, noteId) => {
