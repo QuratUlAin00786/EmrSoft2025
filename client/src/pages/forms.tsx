@@ -2542,26 +2542,26 @@ export default function Forms() {
         element.style.setProperty('font-size', '24px', 'important');
         element.style.setProperty('font-weight', 'bold', 'important');
         element.style.setProperty('color', '#1a1a1a', 'important');
-        element.style.setProperty('margin', '16px 0 8px 0', 'important');
+        element.style.setProperty('margin', '0', 'important');
         element.style.setProperty('line-height', '1.2', 'important');
-        element.style.setProperty('display', 'block', 'important');
+        element.style.setProperty('display', 'inline', 'important');
         break;
       case 'heading2':
         element = document.createElement('h2');
         element.style.setProperty('font-size', '20px', 'important');
         element.style.setProperty('font-weight', 'bold', 'important');
         element.style.setProperty('color', '#2a2a2a', 'important');
-        element.style.setProperty('margin', '14px 0 6px 0', 'important');
+        element.style.setProperty('margin', '0', 'important');
         element.style.setProperty('line-height', '1.3', 'important');
-        element.style.setProperty('display', 'block', 'important');
+        element.style.setProperty('display', 'inline', 'important');
         break;
       default: // paragraph
         element = document.createElement('p');
         element.style.setProperty('font-size', '14px', 'important');
         element.style.setProperty('font-weight', 'normal', 'important');
-        element.style.setProperty('margin', '8px 0', 'important');
+        element.style.setProperty('margin', '0', 'important');
         element.style.setProperty('line-height', '1.6', 'important');
-        element.style.setProperty('display', 'block', 'important');
+        element.style.setProperty('display', 'inline', 'important');
         break;
     }
     
