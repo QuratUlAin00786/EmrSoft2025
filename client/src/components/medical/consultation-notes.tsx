@@ -1152,14 +1152,6 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                                         <SelectValue placeholder="Select muscle group" />
                                       </SelectTrigger>
                                       <SelectContent>
-                                        <SelectItem value="facial_pain">Facial Pain</SelectItem>
-                                        <SelectItem value="muscle_spasms">Muscle Spasms</SelectItem>
-                                        <SelectItem value="facial_asymmetry">Facial Asymmetry</SelectItem>
-                                        <SelectItem value="muscle_weakness">Muscle Weakness</SelectItem>
-                                        <SelectItem value="chronic_tension">Chronic Tension</SelectItem>
-                                        <SelectItem value="muscle_twitching">Muscle Twitching</SelectItem>
-                                        <SelectItem value="joint_stiffness">Joint Stiffness</SelectItem>
-                                        <SelectItem value="numbness_tingling">Numbness/Tingling</SelectItem>
                                         <SelectItem value="frontalis">Frontalis (Forehead)</SelectItem>
                                         <SelectItem value="temporalis">Temporalis</SelectItem>
                                         <SelectItem value="corrugator_supercilii">Corrugator Supercilii</SelectItem>
@@ -1173,7 +1165,7 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                                         <SelectItem value="orbicularis_oris">Orbicularis Oris</SelectItem>
                                         <SelectItem value="mentalis">Mentalis</SelectItem>
                                         <SelectItem value="depressor_anguli_oris">Depressor Anguli Oris</SelectItem>
-                                        <SelectItem value="depressor_labii_inferioris">Depressor Labii Inferioris</SelectItem>
+                                        <SelectItem value="platysma">Platysma</SelectItem>
                                       </SelectContent>
                                     </Select>
                                   </div>
