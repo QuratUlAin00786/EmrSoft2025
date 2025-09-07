@@ -22,7 +22,8 @@ import { FileText, Plus, Calendar, User, Stethoscope, Pill, AlertTriangle, Mic, 
 import { format } from "date-fns";
 import type { MedicalRecord } from "@/types";
 import anatomicalDiagramImage from "@assets/2_1754469563272.png";
-import facialDiagramImage from "@assets/1_1754469776185.png";
+import facialMuscleImage from "@assets/generated_images/Medical_facial_muscle_diagram_ae7b35b5.png";
+import facialOutlineImage from "@assets/generated_images/Clean_facial_anatomy_outline_4b91e595.png";
 
 const consultationSchema = z.object({
   type: z.enum(["consultation", "prescription", "lab_result", "imaging", "procedure"]),
@@ -102,6 +103,8 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
   const [generatedTreatmentPlan, setGeneratedTreatmentPlan] = useState<string>("");
   const [isGeneratingPlan, setIsGeneratingPlan] = useState<boolean>(false);
   const [isSavingAnalysis, setIsSavingAnalysis] = useState<boolean>(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const anatomicalImages = [facialMuscleImage, facialOutlineImage];
 
   const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -109,20 +112,28 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
 
   // Define muscle coordinates for interactive highlighting
   const muscleCoordinates = {
-    frontalis: { x: 350, y: 180 },
-    temporalis: { x: 280, y: 220 },
-    corrugator: { x: 320, y: 200 },
-    procerus: { x: 350, y: 220 },
-    orbicularis_oculi: { x: 320, y: 240 },
-    levator_labii: { x: 340, y: 280 },
-    zygomaticus_major: { x: 380, y: 310 },
-    zygomaticus_minor: { x: 370, y: 290 },
-    masseter: { x: 400, y: 350 },
-    buccinator: { x: 380, y: 340 },
-    orbicularis_oris: { x: 350, y: 380 },
-    mentalis: { x: 350, y: 420 },
-    depressor_anguli: { x: 370, y: 400 },
-    platysma: { x: 350, y: 450 }
+    frontalis: { x: 350, y: 120 },
+    temporalis: { x: 180, y: 200 },
+    corrugator_supercilii: { x: 300, y: 160 },
+    procerus: { x: 350, y: 200 },
+    orbicularis_oculi: { x: 280, y: 220 },
+    levator_labii_superioris: { x: 320, y: 280 },
+    zygomaticus_major: { x: 250, y: 320 },
+    zygomaticus_minor: { x: 290, y: 300 },
+    masseter: { x: 200, y: 380 },
+    buccinator: { x: 240, y: 350 },
+    orbicularis_oris: { x: 350, y: 400 },
+    mentalis: { x: 350, y: 450 },
+    depressor_anguli_oris: { x: 320, y: 420 },
+    depressor_labii_inferioris: { x: 340, y: 430 }
+  };
+
+  const navigateImage = (direction: 'prev' | 'next') => {
+    if (direction === 'prev') {
+      setCurrentImageIndex(prev => prev === 0 ? anatomicalImages.length - 1 : prev - 1);
+    } else {
+      setCurrentImageIndex(prev => (prev + 1) % anatomicalImages.length);
+    }
   };
 
   // Generate comprehensive treatment plan
@@ -1071,6 +1082,7 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                                 variant="outline" 
                                 size="icon" 
                                 className="absolute left-4 z-10 bg-blue-600 text-white hover:bg-blue-700"
+                                onClick={() => navigateImage('prev')}
                               >
                                 ←
                               </Button>
@@ -1078,23 +1090,23 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                               {/* Facial Diagram */}
                               <div className="relative mx-20">
                                 <img 
-                                  src={facialDiagramImage} 
-                                  alt="Facial Muscle Diagram" 
+                                  src={anatomicalImages[currentImageIndex]} 
+                                  alt={currentImageIndex === 0 ? "Facial Muscle Diagram with Labels" : "Clean Facial Anatomy Outline"} 
                                   className="w-full max-w-lg border rounded-lg bg-white shadow-sm"
                                 />
                                 
-                                {/* Interactive Muscle Points */}
-                                {Object.entries(muscleCoordinates).map(([muscleName, coords]) => (
+                                {/* Interactive Muscle Points - Only show on muscle diagram */}
+                                {currentImageIndex === 0 && Object.entries(muscleCoordinates).map(([muscleName, coords]) => (
                                   <button
                                     key={muscleName}
-                                    className={`absolute w-3 h-3 rounded-full border-2 transform -translate-x-1/2 -translate-y-1/2 transition-all hover:scale-125 ${
+                                    className={`absolute w-4 h-4 rounded-full border-2 transform -translate-x-1/2 -translate-y-1/2 transition-all hover:scale-125 hover:z-10 ${
                                       selectedMuscleGroup === muscleName 
-                                        ? 'bg-blue-600 border-blue-700 shadow-lg' 
-                                        : 'bg-red-500 border-red-600 hover:bg-red-600'
+                                        ? 'bg-blue-600 border-blue-800 shadow-lg z-10' 
+                                        : 'bg-red-500 border-red-700 hover:bg-red-600'
                                     }`}
                                     style={{ 
                                       left: `${(coords.x / 700) * 100}%`, 
-                                      top: `${(coords.y / 700) * 100}%` 
+                                      top: `${(coords.y / 500) * 100}%` 
                                     }}
                                     onClick={() => setSelectedMuscleGroup(muscleName)}
                                     title={muscleName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
@@ -1107,6 +1119,7 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                                 variant="outline" 
                                 size="icon" 
                                 className="absolute right-4 z-10 bg-blue-600 text-white hover:bg-blue-700"
+                                onClick={() => navigateImage('next')}
                               >
                                 →
                               </Button>
@@ -1114,8 +1127,11 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                             
                             {/* Reference View Button */}
                             <div className="flex justify-center mt-4">
-                              <Button className="bg-green-600 hover:bg-green-700 text-white">
-                                ● Anatomical Reference View
+                              <Button 
+                                className="bg-green-600 hover:bg-green-700 text-white"
+                                onClick={() => setCurrentImageIndex(currentImageIndex === 0 ? 1 : 0)}
+                              >
+                                ● {currentImageIndex === 0 ? 'Anatomical Reference View' : 'Professional Medical Anatomical Diagram'}
                               </Button>
                             </div>
                           </div>
