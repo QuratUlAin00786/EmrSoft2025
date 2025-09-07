@@ -104,6 +104,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
   const [selectedSessionFrequency, setSelectedSessionFrequency] = useState<string>("");
   const [selectedSymptom, setSelectedSymptom] = useState<string>("");
   const [selectedSeverity, setSelectedSeverity] = useState<string>("");
+  const [selectedFollowUp, setSelectedFollowUp] = useState<string>("");
   const [generatedTreatmentPlan, setGeneratedTreatmentPlan] = useState<string>("");
   const [isGeneratingPlan, setIsGeneratingPlan] = useState<boolean>(false);
   const [isSavingAnalysis, setIsSavingAnalysis] = useState<boolean>(false);
@@ -1327,10 +1328,19 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                                 <CardTitle className="text-teal-600 text-base">Follow-up Plan</CardTitle>
                               </CardHeader>
                               <CardContent>
-                                <Textarea 
-                                  placeholder="Follow-up timeline"
-                                  className="min-h-[100px] text-sm"
-                                />
+                                <Select value={selectedFollowUp} onValueChange={setSelectedFollowUp}>
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Follow-up timeline" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="1_week">1 Week Follow-up</SelectItem>
+                                    <SelectItem value="2_weeks">2 Weeks Follow-up</SelectItem>
+                                    <SelectItem value="1_month">1 Month Follow-up</SelectItem>
+                                    <SelectItem value="3_months">3 Months Follow-up</SelectItem>
+                                    <SelectItem value="6_months">6 Months Follow-up</SelectItem>
+                                    <SelectItem value="annual">Annual Review</SelectItem>
+                                  </SelectContent>
+                                </Select>
                               </CardContent>
                             </Card>
                           </div>
