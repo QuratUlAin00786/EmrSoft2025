@@ -556,11 +556,27 @@ export default function QuickBooks() {
 • Review deductible expenses to optimize tax liability
       `.trim();
 
-      // Show comprehensive results in toast
+      // Show results in multiple clear toast notifications
       toast({
         title: "🧮 Tax Calculation Complete",
-        description: `📊 Current Quarter Tax: $${quarterlyTax} | Federal: $${federalTax} | State: $${stateTax} | 📈 Annual Projection: $${annualProjection} | 💡 Weekly savings needed: $${Math.ceil(quarterlyTax / 3)}`,
+        description: `💰 Quarterly Tax: $${quarterlyTax} (Federal: $${federalTax} + State: $${stateTax})`,
       });
+      
+      // Show annual projection after a brief delay
+      setTimeout(() => {
+        toast({
+          title: "📈 Annual Tax Projection",
+          description: `Projected Annual Tax: $${annualProjection} | Weekly savings needed: $${Math.ceil(quarterlyTax / 3)}`,
+        });
+      }, 2000);
+      
+      // Show recommendations after another delay
+      setTimeout(() => {
+        toast({
+          title: "💡 Tax Recommendations",
+          description: "Consider quarterly payments to avoid penalties. Review deductible expenses to optimize tax liability.",
+        });
+      }, 4000);
       
     } catch (error) {
       console.error("Tax calculation error:", error);
