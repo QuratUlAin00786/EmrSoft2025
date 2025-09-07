@@ -100,6 +100,8 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string>("");
   const [selectedAnalysisType, setSelectedAnalysisType] = useState<string>("");
   const [selectedTreatment, setSelectedTreatment] = useState<string>("");
+  const [selectedTreatmentIntensity, setSelectedTreatmentIntensity] = useState<string>("");
+  const [selectedSessionFrequency, setSelectedSessionFrequency] = useState<string>("");
   const [generatedTreatmentPlan, setGeneratedTreatmentPlan] = useState<string>("");
   const [isGeneratingPlan, setIsGeneratingPlan] = useState<boolean>(false);
   const [isSavingAnalysis, setIsSavingAnalysis] = useState<boolean>(false);
@@ -1147,6 +1149,14 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                                         <SelectValue placeholder="Select muscle group" />
                                       </SelectTrigger>
                                       <SelectContent>
+                                        <SelectItem value="facial_pain">Facial Pain</SelectItem>
+                                        <SelectItem value="muscle_spasms">Muscle Spasms</SelectItem>
+                                        <SelectItem value="facial_asymmetry">Facial Asymmetry</SelectItem>
+                                        <SelectItem value="muscle_weakness">Muscle Weakness</SelectItem>
+                                        <SelectItem value="chronic_tension">Chronic Tension</SelectItem>
+                                        <SelectItem value="muscle_twitching">Muscle Twitching</SelectItem>
+                                        <SelectItem value="joint_stiffness">Joint Stiffness</SelectItem>
+                                        <SelectItem value="numbness_tingling">Numbness/Tingling</SelectItem>
                                         <SelectItem value="frontalis">Frontalis (Forehead)</SelectItem>
                                         <SelectItem value="temporalis">Temporalis</SelectItem>
                                         <SelectItem value="corrugator_supercilii">Corrugator Supercilii</SelectItem>
@@ -1173,8 +1183,13 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                                         <SelectValue placeholder="Select analysis type" />
                                       </SelectTrigger>
                                       <SelectContent>
-                                        <SelectItem value="symmetry_assessment">Symmetry Assessment</SelectItem>
+                                        <SelectItem value="minimal">1 - Minimal (Barely noticeable)</SelectItem>
+                                        <SelectItem value="mild">2 - Mild (Minor discomfort)</SelectItem>
+                                        <SelectItem value="moderate">3 - Moderate (Noticeable symptoms)</SelectItem>
+                                        <SelectItem value="severe">4 - Severe (Significant impact)</SelectItem>
+                                        <SelectItem value="critical">5 - Critical (Immediate attention)</SelectItem>
                                         <SelectItem value="function_evaluation">Function Evaluation</SelectItem>
+                                        <SelectItem value="symmetry_assessment">Symmetry Assessment</SelectItem>
                                         <SelectItem value="aesthetic_analysis">Aesthetic Analysis</SelectItem>
                                         <SelectItem value="treatment_planning">Treatment Planning</SelectItem>
                                       </SelectContent>
@@ -1199,10 +1214,15 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                                         <SelectValue placeholder="Select primary treatment" />
                                       </SelectTrigger>
                                       <SelectContent>
-                                        <SelectItem value="botulinum_toxin">Botulinum Toxin</SelectItem>
                                         <SelectItem value="dermal_fillers">Dermal Fillers</SelectItem>
+                                        <SelectItem value="botulinum_toxin">Botulinum Toxin</SelectItem>
+                                        <SelectItem value="facial_massage">Facial Massage</SelectItem>
                                         <SelectItem value="muscle_therapy">Muscle Therapy</SelectItem>
+                                        <SelectItem value="physical_therapy">Physical Therapy</SelectItem>
+                                        <SelectItem value="laser_therapy">Laser Therapy</SelectItem>
                                         <SelectItem value="surgical_intervention">Surgical Intervention</SelectItem>
+                                        <SelectItem value="medication">Medication</SelectItem>
+                                        <SelectItem value="lifestyle_changes">Lifestyle Changes</SelectItem>
                                       </SelectContent>
                                     </Select>
                                   </div>
@@ -1210,11 +1230,17 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                                   {/* Treatment Intensity */}
                                   <div>
                                     <Label className="text-sm font-medium">Treatment Intensity</Label>
-                                    <Select>
+                                    <Select value={selectedTreatmentIntensity} onValueChange={setSelectedTreatmentIntensity}>
                                       <SelectTrigger>
                                         <SelectValue placeholder="Select intensity level" />
                                       </SelectTrigger>
                                       <SelectContent>
+                                        <SelectItem value="1_week">1 Week Follow-up</SelectItem>
+                                        <SelectItem value="2_weeks">2 Weeks Follow-up</SelectItem>
+                                        <SelectItem value="1_month">1 Month Follow-up</SelectItem>
+                                        <SelectItem value="3_months">3 Months Follow-up</SelectItem>
+                                        <SelectItem value="6_months">6 Months Follow-up</SelectItem>
+                                        <SelectItem value="annual">Annual Review</SelectItem>
                                         <SelectItem value="light">Light</SelectItem>
                                         <SelectItem value="moderate">Moderate</SelectItem>
                                         <SelectItem value="intensive">Intensive</SelectItem>
@@ -1225,15 +1251,19 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                                   {/* Session Frequency */}
                                   <div>
                                     <Label className="text-sm font-medium">Session Frequency</Label>
-                                    <Select>
+                                    <Select value={selectedSessionFrequency} onValueChange={setSelectedSessionFrequency}>
                                       <SelectTrigger>
                                         <SelectValue placeholder="Select frequency" />
                                       </SelectTrigger>
                                       <SelectContent>
+                                        <SelectItem value="daily">Daily</SelectItem>
+                                        <SelectItem value="twice_weekly">Twice Weekly</SelectItem>
                                         <SelectItem value="weekly">Weekly</SelectItem>
                                         <SelectItem value="biweekly">Bi-weekly</SelectItem>
                                         <SelectItem value="monthly">Monthly</SelectItem>
                                         <SelectItem value="quarterly">Quarterly</SelectItem>
+                                        <SelectItem value="as_needed">As Needed</SelectItem>
+                                        <SelectItem value="one_time">One-time Treatment</SelectItem>
                                       </SelectContent>
                                     </Select>
                                   </div>
