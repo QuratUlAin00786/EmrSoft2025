@@ -1095,23 +1095,6 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                                   className="w-full max-w-lg border rounded-lg bg-white shadow-sm"
                                 />
                                 
-                                {/* Interactive Muscle Points - Only show on muscle diagram */}
-                                {currentImageIndex === 0 && Object.entries(muscleCoordinates).map(([muscleName, coords]) => (
-                                  <button
-                                    key={muscleName}
-                                    className={`absolute w-4 h-4 rounded-full border-2 transform -translate-x-1/2 -translate-y-1/2 transition-all hover:scale-125 hover:z-10 ${
-                                      selectedMuscleGroup === muscleName 
-                                        ? 'bg-blue-600 border-blue-800 shadow-lg z-10' 
-                                        : 'bg-red-500 border-red-700 hover:bg-red-600'
-                                    }`}
-                                    style={{ 
-                                      left: `${(coords.x / 700) * 100}%`, 
-                                      top: `${(coords.y / 500) * 100}%` 
-                                    }}
-                                    onClick={() => setSelectedMuscleGroup(muscleName)}
-                                    title={muscleName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                  />
-                                ))}
                               </div>
                               
                               {/* Right Navigation Arrow */}
