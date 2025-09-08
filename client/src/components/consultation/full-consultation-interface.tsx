@@ -264,7 +264,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
                       <p className="text-sm"><strong>Contact:</strong> {patient.phone || 'Not provided'}</p>
                       <p className="text-sm"><strong>Email:</strong> {patient.email || 'Not provided'}</p>
                       {patient.emergencyContact && (
-                        <p className="text-sm"><strong>Emergency:</strong> {patient.emergencyContact}</p>
+                        <p className="text-sm"><strong>Emergency:</strong> {patient.emergencyContact.name} ({patient.emergencyContact.relationship}) - {patient.emergencyContact.phone}</p>
                       )}
                     </div>
                   </div>
