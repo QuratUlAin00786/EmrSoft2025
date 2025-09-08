@@ -132,6 +132,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // PRODUCTION DEMO USERS SETUP - Creates demo users for production login screen
+  app.post('/api/production-demo-setup', async (req, res) => {
+    try {
+      console.log('[PRODUCTION DEMO] Creating production demo users...');
+      
+      // Production-ready password hashes for demo credentials
+      const productionHashes = {
+        admin123: '$2b$12$wBdwP8DhNP3XuviUaPHgB.y.G/Px2AAOYi7w.W8vJaiywet.cJ7Ae',
+        doctor123: '$2b$12$jY/ugs1.lFZPYN./Yhjxue7inIwU7JtFiHyPN.wLvSC5Ep43XvFOi',
+        patient123: '$2b$12$aDR..3VlJ9/ON8RHbLY3kuYTBrjxv26qVwQuh4nWn/tRbQH.X3Aje',
+        nurse123: '$2b$12$VANG.x51jkairEWTXbY9xOzyUpbb3vNSdylcqZxa4/TOyvO2rOgoG'
+      };
+
+      // Ensure Demo Healthcare Clinic organization exists (organization ID: 2)
+      let demoOrg;
+      try {
+        demoOrg = await storage.getOrganization(2);
+        if (!demoOrg) {
+          demoOrg = await storage.createOrganization({
+            name: 'Demo Healthcare Clinic',
+            subdomain: 'demo',
+            contactEmail: 'admin@demo.curaemr.ai',
+            settings: {
+              timezone: 'UTC',
+              dateFormat: 'YYYY-MM-DD',
+              timeFormat: '24h'
+            }
+          });
+          console.log(`[PRODUCTION DEMO] Created demo organization with ID: ${demoOrg.id}`);
+        }
+      } catch (error) {
+        console.log('[PRODUCTION DEMO] Using existing organization ID 2');
+        demoOrg = { id: 2, name: 'Demo Healthcare Clinic' };
+      }
+
+      const organizationId = 2; // Fixed organization ID for demo
+      const createdUsers = [];
+      const updatedUsers = [];
+
+      // Demo users configuration
+      const demoUsers = [
+        {
+          email: 'admin@cura.com',
+          username: 'admin',
+          password: 'admin123',
+          firstName: 'Admin',
+          lastName: 'User',
+          role: 'admin' as const
+        },
+        {
+          email: 'doctor@cura.com',
+          username: 'doctor',
+          password: 'doctor123',
+          firstName: 'Dr. John',
+          lastName: 'Smith',
+          role: 'doctor' as const
+        },
+        {
+          email: 'patient@cura.com',
+          username: 'patient',
+          password: 'patient123',
+          firstName: 'Mary',
+          lastName: 'Johnson',
+          role: 'patient' as const
+        },
+        {
+          email: 'nurse@cura.com',
+          username: 'nurse',
+          password: 'nurse123',
+          firstName: 'Sarah',
+          lastName: 'Williams',
+          role: 'nurse' as const
+        }
+      ];
+
+      // Create or update each demo user
+      for (const userData of demoUsers) {
+        try {
+          // Check if user already exists
+          let existingUser = await storage.getUserByEmail(userData.email, organizationId);
+          
+          if (!existingUser) {
+            // User doesn't exist, create new
+            const newUser = await storage.createUser({
+              email: userData.email,
+              username: userData.username,
+              passwordHash: productionHashes[userData.password as keyof typeof productionHashes],
+              firstName: userData.firstName,
+              lastName: userData.lastName,
+              role: userData.role,
+              organizationId: organizationId,
+              isActive: true,
+              isSaaSOwner: false
+            });
+            
+            createdUsers.push(`${userData.role}: ${userData.email}`);
+            console.log(`[PRODUCTION DEMO] Created user: ${userData.email} (${userData.role})`);
+          } else {
+            // User exists, update password hash to ensure consistency
+            await storage.updateUser(existingUser.id, organizationId, {
+              passwordHash: productionHashes[userData.password as keyof typeof productionHashes],
+              isActive: true
+            });
+            
+            updatedUsers.push(`${userData.role}: ${userData.email}`);
+            console.log(`[PRODUCTION DEMO] Updated user: ${userData.email} (${userData.role})`);
+          }
+        } catch (userError) {
+          console.error(`[PRODUCTION DEMO] Error processing user ${userData.email}:`, userError);
+          throw new Error(`Failed to create/update user ${userData.email}: ${userError instanceof Error ? userError.message : 'Unknown error'}`);
+        }
+      }
+
+      const response = {
+        success: true,
+        message: 'Production demo users setup completed successfully',
+        organization: {
+          id: organizationId,
+          name: demoOrg.name
+        },
+        users: {
+          created: createdUsers,
+          updated: updatedUsers,
+          total: createdUsers.length + updatedUsers.length
+        },
+        credentials: {
+          admin: 'admin@cura.com / admin123',
+          doctor: 'doctor@cura.com / doctor123', 
+          patient: 'patient@cura.com / patient123',
+          nurse: 'nurse@cura.com / nurse123'
+        },
+        timestamp: new Date().toISOString()
+      };
+
+      console.log('[PRODUCTION DEMO] ✅ Demo users setup completed successfully');
+      res.json(response);
+      
+    } catch (error) {
+      console.error('[PRODUCTION DEMO] ❌ Setup failed:', error);
+      res.status(500).json({ 
+        success: false,
+        error: 'Production demo setup failed',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
   // Initialize Multi-Tenant Core Package
   const multiTenantPackage = initializeMultiTenantPackage(storage as any, {
     enforceStrictTenantIsolation: true,
