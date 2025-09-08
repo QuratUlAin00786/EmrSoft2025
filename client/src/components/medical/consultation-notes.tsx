@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import PrescriptionWarnings from "./prescription-warnings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +24,11 @@ import type { MedicalRecord } from "@/types";
 import anatomicalDiagramImage from "@assets/2_1754469563272.png";
 import facialMuscleImage from "@assets/generated_images/Medical_facial_muscle_diagram_ae7b35b5.png";
 import facialOutlineImage from "@assets/generated_images/Clean_facial_anatomy_outline_4b91e595.png";
-import { FullConsultationInterface } from "@/components/consultation/full-consultation-interface";
+const FullConsultationInterface = React.lazy(() => 
+  import("@/components/consultation/full-consultation-interface").then(module => ({
+    default: module.FullConsultationInterface
+  }))
+);
 
 const consultationSchema = z.object({
   type: z.enum(["consultation", "prescription", "lab_result", "imaging", "procedure"]),
@@ -668,11 +672,13 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
             Add Record
           </Button>
           
-          <FullConsultationInterface 
-            open={isAddingNote} 
-            onOpenChange={setIsAddingNote} 
-            patient={patient}
-          />
+          <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>}>
+            <FullConsultationInterface 
+              open={isAddingNote} 
+              onOpenChange={setIsAddingNote} 
+              patient={patient}
+            />
+          </Suspense>
 
 
 
