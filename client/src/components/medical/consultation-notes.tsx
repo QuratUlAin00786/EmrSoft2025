@@ -24,6 +24,7 @@ import type { MedicalRecord } from "@/types";
 import anatomicalDiagramImage from "@assets/2_1754469563272.png";
 import facialMuscleImage from "@assets/generated_images/Medical_facial_muscle_diagram_ae7b35b5.png";
 import facialOutlineImage from "@assets/generated_images/Clean_facial_anatomy_outline_4b91e595.png";
+import { FullConsultationInterface } from "@/components/consultation/full-consultation-interface";
 
 const consultationSchema = z.object({
   type: z.enum(["consultation", "prescription", "lab_result", "imaging", "procedure"]),
@@ -662,77 +663,17 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
               </p>
             )}
           </div>
-          <Dialog open={isAddingNote} onOpenChange={(open) => {
-            console.log("🔥 MEDICAL RECORD DIALOG STATE CHANGE:", open);
-            setIsAddingNote(open);
-            if (!open) {
-              console.log("🔥 CLEARING EDITING RECORD");
-              handleCancel();
-            }
-          }} modal={true}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Record
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-7xl h-[90vh] overflow-y-auto" id="medical-record-dialog">
-              <DialogHeader className="pb-4">
-                <DialogTitle className="flex items-center gap-2 text-xl">
-                  <Stethoscope className="h-6 w-6 text-blue-600" />
-                  Full Consultation Interface
-                  <Badge variant="secondary" className="ml-auto">
-                    Patient: {patientName || 'Patient 165'}
-                  </Badge>
-                </DialogTitle>
-              </DialogHeader>
+          <Button onClick={() => setIsAddingNote(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Record
+          </Button>
+          
+          <FullConsultationInterface 
+            open={isAddingNote} 
+            onOpenChange={setIsAddingNote} 
+            patient={patient}
+          />
 
-              <div className="flex h-full gap-4 overflow-hidden">
-                {/* Left Sidebar - Patient Information */}
-                <div className="w-80 bg-gray-50 dark:bg-gray-800 rounded-lg p-4 overflow-y-auto">
-                  <div className="space-y-6">
-                    {/* Patient Information */}
-                    <div>
-                      <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                        <User className="h-5 w-5" />
-                        Patient Information
-                      </h3>
-                      <div className="space-y-2 text-sm">
-                        <div>
-                          <h4 className="font-semibold text-lg">{patientName || 'Patient 165'}</h4>
-                          <p className="text-muted-foreground">Age: {patient?.dateOfBirth ? new Date().getFullYear() - new Date(patient.dateOfBirth).getFullYear() : '35'} years</p>
-                          <p className="text-muted-foreground">DOB: {patient?.dateOfBirth ? format(new Date(patient.dateOfBirth), 'dd/MM/yyyy') : '01/01/1990'}</p>
-                        </div>
-                        <Separator className="my-3" />
-                        <div>
-                          <p className="text-muted-foreground">Contact: {patient?.phone || 'Not provided'}</p>
-                          <p className="text-muted-foreground">Email: {patient?.email || 'Not provided'}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Quick Actions */}
-                    <div>
-                      <h4 className="font-semibold mb-3">Quick Actions</h4>
-                      <div className="space-y-2">
-                        <Button variant="ghost" className="w-full justify-start" size="sm">
-                          <History className="h-4 w-4 mr-2" />
-                          Medical History
-                        </Button>
-                        <Button variant="ghost" className="w-full justify-start" size="sm">
-                          <Calendar className="h-4 w-4 mr-2" />
-                          Previous Visits
-                        </Button>
-                        <Button variant="ghost" className="w-full justify-start" size="sm">
-                          <Pill className="h-4 w-4 mr-2" />
-                          Current Medications
-                        </Button>
-                        <Button variant="ghost" className="w-full justify-start text-orange-600" size="sm">
-                          <AlertTriangle className="h-4 w-4 mr-2" />
-                          Allergies & Alerts
-                        </Button>
-                      </div>
-                    </div>
 
                     {/* Session Info */}
                     <div>
