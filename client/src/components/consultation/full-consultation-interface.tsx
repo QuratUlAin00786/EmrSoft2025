@@ -586,14 +586,12 @@ Patient should be advised of potential side effects and expected timeline for re
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      <div>
-                        <Label className="text-base font-medium">Select Examination Type</Label>
+                    <div className="space-y-3">
                         <Select 
                           value={selectedExaminationType} 
                           onValueChange={setSelectedExaminationType}
                         >
-                          <SelectTrigger className="w-full mt-2">
+                          <SelectTrigger className="w-full">
                             <SelectValue placeholder="Choose examination type..." />
                           </SelectTrigger>
                           <SelectContent>
@@ -605,7 +603,6 @@ Patient should be advised of potential side effects and expected timeline for re
                             <SelectItem value="physical">Physical Examination Findings</SelectItem>
                           </SelectContent>
                         </Select>
-                      </div>
                       
                       {selectedExaminationType && (
                         <div className="flex gap-3 mt-4">
