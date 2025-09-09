@@ -1139,16 +1139,21 @@ Patient should be advised of potential side effects and expected timeline for re
                             <SelectValue placeholder="Select muscle group" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="frontalis">Frontalis</SelectItem>
+                            <SelectItem value="frontalis">Frontalis (Forehead)</SelectItem>
                             <SelectItem value="temporalis">Temporalis</SelectItem>
                             <SelectItem value="corrugator_supercilii">Corrugator Supercilii</SelectItem>
                             <SelectItem value="procerus">Procerus</SelectItem>
                             <SelectItem value="orbicularis_oculi">Orbicularis Oculi</SelectItem>
                             <SelectItem value="levator_labii_superioris">Levator Labii Superioris</SelectItem>
                             <SelectItem value="zygomaticus_major">Zygomaticus Major</SelectItem>
+                            <SelectItem value="zygomaticus_minor">Zygomaticus Minor</SelectItem>
                             <SelectItem value="masseter">Masseter</SelectItem>
+                            <SelectItem value="buccinator">Buccinator</SelectItem>
                             <SelectItem value="orbicularis_oris">Orbicularis Oris</SelectItem>
                             <SelectItem value="mentalis">Mentalis</SelectItem>
+                            <SelectItem value="depressor_anguli_oris">Depressor Anguli Oris</SelectItem>
+                            <SelectItem value="depressor_labii_inferioris">Depressor Labii Inferioris</SelectItem>
+                            <SelectItem value="platysma">Platysma</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
