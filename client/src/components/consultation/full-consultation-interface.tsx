@@ -1096,23 +1096,23 @@ Patient should be advised of potential side effects and expected timeline for re
                     {selectedMuscleGroup && (
                       <div className="absolute inset-0 max-w-2xl mx-auto">
                         {(() => {
-                          // Define muscle coordinates for highlighting - precisely matched to facial diagram labels
+                          // Define muscle coordinates - mapped exactly to label positions on the facial diagram
                           const muscleCoordinates = {
-                            frontalis: { x: 50, y: 22 },
-                            temporalis: { x: 88, y: 30 },
-                            corrugator_supercilii: { x: 42, y: 34 },
-                            procerus: { x: 78, y: 33 },
-                            orbicularis_oculi: { x: 45, y: 42 },
-                            levator_labii_superioris: { x: 78, y: 38 },
-                            zygomaticus_major: { x: 35, y: 58 },
-                            zygomaticus_minor: { x: 38, y: 55 },
-                            masseter: { x: 25, y: 65 },
-                            buccinator: { x: 78, y: 46 },
-                            orbicularis_oris: { x: 78, y: 51 },
-                            mentalis: { x: 78, y: 53 },
-                            depressor_anguli_oris: { x: 45, y: 72 },
-                            depressor_labii_inferioris: { x: 78, y: 48 },
-                            platysma: { x: 50, y: 88 }
+                            frontalis: { x: 50, y: 18 },
+                            temporalis: { x: 85, y: 18 },
+                            corrugator_supercilii: { x: 35, y: 30 },
+                            procerus: { x: 85, y: 27 },
+                            orbicularis_oculi: { x: 40, y: 40 },
+                            levator_labii_superioris: { x: 85, y: 32 },
+                            zygomaticus_major: { x: 30, y: 55 },
+                            zygomaticus_minor: { x: 32, y: 52 },
+                            masseter: { x: 85, y: 42 },
+                            buccinator: { x: 85, y: 39 },
+                            orbicularis_oris: { x: 85, y: 47 },
+                            mentalis: { x: 85, y: 46 },
+                            depressor_anguli_oris: { x: 85, y: 48 },
+                            depressor_labii_inferioris: { x: 85, y: 52 },
+                            platysma: { x: 50, y: 85 }
                           };
                           
                           const coords = muscleCoordinates[selectedMuscleGroup as keyof typeof muscleCoordinates];
