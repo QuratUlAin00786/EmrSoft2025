@@ -131,22 +131,24 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
 
   // Define muscle coordinates for each anatomical image separately
   const muscleCoordinatesForImages = {
-    // Image 0: Labeled muscle diagram (horizontal layout, includes neck)
+    // Image 0: Labeled muscle diagram - Adjusted coordinates to match actual muscle positions
     0: {
-      frontalis: { x: 50, y: 18 },        // Top center forehead
-      temporalis: { x: 28, y: 25 },       // Left side temple area
-      corrugator_supercilii: { x: 43, y: 23 }, // Between eyebrows
-      procerus: { x: 50, y: 28 },         // Center between eyebrows
-      orbicularis_oculi: { x: 38, y: 32 }, // Around eye area
-      levator_labii_superioris: { x: 46, y: 42 }, // Upper lip elevator
-      zygomaticus_major: { x: 32, y: 48 }, // Cheek muscle (major)
-      zygomaticus_minor: { x: 42, y: 45 }, // Cheek muscle (minor)
-      masseter: { x: 28, y: 58 },         // Jaw muscle
-      buccinator: { x: 38, y: 52 },       // Cheek muscle
-      orbicularis_oris: { x: 50, y: 58 }, // Around mouth
-      mentalis: { x: 50, y: 68 },         // Chin muscle
-      depressor_anguli_oris: { x: 46, y: 62 }, // Lower mouth corner
-      depressor_labii_inferioris: { x: 48, y: 65 }, // Lower lip depressor
+      frontalis: { x: 63, y: 15 },        // FRONTALIS (FOREHEAD) - top center of forehead
+      temporalis: { x: 75, y: 18 },       // TEMPORALIS - right temple area (clearly labeled)
+      corrugator_supercilii: { x: 62, y: 22 }, // CORRUGATOR SUPERCILII - between eyebrows
+      procerus: { x: 62, y: 25 },         // PROCERUS - center between eyebrows
+      orbicularis_oculi: { x: 72, y: 30 }, // Around right eye area
+      levator_labii_superioris: { x: 85, y: 28 }, // LEVATOR LABII SUPERIORIS - right side
+      alaque_nasi: { x: 82, y: 32 },      // ALAQUE NASI - right nostril area
+      zygomaticus_major: { x: 60, y: 38 }, // ZYGOMATICUS MAJOR & MINOR - right cheek
+      zygomaticus_minor: { x: 60, y: 38 }, // Same area as major
+      levator_angularis: { x: 60, y: 35 }, // LEVATOR ANGULARIS - left side
+      masseter: { x: 82, y: 38 },         // MASSETER - right jaw muscle  
+      buccinator: { x: 72, y: 42 },       // BUCCINATOR - right cheek
+      orbicularis_oris: { x: 82, y: 48 }, // ORBICULARIS ORIS - mouth area
+      mentalis: { x: 67, y: 58 },         // MENTALIS - chin area
+      depressor_anguli_oris: { x: 85, y: 52 }, // DEPRESSOR ANGULI ORIS - right mouth corner
+      depressor_labii_inferioris: { x: 85, y: 58 }, // DEPRESSOR LABII INFERIORIS - lower lip right
       platysma: { x: 42, y: 75 }          // Neck muscle
     },
     // Image 1: Clean outline (vertical layout, more focused on face)
