@@ -126,7 +126,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
   const [isGeneratingPlan, setIsGeneratingPlan] = useState<boolean>(false);
   const [isSavingAnalysis, setIsSavingAnalysis] = useState<boolean>(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [showAnatomicalViewer, setShowAnatomicalViewer] = useState(false);
+  const [showAnatomicalViewer, setShowAnatomicalViewer] = useState(true);
   const anatomicalImages = [facialMuscleImage, facialOutlineImage];
 
   // Define muscle coordinates for each anatomical image separately
@@ -744,41 +744,6 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
 
               <TabsContent value="examination" className="space-y-4">
                 <div className="grid gap-4">
-                  {/* Traditional Physical Examination Findings */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Stethoscope className="w-5 h-5" />
-                        Physical Examination Findings
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-4">
-                        {Object.entries(consultationData.examination).map(([system, value]) => (
-                          <div key={system} className="space-y-2">
-                            <Label className="capitalize font-medium flex items-center gap-2">
-                              {system === 'cardiovascular' && <Heart className="w-4 h-4 text-red-500" />}
-                              {system === 'respiratory' && <Activity className="w-4 h-4 text-blue-500" />}
-                              {system === 'neurological' && <Brain className="w-4 h-4 text-purple-500" />}
-                              {system === 'head_neck' && <Eye className="w-4 h-4 text-green-500" />}
-                              {system === 'ears_nose_throat' && <Ear className="w-4 h-4 text-yellow-500" />}
-                              {system.replace('_', ' ')}
-                            </Label>
-                            <Textarea
-                              placeholder={`${system} examination findings...`}
-                              value={value}
-                              onChange={(e) => setConsultationData(prev => ({
-                                ...prev,
-                                examination: { ...prev.examination, [system]: e.target.value }
-                              }))}
-                              className="h-20"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-
                   {/* Anatomical Muscle Analysis System */}
                   <Card>
                     <CardHeader>
@@ -958,6 +923,41 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                           )}
                         </div>
                       )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Traditional Physical Examination Findings */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Stethoscope className="w-5 h-5" />
+                        Physical Examination Findings
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 gap-4">
+                        {Object.entries(consultationData.examination).map(([system, value]) => (
+                          <div key={system} className="space-y-2">
+                            <Label className="capitalize font-medium flex items-center gap-2">
+                              {system === 'cardiovascular' && <Heart className="w-4 h-4 text-red-500" />}
+                              {system === 'respiratory' && <Activity className="w-4 h-4 text-blue-500" />}
+                              {system === 'neurological' && <Brain className="w-4 h-4 text-purple-500" />}
+                              {system === 'head_neck' && <Eye className="w-4 h-4 text-green-500" />}
+                              {system === 'ears_nose_throat' && <Ear className="w-4 h-4 text-yellow-500" />}
+                              {system.replace('_', ' ')}
+                            </Label>
+                            <Textarea
+                              placeholder={`${system} examination findings...`}
+                              value={value}
+                              onChange={(e) => setConsultationData(prev => ({
+                                ...prev,
+                                examination: { ...prev.examination, [system]: e.target.value }
+                              }))}
+                              className="h-20"
+                            />
+                          </div>
+                        ))}
+                      </div>
                     </CardContent>
                   </Card>
                 </div>
