@@ -54,7 +54,6 @@ initializeTwilioClient();
 // Export function to reset client with new credentials
 export function resetTwilioClient() {
   console.log('Resetting Twilio client with new credentials...');
-  authenticationFailed = false; // Reset authentication flag
   return initializeTwilioClient();
 }
 
@@ -96,10 +95,13 @@ export class MessagingService {
         };
       }
 
-      // Check current authentication status, but don't permanently block attempts
+      // If authentication has failed before, block further attempts
       if (authenticationFailed) {
-        console.warn('Previous authentication failed - will retry with current credentials');
-        authenticationFailed = false; // Reset flag to allow retry
+        console.error('SMS blocked - Twilio credentials previously failed authentication');
+        return {
+          success: false,
+          error: 'SMS service not properly configured. Please check Twilio credentials (Account SID, Auth Token, and Phone Number).'
+        };
       }
 
       // Additional validation for Twilio configuration
@@ -142,27 +144,10 @@ export class MessagingService {
       // Mark credentials as invalid if authentication fails
       if (error.code === 20003 || error.message?.includes('Authentication Error')) {
         authenticationFailed = true;
-        
-        console.error('🚨 TWILIO ERROR 20003 - AUTHENTICATION FAILED');
-        console.error('🔍 ERROR DETAILS:', {
-          code: error.code,
-          status: error.status,
-          message: error.message,
-          moreInfo: error.moreInfo,
-          details: error.details
-        });
-        console.error('💰 BILLING CHECK REQUIRED - Error 20003 typically indicates:');
-        console.error('   1. ❌ Account suspended due to UNPAID BILLS');
-        console.error('   2. ❌ Trial account EXPIRED or OUT OF CREDIT');
-        console.error('   3. ❌ Invalid Account SID/Auth Token combination');
-        console.error('   4. ❌ Account DEACTIVATED or CLOSED');
-        console.error('🌐 CHECK YOUR TWILIO CONSOLE: https://console.twilio.com');
-        console.error('💳 CHECK BILLING SECTION for overdue payments');
-        console.error('📊 CHECK ACCOUNT STATUS for suspension notices');
-        
+        console.error('Twilio authentication failed - marking credentials as invalid');
         return {
           success: false,
-          error: '🚨 TWILIO AUTHENTICATION ERROR (Code 20003): Your Twilio account has AUTHENTICATION issues. MOST LIKELY CAUSES: (1) Unpaid bills - check your Twilio Console billing section, (2) Trial account expired - upgrade to paid account, (3) Invalid credentials - verify Account SID and Auth Token match. Visit https://console.twilio.com to resolve billing/account issues.'
+          error: 'SMS service not properly configured. Please check Twilio credentials (Account SID, Auth Token, and Phone Number).'
         };
       }
       
@@ -171,8 +156,7 @@ export class MessagingService {
       if (error.code === 21211) {
         errorMessage = 'Invalid phone number format. Please check the recipient phone number.';
       } else if (error.code === 21610) {
-        errorMessage = `🚫 TWILIO TRIAL ACCOUNT LIMITATION: This phone number (${to}) is not verified in your Twilio trial account. Trial accounts can only send messages to verified numbers. To fix this: 1) Verify this number in your Twilio console, or 2) Upgrade to a paid Twilio account to send to any number.`;
-        console.error(`🚫 TRIAL ACCOUNT BLOCK: ${to} - ${errorMessage}`);
+        errorMessage = 'Message cannot be sent to unverified number in trial account.';
       }
       
       return {
@@ -243,8 +227,7 @@ export class MessagingService {
       if (error.code === 21211) {
         errorMessage = 'Invalid phone number format. Please check the recipient phone number.';
       } else if (error.code === 21610) {
-        errorMessage = `🚫 TWILIO TRIAL ACCOUNT LIMITATION: This phone number (${to}) is not verified in your Twilio trial account. Trial accounts can only send messages to verified numbers. To fix this: 1) Verify this number in your Twilio console, or 2) Upgrade to a paid Twilio account to send to any number.`;
-        console.error(`🚫 TRIAL ACCOUNT BLOCK: ${to} - ${errorMessage}`);
+        errorMessage = 'Message cannot be sent to unverified number in trial account.';
       }
       
       return {
@@ -430,135 +413,45 @@ This is an urgent medical notification.`;
   }
 
   /**
-   * Get account balance and usage with enhanced error handling
+   * Get account balance and usage
    */
   async getAccountInfo(): Promise<any> {
-    console.log('🔍 TWILIO ACCOUNT INFO - Starting retrieval...');
-    
     try {
-      // Check basic configuration
-      if (!client) {
-        console.error('❌ TWILIO CLIENT - Not initialized');
+      if (!client || !process.env.TWILIO_ACCOUNT_SID) {
         return {
-          accountType: 'error',
-          balance: 'error',
-          status: 'client not initialized',
-          verifiedNumbers: [],
-          error: 'Twilio client not properly initialized',
-          errorType: 'configuration'
+          accountType: 'unknown',
+          balance: 'unknown',
+          status: 'not configured',
+          verifiedNumbers: []
         };
       }
-      
-      if (!process.env.TWILIO_ACCOUNT_SID) {
-        console.error('❌ TWILIO ACCOUNT SID - Missing from environment variables');
-        return {
-          accountType: 'error',
-          balance: 'error',
-          status: 'missing credentials',
-          verifiedNumbers: [],
-          error: 'TWILIO_ACCOUNT_SID not configured',
-          errorType: 'configuration'
-        };
-      }
-      
-      console.log('✅ TWILIO CONFIG - Client and Account SID present');
-      console.log('🔄 TWILIO API - Fetching account information...');
       
       const account = await client.api.accounts(process.env.TWILIO_ACCOUNT_SID).fetch();
       
-      console.log('✅ TWILIO ACCOUNT - Successfully retrieved:', {
-        type: account.type,
-        status: account.status,
-        sid: account.sid?.substring(0, 10) + '...'
-      });
-      
       // Try to get verified numbers (for trial account diagnostics)
-      let verifiedNumbers: string[] = [];
-      let verifiedNumbersError: string | null = null;
-      
+      let verifiedNumbers = [];
       try {
-        console.log('🔄 TWILIO VERIFIED NUMBERS - Fetching list...');
         const outgoingCallerIds = await client.outgoingCallerIds.list();
         verifiedNumbers = outgoingCallerIds.map(id => id.phoneNumber);
-        console.log(`✅ TWILIO VERIFIED NUMBERS - Found ${verifiedNumbers.length} verified numbers`);
-      } catch (error: any) {
-        verifiedNumbersError = error?.message || 'Unknown error';
-        console.warn('⚠️ TWILIO VERIFIED NUMBERS - Could not fetch:', verifiedNumbersError);
-        if (error?.code) {
-          console.warn('⚠️ TWILIO ERROR CODE:', error.code);
-        }
+      } catch (error) {
+        console.log('Could not fetch verified numbers:', error.message);
       }
       
-      const accountInfo = {
+      return {
         accountType: account.type === 'Trial' ? 'trial' : 'paid',
         balance: account.balance,
         status: account.status,
-        verifiedNumbers,
-        ...(verifiedNumbersError && { verifiedNumbersError }),
-        lastUpdated: new Date().toISOString()
+        verifiedNumbers: verifiedNumbers
       };
-      
-      console.log('✅ TWILIO ACCOUNT INFO - Successfully compiled:', accountInfo);
-      return accountInfo;
-      
-    } catch (error: any) {
-      console.error('🚨 TWILIO ACCOUNT INFO - Retrieval failed');
-      console.error('🔍 ERROR DETAILS:', {
-        message: error?.message,
-        code: error?.code,
-        status: error?.status,
-        moreInfo: error?.moreInfo
-      });
-      
-      // Categorize different types of errors
-      let errorType = 'unknown';
-      let userFriendlyMessage = error?.message || 'Unknown error occurred';
-      
-      if (error?.code === 20003) {
-        errorType = 'authentication';
-        userFriendlyMessage = 'Authentication failed - check Account SID and Auth Token, or verify account billing status';
-        console.error('💳 AUTHENTICATION ERROR - Code 20003 detected (billing/credentials issue)');
-      } else if (error?.code === 20404) {
-        errorType = 'not_found';
-        userFriendlyMessage = 'Account not found - verify Account SID is correct';
-        console.error('🔍 ACCOUNT NOT FOUND - Code 20404 detected');
-      } else if (error?.status === 401) {
-        errorType = 'unauthorized';
-        userFriendlyMessage = 'Unauthorized access - verify Auth Token is correct';
-        console.error('🔐 UNAUTHORIZED ERROR - Status 401 detected');
-      } else if (error?.status === 403) {
-        errorType = 'forbidden';
-        userFriendlyMessage = 'Access forbidden - account may be suspended or restricted';
-        console.error('🚫 FORBIDDEN ERROR - Status 403 detected');
-      } else if (error?.code && error.code.toString().startsWith('2')) {
-        errorType = 'twilio_api';
-        userFriendlyMessage = `Twilio API error (${error.code}): ${error.message}`;
-        console.error(`📡 TWILIO API ERROR - Code ${error.code} detected`);
-      } else if (error?.message?.includes('timeout') || error?.message?.includes('ETIMEDOUT')) {
-        errorType = 'timeout';
-        userFriendlyMessage = 'Request timeout - check network connection or try again';
-        console.error('⏱️ TIMEOUT ERROR - Network timeout detected');
-      } else if (error?.message?.includes('network') || error?.message?.includes('ENOTFOUND')) {
-        errorType = 'network';
-        userFriendlyMessage = 'Network error - check internet connection';
-        console.error('🌐 NETWORK ERROR - Network connectivity issue detected');
-      }
-      
-      const errorInfo = {
+    } catch (error) {
+      console.error('Error fetching account info:', error);
+      return {
         accountType: 'error',
         balance: 'error',
-        status: 'error',
+        status: 'authentication failed',
         verifiedNumbers: [],
-        error: userFriendlyMessage,
-        errorType,
-        errorCode: error?.code,
-        errorStatus: error?.status,
-        moreInfo: error?.moreInfo,
-        lastUpdated: new Date().toISOString()
+        error: error.message
       };
-      
-      console.error('❌ TWILIO ACCOUNT INFO - Returning error response:', errorInfo);
-      return errorInfo;
     }
   }
 

@@ -113,27 +113,5 @@ app.use((req, res, next) => {
   } else {
     console.log("🚀 PRODUCTION MODE: Skipping database seeding for faster startup");
     console.log("💡 Set FORCE_SEED=true environment variable if seeding is needed");
-    
-    // PRODUCTION DEMO USERS: Ensure demo credentials work in production
-    console.log("🎯 PRODUCTION DEMO: Creating essential demo users for login screen...");
-    setImmediate(async () => {
-      try {
-        const response = await fetch('http://localhost:5000/api/production-demo-setup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({})
-        });
-        const result = await response.json();
-        if (result.success) {
-          console.log("✅ PRODUCTION DEMO: Demo users created successfully!");
-          console.log(`📋 Created/Updated: ${result.createdUsers?.length || 0} users, Updated: ${result.updatedUsers?.length || 0} users`);
-        } else {
-          console.log("⚠️ PRODUCTION DEMO: Setup had issues:", result.message);
-        }
-      } catch (error) {
-        console.error("❌ PRODUCTION DEMO: Failed to create demo users:", error);
-        console.log("🔧 You can manually create demo users by calling: POST /api/production-demo-setup");
-      }
-    });
   }
 })();

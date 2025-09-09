@@ -2494,15 +2494,6 @@ export default function Forms() {
   const applyTextFormatting = (formatType: 'paragraph' | 'heading1' | 'heading2') => {
     console.log("applyTextFormatting called with:", formatType);
     
-    if (!textareaRef) {
-      toast({
-        title: "Editor Not Ready",
-        description: "Please wait for the editor to load",
-        duration: 2000
-      });
-      return;
-    }
-
     const selection = window.getSelection();
     let selectedText = '';
     let range: Range | undefined;
@@ -2515,116 +2506,97 @@ export default function Forms() {
     
     console.log("Selection:", { selectedText });
     
-    // If no text selected, insert placeholder text at cursor
-    if (!selectedText.trim()) {
-      const placeholder = formatType === 'heading1' ? 'Heading 1' : formatType === 'heading2' ? 'Heading 2' : 'Paragraph text';
+    // If no text selected, create formatting at cursor or use placeholder
+    if (!selectedText) {
+      const placeholder = `Sample ${formatType === 'heading1' ? 'Heading 1' : formatType === 'heading2' ? 'Heading 2' : 'paragraph'} text`;
       
       if (selection && selection.rangeCount > 0) {
         range = selection.getRangeAt(0);
-      } else {
-        // Create a range at the end of the content
-        range = document.createRange();
-        range.selectNodeContents(textareaRef);
-        range.collapse(false);
-        selection?.removeAllRanges();
-        selection?.addRange(range);
-      }
-      
-      selectedText = placeholder;
-    }
-
-    // Create appropriate element based on format type
-    let element: HTMLElement;
-    
-    // Get the current font family from the parent editor
-    const currentFontFamily = textareaRef.style.fontFamily || fontFamily;
-    
-    switch (formatType) {
-      case 'heading1':
-        element = document.createElement('h1');
-        element.style.setProperty('font-size', '24px', 'important');
-        element.style.setProperty('font-weight', 'bold', 'important');
-        element.style.setProperty('color', '#1a1a1a', 'important');
-        element.style.setProperty('margin', '0', 'important');
-        element.style.setProperty('line-height', '1.2', 'important');
-        element.style.setProperty('display', 'inline', 'important');
-        element.style.setProperty('font-family', currentFontFamily, 'important');
-        break;
-      case 'heading2':
-        element = document.createElement('h2');
-        element.style.setProperty('font-size', '20px', 'important');
-        element.style.setProperty('font-weight', 'bold', 'important');
-        element.style.setProperty('color', '#2a2a2a', 'important');
-        element.style.setProperty('margin', '0', 'important');
-        element.style.setProperty('line-height', '1.3', 'important');
-        element.style.setProperty('display', 'inline', 'important');
-        element.style.setProperty('font-family', currentFontFamily, 'important');
-        break;
-      default: // paragraph
-        element = document.createElement('p');
-        element.style.setProperty('font-size', '14px', 'important');
-        element.style.setProperty('font-weight', 'normal', 'important');
-        element.style.setProperty('margin', '0', 'important');
-        element.style.setProperty('line-height', '1.6', 'important');
-        element.style.setProperty('display', 'inline', 'important');
-        element.style.setProperty('font-family', currentFontFamily, 'important');
-        break;
-    }
-    
-    // Set text content
-    element.textContent = selectedText;
-    
-    // Insert the new element
-    if (range) {
-      try {
-        // Delete selected content if any
-        if (selectedText !== (formatType === 'heading1' ? 'Heading 1' : formatType === 'heading2' ? 'Heading 2' : 'Paragraph text')) {
-          range.deleteContents();
-        }
-        
-        // Insert the new element
-        range.insertNode(element);
-        
-        // Add a line break after the element for better formatting
-        const br = document.createElement('br');
-        range.setStartAfter(element);
-        range.insertNode(br);
-        
-        // Position cursor after the new element
-        range.setStartAfter(br);
-        range.collapse(true);
-        
-        // Update selection
-        selection?.removeAllRanges();
-        selection?.addRange(range);
-        
-        // Update document content
-        setDocumentContent(textareaRef.innerHTML);
-        
-        // Focus the editor
+        selectedText = placeholder;
+      } else if (textareaRef) {
+        // Insert at the end of document if no cursor position
         textareaRef.focus();
-        
-        const titles = {
-          paragraph: "✓ Paragraph",
-          heading1: "✓ Heading 1", 
-          heading2: "✓ Heading 2"
-        };
+        const content = textareaRef.value;
+        const newContent = content + (content.endsWith('\n') ? '' : '\n') + placeholder;
+        textareaRef.value = newContent;
+        setDocumentContent(newContent);
         
         toast({ 
-          title: titles[formatType],
-          description: `${formatType} formatting applied successfully`,
+          title: `✓ ${formatType === 'heading1' ? 'Heading 1' : formatType === 'heading2' ? 'Heading 2' : 'Paragraph'}`,
+          description: `${formatType} formatting added with sample text`,
           duration: 2000
         });
-        
-      } catch (error) {
-        console.error('Error applying text formatting:', error);
-        toast({
-          title: "Formatting Error",
-          description: "Failed to apply text formatting. Please try again.",
-          duration: 3000
-        });
+        return;
+      } else {
+        selectedText = placeholder;
       }
     }
+
+    // Apply styling by wrapping selection in a span without changing document structure
+    const span = document.createElement('span');
+    
+    // Set the appropriate styling based on format type
+    switch (formatType) {
+      case 'paragraph':
+        span.style.fontSize = '14px';
+        span.style.fontWeight = 'normal';
+        break;
+      case 'heading1':
+        span.style.fontSize = '24px';
+        span.style.fontWeight = 'bold';
+        span.style.color = '#1a1a1a';
+        break;
+      case 'heading2':
+        span.style.fontSize = '18px';
+        span.style.fontWeight = 'bold';
+        span.style.color = '#2a2a2a';
+        break;
+    }
+    
+    // Extract the selected content and wrap it in the span
+    if (range) {
+      try {
+        const contents = range.extractContents();
+        span.appendChild(contents);
+        range.insertNode(span);
+        
+        // Clear the selection
+        selection?.removeAllRanges();
+        
+        // Update the document content state
+        if (textareaRef) {
+          setDocumentContent(textareaRef.innerHTML);
+        }
+      } catch (error) {
+        console.error('Error applying text formatting:', error);
+        // If there's an error, just insert the text back
+        span.textContent = selectedText;
+        range.deleteContents();
+        range.insertNode(span);
+      }
+    } else {
+      // If no range, just create the span with text content
+      span.textContent = selectedText;
+      if (textareaRef) {
+        textareaRef.innerHTML += span.outerHTML;
+        setDocumentContent(textareaRef.innerHTML);
+      }
+    }
+    
+    // Clear selection
+    selection?.removeAllRanges();
+    
+    const titles = {
+      paragraph: "✓ Paragraph",
+      heading1: "✓ Heading 1", 
+      heading2: "✓ Heading 2"
+    };
+    
+    toast({ 
+      title: titles[formatType],
+      description: `${formatType} formatting applied successfully`,
+      duration: 3000
+    });
   };
 
   const handleParagraph = () => {
@@ -2642,7 +2614,53 @@ export default function Forms() {
     applyTextFormatting('heading2');
   };
 
-  const getFontFamilyCSS = (fontFamilyValue: string) => {
+  const applyFontFamily = (fontFamilyValue: string) => {
+    console.log("applyFontFamily called with:", fontFamilyValue);
+    
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      // No selection, insert sample text
+      const placeholder = `Sample text in ${fontFamilyValue}`;
+      if (textareaRef) {
+        textareaRef.focus();
+        const content = textareaRef.value;
+        const newContent = content + (content.endsWith('\n') ? '' : '\n') + placeholder;
+        textareaRef.value = newContent;
+        setDocumentContent(newContent);
+        
+        toast({ 
+          title: "✓ Font Applied",
+          description: `Font family changed to ${fontFamilyValue} with sample text`,
+          duration: 2000
+        });
+      }
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    const selectedText = range.toString();
+    
+    console.log("Font family selection:", { selectedText, fontFamilyValue });
+    
+    if (!selectedText) {
+      // No text selected, insert sample text at cursor
+      const placeholder = `Sample text in ${fontFamilyValue}`;
+      const textNode = document.createTextNode(placeholder);
+      range.insertNode(textNode);
+      
+      if (textareaRef) {
+        setDocumentContent(textareaRef.innerHTML);
+      }
+      
+      toast({ 
+        title: "✓ Font Applied",
+        description: `Font family changed to ${fontFamilyValue} with sample text`,
+        duration: 2000
+      });
+      return;
+    }
+
+    // Get the font family name for CSS with distinct fallbacks
     let fontFamilyCSS = '';
     switch (fontFamilyValue) {
       case 'arial':
@@ -2708,80 +2726,6 @@ export default function Forms() {
       default:
         fontFamilyCSS = 'Verdana, Geneva, "DejaVu Sans", sans-serif';
     }
-    return fontFamilyCSS;
-  };
-
-  // Map font values to CSS classes (avoiding inline styles)
-  const getFontClass = (fontValue: string): string => {
-    const fontClasses: Record<string, string> = {
-      'arial': 'font-arial',
-      'cambria': 'font-cambria',
-      'courier': 'font-courier',
-      'garamond': 'font-garamond',
-      'comic-sans': 'font-comic-sans',
-      'georgia': 'font-georgia',
-      'helvetica': 'font-helvetica',
-      'times': 'font-times',
-      'trebuchet': 'font-trebuchet',
-      'verdana': 'font-verdana',
-      'tahoma': 'font-tahoma',
-      'consolas': 'font-consolas',
-      'lato': 'font-lato',
-      'open-sans': 'font-open-sans',
-      'franklin': 'font-franklin'
-    };
-    
-    return fontClasses[fontValue] || 'font-arial';
-  };
-
-  const applyFontFamily = (fontFamilyValue: string) => {
-    console.log("applyFontFamily called with:", fontFamilyValue);
-    
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) {
-      // No selection, insert sample text
-      const placeholder = `Sample text in ${fontFamilyValue}`;
-      if (textareaRef) {
-        textareaRef.focus();
-        const content = textareaRef.value;
-        const newContent = content + (content.endsWith('\n') ? '' : '\n') + placeholder;
-        textareaRef.value = newContent;
-        setDocumentContent(newContent);
-        
-        toast({ 
-          title: "✓ Font Applied",
-          description: `Font family changed to ${fontFamilyValue} with sample text`,
-          duration: 2000
-        });
-      }
-      return;
-    }
-
-    const range = selection.getRangeAt(0);
-    const selectedText = range.toString();
-    
-    console.log("Font family selection:", { selectedText, fontFamilyValue });
-    
-    if (!selectedText) {
-      // No text selected, insert sample text at cursor
-      const placeholder = `Sample text in ${fontFamilyValue}`;
-      const textNode = document.createTextNode(placeholder);
-      range.insertNode(textNode);
-      
-      if (textareaRef) {
-        setDocumentContent(textareaRef.innerHTML);
-      }
-      
-      toast({ 
-        title: "✓ Font Applied",
-        description: `Font family changed to ${fontFamilyValue} with sample text`,
-        duration: 2000
-      });
-      return;
-    }
-
-    // Get the font family name for CSS with distinct fallbacks
-    const fontFamilyCSS = getFontFamilyCSS(fontFamilyValue);
 
     try {
       // Check if selection is within an existing font-family span
@@ -2808,25 +2752,21 @@ export default function Forms() {
       
       if (existingFontSpan) {
         // Update existing span's font family instead of creating nested span
-        const fontClass = getFontClass(fontFamilyValue);
-        existingFontSpan.className = fontClass;
-        existingFontSpan.removeAttribute('style');
-        existingFontSpan.removeAttribute('data-font-family');
-        console.log("Updated existing span with class:", fontClass);
+        existingFontSpan.style.fontFamily = fontFamilyCSS;
+        console.log("Updated existing span font:", fontFamilyCSS);
       } else {
         // Create a new span with the font family applied
         const span = document.createElement('span');
-        const fontClass = getFontClass(fontFamilyValue);
-        span.className = fontClass;
+        span.style.fontFamily = fontFamilyCSS;
         span.textContent = selectedText;
         
         // Replace the selected content with the new span
         range.deleteContents();
         range.insertNode(span);
-        console.log("Created new font span with class:", fontClass);
+        console.log("Created new font span:", fontFamilyCSS);
       }
       
-      console.log("Applied font class:", { fontClass: getFontClass(fontFamilyValue), selectedText });
+      console.log("Applying font:", { fontFamilyCSS, selectedText });
       
       // Update the document content state from the contentEditable div
       if (textareaRef) {
@@ -2895,8 +2835,7 @@ export default function Forms() {
 
     // Create a span with the font size applied
     const span = document.createElement('span');
-    span.className = 'custom-font-override';
-    span.setAttribute('style', `font-size: ${fontSizeValue} !important;`);
+    span.style.fontSize = fontSizeValue;
     span.textContent = selectedText;
     
     // Replace the selected content with the new span
@@ -3357,14 +3296,7 @@ export default function Forms() {
           
           <Select value={fontFamily} onValueChange={(value) => {
             setFontFamily(value);
-            
-            // Apply font to editor for new text
-            if (textareaRef) {
-              const fontFamilyCSS = getFontFamilyCSS(value);
-              textareaRef.style.fontFamily = fontFamilyCSS;
-            }
-            
-            // Also apply font family to selected text if any exists
+            // Only apply font family if there's a valid selection
             const selection = window.getSelection();
             if (selection && selection.rangeCount > 0 && selection.toString().trim()) {
               applyFontFamily(value);
@@ -3378,6 +3310,8 @@ export default function Forms() {
               <SelectItem value="calibri">Calibri</SelectItem>
               <SelectItem value="cambria">Cambria</SelectItem>
               <SelectItem value="comic-sans">Comic Sans MS</SelectItem>
+              <SelectItem value="times">Times New Roman</SelectItem>
+              <SelectItem value="courier">Courier New</SelectItem>
               <SelectItem value="consolas">Consolas</SelectItem>
               <SelectItem value="courier">Courier New</SelectItem>
               <SelectItem value="franklin">Franklin Gothic</SelectItem>

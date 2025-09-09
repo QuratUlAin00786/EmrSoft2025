@@ -132,7 +132,6 @@ export default function VoiceDocumentation() {
   const [selectedPatient, setSelectedPatient] = useState<string>("");
   const [selectedNoteType, setSelectedNoteType] = useState<string>("");
   const [currentTranscript, setCurrentTranscript] = useState("");
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<VoiceNote | null>(null);
   const [editedTranscript, setEditedTranscript] = useState("");
@@ -151,7 +150,7 @@ export default function VoiceDocumentation() {
 
   // Fetch voice notes
   const { data: voiceNotes, isLoading: notesLoading } = useQuery({
-    queryKey: ["/api/voice-documentation/notes", refreshTrigger],
+    queryKey: ["/api/voice-documentation/notes"],
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
       const response = await fetch('/api/voice-documentation/notes', {
@@ -260,10 +259,11 @@ export default function VoiceDocumentation() {
         setCurrentTranscript("");
       }
       
-      toast({ title: "Voice note saved successfully!" });
+      // Force immediate refresh with both invalidate and refetch
+      await queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
       
-      // Trigger UI refresh by updating the refresh trigger
-      setRefreshTrigger(prev => prev + 1);
+      toast({ title: "Voice note saved successfully!" });
     },
     onError: (err, variables) => {
       toast({ title: "Failed to save voice note", variant: "destructive" });
@@ -297,11 +297,12 @@ export default function VoiceDocumentation() {
         return newMap;
       });
       
+      // Force immediate refresh with both invalidate and refetch
+      await queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/voice-documentation/notes"] });
+      
       toast({ title: "Voice note deleted successfully!" });
       console.log("Voice note deleted from backend:", noteId);
-      
-      // Trigger UI refresh by updating the refresh trigger
-      setRefreshTrigger(prev => prev + 1);
     },
     onError: (err, noteId) => {
       toast({ title: "Failed to delete voice note", variant: "destructive" });

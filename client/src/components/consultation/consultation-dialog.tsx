@@ -314,7 +314,7 @@ export function ConsultationDialog({ open, onOpenChange, patient }: Consultation
                       <Label>Review of Systems</Label>
                       <Textarea
                         placeholder="Systematic review including cardiovascular, respiratory, gastrointestinal, genitourinary, neurological symptoms..."
-                        value={typeof consultationData.reviewOfSystems === 'string' ? consultationData.reviewOfSystems : JSON.stringify(consultationData.reviewOfSystems)}
+                        value={consultationData.reviewOfSystems}
                         onChange={(e) => setConsultationData(prev => ({ ...prev, reviewOfSystems: e.target.value }))}
                         className="min-h-[100px]"
                       />

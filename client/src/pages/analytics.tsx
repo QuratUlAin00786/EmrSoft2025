@@ -32,10 +32,7 @@ import {
   Clock,
   Download,
   Filter,
-  ArrowLeft,
-  Activity,
-  FileText,
-  AlertTriangle
+  ArrowLeft
 } from "lucide-react";
 import { format } from "date-fns";
 import { useLocation } from "wouter";
@@ -570,204 +567,13 @@ export default function AnalyticsPage() {
         </TabsContent>
 
         <TabsContent value="clinical" className="space-y-6">
-          {/* Clinical Overview Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Total Consultations</p>
-                    <p className="text-3xl font-bold text-blue-600">
-                      {analyticsData?.clinicalAnalytics?.overview?.totalConsultations || 0}
-                    </p>
-                  </div>
-                  <Users className="h-8 w-8 text-blue-600" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Active Prescriptions</p>
-                    <p className="text-3xl font-bold text-green-600">
-                      {analyticsData?.clinicalAnalytics?.overview?.activePrescriptions || 0}
-                    </p>
-                  </div>
-                  <Activity className="h-8 w-8 text-green-600" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Medical Records</p>
-                    <p className="text-3xl font-bold text-purple-600">
-                      {analyticsData?.clinicalAnalytics?.overview?.totalMedicalRecords || 0}
-                    </p>
-                  </div>
-                  <FileText className="h-8 w-8 text-purple-600" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Critical AI Insights</p>
-                    <p className="text-3xl font-bold text-red-600">
-                      {analyticsData?.clinicalAnalytics?.overview?.criticalInsights || 0}
-                    </p>
-                  </div>
-                  <AlertTriangle className="h-8 w-8 text-red-600" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Clinical Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Top Medications */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Top Prescribed Medications</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={analyticsData?.clinicalAnalytics?.medications?.topMedications || []}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="medication" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#3b82f6" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            {/* Consultation Types */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Consultation Types Distribution</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={Object.entries(analyticsData?.clinicalAnalytics?.consultationTypes || {}).map(([type, count]) => ({
-                        name: type.charAt(0).toUpperCase() + type.slice(1),
-                        value: count as number
-                      }))}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      dataKey="value"
-                      label
-                    >
-                      <Cell fill="#3b82f6" />
-                      <Cell fill="#10b981" />
-                      <Cell fill="#f59e0b" />
-                      <Cell fill="#ef4444" />
-                      <Cell fill="#8b5cf6" />
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* AI Insights and Recent Activity */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* AI Insights Severity */}
-            <Card>
-              <CardHeader>
-                <CardTitle>AI Insights by Severity</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={Object.entries(analyticsData?.clinicalAnalytics?.aiInsights?.severityDistribution || {}).map(([severity, count]) => ({
-                    severity: severity.charAt(0).toUpperCase() + severity.slice(1),
-                    count: count as number
-                  }))}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="severity" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#8b5cf6" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            {/* Recent Clinical Activity */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Activity (7 Days)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                    <div className="flex items-center">
-                      <Users className="h-5 w-5 text-blue-600 mr-2" />
-                      <span className="font-medium">Consultations</span>
-                    </div>
-                    <span className="text-2xl font-bold text-blue-600">
-                      {analyticsData?.clinicalAnalytics?.recentActivity?.consultations || 0}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                    <div className="flex items-center">
-                      <Activity className="h-5 w-5 text-green-600 mr-2" />
-                      <span className="font-medium">Prescriptions</span>
-                    </div>
-                    <span className="text-2xl font-bold text-green-600">
-                      {analyticsData?.clinicalAnalytics?.recentActivity?.prescriptions || 0}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
-                    <div className="flex items-center">
-                      <AlertTriangle className="h-5 w-5 text-purple-600 mr-2" />
-                      <span className="font-medium">AI Insights</span>
-                    </div>
-                    <span className="text-2xl font-bold text-purple-600">
-                      {analyticsData?.clinicalAnalytics?.recentActivity?.insights || 0}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Performance Metrics */}
           <Card>
             <CardHeader>
-              <CardTitle>Clinical Performance Metrics</CardTitle>
+              <CardTitle>Clinical Analytics</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600 mb-2">
-                    {analyticsData?.clinicalAnalytics?.overview?.consultationCompletionRate || 0}%
-                  </div>
-                  <div className="text-sm text-gray-600">Consultation Completion Rate</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600 mb-2">
-                    {analyticsData?.clinicalAnalytics?.overview?.prescriptionActiveRate || 0}%
-                  </div>
-                  <div className="text-sm text-gray-600">Active Prescription Rate</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-purple-600 mb-2">
-                    {analyticsData?.clinicalAnalytics?.medications?.totalTypes || 0}
-                  </div>
-                  <div className="text-sm text-gray-600">Medication Types</div>
-                </div>
+              <div className="text-center text-gray-500 py-8">
+                Clinical analytics data will be displayed here once connected to the database.
               </div>
             </CardContent>
           </Card>

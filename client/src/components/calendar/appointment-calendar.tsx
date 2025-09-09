@@ -358,21 +358,8 @@ Medical License: [License Number]
 
   const getAppointmentsForDate = (date: Date) => {
     return appointments.filter((apt: any) => {
-      // Parse the date more reliably to avoid timezone issues
       const appointmentDate = new Date(apt.scheduledAt);
-      const result = isSameDay(appointmentDate, date);
-      
-      // Debug logging to help troubleshoot
-      if (format(date, 'yyyy-MM-dd') === '2025-09-07') {
-        console.log(`[Calendar] Filtering for Sept 7, 2025 - Appointment ${apt.id}:`, {
-          aptDate: apt.scheduledAt,
-          parsedDate: appointmentDate,
-          targetDate: date,
-          matches: result
-        });
-      }
-      
-      return result;
+      return isSameDay(appointmentDate, date);
     });
   };
 
@@ -472,10 +459,10 @@ Medical License: [License Number]
                     {format(day, "d")}
                   </div>
                   <div className="flex flex-wrap gap-0.5 mt-0.5 flex-1">
-                    {dayAppointments.slice(0, 3).map((appointment: any) => (
+                    {dayAppointments.slice(0, 10).map((appointment: any) => (
                       <div
                         key={appointment.id}
-                        className="w-3 h-3 rounded-full cursor-pointer border border-white shadow-sm"
+                        className="w-1 h-1 rounded-full cursor-pointer"
                         style={{
                           backgroundColor: statusBgColors[appointment.status as keyof typeof statusBgColors] || statusBgColors.scheduled
                         }}
@@ -487,9 +474,9 @@ Medical License: [License Number]
                         title={`${formatTime(appointment.scheduledAt)} - ${appointment.patientName}`}
                       />
                     ))}
-                    {dayAppointments.length > 3 && (
-                      <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        +{dayAppointments.length - 3}
+                    {dayAppointments.length > 10 && (
+                      <div className="text-xs text-gray-500 dark:text-gray-400 ml-0.5">
+                        +{dayAppointments.length - 10}
                       </div>
                     )}
                   </div>

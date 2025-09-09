@@ -9,17 +9,9 @@ export async function seedProductionMedicalRecords() {
   try {
     console.log("🏥 Seeding production medical records for ALL patients...");
     
-    // Get the main organization (Demo Healthcare Clinic)
-    const { organizations, patients } = await import("@shared/schema.js");
-    const [org] = await db.select().from(organizations).where(eq(organizations.subdomain, "demo"));
-    
-    if (!org) {
-      console.log("⚠️  No organization found - cannot seed medical records");
-      return;
-    }
-    
     // Get all patients in the database to seed medical records for them
-    const allPatients = await db.select().from(patients).where(eq(patients.organizationId, org.id));
+    const { patients } = await import("@shared/schema.js");
+    const allPatients = await db.select().from(patients).where(eq(patients.organizationId, 1));
     
     console.log(`🔍 Found ${allPatients.length} patients in production database`);
     
@@ -36,7 +28,7 @@ export async function seedProductionMedicalRecords() {
     const existingRecords = await db.select().from(medicalRecords)
       .where(and(
         eq(medicalRecords.patientId, targetPatient.id), 
-        eq(medicalRecords.organizationId, org.id)
+        eq(medicalRecords.organizationId, 1)
       ));
     
     if (existingRecords.length >= 2) {
@@ -49,7 +41,7 @@ export async function seedProductionMedicalRecords() {
     // Get the first provider for this organization
     const { users } = await import("@shared/schema.js");
     const providers = await db.select().from(users)
-      .where(and(eq(users.organizationId, org.id), eq(users.role, "doctor")));
+      .where(and(eq(users.organizationId, 1), eq(users.role, "doctor")));
     
     const targetProvider = providers.length > 0 ? providers[0] : { id: 1 };
     console.log(`🩺 Using provider: ID ${targetProvider.id}`);
@@ -57,7 +49,7 @@ export async function seedProductionMedicalRecords() {
     // Production medical records data - universal for any patient
     const productionRecords = [
       {
-        organizationId: org.id,
+        organizationId: 1,
         patientId: targetPatient.id,
         providerId: targetProvider.id,
         type: "consultation",
@@ -120,7 +112,7 @@ Analysis completed on: Aug 25, 2025, 1:17:24 PM`,
         aiSuggestions: {}
       },
       {
-        organizationId: org.id,
+        organizationId: 1,
         patientId: targetPatient.id,
         providerId: targetProvider.id,
         type: "consultation",
@@ -150,9 +142,9 @@ Analysis completed on: Aug 21, 2025, 9:59:28 PM`,
         aiSuggestions: {}
       },
       {
-        organizationId: org.id,
-        patientId: targetPatient.id,
-        providerId: targetProvider.id,
+        organizationId: 1,
+        patientId: 158,
+        providerId: 348,
         type: "consultation",
         title: "",
         notes: "The Patient has come to the hospital with headache, Nausea and high fever.",
@@ -167,7 +159,7 @@ Analysis completed on: Aug 21, 2025, 9:59:28 PM`,
     // Insert the records with better error handling
     const insertedRecords = await db.insert(medicalRecords).values(productionRecords).returning();
     
-    console.log(`✅ Successfully seeded production medical records for Patient ${targetPatient.id}`);
+    console.log("✅ Successfully seeded production medical records for Patient 158");
     console.log(`📋 Created ${insertedRecords.length} medical records:`);
     insertedRecords.forEach(record => {
       console.log(`   • ID ${record.id}: ${record.title || 'Untitled consultation'}`);
@@ -175,7 +167,7 @@ Analysis completed on: Aug 21, 2025, 9:59:28 PM`,
     
     // Verify the records were created
     const verificationRecords = await db.select().from(medicalRecords)
-      .where(and(eq(medicalRecords.patientId, targetPatient.id), eq(medicalRecords.organizationId, org.id)));
+      .where(and(eq(medicalRecords.patientId, targetPatient.id), eq(medicalRecords.organizationId, 1)));
     console.log(`🔍 Verification: Found ${verificationRecords.length} total records for Patient ${targetPatient.id}`);
     
   } catch (error) {
@@ -189,17 +181,9 @@ export async function verifyMedicalRecordsExist() {
   try {
     console.log("🔍 Verifying medical records exist for production patients...");
     
-    // Get the main organization (Demo Healthcare Clinic)
-    const { organizations, patients } = await import("@shared/schema.js");
-    const [org] = await db.select().from(organizations).where(eq(organizations.subdomain, "demo"));
-    
-    if (!org) {
-      console.log("⚠️  No organization found for verification");
-      return;
-    }
-    
     // Get all patients in production to verify
-    const allPatients = await db.select().from(patients).where(eq(patients.organizationId, org.id));
+    const { patients } = await import("@shared/schema.js");
+    const allPatients = await db.select().from(patients).where(eq(patients.organizationId, 1));
     console.log(`🔍 Found ${allPatients.length} patients to verify`);
     
     if (allPatients.length === 0) {
@@ -212,7 +196,7 @@ export async function verifyMedicalRecordsExist() {
     
     const patientId = firstPatient.id;
     const patientRecords = await db.select().from(medicalRecords)
-      .where(and(eq(medicalRecords.patientId, patientId), eq(medicalRecords.organizationId, org.id)));
+      .where(and(eq(medicalRecords.patientId, patientId), eq(medicalRecords.organizationId, 1)));
     
     console.log(`📊 Found ${patientRecords.length} medical records for Patient ${patientId}:`);
     patientRecords.forEach((record, index) => {

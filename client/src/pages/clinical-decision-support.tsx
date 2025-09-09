@@ -422,39 +422,31 @@ export default function ClinicalDecisionSupport() {
             variant="outline"
             onClick={() => {
               // Generate and download clinical decision support report
-              console.log('[EXPORT] Generating clinical decision support report...');
-              
-              // Ensure we have valid data
-              const validInsights = insights || [];
-              const validRiskScores = mockRiskScores || [];
-              
               const reportData = {
                 title: "Clinical Decision Support Report",
                 generatedAt: new Date().toISOString(),
-                activeInsights: validInsights.filter(insight => insight.status === 'active').length,
-                totalInsights: validInsights.length,
-                riskAssessments: validRiskScores.length,
-                criticalAlerts: validInsights.filter(insight => insight.priority === 'critical').length,
-                insights: validInsights.map(insight => ({
-                  patient: insight.patientName || 'Unknown Patient',
-                  type: insight.type || 'General',
-                  priority: insight.priority || 'Medium',
-                  title: insight.title || 'Clinical Insight',
-                  description: insight.description || 'No description available',
-                  confidence: insight.confidence || 0,
-                  status: insight.status || 'Pending',
-                  recommendations: insight.recommendations || []
+                activeInsights: insights?.filter(insight => insight.status === 'active').length || 0,
+                totalInsights: insights?.length || 0,
+                riskAssessments: mockRiskScores.length,
+                criticalAlerts: insights?.filter(insight => insight.priority === 'critical').length || 0,
+                insights: insights?.map(insight => ({
+                  patient: insight.patientName,
+                  type: insight.type,
+                  priority: insight.priority,
+                  title: insight.title,
+                  description: insight.description,
+                  confidence: insight.confidence,
+                  status: insight.status,
+                  recommendations: insight.recommendations
                 })),
-                riskScores: validRiskScores.map(risk => ({
-                  category: risk.category || 'General Risk',
-                  score: risk.score || 0,
-                  risk: risk.risk || 'low',
-                  factors: risk.factors || [],
-                  recommendations: risk.recommendations || []
+                riskScores: mockRiskScores.map(risk => ({
+                  category: risk.category,
+                  score: risk.score,
+                  risk: risk.risk,
+                  factors: risk.factors,
+                  recommendations: risk.recommendations
                 }))
               };
-              
-              console.log('[EXPORT] Report data prepared:', reportData);
 
               const csvContent = [
                 // Header
@@ -488,27 +480,19 @@ export default function ClinicalDecisionSupport() {
                 ])
               ].map(row => Array.isArray(row) ? row.join(',') : row).join('\n');
 
-              console.log('[EXPORT] CSV content generated, length:', csvContent.length);
-              
-              const fileName = `clinical-decision-support-report-${format(new Date(), 'yyyy-MM-dd-HHmmss')}.csv`;
-              console.log('[EXPORT] Downloading file:', fileName);
-
               const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
               const link = document.createElement('a');
               const url = URL.createObjectURL(blob);
               link.setAttribute('href', url);
-              link.setAttribute('download', fileName);
+              link.setAttribute('download', `clinical-decision-support-report-${format(new Date(), 'yyyy-MM-dd')}.csv`);
               link.style.visibility = 'hidden';
               document.body.appendChild(link);
               link.click();
               document.body.removeChild(link);
-              URL.revokeObjectURL(url);
-
-              console.log('[EXPORT] File download initiated successfully');
 
               toast({
-                title: "Medical Report Downloaded",
-                description: `Clinical decision support report (${fileName}) has been downloaded successfully.`,
+                title: "Report Downloaded",
+                description: "Clinical decision support report has been downloaded successfully.",
               });
             }}
           >

@@ -1994,49 +1994,12 @@ export type InsertInventoryStockMovement = z.infer<typeof insertInventoryStockMo
 export type InventoryStockAlert = typeof inventoryStockAlerts.$inferSelect;
 export type InsertInventoryStockAlert = z.infer<typeof insertInventoryStockAlertSchema>;
 
-// Voice Documentation
-export const voiceNotes = pgTable("voice_notes", {
-  id: varchar("id").primaryKey(),
-  organizationId: integer("organization_id").notNull(),
-  patientId: varchar("patient_id").notNull(),
-  patientName: text("patient_name").notNull(),
-  providerId: varchar("provider_id").notNull(),
-  providerName: text("provider_name").notNull(),
-  type: varchar("type", { length: 50 }).notNull(), // consultation, procedure_note, clinical_note
-  status: varchar("status", { length: 20 }).notNull().default("completed"),
-  recordingDuration: integer("recording_duration"), // in seconds
-  transcript: text("transcript"),
-  confidence: real("confidence"), // 0-100
-  medicalTerms: jsonb("medical_terms").$type<Array<{
-    term: string;
-    confidence: number;
-    category: string;
-  }>>().default([]),
-  structuredData: jsonb("structured_data").$type<{
-    chiefComplaint?: string;
-    assessment?: string;
-    plan?: string;
-    [key: string]: any;
-  }>().default({}),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-export const insertVoiceNoteSchema = createInsertSchema(voiceNotes).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
 // Messaging Types
 export type Conversation = typeof conversations.$inferSelect;
 export type InsertConversation = z.infer<typeof insertConversationSchema>;
 
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
-
-export type VoiceNote = typeof voiceNotes.$inferSelect;
-export type InsertVoiceNote = z.infer<typeof insertVoiceNoteSchema>;
 
 // SaaS Insert Schemas
 export const insertSaaSPaymentSchema = createInsertSchema(saasPayments).omit({
