@@ -131,25 +131,25 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
 
   // Define muscle coordinates for each anatomical image separately
   const muscleCoordinatesForImages = {
-    // Image 0: Coordinates positioned exactly on the CENTER of each visible red muscle fiber area
+    // Image 0: Precise coordinates mapped to actual red muscle fiber locations on anatomical face
     0: {
-      frontalis: { x: 50, y: 25 },        // Center of forehead red muscle stripes
-      temporalis: { x: 15, y: 30 },       // Far left temple red muscle area
-      corrugator_supercilii: { x: 42, y: 32 }, // Between eyebrows red muscle center
-      procerus: { x: 50, y: 35 },         // Nose bridge red muscle center
-      orbicularis_oculi: { x: 38, y: 40 }, // Eye area red muscle center
-      levator_labii_superioris: { x: 42, y: 48 }, // Upper lip red muscle center
-      alaque_nasi: { x: 46, y: 45 },      // Nostril red muscle center
-      zygomaticus_major: { x: 28, y: 55 }, // Main cheek red muscle center
-      zygomaticus_minor: { x: 35, y: 50 }, // Upper cheek red muscle center
-      levator_angularis: { x: 32, y: 47 }, // Side cheek red muscle center
-      masseter: { x: 18, y: 65 },         // Jaw red muscle center (thick area)
-      buccinator: { x: 30, y: 58 },       // Mid-cheek red muscle center
-      orbicularis_oris: { x: 50, y: 62 }, // Mouth red muscle center
-      mentalis: { x: 50, y: 75 },         // Chin red muscle center
-      depressor_anguli_oris: { x: 40, y: 68 }, // Mouth corner red muscle center
-      depressor_labii_inferioris: { x: 42, y: 72 }, // Lower lip red muscle center
-      platysma: { x: 32, y: 82 }          // Neck red muscle center
+      frontalis: { x: 50, y: 20 },        // Center forehead horizontal muscle stripes
+      temporalis: { x: 12, y: 25 },       // Left temple muscle fibers
+      corrugator_supercilii: { x: 44, y: 28 }, // Between eyebrows diagonal muscle
+      procerus: { x: 50, y: 32 },         // Nose bridge vertical muscle
+      orbicularis_oculi: { x: 35, y: 37 }, // Around left eye circular muscle
+      levator_labii_superioris: { x: 40, y: 44 }, // Upper lip elevator muscle
+      alaque_nasi: { x: 46, y: 41 },      // Nostril wing muscle
+      zygomaticus_major: { x: 25, y: 52 }, // Major cheek muscle (thick red area)
+      zygomaticus_minor: { x: 32, y: 47 }, // Minor cheek muscle (upper)
+      levator_angularis: { x: 30, y: 44 }, // Mouth corner lifter muscle
+      masseter: { x: 15, y: 62 },         // Jaw muscle (thick red block)
+      buccinator: { x: 28, y: 55 },       // Cheek muscle (middle area)
+      orbicularis_oris: { x: 50, y: 58 }, // Mouth circular muscle
+      mentalis: { x: 50, y: 72 },         // Chin muscle (lower face)
+      depressor_anguli_oris: { x: 38, y: 65 }, // Mouth corner depressor
+      depressor_labii_inferioris: { x: 40, y: 69 }, // Lower lip depressor
+      platysma: { x: 30, y: 80 }          // Neck muscle (bottom area)
     },
     // Image 1: Clean outline (vertical layout, more focused on face)
     1: {
