@@ -22,6 +22,7 @@ import { useMutation } from "@tanstack/react-query";
 import type { Appointment } from "@/types";
 import { NewAppointmentModal } from "./new-appointment-modal";
 import ConsultationNotes from "@/components/medical/consultation-notes";
+import { FullConsultationInterface } from "@/components/consultation/full-consultation-interface";
 
 const statusColors = {
   scheduled: "text-white",
@@ -49,6 +50,25 @@ const typeBgColors = {
   procedure: "#4A7DFF"      // Bluewave
 };
 
+// Wrapper component to fetch patient data and pass to FullConsultationInterface
+function FullConsultationWrapper({ patientId, show, onOpenChange }: { patientId: number; show: boolean; onOpenChange: (open: boolean) => void }) {
+  const { data: patient, isLoading } = useQuery({
+    queryKey: ['/api/patients', patientId],
+    enabled: show && !!patientId,
+  });
+
+  if (!show) return null;
+  if (isLoading) return null; // Or a loading spinner
+
+  return (
+    <FullConsultationInterface
+      open={show}
+      onOpenChange={onOpenChange}
+      patient={patient}
+    />
+  );
+}
+
 export default function AppointmentCalendar() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<"month" | "week" | "day">("month");
@@ -70,6 +90,8 @@ export default function AppointmentCalendar() {
 
   // State for ConsultationNotes modal
   const [showConsultationNotes, setShowConsultationNotes] = useState(false);
+  // State for Full Consultation interface
+  const [showFullConsultation, setShowFullConsultation] = useState(false);
 
   // Define muscle coordinates for interactive highlighting
   const muscleCoordinates = {
@@ -625,7 +647,7 @@ Medical License: [License Number]
                   <Button
                     variant="outline"
                     onClick={() => {
-                      setShowConsultationNotes(true);
+                      setShowFullConsultation(true);
                     }}
                     className="flex items-center space-x-2 bg-blue-50 border-blue-300 text-blue-700 hover:bg-blue-100"
                   >
@@ -874,6 +896,15 @@ Medical License: [License Number]
             />
           </DialogContent>
         </Dialog>
+      )}
+
+      {/* Full Consultation Interface Modal */}
+      {showFullConsultation && selectedAppointment && (
+        <FullConsultationWrapper
+          patientId={selectedAppointment.patientId}
+          show={showFullConsultation}
+          onOpenChange={setShowFullConsultation}
+        />
       )}
     </div>
   );
