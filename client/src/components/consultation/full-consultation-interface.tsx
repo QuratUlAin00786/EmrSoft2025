@@ -1096,22 +1096,22 @@ Patient should be advised of potential side effects and expected timeline for re
                     {selectedMuscleGroup && (
                       <div className="absolute inset-0 max-w-2xl mx-auto">
                         {(() => {
-                          // Define muscle coordinates for highlighting - matched to facial diagram
+                          // Define muscle coordinates for highlighting - precisely matched to facial diagram labels
                           const muscleCoordinates = {
-                            frontalis: { x: 50, y: 20 },
-                            temporalis: { x: 75, y: 25 },
-                            corrugator_supercilii: { x: 40, y: 32 },
-                            procerus: { x: 50, y: 38 },
+                            frontalis: { x: 50, y: 22 },
+                            temporalis: { x: 88, y: 30 },
+                            corrugator_supercilii: { x: 42, y: 34 },
+                            procerus: { x: 78, y: 33 },
                             orbicularis_oculi: { x: 45, y: 42 },
-                            levator_labii_superioris: { x: 42, y: 52 },
+                            levator_labii_superioris: { x: 78, y: 38 },
                             zygomaticus_major: { x: 35, y: 58 },
                             zygomaticus_minor: { x: 38, y: 55 },
                             masseter: { x: 25, y: 65 },
-                            buccinator: { x: 30, y: 62 },
-                            orbicularis_oris: { x: 50, y: 68 },
-                            mentalis: { x: 50, y: 78 },
+                            buccinator: { x: 78, y: 46 },
+                            orbicularis_oris: { x: 78, y: 51 },
+                            mentalis: { x: 78, y: 53 },
                             depressor_anguli_oris: { x: 45, y: 72 },
-                            depressor_labii_inferioris: { x: 47, y: 80 },
+                            depressor_labii_inferioris: { x: 78, y: 48 },
                             platysma: { x: 50, y: 88 }
                           };
                           
