@@ -1092,6 +1092,49 @@ Patient should be advised of potential side effects and expected timeline for re
                       className="w-full h-auto max-w-2xl mx-auto rounded-lg"
                     />
                     
+                    {/* Muscle Selection Highlight Overlay */}
+                    {selectedMuscleGroup && (
+                      <div className="absolute inset-0 max-w-2xl mx-auto">
+                        {(() => {
+                          // Define muscle coordinates for highlighting
+                          const muscleCoordinates = {
+                            frontalis: { x: 50, y: 15 },
+                            temporalis: { x: 25, y: 25 },
+                            corrugator_supercilii: { x: 38, y: 30 },
+                            procerus: { x: 50, y: 35 },
+                            orbicularis_oculi: { x: 42, y: 40 },
+                            levator_labii_superioris: { x: 45, y: 50 },
+                            zygomaticus_major: { x: 38, y: 55 },
+                            zygomaticus_minor: { x: 40, y: 52 },
+                            masseter: { x: 30, y: 60 },
+                            buccinator: { x: 35, y: 58 },
+                            orbicularis_oris: { x: 50, y: 65 },
+                            mentalis: { x: 50, y: 75 },
+                            depressor_anguli_oris: { x: 45, y: 70 },
+                            depressor_labii_inferioris: { x: 48, y: 78 },
+                            platysma: { x: 50, y: 85 }
+                          };
+                          
+                          const coords = muscleCoordinates[selectedMuscleGroup as keyof typeof muscleCoordinates];
+                          if (!coords) return null;
+                          
+                          return (
+                            <div
+                              className="absolute transform -translate-x-1/2 -translate-y-1/2"
+                              style={{
+                                left: `${coords.x}%`,
+                                top: `${coords.y}%`,
+                              }}
+                            >
+                              <div
+                                className="w-6 h-6 rounded-full bg-yellow-400 border-2 border-yellow-600 shadow-lg animate-pulse z-10"
+                                title={`Selected: ${selectedMuscleGroup.replace(/_/g, ' ')}`}
+                              />
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    )}
                   </div>
 
                   {/* Navigation controls */}
