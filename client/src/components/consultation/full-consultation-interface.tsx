@@ -127,6 +127,9 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
   const [isSavingAnalysis, setIsSavingAnalysis] = useState<boolean>(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showAnatomicalViewer, setShowAnatomicalViewer] = useState(true);
+  const [selectedExaminationType, setSelectedExaminationType] = useState('');
+  const [showAnatomicalModal, setShowAnatomicalModal] = useState(false);
+  const [showPhysicalExamModal, setShowPhysicalExamModal] = useState(false);
   const anatomicalImages = [facialMuscleImage, facialOutlineImage];
 
   // Define muscle coordinates for each anatomical image separately
@@ -746,96 +749,139 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
 
               <TabsContent value="examination" className="space-y-4">
                 <div className="grid gap-4">
-                  {/* Anatomical Muscle Analysis System */}
+                  {/* Examination Selection Dropdown */}
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-lg flex items-center gap-2">
-                        <Eye className="w-5 h-5 text-blue-600" />
-                        Anatomical View - Muscle Analysis
-                        <Button 
-                          onClick={() => setShowAnatomicalViewer(!showAnatomicalViewer)}
-                          variant="outline"
-                          size="sm"
-                          className="ml-auto"
-                        >
-                          {showAnatomicalViewer ? 'Hide' : 'Show'} Anatomical View
-                        </Button>
+                        <Stethoscope className="w-5 h-5 text-blue-600" />
+                        Examination
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      {showAnatomicalViewer && (
-                        <div className="space-y-6">
-                          {/* Interactive Anatomical Images */}
-                          <div className="flex flex-col items-center space-y-4">
-                            <div className="relative bg-gray-50 rounded-lg p-4 w-full max-w-2xl">
-                              <div className="relative">
-                                <img
-                                  src={anatomicalImages[currentImageIndex]}
-                                  alt={`Anatomical diagram ${currentImageIndex + 1}`}
-                                  className="w-full h-auto max-w-lg mx-auto rounded-lg shadow-md"
-                                />
-                                
-                                {/* Interactive muscle points overlay - invisible clickable areas */}
-                                <div className="absolute inset-0 max-w-lg mx-auto">
-                                  {Object.entries(muscleCoordinatesForImages[currentImageIndex as keyof typeof muscleCoordinatesForImages] || {}).map(([muscleName, coords]) => (
-                                    <button
-                                      key={muscleName}
-                                      className={`absolute w-10 h-10 rounded-full transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ${
-                                        selectedMuscleGroup === muscleName
-                                          ? 'bg-red-500 border-3 border-red-700 shadow-xl opacity-90 scale-110'
-                                          : 'bg-transparent hover:bg-blue-200 hover:opacity-30'
-                                      }`}
-                                      style={{
-                                        left: `${coords.x}%`,
-                                        top: `${coords.y}%`
-                                      }}
-                                      onClick={() => setSelectedMuscleGroup(muscleName)}
-                                      title={muscleName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
+                      <div className="space-y-4">
+                        <div>
+                          <Label className="text-base font-medium">Select Examination Type</Label>
+                          <Select 
+                            value={selectedExaminationType} 
+                            onValueChange={setSelectedExaminationType}
+                          >
+                            <SelectTrigger className="w-full mt-2">
+                              <SelectValue placeholder="Choose examination type..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="anatomical">Anatomical View – Muscle Analysis</SelectItem>
+                              <SelectItem value="physical">Physical Examination Findings</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        {selectedExaminationType && (
+                          <div className="flex gap-3 mt-4">
+                            {selectedExaminationType === 'anatomical' && (
+                              <Button 
+                                onClick={() => setShowAnatomicalModal(true)}
+                                className="flex-1"
+                              >
+                                <Eye className="w-4 h-4 mr-2" />
+                                Open Anatomical View Window
+                              </Button>
+                            )}
+                            {selectedExaminationType === 'physical' && (
+                              <Button 
+                                onClick={() => setShowPhysicalExamModal(true)}
+                                className="flex-1"
+                              >
+                                <Stethoscope className="w-4 h-4 mr-2" />
+                                Open Physical Examination Window
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Anatomical View Modal */}
+                  <Dialog open={showAnatomicalModal} onOpenChange={setShowAnatomicalModal}>
+                    <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <Eye className="w-5 h-5 text-blue-600" />
+                          Anatomical View - Muscle Analysis
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-6 p-4">
+                        {/* Interactive Anatomical Images */}
+                        <div className="flex flex-col items-center space-y-4">
+                          <div className="relative bg-gray-50 rounded-lg p-4 w-full max-w-2xl">
+                            <div className="relative">
+                              <img
+                                src={anatomicalImages[currentImageIndex]}
+                                alt={`Anatomical diagram ${currentImageIndex + 1}`}
+                                className="w-full h-auto max-w-lg mx-auto rounded-lg shadow-md"
+                              />
                               
-                              {/* Image Navigation Controls */}
-                              <div className="flex justify-between items-center mt-4">
-                                <Button
-                                  onClick={() => navigateImage('prev')}
-                                  variant="outline"
-                                  size="sm"
-                                >
-                                  ← Previous
-                                </Button>
-                                <Badge variant="secondary">
-                                  Image {currentImageIndex + 1} of {anatomicalImages.length}
-                                </Badge>
-                                <Button
-                                  onClick={() => navigateImage('next')}
-                                  variant="outline"
-                                  size="sm"
-                                >
-                                  Next →
-                                </Button>
+                              {/* Interactive muscle points overlay - invisible clickable areas */}
+                              <div className="absolute inset-0 max-w-lg mx-auto">
+                                {Object.entries(muscleCoordinatesForImages[currentImageIndex as keyof typeof muscleCoordinatesForImages] || {}).map(([muscleName, coords]) => (
+                                  <button
+                                    key={muscleName}
+                                    className={`absolute w-10 h-10 rounded-full transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ${
+                                      selectedMuscleGroup === muscleName
+                                        ? 'bg-red-500 border-3 border-red-700 shadow-xl opacity-90 scale-110'
+                                        : 'bg-transparent hover:bg-blue-200 hover:opacity-30'
+                                    }`}
+                                    style={{
+                                      left: `${coords.x}%`,
+                                      top: `${coords.y}%`
+                                    }}
+                                    onClick={() => setSelectedMuscleGroup(muscleName)}
+                                    title={muscleName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                  />
+                                ))}
                               </div>
                             </div>
+                            
+                            {/* Image Navigation Controls */}
+                            <div className="flex justify-between items-center mt-4">
+                              <Button
+                                onClick={() => navigateImage('prev')}
+                                variant="outline"
+                                size="sm"
+                              >
+                                ← Previous
+                              </Button>
+                              <Badge variant="secondary">
+                                Image {currentImageIndex + 1} of {anatomicalImages.length}
+                              </Badge>
+                              <Button
+                                onClick={() => navigateImage('next')}
+                                variant="outline"
+                                size="sm"
+                              >
+                                Next →
+                              </Button>
+                            </div>
                           </div>
+                        </div>
 
-                          {/* Analysis Controls */}
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="muscle-group">Selected Muscle Group</Label>
-                              <Select value={selectedMuscleGroup} onValueChange={setSelectedMuscleGroup}>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select muscle group" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="frontalis">Frontalis</SelectItem>
-                                  <SelectItem value="temporalis">Temporalis</SelectItem>
-                                  <SelectItem value="corrugator_supercilii">Corrugator Supercilii</SelectItem>
-                                  <SelectItem value="procerus">Procerus</SelectItem>
-                                  <SelectItem value="orbicularis_oculi">Orbicularis Oculi</SelectItem>
-                                  <SelectItem value="levator_labii_superioris">Levator Labii Superioris</SelectItem>
-                                  <SelectItem value="zygomaticus_major">Zygomaticus Major</SelectItem>
-                                  <SelectItem value="zygomaticus_minor">Zygomaticus Minor</SelectItem>
+                        {/* Analysis Controls */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="muscle-group">Selected Muscle Group</Label>
+                            <Select value={selectedMuscleGroup} onValueChange={setSelectedMuscleGroup}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select muscle group" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="frontalis">Frontalis</SelectItem>
+                                <SelectItem value="temporalis">Temporalis</SelectItem>
+                                <SelectItem value="corrugator_supercilii">Corrugator Supercilii</SelectItem>
+                                <SelectItem value="procerus">Procerus</SelectItem>
+                                <SelectItem value="orbicularis_oculi">Orbicularis Oculi</SelectItem>
+                                <SelectItem value="levator_labii_superioris">Levator Labii Superioris</SelectItem>
+                                <SelectItem value="zygomaticus_major">Zygomaticus Major</SelectItem>
+                                <SelectItem value="zygomaticus_minor">Zygomaticus Minor</SelectItem>
                                   <SelectItem value="masseter">Masseter</SelectItem>
                                   <SelectItem value="buccinator">Buccinator</SelectItem>
                                   <SelectItem value="orbicularis_oris">Orbicularis Oris</SelectItem>
@@ -924,44 +970,46 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                             </Card>
                           )}
                         </div>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  {/* Traditional Physical Examination Findings */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Stethoscope className="w-5 h-5" />
-                        Physical Examination Findings
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-4">
-                        {Object.entries(consultationData.examination).map(([system, value]) => (
-                          <div key={system} className="space-y-2">
-                            <Label className="capitalize font-medium flex items-center gap-2">
-                              {system === 'cardiovascular' && <Heart className="w-4 h-4 text-red-500" />}
-                              {system === 'respiratory' && <Activity className="w-4 h-4 text-blue-500" />}
-                              {system === 'neurological' && <Brain className="w-4 h-4 text-purple-500" />}
-                              {system === 'head_neck' && <Eye className="w-4 h-4 text-green-500" />}
-                              {system === 'ears_nose_throat' && <Ear className="w-4 h-4 text-yellow-500" />}
-                              {system.replace('_', ' ')}
-                            </Label>
-                            <Textarea
-                              placeholder={`${system} examination findings...`}
-                              value={value}
-                              onChange={(e) => setConsultationData(prev => ({
-                                ...prev,
-                                examination: { ...prev.examination, [system]: e.target.value }
-                              }))}
-                              className="h-20"
-                            />
-                          </div>
-                        ))}
                       </div>
-                    </CardContent>
-                  </Card>
+                    </DialogContent>
+                  </Dialog>
+
+                  {/* Physical Examination Modal */}
+                  <Dialog open={showPhysicalExamModal} onOpenChange={setShowPhysicalExamModal}>
+                    <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <Stethoscope className="w-5 h-5 text-blue-600" />
+                          Physical Examination Findings
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 p-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          {Object.entries(consultationData.examination).map(([system, value]) => (
+                            <div key={system} className="space-y-2">
+                              <Label className="capitalize font-medium flex items-center gap-2">
+                                {system === 'cardiovascular' && <Heart className="w-4 h-4 text-red-500" />}
+                                {system === 'respiratory' && <Activity className="w-4 h-4 text-blue-500" />}
+                                {system === 'neurological' && <Brain className="w-4 h-4 text-purple-500" />}
+                                {system === 'head_neck' && <Eye className="w-4 h-4 text-green-500" />}
+                                {system === 'ears_nose_throat' && <Ear className="w-4 h-4 text-yellow-500" />}
+                                {system.replace('_', ' ')}
+                              </Label>
+                              <Textarea
+                                placeholder={`${system} examination findings...`}
+                                value={value}
+                                onChange={(e) => setConsultationData(prev => ({
+                                  ...prev,
+                                  examination: { ...prev.examination, [system]: e.target.value }
+                                }))}
+                                className="h-20"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </TabsContent>
 
