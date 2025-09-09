@@ -589,7 +589,30 @@ Patient should be advised of potential side effects and expected timeline for re
                     <div className="space-y-3">
                         <Select 
                           value={selectedExaminationType} 
-                          onValueChange={setSelectedExaminationType}
+                          onValueChange={(value) => {
+                            setSelectedExaminationType(value);
+                            // Directly open the corresponding examination window
+                            switch(value) {
+                              case 'general':
+                                setShowGeneralExamModal(true);
+                                break;
+                              case 'cardiovascular':
+                                setShowCardiovascularExamModal(true);
+                                break;
+                              case 'respiratory':
+                                setShowRespiratoryExamModal(true);
+                                break;
+                              case 'neurological':
+                                setShowNeurologicalExamModal(true);
+                                break;
+                              case 'anatomical':
+                                setShowAnatomicalModal(true);
+                                break;
+                              case 'physical':
+                                setShowPhysicalExamModal(true);
+                                break;
+                            }
+                          }}
                         >
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Choose examination type..." />
@@ -603,65 +626,6 @@ Patient should be advised of potential side effects and expected timeline for re
                             <SelectItem value="physical">Physical Examination Findings</SelectItem>
                           </SelectContent>
                         </Select>
-                      
-                      {selectedExaminationType && (
-                        <div className="flex gap-3 mt-4">
-                          {selectedExaminationType === 'general' && (
-                            <Button 
-                              onClick={() => setShowGeneralExamModal(true)}
-                              className="flex-1"
-                            >
-                              <User className="w-4 h-4 mr-2" />
-                              Open General Examination Window
-                            </Button>
-                          )}
-                          {selectedExaminationType === 'cardiovascular' && (
-                            <Button 
-                              onClick={() => setShowCardiovascularExamModal(true)}
-                              className="flex-1"
-                            >
-                              <Heart className="w-4 h-4 mr-2" />
-                              Open Cardiovascular Examination Window
-                            </Button>
-                          )}
-                          {selectedExaminationType === 'respiratory' && (
-                            <Button 
-                              onClick={() => setShowRespiratoryExamModal(true)}
-                              className="flex-1"
-                            >
-                              <Activity className="w-4 h-4 mr-2" />
-                              Open Respiratory Examination Window
-                            </Button>
-                          )}
-                          {selectedExaminationType === 'neurological' && (
-                            <Button 
-                              onClick={() => setShowNeurologicalExamModal(true)}
-                              className="flex-1"
-                            >
-                              <Brain className="w-4 h-4 mr-2" />
-                              Open Neurological Examination Window
-                            </Button>
-                          )}
-                          {selectedExaminationType === 'anatomical' && (
-                            <Button 
-                              onClick={() => setShowAnatomicalModal(true)}
-                              className="flex-1"
-                            >
-                              <Eye className="w-4 h-4 mr-2" />
-                              Open Anatomical View Window
-                            </Button>
-                          )}
-                          {selectedExaminationType === 'physical' && (
-                            <Button 
-                              onClick={() => setShowPhysicalExamModal(true)}
-                              className="flex-1"
-                            >
-                              <Stethoscope className="w-4 h-4 mr-2" />
-                              Open Physical Examination Window
-                            </Button>
-                          )}
-                        </div>
-                      )}
                     </div>
                   </CardContent>
                 </Card>
