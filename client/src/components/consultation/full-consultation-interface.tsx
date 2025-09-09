@@ -1042,51 +1042,6 @@ Patient should be advised of potential side effects and expected timeline for re
             </TabsContent>
           </Tabs>
 
-          {/* Action Buttons */}
-          <div className="flex justify-between items-center mt-8 pt-6 border-t-2">
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                <X className="w-4 h-4 mr-2" />
-                Cancel
-              </Button>
-              <Button variant="outline">
-                <Printer className="w-4 h-4 mr-2" />
-                Print Summary
-              </Button>
-            </div>
-            
-            <div className="flex gap-3">
-              <Button 
-                variant="outline"
-                onClick={() => {
-                  toast({
-                    title: "Draft Saved",
-                    description: "Consultation saved as draft successfully",
-                  });
-                }}
-              >
-                <Save className="w-4 h-4 mr-2" />
-                Save Draft
-              </Button>
-              <Button 
-                onClick={() => saveConsultation.mutate()}
-                disabled={saveConsultation.isPending}
-                className="bg-green-600 hover:bg-green-700 text-white min-w-[200px]"
-              >
-                {saveConsultation.isPending ? (
-                  <>
-                    <Activity className="w-4 h-4 mr-2 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Complete Consultation
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
         </div>
       </DialogContent>
 
