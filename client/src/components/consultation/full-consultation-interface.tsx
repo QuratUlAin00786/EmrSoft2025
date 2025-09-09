@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,7 +31,9 @@ import {
   Activity,
   User,
   Clock,
-  HeartPulse
+  HeartPulse,
+  Mic,
+  Square
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -48,6 +50,82 @@ interface FullConsultationInterfaceProps {
 
 export function FullConsultationInterface({ open, onOpenChange, patient }: FullConsultationInterfaceProps) {
   const { toast } = useToast();
+
+  // Speech recognition functions
+  const startRecording = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      toast({
+        title: "Speech Recognition Not Supported",
+        description: "Your browser doesn't support speech recognition. Please type your notes manually.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    recognitionRef.current = new SpeechRecognition();
+    
+    recognitionRef.current.continuous = true;
+    recognitionRef.current.interimResults = true;
+    recognitionRef.current.lang = 'en-US';
+
+    recognitionRef.current.onstart = () => {
+      setIsRecording(true);
+      toast({
+        title: "Recording Started",
+        description: "Speak clearly into your microphone. Your speech will be transcribed in real-time.",
+      });
+    };
+
+    recognitionRef.current.onresult = (event: any) => {
+      let finalTranscript = '';
+      let interimTranscript = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcriptPart = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcriptPart;
+        } else {
+          interimTranscript += transcriptPart;
+        }
+      }
+
+      if (finalTranscript) {
+        setClinicalNotes(prev => prev + finalTranscript + ' ');
+        setTranscript('');
+      } else {
+        setTranscript(interimTranscript);
+      }
+    };
+
+    recognitionRef.current.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      setIsRecording(false);
+      toast({
+        title: "Recording Error",
+        description: "There was an error with speech recognition. Please try again.",
+        variant: "destructive",
+      });
+    };
+
+    recognitionRef.current.onend = () => {
+      setIsRecording(false);
+    };
+
+    recognitionRef.current.start();
+  };
+
+  const stopRecording = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+      setTranscript('');
+      toast({
+        title: "Recording Stopped",
+        description: "Transcription completed. You can continue typing or start recording again.",
+      });
+    }
+  };
   const [activeTab, setActiveTab] = useState("vitals");
   const [consultationStartTime] = useState(new Date());
   
@@ -135,6 +213,12 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
   const [anatomicalStep, setAnatomicalStep] = useState(1); // 1: Analysis, 2: Configuration, 3: Assessment
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const [isSavingAnalysis, setIsSavingAnalysis] = useState(false);
+
+  // Speech recognition state
+  const [isRecording, setIsRecording] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const [clinicalNotes, setClinicalNotes] = useState('');
+  const recognitionRef = useRef<any>(null);
 
   // Anatomical images array
   const anatomicalImages = [facialMuscleImage, facialOutlineImage];
@@ -635,9 +719,13 @@ Patient should be advised of potential side effects and expected timeline for re
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg">Clinical Notes</CardTitle>
-                      <Button variant="outline" size="sm">
-                        <Activity className="w-4 h-4 mr-2" />
-                        Transcribe Audio
+                      <Button 
+                        variant={isRecording ? "destructive" : "outline"} 
+                        size="sm"
+                        onClick={isRecording ? stopRecording : startRecording}
+                      >
+                        {isRecording ? <Square className="w-4 h-4 mr-2" /> : <Mic className="w-4 h-4 mr-2" />}
+                        {isRecording ? 'Stop Recording' : 'Transcribe Audio'}
                       </Button>
                     </div>
                   </CardHeader>
@@ -645,6 +733,8 @@ Patient should be advised of potential side effects and expected timeline for re
                     <Textarea
                       placeholder="Detailed consultation notes, observations, and findings. Click 'Transcribe Audio' to dictate your notes."
                       className="h-32"
+                      value={clinicalNotes + transcript}
+                      onChange={(e) => setClinicalNotes(e.target.value)}
                     />
                   </CardContent>
                 </Card>
