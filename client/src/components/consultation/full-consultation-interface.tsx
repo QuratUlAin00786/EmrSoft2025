@@ -138,7 +138,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
       followUp: {
         required: false,
         timeframe: "",
-        instructions: ""
+        reason: ""
       },
       consultationDate: new Date().toISOString()
     };
