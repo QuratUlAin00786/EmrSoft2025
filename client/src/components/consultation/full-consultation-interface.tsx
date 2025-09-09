@@ -1092,33 +1092,6 @@ Patient should be advised of potential side effects and expected timeline for re
                       className="w-full h-auto max-w-2xl mx-auto rounded-lg"
                     />
                     
-                    {/* Interactive muscle points overlay with labels */}
-                    <div className="absolute inset-0 max-w-2xl mx-auto">
-                      {Object.entries(muscleCoordinatesForImages[currentImageIndex as keyof typeof muscleCoordinatesForImages] || {}).map(([muscleName, coords]) => (
-                        <div
-                          key={muscleName}
-                          className="absolute transform -translate-x-1/2 -translate-y-1/2"
-                          style={{
-                            left: `${coords.x}%`,
-                            top: `${coords.y}%`,
-                          }}
-                        >
-                          <button
-                            className={`w-8 h-8 rounded-full transition-all duration-300 ${
-                              selectedMuscleGroup === muscleName
-                                ? 'bg-red-500 border-2 border-red-700 shadow-lg scale-110'
-                                : 'bg-blue-500 border-2 border-blue-700 opacity-70 hover:opacity-100 hover:scale-105'
-                            } z-10`}
-                            onClick={() => setSelectedMuscleGroup(muscleName)}
-                            title={`Select ${muscleName.replace(/_/g, ' ')}`}
-                          />
-                          {/* Anatomical labels */}
-                          <div className="absolute top-10 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 hover:opacity-100 transition-opacity whitespace-nowrap z-20">
-                            {muscleName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
                   </div>
 
                   {/* Navigation controls */}
