@@ -629,7 +629,7 @@ Patient should be advised of potential side effects and expected timeline for re
                           )}
                           {selectedExaminationType === 'respiratory' && (
                             <Button 
-                              onClick={() => setShowPhysicalExamModal(true)}
+                              onClick={() => setShowRespiratoryExamModal(true)}
                               className="flex-1"
                             >
                               <Activity className="w-4 h-4 mr-2" />
