@@ -1127,7 +1127,7 @@ Patient should be advised of potential side effects and expected timeline for re
                 
                 <div className="grid grid-cols-2 gap-8 mb-6">
                   {/* Left Side: Facial Muscle Analysis */}
-                  <Card className="h-fit">
+                  <Card className="h-full">
                     <CardHeader>
                       <CardTitle className="text-lg font-semibold">Facial Muscle Analysis</CardTitle>
                     </CardHeader>
@@ -1178,7 +1178,7 @@ Patient should be advised of potential side effects and expected timeline for re
                   </Card>
 
                   {/* Right Side: Treatment Options */}
-                  <Card className="h-fit">
+                  <Card className="h-full">
                     <CardHeader>
                       <CardTitle className="text-lg font-semibold">Treatment Options</CardTitle>
                     </CardHeader>
@@ -1236,7 +1236,7 @@ Patient should be advised of potential side effects and expected timeline for re
 
                 {/* Assessment Sections */}
                 <div className="grid grid-cols-3 gap-6 mb-6">
-                  <Card>
+                  <Card className="h-full">
                     <CardHeader>
                       <CardTitle className="text-lg font-semibold text-purple-700">Symptom Assessment</CardTitle>
                     </CardHeader>
@@ -1253,7 +1253,7 @@ Patient should be advised of potential side effects and expected timeline for re
                     </CardContent>
                   </Card>
 
-                  <Card>
+                  <Card className="h-full">
                     <CardHeader>
                       <CardTitle className="text-lg font-semibold text-red-700">Severity Scale</CardTitle>
                     </CardHeader>
@@ -1275,7 +1275,7 @@ Patient should be advised of potential side effects and expected timeline for re
                     </CardContent>
                   </Card>
 
-                  <Card>
+                  <Card className="h-full">
                     <CardHeader>
                       <CardTitle className="text-lg font-semibold text-green-700">Follow-up Plan</CardTitle>
                     </CardHeader>
