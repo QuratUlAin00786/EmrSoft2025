@@ -1151,11 +1151,6 @@ Patient should be advised of potential side effects and expected timeline for re
 
               {/* Configuration Window Below Image */}
               <div className="w-full max-w-6xl mx-auto">
-                <div className="flex items-center justify-center mb-6">
-                  <div className="bg-blue-600 text-white px-6 py-2 rounded-full text-sm font-medium">
-                    Professional Medical Anatomical Diagram
-                  </div>
-                </div>
                 
                 <div className="grid grid-cols-2 gap-8 mb-6">
                   {/* Left Side: Facial Muscle Analysis */}
