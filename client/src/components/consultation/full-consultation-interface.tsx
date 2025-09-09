@@ -131,24 +131,24 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
 
   // Define muscle coordinates for each anatomical image separately
   const muscleCoordinatesForImages = {
-    // Image 0: Labeled muscle diagram - Precisely positioned coordinates matching muscle labels
+    // Image 0: Labeled muscle diagram - Precisely positioned coordinates matching exact muscle label positions
     0: {
-      frontalis: { x: 63, y: 19 },        // FRONTALIS (FOREHEAD) - positioned over forehead label
-      temporalis: { x: 75, y: 18 },       // TEMPORALIS - positioned over right temple label
-      corrugator_supercilii: { x: 62, y: 28 }, // CORRUGATOR SUPERCILII - positioned over label between eyebrows
-      procerus: { x: 62, y: 32 },         // PROCERUS - positioned over center label between eyebrows
-      orbicularis_oculi: { x: 78, y: 40 }, // ORBICULARIS ORIS - positioned over right eye area label
-      levator_labii_superioris: { x: 85, y: 31 }, // LEVATOR LABII SUPERIORIS - positioned over right side label
-      alaque_nasi: { x: 82, y: 34 },      // ALAQUE NASI - positioned over right nostril label
-      zygomaticus_major: { x: 58, y: 36 }, // ZYGOMATICUS MAJOR & MINOR - positioned over cheek label area
-      zygomaticus_minor: { x: 58, y: 40 }, // ZYGOMATICUS MINOR - positioned over minor cheek label
-      levator_angularis: { x: 58, y: 36 }, // LEVATOR ANGULARIS - positioned over left side label
-      masseter: { x: 83, y: 43 },         // MASSETER - positioned over right jaw muscle label
-      buccinator: { x: 72, y: 39 },       // BUCCINATOR - positioned over right cheek label
-      orbicularis_oris: { x: 78, y: 40 }, // ORBICULARIS ORIS - positioned over mouth area label
-      mentalis: { x: 67, y: 56 },         // MENTALIS - positioned over chin label
-      depressor_anguli_oris: { x: 85, y: 48 }, // DEPRESSOR ANGULI ORIS - positioned over mouth corner label
-      depressor_labii_inferioris: { x: 85, y: 56 }, // DEPRESSOR LABII INFERIORIS - positioned over lower lip label
+      frontalis: { x: 63, y: 17 },        // FRONTALIS (FOREHEAD) - top center of forehead
+      temporalis: { x: 78, y: 16 },       // TEMPORALIS - right temple area (clearly visible label)
+      corrugator_supercilii: { x: 62, y: 21 }, // CORRUGATOR SUPERCILII - between eyebrows
+      procerus: { x: 83, y: 21 },         // PROCERUS - right side between eyebrows
+      orbicularis_oculi: { x: 78, y: 34 }, // ORBICULARIS OCULI - right eye area
+      levator_labii_superioris: { x: 85, y: 25 }, // LEVATOR LABII SUPERIORIS - right side above lip
+      alaque_nasi: { x: 82, y: 27 },      // ALAQUE NASI - right nostril area
+      zygomaticus_major: { x: 58, y: 34 }, // ZYGOMATICUS MAJOR & MINOR - left cheek area
+      zygomaticus_minor: { x: 58, y: 34 }, // ZYGOMATICUS MINOR - same area as major
+      levator_angularis: { x: 58, y: 30 }, // LEVATOR ANGULARIS - left side
+      masseter: { x: 83, y: 32 },         // MASSETER - right jaw muscle area
+      buccinator: { x: 73, y: 30 },       // BUCCINATOR - right cheek area
+      orbicularis_oris: { x: 78, y: 34 }, // ORBICULARIS ORIS - right mouth area
+      mentalis: { x: 63, y: 39 },         // MENTALIS - chin center
+      depressor_anguli_oris: { x: 85, y: 37 }, // DEPRESSOR ANGULI ORIS - right mouth corner
+      depressor_labii_inferioris: { x: 85, y: 40 }, // DEPRESSOR LABII INFERIORIS - lower lip right
       platysma: { x: 42, y: 75 }          // Neck muscle
     },
     // Image 1: Clean outline (vertical layout, more focused on face)
@@ -780,10 +780,10 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                                   {Object.entries(muscleCoordinatesForImages[currentImageIndex as keyof typeof muscleCoordinatesForImages] || {}).map(([muscleName, coords]) => (
                                     <button
                                       key={muscleName}
-                                      className={`absolute w-6 h-6 rounded-full transform -translate-x-1/2 -translate-y-1/2 transition-all duration-200 hover:scale-125 ${
+                                      className={`absolute w-8 h-8 rounded-full transform -translate-x-1/2 -translate-y-1/2 transition-all duration-200 hover:scale-110 ${
                                         selectedMuscleGroup === muscleName
                                           ? 'bg-red-500 border-2 border-red-700 shadow-lg opacity-80'
-                                          : 'bg-transparent hover:bg-blue-400 hover:opacity-50'
+                                          : 'bg-transparent hover:bg-blue-400 hover:opacity-50 border border-blue-300'
                                       }`}
                                       style={{
                                         left: `${coords.x}%`,
