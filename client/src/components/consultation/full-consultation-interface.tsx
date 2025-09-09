@@ -51,6 +51,68 @@ interface FullConsultationInterfaceProps {
 export function FullConsultationInterface({ open, onOpenChange, patient }: FullConsultationInterfaceProps) {
   const { toast } = useToast();
 
+  // Save consultation mutation
+  const saveConsultationMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch('/api/consultations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to save consultation');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Consultation Saved",
+        description: "The consultation record has been saved successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/patients', patient?.id, 'records'] });
+      onOpenChange(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Save Failed",
+        description: error.message || "Failed to save consultation. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle save consultation
+  const handleSaveConsultation = () => {
+    if (!patient?.id) {
+      toast({
+        title: "Error",
+        description: "Patient information is missing. Cannot save consultation.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const consultationRecord = {
+      patientId: patient.id,
+      type: 'consultation',
+      date: new Date().toISOString(),
+      data: {
+        ...consultationData,
+        clinicalNotes: clinicalNotes,
+        examination: {
+          ...consultationData.examination,
+          selectedType: selectedExaminationType
+        }
+      },
+      provider: 'Current Provider', // This should be the logged-in provider
+      status: 'completed'
+    };
+
+    saveConsultationMutation.mutate(consultationRecord);
+  };
+
   // Speech recognition functions
   const startRecording = () => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -768,11 +830,18 @@ Patient should be advised of potential side effects and expected timeline for re
 
                 {/* Action Buttons */}
                 <div className="flex justify-end gap-3 mt-6">
-                  <Button variant="outline">
+                  <Button 
+                    variant="outline"
+                    onClick={() => onOpenChange(false)}
+                  >
                     Cancel
                   </Button>
-                  <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                    Save Record
+                  <Button 
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    onClick={handleSaveConsultation}
+                    disabled={saveConsultationMutation.isPending}
+                  >
+                    {saveConsultationMutation.isPending ? 'Saving...' : 'Save Record'}
                   </Button>
                 </div>
               </div>
