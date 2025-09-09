@@ -1148,6 +1148,217 @@ Patient should be advised of potential side effects and expected timeline for re
                   </div>
                 </div>
               </div>
+
+              {/* Configuration Window Below Image */}
+              <div className="w-full max-w-6xl mx-auto">
+                <div className="flex items-center justify-center mb-6">
+                  <div className="bg-blue-600 text-white px-6 py-2 rounded-full text-sm font-medium">
+                    Professional Medical Anatomical Diagram
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-8 mb-6">
+                  {/* Left Side: Facial Muscle Analysis */}
+                  <Card className="h-fit">
+                    <CardHeader>
+                      <CardTitle className="text-lg font-semibold">Facial Muscle Analysis</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Target Muscle Group</Label>
+                        <Select value={selectedMuscleGroup} onValueChange={setSelectedMuscleGroup}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select muscle group" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="frontalis">Frontalis</SelectItem>
+                            <SelectItem value="temporalis">Temporalis</SelectItem>
+                            <SelectItem value="corrugator_supercilii">Corrugator Supercilii</SelectItem>
+                            <SelectItem value="procerus">Procerus</SelectItem>
+                            <SelectItem value="orbicularis_oculi">Orbicularis Oculi</SelectItem>
+                            <SelectItem value="levator_labii_superioris">Levator Labii Superioris</SelectItem>
+                            <SelectItem value="zygomaticus_major">Zygomaticus Major</SelectItem>
+                            <SelectItem value="masseter">Masseter</SelectItem>
+                            <SelectItem value="orbicularis_oris">Orbicularis Oris</SelectItem>
+                            <SelectItem value="mentalis">Mentalis</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Analysis Type</Label>
+                        <Select value={selectedAnalysisType} onValueChange={setSelectedAnalysisType}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select analysis type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="asymmetry">Asymmetry Analysis</SelectItem>
+                            <SelectItem value="weakness">Muscle Weakness</SelectItem>
+                            <SelectItem value="hyperactivity">Hyperactivity Assessment</SelectItem>
+                            <SelectItem value="coordination">Coordination Testing</SelectItem>
+                            <SelectItem value="range_of_motion">Range of Motion</SelectItem>
+                            <SelectItem value="functional_assessment">Functional Assessment</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Right Side: Treatment Options */}
+                  <Card className="h-fit">
+                    <CardHeader>
+                      <CardTitle className="text-lg font-semibold">Treatment Options</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Primary Treatment</Label>
+                        <Select value={selectedTreatment} onValueChange={setSelectedTreatment}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select primary treatment" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="botulinum_toxin">Botulinum Toxin</SelectItem>
+                            <SelectItem value="dermal_fillers">Dermal Fillers</SelectItem>
+                            <SelectItem value="facial_exercise">Facial Exercise Therapy</SelectItem>
+                            <SelectItem value="massage_therapy">Therapeutic Massage</SelectItem>
+                            <SelectItem value="physiotherapy">Physiotherapy</SelectItem>
+                            <SelectItem value="neuromuscular_reeducation">Neuromuscular Reeducation</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Treatment Intensity</Label>
+                        <Select value={selectedTreatmentIntensity} onValueChange={setSelectedTreatmentIntensity}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select intensity level" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="low">Low Intensity</SelectItem>
+                            <SelectItem value="moderate">Moderate Intensity</SelectItem>
+                            <SelectItem value="high">High Intensity</SelectItem>
+                            <SelectItem value="progressive">Progressive Intensity</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Session Frequency</Label>
+                        <Select value={selectedSessionFrequency} onValueChange={setSelectedSessionFrequency}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select frequency" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="daily">Daily</SelectItem>
+                            <SelectItem value="twice_weekly">Twice Weekly</SelectItem>
+                            <SelectItem value="weekly">Weekly</SelectItem>
+                            <SelectItem value="biweekly">Bi-weekly</SelectItem>
+                            <SelectItem value="monthly">Monthly</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Assessment Sections */}
+                <div className="grid grid-cols-3 gap-6 mb-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg font-semibold text-purple-700">Symptom Assessment</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <Label>Primary symptoms</Label>
+                        <Textarea
+                          placeholder="Describe primary symptoms..."
+                          value={primarySymptoms}
+                          onChange={(e) => setPrimarySymptoms(e.target.value)}
+                          className="h-20 text-sm"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg font-semibold text-red-700">Severity Scale</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <Label>Rate severity</Label>
+                        <Select value={severityScale} onValueChange={setSeverityScale}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Rate severity level" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1">Mild (1-2)</SelectItem>
+                            <SelectItem value="3">Moderate (3-5)</SelectItem>
+                            <SelectItem value="6">Severe (6-8)</SelectItem>
+                            <SelectItem value="9">Critical (9-10)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg font-semibold text-green-700">Follow-up Plan</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <Label>Follow-up timeline</Label>
+                        <Textarea
+                          placeholder="Outline follow-up plan..."
+                          value={followUpPlan}
+                          onChange={(e) => setFollowUpPlan(e.target.value)}
+                          className="h-20 text-sm"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-center gap-4 pt-6 border-t">
+                  <Button
+                    onClick={generateTreatmentPlan}
+                    disabled={isGeneratingPlan}
+                    className="bg-green-600 hover:bg-green-700 px-6"
+                  >
+                    {isGeneratingPlan ? "Generating..." : "Generate Treatment Plan"}
+                  </Button>
+                  <Button
+                    onClick={saveAnalysis}
+                    disabled={isSavingAnalysis}
+                    className="bg-blue-600 hover:bg-blue-700 px-6"
+                  >
+                    {isSavingAnalysis ? "Saving..." : "Save Analysis"}
+                  </Button>
+                  <Button
+                    onClick={() => setShowAnatomicalModal(false)}
+                    variant="outline"
+                    className="px-6"
+                  >
+                    Close Analysis
+                  </Button>
+                </div>
+
+                {/* Generated Treatment Plan Display */}
+                {generatedTreatmentPlan && (
+                  <Card className="mt-6">
+                    <CardHeader>
+                      <CardTitle className="text-lg">Generated Treatment Plan</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <pre className="whitespace-pre-wrap text-sm bg-gray-50 p-4 rounded border">
+                        {generatedTreatmentPlan}
+                      </pre>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
             </div>
           )}
 
