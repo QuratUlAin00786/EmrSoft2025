@@ -37,7 +37,6 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
-import anatomicalDiagramImage from "@assets/2_1754469563272.png";
 import facialMuscleImage from "@assets/generated_images/Medical_facial_muscle_diagram_ae7b35b5.png";
 import facialOutlineImage from "@assets/generated_images/Clean_facial_anatomy_outline_4b91e595.png";
 
@@ -128,28 +127,11 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
   const [isSavingAnalysis, setIsSavingAnalysis] = useState(false);
 
   // Anatomical images array
-  const anatomicalImages = [anatomicalDiagramImage, facialMuscleImage, facialOutlineImage];
+  const anatomicalImages = [facialMuscleImage, facialOutlineImage];
 
   // Muscle coordinates for interactive overlay
   const muscleCoordinatesForImages = {
     0: {
-      frontalis: { x: 50, y: 15 },
-      temporalis: { x: 25, y: 25 },
-      corrugator_supercilii: { x: 40, y: 20 },
-      procerus: { x: 50, y: 30 },
-      orbicularis_oculi: { x: 45, y: 35 },
-      levator_labii_superioris: { x: 40, y: 45 },
-      zygomaticus_major: { x: 35, y: 50 },
-      zygomaticus_minor: { x: 38, y: 48 },
-      masseter: { x: 30, y: 55 },
-      buccinator: { x: 35, y: 58 },
-      orbicularis_oris: { x: 50, y: 65 },
-      mentalis: { x: 50, y: 75 },
-      depressor_anguli_oris: { x: 45, y: 70 },
-      depressor_labii_inferioris: { x: 47, y: 72 },
-      platysma: { x: 50, y: 85 }
-    },
-    1: {
       frontalis: { x: 50, y: 10 },
       temporalis: { x: 20, y: 20 },
       orbicularis_oculi: { x: 42, y: 30 },
@@ -159,7 +141,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
       orbicularis_oris: { x: 50, y: 60 },
       mentalis: { x: 50, y: 70 }
     },
-    2: {
+    1: {
       frontalis: { x: 50, y: 8 },
       temporalis: { x: 15, y: 15 },
       corrugator_supercilii: { x: 35, y: 15 },
