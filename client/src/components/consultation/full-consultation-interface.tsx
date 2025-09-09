@@ -587,7 +587,11 @@ Patient should be advised of potential side effects and expected timeline for re
                             <SelectValue placeholder="Choose examination type..." />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="anatomical">Anatomical View – Muscle Analysis</SelectItem>
+                            <SelectItem value="general">General Examination</SelectItem>
+                            <SelectItem value="cardiovascular">Cardiovascular</SelectItem>
+                            <SelectItem value="respiratory">Respiratory</SelectItem>
+                            <SelectItem value="neurological">Neurological</SelectItem>
+                            <SelectItem value="anatomical">Anatomical (View Muscles)</SelectItem>
                             <SelectItem value="physical">Physical Examination Findings</SelectItem>
                           </SelectContent>
                         </Select>
@@ -595,6 +599,42 @@ Patient should be advised of potential side effects and expected timeline for re
                       
                       {selectedExaminationType && (
                         <div className="flex gap-3 mt-4">
+                          {selectedExaminationType === 'general' && (
+                            <Button 
+                              onClick={() => setShowPhysicalExamModal(true)}
+                              className="flex-1"
+                            >
+                              <User className="w-4 h-4 mr-2" />
+                              Open General Examination Window
+                            </Button>
+                          )}
+                          {selectedExaminationType === 'cardiovascular' && (
+                            <Button 
+                              onClick={() => setShowPhysicalExamModal(true)}
+                              className="flex-1"
+                            >
+                              <Heart className="w-4 h-4 mr-2" />
+                              Open Cardiovascular Examination Window
+                            </Button>
+                          )}
+                          {selectedExaminationType === 'respiratory' && (
+                            <Button 
+                              onClick={() => setShowPhysicalExamModal(true)}
+                              className="flex-1"
+                            >
+                              <Activity className="w-4 h-4 mr-2" />
+                              Open Respiratory Examination Window
+                            </Button>
+                          )}
+                          {selectedExaminationType === 'neurological' && (
+                            <Button 
+                              onClick={() => setShowPhysicalExamModal(true)}
+                              className="flex-1"
+                            >
+                              <Brain className="w-4 h-4 mr-2" />
+                              Open Neurological Examination Window
+                            </Button>
+                          )}
                           {selectedExaminationType === 'anatomical' && (
                             <Button 
                               onClick={() => setShowAnatomicalModal(true)}
