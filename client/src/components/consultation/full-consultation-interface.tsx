@@ -1012,7 +1012,6 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                       </div>
                     </DialogContent>
                   </Dialog>
-                </div>
               </TabsContent>
 
               <TabsContent value="assessment" className="space-y-4">
