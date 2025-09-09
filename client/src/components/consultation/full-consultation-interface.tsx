@@ -121,8 +121,14 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string>("");
   const [selectedAnalysisType, setSelectedAnalysisType] = useState<string>("");
   const [selectedTreatment, setSelectedTreatment] = useState<string>("");
+  const [selectedTreatmentIntensity, setSelectedTreatmentIntensity] = useState<string>("");
+  const [selectedSessionFrequency, setSelectedSessionFrequency] = useState<string>("");
+  const [primarySymptoms, setPrimarySymptoms] = useState<string>("");
+  const [severityScale, setSeverityScale] = useState<string>("");
+  const [followUpPlan, setFollowUpPlan] = useState<string>("");
   const [generatedTreatmentPlan, setGeneratedTreatmentPlan] = useState<string>("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [anatomicalStep, setAnatomicalStep] = useState(1); // 1: Analysis, 2: Configuration, 3: Assessment
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const [isSavingAnalysis, setIsSavingAnalysis] = useState(false);
 
@@ -1045,179 +1051,444 @@ Patient should be advised of potential side effects and expected timeline for re
         </div>
       </DialogContent>
 
-      {/* Anatomical View Modal */}
-      <Dialog open={showAnatomicalModal} onOpenChange={setShowAnatomicalModal}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Eye className="w-5 h-5 text-blue-600" />
-              Anatomical View - Muscle Analysis
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-6 p-4">
-            {/* Interactive Anatomical Images */}
-            <div className="flex flex-col items-center space-y-4">
-              <div className="relative bg-gray-50 rounded-lg p-4 w-full max-w-2xl">
-                <div className="relative">
-                  <img
-                    src={anatomicalImages[currentImageIndex]}
-                    alt={`Anatomical diagram ${currentImageIndex + 1}`}
-                    className="w-full h-auto max-w-lg mx-auto rounded-lg shadow-md"
-                  />
-                  
-                  {/* Interactive muscle points overlay */}
-                  <div className="absolute inset-0 max-w-lg mx-auto">
-                    {Object.entries(muscleCoordinatesForImages[currentImageIndex as keyof typeof muscleCoordinatesForImages] || {}).map(([muscleName, coords]) => (
-                      <button
-                        key={muscleName}
-                        className={`absolute w-10 h-10 rounded-full transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ${
-                          selectedMuscleGroup === muscleName
-                            ? 'bg-red-500 border-3 border-red-700 shadow-xl opacity-90 scale-110'
-                            : 'bg-transparent hover:bg-blue-200 hover:opacity-30'
-                        } z-10`}
-                        style={{
-                          left: `${coords.x}%`,
-                          top: `${coords.y}%`,
-                        }}
-                        onClick={() => setSelectedMuscleGroup(muscleName)}
-                        title={`Select ${muscleName.replace(/_/g, ' ')}`}
-                      />
-                    ))}
-                  </div>
+      {/* Anatomical View Modal - Step-by-step Flow */}
+      <Dialog open={showAnatomicalModal} onOpenChange={(open) => {
+        setShowAnatomicalModal(open);
+        if (!open) {
+          setAnatomicalStep(1); // Reset to first step when closing
+        }
+      }}>
+        <DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto">
+          <DialogHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-xl font-bold flex items-center gap-3">
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                  <Eye className="w-4 h-4 text-white" />
                 </div>
+                Professional Anatomical Analysis
+              </DialogTitle>
+              {anatomicalStep > 1 && (
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                  <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                  <div className={`w-2 h-2 rounded-full ${anatomicalStep === 3 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
+                </div>
+              )}
+            </div>
+            <p className="text-sm text-gray-600 mt-1">
+              Advanced facial muscle analysis with optimized container spacing
+            </p>
+          </DialogHeader>
 
-                {/* Navigation controls */}
-                <div className="flex justify-between items-center mt-4">
-                  <Button
-                    onClick={() => navigateImage('prev')}
-                    variant="outline"
-                    size="sm"
-                  >
-                    ← Previous
-                  </Button>
-                  <Badge variant="outline" className="px-3 py-1">
-                    Image {currentImageIndex + 1} of {anatomicalImages.length}
-                  </Badge>
-                  <Button
-                    onClick={() => navigateImage('next')}
-                    variant="outline"
-                    size="sm"
-                  >
-                    Next →
-                  </Button>
+          {/* Step 1: Professional Anatomical Analysis */}
+          {anatomicalStep === 1 && (
+            <div className="space-y-6 p-4">
+              <div className="flex flex-col items-center space-y-4">
+                <div className="relative bg-white rounded-lg p-6 w-full max-w-4xl border shadow-sm">
+                  <div className="relative">
+                    <img
+                      src={anatomicalImages[currentImageIndex]}
+                      alt="Professional Anatomical Analysis"
+                      className="w-full h-auto max-w-2xl mx-auto rounded-lg"
+                    />
+                    
+                    {/* Interactive muscle points overlay with labels */}
+                    <div className="absolute inset-0 max-w-2xl mx-auto">
+                      {Object.entries(muscleCoordinatesForImages[currentImageIndex as keyof typeof muscleCoordinatesForImages] || {}).map(([muscleName, coords]) => (
+                        <div
+                          key={muscleName}
+                          className="absolute transform -translate-x-1/2 -translate-y-1/2"
+                          style={{
+                            left: `${coords.x}%`,
+                            top: `${coords.y}%`,
+                          }}
+                        >
+                          <button
+                            className={`w-8 h-8 rounded-full transition-all duration-300 ${
+                              selectedMuscleGroup === muscleName
+                                ? 'bg-red-500 border-2 border-red-700 shadow-lg scale-110'
+                                : 'bg-blue-500 border-2 border-blue-700 opacity-70 hover:opacity-100 hover:scale-105'
+                            } z-10`}
+                            onClick={() => setSelectedMuscleGroup(muscleName)}
+                            title={`Select ${muscleName.replace(/_/g, ' ')}`}
+                          />
+                          {/* Anatomical labels */}
+                          <div className="absolute top-10 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 hover:opacity-100 transition-opacity whitespace-nowrap z-20">
+                            {muscleName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Navigation controls */}
+                  <div className="flex justify-between items-center mt-6">
+                    <Button
+                      onClick={() => navigateImage('prev')}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      ← Previous
+                    </Button>
+                    <Button
+                      onClick={() => setAnatomicalStep(2)}
+                      className="bg-blue-600 hover:bg-blue-700 px-8"
+                    >
+                      Professional Medical Anatomical Diagram →
+                    </Button>
+                    <Button
+                      onClick={() => navigateImage('next')}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      Next →
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
+          )}
 
-            {/* Analysis Controls */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="muscle-group">Selected Muscle Group</Label>
-                  <Select value={selectedMuscleGroup} onValueChange={setSelectedMuscleGroup}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select muscle group" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="frontalis">Frontalis</SelectItem>
-                      <SelectItem value="temporalis">Temporalis</SelectItem>
-                      <SelectItem value="corrugator_supercilii">Corrugator Supercilii</SelectItem>
-                      <SelectItem value="procerus">Procerus</SelectItem>
-                      <SelectItem value="orbicularis_oculi">Orbicularis Oculi</SelectItem>
-                      <SelectItem value="levator_labii_superioris">Levator Labii Superioris</SelectItem>
-                      <SelectItem value="zygomaticus_major">Zygomaticus Major</SelectItem>
-                      <SelectItem value="zygomaticus_minor">Zygomaticus Minor</SelectItem>
-                      <SelectItem value="masseter">Masseter</SelectItem>
-                      <SelectItem value="buccinator">Buccinator</SelectItem>
-                      <SelectItem value="orbicularis_oris">Orbicularis Oris</SelectItem>
-                      <SelectItem value="mentalis">Mentalis</SelectItem>
-                      <SelectItem value="depressor_anguli_oris">Depressor Anguli Oris</SelectItem>
-                      <SelectItem value="depressor_labii_inferioris">Depressor Labii Inferioris</SelectItem>
-                      <SelectItem value="platysma">Platysma</SelectItem>
-                    </SelectContent>
-                  </Select>
+          {/* Step 2: Configuration Screen */}
+          {anatomicalStep === 2 && (
+            <div className="space-y-6 p-4">
+              <div className="flex items-center justify-center mb-6">
+                <div className="bg-blue-600 text-white px-6 py-2 rounded-full text-sm font-medium">
+                  Professional Medical Anatomical Diagram
                 </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-8">
+                {/* Left Side: Facial Muscle Analysis */}
+                <Card className="h-fit">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold">Facial Muscle Analysis</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Target Muscle Group</Label>
+                      <Select value={selectedMuscleGroup} onValueChange={setSelectedMuscleGroup}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select muscle group" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="frontalis">Frontalis</SelectItem>
+                          <SelectItem value="temporalis">Temporalis</SelectItem>
+                          <SelectItem value="corrugator_supercilii">Corrugator Supercilii</SelectItem>
+                          <SelectItem value="procerus">Procerus</SelectItem>
+                          <SelectItem value="orbicularis_oculi">Orbicularis Oculi</SelectItem>
+                          <SelectItem value="levator_labii_superioris">Levator Labii Superioris</SelectItem>
+                          <SelectItem value="zygomaticus_major">Zygomaticus Major</SelectItem>
+                          <SelectItem value="masseter">Masseter</SelectItem>
+                          <SelectItem value="orbicularis_oris">Orbicularis Oris</SelectItem>
+                          <SelectItem value="mentalis">Mentalis</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="analysis-type">Analysis Type</Label>
-                  <Select value={selectedAnalysisType} onValueChange={setSelectedAnalysisType}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select analysis type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="asymmetry">Asymmetry Analysis</SelectItem>
-                      <SelectItem value="weakness">Muscle Weakness</SelectItem>
-                      <SelectItem value="hyperactivity">Hyperactivity Assessment</SelectItem>
-                      <SelectItem value="coordination">Coordination Testing</SelectItem>
-                      <SelectItem value="range_of_motion">Range of Motion</SelectItem>
-                      <SelectItem value="functional_assessment">Functional Assessment</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                    <div className="space-y-2">
+                      <Label>Analysis Type</Label>
+                      <Select value={selectedAnalysisType} onValueChange={setSelectedAnalysisType}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select analysis type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="asymmetry">Asymmetry Analysis</SelectItem>
+                          <SelectItem value="weakness">Muscle Weakness</SelectItem>
+                          <SelectItem value="hyperactivity">Hyperactivity Assessment</SelectItem>
+                          <SelectItem value="coordination">Coordination Testing</SelectItem>
+                          <SelectItem value="range_of_motion">Range of Motion</SelectItem>
+                          <SelectItem value="functional_assessment">Functional Assessment</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardContent>
+                </Card>
 
-                <div className="space-y-2">
-                  <Label htmlFor="treatment">Primary Treatment</Label>
-                  <Select value={selectedTreatment} onValueChange={setSelectedTreatment}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select treatment" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="botulinum_toxin">Botulinum Toxin</SelectItem>
-                      <SelectItem value="dermal_fillers">Dermal Fillers</SelectItem>
-                      <SelectItem value="facial_exercise">Facial Exercise Therapy</SelectItem>
-                      <SelectItem value="massage_therapy">Therapeutic Massage</SelectItem>
-                      <SelectItem value="physiotherapy">Physiotherapy</SelectItem>
-                      <SelectItem value="neuromuscular_reeducation">Neuromuscular Reeducation</SelectItem>
-                      <SelectItem value="observation">Observation Only</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {/* Right Side: Treatment Options */}
+                <Card className="h-fit">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold">Treatment Options</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Primary Treatment</Label>
+                      <Select value={selectedTreatment} onValueChange={setSelectedTreatment}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select primary treatment" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="botulinum_toxin">Botulinum Toxin</SelectItem>
+                          <SelectItem value="dermal_fillers">Dermal Fillers</SelectItem>
+                          <SelectItem value="facial_exercise">Facial Exercise Therapy</SelectItem>
+                          <SelectItem value="massage_therapy">Therapeutic Massage</SelectItem>
+                          <SelectItem value="physiotherapy">Physiotherapy</SelectItem>
+                          <SelectItem value="neuromuscular_reeducation">Neuromuscular Reeducation</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="analysis-notes">Analysis Notes</Label>
-                  <Textarea
-                    placeholder="Enter detailed analysis observations..."
-                    className="h-20"
-                  />
+                    <div className="space-y-2">
+                      <Label>Treatment Intensity</Label>
+                      <Select value={selectedTreatmentIntensity} onValueChange={setSelectedTreatmentIntensity}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select intensity level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">Low Intensity</SelectItem>
+                          <SelectItem value="moderate">Moderate Intensity</SelectItem>
+                          <SelectItem value="high">High Intensity</SelectItem>
+                          <SelectItem value="progressive">Progressive Intensity</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Session Frequency</Label>
+                      <Select value={selectedSessionFrequency} onValueChange={setSelectedSessionFrequency}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select frequency" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="daily">Daily</SelectItem>
+                          <SelectItem value="twice_weekly">Twice Weekly</SelectItem>
+                          <SelectItem value="weekly">Weekly</SelectItem>
+                          <SelectItem value="biweekly">Bi-weekly</SelectItem>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="flex justify-between items-center pt-6">
+                <Button
+                  onClick={() => setAnatomicalStep(1)}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  ← Back to Analysis
+                </Button>
+                <Button
+                  onClick={() => setAnatomicalStep(3)}
+                  className="bg-blue-600 hover:bg-blue-700 px-8"
+                  disabled={!selectedMuscleGroup || !selectedAnalysisType || !selectedTreatment}
+                >
+                  Continue to Assessment →
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Extended Assessment */}
+          {anatomicalStep === 3 && (
+            <div className="space-y-6 p-4">
+              <div className="flex items-center justify-center mb-6">
+                <div className="bg-blue-600 text-white px-6 py-2 rounded-full text-sm font-medium">
+                  Professional Medical Anatomical Diagram
                 </div>
               </div>
 
-              <div className="space-y-4">
-                {/* Action Buttons */}
-                <div className="flex gap-2">
+              {/* First Row: Facial Muscle Analysis and Treatment Options */}
+              <div className="grid grid-cols-2 gap-8">
+                <Card className="h-fit">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold">Facial Muscle Analysis</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Target Muscle Group</Label>
+                      <Select value={selectedMuscleGroup} onValueChange={setSelectedMuscleGroup}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select muscle group" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="frontalis">Frontalis</SelectItem>
+                          <SelectItem value="temporalis">Temporalis</SelectItem>
+                          <SelectItem value="orbicularis_oculi">Orbicularis Oculi</SelectItem>
+                          <SelectItem value="masseter">Masseter</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Analysis Type</Label>
+                      <Select value={selectedAnalysisType} onValueChange={setSelectedAnalysisType}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select analysis type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="asymmetry">Asymmetry Analysis</SelectItem>
+                          <SelectItem value="weakness">Muscle Weakness</SelectItem>
+                          <SelectItem value="coordination">Coordination Testing</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="h-fit">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold">Treatment Options</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Primary Treatment</Label>
+                      <Select value={selectedTreatment} onValueChange={setSelectedTreatment}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select primary treatment" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="botulinum_toxin">Botulinum Toxin</SelectItem>
+                          <SelectItem value="dermal_fillers">Dermal Fillers</SelectItem>
+                          <SelectItem value="facial_exercise">Facial Exercise Therapy</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Treatment Intensity</Label>
+                      <Select value={selectedTreatmentIntensity} onValueChange={setSelectedTreatmentIntensity}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select intensity level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">Low Intensity</SelectItem>
+                          <SelectItem value="moderate">Moderate Intensity</SelectItem>
+                          <SelectItem value="high">High Intensity</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Session Frequency</Label>
+                      <Select value={selectedSessionFrequency} onValueChange={setSelectedSessionFrequency}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select frequency" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="weekly">Weekly</SelectItem>
+                          <SelectItem value="biweekly">Bi-weekly</SelectItem>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Second Row: Assessment Sections */}
+              <div className="grid grid-cols-3 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold text-purple-700">Symptom Assessment</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <Label>Primary symptoms</Label>
+                      <Textarea
+                        placeholder="Describe primary symptoms..."
+                        value={primarySymptoms}
+                        onChange={(e) => setPrimarySymptoms(e.target.value)}
+                        className="h-20 text-sm"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold text-red-700">Severity Scale</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <Label>Rate severity</Label>
+                      <Select value={severityScale} onValueChange={setSeverityScale}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Rate severity level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">Mild (1-2)</SelectItem>
+                          <SelectItem value="3">Moderate (3-5)</SelectItem>
+                          <SelectItem value="6">Severe (6-8)</SelectItem>
+                          <SelectItem value="9">Critical (9-10)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold text-green-700">Follow-up Plan</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <Label>Follow-up timeline</Label>
+                      <Textarea
+                        placeholder="Outline follow-up plan..."
+                        value={followUpPlan}
+                        onChange={(e) => setFollowUpPlan(e.target.value)}
+                        className="h-20 text-sm"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-between items-center pt-6 border-t">
+                <Button
+                  onClick={() => setAnatomicalStep(2)}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  ← Back to Configuration
+                </Button>
+                
+                <div className="flex gap-4">
                   <Button
                     onClick={generateTreatmentPlan}
-                    disabled={!selectedMuscleGroup || !selectedAnalysisType || !selectedTreatment || isGeneratingPlan}
-                    className="flex-1"
+                    disabled={isGeneratingPlan}
+                    className="bg-green-600 hover:bg-green-700 px-6"
                   >
                     {isGeneratingPlan ? "Generating..." : "Generate Treatment Plan"}
                   </Button>
                   <Button
                     onClick={saveAnalysis}
-                    disabled={!selectedMuscleGroup || !selectedAnalysisType || isSavingAnalysis}
-                    variant="secondary"
-                    className="flex-1"
+                    disabled={isSavingAnalysis}
+                    className="bg-blue-600 hover:bg-blue-700 px-6"
                   >
                     {isSavingAnalysis ? "Saving..." : "Save Analysis"}
                   </Button>
+                  <Button
+                    onClick={() => setShowAnatomicalModal(false)}
+                    variant="outline"
+                    className="px-6"
+                  >
+                    Close Analysis
+                  </Button>
                 </div>
-
-                {/* Generated Treatment Plan Display */}
-                {generatedTreatmentPlan && (
-                  <Card className="mt-4">
-                    <CardHeader>
-                      <CardTitle className="text-base">Generated Treatment Plan</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <pre className="whitespace-pre-wrap text-sm bg-gray-50 p-4 rounded border">
-                        {generatedTreatmentPlan}
-                      </pre>
-                    </CardContent>
-                  </Card>
-                )}
               </div>
+
+              {/* Generated Treatment Plan Display */}
+              {generatedTreatmentPlan && (
+                <Card className="mt-6">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Generated Treatment Plan</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <pre className="whitespace-pre-wrap text-sm bg-gray-50 p-4 rounded border">
+                      {generatedTreatmentPlan}
+                    </pre>
+                  </CardContent>
+                </Card>
+              )}
             </div>
-          </div>
+          )}
         </DialogContent>
       </Dialog>
 
