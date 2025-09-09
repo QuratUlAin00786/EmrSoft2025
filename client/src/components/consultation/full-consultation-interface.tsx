@@ -772,26 +772,6 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                                   alt={`Anatomical diagram ${currentImageIndex + 1}`}
                                   className="w-full h-auto max-w-lg mx-auto rounded-lg shadow-md"
                                 />
-                                
-                                {/* Interactive muscle points overlay */}
-                                <div className="absolute inset-0 max-w-lg mx-auto">
-                                  {Object.entries(muscleCoordinatesForImages[currentImageIndex as keyof typeof muscleCoordinatesForImages] || {}).map(([muscleName, coords]) => (
-                                    <button
-                                      key={muscleName}
-                                      className={`absolute w-4 h-4 rounded-full border-2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-200 hover:scale-125 ${
-                                        selectedMuscleGroup === muscleName
-                                          ? 'bg-red-500 border-red-700 shadow-lg'
-                                          : 'bg-blue-500 border-blue-700 hover:bg-blue-600'
-                                      }`}
-                                      style={{
-                                        left: `${coords.x}%`,
-                                        top: `${coords.y}%`
-                                      }}
-                                      onClick={() => setSelectedMuscleGroup(muscleName)}
-                                      title={muscleName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                    />
-                                  ))}
-                                </div>
                               </div>
                               
                               {/* Image Navigation Controls */}
