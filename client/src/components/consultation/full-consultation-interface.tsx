@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -1747,6 +1747,14 @@ Patient should be advised of potential side effects and expected timeline for re
               ))}
             </div>
           </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPhysicalExamModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => setShowPhysicalExamModal(false)} className="bg-blue-600 hover:bg-blue-700">
+              Save
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -1779,6 +1787,14 @@ Patient should be advised of potential side effects and expected timeline for re
               </div>
             </div>
           </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowGeneralExamModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => setShowGeneralExamModal(false)} className="bg-blue-600 hover:bg-blue-700">
+              Save
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -1819,6 +1835,14 @@ Patient should be advised of potential side effects and expected timeline for re
               </div>
             </div>
           </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCardiovascularExamModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => setShowCardiovascularExamModal(false)} className="bg-blue-600 hover:bg-blue-700">
+              Save
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -1859,6 +1883,14 @@ Patient should be advised of potential side effects and expected timeline for re
               </div>
             </div>
           </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRespiratoryExamModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => setShowRespiratoryExamModal(false)} className="bg-blue-600 hover:bg-blue-700">
+              Save
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -1899,6 +1931,14 @@ Patient should be advised of potential side effects and expected timeline for re
               </div>
             </div>
           </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNeurologicalExamModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => setShowNeurologicalExamModal(false)} className="bg-blue-600 hover:bg-blue-700">
+              Save
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </Dialog>
