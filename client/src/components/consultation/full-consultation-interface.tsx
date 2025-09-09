@@ -780,10 +780,10 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                                   {Object.entries(muscleCoordinatesForImages[currentImageIndex as keyof typeof muscleCoordinatesForImages] || {}).map(([muscleName, coords]) => (
                                     <button
                                       key={muscleName}
-                                      className={`absolute w-8 h-8 rounded-full transform -translate-x-1/2 -translate-y-1/2 transition-all duration-200 ${
+                                      className={`absolute w-10 h-10 rounded-full transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ${
                                         selectedMuscleGroup === muscleName
-                                          ? 'bg-red-500 border-2 border-red-700 shadow-lg opacity-80'
-                                          : 'bg-transparent hover:bg-transparent'
+                                          ? 'bg-red-500 border-3 border-red-700 shadow-xl opacity-90 scale-110'
+                                          : 'bg-transparent hover:bg-blue-200 hover:opacity-30'
                                       }`}
                                       style={{
                                         left: `${coords.x}%`,
