@@ -658,6 +658,62 @@ Patient should be advised of potential side effects and expected timeline for re
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Clinical Notes Section */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">Clinical Notes</CardTitle>
+                      <Button variant="outline" size="sm">
+                        <Activity className="w-4 h-4 mr-2" />
+                        Transcribe Audio
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <Textarea
+                      placeholder="Detailed consultation notes, observations, and findings. Click 'Transcribe Audio' to dictate your notes."
+                      className="h-32"
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* Diagnosis and Treatment Plan Section */}
+                <div className="grid grid-cols-2 gap-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Diagnosis</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <Textarea
+                        placeholder="Primary and secondary diagnoses with ICD codes..."
+                        className="h-32"
+                      />
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Treatment Plan</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <Textarea
+                        placeholder="Treatment recommendations and care plan..."
+                        className="h-32"
+                      />
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-3 mt-6">
+                  <Button variant="outline">
+                    Cancel
+                  </Button>
+                  <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                    Save Record
+                  </Button>
+                </div>
               </div>
             </TabsContent>
 
