@@ -131,25 +131,25 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
 
   // Define muscle coordinates for each anatomical image separately
   const muscleCoordinatesForImages = {
-    // Image 0: Labeled muscle diagram - Coordinates positioned over actual muscle areas, not labels
+    // Image 0: Labeled muscle diagram - Coordinates positioned precisely over visible muscle areas on face
     0: {
-      frontalis: { x: 50, y: 15 },        // FRONTALIS - over actual forehead muscle area
-      temporalis: { x: 25, y: 25 },       // TEMPORALIS - over actual left temple muscle area
-      corrugator_supercilii: { x: 43, y: 23 }, // CORRUGATOR SUPERCILII - over actual muscle between eyebrows
-      procerus: { x: 50, y: 28 },         // PROCERUS - over actual muscle at bridge of nose
-      orbicularis_oculi: { x: 42, y: 32 }, // ORBICULARIS OCULI - over actual eye muscle area
-      levator_labii_superioris: { x: 46, y: 42 }, // LEVATOR LABII SUPERIORIS - over actual upper lip muscle
-      alaque_nasi: { x: 48, y: 38 },      // ALAQUE NASI - over actual nostril muscle area
-      zygomaticus_major: { x: 32, y: 48 }, // ZYGOMATICUS MAJOR - over actual cheek muscle area
-      zygomaticus_minor: { x: 42, y: 45 }, // ZYGOMATICUS MINOR - over actual minor cheek muscle
-      levator_angularis: { x: 38, y: 40 }, // LEVATOR ANGULARIS - over actual muscle area
-      masseter: { x: 28, y: 58 },         // MASSETER - over actual jaw muscle area (left side)
-      buccinator: { x: 38, y: 52 },       // BUCCINATOR - over actual cheek muscle area
-      orbicularis_oris: { x: 50, y: 58 }, // ORBICULARIS ORIS - over actual mouth muscle area
-      mentalis: { x: 50, y: 68 },         // MENTALIS - over actual chin muscle area
-      depressor_anguli_oris: { x: 46, y: 62 }, // DEPRESSOR ANGULI ORIS - over actual mouth corner muscle
-      depressor_labii_inferioris: { x: 48, y: 65 }, // DEPRESSOR LABII INFERIORIS - over actual lower lip muscle
-      platysma: { x: 42, y: 75 }          // PLATYSMA - over actual neck muscle area
+      frontalis: { x: 50, y: 22 },        // FRONTALIS - center of visible forehead muscle
+      temporalis: { x: 25, y: 30 },       // TEMPORALIS - over visible left temple muscle fibers
+      corrugator_supercilii: { x: 43, y: 30 }, // CORRUGATOR SUPERCILII - over visible muscle between eyebrows
+      procerus: { x: 50, y: 33 },         // PROCERUS - over visible muscle at nose bridge
+      orbicularis_oculi: { x: 38, y: 38 }, // ORBICULARIS OCULI - over visible eye muscle area
+      levator_labii_superioris: { x: 42, y: 45 }, // LEVATOR LABII SUPERIORIS - over visible upper lip muscle
+      alaque_nasi: { x: 47, y: 42 },      // ALAQUE NASI - over visible nostril muscle
+      zygomaticus_major: { x: 35, y: 50 }, // ZYGOMATICUS MAJOR - over visible major cheek muscle
+      zygomaticus_minor: { x: 40, y: 48 }, // ZYGOMATICUS MINOR - over visible minor cheek muscle
+      levator_angularis: { x: 38, y: 43 }, // LEVATOR ANGULARIS - over visible muscle area
+      masseter: { x: 25, y: 60 },         // MASSETER - over visible jaw muscle area (left side)
+      buccinator: { x: 35, y: 55 },       // BUCCINATOR - over visible cheek muscle
+      orbicularis_oris: { x: 50, y: 60 }, // ORBICULARIS ORIS - over visible mouth muscle
+      mentalis: { x: 50, y: 70 },         // MENTALIS - over visible chin muscle
+      depressor_anguli_oris: { x: 45, y: 65 }, // DEPRESSOR ANGULI ORIS - over visible mouth corner muscle
+      depressor_labii_inferioris: { x: 47, y: 68 }, // DEPRESSOR LABII INFERIORIS - over visible lower lip muscle
+      platysma: { x: 40, y: 78 }          // PLATYSMA - over visible neck muscle area
     },
     // Image 1: Clean outline (vertical layout, more focused on face)
     1: {
