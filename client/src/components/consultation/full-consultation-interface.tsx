@@ -115,6 +115,10 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
   // Examination modal states
   const [selectedExaminationType, setSelectedExaminationType] = useState<string>("");
   const [showAnatomicalModal, setShowAnatomicalModal] = useState(false);
+  const [showGeneralExamModal, setShowGeneralExamModal] = useState(false);
+  const [showCardiovascularExamModal, setShowCardiovascularExamModal] = useState(false);
+  const [showRespiratoryExamModal, setShowRespiratoryExamModal] = useState(false);
+  const [showNeurologicalExamModal, setShowNeurologicalExamModal] = useState(false);
   const [showPhysicalExamModal, setShowPhysicalExamModal] = useState(false);
 
   // Anatomical analysis state
@@ -607,7 +611,7 @@ Patient should be advised of potential side effects and expected timeline for re
                         <div className="flex gap-3 mt-4">
                           {selectedExaminationType === 'general' && (
                             <Button 
-                              onClick={() => setShowPhysicalExamModal(true)}
+                              onClick={() => setShowGeneralExamModal(true)}
                               className="flex-1"
                             >
                               <User className="w-4 h-4 mr-2" />
@@ -616,7 +620,7 @@ Patient should be advised of potential side effects and expected timeline for re
                           )}
                           {selectedExaminationType === 'cardiovascular' && (
                             <Button 
-                              onClick={() => setShowPhysicalExamModal(true)}
+                              onClick={() => setShowCardiovascularExamModal(true)}
                               className="flex-1"
                             >
                               <Heart className="w-4 h-4 mr-2" />
@@ -634,7 +638,7 @@ Patient should be advised of potential side effects and expected timeline for re
                           )}
                           {selectedExaminationType === 'neurological' && (
                             <Button 
-                              onClick={() => setShowPhysicalExamModal(true)}
+                              onClick={() => setShowNeurologicalExamModal(true)}
                               className="flex-1"
                             >
                               <Brain className="w-4 h-4 mr-2" />
@@ -1780,6 +1784,158 @@ Patient should be advised of potential side effects and expected timeline for re
                   />
                 </div>
               ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* General Examination Modal */}
+      <Dialog open={showGeneralExamModal} onOpenChange={setShowGeneralExamModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <User className="w-5 h-5 text-blue-600" />
+              General Examination
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 p-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>General Appearance</Label>
+                <Textarea placeholder="Overall appearance, posture, gait..." className="h-20" />
+              </div>
+              <div className="space-y-2">
+                <Label>Mental Status</Label>
+                <Textarea placeholder="Consciousness level, orientation..." className="h-20" />
+              </div>
+              <div className="space-y-2">
+                <Label>Skin Assessment</Label>
+                <Textarea placeholder="Color, texture, lesions..." className="h-20" />
+              </div>
+              <div className="space-y-2">
+                <Label>Lymph Nodes</Label>
+                <Textarea placeholder="Palpable lymph nodes..." className="h-20" />
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cardiovascular Examination Modal */}
+      <Dialog open={showCardiovascularExamModal} onOpenChange={setShowCardiovascularExamModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Heart className="w-5 h-5 text-red-600" />
+              Cardiovascular Examination
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 p-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Heart Rate & Rhythm</Label>
+                <Textarea placeholder="Rate, rhythm, regularity..." className="h-20" />
+              </div>
+              <div className="space-y-2">
+                <Label>Heart Sounds</Label>
+                <Textarea placeholder="S1, S2, murmurs, gallops..." className="h-20" />
+              </div>
+              <div className="space-y-2">
+                <Label>Blood Pressure</Label>
+                <Textarea placeholder="Systolic/Diastolic measurements..." className="h-20" />
+              </div>
+              <div className="space-y-2">
+                <Label>Peripheral Pulses</Label>
+                <Textarea placeholder="Radial, pedal, carotid pulses..." className="h-20" />
+              </div>
+              <div className="space-y-2">
+                <Label>Edema Assessment</Label>
+                <Textarea placeholder="Peripheral edema, JVP..." className="h-20" />
+              </div>
+              <div className="space-y-2">
+                <Label>Chest Inspection</Label>
+                <Textarea placeholder="Chest wall, point of maximal impulse..." className="h-20" />
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Respiratory Examination Modal */}
+      <Dialog open={showRespiratoryExamModal} onOpenChange={setShowRespiratoryExamModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Activity className="w-5 h-5 text-blue-600" />
+              Respiratory Examination
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 p-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Respiratory Rate</Label>
+                <Textarea placeholder="Rate, depth, pattern..." className="h-20" />
+              </div>
+              <div className="space-y-2">
+                <Label>Chest Inspection</Label>
+                <Textarea placeholder="Shape, symmetry, expansion..." className="h-20" />
+              </div>
+              <div className="space-y-2">
+                <Label>Auscultation</Label>
+                <Textarea placeholder="Breath sounds, adventitious sounds..." className="h-20" />
+              </div>
+              <div className="space-y-2">
+                <Label>Percussion</Label>
+                <Textarea placeholder="Resonance, dullness..." className="h-20" />
+              </div>
+              <div className="space-y-2">
+                <Label>Palpation</Label>
+                <Textarea placeholder="Chest expansion, tactile fremitus..." className="h-20" />
+              </div>
+              <div className="space-y-2">
+                <Label>Oxygen Saturation</Label>
+                <Textarea placeholder="SpO2 measurements..." className="h-20" />
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Neurological Examination Modal */}
+      <Dialog open={showNeurologicalExamModal} onOpenChange={setShowNeurologicalExamModal}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Brain className="w-5 h-5 text-purple-600" />
+              Neurological Examination
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 p-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Mental Status</Label>
+                <Textarea placeholder="Consciousness, orientation, memory..." className="h-20" />
+              </div>
+              <div className="space-y-2">
+                <Label>Cranial Nerves</Label>
+                <Textarea placeholder="CN I-XII assessment..." className="h-20" />
+              </div>
+              <div className="space-y-2">
+                <Label>Motor Function</Label>
+                <Textarea placeholder="Strength, tone, coordination..." className="h-20" />
+              </div>
+              <div className="space-y-2">
+                <Label>Sensory Function</Label>
+                <Textarea placeholder="Touch, pain, temperature, vibration..." className="h-20" />
+              </div>
+              <div className="space-y-2">
+                <Label>Reflexes</Label>
+                <Textarea placeholder="Deep tendon reflexes, pathological reflexes..." className="h-20" />
+              </div>
+              <div className="space-y-2">
+                <Label>Gait & Coordination</Label>
+                <Textarea placeholder="Walking pattern, balance, coordination tests..." className="h-20" />
+              </div>
             </div>
           </div>
         </DialogContent>
