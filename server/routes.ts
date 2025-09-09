@@ -132,6 +132,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // PRODUCTION DEMO USERS SETUP - Creates demo users for production login screen
+  app.post('/api/production-demo-setup', async (req, res) => {
+    try {
+      console.log('[PRODUCTION DEMO] Creating production demo users...');
+      
+      // Production-ready password hashes for demo credentials
+      const productionHashes = {
+        admin123: '$2b$12$wBdwP8DhNP3XuviUaPHgB.y.G/Px2AAOYi7w.W8vJaiywet.cJ7Ae',
+        doctor123: '$2b$12$jY/ugs1.lFZPYN./Yhjxue7inIwU7JtFiHyPN.wLvSC5Ep43XvFOi',
+        patient123: '$2b$12$aDR..3VlJ9/ON8RHbLY3kuYTBrjxv26qVwQuh4nWn/tRbQH.X3Aje',
+        nurse123: '$2b$12$VANG.x51jkairEWTXbY9xOzyUpbb3vNSdylcqZxa4/TOyvO2rOgoG'
+      };
+
+      // Ensure Demo Healthcare Clinic organization exists (organization ID: 2)
+      let demoOrg;
+      try {
+        demoOrg = await storage.getOrganization(2);
+        if (!demoOrg) {
+          demoOrg = await storage.createOrganization({
+            name: 'Demo Healthcare Clinic',
+            subdomain: 'demo',
+            contactEmail: 'admin@demo.curaemr.ai',
+            settings: {
+              timezone: 'UTC',
+              dateFormat: 'YYYY-MM-DD',
+              timeFormat: '24h'
+            }
+          });
+          console.log(`[PRODUCTION DEMO] Created demo organization with ID: ${demoOrg.id}`);
+        }
+      } catch (error) {
+        console.log('[PRODUCTION DEMO] Using existing organization ID 2');
+        demoOrg = { id: 2, name: 'Demo Healthcare Clinic' };
+      }
+
+      const organizationId = 2; // Fixed organization ID for demo
+      const createdUsers = [];
+      const updatedUsers = [];
+
+      // Demo users configuration
+      const demoUsers = [
+        {
+          email: 'admin@cura.com',
+          username: 'admin',
+          password: 'admin123',
+          firstName: 'Admin',
+          lastName: 'User',
+          role: 'admin' as const
+        },
+        {
+          email: 'doctor@cura.com',
+          username: 'doctor',
+          password: 'doctor123',
+          firstName: 'Dr. John',
+          lastName: 'Smith',
+          role: 'doctor' as const
+        },
+        {
+          email: 'patient@cura.com',
+          username: 'patient',
+          password: 'patient123',
+          firstName: 'Mary',
+          lastName: 'Johnson',
+          role: 'patient' as const
+        },
+        {
+          email: 'nurse@cura.com',
+          username: 'nurse',
+          password: 'nurse123',
+          firstName: 'Sarah',
+          lastName: 'Williams',
+          role: 'nurse' as const
+        }
+      ];
+
+      // Create or update each demo user
+      for (const userData of demoUsers) {
+        try {
+          // Check if user already exists
+          let existingUser = await storage.getUserByEmail(userData.email, organizationId);
+          
+          if (!existingUser) {
+            // User doesn't exist, create new
+            const newUser = await storage.createUser({
+              email: userData.email,
+              username: userData.username,
+              passwordHash: productionHashes[userData.password as keyof typeof productionHashes],
+              firstName: userData.firstName,
+              lastName: userData.lastName,
+              role: userData.role,
+              organizationId: organizationId,
+              isActive: true,
+              isSaaSOwner: false
+            });
+            
+            createdUsers.push(`${userData.role}: ${userData.email}`);
+            console.log(`[PRODUCTION DEMO] Created user: ${userData.email} (${userData.role})`);
+          } else {
+            // User exists, update password hash to ensure consistency
+            await storage.updateUser(existingUser.id, organizationId, {
+              passwordHash: productionHashes[userData.password as keyof typeof productionHashes],
+              isActive: true
+            });
+            
+            updatedUsers.push(`${userData.role}: ${userData.email}`);
+            console.log(`[PRODUCTION DEMO] Updated user: ${userData.email} (${userData.role})`);
+          }
+        } catch (userError) {
+          console.error(`[PRODUCTION DEMO] Error processing user ${userData.email}:`, userError);
+          throw new Error(`Failed to create/update user ${userData.email}: ${userError instanceof Error ? userError.message : 'Unknown error'}`);
+        }
+      }
+
+      const response = {
+        success: true,
+        message: 'Production demo users setup completed successfully',
+        organization: {
+          id: organizationId,
+          name: demoOrg.name
+        },
+        users: {
+          created: createdUsers,
+          updated: updatedUsers,
+          total: createdUsers.length + updatedUsers.length
+        },
+        credentials: {
+          admin: 'admin@cura.com / admin123',
+          doctor: 'doctor@cura.com / doctor123', 
+          patient: 'patient@cura.com / patient123',
+          nurse: 'nurse@cura.com / nurse123'
+        },
+        timestamp: new Date().toISOString()
+      };
+
+      console.log('[PRODUCTION DEMO] ✅ Demo users setup completed successfully');
+      res.json(response);
+      
+    } catch (error) {
+      console.error('[PRODUCTION DEMO] ❌ Setup failed:', error);
+      res.status(500).json({ 
+        success: false,
+        error: 'Production demo setup failed',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
   // Initialize Multi-Tenant Core Package
   const multiTenantPackage = initializeMultiTenantPackage(storage as any, {
     enforceStrictTenantIsolation: true,
@@ -2597,7 +2745,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const orgId = req.user?.organizationId || req.tenant?.id || 1; // Fallback to org 1
       console.log(`🔍 USING ORG ID: ${orgId}`);
       
-      const conversations = await storage.getConversations(orgId);
+      const conversations = await storage.getConversations(orgId, req.user?.id);
       console.log(`🔍 RETURNED CONVERSATIONS: ${conversations.length}`);
       res.json(conversations);
     } catch (error) {
@@ -2627,7 +2775,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint to debug conversations
   app.get("/api/messaging/debug", authMiddleware, async (req: TenantRequest, res) => {
     try {
-      const conversations = await storage.getConversations(req.tenant!.id);
+      const conversations = await storage.getConversations(req.tenant!.id, req.user?.id);
       console.log("🔍 DEBUG - Raw conversations:", JSON.stringify(conversations, null, 2));
       res.json({ conversations, count: conversations.length });
     } catch (error) {
@@ -2640,7 +2788,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/messaging/consolidate", authMiddleware, async (req: TenantRequest, res) => {
     try {
       console.log("🔄 Manual consolidation triggered");
-      await storage.fixZahraConversations(req.tenant!.id);
+      await storage.consolidateAllDuplicateConversations(req.tenant!.id);
       res.json({ success: true, message: "Duplicate conversations consolidated" });
     } catch (error) {
       console.error("Error consolidating conversations:", error);
@@ -2736,10 +2884,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } else {
             console.error(`${messageType.toUpperCase()} sending failed:`, result.error);
             
-            // If SMS failed due to missing configuration, treat as internal message
-            if (result.error?.includes('not properly configured')) {
-              console.log(`📱 Twilio not configured, treating SMS as internal message`);
-              await storage.updateMessageDeliveryStatus(message.id, 'delivered', null, null);
+            // Only treat as internal if credentials are completely missing (not authentication failures)
+            if (result.error?.includes('not properly configured') && !process.env.TWILIO_ACCOUNT_SID) {
+              console.log(`📱 Twilio not configured (missing credentials), treating SMS as internal message`);
+              await storage.updateMessageDeliveryStatus(message.id, 'delivered', undefined, undefined);
               return res.json(message);
             }
             
@@ -2753,10 +2901,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         } catch (twilioError: any) {
           console.error('Twilio API error:', twilioError);
-          // If Twilio fails due to missing credentials, treat as internal message
-          if (twilioError.message?.includes('not properly configured')) {
-            console.log(`📱 Twilio not configured, treating SMS as internal message`);
-            await storage.updateMessageDeliveryStatus(message.id, 'delivered', null, null);
+          // Only treat as internal if credentials are completely missing (not authentication failures)
+          if (twilioError.message?.includes('not properly configured') && !process.env.TWILIO_ACCOUNT_SID) {
+            console.log(`📱 Twilio not configured (missing credentials), treating SMS as internal message`);
+            await storage.updateMessageDeliveryStatus(message.id, 'delivered', undefined, undefined);
             return res.json(message);
           }
           
@@ -2770,7 +2918,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } else {
         // For internal messages, mark as delivered immediately since they don't go through SMS/WhatsApp
-        await storage.updateMessageDeliveryStatus(message.id, 'delivered', null, null);
+        await storage.updateMessageDeliveryStatus(message.id, 'delivered', undefined, undefined);
         console.log(`✅ Internal message ${message.id} marked as delivered`);
         
         // For internal messages, broadcast to other users via WebSocket
@@ -4061,7 +4209,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Patient consent management endpoints
   app.get("/api/mobile-health/patient-consent", authMiddleware, async (req: TenantRequest, res) => {
     try {
-      res.json(patientConsents);
+      // Get real patients from database and create consent records for them
+      const realPatients = await storage.getPatientsByOrganization(req.organizationId!);
+      
+      const realPatientConsents = realPatients.map(patient => {
+        // Check if we have existing consent data for this patient
+        const existingConsent = patientConsents.find(consent => consent.patientId === patient.patientId);
+        
+        if (existingConsent) {
+          // Update with real patient data
+          return {
+            ...existingConsent,
+            patientName: `${patient.firstName} ${patient.lastName}`,
+            email: patient.email || existingConsent.email
+          };
+        } else {
+          // Create new consent record for real patient
+          return {
+            id: `consent_${patient.patientId}`,
+            patientId: patient.patientId,
+            patientName: `${patient.firstName} ${patient.lastName}`,
+            email: patient.email || '',
+            consentStatus: "pending",
+            monitoringTypes: {
+              heartRate: false,
+              bloodPressure: false,
+              glucose: false,
+              activity: false,
+              sleep: false
+            },
+            deviceAccess: false,
+            dataSharing: false,
+            emergencyContact: false,
+            lastUpdated: new Date().toISOString()
+          };
+        }
+      });
+      
+      res.json(realPatientConsents);
     } catch (error) {
       console.error("Error fetching patient consent data:", error);
       res.status(500).json({ error: "Failed to fetch patient consent data" });
@@ -4074,12 +4259,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const consentData = req.body;
       
       console.log(`Updating consent for patient ${patientId}:`, consentData);
+      console.log(`Organization ID: ${req.organizationId}`);
       
       // Find and update the consent record
       const consentIndex = patientConsents.findIndex(consent => consent.patientId === patientId);
       
       if (consentIndex === -1) {
-        return res.status(404).json({ error: "Patient consent record not found" });
+        // Patient consent record doesn't exist - create it
+        // First get the patient data from storage
+        console.log(`Looking up patient ${patientId} for organization ${req.organizationId}`);
+        
+        try {
+          const patient = await storage.getPatientByPatientId(patientId, req.organizationId!);
+          console.log(`Patient lookup result:`, patient ? 'Found' : 'Not found');
+          if (patient) {
+            console.log(`Patient details: ${patient.firstName} ${patient.lastName}`);
+          }
+          
+          if (!patient) {
+            console.log(`Patient ${patientId} not found in organization ${req.organizationId}`);
+            return res.status(404).json({ error: "Patient not found" });
+          }
+          
+          const newConsentRecord = {
+            id: `consent_${patientId}`,
+            patientId: patientId,
+            patientName: `${patient.firstName} ${patient.lastName}`,
+            email: patient.email || '',
+            consentStatus: consentData.consentStatus || 'pending',
+            monitoringTypes: {
+              heartRate: false,
+              bloodPressure: false,
+              glucose: false,
+              activity: false,
+              sleep: false
+            },
+            deviceAccess: false,
+            dataSharing: false,
+            emergencyContact: false,
+            lastUpdated: new Date().toISOString(),
+            ...consentData
+          };
+          
+          // Handle consent status specific updates for new record
+          if (consentData.consentStatus === 'consented') {
+            newConsentRecord.deviceAccess = true;
+            newConsentRecord.dataSharing = true;
+            newConsentRecord.monitoringTypes = {
+              heartRate: true,
+              bloodPressure: true,
+              glucose: true,
+              activity: true,
+              sleep: true
+            };
+          }
+          
+          patientConsents.push(newConsentRecord);
+          console.log(`Created new consent record for patient ${patientId}`);
+          
+          res.json({ success: true, consent: newConsentRecord });
+          return;
+          
+        } catch (storageError) {
+          console.error(`Storage error when looking up patient ${patientId}:`, storageError);
+          return res.status(500).json({ error: "Failed to lookup patient" });
+        }
       }
       
       // Update the consent record with new data
@@ -4130,10 +4374,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "User not authenticated" });
       }
 
-      // Initialize with sample data only if empty
-      if (voiceNotes.length === 0) {
-        voiceNotes.push({
-          id: "note_1",
+      // Get voice notes from database storage
+      const notes = await storage.getVoiceNotesByOrganization(req.organizationId!);
+      
+      // If no notes exist, create a sample note for backwards compatibility
+      if (notes.length === 0) {
+        const sampleNote = {
+          id: "note_sample_" + Date.now(),
+          organizationId: req.organizationId!,
           patientId: "158",
           patientName: "Imran Mubashir",
           providerId: "1",
@@ -4151,13 +4399,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             chiefComplaint: "Chest pain",
             assessment: "Possible cardiac involvement",
             plan: "EKG, troponin levels, cardiology consult"
-          },
-          createdAt: "2024-06-26T15:00:00Z"
-        });
+          }
+        };
+        
+        await storage.createVoiceNote(sampleNote);
+        const updatedNotes = await storage.getVoiceNotesByOrganization(req.organizationId!);
+        return res.json(updatedNotes);
       }
 
-      // Return voice notes from in-memory storage
-      res.json(voiceNotes);
+      res.json(notes);
     } catch (error) {
       console.error("Error fetching voice notes:", error);
       res.status(500).json({ error: "Failed to fetch voice notes" });
@@ -4188,6 +4438,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const newNote = {
         id: `note_${Date.now()}`,
+        organizationId: req.organizationId!,
         patientId: patientId,
         patientName: `${patient.firstName} ${patient.lastName}`,
         providerId: req.user.id.toString(),
@@ -4198,14 +4449,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         transcript: transcript || "Processing audio...",
         confidence: confidence || 0.0,
         medicalTerms: [],
-        structuredData: {},
-        createdAt: new Date().toISOString()
+        structuredData: {}
       };
 
-      // Add the new note to the voiceNotes array
-      voiceNotes.push(newNote);
+      // Save the new note to database
+      const createdNote = await storage.createVoiceNote(newNote);
 
-      res.status(201).json(newNote);
+      res.status(201).json(createdNote);
     } catch (error) {
       console.error("Error creating voice note:", error);
       res.status(500).json({ error: "Failed to create voice note" });
@@ -4220,24 +4470,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const noteId = req.params.id;
       console.log("DELETE request for noteId:", noteId);
-      console.log("Current voiceNotes array:", voiceNotes.map(note => ({ id: note.id, patientName: note.patientName })));
       
-      const noteIndex = voiceNotes.findIndex(note => note.id === noteId);
-      console.log("Found noteIndex:", noteIndex);
-      
-      if (noteIndex === -1) {
-        console.log("Voice note not found in array. Available IDs:", voiceNotes.map(note => note.id));
+      // Check if note exists before deletion
+      const existingNote = await storage.getVoiceNote(noteId, req.organizationId!);
+      if (!existingNote) {
+        console.log("Voice note not found in database:", noteId);
         return res.status(404).json({ error: "Voice note not found" });
       }
 
-      // Remove the note from the array
-      const deletedNote = voiceNotes.splice(noteIndex, 1)[0];
-      console.log("Successfully deleted note:", deletedNote.id);
-      console.log("Remaining voiceNotes count:", voiceNotes.length);
+      // Delete the note from database
+      const deleted = await storage.deleteVoiceNote(noteId, req.organizationId!);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Voice note not found" });
+      }
+      
+      console.log("Successfully deleted note:", noteId);
       
       res.status(200).json({ 
         message: "Voice note deleted successfully", 
-        deletedNoteId: deletedNote.id 
+        deletedNoteId: noteId 
       });
     } catch (error) {
       console.error("Error deleting voice note:", error);
@@ -4782,11 +5034,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           organizationId: tenant.id,
           patientId: `P${String(Date.now()).slice(-6)}`, // Generate patient ID
           dateOfBirth: new Date(), // Default date
-          gender: 'other',
-          address: '',
-          emergencyContact: patientPhone,
-          medicalHistory: '',
-          allergies: ''
+          address: {},
+          emergencyContact: {
+            phone: patientPhone
+          },
+          medicalHistory: {
+            allergies: [],
+            chronicConditions: [],
+            medications: []
+          }
         };
         
         patient = await storage.createPatient(patientData);
@@ -6156,7 +6412,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: patient.email,
         phone: patient.phone,
         dateOfBirth: patient.dateOfBirth,
-        gender: patient.gender,
+        // gender: not available in schema,
         emergencyContact: patient.emergencyContact,
         lastVisit: patient.updatedAt,
         riskLevel: patient.riskLevel || 'low'
@@ -6469,15 +6725,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: patient.email,
         phone: patient.phone,
         dateOfBirth: patient.dateOfBirth,
-        gender: patient.gender,
+        // gender: not available in schema,
         address: patient.address,
         emergencyContact: patient.emergencyContact,
-        insuranceProvider: patient.insuranceProvider,
-        insuranceNumber: patient.insuranceNumber,
+        insuranceProvider: patient.insuranceInfo?.provider || '',
+        insuranceNumber: patient.insuranceInfo?.policyNumber || '',
         medicalHistory: patient.medicalHistory,
-        allergies: patient.allergies,
-        currentMedications: patient.currentMedications,
-        bloodType: patient.bloodType,
+        allergies: patient.medicalHistory?.allergies || [],
+        currentMedications: patient.medicalHistory?.medications || [],
+        // bloodType: not available in schema,
         riskLevel: patient.riskLevel,
         createdAt: patient.createdAt,
         updatedAt: patient.updatedAt
@@ -6574,7 +6830,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: patient.email,
         phone: patient.phone,
         dateOfBirth: patient.dateOfBirth,
-        gender: patient.gender,
+        // gender: not available in schema,
         lastVisit: patient.lastVisit,
         riskLevel: patient.riskLevel || 'low'
       }));

@@ -1,5 +1,5 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations, messages, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics,
+  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Role, type InsertRole,
@@ -27,6 +27,7 @@ import {
   type GdprProcessingActivity, type InsertGdprProcessingActivity,
   type Conversation, type InsertConversation,
   type Message, type InsertMessage,
+  type VoiceNote, type InsertVoiceNote,
   type SaaSOwner, type InsertSaaSOwner,
   type SaaSPackage, type InsertSaaSPackage,
   type SaaSSubscription, type InsertSaaSSubscription,
@@ -304,6 +305,14 @@ export interface IStorage {
   getChatbotAnalytics(organizationId: number, date?: Date): Promise<ChatbotAnalytics[]>;
   createChatbotAnalytics(analytics: InsertChatbotAnalytics): Promise<ChatbotAnalytics>;
   updateChatbotAnalytics(id: number, organizationId: number, updates: Partial<InsertChatbotAnalytics>): Promise<ChatbotAnalytics | undefined>;
+
+  // Voice Notes
+  getVoiceNote(id: string, organizationId: number): Promise<VoiceNote | undefined>;
+  getVoiceNotesByOrganization(organizationId: number, limit?: number): Promise<VoiceNote[]>;
+  getVoiceNotesByPatient(patientId: string, organizationId: number): Promise<VoiceNote[]>;
+  createVoiceNote(voiceNote: InsertVoiceNote): Promise<VoiceNote>;
+  updateVoiceNote(id: string, organizationId: number, updates: Partial<InsertVoiceNote>): Promise<VoiceNote | undefined>;
+  deleteVoiceNote(id: string, organizationId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -428,7 +437,7 @@ export class DatabaseStorage implements IStorage {
       ...(user.permissions && typeof user.permissions === 'object' ? 
         { permissions: JSON.parse(JSON.stringify(user.permissions)) } : {})
     };
-    const [created] = await db.insert(users).values(userData).returning();
+    const [created] = await db.insert(users).values([userData]).returning();
     return created;
   }
 
@@ -566,7 +575,7 @@ export class DatabaseStorage implements IStorage {
       medicalHistory: medicalHistory ? JSON.parse(JSON.stringify(medicalHistory)) : null,
       communicationPreferences: communicationPreferences ? JSON.parse(JSON.stringify(communicationPreferences)) : null
     };
-    const [created] = await db.insert(patients).values(insertData as any).returning();
+    const [created] = await db.insert(patients).values([insertData as any]).returning();
     return created;
   }
 
@@ -641,7 +650,7 @@ export class DatabaseStorage implements IStorage {
   async createMedicalRecord(record: InsertMedicalRecord): Promise<MedicalRecord> {
     const cleanRecord: any = { ...record };
     delete cleanRecord.data; // Remove complex nested type to avoid compilation errors
-    const [created] = await db.insert(medicalRecords).values(cleanRecord as any).returning();
+    const [created] = await db.insert(medicalRecords).values([cleanRecord as any]).returning();
     return created;
   }
 
@@ -913,7 +922,7 @@ export class DatabaseStorage implements IStorage {
       ...baseFields,
       metadata: metadata ? JSON.parse(JSON.stringify(metadata)) : null
     };
-    const [created] = await db.insert(aiInsights).values(insertData as any).returning();
+    const [created] = await db.insert(aiInsights).values([insertData as any]).returning();
     return created;
   }
 
@@ -959,7 +968,7 @@ export class DatabaseStorage implements IStorage {
       ...baseFields,
       features: features && typeof features === 'object' ? JSON.parse(JSON.stringify(features)) : {}
     };
-    const [created] = await db.insert(subscriptions).values(insertData as any).returning();
+    const [created] = await db.insert(subscriptions).values([insertData as any]).returning();
     return created;
   }
 
@@ -1269,6 +1278,12 @@ export class DatabaseStorage implements IStorage {
       const patientsList = await db.select().from(patients).where(eq(patients.organizationId, organizationId));
       const appointmentsList = await db.select().from(appointments).where(eq(appointments.organizationId, organizationId));
       
+      // Get clinical data from database
+      const medicalRecordsList = await db.select().from(medicalRecords).where(eq(medicalRecords.organizationId, organizationId));
+      const consultationsList = await db.select().from(consultations).where(eq(consultations.organizationId, organizationId));
+      const prescriptionsList = await db.select().from(prescriptions).where(eq(prescriptions.organizationId, organizationId));
+      const aiInsightsList = await db.select().from(aiInsights).where(eq(aiInsights.organizationId, organizationId));
+      
       const totalPatients = patientsList.length;
       const totalAppointments = appointmentsList.length;
       
@@ -1280,6 +1295,54 @@ export class DatabaseStorage implements IStorage {
       const completedAppointments = appointmentsList.filter(a => a.status === 'completed').length;
       const cancelledAppointments = appointmentsList.filter(a => a.status === 'cancelled').length;
       const noShowAppointments = appointmentsList.filter(a => a.status === 'no-show').length;
+      
+      // Clinical Analytics Data
+      const totalConsultations = consultationsList.length;
+      const completedConsultations = consultationsList.filter(c => c.status === 'completed').length;
+      const totalPrescriptions = prescriptionsList.length;
+      const activePrescriptions = prescriptionsList.filter(p => p.status === 'active').length;
+      const totalMedicalRecords = medicalRecordsList.length;
+      const totalAiInsights = aiInsightsList.length;
+      const criticalInsights = aiInsightsList.filter(i => i.severity === 'critical').length;
+      
+      // Prescription analysis by medication type
+      const prescriptionAnalysis = prescriptionsList.reduce((acc, prescription) => {
+        const medication = prescription.medicationName || 'Unknown';
+        acc[medication] = (acc[medication] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      
+      const topMedications = Object.entries(prescriptionAnalysis)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 5)
+        .map(([medication, count]) => ({ medication, count }));
+      
+      // Consultation type distribution
+      const consultationTypes = consultationsList.reduce((acc, consultation) => {
+        const type = consultation.consultationType || 'routine';
+        acc[type] = (acc[type] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      
+      // AI insights severity distribution
+      const insightsSeverity = aiInsightsList.reduce((acc, insight) => {
+        const severity = insight.severity || 'medium';
+        acc[severity] = (acc[severity] || 0) + 1;
+        return acc;
+      }, { low: 0, medium: 0, high: 0, critical: 0 });
+      
+      // Medical record types
+      const recordTypes = medicalRecordsList.reduce((acc, record) => {
+        const type = record.type || 'consultation';
+        acc[type] = (acc[type] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      
+      // Recent clinical activity (last 7 days)
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      const recentConsultations = consultationsList.filter(c => new Date(c.createdAt) > sevenDaysAgo).length;
+      const recentPrescriptions = prescriptionsList.filter(p => new Date(p.prescribedAt || p.issuedDate || '') > sevenDaysAgo).length;
+      const recentInsights = aiInsightsList.filter(i => new Date(i.createdAt) > sevenDaysAgo).length;
       
       // Patient age distribution
       const ageDistribution = patientsList.reduce((acc, patient) => {
@@ -1373,6 +1436,35 @@ export class DatabaseStorage implements IStorage {
             noShow: noShowAppointments,
             completionRate: totalAppointments > 0 ? Math.round((completedAppointments / totalAppointments) * 100) : 0
           }
+        },
+        clinicalAnalytics: {
+          overview: {
+            totalConsultations,
+            completedConsultations,
+            totalPrescriptions,
+            activePrescriptions,
+            totalMedicalRecords,
+            totalAiInsights,
+            criticalInsights,
+            consultationCompletionRate: totalConsultations > 0 ? Math.round((completedConsultations / totalConsultations) * 100) : 0,
+            prescriptionActiveRate: totalPrescriptions > 0 ? Math.round((activePrescriptions / totalPrescriptions) * 100) : 0
+          },
+          recentActivity: {
+            consultations: recentConsultations,
+            prescriptions: recentPrescriptions,
+            insights: recentInsights
+          },
+          medications: {
+            topMedications,
+            totalTypes: Object.keys(prescriptionAnalysis).length
+          },
+          consultationTypes,
+          recordTypes,
+          aiInsights: {
+            severityDistribution: insightsSeverity,
+            total: totalAiInsights,
+            criticalCount: criticalInsights
+          }
         }
       };
     } catch (error) {
@@ -1408,6 +1500,35 @@ export class DatabaseStorage implements IStorage {
             cancelled: 0,
             noShow: 0,
             completionRate: 0
+          }
+        },
+        clinicalAnalytics: {
+          overview: {
+            totalConsultations: 0,
+            completedConsultations: 0,
+            totalPrescriptions: 0,
+            activePrescriptions: 0,
+            totalMedicalRecords: 0,
+            totalAiInsights: 0,
+            criticalInsights: 0,
+            consultationCompletionRate: 0,
+            prescriptionActiveRate: 0
+          },
+          recentActivity: {
+            consultations: 0,
+            prescriptions: 0,
+            insights: 0
+          },
+          medications: {
+            topMedications: [],
+            totalTypes: 0
+          },
+          consultationTypes: {},
+          recordTypes: {},
+          aiInsights: {
+            severityDistribution: { low: 0, medium: 0, high: 0, critical: 0 },
+            total: 0,
+            criticalCount: 0
           }
         }
       };
@@ -1478,12 +1599,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Messaging implementations - PERSISTENT DATABASE STORAGE
-  async getConversations(organizationId: number): Promise<any[]> {
+  async getConversations(organizationId: number, currentUserId?: number): Promise<any[]> {
     // Get conversations from database instead of in-memory storage
     const storedConversations = await db.select()
-      .from(conversations)
-      .where(eq(conversations.organizationId, organizationId))
-      .orderBy(desc(conversations.updatedAt));
+      .from(conversationsTable)
+      .where(eq(conversationsTable.organizationId, organizationId))
+      .orderBy(desc(conversationsTable.updatedAt));
 
     console.log(`💬 GET CONVERSATIONS - Database: ${storedConversations.length} found for org ${organizationId}`);
     console.log(`💬 CONVERSATION IDS:`, storedConversations.map(c => c.id));
@@ -1495,20 +1616,50 @@ export class DatabaseStorage implements IStorage {
         if (typeof participant.id === 'number') {
           const user = await this.getUser(participant.id, organizationId);
           if (user && user.firstName && user.lastName) {
-            return {
+            let participantData: any = {
               ...participant,
               name: `${user.firstName} ${user.lastName}`
             };
+            
+            // If user is a patient, get their phone number
+            if (user.role === 'patient') {
+              const patient = await this.getPatientByUserId(user.id, organizationId);
+              if (patient && patient.phone) {
+                participantData.phone = patient.phone;
+              }
+            }
+            
+            return participantData;
           } else if (user && user.firstName) {
-            return {
+            let participantData: any = {
               ...participant,
               name: user.firstName
             };
+            
+            // If user is a patient, get their phone number
+            if (user.role === 'patient') {
+              const patient = await this.getPatientByUserId(user.id, organizationId);
+              if (patient && patient.phone) {
+                participantData.phone = patient.phone;
+              }
+            }
+            
+            return participantData;
           } else if (user) {
-            return {
+            let participantData: any = {
               ...participant,
               name: user.email
             };
+            
+            // If user is a patient, get their phone number
+            if (user.role === 'patient') {
+              const patient = await this.getPatientByUserId(user.id, organizationId);
+              if (patient && patient.phone) {
+                participantData.phone = patient.phone;
+              }
+            }
+            
+            return participantData;
           }
         } else if (typeof participant.id === 'string') {
           // If it's a patient name string, preserve it as-is unless it's clearly a user email
@@ -1519,11 +1670,21 @@ export class DatabaseStorage implements IStorage {
             
             if (matchedUser) {
               console.log(`🔧 Fixed participant mapping: "${participant.id}" -> ${matchedUser.id} (${matchedUser.firstName} ${matchedUser.lastName})`);
-              return {
+              let participantData: any = {
                 id: matchedUser.id, // Use actual numeric user ID
                 name: `${matchedUser.firstName} ${matchedUser.lastName}`,
                 role: matchedUser.role
               };
+              
+              // If user is a patient, get their phone number
+              if (matchedUser.role === 'patient') {
+                const patient = await this.getPatientByUserId(matchedUser.id, organizationId);
+                if (patient && patient.phone) {
+                  participantData.phone = patient.phone;
+                }
+              }
+              
+              return participantData;
             }
           }
           // For patient names (non-email strings), preserve them exactly as they are
@@ -1534,12 +1695,20 @@ export class DatabaseStorage implements IStorage {
       }));
       
       // Calculate actual unread count based on isRead status of messages
+      // Only count messages received by current user (not sent by them)
+      const unreadQuery = [
+        eq(messages.conversationId, conv.id),
+        eq(messages.isRead, false)
+      ];
+      
+      // If currentUserId is provided, exclude messages sent by the current user
+      if (currentUserId !== undefined) {
+        unreadQuery.push(ne(messages.senderId, currentUserId));
+      }
+      
       const unreadMessages = await db.select()
         .from(messages)
-        .where(and(
-          eq(messages.conversationId, conv.id),
-          eq(messages.isRead, false)
-        ));
+        .where(and(...unreadQuery));
       
       return {
         ...conv,
@@ -1570,8 +1739,8 @@ export class DatabaseStorage implements IStorage {
     
     // Get all conversations for this organization
     const allConversations = await db.select()
-      .from(conversations)
-      .where(eq(conversations.organizationId, organizationId));
+      .from(conversationsTable)
+      .where(eq(conversationsTable.organizationId, organizationId));
     
     console.log(`🔧 Found ${allConversations.length} conversations to check`);
     
@@ -1651,9 +1820,9 @@ export class DatabaseStorage implements IStorage {
       
       // Update conversation if needed
       if (needsUpdate) {
-        await db.update(conversations)
+        await db.update(conversationsTable)
           .set({ participants: updatedParticipants })
-          .where(eq(conversations.id, conv.id));
+          .where(eq(conversationsTable.id, conv.id));
         console.log(`🔧 Updated conversation ${conv.id} with correct participant names`);
       }
     }
@@ -1666,8 +1835,8 @@ export class DatabaseStorage implements IStorage {
     
     // Get all conversations for this organization
     const allConversations = await db.select()
-      .from(conversations)
-      .where(eq(conversations.organizationId, organizationId));
+      .from(conversationsTable)
+      .where(eq(conversationsTable.organizationId, organizationId));
     
     // Find all conversations that involve both participants
     const matchingConversations = [];
@@ -1707,8 +1876,8 @@ export class DatabaseStorage implements IStorage {
         .where(eq(messages.conversationId, dupConv.id));
       
       // Delete the duplicate conversation
-      await db.delete(conversations)
-        .where(eq(conversations.id, dupConv.id));
+      await db.delete(conversationsTable)
+        .where(eq(conversationsTable.id, dupConv.id));
       
       console.log(`🔄 Deleted duplicate conversation ${dupConv.id}`);
     }
@@ -1721,7 +1890,7 @@ export class DatabaseStorage implements IStorage {
     
     if (allMessagesInConv.length > 0) {
       const lastMessage = allMessagesInConv[allMessagesInConv.length - 1];
-      await db.update(conversations)
+      await db.update(conversationsTable)
         .set({
           lastMessage: {
             id: lastMessage.id,
@@ -1734,7 +1903,7 @@ export class DatabaseStorage implements IStorage {
           unreadCount: allMessagesInConv.filter(m => !m.isRead).length,
           updatedAt: new Date()
         })
-        .where(eq(conversations.id, keepConversation.id));
+        .where(eq(conversationsTable.id, keepConversation.id));
     }
     
     console.log(`✅ Consolidated ${duplicateConversations.length} duplicate conversations into ${keepConversation.id}`);
@@ -1745,8 +1914,93 @@ export class DatabaseStorage implements IStorage {
     
     // Get all conversations for this organization
     const allConversations = await db.select()
-      .from(conversations)
-      .where(eq(conversations.organizationId, organizationId));
+      .from(conversationsTable)
+      .where(eq(conversationsTable.organizationId, organizationId));
+    
+    console.log(`🔄 Found ${allConversations.length} total conversations`);
+    
+    // Group conversations by participant pairs
+    const conversationGroups = new Map<string, typeof allConversations>();
+    
+    for (const conv of allConversations) {
+      const participants = conv.participants as Array<{id: string | number; name: string; role: string}>;
+      // Create a unique key for participant pairs, sorted to ensure consistency
+      const participantIds = participants
+        .map(p => p.id)
+        .sort()
+        .join('-');
+      
+      if (!conversationGroups.has(participantIds)) {
+        conversationGroups.set(participantIds, []);
+      }
+      conversationGroups.get(participantIds)!.push(conv);
+    }
+    
+    let totalConsolidated = 0;
+    
+    // Process each group and consolidate duplicates
+    for (const [participantKey, conversations] of conversationGroups.entries()) {
+      if (conversations.length > 1) {
+        console.log(`🔄 Found ${conversations.length} conversations for participants: ${participantKey}`);
+        
+        // Sort by creation date to keep the oldest one
+        conversations.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        const keepConversation = conversations[0];
+        const duplicateConversations = conversations.slice(1);
+        
+        // Move all messages from duplicate conversations to the main one
+        for (const dupConv of duplicateConversations) {
+          console.log(`🔄 Moving messages from ${dupConv.id} to ${keepConversation.id}`);
+          
+          // Update all messages to point to the main conversation
+          await db.update(messages)
+            .set({ conversationId: keepConversation.id })
+            .where(eq(messages.conversationId, dupConv.id));
+          
+          // Delete the duplicate conversation
+          await db.delete(conversationsTable)
+            .where(eq(conversationsTable.id, dupConv.id));
+          
+          console.log(`🔄 Deleted duplicate conversation ${dupConv.id}`);
+          totalConsolidated++;
+        }
+        
+        // Update the main conversation's lastMessage and unreadCount
+        const allMessagesInConv = await db.select()
+          .from(messages)
+          .where(eq(messages.conversationId, keepConversation.id))
+          .orderBy(asc(messages.timestamp));
+        
+        if (allMessagesInConv.length > 0) {
+          const lastMessage = allMessagesInConv[allMessagesInConv.length - 1];
+          await db.update(conversationsTable)
+            .set({
+              lastMessage: {
+                id: lastMessage.id,
+                senderId: lastMessage.senderId,
+                subject: lastMessage.subject,
+                content: lastMessage.content,
+                timestamp: lastMessage.timestamp.toISOString(),
+                priority: lastMessage.priority || 'normal'
+              },
+              unreadCount: allMessagesInConv.filter(m => !m.isRead).length,
+              updatedAt: new Date()
+            })
+            .where(eq(conversationsTable.id, keepConversation.id));
+        }
+      }
+    }
+    
+    console.log(`✅ Consolidated ${totalConsolidated} duplicate conversations total`);
+  }
+
+  async consolidateAllDuplicateConversationsOld(organizationId: number): Promise<void> {
+    console.log(`🔄 CONSOLIDATING ALL duplicate conversations for organization ${organizationId}`);
+    
+    // Get all conversations for this organization
+    const allConversations = await db.select()
+      .from(conversationsTable)
+      .where(eq(conversationsTable.organizationId, organizationId));
     
     console.log(`🔄 Found ${allConversations.length} total conversations to analyze`);
     
@@ -1801,8 +2055,8 @@ export class DatabaseStorage implements IStorage {
             .where(eq(messages.conversationId, dupConv.id));
           
           // Delete the duplicate conversation
-          await db.delete(conversations)
-            .where(eq(conversations.id, dupConv.id));
+          await db.delete(conversationsTable)
+            .where(eq(conversationsTable.id, dupConv.id));
           
           console.log(`🔄 Deleted duplicate conversation ${dupConv.id}`);
           totalConsolidated++;
@@ -1816,7 +2070,7 @@ export class DatabaseStorage implements IStorage {
         
         if (allMessagesInConv.length > 0) {
           const lastMessage = allMessagesInConv[allMessagesInConv.length - 1];
-          await db.update(conversations)
+          await db.update(conversationsTable)
             .set({
               lastMessage: {
                 id: lastMessage.id,
@@ -1829,7 +2083,7 @@ export class DatabaseStorage implements IStorage {
               unreadCount: allMessagesInConv.filter(m => !m.isRead).length,
               updatedAt: new Date()
             })
-            .where(eq(conversations.id, keepConversation.id));
+            .where(eq(conversationsTable.id, keepConversation.id));
         }
       }
     }
@@ -1842,18 +2096,19 @@ export class DatabaseStorage implements IStorage {
     
     // Get all conversations for this organization
     const allConversations = await db.select()
-      .from(conversations)
-      .where(eq(conversations.organizationId, organizationId));
+      .from(conversationsTable)
+      .where(eq(conversationsTable.organizationId, organizationId));
     
     console.log(`🔧 Found ${allConversations.length} total conversations`);
     
-    // Find conversations with Zahra
+    // Find conversations with Zahra (handle spacing and name variations)
     const zahraConversations = [];
     for (const conv of allConversations) {
       const participants = conv.participants as Array<{id: string | number; name: string; role: string}>;
       const hasZahra = participants.some(p => 
-        p.name === "Zahra Qureshi" || 
-        p.id === "Zahra Qureshi" ||
+        (p.name && p.name.replace(/\s+/g, ' ').trim() === "Zahra Qureshi") || 
+        (p.id && p.id.toString().replace(/\s+/g, ' ').trim() === "Zahra Qureshi") ||
+        (typeof p.id === 'number' && p.id === 7) || // Match by user ID 7
         (p.role === "patient" && (!p.id || !p.name)) // incomplete patient data
       );
       
@@ -1901,9 +2156,9 @@ export class DatabaseStorage implements IStorage {
         return p;
       });
       
-      await db.update(conversations)
+      await db.update(conversationsTable)
         .set({ participants: updatedParticipants })
-        .where(eq(conversations.id, keepConversation.id));
+        .where(eq(conversationsTable.id, keepConversation.id));
       
       console.log(`🔧 Fixed participant data for conversation ${keepConversation.id}`);
     }
@@ -1918,8 +2173,8 @@ export class DatabaseStorage implements IStorage {
         .where(eq(messages.conversationId, dupConv.id));
       
       // Delete the duplicate conversation
-      await db.delete(conversations)
-        .where(eq(conversations.id, dupConv.id));
+      await db.delete(conversationsTable)
+        .where(eq(conversationsTable.id, dupConv.id));
       
       console.log(`🔧 Deleted duplicate conversation ${dupConv.id}`);
     }
@@ -1932,7 +2187,7 @@ export class DatabaseStorage implements IStorage {
     
     if (allMessagesInConv.length > 0) {
       const lastMessage = allMessagesInConv[allMessagesInConv.length - 1];
-      await db.update(conversations)
+      await db.update(conversationsTable)
         .set({
           lastMessage: {
             id: lastMessage.id,
@@ -1945,7 +2200,7 @@ export class DatabaseStorage implements IStorage {
           unreadCount: allMessagesInConv.filter(m => !m.isRead).length,
           updatedAt: new Date()
         })
-        .where(eq(conversations.id, keepConversation.id));
+        .where(eq(conversationsTable.id, keepConversation.id));
     }
     
     console.log(`✅ Fixed Zahra conversations - consolidated ${duplicateConversations.length} duplicates into ${keepConversation.id}`);
@@ -1962,10 +2217,10 @@ export class DatabaseStorage implements IStorage {
     // If conversationId is provided, verify it exists in the database
     if (conversationId) {
       const existingConv = await db.select()
-        .from(conversations)
+        .from(conversationsTable)
         .where(and(
-          eq(conversations.id, conversationId),
-          eq(conversations.organizationId, organizationId)
+          eq(conversationsTable.id, conversationId),
+          eq(conversationsTable.organizationId, organizationId)
         ))
         .limit(1);
       
@@ -2019,7 +2274,7 @@ export class DatabaseStorage implements IStorage {
     
     console.log(`🔍 DEBUG - Message insert data:`, JSON.stringify(messageInsertData, null, 2));
     
-    const [createdMessage] = await db.insert(messages).values(messageInsertData).returning();
+    const [createdMessage] = await db.insert(messages).values([messageInsertData]).returning();
     console.log(`✅ MESSAGE INSERTED:`, createdMessage?.id);
     
     // Force database synchronization by immediately reading back all messages
@@ -2032,8 +2287,8 @@ export class DatabaseStorage implements IStorage {
 
     // Check if conversation exists, if not create it
     let existingConversation = await db.select()
-      .from(conversations)
-      .where(eq(conversations.id, conversationId))
+      .from(conversationsTable)
+      .where(eq(conversationsTable.id, conversationId))
       .limit(1);
 
     // If no conversation found by ID, check if there's already a conversation between these participants
@@ -2041,8 +2296,8 @@ export class DatabaseStorage implements IStorage {
       console.log(`🔍 Searching for existing conversation between sender ${messageData.senderId} and recipient ${messageData.recipientId}`);
       
       const allConversations = await db.select()
-        .from(conversations)
-        .where(eq(conversations.organizationId, organizationId));
+        .from(conversationsTable)
+        .where(eq(conversationsTable.organizationId, organizationId));
       
       // Look for conversation that includes both participants
       for (const conv of allConversations) {
@@ -2144,13 +2399,13 @@ export class DatabaseStorage implements IStorage {
       
       console.log(`🔍 DEBUG - Conversation insert data:`, JSON.stringify(conversationInsertData, null, 2));
       
-      const [createdConversation] = await db.insert(conversations).values(conversationInsertData).returning();
+      const [createdConversation] = await db.insert(conversationsTable).values([conversationInsertData]).returning();
       console.log(`✅ CONVERSATION INSERTED:`, createdConversation?.id);
       
       console.log(`✅ Created new conversation: ${conversationId} and message: ${messageId}`);
     } else {
       // Update existing conversation (unreadCount will be calculated in getConversations)
-      await db.update(conversations)
+      await db.update(conversationsTable)
         .set({
           lastMessage: {
             id: messageId,
@@ -2162,7 +2417,7 @@ export class DatabaseStorage implements IStorage {
           },
           updatedAt: timestamp
         })
-        .where(eq(conversations.id, conversationId));
+        .where(eq(conversationsTable.id, conversationId));
       
       console.log(`✅ Updated existing conversation: ${conversationId} with message: ${messageId}`);
     }
@@ -2184,10 +2439,10 @@ export class DatabaseStorage implements IStorage {
       console.log(`🗑️ DELETED MESSAGES for conversation ${conversationId}`);
       
       // Then delete the conversation itself
-      const deleteConversationResult = await db.delete(conversations)
+      const deleteConversationResult = await db.delete(conversationsTable)
         .where(and(
-          eq(conversations.id, conversationId),
-          eq(conversations.organizationId, organizationId)
+          eq(conversationsTable.id, conversationId),
+          eq(conversationsTable.organizationId, organizationId)
         ));
       
       console.log(`🗑️ DELETED CONVERSATION ${conversationId}`);
@@ -2526,7 +2781,7 @@ export class DatabaseStorage implements IStorage {
     console.log("Storage: Doctor ID being inserted:", prescription.doctorId);
     const [newPrescription] = await db
       .insert(prescriptions)
-      .values(prescription)
+      .values([prescription])
       .returning();
     return newPrescription;
   }
@@ -2564,7 +2819,7 @@ export class DatabaseStorage implements IStorage {
   async createLabResult(labResult: InsertLabResult): Promise<LabResult> {
     const [result] = await db
       .insert(labResults)
-      .values(labResult)
+      .values([labResult])
       .returning();
     
     return result;
@@ -2875,7 +3130,7 @@ export class DatabaseStorage implements IStorage {
   async createDocument(document: InsertDocument): Promise<Document> {
     const [newDocument] = await db
       .insert(documents)
-      .values(document)
+      .values([document])
       .returning();
     return newDocument;
   }
@@ -3016,7 +3271,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createClaim(claim: InsertClaim): Promise<Claim> {
-    const [result] = await db.insert(claims).values(claim).returning();
+    const [result] = await db.insert(claims).values([claim]).returning();
     return result;
   }
 
@@ -3038,7 +3293,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createRevenueRecord(revenueRecord: InsertRevenueRecord): Promise<RevenueRecord> {
-    const [result] = await db.insert(revenueRecords).values(revenueRecord).returning();
+    const [result] = await db.insert(revenueRecords).values([revenueRecord]).returning();
     return result;
   }
 
@@ -3052,7 +3307,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createClinicalProcedure(procedure: InsertClinicalProcedure): Promise<ClinicalProcedure> {
-    const [result] = await db.insert(clinicalProcedures).values(procedure).returning();
+    const [result] = await db.insert(clinicalProcedures).values([procedure]).returning();
     return result;
   }
 
@@ -3074,7 +3329,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createEmergencyProtocol(protocol: InsertEmergencyProtocol): Promise<EmergencyProtocol> {
-    const [result] = await db.insert(emergencyProtocols).values(protocol).returning();
+    const [result] = await db.insert(emergencyProtocols).values([protocol]).returning();
     return result;
   }
 
@@ -3096,7 +3351,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createMedication(medication: InsertMedicationsDatabase): Promise<MedicationsDatabase> {
-    const [result] = await db.insert(medicationsDatabase).values(medication).returning();
+    const [result] = await db.insert(medicationsDatabase).values([medication]).returning();
     return result;
   }
 
@@ -3152,7 +3407,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createStaffShift(shift: InsertStaffShift): Promise<StaffShift> {
-    const [result] = await db.insert(staffShifts).values(shift).returning();
+    const [result] = await db.insert(staffShifts).values([shift]).returning();
     return result;
   }
 
@@ -3172,7 +3427,7 @@ export class DatabaseStorage implements IStorage {
 
   // GDPR Compliance Methods
   async createGdprConsent(consent: InsertGdprConsent): Promise<GdprConsent> {
-    const [result] = await db.insert(gdprConsents).values(consent).returning();
+    const [result] = await db.insert(gdprConsents).values([consent]).returning();
     return result;
   }
 
@@ -3203,7 +3458,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createGdprDataRequest(request: InsertGdprDataRequest): Promise<GdprDataRequest> {
-    const [result] = await db.insert(gdprDataRequests).values(request).returning();
+    const [result] = await db.insert(gdprDataRequests).values([request]).returning();
     return result;
   }
 
@@ -3227,7 +3482,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createGdprAuditTrail(audit: InsertGdprAuditTrail): Promise<GdprAuditTrail> {
-    const [result] = await db.insert(gdprAuditTrail).values(audit).returning();
+    const [result] = await db.insert(gdprAuditTrail).values([audit]).returning();
     return result;
   }
 
@@ -3735,7 +3990,7 @@ export class DatabaseStorage implements IStorage {
   async createPackage(packageData: InsertSaaSPackage): Promise<SaaSPackage> {
     const [saasPackage] = await db
       .insert(saasPackages)
-      .values(packageData)
+      .values([packageData])
       .returning();
     return saasPackage;
   }
@@ -4318,7 +4573,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createChatbotConfig(config: InsertChatbotConfig): Promise<ChatbotConfig> {
-    const [created] = await db.insert(chatbotConfigs).values(config).returning();
+    const [created] = await db.insert(chatbotConfigs).values([config]).returning();
     return created;
   }
 
@@ -4338,7 +4593,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createChatbotSession(session: InsertChatbotSession): Promise<ChatbotSession> {
-    const [created] = await db.insert(chatbotSessions).values(session).returning();
+    const [created] = await db.insert(chatbotSessions).values([session]).returning();
     return created;
   }
 
@@ -4371,7 +4626,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createChatbotMessage(message: InsertChatbotMessage): Promise<ChatbotMessage> {
-    const [created] = await db.insert(chatbotMessages).values(message).returning();
+    const [created] = await db.insert(chatbotMessages).values([message]).returning();
     return created;
   }
 
@@ -4402,7 +4657,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createChatbotAnalytics(analytics: InsertChatbotAnalytics): Promise<ChatbotAnalytics> {
-    const [created] = await db.insert(chatbotAnalytics).values(analytics).returning();
+    const [created] = await db.insert(chatbotAnalytics).values([analytics]).returning();
     return created;
   }
 
@@ -4412,6 +4667,57 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(chatbotAnalytics.id, id), eq(chatbotAnalytics.organizationId, organizationId)))
       .returning();
     return updated || undefined;
+  }
+
+  // Voice Notes Methods
+  async getVoiceNote(id: string, organizationId: number): Promise<VoiceNote | undefined> {
+    const [voiceNote] = await db
+      .select()
+      .from(voiceNotes)
+      .where(and(eq(voiceNotes.id, id), eq(voiceNotes.organizationId, organizationId)));
+    return voiceNote || undefined;
+  }
+
+  async getVoiceNotesByOrganization(organizationId: number, limit = 50): Promise<VoiceNote[]> {
+    return await db
+      .select()
+      .from(voiceNotes)
+      .where(eq(voiceNotes.organizationId, organizationId))
+      .orderBy(desc(voiceNotes.createdAt))
+      .limit(limit);
+  }
+
+  async getVoiceNotesByPatient(patientId: string, organizationId: number): Promise<VoiceNote[]> {
+    return await db
+      .select()
+      .from(voiceNotes)
+      .where(and(eq(voiceNotes.patientId, patientId), eq(voiceNotes.organizationId, organizationId)))
+      .orderBy(desc(voiceNotes.createdAt));
+  }
+
+  async createVoiceNote(voiceNote: InsertVoiceNote): Promise<VoiceNote> {
+    const [created] = await db.insert(voiceNotes).values([voiceNote]).returning();
+    return created;
+  }
+
+  async updateVoiceNote(id: string, organizationId: number, updates: Partial<InsertVoiceNote>): Promise<VoiceNote | undefined> {
+    const updateData = {
+      ...updates,
+      updatedAt: new Date()
+    };
+    const [updated] = await db
+      .update(voiceNotes)
+      .set(updateData)
+      .where(and(eq(voiceNotes.id, id), eq(voiceNotes.organizationId, organizationId)))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteVoiceNote(id: string, organizationId: number): Promise<boolean> {
+    const result = await db
+      .delete(voiceNotes)
+      .where(and(eq(voiceNotes.id, id), eq(voiceNotes.organizationId, organizationId)));
+    return result.rowCount > 0;
   }
 }
 

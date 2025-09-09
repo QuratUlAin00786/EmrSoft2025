@@ -350,17 +350,7 @@ export class AiService {
     if (!hasDateTime) hasDateTime = this.looksLikeDateTime(message);
     if (!hasTimeReference) hasTimeReference = /\b(tomorrow|today|monday|tuesday|wednesday|thursday|friday|saturday|sunday|morning|afternoon|evening|noon|\d{1,2}(:\d{2})?\s*(am|pm)|\d{1,2}[-\/]\d{1,2})\b/i.test(lowerMessage);
     
-    // If message contains structured appointment components, classify as appointment booking
-    if ((hasPatientName && (hasDateTime || hasTimeReference)) || 
-        (hasDoctorName && (hasDateTime || hasTimeReference)) ||
-        (hasPatientName && hasDoctorName)) {
-      console.log('[INTENT] Detected structured appointment data:', {
-        hasPatientName, hasDateTime, hasDoctorName, hasTimeReference, messageLines
-      });
-      return 'appointment_booking';
-    }
-    
-    // PRIORITY 3: Context-aware classification (only if no direct keywords found)
+    // PRIORITY 3: Context-aware classification (check context FIRST before structured appointment detection)
     if (conversationHistory && conversationHistory.length > 0) {
       const recentMessages = conversationHistory.slice(-4).map(msg => msg.content.toLowerCase()).join(' ');
       // Check for prescription context first (including variations)
@@ -373,11 +363,37 @@ export class AiService {
                                      recentMessages.includes('show prescriptions') ||
                                      /prescription.*information|prescription.*data/.test(recentMessages);
       
-      if (hasPrescriptionContext && this.looksLikePatientName(message)) {
+      // If user just mentioned a patient name after prescription context, stay in prescription mode
+      if (hasPrescriptionContext && this.looksLikePatientName(message) && !hasDateTime && !hasTimeReference) {
+        console.log('[INTENT] Prescription context detected with patient name:', message);
         return 'prescription_inquiry';
       }
+    }
+    
+    // PRIORITY 4: If message contains structured appointment components, classify as appointment booking
+    if ((hasPatientName && (hasDateTime || hasTimeReference)) || 
+        (hasDoctorName && (hasDateTime || hasTimeReference)) ||
+        (hasPatientName && hasDoctorName)) {
+      console.log('[INTENT] Detected structured appointment data:', {
+        hasPatientName, hasDateTime, hasDoctorName, hasTimeReference, messageLines
+      });
+      return 'appointment_booking';
+    }
+    
+    // PRIORITY 5: Additional context-aware classification for appointment booking
+    if (conversationHistory && conversationHistory.length > 0) {
+      const recentMessages = conversationHistory.slice(-4).map(msg => msg.content.toLowerCase()).join(' ');
       
       // Check for appointment booking context only if no prescription context
+      const hasPrescriptionContext = recentMessages.includes('prescription') || 
+                                     recentMessages.includes('medication') ||
+                                     recentMessages.includes('medicine') ||
+                                     recentMessages.includes('drug') ||
+                                     recentMessages.includes('pills') ||
+                                     recentMessages.includes('recent prescriptions') ||
+                                     recentMessages.includes('show prescriptions') ||
+                                     /prescription.*information|prescription.*data/.test(recentMessages);
+                                     
       const hasAppointmentContext = recentMessages.includes('appointment') || 
                                    recentMessages.includes('book') || 
                                    recentMessages.includes('schedule') ||
@@ -2528,16 +2544,27 @@ IMPORTANT: Review the full conversation history and remember all details mention
           }
         }
         
-        // Additional fuzzy matching for common name patterns
+        // Additional fuzzy matching for common name patterns (stricter)
         if (!isMatch && (firstName.length > 2 && lastName.length > 2)) {
           // Check if message contains both first and last name words (order independent)
           const messageWords = lowerMessage.split(/\s+/);
-          const hasFirstName = messageWords.some((word: string) => word.includes(firstName) || firstName.includes(word));
-          const hasLastName = messageWords.some((word: string) => word.includes(lastName) || lastName.includes(word));
+          // More strict matching: only if the word is at least 80% similar OR exact substring match
+          const hasFirstName = messageWords.some((word: string) => {
+            return word === firstName || 
+                   (word.length >= 3 && firstName.length >= 3 && 
+                    (word.includes(firstName) || firstName.includes(word)) &&
+                    Math.abs(word.length - firstName.length) <= 2);
+          });
+          const hasLastName = messageWords.some((word: string) => {
+            return word === lastName || 
+                   (word.length >= 3 && lastName.length >= 3 && 
+                    (word.includes(lastName) || lastName.includes(word)) &&
+                    Math.abs(word.length - lastName.length) <= 2);
+          });
           
           if (hasFirstName && hasLastName) {
             isMatch = true;
-            console.log(`[PRESCRIPTION_SEARCH] Found fuzzy match for ${patient.firstName} ${patient.lastName}`);
+            console.log(`[PRESCRIPTION_SEARCH] Found strict fuzzy match for ${patient.firstName} ${patient.lastName}`);
           }
         }
         
@@ -2588,7 +2615,7 @@ IMPORTANT: Review the full conversation history and remember all details mention
           if (prescriptionsWithMeds.length > 0) {
             response += prescriptionsWithMeds.slice(0, 5).map(p => {
               const medList = (p.medications || []).map((med: any) => `${med.name} (${med.dosage || 'standard dose'})`).join(', ');
-              const createdDate = new Date(p.createdAt).toLocaleDateString();
+              const createdDate = p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'Unknown date';
               return `• **${medList}** - Status: ${p.status} (${createdDate})`;
             }).join('\n');
           }
@@ -2842,15 +2869,26 @@ IMPORTANT: Review the full conversation history and remember all details mention
               }
             }
             
-            // Method 3: Fuzzy matching for common name patterns
+            // Method 3: Fuzzy matching for common name patterns (stricter)
             if (!isMatch && (firstName.length > 2 && lastName.length > 2)) {
               const messageWords = lowerMessage.split(/\s+/);
-              const hasFirstName = messageWords.some((word: string) => word.includes(firstName) || firstName.includes(word));
-              const hasLastName = messageWords.some((word: string) => word.includes(lastName) || lastName.includes(word));
+              // More strict matching: only if the word is at least 80% similar OR exact substring match
+              const hasFirstName = messageWords.some((word: string) => {
+                return word === firstName || 
+                       (word.length >= 3 && firstName.length >= 3 && 
+                        (word.includes(firstName) || firstName.includes(word)) &&
+                        Math.abs(word.length - firstName.length) <= 2);
+              });
+              const hasLastName = messageWords.some((word: string) => {
+                return word === lastName || 
+                       (word.length >= 3 && lastName.length >= 3 && 
+                        (word.includes(lastName) || lastName.includes(word)) &&
+                        Math.abs(word.length - lastName.length) <= 2);
+              });
               
               if (hasFirstName && hasLastName) {
                 isMatch = true;
-                console.log(`[PRESCRIPTION_SEARCH] Found fuzzy match for ${patient.firstName} ${patient.lastName}`);
+                console.log(`[PRESCRIPTION_SEARCH] Found strict fuzzy match for ${patient.firstName} ${patient.lastName}`);
               }
             }
             
@@ -2870,7 +2908,7 @@ IMPORTANT: Review the full conversation history and remember all details mention
               const medList = p.medications && p.medications.length > 0 
                 ? p.medications.map((med: any) => `${med.name} (${med.dosage || 'standard dose'})`).join(', ')
                 : (p.diagnosis || 'Prescription details available');
-              const createdDate = new Date(p.createdAt).toLocaleDateString();
+              const createdDate = p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'Unknown date';
               const statusInfo = p.status;
               const additionalInfo = p.notes ? ` - ${p.notes}` : '';
               return `• **${medList}** - Status: ${statusInfo} (${createdDate})${additionalInfo}`;

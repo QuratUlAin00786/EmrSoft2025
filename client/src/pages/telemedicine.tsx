@@ -92,6 +92,19 @@ function PatientList() {
   // Fetch patients from API
   const { data: patients, isLoading: patientsLoading } = useQuery({
     queryKey: ["/api/patients"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/patients', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch patients');
+      }
+      return response.json();
+    },
     enabled: true
   });
 
@@ -121,8 +134,20 @@ function PatientList() {
         'width=1200,height=800,scrollbars=yes,resizable=yes'
       );
       
-      if (!meetingWindow) {
-        throw new Error("Popup blocked. Please allow popups for this site.");
+      if (!meetingWindow || meetingWindow.closed || typeof meetingWindow.closed == 'undefined') {
+        // Popup was blocked - provide fallback
+        toast({
+          title: "Popup Blocked",
+          description: "Your browser blocked the meeting popup. Please allow popups and try again, or copy the meeting URL from the browser console.",
+          variant: "default",
+        });
+        
+        // Log the meeting URL for users to manually open
+        console.log("BigBlueButton Meeting URL:", meetingData.moderatorJoinUrl);
+        
+        // Also try to open in the same tab as fallback
+        window.location.href = meetingData.moderatorJoinUrl;
+        return; // Don't throw error, just redirect
       }
       
       toast({
@@ -148,6 +173,78 @@ function PatientList() {
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to start video call. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // BigBlueButton audio call function
+  const startBigBlueButtonAudioCall = async (patient: any) => {
+    try {
+      const response = await fetch("/api/video-conference/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          meetingName: `Audio Consultation with ${patient.firstName} ${patient.lastName}`,
+          participantName: `${patient.firstName} ${patient.lastName}`,
+          duration: 30,
+          maxParticipants: 10,
+          disableVideo: true, // Audio-only mode
+          webcamsOnlyForModerator: false
+        }),
+        credentials: "include"
+      });
+      
+      if (!response.ok) throw new Error("Failed to create audio meeting");
+      
+      const meetingData = await response.json();
+      
+      // Open BigBlueButton audio meeting in new window - use moderator URL for doctor
+      const meetingWindow = window.open(
+        meetingData.moderatorJoinUrl,
+        '_blank',
+        'width=800,height=600,scrollbars=yes,resizable=yes'
+      );
+      
+      if (!meetingWindow || meetingWindow.closed || typeof meetingWindow.closed == 'undefined') {
+        // Popup was blocked - provide fallback
+        toast({
+          title: "Popup Blocked",
+          description: "Your browser blocked the meeting popup. Please allow popups and try again, or copy the meeting URL from the browser console.",
+          variant: "default",
+        });
+        
+        // Log the meeting URL for users to manually open
+        console.log("BigBlueButton Audio Meeting URL:", meetingData.moderatorJoinUrl);
+        
+        // Also try to open in the same tab as fallback
+        window.location.href = meetingData.moderatorJoinUrl;
+        return; // Don't throw error, just redirect
+      }
+      
+      toast({
+        title: "Audio Call Started",
+        description: `Opening audio consultation with ${patient.firstName} ${patient.lastName}`
+      });
+      
+      // Create consultation record
+      await fetch("/api/telemedicine/consultations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patientId: patient.id,
+          type: "audio",
+          scheduledTime: new Date().toISOString(),
+          duration: 30,
+          meetingId: meetingData.meetingID
+        }),
+        credentials: "include"
+      });
+      
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to start audio call. Please try again.",
         variant: "destructive"
       });
     }
@@ -228,12 +325,7 @@ function PatientList() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  toast({
-                    title: "Audio Call",
-                    description: "Audio consultation feature will be available soon."
-                  });
-                }}
+                onClick={() => startBigBlueButtonAudioCall(patient)}
               >
                 <Phone className="w-4 h-4" />
               </Button>

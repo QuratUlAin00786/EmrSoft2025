@@ -202,7 +202,7 @@ export default function MessagingPage() {
 
   const { data: conversations = [], isLoading: conversationsLoading, error: conversationsError, refetch: refetchConversations } = useQuery({
     queryKey: ['/api/messaging/conversations'],
-    enabled: false, // Disable automatic execution to prevent loop
+    enabled: true, // Enable automatic execution to load conversations
     staleTime: 300000, // Consider data fresh for 5 minutes
     gcTime: 600000, // Keep in cache for 10 minutes
     refetchOnMount: false, // Don't auto-refetch on mount
@@ -619,7 +619,7 @@ export default function MessagingPage() {
       }
       
       // Less frequent conversation refresh to reduce API calls
-      // refetchConversations();
+      refetchConversations();
     }, 5000); // Check every 5 seconds instead of 2
     
     // Also attempt WebSocket as primary method
@@ -665,7 +665,7 @@ export default function MessagingPage() {
           
           // Always refresh conversations to update sidebar
           console.log('🔥 FORCE REFETCH ALL CONVERSATIONS - WebSocket triggered');
-          // refetchConversations();
+          refetchConversations();
           
           // Show toast notification
           toast({
@@ -764,24 +764,90 @@ export default function MessagingPage() {
     setNewMessageContent(""); // Clear immediately
     
     try {
+      // Find the other participant (patient) in the conversation
+      const currentConversation = conversations.find((c: Conversation) => c.id === selectedConversation);
+      const otherParticipant = currentConversation?.participants?.find((p: any) => 
+        p.id !== currentUser?.id
+      );
+      
+      // For patient conversations, get phone from stored messages or participant
+      const phoneNumber = messages?.[0]?.phoneNumber || otherParticipant?.phone;
+      const messageType = 'sms'; // Default to SMS for external messages
+      
+      // Determine if this should be sent as external SMS (only for patients with phone numbers)
+      const isExternalMessage = phoneNumber && messageType && otherParticipant?.role === 'patient';
+      
+      // Debug logging
+      console.log('🔍 SMS DETECTION DEBUG:');
+      console.log('  Other participant:', otherParticipant);
+      console.log('  Phone number:', phoneNumber);
+      console.log('  Message type:', messageType);
+      console.log('  Is external:', isExternalMessage);
+      
       const messageData = {
         conversationId: selectedConversation,
         content: messageContent,
         priority: 'normal',
-        type: 'internal'
+        type: isExternalMessage ? 'patient' : 'internal',
+        phoneNumber: isExternalMessage ? phoneNumber : undefined,
+        messageType: isExternalMessage ? messageType : undefined
       };
       console.log('🔥 CONVERSATION MESSAGE DATA:', messageData);
       console.log('🔥 Selected conversation ID:', selectedConversation);
       
-      // Use the same apiRequest method that works for other API calls
-      const response = await apiRequest('POST', '/api/messaging/send', messageData);
+      // Use direct API call with proper error handling (avoids false error notifications)
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/messaging/send', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'cura',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(messageData),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: response.statusText }));
+        throw new Error(errorData.error || `Failed to send message: ${response.status} ${response.statusText}`);
+      }
+      
       const responseData = await response.json();
       console.log('🔥 CONVERSATION MESSAGE RESPONSE:', responseData);
       
-      // Message sent successfully - trigger immediate UI update using direct fetch
-      console.log('🔥 MESSAGE SENT - WebSocket will update UI automatically');
+      // Update conversations cache for persistence
+      const currentConversations = queryClient.getQueryData(['/api/messaging/conversations']) as any[] || [];
+      const existingConversation = currentConversations.find(conv => conv.id === responseData.conversationId);
       
-      // CRITICAL FIX: Force immediate UI update using direct fetch to ensure message appears
+      if (!existingConversation) {
+        // New conversation created - force complete cache refresh
+        console.log('🔄 NEW CONVERSATION DETECTED - forcing complete refresh');
+        queryClient.removeQueries({ queryKey: ['/api/messaging/conversations'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
+      } else {
+        // Update existing conversation cache
+        const updatedConversations = currentConversations.map(conv => {
+          if (conv.id === responseData.conversationId) {
+            return {
+              ...conv,
+              lastMessage: {
+                id: responseData.id,
+                content: responseData.content,
+                priority: responseData.priority || "normal",
+                timestamp: responseData.timestamp || new Date().toISOString(),
+                senderId: responseData.senderId
+              },
+              updatedAt: new Date().toISOString()
+            };
+          }
+          return conv;
+        });
+        queryClient.setQueryData(['/api/messaging/conversations'], updatedConversations);
+        queryClient.invalidateQueries({ queryKey: ['/api/messaging/conversations'] });
+      }
+      
+      // Force immediate UI update using direct fetch to ensure message appears
       console.log('🔥 FORCE IMMEDIATE UI UPDATE: Triggering direct fetch after send');
       if (selectedConversation && fetchMessages) {
         console.log('🔥 Using direct fetch for immediate message visibility');
@@ -789,23 +855,23 @@ export default function MessagingPage() {
         console.log('🔥 DIRECT FETCH COMPLETED after message send');
       }
       
-      // Also refetch conversations to update last message info
-      // await refetchConversations();
-      
+      // Show success notification
       toast({
         title: "Message Sent",
         description: "Your message has been sent successfully.",
       });
-    } catch (error) {
+      
+    } catch (error: any) {
       // Restore the message content if send failed
       setNewMessageContent(messageContent);
+      console.error('🔥 CONVERSATION MESSAGE ERROR:', error);
+      
+      // Show error notification only on actual failure
       toast({
         title: "Error", 
-        description: "Failed to send message. Please try again.",
+        description: error.message || "Failed to send message. Please try again.",
         variant: "destructive"
       });
-      console.error('🔥 CONVERSATION MESSAGE ERROR:', error);
-      console.error('🔥 ERROR DETAILS:', JSON.stringify(error, null, 2));
     }
   };
 

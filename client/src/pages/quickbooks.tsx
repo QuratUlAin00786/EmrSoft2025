@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { 
@@ -24,6 +25,8 @@ import {
 export default function QuickBooks() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState<string | null>(null);
+  const [taxCalculationOpen, setTaxCalculationOpen] = useState(false);
+  const [taxResults, setTaxResults] = useState<any>(null);
   
   const accountingSummary = {
     totalRevenue: 125487.50,
@@ -535,60 +538,27 @@ export default function QuickBooks() {
       const annualProjection = (accountingSummary.netIncome * 4 * 0.25).toFixed(2);
       const federalTax = (accountingSummary.netIncome * 0.22).toFixed(2);
       const stateTax = (accountingSummary.netIncome * 0.03).toFixed(2);
+      const weeklySavings = Math.ceil(quarterlyTax / 12);
       
-      // Create comprehensive tax calculation popup
-      const taxResults = `
-📊 TAX CALCULATION COMPLETE
-
-💰 Current Quarter:
-• Net Income: $${accountingSummary.netIncome.toLocaleString()}
-• Federal Tax (22%): $${federalTax}
-• State Tax (3%): $${stateTax}
-• Total Quarterly Tax: $${quarterlyTax}
-
-📈 Annual Projection:
-• Projected Annual Tax: $${annualProjection}
-• Effective Tax Rate: 25%
-
-💡 Recommendations:
-• Set aside $${Math.ceil(quarterlyTax / 3)} weekly for taxes
-• Consider quarterly payments to avoid penalties
-• Review deductible expenses to optimize tax liability
-      `.trim();
-
-      // Show detailed results in toast
+      // Store results for modal display
+      setTaxResults({
+        netIncome: accountingSummary.netIncome,
+        quarterlyTax,
+        annualProjection,
+        federalTax,
+        stateTax,
+        weeklySavings,
+        effectiveRate: "25%"
+      });
+      
+      // Open the tax calculation modal
+      setTaxCalculationOpen(true);
+      
+      // Show simple success toast
       toast({
         title: "🧮 Tax Calculation Complete",
-        description: `Quarterly tax: $${quarterlyTax} | Annual projection: $${annualProjection}`,
+        description: "View detailed results in the opened dialog.",
       });
-
-      // Also show detailed popup for comprehensive view
-      if (window.confirm(`${taxResults}\n\nWould you like to export this tax calculation report?`)) {
-        // Export functionality
-        const exportData = {
-          calculationDate: new Date().toISOString(),
-          netIncome: accountingSummary.netIncome,
-          quarterlyTax: quarterlyTax,
-          annualProjection: annualProjection,
-          federalTax: federalTax,
-          stateTax: stateTax,
-          effectiveRate: "25%"
-        };
-        
-        const dataStr = JSON.stringify(exportData, null, 2);
-        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-        const exportFileDefaultName = `tax-calculation-${new Date().toISOString().split('T')[0]}.json`;
-        
-        const linkElement = document.createElement('a');
-        linkElement.setAttribute('href', dataUri);
-        linkElement.setAttribute('download', exportFileDefaultName);
-        linkElement.click();
-        
-        toast({
-          title: "Export Complete",
-          description: "Tax calculation report has been downloaded.",
-        });
-      }
       
     } catch (error) {
       console.error("Tax calculation error:", error);
@@ -1269,6 +1239,104 @@ export default function QuickBooks() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Tax Calculation Results Dialog */}
+      <Dialog open={taxCalculationOpen} onOpenChange={setTaxCalculationOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Calculator className="h-5 w-5" />
+              🧮 Tax Calculation Results
+            </DialogTitle>
+            <DialogDescription>
+              Comprehensive tax calculation based on current quarter data
+            </DialogDescription>
+          </DialogHeader>
+          
+          {taxResults && (
+            <div className="space-y-6 overflow-y-auto max-h-[60vh]">
+              {/* Current Quarter Section */}
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-lg mb-3 text-blue-900">💰 Current Quarter</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Net Income</p>
+                    <p className="text-xl font-bold text-green-600">
+                      ${Number(taxResults.netIncome).toLocaleString()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Total Quarterly Tax</p>
+                    <p className="text-xl font-bold text-red-600">
+                      ${Number(taxResults.quarterlyTax).toLocaleString()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Federal Tax (22%)</p>
+                    <p className="text-lg font-semibold">
+                      ${Number(taxResults.federalTax).toLocaleString()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">State Tax (3%)</p>
+                    <p className="text-lg font-semibold">
+                      ${Number(taxResults.stateTax).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Annual Projection Section */}
+              <div className="bg-purple-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-lg mb-3 text-purple-900">📈 Annual Projection</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Projected Annual Tax</p>
+                    <p className="text-xl font-bold text-purple-600">
+                      ${Number(taxResults.annualProjection).toLocaleString()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Effective Tax Rate</p>
+                    <p className="text-xl font-bold text-purple-600">
+                      {taxResults.effectiveRate}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recommendations Section */}
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-lg mb-3 text-green-900">💡 Tax Recommendations</h3>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                    <p>Set aside <strong>${taxResults.weeklySavings}</strong> weekly for taxes</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                    <p>Consider quarterly payments to avoid penalties</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                    <p>Review deductible expenses to optimize tax liability</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                    <p>Consult with a tax professional for advanced strategies</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <Button onClick={() => setTaxCalculationOpen(false)}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

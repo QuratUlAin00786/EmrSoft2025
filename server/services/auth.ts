@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import type { User } from "@shared/schema";
 
-const JWT_SECRET = process.env.JWT_SECRET || "emr-secret-key-change-in-production";
+const JWT_SECRET = process.env.JWT_SECRET || "cura-jwt-secret-2025-9f8e7d6c5b4a3e2f1a9b8c7d6e5f4a3b2c1d0e9f8g7h6i5j4k3l2m1n0o9p8q7r6s5t4u3v2w1x0y9z8";
 const SALT_ROUNDS = 12;
 
 export interface AuthTokenPayload {
