@@ -94,20 +94,53 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
       return;
     }
 
+    // Map the consultation data to match backend schema exactly
     const consultationRecord = {
       patientId: patient.id,
-      type: 'consultation',
-      date: new Date().toISOString(),
-      data: {
-        ...consultationData,
-        clinicalNotes: clinicalNotes,
-        examination: {
-          ...consultationData.examination,
-          selectedType: selectedExaminationType
-        }
+      chiefComplaint: consultationData.chiefComplaint || "",
+      historyPresentingComplaint: consultationData.historyPresentingComplaint || "",
+      reviewOfSystems: {
+        cardiovascular: consultationData.reviewOfSystems?.cardiovascular || "",
+        respiratory: consultationData.reviewOfSystems?.respiratory || "",
+        gastrointestinal: consultationData.reviewOfSystems?.gastrointestinal || "",
+        genitourinary: consultationData.reviewOfSystems?.genitourinary || "",
+        neurological: consultationData.reviewOfSystems?.neurological || "",
+        musculoskeletal: consultationData.reviewOfSystems?.musculoskeletal || "",
+        skin: consultationData.reviewOfSystems?.skin || "",
+        psychiatric: consultationData.reviewOfSystems?.psychiatric || ""
       },
-      provider: 'Current Provider', // This should be the logged-in provider
-      status: 'completed'
+      examination: {
+        general: consultationData.examination?.general || "",
+        cardiovascular: consultationData.examination?.cardiovascular || "",
+        respiratory: consultationData.examination?.respiratory || "",
+        abdomen: consultationData.examination?.abdomen || "",
+        neurological: consultationData.examination?.neurological || "",
+        musculoskeletal: consultationData.examination?.musculoskeletal || "",
+        skin: consultationData.examination?.skin || "",
+        head_neck: consultationData.examination?.head_neck || "",
+        ears_nose_throat: consultationData.examination?.ears_nose_throat || ""
+      },
+      vitals: {
+        bloodPressure: vitals.bloodPressure || "",
+        heartRate: vitals.heartRate || "",
+        temperature: vitals.temperature || "",
+        respiratoryRate: vitals.respiratoryRate || "",
+        oxygenSaturation: vitals.oxygenSaturation || "",
+        weight: vitals.weight || "",
+        height: vitals.height || "",
+        bmi: vitals.bmi || ""
+      },
+      assessment: consultationData.assessment || "",
+      plan: consultationData.plan || "",
+      prescriptions: consultationData.prescriptions || [],
+      referrals: consultationData.referrals || [],
+      investigations: consultationData.investigations || [],
+      followUp: {
+        required: false,
+        timeframe: "",
+        instructions: ""
+      },
+      consultationDate: new Date().toISOString()
     };
 
     saveConsultationMutation.mutate(consultationRecord);
