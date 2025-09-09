@@ -936,9 +936,10 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                               />
                             </div>
                           </div>
-
-                          {/* Action Buttons */}
-                          <div className="flex gap-2">
+                          
+                          <div>
+                            {/* Action Buttons */}
+                            <div className="flex gap-2">
                             <Button
                               onClick={generateTreatmentPlan}
                               disabled={!selectedMuscleGroup || !selectedAnalysisType || !selectedTreatment || isGeneratingPlan}
@@ -969,6 +970,7 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                               </CardContent>
                             </Card>
                           )}
+                          </div>
                         </div>
                       </div>
                     </DialogContent>
