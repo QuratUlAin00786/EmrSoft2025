@@ -8017,15 +8017,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/billing/invoices", requireRole(["admin", "doctor", "nurse", "receptionist"]), async (req: TenantRequest, res) => {
     try {
       const invoiceData = z.object({
-        patientId: z.string(),
-        serviceDate: z.string(),
-        invoiceDate: z.string(),
-        dueDate: z.string(),
-        totalAmount: z.string(),
-        firstServiceCode: z.string(),
-        firstServiceDesc: z.string(),
-        firstServiceQty: z.string(),
-        firstServiceAmount: z.string(),
+        patientId: z.string().min(1, "Patient is required"),
+        serviceDate: z.string().min(1, "Service date is required"),
+        invoiceDate: z.string().min(1, "Invoice date is required"), 
+        dueDate: z.string().min(1, "Due date is required"),
+        totalAmount: z.string().min(1, "Total amount is required").refine(val => {
+          const num = parseFloat(val);
+          return !isNaN(num) && num > 0;
+        }, "Total amount must be a valid number greater than 0"),
+        firstServiceCode: z.string().min(1, "Service code is required"),
+        firstServiceDesc: z.string().min(1, "Service description is required"),
+        firstServiceQty: z.string().min(1, "Service quantity is required").refine(val => {
+          const num = parseInt(val);
+          return !isNaN(num) && num > 0;
+        }, "Service quantity must be a valid number greater than 0"),
+        firstServiceAmount: z.string().min(1, "Service amount is required").refine(val => {
+          const num = parseFloat(val);
+          return !isNaN(num) && num > 0;
+        }, "Service amount must be a valid number greater than 0"),
         notes: z.string().optional()
       }).parse(req.body);
 
