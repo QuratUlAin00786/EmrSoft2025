@@ -32,6 +32,10 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
       console.log("♻️ Invalidating React Query cache...");
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
       
+      // Force immediate refetch to ensure appointments list updates
+      console.log("🔄 Forcing immediate refetch of appointments...");
+      queryClient.refetchQueries({ queryKey: ["/api/appointments"] });
+      
       // Reset form
       setFormData({
         patientId: "",

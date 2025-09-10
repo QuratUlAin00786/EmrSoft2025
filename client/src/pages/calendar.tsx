@@ -58,6 +58,8 @@ export default function CalendarPage() {
       });
       // Update calendar data
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+      // Force immediate refetch to ensure appointments list updates
+      queryClient.refetchQueries({ queryKey: ["/api/appointments"] });
       setSelectedDoctor(null);
       setBookingForm({
         patientId: "",
