@@ -318,29 +318,41 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
   // Anatomical images array
   const anatomicalImages = [facialMuscleImage, facialOutlineImage];
 
-  // Muscle coordinates for interactive overlay
+  // Muscle coordinates for interactive overlay - EXACT ANATOMICAL MEASUREMENTS
   const muscleCoordinatesForImages = {
     0: {
-      frontalis: { x: 50, y: 10 },
-      temporalis: { x: 15, y: 12 },
-      orbicularis_oculi: { x: 30, y: 35 },
-      levator_labii_superioris: { x: 35, y: 48 },
-      zygomaticus_major: { x: 22, y: 57 },
-      masseter: { x: 85, y: 65 },
-      orbicularis_oris: { x: 50, y: 67 },
-      mentalis: { x: 50, y: 78 }
+      frontalis: { x: 50, y: 8 },
+      temporalis: { x: 15, y: 28 },
+      corrugator_supercilii: { x: 35, y: 17 },
+      procerus: { x: 70, y: 17 },
+      orbicularis_oculi: { x: 55, y: 25 },
+      levator_labii_superioris: { x: 73, y: 20 },
+      zygomaticus_major: { x: 28, y: 50 },
+      zygomaticus_minor: { x: 28, y: 50 },
+      masseter: { x: 74, y: 29 },
+      buccinator: { x: 73, y: 27 },
+      orbicularis_oris: { x: 75, y: 31 },
+      mentalis: { x: 72, y: 34 },
+      depressor_anguli_oris: { x: 77, y: 35 },
+      depressor_labii_inferioris: { x: 76, y: 38 },
+      platysma: { x: 50, y: 85 }
     },
     1: {
-      frontalis: { x: 50, y: 10 },
-      temporalis: { x: 15, y: 12 },
-      corrugator_supercilii: { x: 37, y: 22 },
-      procerus: { x: 50, y: 28 },
-      orbicularis_oculi: { x: 30, y: 35 },
-      levator_labii_superioris: { x: 35, y: 48 },
-      zygomaticus_major: { x: 22, y: 57 },
-      masseter: { x: 85, y: 65 },
-      orbicularis_oris: { x: 50, y: 67 },
-      mentalis: { x: 50, y: 78 }
+      frontalis: { x: 50, y: 8 },
+      temporalis: { x: 15, y: 28 },
+      corrugator_supercilii: { x: 35, y: 17 },
+      procerus: { x: 70, y: 17 },
+      orbicularis_oculi: { x: 55, y: 25 },
+      levator_labii_superioris: { x: 73, y: 20 },
+      zygomaticus_major: { x: 28, y: 50 },
+      zygomaticus_minor: { x: 28, y: 50 },
+      masseter: { x: 74, y: 29 },
+      buccinator: { x: 73, y: 27 },
+      orbicularis_oris: { x: 75, y: 31 },
+      mentalis: { x: 72, y: 34 },
+      depressor_anguli_oris: { x: 77, y: 35 },
+      depressor_labii_inferioris: { x: 76, y: 38 },
+      platysma: { x: 50, y: 85 }
     }
   };
 
