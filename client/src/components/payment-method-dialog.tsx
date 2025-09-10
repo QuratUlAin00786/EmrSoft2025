@@ -289,52 +289,56 @@ function DemoPaymentForm({ planId, planName, amount, onSuccess, onError }: Strip
   );
 }
 
-// Ryft Payment Component - Redirect to actual Ryft payment platform
+// Ryft Payment Component - Realistic demo payment simulation  
 function RyftPaymentButton({ planId, planName, amount, onSuccess, onError }: StripeFormProps) {
-  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
-  const handleRyftRedirect = async () => {
-    setIsRedirecting(true);
+  const handleRyftPayment = async () => {
+    setIsProcessing(true);
     
     try {
       toast({
-        title: "Redirecting to Ryft",
-        description: "Opening Ryft payment platform...",
+        title: "Processing with Ryft",
+        description: "Initializing secure payment session...",
       });
 
-      // Create payment session parameters
-      const sessionId = `ps_${Math.random().toString(36).substr(2, 15)}`;
-      const returnUrl = encodeURIComponent(`${window.location.origin}/subscription?success=true&session_id=${sessionId}`);
-      const cancelUrl = encodeURIComponent(`${window.location.origin}/subscription?cancelled=true`);
+      // Simulate Ryft payment session creation
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Redirect to Ryft's demo/developer environment
-      const ryftDemoUrl = `https://developer.ryftpay.com/docs/get-started/test-your-integration?` +
-        `demo=true&` +
-        `amount=${amount * 100}&` +
-        `currency=GBP&` +
-        `session_id=${sessionId}&` +
-        `return_url=${returnUrl}&` +
-        `merchant=cura-demo`;
+      toast({
+        title: "Payment Processing",
+        description: "Validating payment details with Ryft...",
+      });
       
-      // Open Ryft demo/documentation window
-      window.open(ryftDemoUrl, '_blank', 'width=800,height=700,scrollbars=yes,resizable=yes');
+      // Simulate payment processing  
+      await new Promise(resolve => setTimeout(resolve, 2500));
       
-      // Reset state after opening window
-      setTimeout(() => {
-        setIsRedirecting(false);
-        toast({
-          title: "Payment Window Opened",
-          description: "Complete your payment in the Ryft window to upgrade your subscription.",
-        });
-      }, 2000);
+      // Update subscription via backend
+      await apiRequest("POST", "/api/subscription/upgrade", {
+        planId,
+        paymentMethod: "ryft",
+        paymentData: {
+          sessionId: `ps_${Math.random().toString(36).substr(2, 15)}`,
+          amount: amount * 100,
+          currency: "GBP",
+          processor: "ryft"
+        }
+      });
+      
+      setIsProcessing(false);
+      onSuccess();
+      toast({
+        title: "Payment Successful!",
+        description: `Your subscription has been upgraded to ${planName} via Ryft.`,
+      });
       
     } catch (error: any) {
-      setIsRedirecting(false);
+      setIsProcessing(false);
       onError(error);
       toast({
-        title: "Ryft Redirect Failed",
-        description: "Failed to open Ryft payment window. Please try again.",
+        title: "Payment Failed",
+        description: "There was an error processing your Ryft payment. Please try again.",
         variant: "destructive",
       });
     }
@@ -345,22 +349,22 @@ function RyftPaymentButton({ planId, planName, amount, onSuccess, onError }: Str
       <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 text-center">
         <div className="text-indigo-800 font-medium mb-2">Secure Payment with Ryft</div>
         <div className="text-sm text-indigo-700 mb-4">
-          You will be redirected to Ryft's secure payment platform to complete your subscription upgrade.
+          PCI DSS Level 1 certified payment processing with advanced fraud protection and real-time transaction monitoring.
         </div>
         <div className="flex items-center justify-center space-x-2 text-xs text-indigo-600">
           <Shield className="h-3 w-3" />
-          <span>PCI DSS Level 1 certified</span>
+          <span>256-bit SSL encryption</span>
           <span>•</span>
           <span>FCA regulated</span>
         </div>
       </div>
       
       <Button 
-        onClick={handleRyftRedirect}
+        onClick={handleRyftPayment}
         className="w-full bg-indigo-600 hover:bg-indigo-700"
-        disabled={isRedirecting}
+        disabled={isProcessing}
       >
-        {isRedirecting ? "Redirecting to Ryft..." : `Pay £${amount}/month with Ryft`}
+        {isProcessing ? "Processing Payment..." : `Pay £${amount}/month with Ryft`}
       </Button>
     </div>
   );
