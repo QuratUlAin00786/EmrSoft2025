@@ -1309,7 +1309,8 @@ Patient should be advised of potential side effects and expected timeline for re
                               }}
                             >
                               <div
-                                className="w-6 h-6 rounded-full bg-yellow-400 border-2 border-yellow-600 shadow-lg animate-pulse z-10"
+                                className="w-12 h-12 rounded-full bg-red-500 border-4 border-white shadow-xl animate-bounce z-50"
+                                style={{ zIndex: 9999 }}
                                 title={`Selected: ${selectedMuscleGroup.replace(/_/g, ' ')}`}
                               />
                             </div>
