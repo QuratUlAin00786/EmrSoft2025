@@ -303,7 +303,7 @@ function RyftPaymentButton({ planId, planName, amount, onSuccess, onError }: Str
       
       // Create realistic Ryft demo session
       const sessionId = `ryft_${Math.random().toString(36).substr(2, 15)}`;
-      const ryftUrl = `https://checkout.ryft.com/pay?session_id=${sessionId}&amount=${amount * 100}&currency=GBP&merchant=cura-averox&return_url=https://app.cura.com/subscription`;
+      const ryftUrl = `https://checkout.ryft.io/pay?session_id=${sessionId}&amount=${amount * 100}&currency=GBP&merchant=cura-averox&return_url=${window.location.origin}/subscription`;
       
       toast({
         title: "Redirecting to Ryft",

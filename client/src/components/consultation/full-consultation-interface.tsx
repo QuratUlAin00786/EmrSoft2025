@@ -1249,8 +1249,8 @@ Patient should be advised of potential side effects and expected timeline for re
                       className="w-full h-auto max-w-2xl mx-auto rounded-lg"
                     />
                     
-                    {/* Muscle Selection Highlight Overlay - FORCED TEST */}
-                    {true && (
+                    {/* Muscle Selection Highlight Overlay */}
+                    {selectedMuscleGroup && (
                       <div className="absolute inset-0 pointer-events-none">
                         {(() => {
                           // Define separate muscle coordinates for each image type
@@ -1293,11 +1293,7 @@ Patient should be advised of potential side effects and expected timeline for re
                             }
                           };
                           
-                          console.log("DEBUG: selectedMuscleGroup =", selectedMuscleGroup);
-                          console.log("DEBUG: currentImageIndex =", currentImageIndex);
-                          // FORCED TEST - use temporalis coordinates
-                          const coords = { x: 15, y: 28 };
-                          console.log("DEBUG: FORCED coords =", coords);
+                          const coords = muscleCoordinatesForImages[currentImageIndex as keyof typeof muscleCoordinatesForImages]?.[selectedMuscleGroup as keyof typeof muscleCoordinatesForImages[0]];
                           if (!coords) return null;
                           
                           return (
@@ -1309,8 +1305,7 @@ Patient should be advised of potential side effects and expected timeline for re
                               }}
                             >
                               <div
-                                className="w-12 h-12 rounded-full bg-red-500 border-4 border-white shadow-xl animate-bounce z-50"
-                                style={{ zIndex: 9999 }}
+                                className="w-6 h-6 rounded-full bg-yellow-400 border-2 border-yellow-600 shadow-lg animate-pulse z-10"
                                 title={`Selected: ${selectedMuscleGroup.replace(/_/g, ' ')}`}
                               />
                             </div>
