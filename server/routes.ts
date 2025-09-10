@@ -7969,9 +7969,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // SaaS routes already registered above before tenant middleware
-
-  const httpServer = createServer(app);
   // Billing & Invoice routes
   app.get("/api/billing/invoices", requireRole(["admin", "doctor", "nurse", "receptionist"]), async (req: TenantRequest, res) => {
     try {
@@ -8068,6 +8065,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to create invoice" });
     }
   });
+
+  // SaaS routes already registered above before tenant middleware
+
+  const httpServer = createServer(app);
   
   // Add WebSocket support for real-time messaging
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
