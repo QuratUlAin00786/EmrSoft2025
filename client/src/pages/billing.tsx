@@ -1338,7 +1338,11 @@ export default function BillingPage() {
               
               // Show validation errors
               if (errors.length > 0) {
-                alert('Please fix the following errors before creating the invoice:\n\n' + errors.map(error => '• ' + error).join('\n'));
+                toast({
+                  title: "Please fix the following errors before creating the invoice:",
+                  description: errors.map(error => '• ' + error).join('\n'),
+                  variant: "destructive"
+                });
                 return;
               }
               
