@@ -1270,7 +1270,7 @@ Patient should be advised of potential side effects and expected timeline for re
                             // Image 0: EXACT ANATOMICAL MEASUREMENTS - Precise label positions
                             0: {
                               frontalis: { x: 50, y: 8 },                // FRONTALIS (FOREHEAD) - top center
-                              temporalis: { x: 15, y: 28 },              // TEMPORALIS - center of muscle fibers in temple region
+                              temporalis: { x: 85, y: 18 },              // TEMPORALIS - center of muscle fibers in temple region
                               corrugator_supercilii: { x: 35, y: 17 },   // CORRUGATOR SUPERCILII - left above brow
                               procerus: { x: 70, y: 17 },                // PROCERUS - right side label
                               orbicularis_oculi: { x: 55, y: 25 },       // Eye area center
@@ -1288,7 +1288,7 @@ Patient should be advised of potential side effects and expected timeline for re
                             // Image 1: EXACT ANATOMICAL MEASUREMENTS - Precise label positions
                             1: {
                               frontalis: { x: 50, y: 8 },                // FRONTALIS (FOREHEAD) - top center
-                              temporalis: { x: 15, y: 28 },              // TEMPORALIS - center of muscle fibers in temple region
+                              temporalis: { x: 85, y: 18 },              // TEMPORALIS - center of muscle fibers in temple region
                               corrugator_supercilii: { x: 35, y: 17 },   // CORRUGATOR SUPERCILII - left above brow
                               procerus: { x: 70, y: 17 },                // PROCERUS - right side label
                               orbicularis_oculi: { x: 55, y: 25 },       // Eye area center
