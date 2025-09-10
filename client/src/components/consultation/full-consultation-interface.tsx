@@ -1258,7 +1258,7 @@ Patient should be advised of potential side effects and expected timeline for re
                             // Image 0: EXACT ANATOMICAL MEASUREMENTS - Precise label positions
                             0: {
                               frontalis: { x: 50, y: 8 },                // FRONTALIS (FOREHEAD) - top center
-                              temporalis: { x: 74, y: 15 },              // TEMPORALIS - exact label position
+                              temporalis: { x: 22, y: 25 },              // TEMPORALIS - actual muscle tissue location
                               corrugator_supercilii: { x: 35, y: 17 },   // CORRUGATOR SUPERCILII - left above brow
                               procerus: { x: 70, y: 17 },                // PROCERUS - right side label
                               orbicularis_oculi: { x: 55, y: 25 },       // Eye area center
@@ -1276,7 +1276,7 @@ Patient should be advised of potential side effects and expected timeline for re
                             // Image 1: EXACT ANATOMICAL MEASUREMENTS - Precise label positions
                             1: {
                               frontalis: { x: 50, y: 8 },                // FRONTALIS (FOREHEAD) - top center
-                              temporalis: { x: 74, y: 15 },              // TEMPORALIS - exact label position
+                              temporalis: { x: 22, y: 25 },              // TEMPORALIS - actual muscle tissue location
                               corrugator_supercilii: { x: 35, y: 17 },   // CORRUGATOR SUPERCILII - left above brow
                               procerus: { x: 70, y: 17 },                // PROCERUS - right side label
                               orbicularis_oculi: { x: 55, y: 25 },       // Eye area center
