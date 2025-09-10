@@ -499,6 +499,18 @@ export default function BillingPage() {
   const [recipientAddress, setRecipientAddress] = useState("");
   const [customMessage, setCustomMessage] = useState("");
 
+  // New invoice form state
+  const [selectedPatient, setSelectedPatient] = useState("");
+  const [serviceDate, setServiceDate] = useState(new Date().toISOString().split('T')[0]);
+  const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
+  const [dueDate, setDueDate] = useState(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+  const [totalAmount, setTotalAmount] = useState("0.00");
+  const [firstServiceCode, setFirstServiceCode] = useState("");
+  const [firstServiceDesc, setFirstServiceDesc] = useState("");
+  const [firstServiceQty, setFirstServiceQty] = useState("");
+  const [firstServiceAmount, setFirstServiceAmount] = useState("");
+  const [notes, setNotes] = useState("");
+
   const handleSendInvoice = (invoiceId: string) => {
     const invoice = Array.isArray(invoices) ? invoices.find((inv: any) => inv.id === invoiceId) : null;
     if (invoice) {
@@ -1171,7 +1183,7 @@ export default function BillingPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="patient">Patient</Label>
-                <Select>
+                <Select value={selectedPatient} onValueChange={setSelectedPatient}>
                   <SelectTrigger>
                     <SelectValue placeholder={patientsLoading ? "Loading patients..." : "Select patient"} />
                   </SelectTrigger>
@@ -1204,7 +1216,8 @@ export default function BillingPage() {
                 <Input 
                   id="service-date" 
                   type="date" 
-                  defaultValue={new Date().toISOString().split('T')[0]}
+                  value={serviceDate}
+                  onChange={(e) => setServiceDate(e.target.value)}
                 />
               </div>
             </div>
@@ -1240,10 +1253,10 @@ export default function BillingPage() {
                 </div>
                 
                 <div className="grid grid-cols-4 gap-2">
-                  <Input placeholder="CPT Code" defaultValue="99213" />
-                  <Input placeholder="Description" defaultValue="Office consultation" />
-                  <Input placeholder="1" defaultValue="1" />
-                  <Input placeholder="150.00" defaultValue="150.00" />
+                  <Input placeholder="Enter CPT Code" value={firstServiceCode} onChange={(e) => setFirstServiceCode(e.target.value)} />
+                  <Input placeholder="Enter Description" value={firstServiceDesc} onChange={(e) => setFirstServiceDesc(e.target.value)} />
+                  <Input placeholder="Qty" value={firstServiceQty} onChange={(e) => setFirstServiceQty(e.target.value)} />
+                  <Input placeholder="Amount" value={firstServiceAmount} onChange={(e) => setFirstServiceAmount(e.target.value)} />
                 </div>
                 
                 <div className="grid grid-cols-4 gap-2">
@@ -1275,8 +1288,9 @@ export default function BillingPage() {
                 <Label htmlFor="total">Total Amount</Label>
                 <Input 
                   id="total" 
-                  placeholder="150.00" 
-                  defaultValue="150.00"
+                  placeholder="Enter amount (e.g., 150.00)" 
+                  value={totalAmount}
+                  onChange={(e) => setTotalAmount(e.target.value)}
                 />
               </div>
             </div>
@@ -1287,6 +1301,8 @@ export default function BillingPage() {
                 id="notes" 
                 placeholder="Additional notes or instructions..."
                 rows={3}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
               />
             </div>
           </div>
@@ -1296,33 +1312,26 @@ export default function BillingPage() {
               Cancel
             </Button>
             <Button onClick={() => {
-              // Get form values
-              const patientSelect = document.querySelector('[id*="patient"]') as HTMLSelectElement;
-              const totalAmountInput = document.getElementById('total') as HTMLInputElement;
+              console.log('Creating new invoice...');
               
-              // Get service line values
-              const serviceInputs = document.querySelectorAll('.grid.grid-cols-4.gap-2 input');
-              const firstServiceCode = (serviceInputs[0] as HTMLInputElement)?.value || '';
-              const firstServiceDesc = (serviceInputs[1] as HTMLInputElement)?.value || '';
-              const firstServiceAmount = (serviceInputs[4] as HTMLInputElement)?.value || '';
-              
-              // Validation
+              // Validation using state variables
               const errors = [];
               
               // Check if patient is selected
-              if (!patientSelect?.value || patientSelect.value === '' || patientSelect.value === 'loading' || patientSelect.value === 'no-patients') {
+              if (!selectedPatient || selectedPatient === '' || selectedPatient === 'loading' || selectedPatient === 'no-patients') {
                 errors.push('Please select a patient');
               }
               
-              // Check if at least one service line has data
-              const hasServiceData = (firstServiceCode && firstServiceDesc) || (firstServiceDesc && firstServiceAmount);
+              // Check if at least one service line has meaningful data
+              const hasServiceData = (firstServiceCode.trim() && firstServiceDesc.trim()) || 
+                                   (firstServiceDesc.trim() && firstServiceAmount.trim() && parseFloat(firstServiceAmount) > 0);
               if (!hasServiceData) {
-                errors.push('Please enter at least one service with description');
+                errors.push('Please enter at least one service with description and amount');
               }
               
               // Check if total amount is valid
-              const totalAmount = parseFloat(totalAmountInput?.value || '0');
-              if (!totalAmount || totalAmount <= 0) {
+              const total = parseFloat(totalAmount || '0');
+              if (!total || total <= 0) {
                 errors.push('Please enter a valid total amount greater than 0');
               }
               
@@ -1332,9 +1341,21 @@ export default function BillingPage() {
                 return;
               }
               
-              // If validation passes, show success
-              console.log('Creating new invoice...');
+              // If validation passes, show success and reset form
               alert('Invoice created successfully!\n\nInvoice #INV-' + Date.now().toString().slice(-6) + ' has been generated and sent to the patient.');
+              
+              // Reset form state
+              setSelectedPatient("");
+              setServiceDate(new Date().toISOString().split('T')[0]);
+              setInvoiceDate(new Date().toISOString().split('T')[0]);
+              setDueDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+              setTotalAmount("150.00");
+              setFirstServiceCode("99213");
+              setFirstServiceDesc("Office consultation");
+              setFirstServiceQty("1");
+              setFirstServiceAmount("150.00");
+              setNotes("");
+              
               setShowNewInvoice(false);
             }}>
               Create Invoice
