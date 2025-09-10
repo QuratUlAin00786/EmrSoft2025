@@ -394,18 +394,33 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
     });
   };
 
-  // Handle overlay updates on image change and resize
+  // Handle overlay updates on image change and resize - ROBUST TIMING
   useEffect(() => {
-    // Update overlay when image changes
-    setTimeout(updateOverlayPosition, 100); // Slight delay to ensure image is loaded
+    // Update overlay immediately when dialog opens or image changes
+    if (open && anatomicalStep === 1) {
+      updateOverlayPosition();
+    }
     
-    // Handle window resize
+    // Handle window resize with ResizeObserver for better performance
+    let resizeObserver: ResizeObserver | null = null;
+    
+    if (imageRef.current && open) {
+      resizeObserver = new ResizeObserver(() => {
+        updateOverlayPosition();
+      });
+      resizeObserver.observe(imageRef.current);
+    }
+    
     const handleResize = () => {
-      setTimeout(updateOverlayPosition, 100);
+      updateOverlayPosition();
     };
     
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      resizeObserver?.disconnect();
+    };
   }, [currentImageIndex, anatomicalStep, open]);
 
   const [isSavingAnalysis, setIsSavingAnalysis] = useState(false);
@@ -1330,7 +1345,7 @@ Patient should be advised of potential side effects and expected timeline for re
                     {/* PIXEL-ACCURATE MUSCLE HIGHLIGHT OVERLAY */}
                     {selectedMuscleGroup && overlayPosition && (
                       <div 
-                        className="absolute pointer-events-none"
+                        className="absolute pointer-events-none z-50"
                         style={{
                           left: overlayPosition.left,
                           top: overlayPosition.top,
@@ -1339,23 +1354,51 @@ Patient should be advised of potential side effects and expected timeline for re
                         }}
                       >
                         {(() => {
+                          // NORMALIZE MUSCLE KEY - Convert dropdown value to coordinate key
+                          const normalize = (s: string) => s.trim().toLowerCase().replace(/[^a-z0-9]+/g,'_');
+                          const muscleKey = normalize(selectedMuscleGroup);
+                          
+                          // DEBUG LOGGING
+                          console.log('🎯 MUSCLE HIGHLIGHTING DEBUG:', {
+                            selectedMuscleGroup,
+                            normalized: muscleKey,
+                            currentImageIndex,
+                            availableKeys: Object.keys(musclePixelCoordinates[currentImageIndex as keyof typeof musclePixelCoordinates] || {}),
+                            overlayPosition
+                          });
+                          
                           // Get pixel coordinates for selected muscle
-                          const pixelCoords = musclePixelCoordinates[currentImageIndex as keyof typeof musclePixelCoordinates]?.[selectedMuscleGroup as keyof typeof musclePixelCoordinates[0]];
-                          if (!pixelCoords) return null;
+                          const pixelCoords = musclePixelCoordinates[currentImageIndex as keyof typeof musclePixelCoordinates]?.[muscleKey as keyof typeof musclePixelCoordinates[0]];
+                          if (!pixelCoords) {
+                            console.warn('❌ NO COORDINATES FOUND FOR MUSCLE:', muscleKey);
+                            return null;
+                          }
                           
                           // Scale coordinates to rendered dimensions
                           const scaledX = pixelCoords.x * overlayPosition.scaleX;
                           const scaledY = pixelCoords.y * overlayPosition.scaleY;
                           
+                          console.log('✅ MUSCLE MARKER POSITION:', {
+                            muscleKey,
+                            pixelCoords,
+                            scaled: { x: scaledX, y: scaledY }
+                          });
+                          
                           return (
                             <div
-                              className="absolute"
+                              className="absolute z-60"
                               style={{
-                                transform: `translate(${scaledX}px, ${scaledY}px) translate(-50%, -50%)`
+                                left: `${scaledX}px`,
+                                top: `${scaledY}px`,
+                                transform: 'translate(-50%, -50%)'
                               }}
                             >
                               <div
-                                className="w-6 h-6 rounded-full bg-yellow-400 border-2 border-yellow-600 shadow-lg animate-pulse z-50"
+                                className="w-6 h-6 rounded-full bg-yellow-400 border-2 border-yellow-600 shadow-lg animate-pulse"
+                                style={{
+                                  background: 'rgba(255, 230, 0, 0.9)',
+                                  boxShadow: '0 0 8px rgba(255, 230, 0, 0.8)'
+                                }}
                                 title={`Selected: ${selectedMuscleGroup.replace(/_/g, ' ')}`}
                               />
                             </div>
