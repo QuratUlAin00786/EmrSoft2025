@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -307,6 +307,107 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [anatomicalStep, setAnatomicalStep] = useState(1); // 1: Analysis, 2: Configuration, 3: Assessment
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
+
+  // PIXEL-ACCURATE OVERLAY SYSTEM - Refs and state for proper muscle highlighting
+  const imageRef = useRef<HTMLImageElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [overlayPosition, setOverlayPosition] = useState<{
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+    scaleX: number;
+    scaleY: number;
+  } | null>(null);
+
+  // PIXEL-BASED COORDINATES - Intrinsic pixel positions from the actual image dimensions
+  const musclePixelCoordinates = {
+    // Using estimated 1000x800 dimensions for the facial muscle diagram
+    0: {
+      frontalis: { x: 500, y: 64 },              // FRONTALIS (FOREHEAD) - top center
+      temporalis: { x: 840, y: 120 },            // TEMPORALIS - temple region
+      corrugator_supercilii: { x: 350, y: 136 }, // CORRUGATOR SUPERCILII - left brow
+      procerus: { x: 700, y: 136 },              // PROCERUS - right side
+      orbicularis_oculi: { x: 460, y: 224 },     // ORBICULARIS OCULI - eye area
+      levator_labii_superioris: { x: 730, y: 160 }, // LEVATOR LABII SUPERIORIS - right
+      zygomaticus_major: { x: 280, y: 400 },     // ZYGOMATICUS MAJOR & MINOR - left cheek
+      zygomaticus_minor: { x: 280, y: 400 },     // Same as major - labeled together
+      masseter: { x: 740, y: 232 },              // MASSETER - right jaw
+      buccinator: { x: 730, y: 216 },            // BUCCINATOR - right cheek
+      orbicularis_oris: { x: 750, y: 248 },      // ORBICULARIS ORIS - right mouth
+      mentalis: { x: 720, y: 272 },              // MENTALIS - right chin
+      depressor_anguli_oris: { x: 770, y: 280 }, // DEPRESSOR ANGULI ORIS - right
+      depressor_labii_inferioris: { x: 760, y: 304 }, // DEPRESSOR LABII INFERIORIS - right
+      platysma: { x: 500, y: 680 }               // PLATYSMA - neck area
+    },
+    1: {
+      frontalis: { x: 500, y: 64 },              // FRONTALIS (FOREHEAD) - top center
+      temporalis: { x: 840, y: 120 },            // TEMPORALIS - temple region
+      corrugator_supercilii: { x: 350, y: 136 }, // CORRUGATOR SUPERCILII - left brow
+      procerus: { x: 700, y: 136 },              // PROCERUS - right side
+      orbicularis_oculi: { x: 460, y: 224 },     // ORBICULARIS OCULI - eye area
+      levator_labii_superioris: { x: 730, y: 160 }, // LEVATOR LABII SUPERIORIS - right
+      zygomaticus_major: { x: 280, y: 400 },     // ZYGOMATICUS MAJOR & MINOR - left cheek
+      zygomaticus_minor: { x: 280, y: 400 },     // Same as major - labeled together
+      masseter: { x: 740, y: 232 },              // MASSETER - right jaw
+      buccinator: { x: 730, y: 216 },            // BUCCINATOR - right cheek
+      orbicularis_oris: { x: 750, y: 248 },      // ORBICULARIS ORIS - right mouth
+      mentalis: { x: 720, y: 272 },              // MENTALIS - right chin
+      depressor_anguli_oris: { x: 770, y: 280 }, // DEPRESSOR ANGULI ORIS - right
+      depressor_labii_inferioris: { x: 760, y: 304 }, // DEPRESSOR LABII INFERIORIS - right
+      platysma: { x: 500, y: 680 }               // PLATYSMA - neck area
+    }
+  };
+
+  // MEASUREMENT FUNCTION - Calculate overlay position and scaling
+  const updateOverlayPosition = () => {
+    if (!imageRef.current || !containerRef.current) return;
+    
+    const img = imageRef.current;
+    const container = containerRef.current;
+    
+    // Get natural and rendered dimensions
+    const natW = img.naturalWidth;
+    const natH = img.naturalHeight;
+    
+    // Get element positions
+    const imgRect = img.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    
+    // Calculate position relative to container
+    const left = imgRect.left - containerRect.left;
+    const top = imgRect.top - containerRect.top;
+    const width = imgRect.width;
+    const height = imgRect.height;
+    
+    // Calculate scale factors
+    const scaleX = width / natW;
+    const scaleY = height / natH;
+    
+    setOverlayPosition({
+      left,
+      top,
+      width,
+      height,
+      scaleX,
+      scaleY
+    });
+  };
+
+  // Handle overlay updates on image change and resize
+  useEffect(() => {
+    // Update overlay when image changes
+    setTimeout(updateOverlayPosition, 100); // Slight delay to ensure image is loaded
+    
+    // Handle window resize
+    const handleResize = () => {
+      setTimeout(updateOverlayPosition, 100);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [currentImageIndex, anatomicalStep, open]);
+
   const [isSavingAnalysis, setIsSavingAnalysis] = useState(false);
 
   // Speech recognition state
@@ -1217,70 +1318,44 @@ Patient should be advised of potential side effects and expected timeline for re
             <div className="space-y-6 p-4">
               <div className="flex flex-col items-center space-y-4">
                 <div className="relative bg-white rounded-lg p-6 w-full max-w-4xl border shadow-sm">
-                  <div className="relative">
+                  <div className="relative" ref={containerRef}>
                     <img
+                      ref={imageRef}
                       src={anatomicalImages[currentImageIndex]}
                       alt="Professional Anatomical Analysis"
                       className="w-full h-auto max-w-2xl mx-auto rounded-lg"
+                      onLoad={updateOverlayPosition}
                     />
                     
-                    {/* Muscle Selection Highlight Overlay */}
-                    {selectedMuscleGroup && (
-                      <div className="absolute inset-0 pointer-events-none">
+                    {/* PIXEL-ACCURATE MUSCLE HIGHLIGHT OVERLAY */}
+                    {selectedMuscleGroup && overlayPosition && (
+                      <div 
+                        className="absolute pointer-events-none"
+                        style={{
+                          left: overlayPosition.left,
+                          top: overlayPosition.top,
+                          width: overlayPosition.width,
+                          height: overlayPosition.height,
+                        }}
+                      >
                         {(() => {
-                          // Define separate muscle coordinates for each image type
-                          const muscleCoordinatesForImages = {
-                            // Image 0: EXACT ANATOMICAL MEASUREMENTS - Precise label positions
-                            0: {
-                              frontalis: { x: 50, y: 8 },                // FRONTALIS (FOREHEAD) - top center
-                              temporalis: { x: 84, y: 15 },              // TEMPORALIS - center of muscle fibers in temple region
-                              corrugator_supercilii: { x: 35, y: 17 },   // CORRUGATOR SUPERCILII - left above brow
-                              procerus: { x: 70, y: 17 },                // PROCERUS - right side label
-                              orbicularis_oculi: { x: 46, y: 28 },       // Eye area center
-                              levator_labii_superioris: { x: 73, y: 20 }, // LEVATOR LABII SUPERIORIS - right
-                              zygomaticus_major: { x: 28, y: 50 },       // ZYGOMATICUS MAJOR & MINOR - LEFT cheek
-                              zygomaticus_minor: { x: 28, y: 50 },       // Same as major - labeled together
-                              masseter: { x: 74, y: 29 },                // MASTICATOR - right jaw
-                              buccinator: { x: 73, y: 27 },              // BUCCINATOR - right cheek
-                              orbicularis_oris: { x: 75, y: 31 },        // ORBICULARIS ORIS - right mouth
-                              mentalis: { x: 72, y: 34 },                // MENTALIS - right chin
-                              depressor_anguli_oris: { x: 77, y: 35 },   // DEPRESSOR LAGULI ORIS - right
-                              depressor_labii_inferioris: { x: 76, y: 38 }, // DEPRESSOR LABII INFERIORIS - right
-                              platysma: { x: 50, y: 85 }                 // Neck area
-                            },
-                            // Image 1: EXACT ANATOMICAL MEASUREMENTS - Precise label positions
-                            1: {
-                              frontalis: { x: 50, y: 8 },                // FRONTALIS (FOREHEAD) - top center
-                              temporalis: { x: 84, y: 15 },              // TEMPORALIS - center of muscle fibers in temple region
-                              corrugator_supercilii: { x: 35, y: 17 },   // CORRUGATOR SUPERCILII - left above brow
-                              procerus: { x: 70, y: 17 },                // PROCERUS - right side label
-                              orbicularis_oculi: { x: 46, y: 28 },       // Eye area center
-                              levator_labii_superioris: { x: 73, y: 20 }, // LEVATOR LABII SUPERIORIS - right
-                              zygomaticus_major: { x: 28, y: 50 },       // ZYGOMATICUS MAJOR & MINOR - LEFT cheek
-                              zygomaticus_minor: { x: 28, y: 50 },       // Same as major - labeled together
-                              masseter: { x: 74, y: 29 },                // MASTICATOR - right jaw
-                              buccinator: { x: 73, y: 27 },              // BUCCINATOR - right cheek
-                              orbicularis_oris: { x: 75, y: 31 },        // ORBICULARIS ORIS - right mouth
-                              mentalis: { x: 72, y: 34 },                // MENTALIS - right chin
-                              depressor_anguli_oris: { x: 77, y: 35 },   // DEPRESSOR LAGULI ORIS - right
-                              depressor_labii_inferioris: { x: 76, y: 38 }, // DEPRESSOR LABII INFERIORIS - right
-                              platysma: { x: 50, y: 85 }                 // Neck area
-                            }
-                          };
+                          // Get pixel coordinates for selected muscle
+                          const pixelCoords = musclePixelCoordinates[currentImageIndex as keyof typeof musclePixelCoordinates]?.[selectedMuscleGroup as keyof typeof musclePixelCoordinates[0]];
+                          if (!pixelCoords) return null;
                           
-                          const coords = muscleCoordinatesForImages[currentImageIndex as keyof typeof muscleCoordinatesForImages]?.[selectedMuscleGroup as keyof typeof muscleCoordinatesForImages[0]];
-                          if (!coords) return null;
+                          // Scale coordinates to rendered dimensions
+                          const scaledX = pixelCoords.x * overlayPosition.scaleX;
+                          const scaledY = pixelCoords.y * overlayPosition.scaleY;
                           
                           return (
                             <div
-                              className="absolute transform -translate-x-1/2 -translate-y-1/2"
+                              className="absolute"
                               style={{
-                                left: `${coords.x}%`,
-                                top: `${coords.y}%`,
+                                transform: `translate(${scaledX}px, ${scaledY}px) translate(-50%, -50%)`
                               }}
                             >
                               <div
-                                className="w-6 h-6 rounded-full bg-yellow-400 border-2 border-yellow-600 shadow-lg animate-pulse z-10"
+                                className="w-6 h-6 rounded-full bg-yellow-400 border-2 border-yellow-600 shadow-lg animate-pulse z-50"
                                 title={`Selected: ${selectedMuscleGroup.replace(/_/g, ' ')}`}
                               />
                             </div>
