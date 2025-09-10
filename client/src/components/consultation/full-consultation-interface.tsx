@@ -322,7 +322,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
   const muscleCoordinatesForImages = {
     0: {
       frontalis: { x: 50, y: 12 },
-      temporalis: { x: 8, y: 22 },
+      temporalis: { x: 85, y: 20 },
       corrugator_supercilii: { x: 40, y: 18 },
       procerus: { x: 50, y: 22 },
       orbicularis_oculi: { x: 35, y: 28 },
@@ -339,7 +339,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
     },
     1: {
       frontalis: { x: 50, y: 12 },
-      temporalis: { x: 8, y: 22 },
+      temporalis: { x: 85, y: 20 },
       corrugator_supercilii: { x: 40, y: 18 },
       procerus: { x: 50, y: 22 },
       orbicularis_oculi: { x: 35, y: 28 },
