@@ -1251,22 +1251,14 @@ Patient should be advised of potential side effects and expected timeline for re
                     
                     {/* Muscle Selection Highlight Overlay */}
                     {selectedMuscleGroup && (
-                      <div className="absolute inset-0"
-                           style={{ 
-                             left: '50%',
-                             top: '0',
-                             transform: 'translateX(-50%)',
-                             maxWidth: '42rem',
-                             width: '100%',
-                             height: '100%'
-                           }}>
+                      <div className="absolute inset-0 pointer-events-none">
                         {(() => {
                           // Define separate muscle coordinates for each image type
                           const muscleCoordinatesForImages = {
                             // Image 0: Detailed muscle diagram - Precise anatomical positions 
                             0: {
                               frontalis: { x: 50, y: 10 },               // Center forehead
-                              temporalis: { x: 15, y: 12 },              // Left temple area 
+                              temporalis: { x: 50, y: 50 },              // CENTER TEST - Left temple area 
                               corrugator_supercilii: { x: 37, y: 22 },   // Between eyebrows
                               procerus: { x: 50, y: 28 },                // Bridge of nose
                               orbicularis_oculi: { x: 30, y: 35 },       // Left eye area
@@ -1284,7 +1276,7 @@ Patient should be advised of potential side effects and expected timeline for re
                             // Image 1: Clean outline diagram - Precise anatomical positions
                             1: {
                               frontalis: { x: 50, y: 10 },               // Center forehead
-                              temporalis: { x: 15, y: 12 },              // Left temple area
+                              temporalis: { x: 50, y: 50 },              // CENTER TEST - Left temple area
                               corrugator_supercilii: { x: 37, y: 22 },   // Between eyebrows
                               procerus: { x: 50, y: 28 },                // Bridge of nose
                               orbicularis_oculi: { x: 30, y: 35 },       // Left eye area
@@ -1313,7 +1305,7 @@ Patient should be advised of potential side effects and expected timeline for re
                               }}
                             >
                               <div
-                                className="w-6 h-6 rounded-full bg-yellow-400 border-2 border-yellow-600 shadow-lg animate-pulse z-10"
+                                className="w-12 h-12 rounded-full bg-red-500 border-4 border-red-700 shadow-lg z-50"
                                 title={`Selected: ${selectedMuscleGroup.replace(/_/g, ' ')}`}
                               />
                             </div>
