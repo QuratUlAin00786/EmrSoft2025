@@ -1296,6 +1296,43 @@ export default function BillingPage() {
               Cancel
             </Button>
             <Button onClick={() => {
+              // Get form values
+              const patientSelect = document.querySelector('[id*="patient"]') as HTMLSelectElement;
+              const totalAmountInput = document.getElementById('total') as HTMLInputElement;
+              
+              // Get service line values
+              const serviceInputs = document.querySelectorAll('.grid.grid-cols-4.gap-2 input');
+              const firstServiceCode = (serviceInputs[0] as HTMLInputElement)?.value || '';
+              const firstServiceDesc = (serviceInputs[1] as HTMLInputElement)?.value || '';
+              const firstServiceAmount = (serviceInputs[4] as HTMLInputElement)?.value || '';
+              
+              // Validation
+              const errors = [];
+              
+              // Check if patient is selected
+              if (!patientSelect?.value || patientSelect.value === '' || patientSelect.value === 'loading' || patientSelect.value === 'no-patients') {
+                errors.push('Please select a patient');
+              }
+              
+              // Check if at least one service line has data
+              const hasServiceData = (firstServiceCode && firstServiceDesc) || (firstServiceDesc && firstServiceAmount);
+              if (!hasServiceData) {
+                errors.push('Please enter at least one service with description');
+              }
+              
+              // Check if total amount is valid
+              const totalAmount = parseFloat(totalAmountInput?.value || '0');
+              if (!totalAmount || totalAmount <= 0) {
+                errors.push('Please enter a valid total amount greater than 0');
+              }
+              
+              // Show validation errors
+              if (errors.length > 0) {
+                alert('Please fix the following errors before creating the invoice:\n\n' + errors.map(error => '• ' + error).join('\n'));
+                return;
+              }
+              
+              // If validation passes, show success
               console.log('Creating new invoice...');
               alert('Invoice created successfully!\n\nInvoice #INV-' + Date.now().toString().slice(-6) + ' has been generated and sent to the patient.');
               setShowNewInvoice(false);
