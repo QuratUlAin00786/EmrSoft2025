@@ -1251,14 +1251,14 @@ Patient should be advised of potential side effects and expected timeline for re
                     
                     {/* Muscle Selection Highlight Overlay */}
                     {selectedMuscleGroup && (
-                      <div className="absolute inset-0 pointer-events-none">
+                      <div className="absolute inset-0 pointer-events-none bg-blue-100 bg-opacity-20">
                         {(() => {
                           // Define separate muscle coordinates for each image type
                           const muscleCoordinatesForImages = {
                             // Image 0: Detailed muscle diagram - Precise anatomical positions 
                             0: {
                               frontalis: { x: 50, y: 17 },               // FRONTALIS (FOREHEAD) - center
-                              temporalis: { x: 80, y: 18 },              // TEMPORALIS - upper right temple area 
+                              temporalis: { x: 50, y: 50 },              // TEMPORALIS - CENTER TEST 
                               corrugator_supercilii: { x: 43, y: 22 },   // CORRUGATOR SUPERCILII - left side
                               procerus: { x: 75, y: 24 },                // PROCERUS - right side
                               orbicularis_oculi: { x: 55, y: 32 },       // Eye area center
@@ -1276,7 +1276,7 @@ Patient should be advised of potential side effects and expected timeline for re
                             // Image 1: Clean outline diagram - Precise anatomical positions
                             1: {
                               frontalis: { x: 50, y: 17 },               // FRONTALIS (FOREHEAD) - center
-                              temporalis: { x: 80, y: 18 },              // TEMPORALIS - upper right temple area
+                              temporalis: { x: 50, y: 50 },              // TEMPORALIS - CENTER TEST
                               corrugator_supercilii: { x: 43, y: 22 },   // CORRUGATOR SUPERCILII - left side
                               procerus: { x: 75, y: 24 },                // PROCERUS - right side
                               orbicularis_oculi: { x: 55, y: 32 },       // Eye area center
@@ -1294,6 +1294,15 @@ Patient should be advised of potential side effects and expected timeline for re
                           };
                           
                           const coords = muscleCoordinatesForImages[currentImageIndex as keyof typeof muscleCoordinatesForImages]?.[selectedMuscleGroup as keyof typeof muscleCoordinatesForImages[0]];
+                          
+                          // Debug logging
+                          console.log('🎯 MUSCLE DEBUG:', {
+                            selectedMuscleGroup,
+                            currentImageIndex,
+                            coords,
+                            overlayRendering: !!coords
+                          });
+                          
                           if (!coords) return null;
                           
                           return (
@@ -1305,7 +1314,8 @@ Patient should be advised of potential side effects and expected timeline for re
                               }}
                             >
                               <div
-                                className="w-6 h-6 rounded-full bg-yellow-400 border-2 border-yellow-600 shadow-lg animate-pulse z-10"
+                                className="w-20 h-20 rounded-full bg-red-500 border-4 border-white shadow-2xl z-50"
+                                style={{ position: 'relative', zIndex: 9999 }}
                                 title={`Selected: ${selectedMuscleGroup.replace(/_/g, ' ')}`}
                               />
                             </div>
