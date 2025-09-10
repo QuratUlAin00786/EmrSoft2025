@@ -1233,10 +1233,10 @@ Patient should be advised of potential side effects and expected timeline for re
                             // Image 0: EXACT ANATOMICAL MEASUREMENTS - Precise label positions
                             0: {
                               frontalis: { x: 50, y: 8 },                // FRONTALIS (FOREHEAD) - top center
-                              temporalis: { x: 75, y: 14 },              // TEMPORALIS - center of muscle fibers in temple region
+                              temporalis: { x: 84, y: 15 },              // TEMPORALIS - center of muscle fibers in temple region
                               corrugator_supercilii: { x: 35, y: 17 },   // CORRUGATOR SUPERCILII - left above brow
                               procerus: { x: 70, y: 17 },                // PROCERUS - right side label
-                              orbicularis_oculi: { x: 55, y: 25 },       // Eye area center
+                              orbicularis_oculi: { x: 46, y: 28 },       // Eye area center
                               levator_labii_superioris: { x: 73, y: 20 }, // LEVATOR LABII SUPERIORIS - right
                               zygomaticus_major: { x: 28, y: 50 },       // ZYGOMATICUS MAJOR & MINOR - LEFT cheek
                               zygomaticus_minor: { x: 28, y: 50 },       // Same as major - labeled together
@@ -1251,10 +1251,10 @@ Patient should be advised of potential side effects and expected timeline for re
                             // Image 1: EXACT ANATOMICAL MEASUREMENTS - Precise label positions
                             1: {
                               frontalis: { x: 50, y: 8 },                // FRONTALIS (FOREHEAD) - top center
-                              temporalis: { x: 75, y: 14 },              // TEMPORALIS - center of muscle fibers in temple region
+                              temporalis: { x: 84, y: 15 },              // TEMPORALIS - center of muscle fibers in temple region
                               corrugator_supercilii: { x: 35, y: 17 },   // CORRUGATOR SUPERCILII - left above brow
                               procerus: { x: 70, y: 17 },                // PROCERUS - right side label
-                              orbicularis_oculi: { x: 55, y: 25 },       // Eye area center
+                              orbicularis_oculi: { x: 46, y: 28 },       // Eye area center
                               levator_labii_superioris: { x: 73, y: 20 }, // LEVATOR LABII SUPERIORIS - right
                               zygomaticus_major: { x: 28, y: 50 },       // ZYGOMATICUS MAJOR & MINOR - LEFT cheek
                               zygomaticus_minor: { x: 28, y: 50 },       // Same as major - labeled together
