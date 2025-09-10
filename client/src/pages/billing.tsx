@@ -504,7 +504,7 @@ export default function BillingPage() {
   const [serviceDate, setServiceDate] = useState(new Date().toISOString().split('T')[0]);
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
   const [dueDate, setDueDate] = useState(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
-  const [totalAmount, setTotalAmount] = useState("0.00");
+  const [totalAmount, setTotalAmount] = useState("");
   const [firstServiceCode, setFirstServiceCode] = useState("");
   const [firstServiceDesc, setFirstServiceDesc] = useState("");
   const [firstServiceQty, setFirstServiceQty] = useState("");
@@ -1349,11 +1349,11 @@ export default function BillingPage() {
               setServiceDate(new Date().toISOString().split('T')[0]);
               setInvoiceDate(new Date().toISOString().split('T')[0]);
               setDueDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
-              setTotalAmount("150.00");
-              setFirstServiceCode("99213");
-              setFirstServiceDesc("Office consultation");
-              setFirstServiceQty("1");
-              setFirstServiceAmount("150.00");
+              setTotalAmount("");
+              setFirstServiceCode("");
+              setFirstServiceDesc("");
+              setFirstServiceQty("");
+              setFirstServiceAmount("");
               setNotes("");
               
               setShowNewInvoice(false);
