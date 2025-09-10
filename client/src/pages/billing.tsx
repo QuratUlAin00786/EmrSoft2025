@@ -1329,9 +1329,9 @@ export default function BillingPage() {
                 errors.push('Please enter at least one service with description and amount');
               }
               
-              // Check if total amount is valid
+              // Check if total amount is valid - specifically catch 0 values
               const total = parseFloat(totalAmount || '0');
-              if (!total || total <= 0) {
+              if (isNaN(total) || total <= 0) {
                 errors.push('Please enter a valid total amount greater than 0');
               }
               
