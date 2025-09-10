@@ -1255,54 +1255,45 @@ Patient should be advised of potential side effects and expected timeline for re
                         {(() => {
                           // Define separate muscle coordinates for each image type
                           const muscleCoordinatesForImages = {
-                            // Image 0: Detailed muscle diagram - Precise anatomical positions 
+                            // Image 0: FINAL PRECISE COORDINATES - Based on exact anatomical diagram
                             0: {
-                              frontalis: { x: 50, y: 12 },               // FRONTALIS (FOREHEAD) - center top
-                              temporalis: { x: 75, y: 17 },              // TEMPORALIS - upper right area 
-                              corrugator_supercilii: { x: 38, y: 24 },   // CORRUGATOR SUPERCILII - left between brows
-                              procerus: { x: 50, y: 30 },                // PROCERUS - nose bridge center
-                              orbicularis_oculi: { x: 55, y: 32 },       // Eye area center
-                              levator_labii_superioris: { x: 72, y: 28 }, // LEVATOR LABII SUPERIORIS - right upper lip
-                              zygomaticus_major: { x: 38, y: 42 },       // ZYGOMATICUS MAJOR & MINOR - left cheek
-                              zygomaticus_minor: { x: 38, y: 42 },       // Same as major - labeled together
-                              masseter: { x: 78, y: 38 },                // MASTICATOR - right jaw
-                              buccinator: { x: 75, y: 35 },              // BUCCINATOR - right cheek
-                              orbicularis_oris: { x: 78, y: 40 },        // ORBICULARIS ORIS - right mouth
-                              mentalis: { x: 75, y: 47 },                // MENTALIS - right chin
-                              depressor_anguli_oris: { x: 80, y: 45 },   // DEPRESSOR LAGULI ORIS - right lower
-                              depressor_labii_inferioris: { x: 79, y: 49 }, // DEPRESSOR LABII INFERIORIS - right lower lip
-                              platysma: { x: 50, y: 88 }                 // Neck area
+                              frontalis: { x: 50, y: 10 },               // FRONTALIS (FOREHEAD) - center forehead
+                              temporalis: { x: 79, y: 13 },              // TEMPORALIS - exact upper right position
+                              corrugator_supercilii: { x: 39, y: 19 },   // CORRUGATOR SUPERCILII - left eyebrow area
+                              procerus: { x: 72, y: 19 },                // PROCERUS - right side as labeled
+                              orbicularis_oculi: { x: 55, y: 28 },       // Eye area center
+                              levator_labii_superioris: { x: 76, y: 22 }, // LEVATOR LABII SUPERIORIS - right upper
+                              zygomaticus_major: { x: 37, y: 34 },       // ZYGOMATICUS MAJOR & MINOR - left cheek
+                              zygomaticus_minor: { x: 37, y: 34 },       // Same as major - labeled together
+                              masseter: { x: 77, y: 31 },                // MASTICATOR - right jaw area
+                              buccinator: { x: 76, y: 29 },              // BUCCINATOR - right cheek
+                              orbicularis_oris: { x: 77, y: 33 },        // ORBICULARIS ORIS - right mouth area
+                              mentalis: { x: 74, y: 36 },                // MENTALIS - right chin
+                              depressor_anguli_oris: { x: 79, y: 37 },   // DEPRESSOR LAGULI ORIS - right lower
+                              depressor_labii_inferioris: { x: 78, y: 40 }, // DEPRESSOR LABII INFERIORIS - right lower
+                              platysma: { x: 50, y: 85 }                 // Neck area
                             },
-                            // Image 1: Clean outline diagram - Precise anatomical positions
+                            // Image 1: FINAL PRECISE COORDINATES - Based on exact anatomical diagram
                             1: {
-                              frontalis: { x: 50, y: 12 },               // FRONTALIS (FOREHEAD) - center top
-                              temporalis: { x: 75, y: 17 },              // TEMPORALIS - upper right area
-                              corrugator_supercilii: { x: 38, y: 24 },   // CORRUGATOR SUPERCILII - left between brows
-                              procerus: { x: 50, y: 30 },                // PROCERUS - nose bridge center
-                              orbicularis_oculi: { x: 55, y: 32 },       // Eye area center
-                              levator_labii_superioris: { x: 72, y: 28 }, // LEVATOR LABII SUPERIORIS - right upper lip
-                              zygomaticus_major: { x: 38, y: 42 },       // ZYGOMATICUS MAJOR & MINOR - left cheek
-                              zygomaticus_minor: { x: 38, y: 42 },       // Same as major - labeled together
-                              masseter: { x: 78, y: 38 },                // MASTICATOR - right jaw
-                              buccinator: { x: 75, y: 35 },              // BUCCINATOR - right cheek
-                              orbicularis_oris: { x: 78, y: 40 },        // ORBICULARIS ORIS - right mouth
-                              mentalis: { x: 75, y: 47 },                // MENTALIS - right chin
-                              depressor_anguli_oris: { x: 80, y: 45 },   // DEPRESSOR LAGULI ORIS - right lower
-                              depressor_labii_inferioris: { x: 79, y: 49 }, // DEPRESSOR LABII INFERIORIS - right lower lip
-                              platysma: { x: 50, y: 88 }                 // Neck area
+                              frontalis: { x: 50, y: 10 },               // FRONTALIS (FOREHEAD) - center forehead
+                              temporalis: { x: 79, y: 13 },              // TEMPORALIS - exact upper right position
+                              corrugator_supercilii: { x: 39, y: 19 },   // CORRUGATOR SUPERCILII - left eyebrow area
+                              procerus: { x: 72, y: 19 },                // PROCERUS - right side as labeled
+                              orbicularis_oculi: { x: 55, y: 28 },       // Eye area center
+                              levator_labii_superioris: { x: 76, y: 22 }, // LEVATOR LABII SUPERIORIS - right upper
+                              zygomaticus_major: { x: 37, y: 34 },       // ZYGOMATICUS MAJOR & MINOR - left cheek
+                              zygomaticus_minor: { x: 37, y: 34 },       // Same as major - labeled together
+                              masseter: { x: 77, y: 31 },                // MASTICATOR - right jaw area
+                              buccinator: { x: 76, y: 29 },              // BUCCINATOR - right cheek
+                              orbicularis_oris: { x: 77, y: 33 },        // ORBICULARIS ORIS - right mouth area
+                              mentalis: { x: 74, y: 36 },                // MENTALIS - right chin
+                              depressor_anguli_oris: { x: 79, y: 37 },   // DEPRESSOR LAGULI ORIS - right lower
+                              depressor_labii_inferioris: { x: 78, y: 40 }, // DEPRESSOR LABII INFERIORIS - right lower
+                              platysma: { x: 50, y: 85 }                 // Neck area
                             }
                           };
                           
                           const coords = muscleCoordinatesForImages[currentImageIndex as keyof typeof muscleCoordinatesForImages]?.[selectedMuscleGroup as keyof typeof muscleCoordinatesForImages[0]];
-                          
-                          // Debug logging
-                          console.log('🎯 MUSCLE DEBUG:', {
-                            selectedMuscleGroup,
-                            currentImageIndex,
-                            coords,
-                            overlayRendering: !!coords
-                          });
-                          
                           if (!coords) return null;
                           
                           return (
