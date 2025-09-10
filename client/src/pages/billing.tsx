@@ -664,15 +664,7 @@ export default function BillingPage() {
       />
       
       <div className="flex-1 overflow-auto p-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="invoices">Invoices</TabsTrigger>
-            <TabsTrigger value="payments">Payments</TabsTrigger>
-            <TabsTrigger value="insurance">Insurance Claims</TabsTrigger>
-            <TabsTrigger value="reports">Reports</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="invoices" className="space-y-6">
+        <div className="space-y-6">
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Card>
@@ -868,9 +860,8 @@ export default function BillingPage() {
                 <p className="text-gray-600 dark:text-gray-300">Try adjusting your search terms or filters</p>
               </div>
             )}
-          </TabsContent>
 
-          <TabsContent value="payments">
+          <div>
             <Card>
               <CardHeader>
                 <CardTitle>Payment History</CardTitle>
@@ -879,9 +870,9 @@ export default function BillingPage() {
                 <p className="text-gray-600 dark:text-gray-300">Payment management interface coming soon...</p>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
 
-          <TabsContent value="insurance">
+          <div>
             <Card>
               <CardHeader>
                 <CardTitle>Insurance Claims</CardTitle>
@@ -890,9 +881,9 @@ export default function BillingPage() {
                 <p className="text-gray-600 dark:text-gray-300">Insurance claims management interface coming soon...</p>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
 
-          <TabsContent value="reports" className="space-y-6">
+          <div className="space-y-6">
             {/* Report Selection Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedReport('revenue')}>
@@ -1169,8 +1160,8 @@ export default function BillingPage() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
       </div>
 
       {/* New Invoice Dialog */}
