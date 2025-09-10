@@ -308,17 +308,17 @@ function RyftPaymentButton({ planId, planName, amount, onSuccess, onError }: Str
       const returnUrl = encodeURIComponent(`${window.location.origin}/subscription?success=true&session_id=${sessionId}`);
       const cancelUrl = encodeURIComponent(`${window.location.origin}/subscription?cancelled=true`);
       
-      // Redirect to Ryft's payment platform (sandbox environment)
-      const ryftPaymentUrl = `https://sandbox-api.ryftpay.com/payment-sessions/${sessionId}/checkout?` +
+      // Redirect to Ryft's demo/developer environment
+      const ryftDemoUrl = `https://developer.ryftpay.com/docs/get-started/test-your-integration?` +
+        `demo=true&` +
         `amount=${amount * 100}&` +
         `currency=GBP&` +
+        `session_id=${sessionId}&` +
         `return_url=${returnUrl}&` +
-        `cancel_url=${cancelUrl}&` +
-        `customer_email=demo@cura.com&` +
-        `description=${encodeURIComponent(`${planName} Plan Subscription`)}`;
+        `merchant=cura-demo`;
       
-      // Open Ryft payment window
-      window.open(ryftPaymentUrl, '_blank', 'width=600,height=700,scrollbars=yes,resizable=yes');
+      // Open Ryft demo/documentation window
+      window.open(ryftDemoUrl, '_blank', 'width=800,height=700,scrollbars=yes,resizable=yes');
       
       // Reset state after opening window
       setTimeout(() => {
