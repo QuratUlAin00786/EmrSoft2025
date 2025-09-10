@@ -318,43 +318,6 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
   // Anatomical images array
   const anatomicalImages = [facialMuscleImage, facialOutlineImage];
 
-  // Muscle coordinates for interactive overlay - PRECISE ANATOMICAL POSITIONING
-  const muscleCoordinatesForImages = {
-    0: {
-      frontalis: { x: 50, y: 12 },
-      temporalis: { x: 85, y: 20 },
-      corrugator_supercilii: { x: 40, y: 18 },
-      procerus: { x: 50, y: 22 },
-      orbicularis_oculi: { x: 35, y: 28 },
-      levator_labii_superioris: { x: 42, y: 42 },
-      zygomaticus_major: { x: 25, y: 52 },
-      zygomaticus_minor: { x: 30, y: 48 },
-      masseter: { x: 18, y: 58 },
-      buccinator: { x: 35, y: 52 },
-      orbicularis_oris: { x: 50, y: 62 },
-      mentalis: { x: 50, y: 72 },
-      depressor_anguli_oris: { x: 42, y: 68 },
-      depressor_labii_inferioris: { x: 45, y: 75 },
-      platysma: { x: 50, y: 85 }
-    },
-    1: {
-      frontalis: { x: 50, y: 12 },
-      temporalis: { x: 85, y: 20 },
-      corrugator_supercilii: { x: 40, y: 18 },
-      procerus: { x: 50, y: 22 },
-      orbicularis_oculi: { x: 35, y: 28 },
-      levator_labii_superioris: { x: 42, y: 42 },
-      zygomaticus_major: { x: 25, y: 52 },
-      zygomaticus_minor: { x: 30, y: 48 },
-      masseter: { x: 18, y: 58 },
-      buccinator: { x: 35, y: 52 },
-      orbicularis_oris: { x: 50, y: 62 },
-      mentalis: { x: 50, y: 72 },
-      depressor_anguli_oris: { x: 42, y: 68 },
-      depressor_labii_inferioris: { x: 45, y: 75 },
-      platysma: { x: 50, y: 85 }
-    }
-  };
 
   const navigateImage = (direction: 'prev' | 'next') => {
     if (direction === 'prev') {
@@ -1270,7 +1233,7 @@ Patient should be advised of potential side effects and expected timeline for re
                             // Image 0: EXACT ANATOMICAL MEASUREMENTS - Precise label positions
                             0: {
                               frontalis: { x: 50, y: 8 },                // FRONTALIS (FOREHEAD) - top center
-                              temporalis: { x: 85, y: 18 },              // TEMPORALIS - center of muscle fibers in temple region
+                              temporalis: { x: 75, y: 14 },              // TEMPORALIS - center of muscle fibers in temple region
                               corrugator_supercilii: { x: 35, y: 17 },   // CORRUGATOR SUPERCILII - left above brow
                               procerus: { x: 70, y: 17 },                // PROCERUS - right side label
                               orbicularis_oculi: { x: 55, y: 25 },       // Eye area center
@@ -1288,7 +1251,7 @@ Patient should be advised of potential side effects and expected timeline for re
                             // Image 1: EXACT ANATOMICAL MEASUREMENTS - Precise label positions
                             1: {
                               frontalis: { x: 50, y: 8 },                // FRONTALIS (FOREHEAD) - top center
-                              temporalis: { x: 85, y: 18 },              // TEMPORALIS - center of muscle fibers in temple region
+                              temporalis: { x: 75, y: 14 },              // TEMPORALIS - center of muscle fibers in temple region
                               corrugator_supercilii: { x: 35, y: 17 },   // CORRUGATOR SUPERCILII - left above brow
                               procerus: { x: 70, y: 17 },                // PROCERUS - right side label
                               orbicularis_oculi: { x: 55, y: 25 },       // Eye area center
