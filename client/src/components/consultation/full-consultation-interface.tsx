@@ -327,7 +327,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
       frontalis: { x: 500, y: 64 },              // FRONTALIS (FOREHEAD) - top center
       temporalis: { x: 840, y: 120 },            // TEMPORALIS - temple region
       corrugator_supercilii: { x: 350, y: 136 }, // CORRUGATOR SUPERCILII - left brow
-      procerus: { x: 700, y: 136 },              // PROCERUS - right side
+      procerus: { x: 550, y: 240 },              // PROCERUS - center bridge of nose
       orbicularis_oculi: { x: 460, y: 224 },     // ORBICULARIS OCULI - eye area
       levator_labii_superioris: { x: 730, y: 160 }, // LEVATOR LABII SUPERIORIS - right
       zygomaticus_major: { x: 280, y: 400 },     // ZYGOMATICUS MAJOR & MINOR - left cheek
@@ -344,7 +344,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
       frontalis: { x: 500, y: 64 },              // FRONTALIS (FOREHEAD) - top center
       temporalis: { x: 840, y: 120 },            // TEMPORALIS - temple region
       corrugator_supercilii: { x: 350, y: 136 }, // CORRUGATOR SUPERCILII - left brow
-      procerus: { x: 700, y: 136 },              // PROCERUS - right side
+      procerus: { x: 550, y: 240 },              // PROCERUS - center bridge of nose
       orbicularis_oculi: { x: 460, y: 224 },     // ORBICULARIS OCULI - eye area
       levator_labii_superioris: { x: 730, y: 160 }, // LEVATOR LABII SUPERIORIS - right
       zygomaticus_major: { x: 280, y: 400 },     // ZYGOMATICUS MAJOR & MINOR - left cheek
