@@ -1464,12 +1464,21 @@ Patient should be advised of potential side effects and expected timeline for re
                     <CardContent>
                       <div className="space-y-2">
                         <Label>Primary symptoms</Label>
-                        <Textarea
-                          placeholder="Describe primary symptoms..."
-                          value={primarySymptoms}
-                          onChange={(e) => setPrimarySymptoms(e.target.value)}
-                          className="h-20 text-sm"
-                        />
+                        <Select value={primarySymptoms} onValueChange={setPrimarySymptoms}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select primary symptoms" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="muscle_tension">Muscle Tension</SelectItem>
+                            <SelectItem value="facial_asymmetry">Facial Asymmetry</SelectItem>
+                            <SelectItem value="jaw_pain">Jaw Pain</SelectItem>
+                            <SelectItem value="headaches">Headaches</SelectItem>
+                            <SelectItem value="eye_strain">Eye Strain</SelectItem>
+                            <SelectItem value="facial_spasms">Facial Spasms</SelectItem>
+                            <SelectItem value="numbness">Numbness</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </CardContent>
                   </Card>
@@ -1503,12 +1512,19 @@ Patient should be advised of potential side effects and expected timeline for re
                     <CardContent>
                       <div className="space-y-2">
                         <Label>Follow-up timeline</Label>
-                        <Textarea
-                          placeholder="Outline follow-up plan..."
-                          value={followUpPlan}
-                          onChange={(e) => setFollowUpPlan(e.target.value)}
-                          className="h-20 text-sm"
-                        />
+                        <Select value={followUpPlan} onValueChange={setFollowUpPlan}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select follow-up timeline" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1_week">1 Week</SelectItem>
+                            <SelectItem value="2_weeks">2 Weeks</SelectItem>
+                            <SelectItem value="1_month">1 Month</SelectItem>
+                            <SelectItem value="3_months">3 Months</SelectItem>
+                            <SelectItem value="6_months">6 Months</SelectItem>
+                            <SelectItem value="as_needed">As Needed</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </CardContent>
                   </Card>
