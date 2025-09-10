@@ -1249,8 +1249,8 @@ Patient should be advised of potential side effects and expected timeline for re
                       className="w-full h-auto max-w-2xl mx-auto rounded-lg"
                     />
                     
-                    {/* Muscle Selection Highlight Overlay */}
-                    {selectedMuscleGroup && (
+                    {/* Muscle Selection Highlight Overlay - FORCED TEST */}
+                    {true && (
                       <div className="absolute inset-0 pointer-events-none">
                         {(() => {
                           // Define separate muscle coordinates for each image type
@@ -1293,7 +1293,11 @@ Patient should be advised of potential side effects and expected timeline for re
                             }
                           };
                           
-                          const coords = muscleCoordinatesForImages[currentImageIndex as keyof typeof muscleCoordinatesForImages]?.[selectedMuscleGroup as keyof typeof muscleCoordinatesForImages[0]];
+                          console.log("DEBUG: selectedMuscleGroup =", selectedMuscleGroup);
+                          console.log("DEBUG: currentImageIndex =", currentImageIndex);
+                          // FORCED TEST - use temporalis coordinates
+                          const coords = { x: 15, y: 28 };
+                          console.log("DEBUG: FORCED coords =", coords);
                           if (!coords) return null;
                           
                           return (
