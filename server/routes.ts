@@ -7972,6 +7972,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // SaaS routes already registered above before tenant middleware
 
   const httpServer = createServer(app);
+  // Billing & Invoice routes
+  app.get("/api/billing/invoices", requireRole(["admin", "doctor", "nurse", "receptionist"]), async (req: TenantRequest, res) => {
+    try {
+      const { status } = req.query;
+      
+      // For now, return mock data since we need to implement proper invoice storage
+      const mockInvoices = [
+        {
+          id: "INV-001234",
+          patientId: "P000004",
+          patientName: "Alex Johnson",
+          amount: 250.00,
+          status: status === "all" ? "paid" : status || "paid",
+          dateOfService: new Date("2024-01-15"),
+          invoiceDate: new Date("2024-01-15"),
+          dueDate: new Date("2024-02-14"),
+          paidAmount: 250.00,
+          items: [
+            { code: "99213", description: "Office Visit - Level 3", quantity: 1, unitPrice: 250.00, total: 250.00 }
+          ]
+        },
+        {
+          id: "INV-001235", 
+          patientId: "P000005",
+          patientName: "Sarah Connor",
+          amount: 450.00,
+          status: status === "all" ? "sent" : status || "sent",
+          dateOfService: new Date("2024-01-14"),
+          invoiceDate: new Date("2024-01-14"),
+          dueDate: new Date("2024-02-13"),
+          paidAmount: 0,
+          items: [
+            { code: "99214", description: "Office Visit - Level 4", quantity: 1, unitPrice: 300.00, total: 300.00 },
+            { code: "93000", description: "Electrocardiogram", quantity: 1, unitPrice: 150.00, total: 150.00 }
+          ]
+        }
+      ];
+      
+      res.json(mockInvoices);
+    } catch (error) {
+      console.error("Invoices fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch invoices" });
+    }
+  });
+
+  app.post("/api/billing/invoices", requireRole(["admin", "doctor", "nurse", "receptionist"]), async (req: TenantRequest, res) => {
+    try {
+      const invoiceData = z.object({
+        patientId: z.string(),
+        serviceDate: z.string(),
+        invoiceDate: z.string(),
+        dueDate: z.string(),
+        totalAmount: z.string(),
+        firstServiceCode: z.string(),
+        firstServiceDesc: z.string(),
+        firstServiceQty: z.string(),
+        firstServiceAmount: z.string(),
+        notes: z.string().optional()
+      }).parse(req.body);
+
+      // Get patient name for the invoice
+      const patient = await storage.getPatientByPatientId(invoiceData.patientId, req.tenant!.id);
+      if (!patient) {
+        return res.status(400).json({ error: "Patient not found" });
+      }
+
+      // Create new invoice
+      const newInvoice = {
+        id: `INV-${Date.now().toString().slice(-6)}`,
+        patientId: invoiceData.patientId,
+        patientName: `${patient.firstName} ${patient.lastName}`,
+        amount: parseFloat(invoiceData.totalAmount),
+        status: "draft" as const,
+        dateOfService: new Date(invoiceData.serviceDate),
+        invoiceDate: new Date(invoiceData.invoiceDate),
+        dueDate: new Date(invoiceData.dueDate),
+        paidAmount: 0,
+        items: [
+          {
+            code: invoiceData.firstServiceCode,
+            description: invoiceData.firstServiceDesc,
+            quantity: parseInt(invoiceData.firstServiceQty) || 1,
+            unitPrice: parseFloat(invoiceData.firstServiceAmount),
+            total: parseFloat(invoiceData.firstServiceAmount)
+          }
+        ],
+        notes: invoiceData.notes
+      };
+
+      console.log("✅ Invoice created successfully:", newInvoice.id);
+      res.status(201).json(newInvoice);
+    } catch (error) {
+      console.error("Invoice creation error:", error);
+      res.status(500).json({ error: "Failed to create invoice" });
+    }
+  });
   
   // Add WebSocket support for real-time messaging
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });

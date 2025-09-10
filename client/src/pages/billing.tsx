@@ -1311,7 +1311,7 @@ export default function BillingPage() {
             <Button variant="outline" onClick={() => setShowNewInvoice(false)}>
               Cancel
             </Button>
-            <Button onClick={() => {
+            <Button onClick={async () => {
               console.log('Creating new invoice...');
               
               // Validation using state variables
@@ -1341,22 +1341,54 @@ export default function BillingPage() {
                 return;
               }
               
-              // If validation passes, show success and reset form
-              alert('Invoice created successfully!\n\nInvoice #INV-' + Date.now().toString().slice(-6) + ' has been generated and sent to the patient.');
-              
-              // Reset form state
-              setSelectedPatient("");
-              setServiceDate(new Date().toISOString().split('T')[0]);
-              setInvoiceDate(new Date().toISOString().split('T')[0]);
-              setDueDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
-              setTotalAmount("");
-              setFirstServiceCode("");
-              setFirstServiceDesc("");
-              setFirstServiceQty("");
-              setFirstServiceAmount("");
-              setNotes("");
-              
-              setShowNewInvoice(false);
+              try {
+                // Create invoice via API
+                const invoiceData = {
+                  patientId: selectedPatient,
+                  serviceDate,
+                  invoiceDate,
+                  dueDate,
+                  totalAmount,
+                  firstServiceCode,
+                  firstServiceDesc,
+                  firstServiceQty,
+                  firstServiceAmount,
+                  notes
+                };
+
+                const response = await apiRequest('POST', '/api/billing/invoices', invoiceData);
+                const newInvoice = await response.json();
+                
+                // Invalidate and refetch invoices cache to refresh the list
+                queryClient.invalidateQueries({ queryKey: ["/api/billing/invoices"] });
+                queryClient.refetchQueries({ queryKey: ["/api/billing/invoices"] });
+                
+                toast({
+                  title: "Invoice Created",
+                  description: `Invoice ${newInvoice.id} has been created successfully!`
+                });
+                
+                // Reset form state
+                setSelectedPatient("");
+                setServiceDate(new Date().toISOString().split('T')[0]);
+                setInvoiceDate(new Date().toISOString().split('T')[0]);
+                setDueDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+                setTotalAmount("");
+                setFirstServiceCode("");
+                setFirstServiceDesc("");
+                setFirstServiceQty("");
+                setFirstServiceAmount("");
+                setNotes("");
+                
+                setShowNewInvoice(false);
+              } catch (error) {
+                console.error('Invoice creation failed:', error);
+                toast({
+                  title: "Error",
+                  description: "Failed to create invoice. Please try again.",
+                  variant: "destructive"
+                });
+              }
             }}>
               Create Invoice
             </Button>
