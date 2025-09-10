@@ -321,26 +321,26 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
   // Muscle coordinates for interactive overlay
   const muscleCoordinatesForImages = {
     0: {
-      frontalis: { x: 50, y: 10 },
-      temporalis: { x: 15, y: 16 },
-      orbicularis_oculi: { x: 42, y: 30 },
-      levator_labii_superioris: { x: 38, y: 40 },
-      zygomaticus_major: { x: 32, y: 45 },
-      masseter: { x: 25, y: 50 },
+      frontalis: { x: 50, y: 12 },
+      temporalis: { x: 13, y: 12 },
+      orbicularis_oculi: { x: 25, y: 35 },
+      levator_labii_superioris: { x: 35, y: 45 },
+      zygomaticus_major: { x: 25, y: 55 },
+      masseter: { x: 20, y: 65 },
       orbicularis_oris: { x: 50, y: 60 },
-      mentalis: { x: 50, y: 70 }
+      mentalis: { x: 50, y: 75 }
     },
     1: {
-      frontalis: { x: 50, y: 8 },
-      temporalis: { x: 15, y: 18 },
-      corrugator_supercilii: { x: 35, y: 15 },
+      frontalis: { x: 50, y: 12 },
+      temporalis: { x: 13, y: 12 },
+      corrugator_supercilii: { x: 40, y: 20 },
       procerus: { x: 50, y: 25 },
-      orbicularis_oculi: { x: 40, y: 28 },
-      levator_labii_superioris: { x: 35, y: 38 },
-      zygomaticus_major: { x: 28, y: 42 },
-      masseter: { x: 20, y: 48 },
-      orbicularis_oris: { x: 50, y: 55 },
-      mentalis: { x: 50, y: 65 }
+      orbicularis_oculi: { x: 25, y: 35 },
+      levator_labii_superioris: { x: 35, y: 45 },
+      zygomaticus_major: { x: 22, y: 55 },
+      masseter: { x: 20, y: 65 },
+      orbicularis_oris: { x: 50, y: 60 },
+      mentalis: { x: 50, y: 75 }
     }
   };
 
@@ -1265,17 +1265,17 @@ Patient should be advised of potential side effects and expected timeline for re
                           const muscleCoordinatesForImages = {
                             // Image 0: Detailed muscle diagram - Precise anatomical positions 
                             0: {
-                              frontalis: { x: 50, y: 20 },               // Center forehead
-                              temporalis: { x: 15, y: 16 },              // Left temple area 
-                              corrugator_supercilii: { x: 42, y: 32 },   // Between eyebrows
-                              procerus: { x: 50, y: 35 },                // Bridge of nose
-                              orbicularis_oculi: { x: 30, y: 45 },       // Left eye area
-                              levator_labii_superioris: { x: 38, y: 52 }, // Upper lip area
-                              zygomaticus_major: { x: 25, y: 60 },       // Cheek area
-                              zygomaticus_minor: { x: 28, y: 55 },       // Upper cheek
-                              masseter: { x: 15, y: 70 },                // Jaw muscle
-                              buccinator: { x: 25, y: 62 },              // Cheek muscle
-                              orbicularis_oris: { x: 50, y: 65 },        // Around mouth
+                              frontalis: { x: 50, y: 12 },               // Center forehead
+                              temporalis: { x: 13, y: 12 },              // Left temple area 
+                              corrugator_supercilii: { x: 40, y: 20 },   // Between eyebrows
+                              procerus: { x: 50, y: 25 },                // Bridge of nose
+                              orbicularis_oculi: { x: 25, y: 35 },       // Left eye area
+                              levator_labii_superioris: { x: 35, y: 45 }, // Upper lip area
+                              zygomaticus_major: { x: 25, y: 55 },       // Cheek area
+                              zygomaticus_minor: { x: 28, y: 50 },       // Upper cheek
+                              masseter: { x: 20, y: 65 },                // Jaw muscle
+                              buccinator: { x: 25, y: 55 },              // Cheek muscle
+                              orbicularis_oris: { x: 50, y: 60 },        // Around mouth
                               mentalis: { x: 50, y: 75 },                // Chin area
                               depressor_anguli_oris: { x: 45, y: 68 },   // Corner of mouth
                               depressor_labii_inferioris: { x: 48, y: 72 }, // Lower lip
@@ -1283,21 +1283,21 @@ Patient should be advised of potential side effects and expected timeline for re
                             },
                             // Image 1: Clean outline diagram - Precise anatomical positions
                             1: {
-                              frontalis: { x: 50, y: 20 },               // Center forehead
-                              temporalis: { x: 15, y: 18 },              // Left temple area
-                              corrugator_supercilii: { x: 42, y: 30 },   // Between eyebrows
-                              procerus: { x: 50, y: 38 },                // Bridge of nose
-                              orbicularis_oculi: { x: 30, y: 45 },       // Left eye area
-                              levator_labii_superioris: { x: 38, y: 52 }, // Upper lip area
-                              zygomaticus_major: { x: 22, y: 60 },       // Cheek area
-                              zygomaticus_minor: { x: 26, y: 55 },       // Upper cheek
-                              masseter: { x: 12, y: 70 },                // Jaw muscle area
-                              buccinator: { x: 20, y: 62 },              // Cheek muscle
-                              orbicularis_oris: { x: 50, y: 68 },        // Around mouth
-                              mentalis: { x: 50, y: 78 },                // Chin area
-                              depressor_anguli_oris: { x: 42, y: 72 },   // Corner of mouth
-                              depressor_labii_inferioris: { x: 48, y: 75 }, // Lower lip
-                              platysma: { x: 50, y: 88 }                 // Neck area
+                              frontalis: { x: 50, y: 12 },               // Center forehead
+                              temporalis: { x: 13, y: 12 },              // Left temple area
+                              corrugator_supercilii: { x: 40, y: 20 },   // Between eyebrows
+                              procerus: { x: 50, y: 25 },                // Bridge of nose
+                              orbicularis_oculi: { x: 25, y: 35 },       // Left eye area
+                              levator_labii_superioris: { x: 35, y: 45 }, // Upper lip area
+                              zygomaticus_major: { x: 22, y: 55 },       // Cheek area
+                              zygomaticus_minor: { x: 26, y: 50 },       // Upper cheek
+                              masseter: { x: 20, y: 65 },                // Jaw muscle area
+                              buccinator: { x: 25, y: 55 },              // Cheek muscle
+                              orbicularis_oris: { x: 50, y: 60 },        // Around mouth
+                              mentalis: { x: 50, y: 75 },                // Chin area
+                              depressor_anguli_oris: { x: 42, y: 68 },   // Corner of mouth
+                              depressor_labii_inferioris: { x: 48, y: 72 }, // Lower lip
+                              platysma: { x: 50, y: 85 }                 // Neck area
                             }
                           };
                           
