@@ -1535,21 +1535,21 @@ Patient should be advised of potential side effects and expected timeline for re
                   <Button
                     onClick={generateTreatmentPlan}
                     disabled={isGeneratingPlan}
-                    className="bg-green-600 hover:bg-green-700 w-32"
+                    className="bg-green-600 hover:bg-green-700 px-4 py-2 min-w-fit"
                   >
                     {isGeneratingPlan ? "Generating..." : "Generate Treatment Plan"}
                   </Button>
                   <Button
                     onClick={saveAnalysis}
                     disabled={isSavingAnalysis}
-                    className="bg-blue-600 hover:bg-blue-700 w-32"
+                    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 min-w-fit"
                   >
                     {isSavingAnalysis ? "Saving..." : "Save Analysis"}
                   </Button>
                   <Button
                     onClick={() => setShowAnatomicalModal(false)}
                     variant="outline"
-                    className="w-32"
+                    className="px-4 py-2 min-w-fit"
                   >
                     Close Analysis
                   </Button>
