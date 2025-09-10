@@ -322,7 +322,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
   const muscleCoordinatesForImages = {
     0: {
       frontalis: { x: 50, y: 10 },
-      temporalis: { x: 25, y: 28 },
+      temporalis: { x: 18, y: 25 },
       orbicularis_oculi: { x: 42, y: 30 },
       levator_labii_superioris: { x: 38, y: 40 },
       zygomaticus_major: { x: 32, y: 45 },
@@ -332,7 +332,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
     },
     1: {
       frontalis: { x: 50, y: 8 },
-      temporalis: { x: 25, y: 30 },
+      temporalis: { x: 18, y: 27 },
       corrugator_supercilii: { x: 35, y: 15 },
       procerus: { x: 50, y: 25 },
       orbicularis_oculi: { x: 40, y: 28 },
@@ -1266,7 +1266,7 @@ Patient should be advised of potential side effects and expected timeline for re
                             // Image 0: Detailed muscle diagram - Precise anatomical positions 
                             0: {
                               frontalis: { x: 50, y: 20 },               // Center forehead
-                              temporalis: { x: 25, y: 28 },              // Left temple area 
+                              temporalis: { x: 18, y: 25 },              // Left temple area 
                               corrugator_supercilii: { x: 42, y: 32 },   // Between eyebrows
                               procerus: { x: 50, y: 35 },                // Bridge of nose
                               orbicularis_oculi: { x: 30, y: 45 },       // Left eye area
@@ -1284,7 +1284,7 @@ Patient should be advised of potential side effects and expected timeline for re
                             // Image 1: Clean outline diagram - Precise anatomical positions
                             1: {
                               frontalis: { x: 50, y: 20 },               // Center forehead
-                              temporalis: { x: 25, y: 30 },              // Left temple area
+                              temporalis: { x: 18, y: 27 },              // Left temple area
                               corrugator_supercilii: { x: 42, y: 30 },   // Between eyebrows
                               procerus: { x: 50, y: 38 },                // Bridge of nose
                               orbicularis_oculi: { x: 30, y: 45 },       // Left eye area
