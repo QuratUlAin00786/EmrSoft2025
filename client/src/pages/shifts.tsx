@@ -152,7 +152,7 @@ export default function ShiftsPage() {
         const response = await apiRequest("GET", "/api/medical-staff");
         const data = await response.json();
 
-        return Array.isArray(data) ? data : [];
+        return Array.isArray(data.staff) ? data.staff : [];
       } catch (error) {
         console.error("Medical staff fetch error:", error);
         throw error;
