@@ -1433,28 +1433,12 @@ Patient should be advised of potential side effects and expected timeline for re
                   </div>
 
                   {/* Navigation controls */}
-                  <div className="flex justify-between items-center mt-6">
-                    <Button
-                      onClick={() => navigateImage('prev')}
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-2"
-                    >
-                      ← Previous
-                    </Button>
+                  <div className="flex justify-center items-center mt-6">
                     <Button
                       onClick={() => setAnatomicalStep(2)}
                       className="bg-blue-600 hover:bg-blue-700 px-8"
                     >
                       Professional Medical Anatomical Diagram →
-                    </Button>
-                    <Button
-                      onClick={() => navigateImage('next')}
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-2"
-                    >
-                      Next →
                     </Button>
                   </div>
                 </div>
