@@ -153,11 +153,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           demoOrg = await storage.createOrganization({
             name: 'Demo Healthcare Clinic',
             subdomain: 'demo',
-            contactEmail: 'admin@demo.curaemr.ai',
+            brandName: 'Demo Healthcare Clinic',
             settings: {
-              timezone: 'UTC',
-              dateFormat: 'YYYY-MM-DD',
-              timeFormat: '24h'
+              theme: { primaryColor: '#4A7DFF' },
+              compliance: { gdprEnabled: true, dataResidency: 'UK' },
+              features: { aiEnabled: true, billingEnabled: true }
             }
           });
           console.log(`[PRODUCTION DEMO] Created demo organization with ID: ${demoOrg.id}`);
@@ -3271,7 +3271,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       // 2. Get recent SMS/WhatsApp messages from database
-      const allMessages = await storage.getMessages(req.tenant!.id);
+      const allMessages = await storage.getRecentMessagesWithExternalIds(req.tenant!.id, 20);
       const recentMessages = allMessages
         .filter(msg => msg.messageType === 'sms' || msg.messageType === 'whatsapp')
         .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
@@ -3339,7 +3339,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pendingCount: messageStatusChecks.filter(m => m.isPending).length,
         failedCount: messageStatusChecks.filter(m => m.isFailed).length,
         unknownCount: messageStatusChecks.filter(m => m.twilioStatus === 'unknown' || m.twilioStatus === 'error').length,
-        commonIssues: []
+        commonIssues: [] as string[]
       };
       
       // Check for common issues
@@ -4396,9 +4396,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             { term: "cardiac evaluation", confidence: 0.93, category: "procedure" }
           ],
           structuredData: {
-            chiefComplaint: "Chest pain",
-            assessment: "Possible cardiac involvement",
-            plan: "EKG, troponin levels, cardiology consult"
+            chiefComplaint: ["Chest pain"] as [string, ...string[]],
+            assessment: ["Possible cardiac involvement"] as [string, ...string[]],
+            plan: ["EKG, troponin levels, cardiology consult"] as [string, ...string[]]
           }
         };
         
@@ -4615,7 +4615,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (messageId && messageStatus) {
         // Update message status in database
-        await storage.updateMessageDeliveryStatus(messageId, messageStatus, errorCode, errorMessage);
+        await storage.updateMessageDeliveryStatus(messageId, messageStatus, errorCode || undefined, errorMessage || undefined);
         console.log(`📱 Updated message ${messageId} status to: ${messageStatus}`);
       }
 
@@ -4681,7 +4681,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // For messages without external ID, mark as failed to send
           if (!message.externalMessageId && message.messageType && (message.messageType === 'sms' || message.messageType === 'whatsapp')) {
             console.log(`❌ Message ${message.id} has no external ID - marking as failed`);
-            await storage.updateMessageDeliveryStatus(message.id, 'failed', null, 'No external message ID - SMS/WhatsApp send failed');
+            await storage.updateMessageDeliveryStatus(message.id, 'failed', undefined, 'No external message ID - SMS/WhatsApp send failed');
             updateResults.push({
               messageId: message.id,
               oldStatus: 'pending',
@@ -4704,7 +4704,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } else {
             // Internal messages should be marked as delivered
             console.log(`✅ Internal message ${message.id} - marking as delivered`);
-            await storage.updateMessageDeliveryStatus(message.id, 'delivered', null, null);
+            await storage.updateMessageDeliveryStatus(message.id, 'delivered', undefined, undefined);
             updateResults.push({
               messageId: message.id,
               oldStatus: 'pending',
@@ -5140,11 +5140,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
           organizationId: tenant.id,
           patientId: `P${String(Date.now()).slice(-6)}`, // Generate patient ID
           dateOfBirth: new Date(), // Default date
-          gender: 'other',
-          address: '',
-          emergencyContact: patientPhone,
-          medicalHistory: currentMedications || '',
-          allergies: allergies || ''
+          address: {
+            street: '',
+            city: '',
+            state: '',
+            postcode: '',
+            country: 'UK'
+          },
+          emergencyContact: {
+            name: '',
+            relationship: '',
+            phone: patientPhone
+          },
+          medicalHistory: {
+            allergies: allergies ? [allergies] : [],
+            chronicConditions: [],
+            medications: currentMedications ? [currentMedications] : [],
+            familyHistory: { father: [], mother: [], siblings: [], grandparents: [] },
+            socialHistory: { smoking: { status: 'never' }, alcohol: { status: 'never' }, drugs: { status: 'never' }, occupation: '', maritalStatus: 'single', education: '', exercise: { frequency: 'none' } },
+            immunizations: []
+          },
+          riskLevel: 'low',
+          flags: null,
+          communicationPreferences: null,
+          isActive: true
         };
         
         patient = await storage.createPatient(patientData);
@@ -5163,15 +5182,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create prescription request (pending status)
       const prescriptionData = {
         patientId: patient.id,
-        providerId: provider.id,
+        doctorId: provider.id,
         organizationId: tenant.id,
-        medication: medication || 'Medication to be determined',
+        medicationName: medication || 'Medication to be determined',
         dosage: dosage || 'To be determined',
         frequency: 'As prescribed',
         duration: 'As prescribed',
         instructions: `Website prescription request: ${reason}\n\nCurrent medications: ${currentMedications || 'None'}\nAllergies: ${allergies || 'None'}`,
-        status: 'pending',
-        prescriptionDate: new Date().toISOString()
+        status: 'pending'
       };
       
       const prescription = await storage.createPrescription(prescriptionData);
