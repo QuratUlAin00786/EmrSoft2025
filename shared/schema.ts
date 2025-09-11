@@ -946,9 +946,11 @@ export const inventoryBatches = pgTable("inventory_batches", {
   expiryDate: timestamp("expiry_date"),
   manufactureDate: timestamp("manufacture_date"),
   quantity: integer("quantity").notNull(),
+  remainingQuantity: integer("remaining_quantity").notNull().default(0),
   purchasePrice: decimal("purchase_price", { precision: 10, scale: 2 }).notNull(),
   supplierId: integer("supplier_id"),
   receivedDate: timestamp("received_date").defaultNow().notNull(),
+  status: varchar("status", { length: 20 }).notNull().default("active"),
   isExpired: boolean("is_expired").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

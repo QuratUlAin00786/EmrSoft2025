@@ -74,6 +74,29 @@ export class InventoryService {
     search?: string;
     limit?: number;
   }) {
+    const conditions = [
+      eq(inventoryItems.organizationId, organizationId),
+      eq(inventoryItems.isActive, true)
+    ];
+
+    if (filters?.categoryId) {
+      conditions.push(eq(inventoryItems.categoryId, filters.categoryId));
+    }
+
+    if (filters?.lowStock) {
+      conditions.push(sql`${inventoryItems.currentStock} <= ${inventoryItems.minimumStock}`);
+    }
+
+    if (filters?.search) {
+      const searchTerm = `%${filters.search}%`;
+      conditions.push(sql`
+        LOWER(${inventoryItems.name}) LIKE LOWER(${searchTerm}) OR 
+        LOWER(${inventoryItems.brandName}) LIKE LOWER(${searchTerm}) OR 
+        LOWER(${inventoryItems.sku}) LIKE LOWER(${searchTerm}) OR
+        LOWER(${inventoryItems.barcode}) LIKE LOWER(${searchTerm})
+      `);
+    }
+
     let query = db
       .select({
         id: inventoryItems.id,
@@ -100,30 +123,8 @@ export class InventoryService {
       })
       .from(inventoryItems)
       .leftJoin(inventoryCategories, eq(inventoryItems.categoryId, inventoryCategories.id))
-      .where(and(
-        eq(inventoryItems.organizationId, organizationId),
-        eq(inventoryItems.isActive, true)
-      ));
-
-    if (filters?.categoryId) {
-      query = query.where(eq(inventoryItems.categoryId, filters.categoryId));
-    }
-
-    if (filters?.lowStock) {
-      query = query.where(sql`${inventoryItems.currentStock} <= ${inventoryItems.minimumStock}`);
-    }
-
-    if (filters?.search) {
-      const searchTerm = `%${filters.search}%`;
-      query = query.where(sql`
-        LOWER(${inventoryItems.name}) LIKE LOWER(${searchTerm}) OR 
-        LOWER(${inventoryItems.brandName}) LIKE LOWER(${searchTerm}) OR 
-        LOWER(${inventoryItems.sku}) LIKE LOWER(${searchTerm}) OR
-        LOWER(${inventoryItems.barcode}) LIKE LOWER(${searchTerm})
-      `);
-    }
-
-    query = query.orderBy(inventoryItems.name);
+      .where(and(...conditions))
+      .orderBy(inventoryItems.name);
 
     if (filters?.limit) {
       query = query.limit(filters.limit);
@@ -321,7 +322,13 @@ export class InventoryService {
   }
 
   async getPurchaseOrders(organizationId: number, status?: string) {
-    let query = db
+    const conditions = [eq(inventoryPurchaseOrders.organizationId, organizationId)];
+    
+    if (status) {
+      conditions.push(eq(inventoryPurchaseOrders.status, status));
+    }
+
+    return await db
       .select({
         id: inventoryPurchaseOrders.id,
         poNumber: inventoryPurchaseOrders.poNumber,
@@ -338,13 +345,8 @@ export class InventoryService {
       })
       .from(inventoryPurchaseOrders)
       .leftJoin(inventorySuppliers, eq(inventoryPurchaseOrders.supplierId, inventorySuppliers.id))
-      .where(eq(inventoryPurchaseOrders.organizationId, organizationId));
-
-    if (status) {
-      query = query.where(eq(inventoryPurchaseOrders.status, status));
-    }
-
-    return await query.orderBy(desc(inventoryPurchaseOrders.createdAt));
+      .where(and(...conditions))
+      .orderBy(desc(inventoryPurchaseOrders.createdAt));
   }
 
   async sendPurchaseOrderEmail(purchaseOrderId: number, organizationId: number) {
@@ -541,7 +543,13 @@ Cura Healthcare Team
   }
 
   async getStockAlerts(organizationId: number, unreadOnly: boolean = false) {
-    let query = db
+    const conditions = [eq(inventoryStockAlerts.organizationId, organizationId)];
+    
+    if (unreadOnly) {
+      conditions.push(eq(inventoryStockAlerts.isRead, false));
+    }
+
+    return await db
       .select({
         id: inventoryStockAlerts.id,
         alertType: inventoryStockAlerts.alertType,
@@ -556,13 +564,8 @@ Cura Healthcare Team
       })
       .from(inventoryStockAlerts)
       .leftJoin(inventoryItems, eq(inventoryStockAlerts.itemId, inventoryItems.id))
-      .where(eq(inventoryStockAlerts.organizationId, organizationId));
-
-    if (unreadOnly) {
-      query = query.where(eq(inventoryStockAlerts.isRead, false));
-    }
-
-    return await query.orderBy(desc(inventoryStockAlerts.createdAt));
+      .where(and(...conditions))
+      .orderBy(desc(inventoryStockAlerts.createdAt));
   }
 
   // ====== INVENTORY REPORTS ======
@@ -606,7 +609,13 @@ Cura Healthcare Team
   }
 
   async getStockMovements(organizationId: number, itemId?: number, limit: number = 50) {
-    let query = db
+    const conditions = [eq(inventoryStockMovements.organizationId, organizationId)];
+    
+    if (itemId) {
+      conditions.push(eq(inventoryStockMovements.itemId, itemId));
+    }
+
+    return await db
       .select({
         id: inventoryStockMovements.id,
         itemName: inventoryItems.name,
@@ -620,13 +629,7 @@ Cura Healthcare Team
       })
       .from(inventoryStockMovements)
       .leftJoin(inventoryItems, eq(inventoryStockMovements.itemId, inventoryItems.id))
-      .where(eq(inventoryStockMovements.organizationId, organizationId));
-
-    if (itemId) {
-      query = query.where(eq(inventoryStockMovements.itemId, itemId));
-    }
-
-    return await query
+      .where(and(...conditions))
       .orderBy(desc(inventoryStockMovements.createdAt))
       .limit(limit);
   }
@@ -653,22 +656,17 @@ Cura Healthcare Team
         id: inventoryStockMovements.id,
         receiptNumber: sql<string>`CONCAT('GR-', ${inventoryStockMovements.id})`,
         purchaseOrderId: inventoryStockMovements.referenceId,
-        poNumber: sql<string>`COALESCE(po.po_number, 'N/A')`,
-        supplierName: sql<string>`COALESCE(s.name, 'Direct Receipt')`,
+        poNumber: inventoryPurchaseOrders.poNumber,
+        supplierName: inventorySuppliers.name,
         receivedDate: inventoryStockMovements.createdAt,
-        totalAmount: sql<string>`COALESCE(SUM(${inventoryStockMovements.quantity} * ${inventoryStockMovements.unitCost}), '0.00')`,
+        totalAmount: sql<number>`${inventoryStockMovements.quantity} * ${inventoryStockMovements.unitCost}`,
         receivedBy: inventoryStockMovements.createdBy,
         notes: inventoryStockMovements.notes,
-        itemsReceived: sql<any[]>`JSON_AGG(
-          JSON_BUILD_OBJECT(
-            'id', ${inventoryStockMovements.id},
-            'itemId', ${inventoryStockMovements.itemId},
-            'itemName', ${inventoryItems.name},
-            'quantityReceived', ${inventoryStockMovements.quantity},
-            'batchNumber', ${inventoryBatches.batchNumber},
-            'expiryDate', ${inventoryBatches.expiryDate}
-          )
-        )`
+        itemId: inventoryStockMovements.itemId,
+        itemName: inventoryItems.name,
+        quantityReceived: inventoryStockMovements.quantity,
+        batchNumber: inventoryBatches.batchNumber,
+        expiryDate: inventoryBatches.expiryDate
       })
       .from(inventoryStockMovements)
       .leftJoin(inventoryItems, eq(inventoryStockMovements.itemId, inventoryItems.id))
@@ -679,13 +677,6 @@ Cura Healthcare Team
         eq(inventoryStockMovements.organizationId, organizationId),
         eq(inventoryStockMovements.movementType, 'purchase')
       ))
-      .groupBy(
-        inventoryStockMovements.id,
-        inventoryStockMovements.referenceId,
-        inventoryStockMovements.createdAt,
-        inventoryStockMovements.createdBy,
-        inventoryStockMovements.notes
-      )
       .orderBy(desc(inventoryStockMovements.createdAt));
 
     return receipts;
