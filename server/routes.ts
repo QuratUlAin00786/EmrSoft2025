@@ -2279,6 +2279,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get prescriptions by patient ID
+  app.get("/api/prescriptions/patient/:patientId", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const patientId = parseInt(req.params.patientId);
+      if (isNaN(patientId)) {
+        return res.status(400).json({ error: "Invalid patient ID" });
+      }
+
+      const prescriptions = await storage.getPrescriptionsByPatient(patientId, req.tenant!.id);
+      res.json(prescriptions);
+    } catch (error) {
+      console.error("Error fetching prescriptions for patient:", error);
+      res.status(500).json({ error: "Failed to fetch prescriptions for patient" });
+    }
+  });
+
   app.post("/api/prescriptions", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
     console.log("POST /api/prescriptions endpoint reached!");
     try {

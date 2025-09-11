@@ -164,27 +164,79 @@ export default function LabResultsPage() {
     console.log("showViewDialog set to true");
   };
 
-  const handleDownloadResult = (resultId: string) => {
+  const handleDownloadResult = async (resultId: string) => {
     const result = Array.isArray(labResults) ? labResults.find((r: any) => r.id.toString() === resultId) : null;
     if (result) {
       const patientName = getPatientName(result.patientId);
-      toast({
-        title: "Download Report",
-        description: `Lab report for ${patientName} downloaded successfully`,
-      });
       
-      // Simulate PDF download
-      const resultsText = result.results?.map((r: any) => `${r.name}: ${r.value} ${r.unit} (${r.referenceRange})`).join('\n') || 'No results available';
-      const blob = new Blob([`Lab Results Report\n\nPatient: ${patientName}\nTest: ${result.testType}\nDate: ${new Date(result.orderedAt).toLocaleDateString()}\n\nResults:\n${resultsText}`], 
-        { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `lab-report-${patientName.replace(' ', '-').toLowerCase()}.txt`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      try {
+        // Fetch prescriptions for this patient
+        const response = await apiRequest("GET", `/api/prescriptions/patient/${result.patientId}`);
+        const prescriptions = await response.json();
+        
+        toast({
+          title: "Download Report",
+          description: `Prescription report for ${patientName} downloaded successfully`,
+        });
+        
+        // Create prescription document content
+        let prescriptionsText = '';
+        if (prescriptions && prescriptions.length > 0) {
+          prescriptionsText = prescriptions.map((prescription: any) => {
+            const medications = prescription.medications || [];
+            const medicationsText = medications.length > 0 
+              ? medications.map((med: any) => 
+                  `  - ${med.name}: ${med.dosage}, ${med.frequency}, Duration: ${med.duration}\n    Instructions: ${med.instructions}\n    Quantity: ${med.quantity}, Refills: ${med.refills}`
+                ).join('\n')
+              : `  - ${prescription.medicationName}: ${prescription.dosage || 'N/A'}, ${prescription.frequency || 'N/A'}\n    Instructions: ${prescription.instructions || 'N/A'}`;
+            
+            return `Prescription #${prescription.prescriptionNumber || prescription.id}
+Issued: ${new Date(prescription.issuedDate || prescription.createdAt).toLocaleDateString()}
+Status: ${prescription.status}
+Diagnosis: ${prescription.diagnosis || 'N/A'}
+
+Medications:
+${medicationsText}
+
+Notes: ${prescription.notes || 'No additional notes'}
+-------------------------------------------`;
+          }).join('\n\n');
+        } else {
+          prescriptionsText = 'No prescriptions found for this patient.';
+        }
+        
+        // Create and download the prescription document
+        const documentContent = `PRESCRIPTION REPORT
+
+Patient: ${patientName}
+Patient ID: ${result.patientId}
+Report Date: ${new Date().toLocaleDateString()}
+
+===========================================
+
+${prescriptionsText}
+
+===========================================
+Report generated from Cura EMR System`;
+        
+        const blob = new Blob([documentContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `prescriptions-${patientName.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+      } catch (error) {
+        console.error('Error fetching prescriptions:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch prescriptions for this patient",
+          variant: "destructive",
+        });
+      }
     }
   };
 
