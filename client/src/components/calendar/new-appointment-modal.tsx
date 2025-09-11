@@ -466,8 +466,8 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="consultation">Consultation</SelectItem>
-                        <SelectItem value="follow-up">Follow-up</SelectItem>
-                        <SelectItem value="checkup">Check-up</SelectItem>
+                        <SelectItem value="follow_up">Follow-up</SelectItem>
+                        <SelectItem value="routine_checkup">Check-up</SelectItem>
                         <SelectItem value="procedure">Procedure</SelectItem>
                         <SelectItem value="emergency">Emergency</SelectItem>
                       </SelectContent>
