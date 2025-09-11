@@ -320,6 +320,10 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
     scaleY: number;
   } | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
+  
+  // CALIBRATION MODE - For precise coordinate mapping
+  const [calibrationMode, setCalibrationMode] = useState(false);
+  const [calibrationPoints, setCalibrationPoints] = useState<{xPct: number, yPct: number}[]>([]);
 
   // ANATOMICAL MUSCLE POLYGON REGIONS - Vector-based muscle highlighting
   // Polygon coordinates representing actual muscle tissue shapes on the facial diagram
@@ -403,6 +407,45 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
       scaleX,
       scaleY
     });
+  };
+
+  // CALIBRATION CLICK HANDLER - Capture precise coordinates
+  const handleCalibrationClick = (e: React.MouseEvent) => {
+    if (!calibrationMode || !imageRef.current) return;
+    
+    const img = imageRef.current;
+    const rect = img.getBoundingClientRect();
+    
+    // Calculate click position relative to image
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    // Convert to percentage coordinates
+    const xPct = x / rect.width;
+    const yPct = y / rect.height;
+    
+    // Add point to calibration
+    const newPoint = { xPct, yPct };
+    setCalibrationPoints(prev => [...prev, newPoint]);
+    
+    console.log(`🎯 Calibration Point Added:`, newPoint);
+    console.log(`📍 Total Points:`, calibrationPoints.length + 1);
+  };
+  
+  // EXPORT CALIBRATION DATA
+  const exportCalibrationData = () => {
+    if (calibrationPoints.length === 0) return;
+    
+    console.log(`🔧 TEMPORALIS CALIBRATION EXPORT:`, {
+      points: calibrationPoints,
+      count: calibrationPoints.length,
+      javascriptArray: calibrationPoints
+    });
+    
+    // Also copy to clipboard for easy pasting
+    const jsArray = JSON.stringify(calibrationPoints, null, 2);
+    navigator.clipboard?.writeText(jsArray);
+    alert(`Exported ${calibrationPoints.length} points to console and clipboard!`);
   };
 
   // Handle overlay updates on image change and resize - ROBUST TIMING
@@ -1370,11 +1413,12 @@ Patient should be advised of potential side effects and expected timeline for re
                       ref={imageRef}
                       src={anatomicalImages[currentImageIndex]}
                       alt="Professional Anatomical Analysis"
-                      className="w-full h-[600px] max-w-2xl mx-auto rounded-lg object-contain"
+                      className={`w-full h-[600px] max-w-2xl mx-auto rounded-lg object-contain ${calibrationMode ? 'cursor-crosshair' : ''}`}
                       onLoad={() => {
                         setImageLoaded(true);
                         updateOverlayPosition();
                       }}
+                      onClick={handleCalibrationClick}
                     />
                     
                     {/* SVG POLYGON-BASED MUSCLE HIGHLIGHTING */}
@@ -1459,6 +1503,90 @@ Patient should be advised of potential side effects and expected timeline for re
                         })()}
                       </svg>
                     )}
+                    
+                    {/* CALIBRATION OVERLAY - For precise coordinate mapping */}
+                    {calibrationMode && overlayPosition && imageLoaded && (
+                      <svg
+                        className="absolute pointer-events-none z-50"
+                        style={{
+                          left: overlayPosition.left,
+                          top: overlayPosition.top,
+                          width: overlayPosition.width,
+                          height: overlayPosition.height
+                        }}
+                      >
+                        {/* Calibration Points */}
+                        {calibrationPoints.map((point, index) => (
+                          <circle
+                            key={index}
+                            cx={point.xPct * overlayPosition.width}
+                            cy={point.yPct * overlayPosition.height}
+                            r="4"
+                            fill="red"
+                            stroke="white"
+                            strokeWidth="2"
+                          />
+                        ))}
+                        
+                        {/* Calibration Polygon Preview */}
+                        {calibrationPoints.length > 2 && (
+                          <polygon
+                            points={calibrationPoints.map(p => 
+                              `${p.xPct * overlayPosition.width},${p.yPct * overlayPosition.height}`
+                            ).join(' ')}
+                            fill="rgba(255, 0, 0, 0.2)"
+                            stroke="red"
+                            strokeWidth="2"
+                          />
+                        )}
+                      </svg>
+                    )}
+                  </div>
+
+                  {/* Calibration Controls - Development Tool */}
+                  <div className="mt-4 p-3 bg-gray-100 rounded-lg border">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => {
+                            setCalibrationMode(!calibrationMode);
+                            if (calibrationMode) setCalibrationPoints([]);
+                          }}
+                          className={`px-3 py-2 rounded text-sm font-medium ${
+                            calibrationMode 
+                              ? 'bg-red-500 text-white' 
+                              : 'bg-blue-500 text-white hover:bg-blue-600'
+                          }`}
+                        >
+                          {calibrationMode ? '✕ Stop Calibration' : '🎯 Start Calibration'}
+                        </button>
+                        
+                        {calibrationMode && (
+                          <>
+                            <button
+                              onClick={() => setCalibrationPoints([])}
+                              className="px-3 py-2 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
+                            >
+                              Clear Points
+                            </button>
+                            
+                            <button
+                              onClick={exportCalibrationData}
+                              disabled={calibrationPoints.length === 0}
+                              className="px-3 py-2 bg-green-500 text-white rounded text-sm hover:bg-green-600 disabled:opacity-50"
+                            >
+                              Export ({calibrationPoints.length} pts)
+                            </button>
+                          </>
+                        )}
+                      </div>
+                      
+                      {calibrationMode && (
+                        <div className="text-sm text-gray-600">
+                          Click on the Temporalis muscle area to trace its outline
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Navigation controls */}
