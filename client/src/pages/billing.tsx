@@ -1196,7 +1196,7 @@ export default function BillingPage() {
                           ) === index
                         );
                         return uniquePatients.map((patient: any) => (
-                          <SelectItem key={patient.id} value={patient.id.toString()}>
+                          <SelectItem key={patient.id} value={patient.patientId}>
                             {patient.firstName} {patient.lastName}
                           </SelectItem>
                         ));
