@@ -1588,34 +1588,95 @@ export const messagesRelations = relations(messages, ({ one }) => ({
 export const insertOrganizationSchema = createInsertSchema(organizations).omit({
   id: true,
   createdAt: true,
+}).extend({
+  name: z.string().trim().min(1, "Organization name is required"),
+  subdomain: z.string().trim().min(1, "Subdomain is required").regex(/^[a-z0-9-]+$/, "Subdomain can only contain lowercase letters, numbers, and hyphens"),
+  contactEmail: z.string().trim().email("Please enter a valid email address").min(1, "Contact email is required"),
+  contactPhone: z.string().trim().min(1, "Contact phone is required"),
+  address: z.string().trim().min(1, "Address is required"),
+  city: z.string().trim().min(1, "City is required"),
+  country: z.string().trim().min(1, "Country is required"),
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
   lastLoginAt: true,
+}).extend({
+  email: z.string().trim().email("Please enter a valid email address").min(1, "Email is required"),
+  firstName: z.string().trim().min(1, "First name is required"),
+  lastName: z.string().trim().min(1, "Last name is required"),
+  username: z.string().trim().min(3, "Username must be at least 3 characters").max(50, "Username cannot exceed 50 characters"),
+  passwordHash: z.string().min(6, "Password must be at least 6 characters"),
+  role: z.enum(["admin", "doctor", "nurse", "receptionist", "patient", "sample_taker"], {
+    required_error: "Please select a role"
+  }),
 });
 
 export const insertRoleSchema = createInsertSchema(roles).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  name: z.string().trim().min(1, "Role name is required"),
+  displayName: z.string().trim().min(1, "Display name is required"),
+  description: z.string().trim().min(1, "Description is required"),
 });
 
 export const insertPatientSchema = createInsertSchema(patients).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  firstName: z.string().trim().min(1, "First name is required"),
+  lastName: z.string().trim().min(1, "Last name is required"),
+  patientId: z.string().trim().min(1, "Patient ID is required"),
+  dateOfBirth: z.coerce.date({
+    required_error: "Date of birth is required",
+    invalid_type_error: "Please enter a valid date"
+  }),
+  email: z.string().trim().email("Please enter a valid email address").optional().or(z.literal("")),
+  phone: z.string().trim().optional(),
 });
 
 export const insertMedicalRecordSchema = createInsertSchema(medicalRecords).omit({
   id: true,
   createdAt: true,
+}).extend({
+  patientId: z.coerce.number({
+    required_error: "Patient is required",
+    invalid_type_error: "Invalid patient selection"
+  }),
+  providerId: z.coerce.number({
+    required_error: "Provider is required",
+    invalid_type_error: "Invalid provider selection"
+  }),
+  recordType: z.string().trim().min(1, "Record type is required"),
+  title: z.string().trim().min(1, "Title is required"),
+  content: z.string().trim().min(1, "Content is required"),
 });
 
 export const insertAppointmentSchema = createInsertSchema(appointments).omit({
   id: true,
   createdAt: true,
+}).extend({
+  patientId: z.coerce.number({
+    required_error: "Patient is required",
+    invalid_type_error: "Invalid patient selection"
+  }),
+  providerId: z.coerce.number({
+    required_error: "Provider is required", 
+    invalid_type_error: "Invalid provider selection"
+  }),
+  title: z.string().trim().min(1, "Appointment title is required"),
+  scheduledAt: z.coerce.date({
+    required_error: "Appointment date and time is required",
+    invalid_type_error: "Please enter a valid date and time"
+  }),
+  duration: z.coerce.number({
+    invalid_type_error: "Duration must be a number"
+  }).positive("Duration must be greater than 0").default(30),
+  type: z.string().trim().min(1, "Appointment type is required"),
 });
 
 export const insertAiInsightSchema = createInsertSchema(aiInsights).omit({

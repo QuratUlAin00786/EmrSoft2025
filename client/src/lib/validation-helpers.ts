@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { UseFormSetError } from "react-hook-form";
+import { UseFormSetError, FieldValues } from "react-hook-form";
 
 // Common validation patterns
 export const validationPatterns = {
@@ -47,7 +47,7 @@ export const validationPatterns = {
 };
 
 // Error mapping utility for server-side validation errors
-export function mapServerErrorsToForm<T>(
+export function mapServerErrorsToForm<T extends FieldValues>(
   setError: UseFormSetError<T>,
   serverErrors: Record<string, string[]> | string
 ) {
