@@ -127,7 +127,7 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
       
       const data = await response.json();
       const uniquePatients = data ? data.filter((patient: any, index: number, self: any[]) => 
-        index === self.findIndex((p: any) => `${p.firstName} ${p.lastName}` === `${patient.firstName} ${patient.lastName}`)
+        index === self.findIndex((p: any) => p.id === patient.id)
       ) : [];
       setPatients(uniquePatients);
     } catch (err) {
@@ -219,6 +219,21 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
 
   useEffect(() => {
     if (isOpen) {
+      // Reset form completely when modal opens to prevent multiple selections
+      form.reset({
+        patientId: "",
+        providerId: "",
+        title: "",
+        description: "",
+        date: new Date().toISOString().split('T')[0],
+        time: "09:00",
+        duration: "30",
+        type: "consultation",
+        department: "Cardiology",
+        location: "",
+        isVirtual: false
+      });
+      
       fetchPatients();
       fetchProviders();
     }
