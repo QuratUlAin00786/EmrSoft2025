@@ -22,7 +22,7 @@ import { FileText, Plus, Calendar, User, Stethoscope, Pill, AlertTriangle, Mic, 
 import { format } from "date-fns";
 import type { MedicalRecord } from "@/types";
 import anatomicalDiagramImage from "@assets/2_1754469563272.png";
-import facialMuscleImage from "@assets/generated_images/Medical_facial_muscle_diagram_ae7b35b5.png";
+import facialMuscleImage from "@assets/generated_images/New_facial_muscle_diagram.png";
 import facialOutlineImage from "@assets/generated_images/Clean_facial_anatomy_outline_4b91e595.png";
 const FullConsultationInterface = React.lazy(() => 
   import("@/components/consultation/full-consultation-interface").then(module => ({
