@@ -319,44 +319,54 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
     scaleX: number;
     scaleY: number;
   } | null>(null);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
-  // PERCENTAGE-BASED COORDINATES - Normalized coordinates that work with any image size
-  // Based on visual inspection of the facial muscle diagram, converted to percentages
-  const musclePercentageCoordinates = {
-    0: {
-      frontalis: { xPct: 0.49, yPct: 0.08 },              // FRONTALIS (FOREHEAD) - top center
-      temporalis: { xPct: 0.13, yPct: 0.17 },            // TEMPORALIS - left temple region  
-      corrugator_supercilii: { xPct: 0.47, yPct: 0.20 }, // CORRUGATOR SUPERCILII - between eyebrows
-      procerus: { xPct: 0.54, yPct: 0.30 },              // PROCERUS - center bridge of nose
-      orbicularis_oculi: { xPct: 0.45, yPct: 0.28 },     // ORBICULARIS OCULI - eye area
-      levator_labii_superioris: { xPct: 0.71, yPct: 0.20 }, // LEVATOR LABII SUPERIORIS - right
-      zygomaticus_major: { xPct: 0.27, yPct: 0.50 },     // ZYGOMATICUS MAJOR & MINOR - left cheek
-      zygomaticus_minor: { xPct: 0.27, yPct: 0.50 },     // Same as major - labeled together
-      masseter: { xPct: 0.72, yPct: 0.29 },              // MASSETER - right jaw
-      buccinator: { xPct: 0.71, yPct: 0.27 },            // BUCCINATOR - right cheek
-      orbicularis_oris: { xPct: 0.73, yPct: 0.31 },      // ORBICULARIS ORIS - right mouth
-      mentalis: { xPct: 0.70, yPct: 0.34 },              // MENTALIS - right chin
-      depressor_anguli_oris: { xPct: 0.75, yPct: 0.35 }, // DEPRESSOR ANGULI ORIS - right
-      depressor_labii_inferioris: { xPct: 0.74, yPct: 0.38 }, // DEPRESSOR LABII INFERIORIS - right
-      platysma: { xPct: 0.49, yPct: 0.85 }               // PLATYSMA - neck area
-    },
-    1: {
-      frontalis: { xPct: 0.49, yPct: 0.08 },              // FRONTALIS (FOREHEAD) - top center
-      temporalis: { xPct: 0.13, yPct: 0.17 },            // TEMPORALIS - left temple region
-      corrugator_supercilii: { xPct: 0.47, yPct: 0.20 }, // CORRUGATOR SUPERCILII - between eyebrows
-      procerus: { xPct: 0.54, yPct: 0.30 },              // PROCERUS - center bridge of nose
-      orbicularis_oculi: { xPct: 0.45, yPct: 0.28 },     // ORBICULARIS OCULI - eye area
-      levator_labii_superioris: { xPct: 0.71, yPct: 0.20 }, // LEVATOR LABII SUPERIORIS - right
-      zygomaticus_major: { xPct: 0.27, yPct: 0.50 },     // ZYGOMATICUS MAJOR & MINOR - left cheek
-      zygomaticus_minor: { xPct: 0.27, yPct: 0.50 },     // Same as major - labeled together
-      masseter: { xPct: 0.72, yPct: 0.29 },              // MASSETER - right jaw
-      buccinator: { xPct: 0.71, yPct: 0.27 },            // BUCCINATOR - right cheek
-      orbicularis_oris: { xPct: 0.73, yPct: 0.31 },      // ORBICULARIS ORIS - right mouth
-      mentalis: { xPct: 0.70, yPct: 0.34 },              // MENTALIS - right chin
-      depressor_anguli_oris: { xPct: 0.75, yPct: 0.35 }, // DEPRESSOR ANGULI ORIS - right
-      depressor_labii_inferioris: { xPct: 0.74, yPct: 0.38 }, // DEPRESSOR LABII INFERIORIS - right
-      platysma: { xPct: 0.49, yPct: 0.85 }               // PLATYSMA - neck area
+  // ANATOMICAL MUSCLE POLYGON REGIONS - Vector-based muscle highlighting
+  // Polygon coordinates representing actual muscle tissue shapes on the facial diagram
+  const muscleRegionsByImageIndex = {
+    0: { // Muscle diagram (front view with colored muscles)
+      // TEMPORALIS - Temple muscle region (fan-shaped)
+      temporalis: [
+        { xPct: 0.10, yPct: 0.15 }, // Upper temple
+        { xPct: 0.18, yPct: 0.12 }, // Upper edge
+        { xPct: 0.22, yPct: 0.18 }, // Mid temple
+        { xPct: 0.20, yPct: 0.25 }, // Lower temple
+        { xPct: 0.12, yPct: 0.22 }  // Back to start
+      ],
+      
+      // CORRUGATOR SUPERCILII - Between eyebrows (frowning muscle)
+      corrugator_supercilii: [
+        { xPct: 0.42, yPct: 0.18 }, // Left edge above eyebrow
+        { xPct: 0.52, yPct: 0.17 }, // Right edge above eyebrow  
+        { xPct: 0.50, yPct: 0.22 }, // Lower right
+        { xPct: 0.44, yPct: 0.23 }  // Lower left
+      ],
+
+      // FRONTALIS - Forehead muscle 
+      frontalis: [
+        { xPct: 0.35, yPct: 0.05 }, // Upper left forehead
+        { xPct: 0.63, yPct: 0.05 }, // Upper right forehead
+        { xPct: 0.60, yPct: 0.15 }, // Lower right
+        { xPct: 0.38, yPct: 0.15 }  // Lower left
+      ],
+
+      // MASSETER - Jaw muscle (rectangular region on right side)
+      masseter: [
+        { xPct: 0.68, yPct: 0.25 }, // Upper jaw
+        { xPct: 0.76, yPct: 0.25 }, // Upper right
+        { xPct: 0.74, yPct: 0.35 }, // Lower right jaw
+        { xPct: 0.66, yPct: 0.35 }  // Lower left jaw
+      ],
+
+      // ZYGOMATICUS MAJOR - Cheek muscle (left side)
+      zygomaticus_major: [
+        { xPct: 0.25, yPct: 0.42 }, // Upper cheek
+        { xPct: 0.32, yPct: 0.40 }, // Upper right
+        { xPct: 0.30, yPct: 0.52 }, // Lower right
+        { xPct: 0.23, yPct: 0.54 }  // Lower left
+      ]
     }
+    // Note: Image index 1 (outline) will not show highlighting until regions are defined
   };
 
   // MEASUREMENT FUNCTION - Calculate overlay position and scaling
@@ -396,6 +406,9 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
 
   // Handle overlay updates on image change and resize - ROBUST TIMING
   useEffect(() => {
+    // Reset image loaded state when image changes
+    setImageLoaded(false);
+    
     // Update overlay immediately when dialog opens or image changes
     if (open && anatomicalStep === 1) {
       updateOverlayPosition();
@@ -1351,12 +1364,15 @@ Patient should be advised of potential side effects and expected timeline for re
                       src={anatomicalImages[currentImageIndex]}
                       alt="Professional Anatomical Analysis"
                       className="w-full h-[600px] max-w-2xl mx-auto rounded-lg object-contain"
-                      onLoad={updateOverlayPosition}
+                      onLoad={() => {
+                        setImageLoaded(true);
+                        updateOverlayPosition();
+                      }}
                     />
                     
-                    {/* PIXEL-ACCURATE MUSCLE HIGHLIGHT OVERLAY */}
-                    {selectedMuscleGroup && overlayPosition && (
-                      <div 
+                    {/* SVG POLYGON-BASED MUSCLE HIGHLIGHTING */}
+                    {selectedMuscleGroup && overlayPosition && imageLoaded && currentImageIndex === 0 && (
+                      <svg
                         className="absolute pointer-events-none z-50"
                         style={{
                           left: overlayPosition.left,
@@ -1364,61 +1380,77 @@ Patient should be advised of potential side effects and expected timeline for re
                           width: overlayPosition.width,
                           height: overlayPosition.height,
                         }}
+                        viewBox={`0 0 ${overlayPosition.width} ${overlayPosition.height}`}
                       >
                         {(() => {
                           // NORMALIZE MUSCLE KEY - Convert dropdown value to coordinate key
                           const normalize = (s: string) => s.trim().toLowerCase().replace(/[^a-z0-9]+/g,'_');
                           const muscleKey = normalize(selectedMuscleGroup);
                           
+                          // Get polygon coordinates for selected muscle
+                          const muscleRegions = muscleRegionsByImageIndex[0];
+                          const polygonCoords = muscleRegions?.[muscleKey as keyof typeof muscleRegions];
+                          
                           // DEBUG LOGGING
-                          console.log('🎯 MUSCLE HIGHLIGHTING DEBUG:', {
+                          console.log('🎯 POLYGON MUSCLE HIGHLIGHTING:', {
                             selectedMuscleGroup,
                             normalized: muscleKey,
-                            currentImageIndex,
-                            availableKeys: Object.keys(musclePercentageCoordinates[currentImageIndex as keyof typeof musclePercentageCoordinates] || {}),
-                            overlayPosition
-                          });
-                          
-                          // Get percentage coordinates for selected muscle
-                          const percentageCoords = musclePercentageCoordinates[currentImageIndex as keyof typeof musclePercentageCoordinates]?.[muscleKey as keyof typeof musclePercentageCoordinates[0]];
-                          if (!percentageCoords) {
-                            console.warn('❌ NO COORDINATES FOUND FOR MUSCLE:', muscleKey);
-                            return null;
-                          }
-                          
-                          // Convert percentages to pixel positions
-                          const pixelX = percentageCoords.xPct * overlayPosition.width;
-                          const pixelY = percentageCoords.yPct * overlayPosition.height;
-                          
-                          console.log('✅ MUSCLE MARKER POSITION:', {
-                            muscleKey,
-                            percentageCoords,
-                            calculatedPixels: { x: pixelX, y: pixelY },
+                            availableRegions: Object.keys(muscleRegions || {}),
+                            polygonFound: !!polygonCoords,
                             overlayDimensions: { width: overlayPosition.width, height: overlayPosition.height }
                           });
                           
+                          if (!polygonCoords) {
+                            console.warn('❌ NO POLYGON REGION FOUND FOR MUSCLE:', muscleKey);
+                            return null;
+                          }
+                          
+                          // Convert percentage coordinates to pixel positions
+                          const pixelPoints = polygonCoords.map(coord => ({
+                            x: coord.xPct * overlayPosition.width,
+                            y: coord.yPct * overlayPosition.height
+                          }));
+                          
+                          // Create SVG polygon path
+                          const pathData = pixelPoints.map((point, index) => 
+                            `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`
+                          ).join(' ') + ' Z';
+                          
+                          // Calculate centroid for center marker
+                          const centroidX = pixelPoints.reduce((sum, p) => sum + p.x, 0) / pixelPoints.length;
+                          const centroidY = pixelPoints.reduce((sum, p) => sum + p.y, 0) / pixelPoints.length;
+                          
+                          console.log('✅ POLYGON MUSCLE REGION RENDERED:', {
+                            muscleKey,
+                            pixelPoints,
+                            centroid: { x: centroidX, y: centroidY }
+                          });
+                          
                           return (
-                            <div
-                              className="absolute z-60 pointer-events-none"
-                              style={{
-                                left: `${pixelX}px`,
-                                top: `${pixelY}px`,
-                                transform: 'translate(-50%, -50%)'
-                              }}
-                            >
-                              {/* Large, prominent marker with pulsing animation */}
-                              <div
-                                className="w-8 h-8 rounded-full border-4 border-black shadow-2xl"
-                                style={{
-                                  background: 'rgba(255, 230, 0, 0.95)',
-                                  animation: 'pulse 1.5s ease-in-out infinite',
-                                  boxShadow: '0 0 20px rgba(255, 230, 0, 0.9), 0 0 40px rgba(255, 230, 0, 0.6)'
-                                }}
+                            <g>
+                              {/* Semi-transparent muscle region highlight */}
+                              <path
+                                d={pathData}
+                                fill="rgba(255, 230, 0, 0.4)"
+                                stroke="rgba(255, 200, 0, 0.8)"
+                                strokeWidth="2"
+                                style={{ animation: 'pulse 2s ease-in-out infinite' }}
                               />
-                            </div>
+                              
+                              {/* Central targeting dot */}
+                              <circle
+                                cx={centroidX}
+                                cy={centroidY}
+                                r="6"
+                                fill="rgba(255, 230, 0, 0.95)"
+                                stroke="black"
+                                strokeWidth="2"
+                                style={{ animation: 'pulse 1.5s ease-in-out infinite' }}
+                              />
+                            </g>
                           );
                         })()}
-                      </div>
+                      </svg>
                     )}
                   </div>
 
