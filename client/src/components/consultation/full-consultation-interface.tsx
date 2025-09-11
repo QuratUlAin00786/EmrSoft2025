@@ -704,9 +704,9 @@ Patient should be advised of potential side effects and expected timeline for re
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="vitals" className="w-full space-y-4">
-              <div className="w-full grid gap-4">
-                <Card className="w-full">
+            <TabsContent value="vitals" className="w-full space-y-4 min-h-[60vh] lg:min-h-[70vh]">
+              <div className="w-full grid gap-4 h-full">
+                <Card className="w-full h-full">
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <HeartPulse className="w-5 h-5 text-red-600" />
