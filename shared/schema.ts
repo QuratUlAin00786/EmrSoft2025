@@ -1004,7 +1004,10 @@ export const inventoryStockAlerts = pgTable("inventory_stock_alerts", {
   organizationId: integer("organization_id").notNull(),
   itemId: integer("item_id").notNull(),
   alertType: varchar("alert_type", { length: 20 }).notNull(), // low_stock, expired, expiring_soon
-  message: text("message").notNull(),
+  thresholdValue: integer("threshold_value").notNull(),
+  currentValue: integer("current_value").notNull(),
+  status: varchar("status", { length: 20 }).notNull().default("active"), // active, resolved
+  message: text("message"),
   isRead: boolean("is_read").notNull().default(false),
   isResolved: boolean("is_resolved").notNull().default(false),
   resolvedBy: integer("resolved_by"),

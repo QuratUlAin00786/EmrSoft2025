@@ -194,6 +194,9 @@ export class InventoryService {
         organizationId: item.organizationId,
         itemId: item.id,
         alertType: 'low_stock',
+        thresholdValue: item.minimumStock,
+        currentValue: item.currentStock,
+        status: 'active',
         message: `Stock level for ${item.name} is below minimum threshold (${item.currentStock}/${item.minimumStock})`
       });
     }
@@ -217,6 +220,9 @@ export class InventoryService {
         organizationId: item.organizationId,
         itemId: item.id,
         alertType: 'low_stock',
+        thresholdValue: item.minimumStock,
+        currentValue: item.currentStock,
+        status: 'active',
         message: `Stock level for ${item.name} is below minimum threshold (${item.currentStock}/${item.minimumStock})`
       });
     }
@@ -495,6 +501,9 @@ Cura Healthcare Team
           organizationId,
           itemId,
           alertType: 'low_stock',
+          thresholdValue: item.minimumStock,
+          currentValue: newStock,
+          status: 'active',
           message: `Stock level for ${item.name} is below minimum threshold (${newStock}/${item.minimumStock})`
         });
       }
