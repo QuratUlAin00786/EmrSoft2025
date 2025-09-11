@@ -4,6 +4,72 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Header } from "@/components/layout/header";
+
+// Medical Specialties Data Structure
+const medicalSpecialties = {
+  "General & Primary Care": {
+    "General Practitioner (GP) / Family Physician": ["Common illnesses", "Preventive care"],
+    "Internal Medicine Specialist": ["Adult health", "Chronic diseases (diabetes, hypertension)"]
+  },
+  "Surgical Specialties": {
+    "General Surgeon": [
+      "Abdominal Surgery",
+      "Hernia Repair", 
+      "Gallbladder & Appendix Surgery",
+      "Colorectal Surgery",
+      "Breast Surgery",
+      "Endocrine Surgery (thyroid, parathyroid, adrenal)",
+      "Trauma & Emergency Surgery"
+    ],
+    "Orthopedic Surgeon": [
+      "Joint Replacement (hip, knee, shoulder)",
+      "Spine Surgery",
+      "Sports Orthopedics (ACL tears, ligament reconstruction)",
+      "Pediatric Orthopedics",
+      "Arthroscopy (keyhole joint surgery)",
+      "Trauma & Fracture Care"
+    ],
+    "Neurosurgeon": [
+      "Brain Tumor Surgery",
+      "Spinal Surgery", 
+      "Cerebrovascular Surgery (stroke, aneurysm)",
+      "Pediatric Neurosurgery",
+      "Functional Neurosurgery (Parkinson's, epilepsy, DBS)",
+      "Trauma Neurosurgery"
+    ]
+  },
+  "Heart & Circulation": {
+    "Cardiologist": ["Heart diseases", "ECG", "Angiography"],
+    "Vascular Surgeon": ["Arteries", "Veins", "Blood vessels"]
+  },
+  "Women's Health": {
+    "Gynecologist": ["Female reproductive system"],
+    "Obstetrician": ["Pregnancy & childbirth"],
+    "Fertility Specialist (IVF Expert)": ["Infertility treatment"]
+  },
+  "Children's Health": {
+    "Pediatrician": ["General child health"],
+    "Pediatric Surgeon": ["Infant & child surgeries"],
+    "Neonatologist": ["Newborn intensive care"]
+  },
+  "Brain & Nervous System": {
+    "Neurologist": ["Stroke", "Epilepsy", "Parkinson's"],
+    "Psychiatrist": ["Mental health (depression, anxiety)"],
+    "Psychologist (Clinical)": ["Therapy & counseling"]
+  },
+  "Digestive System": {
+    "Gastroenterologist": ["Stomach", "Intestines"],
+    "Hepatologist": ["Liver specialist"],
+    "Colorectal Surgeon": ["Colon", "Rectum", "Anus"]
+  },
+  "Others": {
+    "Geriatrician": ["Elderly care"],
+    "Pathologist": ["Lab & diagnostic testing"],
+    "Radiologist": ["Imaging (X-ray, CT, MRI)"],
+    "Anesthesiologist": ["Pain & anesthesia"],
+    "Emergency Medicine Specialist": ["Accidents", "Trauma"]
+  }
+};
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -62,6 +128,11 @@ export default function LabResultsPage() {
   const [showReviewDialog, setShowReviewDialog] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [selectedResult, setSelectedResult] = useState<DatabaseLabResult | null>(null);
+  
+  // Doctor specialty states for lab order
+  const [selectedSpecialtyCategory, setSelectedSpecialtyCategory] = useState<string>("");
+  const [selectedSubSpecialty, setSelectedSubSpecialty] = useState<string>("");
+  const [selectedSpecificArea, setSelectedSpecificArea] = useState<string>("");
   const [shareFormData, setShareFormData] = useState({
     method: "",
     email: "",
@@ -73,7 +144,11 @@ export default function LabResultsPage() {
     patientName: "",
     testType: "",
     priority: "routine",
-    notes: ""
+    notes: "",
+    doctorId: "",
+    doctorName: "",
+    mainSpecialty: "",
+    subSpecialty: ""
   });
 
   const { data: labResults = [], isLoading } = useQuery({
@@ -93,6 +168,18 @@ export default function LabResultsPage() {
       return data;
     }
   });
+
+  // Fetch medical staff for doctor selection
+  const { data: medicalStaffData, isLoading: medicalStaffLoading } = useQuery({
+    queryKey: ["/api/medical-staff"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/medical-staff");
+      const data = await response.json();
+      return data;
+    }
+  });
+
+  const doctors = medicalStaffData?.staff?.filter((staff: any) => staff.role === 'doctor') || [];
 
 
   const { data: users = [] } = useQuery({
@@ -121,8 +208,17 @@ export default function LabResultsPage() {
         patientName: "",
         testType: "",
         priority: "routine",
-        notes: ""
+        notes: "",
+        doctorId: "",
+        doctorName: "",
+        mainSpecialty: "",
+        subSpecialty: ""
       });
+      
+      // Reset specialty states
+      setSelectedSpecialtyCategory("");
+      setSelectedSubSpecialty("");
+      setSelectedSpecificArea("");
     },
     onError: (error: any) => {
       toast({
@@ -536,7 +632,7 @@ Report generated from Cura EMR System`;
 
       {/* Order Lab Test Dialog */}
       <Dialog open={showOrderDialog} onOpenChange={setShowOrderDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Order Lab Test</DialogTitle>
           </DialogHeader>
@@ -572,6 +668,88 @@ Report generated from Cura EMR System`;
                 </SelectContent>
               </Select>
             </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="doctor">Select Doctor</Label>
+              <Select 
+                value={orderFormData.doctorId} 
+                onValueChange={(value) => {
+                  const selectedDoctor = doctors.find((d: any) => d.id.toString() === value);
+                  setOrderFormData(prev => ({ 
+                    ...prev, 
+                    doctorId: value,
+                    doctorName: selectedDoctor ? `Dr. ${selectedDoctor.firstName} ${selectedDoctor.lastName}` : ''
+                  }));
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a doctor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {medicalStaffLoading ? (
+                    <SelectItem value="loading" disabled>Loading doctors...</SelectItem>
+                  ) : doctors.length > 0 ? (
+                    doctors.map((doctor: any) => (
+                      <SelectItem key={doctor.id} value={doctor.id.toString()}>
+                        Dr. {doctor.firstName} {doctor.lastName}
+                        {doctor.department && ` - ${doctor.department}`}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="none" disabled>No doctors available</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="mainSpecialty">Main Specialization</Label>
+              <Select 
+                value={selectedSpecialtyCategory}
+                onValueChange={(value) => {
+                  setSelectedSpecialtyCategory(value);
+                  setSelectedSubSpecialty("");
+                  setSelectedSpecificArea("");
+                  setOrderFormData(prev => ({ ...prev, mainSpecialty: value, subSpecialty: "" }));
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select main specialization" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.keys(medicalSpecialties).map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {selectedSpecialtyCategory && (
+              <div className="space-y-2">
+                <Label htmlFor="subSpecialty">Sub-Specialization</Label>
+                <Select 
+                  value={selectedSubSpecialty}
+                  onValueChange={(value) => {
+                    setSelectedSubSpecialty(value);
+                    setSelectedSpecificArea("");
+                    setOrderFormData(prev => ({ ...prev, subSpecialty: value }));
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select sub-specialization" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.keys(medicalSpecialties[selectedSpecialtyCategory as keyof typeof medicalSpecialties] || {}).map((subSpecialty) => (
+                      <SelectItem key={subSpecialty} value={subSpecialty}>
+                        {subSpecialty}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="testType">Test Type</Label>
               <Select value={orderFormData.testType} onValueChange={(value) => setOrderFormData(prev => ({ ...prev, testType: value }))}>
@@ -623,10 +801,14 @@ Report generated from Cura EMR System`;
                   createLabOrderMutation.mutate({
                     patientId: parseInt(orderFormData.patientId),
                     testType: orderFormData.testType,
-                    notes: orderFormData.notes
+                    notes: orderFormData.notes,
+                    doctorId: orderFormData.doctorId ? parseInt(orderFormData.doctorId) : null,
+                    doctorName: orderFormData.doctorName,
+                    mainSpecialty: orderFormData.mainSpecialty,
+                    subSpecialty: orderFormData.subSpecialty
                   });
                 }}
-                disabled={createLabOrderMutation.isPending || !orderFormData.patientId || !orderFormData.testType}
+                disabled={createLabOrderMutation.isPending || !orderFormData.patientId || !orderFormData.testType || !orderFormData.doctorId}
                 className="flex-1 bg-medical-blue hover:bg-blue-700"
               >
                 {createLabOrderMutation.isPending ? "Ordering..." : "Order Test"}
