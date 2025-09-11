@@ -326,7 +326,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
     0: {
       frontalis: { xPct: 0.49, yPct: 0.08 },              // FRONTALIS (FOREHEAD) - top center
       temporalis: { xPct: 0.13, yPct: 0.17 },            // TEMPORALIS - left temple region  
-      corrugator_supercilii: { xPct: 0.34, yPct: 0.17 }, // CORRUGATOR SUPERCILII - left brow
+      corrugator_supercilii: { xPct: 0.47, yPct: 0.20 }, // CORRUGATOR SUPERCILII - between eyebrows
       procerus: { xPct: 0.54, yPct: 0.30 },              // PROCERUS - center bridge of nose
       orbicularis_oculi: { xPct: 0.45, yPct: 0.28 },     // ORBICULARIS OCULI - eye area
       levator_labii_superioris: { xPct: 0.71, yPct: 0.20 }, // LEVATOR LABII SUPERIORIS - right
@@ -343,7 +343,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
     1: {
       frontalis: { xPct: 0.49, yPct: 0.08 },              // FRONTALIS (FOREHEAD) - top center
       temporalis: { xPct: 0.13, yPct: 0.17 },            // TEMPORALIS - left temple region
-      corrugator_supercilii: { xPct: 0.34, yPct: 0.17 }, // CORRUGATOR SUPERCILII - left brow
+      corrugator_supercilii: { xPct: 0.47, yPct: 0.20 }, // CORRUGATOR SUPERCILII - between eyebrows
       procerus: { xPct: 0.54, yPct: 0.30 },              // PROCERUS - center bridge of nose
       orbicularis_oculi: { xPct: 0.45, yPct: 0.28 },     // ORBICULARIS OCULI - eye area
       levator_labii_superioris: { xPct: 0.71, yPct: 0.20 }, // LEVATOR LABII SUPERIORIS - right
