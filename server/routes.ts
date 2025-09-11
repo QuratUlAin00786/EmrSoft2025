@@ -81,7 +81,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // EMERGENCY PRODUCTION FIX - Absolute priority route BEFORE everything else
+  // SECURITY: Only available in development environment
   app.post('/api/emergency-saas-setup', async (req, res) => {
+    // CRITICAL SECURITY CHECK: Block in production
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(403).json({ error: 'Emergency setup not available in production' });
+    }
     try {
       console.log('[EMERGENCY] Emergency SaaS setup triggered');
       const bcrypt = await import('bcrypt');
@@ -133,7 +138,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // PRODUCTION DEMO USERS SETUP - Creates demo users for production login screen
+  // SECURITY: Only available in development environment
   app.post('/api/production-demo-setup', async (req, res) => {
+    // CRITICAL SECURITY CHECK: Block in production
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(403).json({ error: 'Demo setup not available in production' });
+    }
     try {
       console.log('[PRODUCTION DEMO] Creating production demo users...');
       
@@ -294,8 +304,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const host = req.get("host");
     const extractedSubdomain = host ? host.split('.')[0] : "none";
     
-    // PRODUCTION SAAS FIX: Add SaaS setup capability to existing working endpoint
+    // SECURITY: Block emergency SaaS setup in production
     if (req.query.setup === 'saas' && req.query.emergency === 'true') {
+      // CRITICAL SECURITY CHECK: Block in production
+      if (process.env.NODE_ENV === 'production') {
+        return res.status(403).json({ error: 'Emergency setup not available in production' });
+      }
       try {
         const bcrypt = require('bcrypt');
         const hashedPassword = await bcrypt.hash('admin123', 10);
@@ -346,7 +360,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Production Data Sync endpoint - triggers database seeding for production
+  // SECURITY: Only available in development environment
   app.post('/api/production-sync', async (req, res) => {
+    // CRITICAL SECURITY CHECK: Block in production
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(403).json({ error: 'Production sync not available in production' });
+    }
     try {
       console.log('[PRODUCTION SYNC] Starting database seeding...');
       
@@ -404,7 +423,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!isValidPassword) {
         return res.status(401).json({ error: "Authentication failed. Please check your credentials." });
       }
-      const SAAS_JWT_SECRET = process.env.SAAS_JWT_SECRET || "saas-super-secret-key-change-in-production";
+      // SECURITY: Require SAAS_JWT_SECRET in production
+      const SAAS_JWT_SECRET = process.env.SAAS_JWT_SECRET;
+      if (!SAAS_JWT_SECRET) {
+        if (process.env.NODE_ENV === 'production') {
+          throw new Error('SAAS_JWT_SECRET environment variable is required in production');
+        }
+        // Only allow default in development
+        return res.status(500).json({ error: 'JWT secret configuration required' });
+      }
       const token = jwt.sign(
         { id: user.id, username: user.username, isSaaSOwner: true },
         SAAS_JWT_SECRET,
