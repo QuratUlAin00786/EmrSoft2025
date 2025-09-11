@@ -1246,8 +1246,9 @@ Patient should be advised of potential side effects and expected timeline for re
               </div>
             </TabsContent>
 
-            <TabsContent value="summary" className="space-y-4">
-              <Card>
+            <TabsContent value="summary" className="w-full space-y-4 min-h-[60vh] lg:min-h-[70vh]">
+              <div className="w-full grid gap-4 h-full">
+                <Card className="w-full h-full">
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <FileText className="w-5 h-5 text-blue-600" />
@@ -1322,6 +1323,7 @@ Patient should be advised of potential side effects and expected timeline for re
                   </div>
                 </CardContent>
               </Card>
+              </div>
             </TabsContent>
           </Tabs>
 
