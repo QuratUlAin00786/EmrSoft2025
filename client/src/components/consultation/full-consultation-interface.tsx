@@ -704,17 +704,17 @@ Patient should be advised of potential side effects and expected timeline for re
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="vitals" className="space-y-4">
-              <div className="grid gap-4">
-                <Card>
+            <TabsContent value="vitals" className="w-full space-y-4">
+              <div className="w-full grid gap-4">
+                <Card className="w-full">
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <HeartPulse className="w-5 h-5 text-red-600" />
                       Vital Signs
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <CardContent className="w-full">
+                    <div className="w-full grid grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="bp" className="flex items-center gap-2">
                         <Heart className="w-4 h-4 text-red-500" />
