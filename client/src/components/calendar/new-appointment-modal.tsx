@@ -5,6 +5,14 @@ import { Calendar } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { appointmentSchema, AppointmentFormData } from "./appointment-form-schema";
 
 interface NewAppointmentModalProps {
   isOpen: boolean;
@@ -37,7 +45,7 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
       queryClient.refetchQueries({ queryKey: ["/api/appointments"] });
       
       // Reset form
-      setFormData({
+      form.reset({
         patientId: "",
         providerId: "",
         title: "",
@@ -78,19 +86,24 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
     }
   });
   
-  const [formData, setFormData] = useState({
-    patientId: "",
-    providerId: "",
-    title: "",
-    description: "",
-    date: new Date().toISOString().split('T')[0],
-    time: "09:00",
-    duration: "30",
-    type: "consultation",
-    department: "Cardiology",
-    location: "",
-    isVirtual: false
+  const form = useForm<AppointmentFormData>({
+    resolver: zodResolver(appointmentSchema),
+    defaultValues: {
+      patientId: "",
+      providerId: "",
+      title: "",
+      description: "",
+      date: new Date().toISOString().split('T')[0],
+      time: "09:00",
+      duration: "30",
+      type: "consultation",
+      department: "Cardiology",
+      location: "",
+      isVirtual: false
+    }
   });
+
+  const formData = form.watch();
 
   const fetchPatients = async () => {
     try {
@@ -200,7 +213,7 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
     
     // Clear selected provider if they're no longer available
     if (formData.providerId && !availableOnThisDateTime.find(p => p.id === parseInt(formData.providerId))) {
-      setFormData(prev => ({ ...prev, providerId: "" }));
+      form.setValue("providerId", "");
     }
   };
 
@@ -216,48 +229,35 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
     filterAvailableProviders();
   }, [formData.date, formData.time, allProviders]);
 
-  const createAppointment = () => {
-    console.log("🔍 FORM VALIDATION - Current form data:", formData);
-    console.log("🔍 FORM VALIDATION - patientId:", formData.patientId, "type:", typeof formData.patientId);
-    console.log("🔍 FORM VALIDATION - providerId:", formData.providerId, "type:", typeof formData.providerId);
-    
-    if (!formData.patientId || !formData.providerId) {
-      console.log("❌ VALIDATION FAILED - Missing patient or provider");
-      toast({
-        title: "Missing Information", 
-        description: "Please select both patient and provider",
-        variant: "destructive"
-      });
-      return;
-    }
+  const onSubmit = (data: AppointmentFormData) => {
+    console.log("🔍 FORM VALIDATION - Form data:", data);
 
     // Check if selected provider is in available list
-    if (formData.providerId && !availableProviders.find(p => p.id === parseInt(formData.providerId))) {
-      toast({
-        title: "Provider Not Available", 
-        description: "Selected provider is not available at this time",
-        variant: "destructive"
+    if (data.providerId && !availableProviders.find(p => p.id === parseInt(data.providerId))) {
+      form.setError("providerId", {
+        type: "manual",
+        message: "Selected provider is not available at this time"
       });
       return;
     }
 
     // Create date in local timezone and keep it as local time for proper scheduling
-    const localDateTime = `${formData.date}T${formData.time}:00`;
+    const localDateTime = `${data.date}T${data.time}:00`;
     
     // Find the actual patient ID from the selected patientId string
-    const selectedPatient = patients.find(p => p.patientId === formData.patientId);
+    const selectedPatient = patients.find(p => p.patientId === data.patientId);
     
     const appointmentData = {
-      patientId: selectedPatient ? selectedPatient.id : parseInt(formData.patientId), // Use numeric ID
-      providerId: parseInt(formData.providerId),
-      title: formData.title || `${formData.type} appointment`,
-      description: formData.description || "",
+      patientId: selectedPatient ? selectedPatient.id : parseInt(data.patientId), // Use numeric ID
+      providerId: parseInt(data.providerId),
+      title: data.title || `${data.type} appointment`,
+      description: data.description || "",
       scheduledAt: localDateTime,
-      duration: parseInt(formData.duration),
-      type: formData.type,
+      duration: parseInt(data.duration),
+      type: data.type,
       status: "scheduled", // Required field - set default status
-      location: formData.isVirtual ? "Virtual" : (formData.location || `${formData.department || 'General'} Department`),
-      isVirtual: formData.isVirtual
+      location: data.isVirtual ? "Virtual" : (data.location || `${data.department || 'General'} Department`),
+      isVirtual: data.isVirtual
     };
     
     console.log("Appointment data being sent:", appointmentData);
@@ -288,6 +288,7 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
               size="sm"
               onClick={onClose}
               className="h-8 w-8 p-0"
+              data-testid="button-close"
             >
               ✕
             </Button>
@@ -297,173 +298,269 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
           </p>
         </div>
         
-        <div className="p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Patient *</label>
-              <select 
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
-                value={formData.patientId}
-                onChange={(e) => setFormData(prev => ({ ...prev, patientId: e.target.value }))}
-              >
-                <option value="">Select patient...</option>
-                {patients.map((patient: any) => (
-                  <option key={patient.id} value={patient.patientId}>
-                    {patient.firstName} {patient.lastName}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Provider *</label>
-              <select 
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
-                value={formData.providerId}
-                onChange={(e) => setFormData(prev => ({ ...prev, providerId: e.target.value }))}
-              >
-                <option value="">Select available provider...</option>
-                {availableProviders.map((provider: any) => (
-                  <option key={provider.id} value={provider.id}>
-                    Dr. {provider.firstName} {provider.lastName}
-                    {provider.workingHours?.start && provider.workingHours?.end 
-                      ? ` (${provider.workingHours.start}-${provider.workingHours.end})`
-                      : ''}
-                  </option>
-                ))}
-                {availableProviders.length === 0 && formData.date && formData.time && (
-                  <option value="" disabled>No providers available at this time</option>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="patientId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="required">Patient</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value} data-testid="select-patient">
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select patient..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {patients.map((patient: any) => (
+                          <SelectItem key={patient.id} value={patient.patientId}>
+                            {patient.firstName} {patient.lastName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </select>
-            </div>
-          </div>
-          
-          <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Department *</label>
-            <select 
-              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
-              value={formData.department}
-              onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
-            >
-              <option value="Cardiology">Cardiology</option>
-              <option value="Neurology">Neurology</option>
-              <option value="Orthopedics">Orthopedics</option>
-              <option value="Pediatrics">Pediatrics</option>
-              <option value="Oncology">Oncology</option>
-              <option value="Dermatology">Dermatology</option>
-              <option value="Psychiatry">Psychiatry</option>
-              <option value="Emergency Medicine">Emergency Medicine</option>
-              <option value="Radiology">Radiology</option>
-              <option value="General Medicine">General Medicine</option>
-            </select>
-          </div>
+              />
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Date *</label>
-              <input 
-                type="date"
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
-                value={formData.date}
-                onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+              <FormField
+                control={form.control}
+                name="providerId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="required">Provider</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value} data-testid="select-provider">
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select available provider..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {availableProviders.map((provider: any) => (
+                          <SelectItem key={provider.id} value={provider.id.toString()}>
+                            Dr. {provider.firstName} {provider.lastName}
+                            {provider.workingHours?.start && provider.workingHours?.end 
+                              ? ` (${provider.workingHours.start}-${provider.workingHours.end})`
+                              : ''}
+                          </SelectItem>
+                        ))}
+                        {availableProviders.length === 0 && formData.date && formData.time && (
+                          <SelectItem value="" disabled>No providers available at this time</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
-            <div>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Time *</label>
-              <input 
-                type="time"
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
-                value={formData.time}
-                onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
+
+            <FormField
+              control={form.control}
+              name="department"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="required">Department</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value} data-testid="select-department">
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select department..." />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Cardiology">Cardiology</SelectItem>
+                      <SelectItem value="Neurology">Neurology</SelectItem>
+                      <SelectItem value="Orthopedics">Orthopedics</SelectItem>
+                      <SelectItem value="Pediatrics">Pediatrics</SelectItem>
+                      <SelectItem value="Oncology">Oncology</SelectItem>
+                      <SelectItem value="Dermatology">Dermatology</SelectItem>
+                      <SelectItem value="Psychiatry">Psychiatry</SelectItem>
+                      <SelectItem value="Emergency Medicine">Emergency Medicine</SelectItem>
+                      <SelectItem value="Radiology">Radiology</SelectItem>
+                      <SelectItem value="General Medicine">General Medicine</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="required">Date</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} data-testid="input-date" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="time"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="required">Time</FormLabel>
+                    <FormControl>
+                      <Input type="time" {...field} data-testid="input-time" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
-          </div>
 
-          {availableProviders.length === 0 && formData.date && formData.time && allProviders.length > 0 && (
-            <div className="bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded-lg p-3 text-sm text-yellow-800 dark:text-yellow-200">
-              ⚠️ No providers are available at the selected date and time. Please choose a different time.
+            {availableProviders.length === 0 && formData.date && formData.time && allProviders.length > 0 && (
+              <div className="bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded-lg p-3 text-sm text-yellow-800 dark:text-yellow-200">
+                ⚠️ No providers are available at the selected date and time. Please choose a different time.
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="duration"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Duration (minutes)</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value} data-testid="select-duration">
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select duration..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="15">15 minutes</SelectItem>
+                        <SelectItem value="30">30 minutes</SelectItem>
+                        <SelectItem value="45">45 minutes</SelectItem>
+                        <SelectItem value="60">1 hour</SelectItem>
+                        <SelectItem value="90">1.5 hours</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Type</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value} data-testid="select-type">
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select type..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="consultation">Consultation</SelectItem>
+                        <SelectItem value="follow-up">Follow-up</SelectItem>
+                        <SelectItem value="checkup">Check-up</SelectItem>
+                        <SelectItem value="procedure">Procedure</SelectItem>
+                        <SelectItem value="emergency">Emergency</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-          )}
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Duration (minutes)</label>
-              <select 
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
-                value={formData.duration}
-                onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))}
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="required">Title</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Appointment title..." data-testid="input-title" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      {...field} 
+                      placeholder="Additional notes..." 
+                      className="h-20" 
+                      data-testid="textarea-description" 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Location</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Room number or location..." data-testid="input-location" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="isVirtual"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormControl>
+                    <Checkbox 
+                      checked={field.value} 
+                      onCheckedChange={field.onChange}
+                      data-testid="checkbox-virtual"
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Virtual appointment</FormLabel>
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            <div className="flex gap-2 pt-4">
+              <Button 
+                type="submit"
+                disabled={createAppointmentMutation.isPending}
+                data-testid="button-submit"
               >
-                <option value="15">15 minutes</option>
-                <option value="30">30 minutes</option>
-                <option value="45">45 minutes</option>
-                <option value="60">1 hour</option>
-                <option value="90">1.5 hours</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Type</label>
-              <select 
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
-                value={formData.type}
-                onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
+                {createAppointmentMutation.isPending ? "Scheduling..." : "Schedule Appointment"}
+              </Button>
+              <Button 
+                type="button"
+                variant="outline" 
+                onClick={onClose}
+                data-testid="button-cancel"
               >
-                <option value="consultation">Consultation</option>
-                <option value="follow-up">Follow-up</option>
-                <option value="checkup">Check-up</option>
-                <option value="procedure">Procedure</option>
-                <option value="emergency">Emergency</option>
-              </select>
+                Cancel
+              </Button>
             </div>
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Title</label>
-            <input 
-              type="text"
-              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
-              placeholder="Appointment title..."
-              value={formData.title}
-              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Description</label>
-            <textarea 
-              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white h-20"
-              placeholder="Additional notes..."
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-            />
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <input 
-              type="checkbox"
-              id="isVirtual"
-              checked={formData.isVirtual}
-              onChange={(e) => setFormData(prev => ({ ...prev, isVirtual: e.target.checked }))}
-              className="rounded"
-            />
-            <label htmlFor="isVirtual" className="text-sm font-medium text-gray-700 dark:text-white">
-              Virtual appointment
-            </label>
-          </div>
-
-          <div className="flex gap-2 pt-4">
-            <Button 
-              onClick={createAppointment}
-              disabled={createAppointmentMutation.isPending}
-            >
-              {createAppointmentMutation.isPending ? "Scheduling..." : "Schedule Appointment"}
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={onClose}
-            >
-              Cancel
-            </Button>
-          </div>
-        </div>
+          </form>
+        </Form>
       </div>
     </div>
   );

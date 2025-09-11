@@ -18,40 +18,49 @@ import { useToast } from "@/hooks/use-toast";
 import { Brain, Save, X } from "lucide-react";
 
 const patientSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  dateOfBirth: z.string().min(1, "Date of birth is required"),
-  email: z.string().email().optional().or(z.literal("")),
-  phone: z.string().optional(),
-  nhsNumber: z.string().optional(),
+  firstName: z.string().trim().min(1, "First name is required"),
+  lastName: z.string().trim().min(1, "Last name is required"),
+  dateOfBirth: z.string().trim().min(1, "Date of birth is required").refine(
+    (val) => !isNaN(Date.parse(val)),
+    { message: "Please enter a valid date" }
+  ),
+  email: z.string().trim().email("Please enter a valid email address").optional().or(z.literal("")),
+  phone: z.string().trim().min(1, "Phone number is required").regex(
+    /^[\+]?[0-9\s\-\(\)]{10,}$/,
+    "Please enter a valid phone number"
+  ),
+  nhsNumber: z.string().trim().optional(),
   address: z.object({
-    street: z.string().optional(),
-    city: z.string().optional(),
-    state: z.string().optional(),
-    postcode: z.string().optional(),
-    country: z.string().optional()
-  }).optional(),
+    street: z.string().trim().min(1, "Street address is required"),
+    city: z.string().trim().min(1, "City is required"),
+    state: z.string().trim().optional(),
+    postcode: z.string().trim().min(1, "Postcode is required"),
+    country: z.string().trim().min(1, "Country is required")
+  }),
   insuranceInfo: z.object({
-    provider: z.string().optional(),
-    policyNumber: z.string().optional(),
-    groupNumber: z.string().optional(),
-    memberNumber: z.string().optional(),
-    planType: z.string().optional(),
-    effectiveDate: z.string().optional(),
-    expirationDate: z.string().optional(),
-    copay: z.number().optional(),
-    deductible: z.number().optional(),
+    provider: z.string().trim().optional(),
+    policyNumber: z.string().trim().optional(),
+    groupNumber: z.string().trim().optional(),
+    memberNumber: z.string().trim().optional(),
+    planType: z.string().trim().optional(),
+    effectiveDate: z.string().trim().optional(),
+    expirationDate: z.string().trim().optional(),
+    copay: z.coerce.number({ invalid_type_error: "Must be a number" }).min(0, "Cannot be negative").optional(),
+    deductible: z.coerce.number({ invalid_type_error: "Must be a number" }).min(0, "Cannot be negative").optional(),
     isActive: z.boolean().optional()
   }).optional(),
   emergencyContact: z.object({
-    name: z.string().optional(),
-    relationship: z.string().optional(),
-    phone: z.string().optional()
-  }).optional(),
+    name: z.string().trim().min(1, "Emergency contact name is required"),
+    relationship: z.string().trim().min(1, "Relationship is required"),
+    phone: z.string().trim().min(1, "Emergency contact phone is required").regex(
+      /^[\+]?[0-9\s\-\(\)]{10,}$/,
+      "Please enter a valid phone number"
+    )
+  }),
   medicalHistory: z.object({
-    allergies: z.string().optional(),
-    chronicConditions: z.string().optional(),
-    medications: z.string().optional()
+    allergies: z.string().trim().optional(),
+    chronicConditions: z.string().trim().optional(),
+    medications: z.string().trim().optional()
   }).optional()
 });
 
