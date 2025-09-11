@@ -325,7 +325,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
   const musclePercentageCoordinates = {
     0: {
       frontalis: { xPct: 0.49, yPct: 0.08 },              // FRONTALIS (FOREHEAD) - top center
-      temporalis: { xPct: 0.18, yPct: 0.25 },            // TEMPORALIS - left temple region  
+      temporalis: { xPct: 0.13, yPct: 0.17 },            // TEMPORALIS - left temple region  
       corrugator_supercilii: { xPct: 0.34, yPct: 0.17 }, // CORRUGATOR SUPERCILII - left brow
       procerus: { xPct: 0.54, yPct: 0.30 },              // PROCERUS - center bridge of nose
       orbicularis_oculi: { xPct: 0.45, yPct: 0.28 },     // ORBICULARIS OCULI - eye area
@@ -342,7 +342,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
     },
     1: {
       frontalis: { xPct: 0.49, yPct: 0.08 },              // FRONTALIS (FOREHEAD) - top center
-      temporalis: { xPct: 0.18, yPct: 0.25 },            // TEMPORALIS - left temple region
+      temporalis: { xPct: 0.13, yPct: 0.17 },            // TEMPORALIS - left temple region
       corrugator_supercilii: { xPct: 0.34, yPct: 0.17 }, // CORRUGATOR SUPERCILII - left brow
       procerus: { xPct: 0.54, yPct: 0.30 },              // PROCERUS - center bridge of nose
       orbicularis_oculi: { xPct: 0.45, yPct: 0.28 },     // ORBICULARIS OCULI - eye area
