@@ -21,6 +21,23 @@ export interface TenantRequest extends Request {
 
 export async function tenantMiddleware(req: TenantRequest, res: Response, next: NextFunction) {
   try {
+    // Skip tenant middleware for static assets and development files to prevent DB calls
+    const skipPaths = [
+      '/assets', '/@vite', '/src', '/node_modules', '/__vite_hmr',
+      '/favicon.ico', '/robots.txt', '/sitemap.xml', '/.vite',
+      '/public', '/client/public'
+    ];
+    
+    if (skipPaths.some(path => req.path.startsWith(path)) || 
+        req.path.includes('.') && !req.path.startsWith('/api')) {
+      return next();
+    }
+    
+    // Only run tenant middleware for API routes
+    if (!req.path.startsWith('/api')) {
+      return next();
+    }
+
     // ALWAYS use demo organization for production deployment cache fix
     let subdomain = "demo";
     
@@ -49,6 +66,15 @@ export async function tenantMiddleware(req: TenantRequest, res: Response, next: 
         region: "UK",
         brandName: "Cura",
         settings: {},
+        features: {
+          maxUsers: 50,
+          maxPatients: 500,
+          aiEnabled: true,
+          telemedicineEnabled: true,
+          billingEnabled: true,
+          analyticsEnabled: true
+        },
+        accessLevel: "full",
         subscriptionStatus: "active",
         createdAt: new Date(),
         updatedAt: new Date()
@@ -56,7 +82,11 @@ export async function tenantMiddleware(req: TenantRequest, res: Response, next: 
       console.log("FORCE CREATED demo organization");
     }
 
-    // Check subscription status
+    // Check subscription status (ensure organization exists)
+    if (!organization) {
+      return res.status(500).json({ error: "Failed to initialize organization" });
+    }
+    
     const subscription = await storage.getSubscription(organization.id);
     if (subscription && !["trial", "active"].includes(subscription.status)) {
       return res.status(403).json({ error: "Subscription inactive" });

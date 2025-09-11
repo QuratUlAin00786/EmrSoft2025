@@ -25,6 +25,43 @@ import multer from "multer";
 // In-memory storage for voice notes - persistent across server restarts
 let voiceNotes: any[] = [];
 
+// Enhanced error handling helper to distinguish different error types
+function handleRouteError(error: any, operation: string, res: express.Response) {
+  // Handle Zod validation errors (return 400)
+  if (error?.name === 'ZodError') {
+    console.error(`[VALIDATION_ERROR] ${operation}:`, error.errors);
+    return res.status(400).json({ 
+      error: "Validation failed", 
+      details: error.errors 
+    });
+  }
+  
+  // Handle database transient errors (return 503)
+  if (error?.code === 'SERVICE_UNAVAILABLE' && error?.statusCode === 503) {
+    console.error(`[DB_TRANSIENT_ERROR] ${operation}:`, error.message);
+    return res.status(503).json({ 
+      error: error.message || "Service temporarily unavailable. Please try again in a moment.",
+      retryAfter: 5 // Suggest retry after 5 seconds
+    });
+  }
+  
+  // Handle other database connection errors that might not be caught by retry logic
+  if (error?.code === '57P01' || error?.code === 'ECONNRESET' || error?.code === 'ETIMEDOUT' || 
+      error?.message?.includes('terminating connection')) {
+    console.error(`[DB_CONNECTION_ERROR] ${operation}:`, error.message);
+    return res.status(503).json({ 
+      error: "Database connection issue. Please try again in a moment.",
+      retryAfter: 3
+    });
+  }
+  
+  // Handle generic errors (return 500)
+  console.error(`[ERROR] ${operation}:`, error);
+  return res.status(500).json({ 
+    error: `Failed to ${operation.toLowerCase()}` 
+  });
+}
+
 // Configure multer for file uploads
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -164,6 +201,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             name: 'Demo Healthcare Clinic',
             subdomain: 'demo',
             brandName: 'Demo Healthcare Clinic',
+            contactEmail: 'admin@demo.com',
+            contactPhone: '+44 123 456 7890',
+            address: '123 Demo Street',
+            city: 'London',
+            country: 'UK',
             settings: {
               theme: { primaryColor: '#4A7DFF' },
               compliance: { gdprEnabled: true, dataResidency: 'UK' },
@@ -899,6 +941,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         providerId: req.user!.id, // Use the authenticated user as the provider
         type: recordData.type,
         title: recordData.title,
+        recordType: recordData.type, // Add required recordType field
+        content: recordData.notes, // Add required content field
         notes: recordData.notes,
         diagnosis: recordData.diagnosis,
         treatment: recordData.treatment,
@@ -1152,6 +1196,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         organizationId: req.tenant!.id,
         patientId,
         providerId: req.user!.id,
+        recordType: recordData.type, // Add required recordType
+        content: recordData.notes || recordData.title, // Add required content
         prescription: recordData.prescription || {},
         attachments: [],
         aiSuggestions: {}
@@ -5580,7 +5626,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const result = await storage.createLabResult({
         ...labResultData,
-        organizationId: req.tenant!.id
+        organizationId: req.tenant!.id,
+        testId: `LAB-${Date.now()}`, // Add required testId
+        testType: labResultData.category, // Add required testType
+        orderedAt: new Date() // Add required orderedAt
       });
 
       res.status(201).json(result);
@@ -5615,7 +5664,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const claim = await storage.createClaim({
         ...claimData,
-        organizationId: req.tenant!.id
+        organizationId: req.tenant!.id,
+        serviceDate: new Date(), // Add required serviceDate
+        submissionDate: claimData.submissionDate ? new Date(claimData.submissionDate) : new Date() // Convert to Date
       });
 
       res.status(201).json(claim);
@@ -5647,8 +5698,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }).parse(req.body);
 
       const record = await storage.createRevenueRecord({
-        ...revenueData,
-        organizationId: req.tenant!.id
+        organizationId: req.tenant!.id,
+        month: revenueData.date ? new Date(revenueData.date).toISOString().slice(0, 7) : new Date().toISOString().slice(0, 7), // YYYY-MM format
+        revenue: revenueData.amount.toString(),
+        expenses: "0",
+        profit: revenueData.amount.toString(),
+        collections: revenueData.amount.toString(),
+        target: "0"
       });
 
       res.status(201).json(record);

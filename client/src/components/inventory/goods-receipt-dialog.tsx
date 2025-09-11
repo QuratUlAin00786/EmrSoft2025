@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -8,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2 } from "lucide-react";
 
@@ -34,27 +38,57 @@ interface ReceiptItem {
   manufacturingDate: string;
 }
 
+// Validation schema for goods receipt form
+const goodsReceiptSchema = z.object({
+  supplierId: z.number().min(1, "Supplier is required"),
+  deliveryDate: z.string().min(1, "Delivery date is required"),
+  receivedBy: z.string().min(1, "Received by field is required"),
+  notes: z.string().optional(),
+  invoiceNumber: z.string().optional(),
+});
+
+// Validation schema for adding new items
+const addItemSchema = z.object({
+  itemId: z.string().min(1, "Item selection is required"),
+  quantityReceived: z.number().min(1, "Quantity must be at least 1"),
+  unitPrice: z.string().min(1, "Unit price is required").regex(/^\d+(\.\d{1,2})?$/, "Invalid price format"),
+  batchNumber: z.string().min(1, "Batch number is required"),
+  expiryDate: z.string().optional(),
+  manufacturingDate: z.string().optional(),
+});
+
+type GoodsReceiptFormData = z.infer<typeof goodsReceiptSchema>;
+type AddItemFormData = z.infer<typeof addItemSchema>;
+
 export default function GoodsReceiptDialog({ open, onOpenChange, items }: GoodsReceiptDialogProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  const [formData, setFormData] = useState({
-    supplierId: 1,
-    deliveryDate: new Date().toISOString().split('T')[0],
-    receivedBy: "",
-    notes: "",
-    invoiceNumber: "",
-    totalAmount: "0.00"
+  const [receiptItems, setReceiptItems] = useState<ReceiptItem[]>([]);
+  
+  // Main form for receipt details
+  const form = useForm<GoodsReceiptFormData>({
+    resolver: zodResolver(goodsReceiptSchema),
+    defaultValues: {
+      supplierId: 1,
+      deliveryDate: new Date().toISOString().split('T')[0],
+      receivedBy: "",
+      notes: "",
+      invoiceNumber: "",
+    },
   });
   
-  const [receiptItems, setReceiptItems] = useState<ReceiptItem[]>([]);
-  const [newItem, setNewItem] = useState({
-    itemId: "",
-    quantityReceived: 1,
-    unitPrice: "",
-    batchNumber: "",
-    expiryDate: "",
-    manufacturingDate: ""
+  // Form for adding new items
+  const addItemForm = useForm<AddItemFormData>({
+    resolver: zodResolver(addItemSchema),
+    defaultValues: {
+      itemId: "",
+      quantityReceived: 1,
+      unitPrice: "",
+      batchNumber: "",
+      expiryDate: "",
+      manufacturingDate: ""
+    },
   });
 
   const createReceiptMutation = useMutation({
@@ -81,57 +115,27 @@ export default function GoodsReceiptDialog({ open, onOpenChange, items }: GoodsR
   });
 
   const resetForm = () => {
-    setFormData({
-      supplierId: 1,
-      deliveryDate: new Date().toISOString().split('T')[0],
-      receivedBy: "",
-      notes: "",
-      invoiceNumber: "",
-      totalAmount: "0.00"
-    });
+    form.reset();
+    addItemForm.reset();
     setReceiptItems([]);
-    setNewItem({
-      itemId: "",
-      quantityReceived: 1,
-      unitPrice: "",
-      batchNumber: "",
-      expiryDate: "",
-      manufacturingDate: ""
-    });
   };
 
-  const addItem = () => {
-    if (!newItem.itemId || !newItem.unitPrice || !newItem.batchNumber) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const selectedItem = items.find(item => item.id === parseInt(newItem.itemId));
+  const addItem = (data: AddItemFormData) => {
+    const selectedItem = items.find(item => item.id === parseInt(data.itemId));
     if (!selectedItem) return;
 
     const receiptItem: ReceiptItem = {
-      itemId: parseInt(newItem.itemId),
+      itemId: parseInt(data.itemId),
       itemName: selectedItem.name,
-      quantityReceived: newItem.quantityReceived,
-      unitPrice: newItem.unitPrice,
-      batchNumber: newItem.batchNumber,
-      expiryDate: newItem.expiryDate,
-      manufacturingDate: newItem.manufacturingDate
+      quantityReceived: data.quantityReceived,
+      unitPrice: data.unitPrice,
+      batchNumber: data.batchNumber,
+      expiryDate: data.expiryDate || "",
+      manufacturingDate: data.manufacturingDate || ""
     };
 
     setReceiptItems([...receiptItems, receiptItem]);
-    setNewItem({
-      itemId: "",
-      quantityReceived: 1,
-      unitPrice: "",
-      batchNumber: "",
-      expiryDate: "",
-      manufacturingDate: ""
-    });
+    addItemForm.reset();
   };
 
   const removeItem = (index: number) => {
@@ -142,21 +146,11 @@ export default function GoodsReceiptDialog({ open, onOpenChange, items }: GoodsR
     return receiptItems.reduce((sum, item) => sum + (item.quantityReceived * parseFloat(item.unitPrice)), 0).toFixed(2);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = (data: GoodsReceiptFormData) => {
     if (receiptItems.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please add at least one item",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!formData.receivedBy) {
-      toast({
-        title: "Error",
-        description: "Please specify who received the goods",
-        variant: "destructive",
+      form.setError("root", {
+        type: "manual",
+        message: "Please add at least one item to the receipt"
       });
       return;
     }
@@ -164,7 +158,7 @@ export default function GoodsReceiptDialog({ open, onOpenChange, items }: GoodsR
     const totalAmount = calculateTotalAmount();
 
     createReceiptMutation.mutate({
-      ...formData,
+      ...data,
       totalAmount,
       items: receiptItems
     });
@@ -178,120 +172,219 @@ export default function GoodsReceiptDialog({ open, onOpenChange, items }: GoodsR
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Basic Information */}
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="supplier">Supplier</Label>
-              <Select value={formData.supplierId.toString()} onValueChange={(value) => setFormData({...formData, supplierId: parseInt(value)})}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select supplier" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">Halo Pharmacy</SelectItem>
-                  <SelectItem value="2">MedSupply Co.</SelectItem>
-                  <SelectItem value="3">Healthcare Solutions</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="deliveryDate">Delivery Date</Label>
-              <Input
-                type="date"
-                value={formData.deliveryDate}
-                onChange={(e) => setFormData({...formData, deliveryDate: e.target.value})}
-              />
-            </div>
-            <div>
-              <Label htmlFor="receivedBy">Received By</Label>
-              <Input
-                value={formData.receivedBy}
-                onChange={(e) => setFormData({...formData, receivedBy: e.target.value})}
-                placeholder="Name of person who received"
-              />
-            </div>
-          </div>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+              {/* Basic Information */}
+              <div className="grid grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="supplierId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Supplier</FormLabel>
+                      <FormControl>
+                        <Select value={field.value.toString()} onValueChange={(value) => field.onChange(parseInt(value))}>
+                          <SelectTrigger data-testid="select-supplier">
+                            <SelectValue placeholder="Select supplier" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1">Halo Pharmacy</SelectItem>
+                            <SelectItem value="2">MedSupply Co.</SelectItem>
+                            <SelectItem value="3">Healthcare Solutions</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="deliveryDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Delivery Date</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="date"
+                          data-testid="input-delivery-date"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="receivedBy"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Received By</FormLabel>
+                      <FormControl>
+                        <Input
+                          data-testid="input-received-by"
+                          placeholder="Name of person who received"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="invoiceNumber">Invoice Number</Label>
-              <Input
-                value={formData.invoiceNumber}
-                onChange={(e) => setFormData({...formData, invoiceNumber: e.target.value})}
-                placeholder="Supplier invoice number"
-              />
-            </div>
-            <div>
-              <Label>Total Amount</Label>
-              <Input value={`£${calculateTotalAmount()}`} disabled />
-            </div>
-          </div>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="invoiceNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Invoice Number</FormLabel>
+                      <FormControl>
+                        <Input
+                          data-testid="input-invoice-number"
+                          placeholder="Supplier invoice number"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div>
+                  <Label>Total Amount</Label>
+                  <Input value={`£${calculateTotalAmount()}`} disabled />
+                </div>
+              </div>
 
-          {/* Add Items Section */}
-          <div className="border rounded-lg p-4">
-            <h3 className="font-medium mb-3">Add Received Items</h3>
-            <div className="grid grid-cols-7 gap-3 items-end">
-              <div>
-                <Label>Item</Label>
-                <Select value={newItem.itemId} onValueChange={(value) => setNewItem({...newItem, itemId: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select item" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {items.map(item => (
-                      <SelectItem key={item.id} value={item.id.toString()}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Quantity</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  value={newItem.quantityReceived}
-                  onChange={(e) => setNewItem({...newItem, quantityReceived: parseInt(e.target.value) || 1})}
-                />
-              </div>
-              <div>
-                <Label>Unit Price</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={newItem.unitPrice}
-                  onChange={(e) => setNewItem({...newItem, unitPrice: e.target.value})}
-                />
-              </div>
-              <div>
-                <Label>Batch Number</Label>
-                <Input
-                  value={newItem.batchNumber}
-                  onChange={(e) => setNewItem({...newItem, batchNumber: e.target.value})}
-                  placeholder="Batch #"
-                />
-              </div>
-              <div>
-                <Label>Expiry Date</Label>
-                <Input
-                  type="date"
-                  value={newItem.expiryDate}
-                  onChange={(e) => setNewItem({...newItem, expiryDate: e.target.value})}
-                />
-              </div>
-              <div>
-                <Label>Mfg Date</Label>
-                <Input
-                  type="date"
-                  value={newItem.manufacturingDate}
-                  onChange={(e) => setNewItem({...newItem, manufacturingDate: e.target.value})}
-                />
-              </div>
-              <Button onClick={addItem}>
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+              {/* Add Items Section */}
+              <Form {...addItemForm}>
+                <div className="border rounded-lg p-4">
+                  <h3 className="font-medium mb-3">Add Received Items</h3>
+                  <div className="grid grid-cols-7 gap-3 items-end">
+                    <FormField
+                      control={addItemForm.control}
+                      name="itemId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Item</FormLabel>
+                          <FormControl>
+                            <Select value={field.value} onValueChange={field.onChange}>
+                              <SelectTrigger data-testid="select-item">
+                                <SelectValue placeholder="Select item" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {items.map(item => (
+                                  <SelectItem key={item.id} value={item.id.toString()}>
+                                    {item.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={addItemForm.control}
+                      name="quantityReceived"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Quantity</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="1"
+                              data-testid="input-quantity"
+                              {...field}
+                              onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={addItemForm.control}
+                      name="unitPrice"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Unit Price</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              data-testid="input-unit-price"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={addItemForm.control}
+                      name="batchNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Batch Number</FormLabel>
+                          <FormControl>
+                            <Input
+                              data-testid="input-batch-number"
+                              placeholder="Batch #"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={addItemForm.control}
+                      name="expiryDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Expiry Date</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="date"
+                              data-testid="input-expiry-date"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={addItemForm.control}
+                      name="manufacturingDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Mfg Date</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="date"
+                              data-testid="input-manufacturing-date"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button 
+                      type="button" 
+                      onClick={addItemForm.handleSubmit(addItem)}
+                      data-testid="button-add-item"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </Form>
 
           {/* Items Table */}
           {receiptItems.length > 0 && (
@@ -330,25 +423,52 @@ export default function GoodsReceiptDialog({ open, onOpenChange, items }: GoodsR
             </div>
           )}
 
-          {/* Notes */}
-          <div>
-            <Label>Notes</Label>
-            <Textarea
-              value={formData.notes}
-              onChange={(e) => setFormData({...formData, notes: e.target.value})}
-              placeholder="Additional notes about the delivery"
-            />
-          </div>
+              {/* Notes */}
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        data-testid="textarea-notes"
+                        placeholder="Additional notes about the delivery"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          {/* Actions */}
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSubmit} disabled={createReceiptMutation.isPending}>
-              {createReceiptMutation.isPending ? "Creating..." : "Create Goods Receipt"}
-            </Button>
-          </div>
+              {/* Form-level error message */}
+              {form.formState.errors.root && (
+                <div className="text-red-600 text-sm" data-testid="error-form-root">
+                  {form.formState.errors.root.message}
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex justify-end space-x-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => onOpenChange(false)}
+                  data-testid="button-cancel"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={createReceiptMutation.isPending}
+                  data-testid="button-submit"
+                >
+                  {createReceiptMutation.isPending ? "Creating..." : "Create Goods Receipt"}
+                </Button>
+              </div>
+            </form>
+          </Form>
         </div>
       </DialogContent>
     </Dialog>

@@ -1,11 +1,15 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 
 interface InventoryItem {
@@ -21,14 +25,30 @@ interface PurchaseOrderDialogProps {
   items: InventoryItem[];
 }
 
+// Validation schema for adding items to purchase order
+const addItemSchema = z.object({
+  itemId: z.string().min(1, "Item selection is required"),
+  quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
+  unitPrice: z.string().min(1, "Unit price is required").regex(/^\d+(\.\d{1,2})?$/, "Invalid price format"),
+});
+
+type AddItemFormData = z.infer<typeof addItemSchema>;
+
 export default function PurchaseOrderDialogSimple({ open, onOpenChange, items }: PurchaseOrderDialogProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  const [selectedItemId, setSelectedItemId] = useState("");
-  const [quantity, setQuantity] = useState(1);
-  const [unitPrice, setUnitPrice] = useState("");
   const [poItems, setPOItems] = useState<any[]>([]);
+  
+  // Form for adding items
+  const form = useForm<AddItemFormData>({
+    resolver: zodResolver(addItemSchema),
+    defaultValues: {
+      itemId: "",
+      quantity: 1,
+      unitPrice: "",
+    },
+  });
 
   const createPOMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -53,62 +73,38 @@ export default function PurchaseOrderDialogSimple({ open, onOpenChange, items }:
   });
 
   const resetForm = () => {
-    setSelectedItemId("");
-    setQuantity(1);
-    setUnitPrice("");
+    form.reset();
     setPOItems([]);
   };
 
-  const handleAddItem = () => {
-    console.log("SIMPLE: Add item button clicked!");
-    console.log("SIMPLE: selectedItemId:", selectedItemId);
-    console.log("SIMPLE: unitPrice:", unitPrice);
-    console.log("SIMPLE: quantity:", quantity);
-    
-    if (!selectedItemId || !unitPrice) {
-      toast({
-        title: "Error",
-        description: "Please select an item and enter unit price",
-        variant: "destructive",
+  const handleAddItem = (data: AddItemFormData) => {
+    const selectedItem = items.find(item => item.id === parseInt(data.itemId));
+    if (!selectedItem) {
+      form.setError("itemId", {
+        type: "manual",
+        message: "Selected item not found"
       });
       return;
     }
 
-    const selectedItem = items.find(item => item.id === parseInt(selectedItemId));
-    if (!selectedItem) {
-      console.log("SIMPLE: Selected item not found");
-      return;
-    }
-
-    const totalPrice = (quantity * parseFloat(unitPrice)).toFixed(2);
+    const totalPrice = (data.quantity * parseFloat(data.unitPrice)).toFixed(2);
     const newItem = {
-      itemId: parseInt(selectedItemId),
+      itemId: parseInt(data.itemId),
       itemName: selectedItem.name,
-      quantity,
-      unitPrice,
+      quantity: data.quantity,
+      unitPrice: data.unitPrice,
       totalPrice
     };
 
-    console.log("SIMPLE: Adding item:", newItem);
-    const updatedItems = [...poItems, newItem];
-    setPOItems(updatedItems);
-    console.log("SIMPLE: Updated poItems:", updatedItems);
-
-    // Reset form
-    setSelectedItemId("");
-    setQuantity(1);
-    setUnitPrice("");
+    setPOItems([...poItems, newItem]);
+    form.reset();
   };
 
   const handleSubmit = () => {
-    console.log("SIMPLE: Submit clicked, items count:", poItems.length);
-    console.log("SIMPLE: Items:", poItems);
-    
     if (poItems.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please add at least one item",
-        variant: "destructive",
+      form.setError("root", {
+        type: "manual",
+        message: "Please add at least one item to the purchase order"
       });
       return;
     }
@@ -138,48 +134,90 @@ export default function PurchaseOrderDialogSimple({ open, onOpenChange, items }:
           <div className="border rounded-lg p-4">
             <h3 className="font-medium mb-3">Add Item</h3>
             
-            <div className="grid grid-cols-4 gap-3 items-end">
-              <div>
-                <Label>Item</Label>
-                <Select value={selectedItemId} onValueChange={setSelectedItemId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select item" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {items.map(item => (
-                      <SelectItem key={item.id} value={item.id.toString()}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label>Quantity</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  value={quantity}
-                  onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                />
-              </div>
-              
-              <div>
-                <Label>Unit Price</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={unitPrice}
-                  onChange={(e) => setUnitPrice(e.target.value)}
-                  placeholder="0.00"
-                />
-              </div>
-              
-              <Button onClick={handleAddItem} type="button">
-                Add Item
-              </Button>
-            </div>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleAddItem)}>
+                <div className="grid grid-cols-4 gap-3 items-end">
+                  <FormField
+                    control={form.control}
+                    name="itemId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Item</FormLabel>
+                        <FormControl>
+                          <Select value={field.value} onValueChange={field.onChange}>
+                            <SelectTrigger data-testid="select-item">
+                              <SelectValue placeholder="Select item" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {items.map(item => (
+                                <SelectItem key={item.id} value={item.id.toString()}>
+                                  {item.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="quantity"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Quantity</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="1"
+                            data-testid="input-quantity"
+                            {...field}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="unitPrice"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Unit Price</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            data-testid="input-unit-price"
+                            placeholder="0.00"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <Button 
+                    type="submit" 
+                    data-testid="button-add-item"
+                  >
+                    Add Item
+                  </Button>
+                </div>
+                
+                {/* Form-level error for add item */}
+                {form.formState.errors.root && (
+                  <div className="text-red-600 text-sm mt-2" data-testid="error-add-item">
+                    {form.formState.errors.root.message}
+                  </div>
+                )}
+              </form>
+            </Form>
           </div>
 
           {/* Items List */}

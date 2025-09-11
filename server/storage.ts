@@ -42,6 +42,137 @@ import {
 import { db } from "./db";
 import { eq, and, desc, asc, count, not, sql, gte, lt, lte, isNotNull, or, ilike, ne } from "drizzle-orm";
 
+// Subscription Cache Implementation
+interface SubscriptionCacheEntry {
+  data: Subscription;
+  expiresAt: number;
+  staleUntil: number;
+}
+
+interface RefreshPromise {
+  promise: Promise<Subscription | undefined>;
+  timestamp: number;
+}
+
+class SubscriptionCache {
+  private cache = new Map<number, SubscriptionCacheEntry>();
+  private refreshPromises = new Map<number, RefreshPromise>();
+  private readonly TTL = 60 * 1000; // 60s fresh
+  private readonly STALE_GRACE = 5 * 60 * 1000; // 5m stale-while-revalidate
+
+  async get(organizationId: number, refreshFn: () => Promise<Subscription | undefined>): Promise<Subscription | undefined> {
+    const now = Date.now();
+    const cached = this.cache.get(organizationId);
+    
+    // Fresh cache hit
+    if (cached && now < cached.expiresAt) {
+      return cached.data;
+    }
+    
+    // Stale cache hit - serve stale while refreshing in background
+    if (cached && now < cached.staleUntil) {
+      // Check if refresh is already in progress
+      const existingRefresh = this.refreshPromises.get(organizationId);
+      if (!existingRefresh || now - existingRefresh.timestamp > 30000) { // 30s timeout for refresh
+        // Start background refresh
+        const refreshPromise = this.performRefresh(organizationId, refreshFn);
+        this.refreshPromises.set(organizationId, {
+          promise: refreshPromise,
+          timestamp: now
+        });
+      }
+      return cached.data;
+    }
+    
+    // Cache miss or expired - fetch fresh
+    return await this.performRefresh(organizationId, refreshFn);
+  }
+
+  private async performRefresh(organizationId: number, refreshFn: () => Promise<Subscription | undefined>): Promise<Subscription | undefined> {
+    try {
+      const data = await refreshFn();
+      
+      if (data) {
+        const now = Date.now();
+        this.cache.set(organizationId, {
+          data,
+          expiresAt: now + this.TTL,
+          staleUntil: now + this.TTL + this.STALE_GRACE
+        });
+      }
+      
+      // Clean up refresh promise
+      this.refreshPromises.delete(organizationId);
+      return data;
+    } catch (error) {
+      this.refreshPromises.delete(organizationId);
+      throw error;
+    }
+  }
+
+  invalidate(organizationId: number) {
+    this.cache.delete(organizationId);
+    this.refreshPromises.delete(organizationId);
+  }
+  
+  // Cleanup old entries (called periodically)
+  cleanup() {
+    const now = Date.now();
+    for (const [orgId, entry] of this.cache.entries()) {
+      if (now > entry.staleUntil) {
+        this.cache.delete(orgId);
+      }
+    }
+  }
+}
+
+// Global cache instance
+const subscriptionCache = new SubscriptionCache();
+
+// Retry logic with exponential backoff for DB connection errors
+async function retryDatabaseOperation<T>(
+  operation: () => Promise<T>, 
+  operationName = 'database operation'
+): Promise<T> {
+  const maxRetries = 2;
+  const baseDelay = 100; // Start with 100ms
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error: any) {
+      const isTransientError = 
+        error?.code === '57P01' || // Connection terminated
+        error?.code === 'ECONNRESET' || 
+        error?.code === 'ETIMEDOUT' ||
+        error?.message?.includes('terminating connection');
+      
+      if (isTransientError && attempt < maxRetries) {
+        const jitter = Math.random() * 0.1; // 10% jitter
+        const delay = baseDelay * Math.pow(3, attempt) * (1 + jitter);
+        console.warn(`[RETRY] ${operationName} failed (attempt ${attempt + 1}/${maxRetries + 1}), retrying in ${delay.toFixed(0)}ms:`, error?.message);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      
+      // Last attempt or non-transient error
+      if (isTransientError) {
+        console.error(`[DB_TRANSIENT_ERROR] ${operationName} failed after ${maxRetries + 1} attempts:`, error?.message);
+        // Return a service unavailable error that can be distinguished from validation errors
+        const serviceError = new Error(`Service temporarily unavailable. Please try again in a moment.`);
+        (serviceError as any).code = 'SERVICE_UNAVAILABLE';
+        (serviceError as any).statusCode = 503;
+        throw serviceError;
+      } else {
+        console.error(`[DB_ERROR] ${operationName} failed with non-transient error:`, error);
+        throw error;
+      }
+    }
+  }
+  
+  throw new Error('Unexpected retry logic error');
+}
+
 export interface IStorage {
   // Organizations
   getOrganization(id: number): Promise<Organization | undefined>;
@@ -435,9 +566,9 @@ export class DatabaseStorage implements IStorage {
     const userData = {
       ...user,
       ...(user.permissions && typeof user.permissions === 'object' ? 
-        { permissions: JSON.parse(JSON.stringify(user.permissions)) } : {})
+        { permissions: user.permissions } : {})
     };
-    const [created] = await db.insert(users).values([userData]).returning();
+    const [created] = await db.insert(users).values(userData as any).returning();
     return created;
   }
 
@@ -650,14 +781,16 @@ export class DatabaseStorage implements IStorage {
   async createMedicalRecord(record: InsertMedicalRecord): Promise<MedicalRecord> {
     const cleanRecord: any = { ...record };
     delete cleanRecord.data; // Remove complex nested type to avoid compilation errors
-    const [created] = await db.insert(medicalRecords).values([cleanRecord as any]).returning();
+    const [created] = await db.insert(medicalRecords).values(cleanRecord as any).returning();
     return created;
   }
 
   async updateMedicalRecord(id: number, organizationId: number, updates: Partial<InsertMedicalRecord>): Promise<MedicalRecord | undefined> {
+    const cleanUpdates = { ...updates };
+    delete (cleanUpdates as any).data; // Remove complex nested type
     const [updatedRecord] = await db
       .update(medicalRecords)
-      .set({ ...updates })
+      .set(cleanUpdates as any)
       .where(and(eq(medicalRecords.id, id), eq(medicalRecords.organizationId, organizationId)))
       .returning();
     return updatedRecord;
@@ -941,25 +1074,24 @@ export class DatabaseStorage implements IStorage {
 
   // Subscriptions
   async getSubscription(organizationId: number): Promise<Subscription | undefined> {
-    try {
-      const [subscription] = await db.select().from(subscriptions).where(eq(subscriptions.organizationId, organizationId));
-      if (!subscription) return undefined;
-      
-      // Transform data to match frontend type expectations
-      return {
-        ...subscription,
-        monthlyPrice: subscription.monthlyPrice ? String(subscription.monthlyPrice) : null,
-        features: subscription.features || {
-          aiInsights: true,
-          advancedReporting: true,
-          apiAccess: true,
-          whiteLabel: false
-        }
-      };
-    } catch (error) {
-      console.error('[STORAGE] Error fetching subscription for org', organizationId, ':', error);
-      return undefined;
-    }
+    return await subscriptionCache.get(organizationId, async () => {
+      return await retryDatabaseOperation(async () => {
+        const [subscription] = await db.select().from(subscriptions).where(eq(subscriptions.organizationId, organizationId));
+        if (!subscription) return undefined;
+        
+        // Transform data to match frontend type expectations
+        return {
+          ...subscription,
+          monthlyPrice: subscription.monthlyPrice ? String(subscription.monthlyPrice) : null,
+          features: subscription.features || {
+            aiInsights: true,
+            advancedReporting: true,
+            apiAccess: true,
+            whiteLabel: false
+          }
+        };
+      }, `getSubscription(organizationId=${organizationId})`);
+    });
   }
 
   async createSubscription(subscription: InsertSubscription): Promise<Subscription> {
@@ -983,6 +1115,10 @@ export class DatabaseStorage implements IStorage {
       .set(updateData as any)
       .where(eq(subscriptions.organizationId, organizationId))
       .returning();
+    
+    // Invalidate cache when subscription is updated
+    subscriptionCache.invalidate(organizationId);
+    
     return updated || undefined;
   }
 
@@ -1327,7 +1463,10 @@ export class DatabaseStorage implements IStorage {
       // AI insights severity distribution
       const insightsSeverity = aiInsightsList.reduce((acc, insight) => {
         const severity = insight.severity || 'medium';
-        acc[severity] = (acc[severity] || 0) + 1;
+        const severityLevels = { low: 0, medium: 0, high: 0, critical: 0 };
+        if (severity in severityLevels) {
+          acc[severity as keyof typeof severityLevels] = (acc[severity as keyof typeof severityLevels] || 0) + 1;
+        }
         return acc;
       }, { low: 0, medium: 0, high: 0, critical: 0 });
       
@@ -2781,7 +2920,7 @@ export class DatabaseStorage implements IStorage {
     console.log("Storage: Doctor ID being inserted:", prescription.doctorId);
     const [newPrescription] = await db
       .insert(prescriptions)
-      .values([prescription])
+      .values(prescription as any)
       .returning();
     return newPrescription;
   }
@@ -2819,7 +2958,7 @@ export class DatabaseStorage implements IStorage {
   async createLabResult(labResult: InsertLabResult): Promise<LabResult> {
     const [result] = await db
       .insert(labResults)
-      .values([labResult])
+      .values(labResult as any)
       .returning();
     
     return result;
@@ -3128,9 +3267,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createDocument(document: InsertDocument): Promise<Document> {
+    const cleanDocument = {
+      ...document,
+      metadata: typeof document.metadata === 'object' ? document.metadata : {}
+    };
     const [newDocument] = await db
       .insert(documents)
-      .values([document])
+      .values(cleanDocument as any)
       .returning();
     return newDocument;
   }
@@ -3178,24 +3321,28 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createMedicalImage(image: InsertMedicalImage): Promise<MedicalImage> {
+    const cleanImage = {
+      ...image,
+      metadata: typeof image.metadata === 'object' ? image.metadata : {},
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     const [newImage] = await db
       .insert(medicalImages)
-      .values([{
-        ...image,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }])
+      .values(cleanImage as any)
       .returning();
     return newImage;
   }
 
   async updateMedicalImage(id: number, organizationId: number, updates: Partial<InsertMedicalImage>): Promise<MedicalImage | undefined> {
+    const cleanUpdates = {
+      ...updates,
+      ...(updates.metadata && typeof updates.metadata === 'object' ? { metadata: updates.metadata } : {}),
+      updatedAt: new Date(),
+    };
     const [updatedImage] = await db
       .update(medicalImages)
-      .set({
-        ...updates,
-        updatedAt: new Date(),
-      })
+      .set(cleanUpdates as any)
       .where(and(eq(medicalImages.id, id), eq(medicalImages.organizationId, organizationId)))
       .returning();
     return updatedImage;
@@ -3271,7 +3418,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createClaim(claim: InsertClaim): Promise<Claim> {
-    const [result] = await db.insert(claims).values([claim]).returning();
+    const cleanClaim = {
+      ...claim,
+      procedures: Array.isArray(claim.procedures) ? claim.procedures : []
+    };
+    const [result] = await db.insert(claims).values(cleanClaim as any).returning();
     return result;
   }
 
@@ -3293,7 +3444,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createRevenueRecord(revenueRecord: InsertRevenueRecord): Promise<RevenueRecord> {
-    const [result] = await db.insert(revenueRecords).values([revenueRecord]).returning();
+    const [result] = await db.insert(revenueRecords).values(revenueRecord as any).returning();
     return result;
   }
 
@@ -3307,7 +3458,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createClinicalProcedure(procedure: InsertClinicalProcedure): Promise<ClinicalProcedure> {
-    const [result] = await db.insert(clinicalProcedures).values([procedure]).returning();
+    const cleanProcedure = {
+      ...procedure,
+      prerequisites: Array.isArray(procedure.prerequisites) ? procedure.prerequisites : [],
+      steps: Array.isArray(procedure.steps) ? procedure.steps : [],
+      complications: Array.isArray(procedure.complications) ? procedure.complications : []
+    };
+    const [result] = await db.insert(clinicalProcedures).values(cleanProcedure as any).returning();
     return result;
   }
 
@@ -3329,7 +3486,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createEmergencyProtocol(protocol: InsertEmergencyProtocol): Promise<EmergencyProtocol> {
-    const [result] = await db.insert(emergencyProtocols).values([protocol]).returning();
+    const cleanProtocol = {
+      ...protocol,
+      steps: Array.isArray(protocol.steps) ? protocol.steps : []
+    };
+    const [result] = await db.insert(emergencyProtocols).values(cleanProtocol as any).returning();
     return result;
   }
 
@@ -3407,7 +3568,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createStaffShift(shift: InsertStaffShift): Promise<StaffShift> {
-    const [result] = await db.insert(staffShifts).values([shift]).returning();
+    const [result] = await db.insert(staffShifts).values(shift as any).returning();
     return result;
   }
 
@@ -3427,7 +3588,11 @@ export class DatabaseStorage implements IStorage {
 
   // GDPR Compliance Methods
   async createGdprConsent(consent: InsertGdprConsent): Promise<GdprConsent> {
-    const [result] = await db.insert(gdprConsents).values([consent]).returning();
+    const cleanConsent = {
+      ...consent,
+      dataCategories: Array.isArray(consent.dataCategories) ? consent.dataCategories : []
+    };
+    const [result] = await db.insert(gdprConsents).values(cleanConsent as any).returning();
     return result;
   }
 
