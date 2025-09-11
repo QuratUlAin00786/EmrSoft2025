@@ -7834,6 +7834,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Goods Receipts
+  app.get("/api/inventory/goods-receipts", authMiddleware, requireRole(["admin", "doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const goodsReceipts = await inventoryService.getGoodsReceipts(req.tenant!.id);
+      res.json(goodsReceipts);
+    } catch (error) {
+      console.error("Error fetching goods receipts:", error);
+      res.status(500).json({ error: "Failed to fetch goods receipts" });
+    }
+  });
+
+  app.post("/api/inventory/goods-receipts", authMiddleware, requireRole(["admin", "doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const receiptData = z.object({
+        purchaseOrderId: z.number(),
+        receivedDate: z.string(),
+        items: z.array(z.object({
+          itemId: z.number(),
+          quantityReceived: z.number(),
+          batchNumber: z.string().optional(),
+          expiryDate: z.string().optional()
+        })),
+        notes: z.string().optional()
+      }).parse(req.body);
+
+      const receipt = await inventoryService.createGoodsReceipt({
+        ...receiptData,
+        organizationId: req.tenant!.id
+      });
+      res.status(201).json(receipt);
+    } catch (error) {
+      console.error("Error creating goods receipt:", error);
+      res.status(500).json({ error: "Failed to create goods receipt" });
+    }
+  });
+
+  // Batches  
+  app.get("/api/inventory/batches", authMiddleware, requireRole(["admin", "doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const batches = await inventoryService.getBatches(req.tenant!.id);
+      res.json(batches);
+    } catch (error) {
+      console.error("Error fetching batches:", error);
+      res.status(500).json({ error: "Failed to fetch batches" });
+    }
+  });
+
   // Chatbot API Routes
   // Get chatbot configuration for organization
   app.get("/api/chatbot/config", authMiddleware, async (req: TenantRequest, res) => {

@@ -644,6 +644,134 @@ Cura Healthcare Team
     // Generate a simple 12-digit barcode
     return Array.from({ length: 12 }, () => Math.floor(Math.random() * 10)).join('');
   }
+
+  // ====== GOODS RECEIPTS ======
+  
+  async getGoodsReceipts(organizationId: number) {
+    const receipts = await db
+      .select({
+        id: inventoryStockMovements.id,
+        receiptNumber: sql<string>`CONCAT('GR-', ${inventoryStockMovements.id})`,
+        purchaseOrderId: inventoryStockMovements.referenceId,
+        poNumber: sql<string>`COALESCE(po.po_number, 'N/A')`,
+        supplierName: sql<string>`COALESCE(s.name, 'Direct Receipt')`,
+        receivedDate: inventoryStockMovements.createdAt,
+        totalAmount: sql<string>`COALESCE(SUM(${inventoryStockMovements.quantity} * ${inventoryStockMovements.unitCost}), '0.00')`,
+        receivedBy: inventoryStockMovements.createdBy,
+        notes: inventoryStockMovements.notes,
+        itemsReceived: sql<any[]>`JSON_AGG(
+          JSON_BUILD_OBJECT(
+            'id', ${inventoryStockMovements.id},
+            'itemId', ${inventoryStockMovements.itemId},
+            'itemName', ${inventoryItems.name},
+            'quantityReceived', ${inventoryStockMovements.quantity},
+            'batchNumber', ${inventoryBatches.batchNumber},
+            'expiryDate', ${inventoryBatches.expiryDate}
+          )
+        )`
+      })
+      .from(inventoryStockMovements)
+      .leftJoin(inventoryItems, eq(inventoryStockMovements.itemId, inventoryItems.id))
+      .leftJoin(inventoryBatches, eq(inventoryStockMovements.batchId, inventoryBatches.id))
+      .leftJoin(inventoryPurchaseOrders, eq(inventoryStockMovements.referenceId, inventoryPurchaseOrders.id))
+      .leftJoin(inventorySuppliers, eq(inventoryPurchaseOrders.supplierId, inventorySuppliers.id))
+      .where(and(
+        eq(inventoryStockMovements.organizationId, organizationId),
+        eq(inventoryStockMovements.movementType, 'purchase')
+      ))
+      .groupBy(
+        inventoryStockMovements.id,
+        inventoryStockMovements.referenceId,
+        inventoryStockMovements.createdAt,
+        inventoryStockMovements.createdBy,
+        inventoryStockMovements.notes
+      )
+      .orderBy(desc(inventoryStockMovements.createdAt));
+
+    return receipts;
+  }
+
+  async createGoodsReceipt(receiptData: any) {
+    return await db.transaction(async (tx) => {
+      const movements = [];
+      
+      for (const item of receiptData.items) {
+        // Create stock movement for receipt
+        const [movement] = await tx
+          .insert(inventoryStockMovements)
+          .values({
+            organizationId: receiptData.organizationId,
+            itemId: item.itemId,
+            movementType: 'purchase',
+            quantity: item.quantityReceived,
+            previousStock: 0, // Will be updated
+            newStock: 0, // Will be updated
+            referenceType: 'purchase_order',
+            referenceId: receiptData.purchaseOrderId,
+            notes: receiptData.notes,
+            createdBy: 1, // TODO: Get from user context
+          })
+          .returning();
+
+        // Update item stock
+        await this.updateItemStock(
+          item.itemId,
+          receiptData.organizationId,
+          item.quantityReceived,
+          'purchase',
+          receiptData.notes,
+          1 // TODO: Get from user context
+        );
+
+        // Create batch if batch info provided
+        if (item.batchNumber || item.expiryDate) {
+          await tx
+            .insert(inventoryBatches)
+            .values({
+              organizationId: receiptData.organizationId,
+              itemId: item.itemId,
+              batchNumber: item.batchNumber || `BATCH-${Date.now()}`,
+              quantity: item.quantityReceived,
+              remainingQuantity: item.quantityReceived,
+              expiryDate: item.expiryDate ? new Date(item.expiryDate) : null,
+              receivedDate: new Date(receiptData.receivedDate),
+              status: 'active'
+            });
+        }
+
+        movements.push(movement);
+      }
+
+      console.log(`[INVENTORY] Created goods receipt with ${movements.length} items`);
+      return { 
+        id: movements[0]?.id,
+        receiptNumber: `GR-${movements[0]?.id}`,
+        items: movements 
+      };
+    });
+  }
+
+  async getBatches(organizationId: number) {
+    const batches = await db
+      .select({
+        id: inventoryBatches.id,
+        itemId: inventoryBatches.itemId,
+        itemName: inventoryItems.name,
+        batchNumber: inventoryBatches.batchNumber,
+        quantity: inventoryBatches.quantity,
+        remainingQuantity: inventoryBatches.remainingQuantity,
+        expiryDate: inventoryBatches.expiryDate,
+        receivedDate: inventoryBatches.receivedDate,
+        status: inventoryBatches.status,
+        createdAt: inventoryBatches.createdAt
+      })
+      .from(inventoryBatches)
+      .leftJoin(inventoryItems, eq(inventoryBatches.itemId, inventoryItems.id))
+      .where(eq(inventoryBatches.organizationId, organizationId))
+      .orderBy(desc(inventoryBatches.createdAt));
+
+    return batches;
+  }
 }
 
 export const inventoryService = new InventoryService();
