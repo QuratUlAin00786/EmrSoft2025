@@ -1494,6 +1494,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         location: appointmentData.location || "",
         isVirtual: appointmentData.isVirtual
       };
+
+      // VALIDATE APPOINTMENT TIME - Prevent past scheduling
+      const now = new Date();
+      if (appointmentToCreate.scheduledAt <= now) {
+        return res.status(400).json({ 
+          error: "Cannot schedule appointments for past times. Please select a future date and time.",
+          type: "past_time_error",
+          providedTime: appointmentToCreate.scheduledAt.toISOString(),
+          currentTime: now.toISOString()
+        });
+      }
       
       console.log("Creating appointment with final data:", appointmentToCreate);
       
