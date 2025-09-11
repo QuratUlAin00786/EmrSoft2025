@@ -325,7 +325,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
   const musclePercentageCoordinates = {
     0: {
       frontalis: { xPct: 0.49, yPct: 0.08 },              // FRONTALIS (FOREHEAD) - top center
-      temporalis: { xPct: 0.82, yPct: 0.15 },            // TEMPORALIS - temple region  
+      temporalis: { xPct: 0.18, yPct: 0.25 },            // TEMPORALIS - left temple region  
       corrugator_supercilii: { xPct: 0.34, yPct: 0.17 }, // CORRUGATOR SUPERCILII - left brow
       procerus: { xPct: 0.54, yPct: 0.30 },              // PROCERUS - center bridge of nose
       orbicularis_oculi: { xPct: 0.45, yPct: 0.28 },     // ORBICULARIS OCULI - eye area
@@ -342,7 +342,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
     },
     1: {
       frontalis: { xPct: 0.49, yPct: 0.08 },              // FRONTALIS (FOREHEAD) - top center
-      temporalis: { xPct: 0.82, yPct: 0.15 },            // TEMPORALIS - temple region
+      temporalis: { xPct: 0.18, yPct: 0.25 },            // TEMPORALIS - left temple region
       corrugator_supercilii: { xPct: 0.34, yPct: 0.17 }, // CORRUGATOR SUPERCILII - left brow
       procerus: { xPct: 0.54, yPct: 0.30 },              // PROCERUS - center bridge of nose
       orbicularis_oculi: { xPct: 0.45, yPct: 0.28 },     // ORBICULARIS OCULI - eye area
@@ -1415,16 +1415,6 @@ Patient should be advised of potential side effects and expected timeline for re
                                   boxShadow: '0 0 20px rgba(255, 230, 0, 0.9), 0 0 40px rgba(255, 230, 0, 0.6)'
                                 }}
                               />
-                              {/* Muscle name label */}
-                              <div
-                                className="absolute top-10 left-1/2 transform -translate-x-1/2 bg-black text-white px-2 py-1 rounded text-xs font-semibold whitespace-nowrap z-70"
-                                style={{
-                                  fontSize: '11px',
-                                  boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
-                                }}
-                              >
-                                {selectedMuscleGroup.replace(/_/g, ' ').toUpperCase()}
-                              </div>
                             </div>
                           );
                         })()}
