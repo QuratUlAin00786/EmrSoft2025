@@ -1350,7 +1350,7 @@ Patient should be advised of potential side effects and expected timeline for re
                       ref={imageRef}
                       src={anatomicalImages[currentImageIndex]}
                       alt="Professional Anatomical Analysis"
-                      className="w-full h-auto max-w-2xl mx-auto rounded-lg"
+                      className="w-full h-[600px] max-w-2xl mx-auto rounded-lg object-contain"
                       onLoad={updateOverlayPosition}
                     />
                     
