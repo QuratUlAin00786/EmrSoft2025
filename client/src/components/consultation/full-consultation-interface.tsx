@@ -327,12 +327,12 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
     0: { // Muscle diagram (front view with colored muscles)
       // TEMPORALIS - Temple muscle region (fan-shaped, lateral side of head)
       temporalis: [
-        { xPct: 0.05, yPct: 0.10 }, // Upper lateral temple
-        { xPct: 0.15, yPct: 0.08 }, // Upper temple edge
-        { xPct: 0.18, yPct: 0.15 }, // Mid-temple area
-        { xPct: 0.16, yPct: 0.22 }, // Lower temple
-        { xPct: 0.08, yPct: 0.20 }, // Lateral temple base
-        { xPct: 0.04, yPct: 0.15 }  // Back to upper lateral
+        { xPct: 0.70, yPct: 0.08 }, // Upper temple area (right side)
+        { xPct: 0.78, yPct: 0.12 }, // Upper temple edge
+        { xPct: 0.80, yPct: 0.18 }, // Mid-temple area
+        { xPct: 0.76, yPct: 0.25 }, // Lower temple
+        { xPct: 0.68, yPct: 0.22 }, // Temple base
+        { xPct: 0.66, yPct: 0.15 }  // Back to upper temple
       ],
       
       // CORRUGATOR SUPERCILII - Between eyebrows (frowning muscle)
