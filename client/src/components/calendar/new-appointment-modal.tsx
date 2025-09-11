@@ -259,11 +259,11 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
     // Create date in local timezone and keep it as local time for proper scheduling
     const localDateTime = `${data.date}T${data.time}:00`;
     
-    // Find the actual patient ID from the selected patientId string
-    const selectedPatient = patients.find(p => p.patientId === data.patientId);
+    // The patientId field now contains the database ID (as string)
+    const patientDatabaseId = parseInt(data.patientId);
     
     const appointmentData = {
-      patientId: selectedPatient ? selectedPatient.id : parseInt(data.patientId), // Use numeric ID
+      patientId: patientDatabaseId, // Use numeric database ID directly
       providerId: parseInt(data.providerId),
       title: data.title || `${data.type} appointment`,
       description: data.description || "",
@@ -330,7 +330,7 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
                       </FormControl>
                       <SelectContent>
                         {patients.map((patient: any) => (
-                          <SelectItem key={patient.id} value={patient.patientId}>
+                          <SelectItem key={`patient-${patient.id}`} value={patient.id.toString()}>
                             {patient.firstName} {patient.lastName}
                           </SelectItem>
                         ))}
