@@ -266,8 +266,19 @@ export async function seedInventoryData(organizationId: number) {
 // Auto-seed for all existing organizations
 export async function seedAllOrganizations() {
   try {
-    // This would normally fetch all organizations, but for now we'll seed organization 1
-    await seedInventoryData(1);
+    // Import storage to fetch all organizations
+    const { storage } = await import("./storage");
+    
+    // Get all organizations
+    const organizations = await storage.getAllOrganizations();
+    console.log(`[SEED] Found ${organizations.length} organizations to seed`);
+    
+    // Seed inventory for each organization
+    for (const org of organizations) {
+      console.log(`[SEED] Seeding inventory for organization ${org.id} (${org.name})`);
+      await seedInventoryData(org.id);
+    }
+    
     console.log("[SEED] Completed seeding for all organizations");
   } catch (error) {
     console.error("[SEED] Error in auto-seeding:", error);
