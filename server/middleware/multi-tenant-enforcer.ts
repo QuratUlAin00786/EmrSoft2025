@@ -32,7 +32,7 @@ export function multiTenantEnforcer(config: Partial<MultiTenantEnforcementConfig
     try {
       // Ensure tenant context exists
       if (enforcementConfig.enforceOrganizationId && !req.organizationId) {
-        console.error('[MULTI-TENANT] Missing organization context');
+        console.error(`[MULTI-TENANT] Missing organization context for path: ${req.path}, organizationId: ${req.organizationId}, tenant: ${JSON.stringify(req.tenant)}`);
         return res.status(400).json({ 
           error: "Multi-tenant context required",
           code: "MISSING_TENANT_CONTEXT"

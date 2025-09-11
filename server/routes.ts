@@ -497,14 +497,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Register remaining SaaS administration routes
-  registerSaaSRoutes(app);
-
-  // Initialize multi-tenant middleware stack
+  // Initialize multi-tenant middleware stack BEFORE any routes
   multiTenantPackage.initializeMiddleware(app);
   
   // Get tenant-aware storage
   const tenantStorage = multiTenantPackage.getTenantStorage();
+
+  // Register remaining SaaS administration routes
+  registerSaaSRoutes(app);
 
   // Authentication routes (no auth required)
   app.post("/api/auth/login", async (req: TenantRequest, res) => {

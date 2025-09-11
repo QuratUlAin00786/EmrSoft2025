@@ -21,6 +21,8 @@ export interface TenantRequest extends Request {
 
 export async function tenantMiddleware(req: TenantRequest, res: Response, next: NextFunction) {
   try {
+    console.log(`[TENANT-MIDDLEWARE] Processing request: ${req.method} ${req.path} ${req.url}`);
+    
     // Skip tenant middleware for static assets and development files to prevent DB calls
     const skipPaths = [
       '/assets', '/@vite', '/src', '/node_modules', '/__vite_hmr',
@@ -28,15 +30,13 @@ export async function tenantMiddleware(req: TenantRequest, res: Response, next: 
       '/public', '/client/public'
     ];
     
-    if (skipPaths.some(path => req.path.startsWith(path)) || 
-        req.path.includes('.') && !req.path.startsWith('/api')) {
+    if (skipPaths.some(path => req.path.startsWith(path))) {
+      console.log(`[TENANT-MIDDLEWARE] Skipping static path: ${req.path}`);
       return next();
     }
     
-    // Only run tenant middleware for API routes
-    if (!req.path.startsWith('/api')) {
-      return next();
-    }
+    // Path is already stripped by Express mounting at /api, so we process all paths
+    console.log(`[TENANT-MIDDLEWARE] Processing API path: ${req.path} (original URL: ${req.originalUrl})`);
 
     // ALWAYS use demo organization for production deployment cache fix
     let subdomain = "demo";
@@ -101,6 +101,7 @@ export async function tenantMiddleware(req: TenantRequest, res: Response, next: 
     };
     req.organizationId = organization.id;
 
+    console.log(`[TENANT-MIDDLEWARE] Set organizationId: ${req.organizationId} for path: ${req.path}`);
     next();
   } catch (error) {
     console.error("Tenant middleware error:", error);
