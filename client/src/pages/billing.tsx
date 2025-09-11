@@ -511,6 +511,11 @@ export default function BillingPage() {
   const [firstServiceQty, setFirstServiceQty] = useState("");
   const [firstServiceAmount, setFirstServiceAmount] = useState("");
   const [notes, setNotes] = useState("");
+  
+  // Validation error states
+  const [patientError, setPatientError] = useState("");
+  const [serviceError, setServiceError] = useState("");
+  const [totalAmountError, setTotalAmountError] = useState("");
 
   const handleSendInvoice = (invoiceId: string) => {
     const invoice = Array.isArray(invoices) ? invoices.find((inv: any) => inv.id === invoiceId) : null;
@@ -1201,6 +1206,9 @@ export default function BillingPage() {
                     )}
                   </SelectContent>
                 </Select>
+                {patientError && (
+                  <p className="text-sm text-red-600 mt-1">{patientError}</p>
+                )}
               </div>
               
               <div>
@@ -1258,6 +1266,9 @@ export default function BillingPage() {
                   <Input placeholder="0.00" />
                 </div>
               </div>
+              {serviceError && (
+                <p className="text-sm text-red-600 mt-1">{serviceError}</p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -1284,6 +1295,9 @@ export default function BillingPage() {
                   value={totalAmount}
                   onChange={(e) => setTotalAmount(e.target.value)}
                 />
+                {totalAmountError && (
+                  <p className="text-sm text-red-600 mt-1">{totalAmountError}</p>
+                )}
               </div>
             </div>
 
@@ -1306,34 +1320,36 @@ export default function BillingPage() {
             <Button onClick={async () => {
               console.log('Creating new invoice...');
               
-              // Validation using state variables
-              const errors = [];
+              // Clear previous validation errors
+              setPatientError("");
+              setServiceError("");
+              setTotalAmountError("");
               
-              // Check if patient is selected
+              let hasValidationError = false;
+              
+              // Validate patient selection
               if (!selectedPatient || selectedPatient === '' || selectedPatient === 'loading' || selectedPatient === 'no-patients') {
-                errors.push('Please select a patient');
+                setPatientError('Please select a patient');
+                hasValidationError = true;
               }
               
-              // Check if at least one service line has meaningful data
+              // Validate service data
               const hasServiceData = (firstServiceCode.trim() && firstServiceDesc.trim()) || 
                                    (firstServiceDesc.trim() && firstServiceAmount.trim() && parseFloat(firstServiceAmount) > 0);
               if (!hasServiceData) {
-                errors.push('Please enter at least one service with description and amount');
+                setServiceError('Please enter at least one service with description and amount');
+                hasValidationError = true;
               }
               
-              // Check if total amount is valid - specifically catch 0 values
+              // Validate total amount
               const total = parseFloat(totalAmount || '0');
               if (isNaN(total) || total <= 0) {
-                errors.push('Please enter a valid total amount greater than 0');
+                setTotalAmountError('Please enter a valid total amount greater than 0');
+                hasValidationError = true;
               }
               
-              // Show validation errors
-              if (errors.length > 0) {
-                toast({
-                  title: "Please fix the following errors before creating the invoice:",
-                  description: errors.map(error => '• ' + error).join('\n'),
-                  variant: "destructive"
-                });
+              // Stop if there are validation errors
+              if (hasValidationError) {
                 return;
               }
               
