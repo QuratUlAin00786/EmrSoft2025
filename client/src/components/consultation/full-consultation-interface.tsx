@@ -713,7 +713,7 @@ Patient should be advised of potential side effects and expected timeline for re
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="bp" className="flex items-center gap-2">
                         <Heart className="w-4 h-4 text-red-500" />
