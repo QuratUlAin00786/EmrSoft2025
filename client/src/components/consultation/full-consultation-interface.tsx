@@ -39,7 +39,7 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
-import facialMuscleImage from "@assets/generated_images/Clean_facial_muscle_diagram_3501e648.png";
+import facialMuscleImage from "@assets/generated_images/New_facial_muscle_diagram.png";
 import facialOutlineImage from "@assets/generated_images/Clean_facial_anatomy_outline_4b91e595.png";
 
 interface FullConsultationInterfaceProps {
