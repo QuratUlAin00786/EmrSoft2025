@@ -70,6 +70,7 @@ export default function ShiftsPage() {
   const roleOptions = [
     { value: 'doctor', label: 'Doctor' },
     { value: 'nurse', label: 'Nurse' },
+    { value: 'sample_taker', label: 'Sample Taker' },
     { value: 'lab_technician', label: 'Lab Technician' },
     { value: 'admin', label: 'Admin' },
     { value: 'receptionist', label: 'Receptionist' }
@@ -192,9 +193,22 @@ export default function ShiftsPage() {
 
   // Filter staff by selected role
   const filteredStaff = useMemo(() => {
-    if (!selectedRole) return staff;
-    return staff.filter((member: any) => member.role === selectedRole);
-  }, [staff, selectedRole]);
+    console.log("=== STAFF FILTERING DEBUG ===");
+    console.log("Raw staff data:", staff);
+    console.log("Selected role:", selectedRole);
+    console.log("Staff loading:", staffLoading);
+    
+    if (!selectedRole) {
+      console.log("No role selected, returning all staff:", staff.length);
+      return staff;
+    }
+    
+    const filtered = staff.filter((member: any) => member.role === selectedRole);
+    console.log(`Filtered staff for role "${selectedRole}":`, filtered.length, filtered);
+    console.log("=== END STAFF FILTERING DEBUG ===");
+    
+    return filtered;
+  }, [staff, selectedRole, staffLoading]);
 
   // Check if time slot is booked for selected staff member
   const isTimeSlotBooked = (timeSlot: string) => {
@@ -535,11 +549,25 @@ export default function ShiftsPage() {
               <SelectValue placeholder={!selectedRole ? "Select a role first" : "Choose a staff member..."} />
             </SelectTrigger>
             <SelectContent>
-              {filteredStaff.map((member: any) => (
-                <SelectItem key={member.id} value={member.id.toString()}>
-                  {member.role === 'doctor' ? 'Dr.' : ''} {member.firstName} {member.lastName}
+              {staffLoading ? (
+                <SelectItem value="loading" disabled>Loading staff...</SelectItem>
+              ) : filteredStaff.length > 0 ? (
+                filteredStaff.map((member: any) => (
+                  <SelectItem key={member.id} value={member.id.toString()}>
+                    {member.role === 'doctor' ? 'Dr.' : ''} {member.firstName} {member.lastName}
+                  </SelectItem>
+                ))
+              ) : selectedRole ? (
+                <SelectItem value="no-staff" disabled>
+                  No {
+                    selectedRole === 'lab_technician' ? 'lab technicians' : 
+                    selectedRole === 'sample_taker' ? 'sample takers' :
+                    `${selectedRole}s`
+                  } found
                 </SelectItem>
-              ))}
+              ) : (
+                <SelectItem value="select-role" disabled>Please select a role first</SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>
