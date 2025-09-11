@@ -325,14 +325,14 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
   // Polygon coordinates representing actual muscle tissue shapes on the facial diagram
   const muscleRegionsByImageIndex = {
     0: { // Muscle diagram (front view with colored muscles)
-      // TEMPORALIS - Temple muscle region (actual temple area, side of forehead)
+      // TEMPORALIS - Temple muscle region (lateral temple area, side of head)
       temporalis: [
-        { xPct: 0.12, yPct: 0.08 }, // Upper left temple 
-        { xPct: 0.25, yPct: 0.06 }, // Upper temple edge
-        { xPct: 0.28, yPct: 0.15 }, // Mid-temple area
-        { xPct: 0.25, yPct: 0.22 }, // Lower temple
-        { xPct: 0.15, yPct: 0.20 }, // Temple base
-        { xPct: 0.10, yPct: 0.15 }  // Back to upper temple
+        { xPct: 0.75, yPct: 0.12 }, // Upper temple area
+        { xPct: 0.85, yPct: 0.15 }, // Outer temple edge
+        { xPct: 0.87, yPct: 0.22 }, // Mid-temple area
+        { xPct: 0.82, yPct: 0.28 }, // Lower temple
+        { xPct: 0.72, yPct: 0.25 }, // Inner temple base
+        { xPct: 0.70, yPct: 0.18 }  // Back to upper inner temple
       ],
       
       // CORRUGATOR SUPERCILII - Between eyebrows (frowning muscle)
