@@ -1333,11 +1333,18 @@ export default function BillingPage() {
                 hasValidationError = true;
               }
               
-              // Validate service data
-              const hasServiceData = (firstServiceCode.trim() && firstServiceDesc.trim()) || 
-                                   (firstServiceDesc.trim() && firstServiceAmount.trim() && parseFloat(firstServiceAmount) > 0);
-              if (!hasServiceData) {
-                setServiceError('Please enter at least one service with description and amount');
+              // Validate service data - ALL fields are required per backend validation
+              if (!firstServiceCode.trim()) {
+                setServiceError('Please enter a service code');
+                hasValidationError = true;
+              } else if (!firstServiceDesc.trim()) {
+                setServiceError('Please enter a service description');
+                hasValidationError = true;
+              } else if (!firstServiceQty.trim() || isNaN(parseInt(firstServiceQty)) || parseInt(firstServiceQty) <= 0) {
+                setServiceError('Please enter a valid service quantity');
+                hasValidationError = true;
+              } else if (!firstServiceAmount.trim() || isNaN(parseFloat(firstServiceAmount)) || parseFloat(firstServiceAmount) <= 0) {
+                setServiceError('Please enter a valid service amount');
                 hasValidationError = true;
               }
               
