@@ -530,16 +530,18 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                       <Flag className="h-3 w-3 mr-1" />
                       Flag
                     </Button>
-                    <Button 
-                      size="sm" 
-                      variant="ghost"
-                      onClick={() => handleDeletePatient(patient)}
-                      disabled={deletePatientMutation.isPending}
-                      className="flex-1 text-xs h-7 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 dark:text-red-400 dark:hover:text-red-300"
-                    >
-                      <Trash2 className="h-3 w-3 mr-1" />
-                      Delete
-                    </Button>
+                    {user?.role === 'admin' && (
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        onClick={() => handleDeletePatient(patient)}
+                        disabled={deletePatientMutation.isPending}
+                        className="flex-1 text-xs h-7 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 dark:text-red-400 dark:hover:text-red-300"
+                      >
+                        <Trash2 className="h-3 w-3 mr-1" />
+                        Delete
+                      </Button>
+                    )}
                   </div>
                 </div>
 
