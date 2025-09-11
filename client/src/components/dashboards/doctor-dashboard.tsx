@@ -10,13 +10,22 @@ export function DoctorDashboard() {
   });
 
   const { data: upcomingAppointments } = useQuery({
-    queryKey: ["/api/appointments/upcoming"],
+    queryKey: ["/api/appointments"],
+    select: (data) => {
+      // Filter appointments for today and upcoming
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return Array.isArray(data) ? data.filter((apt: any) => {
+        const aptDate = new Date(apt.scheduledAt);
+        return aptDate >= today;
+      }).sort((a: any, b: any) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()) : [];
+    }
   });
 
   const doctorCards = [
     {
       title: "Today's Patients",
-      value: stats?.todayAppointments || "0",
+      value: (stats && typeof stats === 'object' && 'todayAppointments' in stats) ? String(stats.todayAppointments) : "0",
       description: "Scheduled appointments",
       icon: Calendar,
       href: "/appointments",
@@ -24,7 +33,7 @@ export function DoctorDashboard() {
     },
     {
       title: "Total Patients",
-      value: stats?.totalPatients || "0",
+      value: (stats && typeof stats === 'object' && 'totalPatients' in stats) ? String(stats.totalPatients) : "0",
       description: "Under your care",
       icon: Users,
       href: "/patients",
@@ -32,7 +41,7 @@ export function DoctorDashboard() {
     },
     {
       title: "AI Clinical Insights",
-      value: stats?.aiSuggestions || "0",
+      value: (stats && typeof stats === 'object' && 'aiSuggestions' in stats) ? String(stats.aiSuggestions) : "0",
       description: "New recommendations",
       icon: Brain,
       href: "/ai-insights",
@@ -133,24 +142,26 @@ export function DoctorDashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {upcomingAppointments?.slice(0, 3).map((appointment: any, index: number) => (
-              <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                <div>
-                  <p className="font-medium">Patient Consultation</p>
-                  <p className="text-sm text-neutral-600">
-                    {new Date(appointment.scheduledAt).toLocaleTimeString('en-US', { 
-                      hour: '2-digit', 
-                      minute: '2-digit',
-                      hour12: true 
-                    })}
-                  </p>
+            {Array.isArray(upcomingAppointments) && upcomingAppointments.length > 0 ? (
+              upcomingAppointments.slice(0, 3).map((appointment: any, index: number) => (
+                <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <p className="font-medium">Patient Consultation</p>
+                    <p className="text-sm text-neutral-600">
+                      {new Date(appointment.scheduledAt).toLocaleTimeString('en-US', { 
+                        hour: '2-digit', 
+                        minute: '2-digit',
+                        hour12: true 
+                      })}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium">{appointment.title}</p>
+                    <p className="text-xs text-neutral-500">{appointment.duration} min</p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium">{appointment.title}</p>
-                  <p className="text-xs text-neutral-500">{appointment.duration} min</p>
-                </div>
-              </div>
-            )) || (
+              ))
+            ) : (
               <p className="text-neutral-500 text-center py-4">No appointments scheduled for today</p>
             )}
           </div>

@@ -1414,7 +1414,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         organizationId: req.tenant!.id,
         title: appointmentData.title || `${appointmentData.type} appointment`,
         description: appointmentData.description || appointmentData.notes || "",
-        scheduledAt: appointmentData.scheduledAt ? new Date(appointmentData.scheduledAt + 'Z') : new Date(appointmentData.appointmentDate || new Date()),
+        scheduledAt: appointmentData.scheduledAt ? new Date(appointmentData.scheduledAt) : new Date(appointmentData.appointmentDate || new Date()),
         duration: appointmentData.duration,
         type: appointmentData.type,
         status: appointmentData.status || "scheduled", // Add missing status field
