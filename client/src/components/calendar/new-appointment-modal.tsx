@@ -342,13 +342,15 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
                         {availableProviders.map((provider: any) => (
                           <SelectItem key={provider.id} value={provider.id.toString()}>
                             Dr. {provider.firstName} {provider.lastName}
+                            {provider.department && ` - ${provider.department}`}
+                            {provider.specialization && ` (${provider.specialization})`}
                             {provider.workingHours?.start && provider.workingHours?.end 
-                              ? ` (${provider.workingHours.start}-${provider.workingHours.end})`
+                              ? ` | ${provider.workingHours.start}-${provider.workingHours.end}`
                               : ''}
                           </SelectItem>
                         ))}
                         {availableProviders.length === 0 && formData.date && formData.time && (
-                          <SelectItem value="" disabled>No providers available at this time</SelectItem>
+                          <SelectItem value="no-providers" disabled>No providers available at this time</SelectItem>
                         )}
                       </SelectContent>
                     </Select>
