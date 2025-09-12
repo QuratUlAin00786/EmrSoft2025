@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,7 +41,6 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
-import { MedicalImage } from "@shared/schema";
 
 interface VoiceNote {
   id: string;
@@ -86,6 +85,40 @@ interface SmartTemplate {
   usageCount: number;
 }
 
+interface ClinicalPhoto {
+  id: string;
+  patientId: string;
+  patientName: string;
+  type: 'wound' | 'rash' | 'xray' | 'procedure' | 'general';
+  filename: string;
+  description: string;
+  url: string;
+  dateTaken: string;
+  metadata: {
+    camera: string;
+    resolution: string;
+    lighting: string;
+  };
+  annotations: Array<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    label: string;
+    confidence?: number;
+  }>;
+  aiAnalysis?: {
+    findings: string[];
+    confidence: number;
+    recommendations: string[];
+  };
+  createdAt: string;
+  metadata: {
+    camera: string;
+    resolution: string;
+    lighting: string;
+  };
+}
 
 export default function VoiceDocumentation() {
   const [location, setLocation] = useLocation();
@@ -108,7 +141,7 @@ export default function VoiceDocumentation() {
   const [viewFullDialogOpen, setViewFullDialogOpen] = useState(false);
   const [annotateDialogOpen, setAnnotateDialogOpen] = useState(false);
   const [addToReportDialogOpen, setAddToReportDialogOpen] = useState(false);
-  const [selectedPhoto, setSelectedPhoto] = useState<MedicalImage | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
   const [analyzeDialogOpen, setAnalyzeDialogOpen] = useState(false);
   const [analysisResults, setAnalysisResults] = useState<any>(null);
   const [voiceSettingsOpen, setVoiceSettingsOpen] = useState(false);
@@ -121,7 +154,7 @@ export default function VoiceDocumentation() {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
   const [isStartingCamera, setIsStartingCamera] = useState(false);
-  const restartTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const restartTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [selectedPhotoPatient, setSelectedPhotoPatient] = useState<string>("");
   const [selectedPhotoType, setSelectedPhotoType] = useState<string>("");
   const [photoDescription, setPhotoDescription] = useState<string>("");
@@ -129,22 +162,66 @@ export default function VoiceDocumentation() {
 
   // Fetch voice notes
   const { data: voiceNotes, isLoading: notesLoading } = useQuery({
-    queryKey: ["/api/voice-documentation/notes", refreshTrigger]
+    queryKey: ["/api/voice-documentation/notes", refreshTrigger],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/voice-documentation/notes', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch voice notes');
+      return response.json();
+    }
   });
 
   // Fetch smart templates
   const { data: templates, isLoading: templatesLoading } = useQuery({
-    queryKey: ["/api/voice-documentation/templates"]
+    queryKey: ["/api/voice-documentation/templates"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/voice-documentation/templates', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch templates');
+      return response.json();
+    }
   });
 
   // Fetch clinical photos
   const { data: photos, isLoading: photosLoading } = useQuery({
-    queryKey: ["/api/voice-documentation/photos"]
+    queryKey: ["/api/voice-documentation/photos"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/voice-documentation/photos', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch photos');
+      return response.json();
+    }
   });
 
   // Fetch patients for dropdowns
   const { data: patients, isLoading: patientsLoading } = useQuery({
-    queryKey: ["/api/patients"]
+    queryKey: ["/api/patients"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/patients', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch patients');
+      return response.json();
+    }
   });
 
   // Create voice note mutation
@@ -154,12 +231,20 @@ export default function VoiceDocumentation() {
       console.log("Making API call with token:", token ? "Token exists" : "No token");
       console.log("Sending data:", { patientId: data.patientId, type: data.type, transcript: data.transcript, duration: data.duration, confidence: data.confidence });
       
-      const response = await apiRequest('POST', '/api/voice-documentation/notes', {
-        patientId: data.patientId,
-        type: data.type,
-        transcript: data.transcript,
-        duration: data.duration,
-        confidence: data.confidence
+      const response = await fetch("/api/voice-documentation/notes", {
+        method: "POST",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          patientId: data.patientId,
+          type: data.type,
+          transcript: data.transcript,
+          duration: data.duration,
+          confidence: data.confidence
+        })
       });
       
       console.log("Response status:", response.status);
@@ -200,7 +285,13 @@ export default function VoiceDocumentation() {
   const deleteVoiceNoteMutation = useMutation({
     mutationFn: async (noteId: string) => {
       const token = localStorage.getItem('auth_token');
-      const response = await apiRequest('DELETE', `/api/voice-documentation/notes/${noteId}`);
+      const response = await fetch(`/api/voice-documentation/notes/${noteId}`, {
+        method: "DELETE",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
       if (!response.ok) {
         if (response.status === 404) {
           throw new Error("404: Voice note not found");
@@ -228,36 +319,30 @@ export default function VoiceDocumentation() {
     }
   });
 
-
   // Upload photo mutation
   const uploadPhotoMutation = useMutation({
     mutationFn: async (data: { photo: File; patientId: string; type: string; description: string }) => {
       const formData = new FormData();
       formData.append('photo', data.photo);
       formData.append('patientId', data.patientId);
-      formData.append('studyType', data.type);
+      formData.append('type', data.type);
       formData.append('description', data.description);
 
-      const response = await apiRequest('POST', '/api/voice-documentation/photos', formData);
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch("/api/voice-documentation/photos", {
+        method: "POST",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        },
+        body: formData
+      });
+      if (!response.ok) throw new Error("Failed to upload photo");
       return response.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Photo uploaded successfully",
-        description: "The clinical photo has been saved to the patient record.",
-      });
-      // Reset form
-      setCapturedPhoto(null);
-      setSelectedPhotoPatient("");
-      setSelectedPhotoType("");
-      setPhotoDescription("");
-      stopCamera("photo-success");
-      
-      // Invalidate and refetch photos
-      queryClient.invalidateQueries({ queryKey: ['/api/voice-documentation/photos'] });
-      
-      // Switch to Captured Photos tab to show the saved photo
-      setActiveTab("captured-photos");
+      queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/photos"] });
+      toast({ title: "Photo uploaded and analyzed" });
     }
   });
 
@@ -340,6 +425,33 @@ export default function VoiceDocumentation() {
     }
   ];
 
+  const mockPhotos: ClinicalPhoto[] = [
+    {
+      id: "photo_1",
+      patientId: "patient_1",
+      patientName: "Sarah Johnson",
+      type: "wound",
+      filename: "wound_assessment_001.jpg",
+      description: "Post-surgical wound healing assessment",
+      url: "/api/photos/wound_assessment_001.jpg",
+      dateTaken: "Jun 26, 18:45",
+      annotations: [
+        { x: 120, y: 80, width: 60, height: 40, label: "Healing edge" },
+        { x: 200, y: 120, width: 30, height: 25, label: "Slight erythema" }
+      ],
+      aiAnalysis: {
+        findings: ["Wound edges well-approximated", "Minimal erythema", "No signs of infection"],
+        confidence: 92,
+        recommendations: ["Continue current wound care", "Monitor for signs of infection", "Follow-up in 5-7 days"]
+      },
+      createdAt: "2024-06-26T13:45:00Z",
+      metadata: {
+        camera: "iPhone 14 Pro",
+        resolution: "3024x4032",
+        lighting: "Natural light"
+      }
+    }
+  ];
 
   // Initialize local templates from mock data and localStorage
   useEffect(() => {
@@ -1143,11 +1255,10 @@ export default function VoiceDocumentation() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="voice">Voice Notes</TabsTrigger>
           <TabsTrigger value="templates">Smart Templates</TabsTrigger>
           <TabsTrigger value="photos">Clinical Photos</TabsTrigger>
-          <TabsTrigger value="captured-photos">Captured Photos</TabsTrigger>
           <TabsTrigger value="coding">Medical Coding</TabsTrigger>
         </TabsList>
 
@@ -1930,15 +2041,15 @@ export default function VoiceDocumentation() {
 
         <TabsContent value="photos" className="space-y-4">
           <div className="grid gap-4">
-            {photos?.map((photo: MedicalImage) => (
+            {mockPhotos.map((photo) => (
               <Card key={photo.id}>
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle className="text-lg">Patient ID: {photo.patientId}</CardTitle>
+                      <CardTitle className="text-lg">{photo.patientName}</CardTitle>
                       <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="outline">{photo.studyType}</Badge>
-                        <span className="text-sm text-gray-500">{photo.fileName}</span>
+                        <Badge variant="outline">{photo.type}</Badge>
+                        <span className="text-sm text-gray-500">{photo.filename}</span>
                       </div>
                     </div>
                     <div className="text-sm text-gray-500">
@@ -1961,17 +2072,17 @@ export default function VoiceDocumentation() {
                         <div>
                           <strong className="text-xs">Findings:</strong>
                           <ul className="text-sm list-disc list-inside mt-1">
-                            {photo.aiAnalysis?.findings?.map((finding, idx) => (
+                            {photo.aiAnalysis.findings.map((finding, idx) => (
                               <li key={idx}>{finding}</li>
-                            )) || []}
+                            ))}
                           </ul>
                         </div>
                         <div>
                           <strong className="text-xs">Recommendations:</strong>
                           <ul className="text-sm list-disc list-inside mt-1">
-                            {photo.aiAnalysis?.recommendations?.map((rec, idx) => (
+                            {photo.aiAnalysis.recommendations.map((rec, idx) => (
                               <li key={idx}>{rec}</li>
-                            )) || []}
+                            ))}
                           </ul>
                         </div>
                       </div>
@@ -1982,13 +2093,13 @@ export default function VoiceDocumentation() {
                     <h4 className="font-medium text-sm mb-2">Metadata</h4>
                     <div className="grid grid-cols-3 gap-4 text-sm">
                       <div>
-                        <span className="text-gray-500">Resolution:</span> {photo.metadata?.resolution || 'Not specified'}
+                        <span className="text-gray-500">Camera:</span> {photo.metadata.camera}
                       </div>
                       <div>
-                        <span className="text-gray-500">File Size:</span> {photo.metadata?.totalSize || 'Unknown'}
+                        <span className="text-gray-500">Resolution:</span> {photo.metadata.resolution}
                       </div>
                       <div>
-                        <span className="text-gray-500">Acquisition Date:</span> {photo.metadata?.acquisitionDate || 'Not specified'}
+                        <span className="text-gray-500">Lighting:</span> {photo.metadata.lighting}
                       </div>
                     </div>
                   </div>
@@ -2010,15 +2121,15 @@ export default function VoiceDocumentation() {
                       onClick={() => {
                         // Create a download link for the photo
                         const link = document.createElement('a');
-                        link.href = photo.imageData;
-                        link.download = `${photo.fileName}_patient_${photo.patientId}.jpg`;
+                        link.href = photo.url;
+                        link.download = `${photo.filename}_${photo.patientName.replace(' ', '_')}.jpg`;
                         document.body.appendChild(link);
                         link.click();
                         document.body.removeChild(link);
                         
                         toast({
                           title: "Download Started",
-                          description: `Downloading ${photo.fileName} for Patient ${photo.patientId}`,
+                          description: `Downloading ${photo.filename} for ${photo.patientName}`,
                         });
                       }}
                     >
@@ -2052,11 +2163,11 @@ export default function VoiceDocumentation() {
                       variant="destructive"
                       onClick={() => {
                         // Confirm deletion
-                        if (window.confirm(`Are you sure you want to delete this photo for Patient ${photo.patientId}? This action cannot be undone.`)) {
+                        if (window.confirm(`Are you sure you want to delete this photo for ${photo.patientName}? This action cannot be undone.`)) {
                           // TODO: Implement actual deletion API call
                           toast({
                             title: "Photo Deleted",
-                            description: `Clinical photo for Patient ${photo.patientId} has been deleted.`,
+                            description: `Clinical photo for ${photo.patientName} has been deleted.`,
                           });
                           // For now, just show the success message
                           // In a real implementation, you would call a delete mutation here
@@ -2071,121 +2182,6 @@ export default function VoiceDocumentation() {
               </Card>
             ))}
           </div>
-        </TabsContent>
-
-        <TabsContent value="captured-photos" className="space-y-4">
-          {photosLoading ? (
-            <div className="flex items-center justify-center p-8">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-                <p className="text-sm text-gray-500">Loading captured photos...</p>
-              </div>
-            </div>
-          ) : (photos?.length || 0) === 0 ? (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <Camera className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No captured photos yet</h3>
-                <p className="text-sm text-gray-500 mb-4">
-                  Start capturing clinical photos using the camera feature. Your photos will appear here with patient details.
-                </p>
-                <Button 
-                  onClick={() => setActiveTab("voice")} 
-                  className="mt-2"
-                  data-testid="button-start-capturing"
-                >
-                  <Camera className="w-4 h-4 mr-2" />
-                  Start Capturing Photos
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-4">
-              {photos?.map((photo) => (
-                <Card key={photo.id} data-testid={`card-captured-photo-${photo.id}`}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="text-lg" data-testid={`text-patient-name-${photo.id}`}>
-                          Patient ID: {photo.patientId}
-                        </CardTitle>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="outline" data-testid={`badge-photo-type-${photo.id}`}>
-                            {photo.studyType || 'clinical'}
-                          </Badge>
-                          <span className="text-sm text-gray-500" data-testid={`text-filename-${photo.id}`}>
-                            {photo.fileName || 'captured_photo.jpg'}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="text-sm text-gray-500" data-testid={`text-timestamp-${photo.id}`}>
-                        {photo.createdAt ? format(new Date(photo.createdAt), 'MMM dd, HH:mm') : 'Recently'}
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {photo.imageData && (
-                      <div className="flex justify-center">
-                        <img 
-                          src={photo.imageData?.startsWith('data:') ? photo.imageData : `data:${photo.mimeType || 'image/jpeg'};base64,${photo.imageData}`} 
-                          alt={`Clinical photo for Patient ${photo.patientId}`}
-                          className="max-w-full max-h-64 rounded-lg border"
-                          data-testid={`img-captured-photo-${photo.id}`}
-                        />
-                      </div>
-                    )}
-                    
-                    {photo.description && (
-                      <div>
-                        <h4 className="font-medium text-sm mb-2">Description</h4>
-                        <p className="text-sm text-gray-700" data-testid={`text-description-${photo.id}`}>
-                          {photo.description}
-                        </p>
-                      </div>
-                    )}
-
-                    <div className="flex gap-2">
-                      <Button 
-                        size="sm"
-                        onClick={() => {
-                          setSelectedPhoto(photo);
-                          setViewFullDialogOpen(true);
-                        }}
-                        data-testid={`button-view-full-${photo.id}`}
-                      >
-                        <Maximize className="w-4 h-4 mr-1" />
-                        View Full
-                      </Button>
-                      {photo.imageData && (
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => {
-                            // Create a download link for the photo
-                            const link = document.createElement('a');
-                            link.href = photo.imageData;
-                            link.download = `captured_photo_patient_${photo.patientId}_${Date.now()}.jpg`;
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                            
-                            toast({
-                              title: "Download Started",
-                              description: `Downloading photo for Patient ${photo.patientId}`,
-                            });
-                          }}
-                          data-testid={`button-download-${photo.id}`}
-                        >
-                          <Download className="w-4 h-4 mr-1" />
-                          Download
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
         </TabsContent>
 
         <TabsContent value="coding" className="space-y-4">
@@ -2398,14 +2394,14 @@ export default function VoiceDocumentation() {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle>
-              {selectedPhoto?.fileName} - {selectedPhoto?.patientName}
+              {selectedPhoto?.filename} - {selectedPhoto?.patientName}
             </DialogTitle>
           </DialogHeader>
           {selectedPhoto && (
             <div className="space-y-4">
               <div className="flex justify-center">
                 <img 
-                  src={selectedPhoto.imageData} 
+                  src={selectedPhoto.url} 
                   alt={selectedPhoto.description}
                   className="max-w-full max-h-[70vh] object-contain rounded-lg"
                 />
@@ -2417,7 +2413,7 @@ export default function VoiceDocumentation() {
                 </div>
                 <div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">Type</div>
-                  <div className="font-medium text-gray-900 dark:text-gray-100 capitalize">{selectedPhoto.studyType.replace('_', ' ')}</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100 capitalize">{selectedPhoto.type.replace('_', ' ')}</div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">Date Taken</div>
@@ -2425,7 +2421,7 @@ export default function VoiceDocumentation() {
                 </div>
                 <div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">AI Analysis</div>
-                  <div className="font-medium text-gray-900 dark:text-gray-100">{selectedPhoto.aiAnalysis?.findings?.join(', ') || 'No findings available'}</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100">{selectedPhoto.aiAnalysis.findings.join(', ')}</div>
                 </div>
               </div>
               <div className="flex justify-end gap-2">
@@ -2434,8 +2430,8 @@ export default function VoiceDocumentation() {
                 </Button>
                 <Button onClick={() => {
                   const link = document.createElement('a');
-                  link.href = selectedPhoto.imageData;
-                  link.download = `${selectedPhoto.fileName}_full_res.jpg`;
+                  link.href = selectedPhoto.url;
+                  link.download = `${selectedPhoto.filename}_full_res.jpg`;
                   document.body.appendChild(link);
                   link.click();
                   document.body.removeChild(link);
@@ -2511,7 +2507,7 @@ export default function VoiceDocumentation() {
                 <Button onClick={() => {
                   toast({
                     title: "Annotations Saved",
-                    description: `Clinical annotations added to ${selectedPhoto.fileName}`,
+                    description: `Clinical annotations added to ${selectedPhoto.filename}`,
                   });
                   setAnnotateDialogOpen(false);
                 }}>
@@ -2529,14 +2525,14 @@ export default function VoiceDocumentation() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              Add Photo to Report - {selectedPhoto?.fileName}
+              Add Photo to Report - {selectedPhoto?.filename}
             </DialogTitle>
           </DialogHeader>
           {selectedPhoto && (
             <div className="space-y-4">
               <div className="flex gap-4">
                 <img 
-                  src={selectedPhoto.imageData} 
+                  src={selectedPhoto.url} 
                   alt={selectedPhoto.description}
                   className="w-24 h-24 object-cover rounded-lg"
                 />
@@ -2547,7 +2543,7 @@ export default function VoiceDocumentation() {
                   </div>
                   <div>
                     <div className="text-sm text-gray-500">Photo Type</div>
-                    <div className="font-medium capitalize">{selectedPhoto.studyType.replace('_', ' ')}</div>
+                    <div className="font-medium capitalize">{selectedPhoto.type.replace('_', ' ')}</div>
                   </div>
                 </div>
               </div>

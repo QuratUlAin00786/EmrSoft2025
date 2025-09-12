@@ -7,14 +7,6 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-function getTenantSubdomain(): string {
-  const hostname = window.location.hostname;
-  if (hostname === 'localhost' || hostname.includes('repl.co')) {
-    return 'demo';
-  }
-  return hostname.split('.')[0];
-}
-
 export async function apiRequest(
   method: string,
   url: string,
@@ -22,12 +14,10 @@ export async function apiRequest(
 ): Promise<Response> {
   const token = localStorage.getItem('auth_token');
   const headers: Record<string, string> = {
-    'X-Tenant-Subdomain': getTenantSubdomain()
+    'X-Tenant-Subdomain': 'demo'
   };
   
-  // Only set JSON content type for non-FormData
-  const isFormData = data instanceof FormData;
-  if (data && !isFormData) {
+  if (data) {
     headers['Content-Type'] = 'application/json';
   }
   
@@ -38,7 +28,7 @@ export async function apiRequest(
   const res = await fetch(url, {
     method,
     headers,
-    body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
+    body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
 
@@ -54,7 +44,7 @@ export const getQueryFn: <T>(options: {
   async ({ queryKey }) => {
     const token = localStorage.getItem('auth_token');
     const headers: Record<string, string> = {
-      'X-Tenant-Subdomain': getTenantSubdomain()
+      'X-Tenant-Subdomain': 'demo'
     };
 
     if (token) {
