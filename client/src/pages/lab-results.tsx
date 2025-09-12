@@ -417,6 +417,10 @@ Report generated from Cura EMR System`;
     setEditFormData({});
   };
 
+  const handleDeleteResult = (resultId: number) => {
+    deleteLabResultMutation.mutate(resultId);
+  };
+
   const handleGeneratePDF = async () => {
     if (!selectedResult) return;
     
@@ -1042,240 +1046,271 @@ Report generated from Cura EMR System`;
           setEditFormData({});
         }
       }}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{isEditMode ? 'Edit Lab Result' : 'Lab Result Details'}</DialogTitle>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <DialogTitle className="text-xl font-bold">
+                  {getPatientName(selectedResult?.patientId || 0)}
+                </DialogTitle>
+                {selectedResult && (
+                  <Badge 
+                    variant={
+                      selectedResult.status === 'completed' ? 'default' : 
+                      selectedResult.status === 'pending' ? 'secondary' : 
+                      selectedResult.status === 'processing' ? 'outline' : 'destructive'
+                    }
+                  >
+                    {selectedResult.status}
+                  </Badge>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm">
+                  <Eye className="w-4 h-4 mr-1" />
+                  View
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => selectedResult && handleGeneratePrescription(selectedResult)}>
+                  <FileText className="w-4 h-4 mr-1" />
+                  Generate Prescription
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => selectedResult && handleShareResult(selectedResult)}>
+                  <Eye className="w-4 h-4 mr-1" />
+                  Review
+                </Button>
+                <Button variant="destructive" size="sm" onClick={() => selectedResult && handleDeleteResult(selectedResult.id)}>
+                  <Trash2 className="w-4 h-4 mr-1" />
+                  Delete
+                </Button>
+              </div>
+            </div>
           </DialogHeader>
           {selectedResult && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium text-gray-600">Patient</Label>
-                  <p className="text-lg font-semibold">{getPatientName(selectedResult.patientId)}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-600">Patient ID</Label>
-                  <p className="text-lg">{selectedResult.patientId}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-600">Test Type</Label>
-                  {isEditMode ? (
-                    <Select 
-                      value={editFormData.testType || selectedResult.testType} 
-                      onValueChange={(value) => setEditFormData(prev => ({ ...prev, testType: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select test type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Complete Blood Count (CBC)">Complete Blood Count (CBC)</SelectItem>
-                        <SelectItem value="Basic Metabolic Panel">Basic Metabolic Panel</SelectItem>
-                        <SelectItem value="Comprehensive Metabolic Panel">Comprehensive Metabolic Panel</SelectItem>
-                        <SelectItem value="Lipid Panel">Lipid Panel</SelectItem>
-                        <SelectItem value="Liver Function Tests">Liver Function Tests</SelectItem>
-                        <SelectItem value="Thyroid Function Tests">Thyroid Function Tests</SelectItem>
-                        <SelectItem value="Hemoglobin A1C">Hemoglobin A1C</SelectItem>
-                        <SelectItem value="Urinalysis">Urinalysis</SelectItem>
-                        <SelectItem value="Vitamin D">Vitamin D</SelectItem>
-                        <SelectItem value="Iron Studies">Iron Studies</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <p className="text-lg">{selectedResult.testType}</p>
-                  )}
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-600">Status</Label>
-                  {isEditMode ? (
-                    <Select 
-                      value={editFormData.status || selectedResult.status} 
-                      onValueChange={(value) => setEditFormData(prev => ({ ...prev, status: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="processing">Processing</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <Badge 
-                      variant={
-                        selectedResult.status === 'completed' ? 'default' : 
-                        selectedResult.status === 'pending' ? 'secondary' : 
-                        selectedResult.status === 'processing' ? 'outline' : 'destructive'
-                      }
-                    >
-                      {selectedResult.status}
-                    </Badge>
-                  )}
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-600">Priority</Label>
-                  {isEditMode ? (
-                    <Select 
-                      value={editFormData.priority || selectedResult.priority} 
-                      onValueChange={(value) => setEditFormData(prev => ({ ...prev, priority: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select priority" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="routine">Routine</SelectItem>
-                        <SelectItem value="urgent">Urgent</SelectItem>
-                        <SelectItem value="stat">STAT</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <p className="text-lg capitalize">{selectedResult.priority}</p>
-                  )}
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-600">Doctor Name</Label>
-                  {isEditMode ? (
-                    <Input
-                      value={editFormData.doctorName || selectedResult.doctorName || ""}
-                      onChange={(e) => setEditFormData(prev => ({ ...prev, doctorName: e.target.value }))}
-                      placeholder="Enter doctor name"
-                    />
-                  ) : (
-                    <p className="text-lg">{selectedResult.doctorName || "Not specified"}</p>
-                  )}
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-600">Ordered By</Label>
-                  <p className="text-lg">{getUserName(selectedResult.orderedBy)}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-600">Ordered Date</Label>
-                  <p className="text-lg">{format(new Date(selectedResult.orderedAt), "PPP")}</p>
-                </div>
-                {selectedResult.collectedAt && (
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600">Collected Date</Label>
-                    <p className="text-lg">{format(new Date(selectedResult.collectedAt), "PPP")}</p>
-                  </div>
-                )}
-                {selectedResult.completedAt && (
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600">Completed Date</Label>
-                    <p className="text-lg">{format(new Date(selectedResult.completedAt), "PPP")}</p>
-                  </div>
-                )}
-                <div>
-                  <Label className="text-sm font-medium text-gray-600">Main Specialty</Label>
-                  {isEditMode ? (
-                    <Input
-                      value={editFormData.mainSpecialty || selectedResult.mainSpecialty || ""}
-                      onChange={(e) => setEditFormData(prev => ({ ...prev, mainSpecialty: e.target.value }))}
-                      placeholder="Enter main specialty"
-                    />
-                  ) : (
-                    <p className="text-lg">{selectedResult.mainSpecialty || "Not specified"}</p>
-                  )}
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-600">Sub Specialty</Label>
-                  {isEditMode ? (
-                    <Input
-                      value={editFormData.subSpecialty || selectedResult.subSpecialty || ""}
-                      onChange={(e) => setEditFormData(prev => ({ ...prev, subSpecialty: e.target.value }))}
-                      placeholder="Enter sub specialty"
-                    />
-                  ) : (
-                    <p className="text-lg">{selectedResult.subSpecialty || "Not specified"}</p>
-                  )}
-                </div>
-              </div>
-
-              {selectedResult.results && selectedResult.results.length > 0 && (
-                <div>
-                  <Label className="text-lg font-semibold mb-4 block">Test Results</Label>
+            <div className="grid grid-cols-2 gap-6 pt-4">
+              {/* Left Section - Test Details */}
+              <div className="space-y-4">
+                <div className="bg-gray-900 text-white p-4 rounded-lg">
                   <div className="space-y-3">
-                    {selectedResult.results.map((result: any, index: number) => (
-                      <div key={index} className="border rounded-lg p-4">
-                        <div className="flex justify-between items-center">
-                          <div className="flex-1">
-                            <p className="font-medium">{result.name}</p>
-                            <p className="text-sm text-gray-600">Reference Range: {result.referenceRange}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-lg font-semibold">{result.value} {result.unit}</p>
-                            <Badge 
-                              variant={
-                                result.status === 'normal' ? 'default' : 
-                                result.status === 'abnormal_high' || result.status === 'abnormal_low' ? 'secondary' : 
-                                'destructive'
-                              }
-                              className="ml-2"
-                            >
-                              {result.status.replace('_', ' ')}
-                            </Badge>
-                          </div>
-                        </div>
-                        {result.flag && (
-                          <p className="text-sm text-yellow-600 mt-2">⚠️ {result.flag}</p>
-                        )}
-                      </div>
-                    ))}
+                    <div>
+                      <p className="text-sm text-gray-300">Test:</p>
+                      {isEditMode ? (
+                        <Select 
+                          value={editFormData.testType || selectedResult.testType} 
+                          onValueChange={(value) => setEditFormData((prev: any) => ({ ...prev, testType: value }))}
+                        >
+                          <SelectTrigger className="bg-white text-black">
+                            <SelectValue placeholder="Select test type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Complete Blood Count (CBC)">Complete Blood Count (CBC)</SelectItem>
+                            <SelectItem value="Basic Metabolic Panel">Basic Metabolic Panel</SelectItem>
+                            <SelectItem value="Comprehensive Metabolic Panel">Comprehensive Metabolic Panel</SelectItem>
+                            <SelectItem value="Lipid Panel">Lipid Panel</SelectItem>
+                            <SelectItem value="Liver Function Tests">Liver Function Tests</SelectItem>
+                            <SelectItem value="Thyroid Function Tests">Thyroid Function Tests</SelectItem>
+                            <SelectItem value="Hemoglobin A1C">Hemoglobin A1C</SelectItem>
+                            <SelectItem value="Urinalysis">Urinalysis</SelectItem>
+                            <SelectItem value="Vitamin D">Vitamin D</SelectItem>
+                            <SelectItem value="Iron Studies">Iron Studies</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <p className="text-white font-medium">{selectedResult.testType}</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-300">Test ID:</p>
+                      <p className="text-white font-medium">{selectedResult.testId}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-300">Ordered:</p>
+                      <p className="text-white font-medium">{format(new Date(selectedResult.orderedAt), "MMM dd, yyyy HH:mm")}</p>
+                    </div>
                   </div>
                 </div>
-              )}
 
-              <div>
-                <Label className="text-sm font-medium text-gray-600">Clinical Notes</Label>
-                {isEditMode ? (
-                  <Textarea
-                    value={editFormData.notes !== undefined ? editFormData.notes : (selectedResult.notes || "")}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, notes: e.target.value }))}
-                    placeholder="Enter clinical notes or special instructions"
-                    rows={3}
-                  />
-                ) : (
-                  <p className="text-sm mt-1 p-3 bg-gray-50 rounded-md">{selectedResult.notes || "No notes"}</p>
+                {/* Notes Section */}
+                <div className="bg-gray-100 p-4 rounded-lg">
+                  <h3 className="font-semibold text-blue-600 mb-2">Notes</h3>
+                  {isEditMode ? (
+                    <Textarea
+                      value={editFormData.notes !== undefined ? editFormData.notes : (selectedResult.notes || "")}
+                      onChange={(e) => setEditFormData((prev: any) => ({ ...prev, notes: e.target.value }))}
+                      placeholder="Enter clinical notes or special instructions"
+                      rows={3}
+                      className="w-full"
+                    />
+                  ) : (
+                    <p className="text-sm">{selectedResult.notes || "No notes"}</p>
+                  )}
+                </div>
+
+                {/* Test Results */}
+                {selectedResult.results && selectedResult.results.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold mb-3">Test Results</h3>
+                    <div className="space-y-3">
+                      {selectedResult.results.map((result: any, index: number) => (
+                        <div key={index} className="border rounded-lg p-4">
+                          <div className="flex justify-between items-center">
+                            <div className="flex-1">
+                              <p className="font-medium">{result.name}</p>
+                              <p className="text-sm text-gray-600">Reference Range: {result.referenceRange}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-lg font-semibold">{result.value} {result.unit}</p>
+                              <Badge 
+                                variant={
+                                  result.status === 'normal' ? 'default' : 
+                                  result.status === 'abnormal_high' || result.status === 'abnormal_low' ? 'secondary' : 
+                                  'destructive'
+                                }
+                                className="ml-2"
+                              >
+                                {result.status.replace('_', ' ')}
+                              </Badge>
+                            </div>
+                          </div>
+                          {result.flag && (
+                            <p className="text-sm text-yellow-600 mt-2">⚠️ {result.flag}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
 
-              {selectedResult.criticalValues && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <p className="text-red-800 font-medium">⚠️ Critical Values Alert</p>
-                  <p className="text-red-600 text-sm">This result contains critical values that require immediate attention.</p>
-                </div>
-              )}
+              {/* Right Section - Doctor Information */}
+              <div className="bg-blue-50 p-6 rounded-lg h-fit">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-bold text-blue-900">
+                      {isEditMode && editFormData.doctorName ? editFormData.doctorName : (selectedResult.doctorName || "Dr. Usman Gardezi")}
+                    </h3>
+                    {isEditMode && (
+                      <Select 
+                        value={editFormData.doctorName || selectedResult.doctorName || ""} 
+                        onValueChange={(value) => setEditFormData((prev: any) => ({ ...prev, doctorName: value }))}
+                      >
+                        <SelectTrigger className="mt-2">
+                          <SelectValue placeholder="Select doctor" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Dr. Usman Gardezi">Dr. Usman Gardezi</SelectItem>
+                          <SelectItem value="Dr. John Smith">Dr. John Smith</SelectItem>
+                          <SelectItem value="Dr. Sarah Williams">Dr. Sarah Williams</SelectItem>
+                          <SelectItem value="Dr. Ali Raza">Dr. Ali Raza</SelectItem>
+                          <SelectItem value="Dr. Sarah Suleman">Dr. Sarah Suleman</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm font-medium text-blue-600">Main Specialization:</p>
+                    {isEditMode ? (
+                      <Select 
+                        value={editFormData.mainSpecialty || selectedResult.mainSpecialty || ""} 
+                        onValueChange={(value) => setEditFormData((prev: any) => ({ ...prev, mainSpecialty: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select main specialization" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Surgical Specialties">Surgical Specialties</SelectItem>
+                          <SelectItem value="Medical Specialties">Medical Specialties</SelectItem>
+                          <SelectItem value="Diagnostic Specialties">Diagnostic Specialties</SelectItem>
+                          <SelectItem value="Emergency Medicine">Emergency Medicine</SelectItem>
+                          <SelectItem value="Primary Care">Primary Care</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-blue-800 font-medium">{selectedResult.mainSpecialty || "Surgical Specialties"}</p>
+                    )}
+                  </div>
 
-              <div className="flex justify-end gap-2 pt-4">
-                {isEditMode ? (
-                  <>
-                    <Button variant="outline" onClick={handleCancelEdit}>
-                      Cancel
-                    </Button>
-                    <Button 
-                      onClick={handleSaveEdit}
-                      disabled={updateLabResultMutation.isPending}
-                      className="bg-medical-blue hover:bg-blue-700"
-                    >
-                      {updateLabResultMutation.isPending ? "Saving..." : "Save Changes"}
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button variant="outline" onClick={() => setShowViewDialog(false)}>
-                      Close
-                    </Button>
-                    <Button variant="outline" onClick={handleStartEdit}>
-                      Edit
-                    </Button>
-                    <Button onClick={() => handleDownloadResult(selectedResult.id)} className="bg-medical-blue hover:bg-blue-700">
-                      Download Report
-                    </Button>
-                  </>
-                )}
+                  <div>
+                    <p className="text-sm font-medium text-blue-600">Sub-Specialization:</p>
+                    {isEditMode ? (
+                      <Select 
+                        value={editFormData.subSpecialty || selectedResult.subSpecialty || ""} 
+                        onValueChange={(value) => setEditFormData((prev: any) => ({ ...prev, subSpecialty: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select sub-specialization" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Orthopedic Surgeon">Orthopedic Surgeon</SelectItem>
+                          <SelectItem value="Cardiovascular Surgeon">Cardiovascular Surgeon</SelectItem>
+                          <SelectItem value="Neurosurgeon">Neurosurgeon</SelectItem>
+                          <SelectItem value="General Surgeon">General Surgeon</SelectItem>
+                          <SelectItem value="Plastic Surgeon">Plastic Surgeon</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-blue-800 font-medium">{selectedResult.subSpecialty || "Orthopedic Surgeon"}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium text-blue-600">Priority:</p>
+                    {isEditMode ? (
+                      <Select 
+                        value={editFormData.priority || selectedResult.priority} 
+                        onValueChange={(value) => setEditFormData((prev: any) => ({ ...prev, priority: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select priority" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="routine">Routine</SelectItem>
+                          <SelectItem value="urgent">Urgent</SelectItem>
+                          <SelectItem value="stat">STAT</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-green-600 font-medium capitalize">{selectedResult.priority}</p>
+                    )}
+                  </div>
+
+                  {selectedResult.criticalValues && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-4">
+                      <p className="text-red-800 font-medium text-sm">⚠️ Critical Values Alert</p>
+                      <p className="text-red-600 text-xs">This result contains critical values that require immediate attention.</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-2 pt-6 border-t">
+            {isEditMode ? (
+              <>
+                <Button variant="outline" onClick={handleCancelEdit}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleSaveEdit}
+                  disabled={updateLabResultMutation.isPending}
+                  className="bg-medical-blue hover:bg-blue-700"
+                >
+                  {updateLabResultMutation.isPending ? "Saving..." : "Save Changes"}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="outline" onClick={() => setShowViewDialog(false)}>
+                  Close
+                </Button>
+                <Button variant="outline" onClick={handleStartEdit}>
+                  Edit
+                </Button>
+              </>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 
