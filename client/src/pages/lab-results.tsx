@@ -368,6 +368,7 @@ Report generated from Cura EMR System`;
     if (!selectedResult) return;
     
     try {
+      // Find the prescription content specifically
       const element = document.getElementById('prescription-print');
       if (!element) {
         toast({
@@ -378,7 +379,7 @@ Report generated from Cura EMR System`;
         return;
       }
 
-      // Check if element is visible
+      // Check if element is visible and has content
       const rect = element.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) {
         toast({
@@ -389,6 +390,9 @@ Report generated from Cura EMR System`;
         return;
       }
 
+      console.log('PDF Generation: Found element', element);
+      console.log('PDF Generation: Element content preview', element.innerHTML.substring(0, 200));
+
       // Show loading state
       toast({
         title: "Generating PDF",
@@ -396,6 +400,22 @@ Report generated from Cura EMR System`;
       });
 
       // Store original styles and temporarily remove constraints for full content capture
+      const dialogContent = element.closest('.max-h-\\[80vh\\]') || element.closest('[class*="max-h"]');
+      let originalDialogStyles = {};
+      
+      if (dialogContent) {
+        originalDialogStyles = {
+          maxHeight: dialogContent.style.maxHeight,
+          overflow: dialogContent.style.overflow,
+          height: dialogContent.style.height
+        };
+        
+        // Remove dialog height constraints
+        dialogContent.style.maxHeight = 'none';
+        dialogContent.style.overflow = 'visible';
+        dialogContent.style.height = 'auto';
+      }
+
       const originalStyles = {
         maxHeight: element.style.maxHeight,
         overflow: element.style.overflow,
@@ -407,8 +427,15 @@ Report generated from Cura EMR System`;
       element.style.overflow = 'visible';
       element.style.height = 'auto';
 
+      // Scroll to top of dialog to ensure we capture from the beginning
+      if (dialogContent) {
+        dialogContent.scrollTop = 0;
+      }
+
       // Wait for layout to update
-      await new Promise(resolve => requestAnimationFrame(resolve));
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      console.log('PDF Generation: About to capture canvas');
 
       // Create canvas from HTML element with high quality settings
       const canvas = await html2canvas(element, {
@@ -421,12 +448,27 @@ Report generated from Cura EMR System`;
         foreignObjectRendering: true,
         scrollX: 0,
         scrollY: 0,
+        ignoreElements: (element) => {
+          // Ignore toast notifications and other overlays
+          return element.classList.contains('sonner-toast') || 
+                 element.classList.contains('toast') ||
+                 element.getAttribute('role') === 'alert' ||
+                 element.classList.contains('alert');
+        }
       });
+
+      console.log('PDF Generation: Canvas created', canvas.width, 'x', canvas.height);
 
       // Restore original styles
       element.style.maxHeight = originalStyles.maxHeight;
       element.style.overflow = originalStyles.overflow;
       element.style.height = originalStyles.height;
+      
+      if (dialogContent && originalDialogStyles) {
+        dialogContent.style.maxHeight = originalDialogStyles.maxHeight;
+        dialogContent.style.overflow = originalDialogStyles.overflow;
+        dialogContent.style.height = originalDialogStyles.height;
+      }
 
       // Create PDF with proper margins
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -441,7 +483,6 @@ Report generated from Cura EMR System`;
       const imgHeight = (canvas.height * usableWidth) / canvas.width;
       
       let heightLeft = imgHeight;
-      let position = 0;
 
       // Add first page with margins
       pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
@@ -462,6 +503,7 @@ Report generated from Cura EMR System`;
         .replace(/^_+|_+$/g, '');
       const filename = `${baseFilename || 'prescription'}.pdf`;
       
+      console.log('PDF Generation: Saving as', filename);
       pdf.save(filename);
 
       toast({
