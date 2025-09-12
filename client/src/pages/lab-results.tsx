@@ -520,6 +520,220 @@ Report generated from Cura EMR System`;
     }
   };
 
+  const handlePrint = () => {
+    if (!selectedResult) return;
+    
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast({
+        title: "Error",
+        description: "Unable to open print window. Please allow popups and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Get the prescription content
+    const element = document.getElementById('prescription-print');
+    if (!element) {
+      toast({
+        title: "Error",
+        description: "Could not find prescription content to print",
+        variant: "destructive",
+      });
+      printWindow.close();
+      return;
+    }
+
+    // Create the print HTML with the same styling
+    const printHTML = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Lab Result Prescription - ${selectedResult.testId}</title>
+          <style>
+            body {
+              font-family: system-ui, -apple-system, sans-serif;
+              margin: 20px;
+              line-height: 1.5;
+              color: #333;
+            }
+            .prescription-content {
+              max-width: 800px;
+              margin: 0 auto;
+            }
+            .header {
+              text-align: center;
+              border-bottom: 2px solid #e5e7eb;
+              padding-bottom: 20px;
+              margin-bottom: 30px;
+            }
+            .clinic-name {
+              font-size: 24px;
+              font-weight: bold;
+              color: #1f2937;
+              margin-bottom: 8px;
+            }
+            .clinic-details {
+              font-size: 14px;
+              color: #6b7280;
+            }
+            .patient-info {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 30px;
+              margin-bottom: 30px;
+            }
+            .info-section {
+              background: #f9fafb;
+              padding: 20px;
+              border-radius: 8px;
+              border: 1px solid #e5e7eb;
+            }
+            .section-title {
+              font-size: 16px;
+              font-weight: 600;
+              color: #374151;
+              margin-bottom: 15px;
+              padding-bottom: 8px;
+              border-bottom: 1px solid #d1d5db;
+            }
+            .info-item {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 8px;
+              font-size: 14px;
+            }
+            .info-label {
+              font-weight: 500;
+              color: #6b7280;
+            }
+            .info-value {
+              color: #1f2937;
+            }
+            .test-results {
+              margin: 30px 0;
+            }
+            .result-item {
+              background: #f0f9ff;
+              border: 1px solid #bae6fd;
+              border-radius: 6px;
+              padding: 15px;
+              margin-bottom: 10px;
+            }
+            .result-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 8px;
+            }
+            .result-name {
+              font-weight: 600;
+              color: #1f2937;
+            }
+            .result-status {
+              padding: 4px 8px;
+              border-radius: 4px;
+              font-size: 12px;
+              font-weight: 500;
+            }
+            .status-normal {
+              background: #dcfce7;
+              color: #166534;
+            }
+            .status-abnormal {
+              background: #fee2e2;
+              color: #dc2626;
+            }
+            .result-details {
+              font-size: 14px;
+              color: #4b5563;
+            }
+            .notes {
+              background: #ffffff;
+              border: 1px solid #d1d5db;
+              border-radius: 8px;
+              padding: 20px;
+              margin: 20px 0;
+            }
+            .notes-title {
+              font-weight: 600;
+              color: #374151;
+              margin-bottom: 10px;
+            }
+            .critical-warning {
+              background: #fef2f2;
+              border: 1px solid #fecaca;
+              border-radius: 8px;
+              padding: 20px;
+              margin: 20px 0;
+              color: #dc2626;
+            }
+            .critical-header {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              font-weight: 600;
+              margin-bottom: 10px;
+            }
+            .footer {
+              border-top: 1px solid #e5e7eb;
+              padding-top: 20px;
+              margin-top: 30px;
+            }
+            .footer-info {
+              display: flex;
+              justify-content: space-between;
+              font-size: 12px;
+              color: #6b7280;
+              margin-bottom: 20px;
+            }
+            .signature {
+              text-align: center;
+            }
+            .signature-line {
+              border-top: 1px solid #d1d5db;
+              width: 250px;
+              margin: 0 auto 10px;
+            }
+            .doctor-name {
+              font-weight: 500;
+              font-size: 14px;
+            }
+            .doctor-specialty {
+              font-size: 12px;
+              color: #6b7280;
+            }
+            @media print {
+              body { margin: 0; }
+              .prescription-content { max-width: none; }
+            }
+          </style>
+        </head>
+        <body>
+          ${element.outerHTML}
+        </body>
+      </html>
+    `;
+
+    // Write the HTML to the print window
+    printWindow.document.write(printHTML);
+    printWindow.document.close();
+
+    // Wait for content to load, then print
+    printWindow.onload = () => {
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 500);
+    };
+
+    toast({
+      title: "Printing",
+      description: "Print dialog opened. Please select your printer and print options.",
+    });
+  };
 
   const handleFlagCritical = (resultId: string) => {
     const result = Array.isArray(labResults) ? labResults.find((r: any) => r.id === resultId) : null;
@@ -1701,13 +1915,23 @@ Report generated from Cura EMR System`;
             <Button variant="outline" onClick={() => setShowPrescriptionDialog(false)}>
               Close
             </Button>
-            <Button 
-              onClick={handleGeneratePDF}
-              className="bg-medical-blue hover:bg-blue-700"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Download PDF
-            </Button>
+            <div className="flex gap-3">
+              <Button 
+                variant="outline"
+                onClick={handlePrint}
+                className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+              >
+                <Printer className="h-4 w-4 mr-2" />
+                Print
+              </Button>
+              <Button 
+                onClick={handleGeneratePDF}
+                className="bg-medical-blue hover:bg-blue-700"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download PDF
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
