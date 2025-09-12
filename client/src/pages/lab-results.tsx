@@ -4,6 +4,8 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Header } from "@/components/layout/header";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 // Medical Specialties Data Structure
 const medicalSpecialties = {
@@ -362,8 +364,73 @@ Report generated from Cura EMR System`;
     setShowPrescriptionDialog(true);
   };
 
-  const handlePrintPrescription = () => {
-    window.print();
+  const handleGeneratePDF = async () => {
+    if (!selectedResult) return;
+    
+    try {
+      const element = document.getElementById('prescription-print');
+      if (!element) {
+        toast({
+          title: "Error",
+          description: "Could not find prescription content to convert",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Show loading state
+      toast({
+        title: "Generating PDF",
+        description: "Please wait while we create your prescription PDF...",
+      });
+
+      // Create canvas from HTML element
+      const canvas = await html2canvas(element, {
+        scale: 2, // Higher resolution
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        removeContainer: true,
+      });
+
+      // Create PDF
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      // Add first page
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // Add additional pages if content is longer than one page
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      // Download the PDF with testId as filename
+      const filename = `${selectedResult.testId}.pdf`;
+      pdf.save(filename);
+
+      toast({
+        title: "PDF Generated",
+        description: `Prescription PDF downloaded as ${filename}`,
+      });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
 
@@ -1396,11 +1463,11 @@ Report generated from Cura EMR System`;
               Close
             </Button>
             <Button 
-              onClick={handlePrintPrescription}
+              onClick={handleGeneratePDF}
               className="bg-medical-blue hover:bg-blue-700"
             >
-              <Printer className="h-4 w-4 mr-2" />
-              Print Prescription
+              <Download className="h-4 w-4 mr-2" />
+              Download PDF
             </Button>
           </div>
         </DialogContent>
