@@ -919,14 +919,14 @@ export default function VoiceDocumentation() {
                 Capture Photo
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Capture Clinical Photo</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium">Patient</label>
-                  <Select>
+                  <Select value={selectedPhotoPatient} onValueChange={setSelectedPhotoPatient}>
                     <SelectTrigger>
                       <SelectValue placeholder={patientsLoading ? "Loading patients..." : "Select patient"} />
                     </SelectTrigger>
@@ -955,7 +955,7 @@ export default function VoiceDocumentation() {
                 </div>
                 <div>
                   <label className="text-sm font-medium">Photo Type</label>
-                  <Select>
+                  <Select value={selectedPhotoType} onValueChange={setSelectedPhotoType}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
@@ -969,17 +969,110 @@ export default function VoiceDocumentation() {
                 </div>
                 <div>
                   <label className="text-sm font-medium">Description</label>
-                  <Textarea placeholder="Describe the clinical finding..." />
+                  <Textarea 
+                    value={photoDescription}
+                    onChange={(e) => setPhotoDescription(e.target.value)}
+                    placeholder="Describe the clinical finding..." 
+                  />
                 </div>
+
+                {/* Camera Preview or Captured Photo */}
+                <div className="space-y-3">
+                  {isCameraOpen && (
+                    <div className="relative">
+                      <video 
+                        ref={videoRef}
+                        autoPlay 
+                        playsInline 
+                        muted
+                        className="w-full h-64 bg-black rounded-lg object-cover"
+                      />
+                      <div className="absolute bottom-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-medium">
+                        LIVE
+                      </div>
+                    </div>
+                  )}
+
+                  {capturedPhoto && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Captured Photo</label>
+                      <img 
+                        src={capturedPhoto} 
+                        alt="Captured clinical photo" 
+                        className="w-full h-64 object-cover rounded-lg border"
+                      />
+                    </div>
+                  )}
+
+                  {/* Hidden canvas for photo capture */}
+                  <canvas ref={canvasRef} style={{ display: 'none' }} />
+                </div>
+
+                {/* Action Buttons */}
                 <div className="flex gap-2">
-                  <Button className="flex-1">
-                    <Camera className="w-4 h-4 mr-2" />
-                    Take Photo
-                  </Button>
-                  <Button variant="outline" className="flex-1">
-                    <Upload className="w-4 h-4 mr-2" />
-                    Upload
-                  </Button>
+                  {!isCameraOpen && !capturedPhoto && (
+                    <>
+                      <Button 
+                        className="flex-1"
+                        onClick={startCamera}
+                        data-testid="button-start-camera"
+                      >
+                        <Camera className="w-4 h-4 mr-2" />
+                        Start Camera
+                      </Button>
+                      <Button variant="outline" className="flex-1">
+                        <Upload className="w-4 h-4 mr-2" />
+                        Upload File
+                      </Button>
+                    </>
+                  )}
+
+                  {isCameraOpen && (
+                    <>
+                      <Button 
+                        className="flex-1"
+                        onClick={capturePhoto}
+                        data-testid="button-capture-photo"
+                      >
+                        <Camera className="w-4 h-4 mr-2" />
+                        Take Photo
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="flex-1"
+                        onClick={stopCamera}
+                        data-testid="button-stop-camera"
+                      >
+                        <X className="w-4 h-4 mr-2" />
+                        Cancel
+                      </Button>
+                    </>
+                  )}
+
+                  {capturedPhoto && (
+                    <>
+                      <Button 
+                        className="flex-1"
+                        onClick={savePhoto}
+                        disabled={!selectedPhotoPatient || !selectedPhotoType || !photoDescription}
+                        data-testid="button-save-photo"
+                      >
+                        <Save className="w-4 h-4 mr-2" />
+                        Save Photo
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="flex-1"
+                        onClick={() => {
+                          setCapturedPhoto(null);
+                        }}
+                        data-testid="button-retake-photo"
+                      >
+                        <RotateCcw className="w-4 h-4 mr-2" />
+                        Retake
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </DialogContent>
