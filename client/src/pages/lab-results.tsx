@@ -116,6 +116,17 @@ interface DatabaseLabResult {
   criticalValues: boolean;
   notes?: string;
   createdAt: string;
+  // Enhanced doctor details
+  doctorFirstName?: string;
+  doctorLastName?: string;
+  doctorEmail?: string;
+  doctorRole?: string;
+  doctorDepartment?: string;
+  doctorWorkingDays?: string[];
+  doctorWorkingHours?: {
+    start?: string;
+    end?: string;
+  };
 }
 
 // Database-driven lab results - no more mock data
@@ -231,7 +242,7 @@ export default function LabResultsPage() {
 
   const deleteLabResultMutation = useMutation({
     mutationFn: async (resultId: number) => {
-      return await apiRequest("DELETE", `/api/lab-results/${resultId}`);
+      return await apiRequest("DELETE", `/api/lab-results/${resultId.toString()}`);
     },
     onSuccess: () => {
       toast({
@@ -267,7 +278,7 @@ export default function LabResultsPage() {
       
       try {
         // Fetch prescriptions for this patient
-        const response = await apiRequest("GET", `/api/prescriptions/patient/${result.patientId}`);
+        const response = await apiRequest("GET", `/api/prescriptions/patient/${result.patientId.toString()}`);
         const prescriptions = await response.json();
         
         toast({
@@ -361,7 +372,8 @@ Report generated from Cura EMR System`;
 
   // Helper function to get user name from user ID  
   const getUserName = (userId: number) => {
-    const user = Array.isArray(users) ? users.find((u: any) => u.id === userId) : null;
+    const userData = Array.isArray(users) ? users : [];
+    const user = userData.find((u: any) => u.id === userId);
     return user ? `${user.firstName} ${user.lastName}` : `User #${userId}`;
   };
 
@@ -555,9 +567,42 @@ Report generated from Cura EMR System`;
                           <p className="text-sm text-gray-600">
                             <strong>Test ID:</strong> {result.testId}
                           </p>
-                          <p className="text-sm text-gray-600">
-                            <strong>Ordered by:</strong> {getUserName(result.orderedBy)}
-                          </p>
+                          
+                          {/* Enhanced Doctor Information Display */}
+                          <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
+                            <div className="flex items-center gap-2 mb-2">
+                              <User className="h-4 w-4 text-blue-600" />
+                              <span className="font-medium text-blue-800 dark:text-blue-300">
+                                Ordering Physician
+                              </span>
+                            </div>
+                            <div className="space-y-1 text-sm">
+                              <p className="font-medium text-gray-900 dark:text-gray-100">
+                                Dr. {result.doctorFirstName || 'Unknown'} {result.doctorLastName || 'Doctor'}
+                              </p>
+                              {result.doctorDepartment && (
+                                <p className="text-gray-600 dark:text-gray-400">
+                                  <strong>Department:</strong> {result.doctorDepartment}
+                                </p>
+                              )}
+                              {result.doctorEmail && (
+                                <p className="text-gray-600 dark:text-gray-400">
+                                  <strong>Email:</strong> {result.doctorEmail}
+                                </p>
+                              )}
+                              {result.doctorRole && (
+                                <p className="text-gray-600 dark:text-gray-400">
+                                  <strong>Role:</strong> {result.doctorRole}
+                                </p>
+                              )}
+                              {result.doctorWorkingHours?.start && result.doctorWorkingHours?.end && (
+                                <p className="text-gray-600 dark:text-gray-400">
+                                  <strong>Working Hours:</strong> {result.doctorWorkingHours.start} - {result.doctorWorkingHours.end}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          
                           <p className="text-sm text-gray-600">
                             <strong>Ordered:</strong> {format(new Date(result.orderedAt), 'MMM dd, yyyy HH:mm')}
                           </p>
@@ -572,7 +617,7 @@ Report generated from Cura EMR System`;
                           <div className="mt-4">
                             <h4 className="font-medium mb-2">Test Results:</h4>
                             <div className="space-y-2">
-                              {result.results.map((testResult, index) => (
+                              {result.results.map((testResult: any, index: number) => (
                                 <div key={index} className="p-3 rounded-lg border bg-blue-50 border-blue-200">
                                   <div className="flex items-center justify-between">
                                     <span className="font-medium">{testResult.name}</span>

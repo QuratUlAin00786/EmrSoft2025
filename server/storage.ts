@@ -3371,6 +3371,42 @@ export class DatabaseStorage implements IStorage {
       .limit(limit);
   }
 
+  // Enhanced method to get lab results with doctor details
+  async getLabResultsWithDoctorDetails(organizationId: number, limit: number = 50): Promise<any[]> {
+    const results = await db.select({
+      // Lab result fields
+      id: labResults.id,
+      organizationId: labResults.organizationId,
+      patientId: labResults.patientId,
+      testId: labResults.testId,
+      testType: labResults.testType,
+      orderedBy: labResults.orderedBy,
+      orderedAt: labResults.orderedAt,
+      collectedAt: labResults.collectedAt,
+      completedAt: labResults.completedAt,
+      status: labResults.status,
+      results: labResults.results,
+      criticalValues: labResults.criticalValues,
+      notes: labResults.notes,
+      createdAt: labResults.createdAt,
+      // Doctor details
+      doctorFirstName: users.firstName,
+      doctorLastName: users.lastName,
+      doctorEmail: users.email,
+      doctorRole: users.role,
+      doctorDepartment: users.department,
+      doctorWorkingDays: users.workingDays,
+      doctorWorkingHours: users.workingHours,
+    })
+    .from(labResults)
+    .leftJoin(users, eq(labResults.orderedBy, users.id))
+    .where(eq(labResults.organizationId, organizationId))
+    .orderBy(desc(labResults.createdAt))
+    .limit(limit);
+
+    return results;
+  }
+
   async getLabResultsByPatient(patientId: number, organizationId: number): Promise<LabResult[]> {
     return await db.select()
       .from(labResults)

@@ -2563,7 +2563,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "User not authenticated" });
       }
 
-      const labResults = await storage.getLabResults(req.tenant!.id);
+      const labResults = await storage.getLabResultsWithDoctorDetails(req.tenant!.id);
       res.json(labResults);
     } catch (error) {
       console.error("Error fetching lab results:", error);
