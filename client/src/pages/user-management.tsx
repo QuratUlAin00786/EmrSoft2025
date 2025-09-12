@@ -1175,6 +1175,22 @@ export default function UserManagement() {
                             Working: {user.workingDays.join(", ")} ({user.workingHours?.start || '09:00'} - {user.workingHours?.end || '17:00'})
                           </p>
                         )}
+                        
+                        {/* Medical Specialty Tags for Doctors */}
+                        {user.role === 'doctor' && (user.subSpecialty || user.medicalSpecialtyCategory) && (
+                          <div className="flex gap-1 mt-2">
+                            {user.subSpecialty && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border">
+                                {user.subSpecialty}
+                              </span>
+                            )}
+                            {user.medicalSpecialtyCategory && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border">
+                                {user.medicalSpecialtyCategory}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                     
