@@ -128,24 +128,28 @@ export default function VoiceDocumentation() {
   const { toast } = useToast();
 
   // Fetch voice notes
-  const { data: voiceNotes, isLoading: notesLoading } = useQuery({
+  const { data: voiceNotesData, isLoading: notesLoading } = useQuery({
     queryKey: ["/api/voice-documentation/notes", refreshTrigger]
   });
+  const voiceNotes = Array.isArray(voiceNotesData) ? voiceNotesData : [];
 
   // Fetch smart templates
-  const { data: templates, isLoading: templatesLoading } = useQuery({
+  const { data: templatesData, isLoading: templatesLoading } = useQuery({
     queryKey: ["/api/voice-documentation/templates"]
   });
+  const templates = Array.isArray(templatesData) ? templatesData : [];
 
   // Fetch clinical photos
-  const { data: photos, isLoading: photosLoading } = useQuery({
+  const { data: photosData, isLoading: photosLoading } = useQuery({
     queryKey: ["/api/voice-documentation/photos"]
   });
+  const photos = Array.isArray(photosData) ? photosData : [];
 
   // Fetch patients for dropdowns
-  const { data: patients, isLoading: patientsLoading } = useQuery({
+  const { data: patientsData, isLoading: patientsLoading } = useQuery({
     queryKey: ["/api/patients"]
   });
+  const patients = Array.isArray(patientsData) ? patientsData : [];
 
   // Create voice note mutation
   const createVoiceNoteMutation = useMutation({
@@ -231,12 +235,12 @@ export default function VoiceDocumentation() {
 
   // Upload photo mutation
   const uploadPhotoMutation = useMutation({
-    mutationFn: async (data: { photo: File; patientId: string; type: string; description: string }) => {
+    mutationFn: async (data: { photo: File; patientId: string; type: string; indication: string }) => {
       const formData = new FormData();
       formData.append('photo', data.photo);
       formData.append('patientId', data.patientId);
       formData.append('studyType', data.type);
-      formData.append('description', data.description);
+      formData.append('indication', data.indication);
 
       const response = await apiRequest('POST', '/api/voice-documentation/photos', formData);
       return response.json();
@@ -742,7 +746,7 @@ export default function VoiceDocumentation() {
         photo: file,
         patientId: selectedPhotoPatient,
         type: selectedPhotoType,
-        description: photoDescription
+        indication: photoDescription
       });
 
       // Reset form and stop camera after successful save
@@ -1949,19 +1953,19 @@ export default function VoiceDocumentation() {
                 <CardContent className="space-y-4">
                   <div>
                     <h4 className="font-medium text-sm mb-2">Description</h4>
-                    <p className="text-sm text-gray-700">{photo.description}</p>
+                    <p className="text-sm text-gray-700">{photo.indication || 'No description provided'}</p>
                   </div>
 
-                  {photo.aiAnalysis && (
+                  {photo.metadata?.aiAnalysis && (
                     <div>
                       <h4 className="font-medium text-sm mb-2">
-                        AI Analysis ({photo.aiAnalysis.confidence}% confidence)
+                        AI Analysis ({photo.metadata?.aiAnalysis?.confidence || 0}% confidence)
                       </h4>
                       <div className="space-y-2">
                         <div>
                           <strong className="text-xs">Findings:</strong>
                           <ul className="text-sm list-disc list-inside mt-1">
-                            {photo.aiAnalysis?.findings?.map((finding, idx) => (
+                            {photo.metadata?.aiAnalysis?.findings?.map((finding: any, idx: number) => (
                               <li key={idx}>{finding}</li>
                             )) || []}
                           </ul>
@@ -1969,7 +1973,7 @@ export default function VoiceDocumentation() {
                         <div>
                           <strong className="text-xs">Recommendations:</strong>
                           <ul className="text-sm list-disc list-inside mt-1">
-                            {photo.aiAnalysis?.recommendations?.map((rec, idx) => (
+                            {photo.metadata?.aiAnalysis?.recommendations?.map((rec: any, idx: number) => (
                               <li key={idx}>{rec}</li>
                             )) || []}
                           </ul>
@@ -2398,22 +2402,22 @@ export default function VoiceDocumentation() {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle>
-              {selectedPhoto?.fileName} - {selectedPhoto?.patientName}
+              {selectedPhoto?.fileName} - {selectedPhoto?.metadata?.patientName || 'Unknown Patient'}
             </DialogTitle>
           </DialogHeader>
           {selectedPhoto && (
             <div className="space-y-4">
               <div className="flex justify-center">
                 <img 
-                  src={selectedPhoto.imageData} 
-                  alt={selectedPhoto.description}
+                  src={selectedPhoto.imageData || ''} 
+                  alt={selectedPhoto.indication || 'Clinical photo'}
                   className="max-w-full max-h-[70vh] object-contain rounded-lg"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg">
                 <div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">Patient</div>
-                  <div className="font-medium text-gray-900 dark:text-gray-100">{selectedPhoto.patientName}</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100">{selectedPhoto.metadata?.patientName || 'Unknown Patient'}</div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">Type</div>
@@ -2421,11 +2425,11 @@ export default function VoiceDocumentation() {
                 </div>
                 <div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">Date Taken</div>
-                  <div className="font-medium text-gray-900 dark:text-gray-100">{selectedPhoto.dateTaken}</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100">{format(new Date(selectedPhoto.createdAt), 'MMM dd, yyyy')}</div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">AI Analysis</div>
-                  <div className="font-medium text-gray-900 dark:text-gray-100">{selectedPhoto.aiAnalysis?.findings?.join(', ') || 'No findings available'}</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100">{selectedPhoto.metadata?.aiAnalysis?.findings?.join(', ') || 'No findings available'}</div>
                 </div>
               </div>
               <div className="flex justify-end gap-2">
@@ -2458,7 +2462,7 @@ export default function VoiceDocumentation() {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              Annotate Photo - {selectedPhoto?.filename}
+              Annotate Photo - {selectedPhoto?.fileName}
             </DialogTitle>
           </DialogHeader>
           {selectedPhoto && (
@@ -2466,8 +2470,8 @@ export default function VoiceDocumentation() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <img 
-                    src={selectedPhoto.url} 
-                    alt={selectedPhoto.description}
+                    src={selectedPhoto.imageData || ''} 
+                    alt={selectedPhoto.indication || 'Clinical photo'}
                     className="w-full h-64 object-cover rounded-lg"
                   />
                 </div>
@@ -2576,7 +2580,7 @@ export default function VoiceDocumentation() {
                 </label>
                 <Textarea 
                   placeholder="Enter caption that will appear with the image in the report..."
-                  defaultValue={selectedPhoto.description}
+                  defaultValue={selectedPhoto.indication || ''}
                   className="min-h-[80px]"
                 />
               </div>
@@ -2604,7 +2608,7 @@ export default function VoiceDocumentation() {
                 <Button onClick={() => {
                   toast({
                     title: "Photo Added to Report",
-                    description: `${selectedPhoto.filename} has been added to the selected report`,
+                    description: `${selectedPhoto.fileName} has been added to the selected report`,
                   });
                   setAddToReportDialogOpen(false);
                 }}>
