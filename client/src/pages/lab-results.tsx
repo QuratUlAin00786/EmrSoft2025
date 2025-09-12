@@ -1311,7 +1311,7 @@ Report generated from Cura EMR System`;
                   <CardContent className="p-6">
                     {/* Header with patient name and status */}
                     <div className="flex items-center gap-3 mb-4">
-                      <h3 className="text-lg font-semibold">{getPatientName(result.patientId)}</h3>
+                      <h3 className="text-lg font-semibold text-gray-900">{getPatientName(result.patientId)}</h3>
                       <Badge className={getStatusColor(result.status)}>
                         {result.status}
                       </Badge>
@@ -1324,33 +1324,31 @@ Report generated from Cura EMR System`;
                     </div>
 
                     {/* Main content area */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                       {/* Left section - Test details */}
-                      <div className="space-y-4">
-                        <div>
-                          <p className="text-sm text-gray-600 mb-1">
-                            <strong>Test:</strong> {result.testType}
-                          </p>
-                          <p className="text-sm text-gray-600 mb-3">
-                            <strong>Test ID:</strong> {result.testId}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            <strong>Ordered:</strong> {format(new Date(result.orderedAt), 'MMM dd, yyyy HH:mm')}
-                          </p>
+                      <div className="lg:col-span-2 space-y-4">
+                        <div className="space-y-2">
+                          <div className="text-sm text-gray-600">
+                            <span className="font-medium">Ordered:</span> {format(new Date(result.orderedAt), 'MMM dd, yyyy HH:mm')}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            <span className="font-medium">Test:</span> {result.testType}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            <span className="font-medium">Test ID:</span> {result.testId}
+                          </div>
                           {result.completedAt && (
-                            <p className="text-sm text-gray-600">
-                              <strong>Completed:</strong> {format(new Date(result.completedAt), 'MMM dd, yyyy HH:mm')}
-                            </p>
+                            <div className="text-sm text-gray-600">
+                              <span className="font-medium">Completed:</span> {format(new Date(result.completedAt), 'MMM dd, yyyy HH:mm')}
+                            </div>
                           )}
                         </div>
                         
                         {/* Notes section */}
-                        {result.notes && (
-                          <div className="p-4 bg-white border border-gray-200 rounded-lg">
-                            <h4 className="font-semibold text-gray-800 mb-2">Notes</h4>
-                            <p className="text-sm text-gray-700">{result.notes}</p>
-                          </div>
-                        )}
+                        <div>
+                          <h4 className="font-semibold text-gray-800 mb-2">Notes</h4>
+                          <p className="text-sm text-gray-600">{result.notes || 'No notes'}</p>
+                        </div>
                       </div>
 
                       {/* Right section - Doctor information */}
@@ -1358,26 +1356,29 @@ Report generated from Cura EMR System`;
                         <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                           <div className="flex items-center gap-2 mb-3">
                             <User className="h-4 w-4 text-blue-600" />
-                            <h4 className="font-semibold text-gray-900">
+                            <h4 className="font-semibold text-blue-900">
                               {result.doctorName || 'Doctor'}
                             </h4>
                           </div>
                           
                           <div className="space-y-2">
                             {result.mainSpecialty && (
-                              <p className="text-sm text-blue-700">
-                                <strong>Main Specialization:</strong> {result.mainSpecialty}
-                              </p>
+                              <div className="text-sm">
+                                <span className="font-medium text-blue-800">Main Specialization:</span>
+                                <div className="text-blue-700">{result.mainSpecialty}</div>
+                              </div>
                             )}
                             {result.subSpecialty && (
-                              <p className="text-sm text-blue-700">
-                                <strong>Sub-Specialization:</strong> {result.subSpecialty}
-                              </p>
+                              <div className="text-sm">
+                                <span className="font-medium text-blue-800">Sub-Specialization:</span>
+                                <div className="text-blue-700">{result.subSpecialty}</div>
+                              </div>
                             )}
                             {result.priority && (
-                              <p className="text-sm text-green-700">
-                                <strong>Priority:</strong> {result.priority}
-                              </p>
+                              <div className="text-sm">
+                                <span className="font-medium text-blue-800">Priority:</span>
+                                <div className="text-blue-700">{result.priority}</div>
+                              </div>
                             )}
                           </div>
                         </div>
@@ -1390,11 +1391,11 @@ Report generated from Cura EMR System`;
                         <h4 className="font-medium mb-3">Test Results:</h4>
                         <div className="grid gap-3">
                           {result.results.map((testResult: any, index: number) => (
-                            <div key={index} className="p-3 rounded-lg border bg-blue-50 border-blue-200">
+                            <div key={index} className="p-3 rounded-lg border bg-gray-50 border-gray-200">
                               <div className="flex items-center justify-between">
                                 <span className="font-medium">{testResult.name}</span>
-                                <Badge className={getStatusColor(testResult.status)}>
-                                  {testResult.status}
+                                <Badge className={getResultStatusColor(testResult.status)}>
+                                  {testResult.status.replace('_', ' ').toUpperCase()}
                                 </Badge>
                               </div>
                               <div className="text-sm text-gray-600 mt-1">
@@ -1410,20 +1411,18 @@ Report generated from Cura EMR System`;
                     {/* Action buttons at bottom */}
                     <div className="flex gap-2 mt-6 pt-4 border-t border-gray-200">
                       <Button variant="outline" size="sm" onClick={() => handleViewResult(result)}>
-                        <Eye className="h-4 w-4 mr-1" />
+                        <Eye className="h-4 w-4 mr-2" />
                         Edit
                       </Button>
                       <Button 
-                        variant="outline" 
                         size="sm" 
                         onClick={() => handleGeneratePrescription(result)}
-                        className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                        className="bg-green-600 hover:bg-green-700 text-white"
                       >
-                        <FileText className="h-4 w-4 mr-1" />
+                        <FileText className="h-4 w-4 mr-2" />
                         Generate Prescription
                       </Button>
                       <Button 
-                        variant="outline" 
                         size="sm" 
                         onClick={async () => {
                           setSelectedResult(result);
@@ -1438,15 +1437,11 @@ Report generated from Cura EMR System`;
                         }}
                         className="bg-medical-blue hover:bg-blue-700 text-white"
                       >
-                        <Download className="h-4 w-4 mr-1" />
+                        <Download className="h-4 w-4 mr-2" />
                         Download PDF
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleDownloadResult(result.id)}>
-                        <Download className="h-4 w-4 mr-1" />
-                        Download
-                      </Button>
                       <Button variant="outline" size="sm" onClick={() => handleShareResult(result)}>
-                        <User className="h-4 w-4 mr-1" />
+                        <User className="h-4 w-4 mr-2" />
                         Review
                       </Button>
                       <Button 
@@ -1455,7 +1450,7 @@ Report generated from Cura EMR System`;
                         onClick={() => deleteLabResultMutation.mutate(result.id)}
                         disabled={deleteLabResultMutation.isPending}
                       >
-                        <Trash2 className="h-4 w-4 mr-1" />
+                        <Trash2 className="h-4 w-4 mr-2" />
                         Delete
                       </Button>
                     </div>
