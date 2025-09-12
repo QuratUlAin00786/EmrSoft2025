@@ -41,6 +41,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { MedicalImage } from "@shared/schema";
 
 interface VoiceNote {
   id: string;
@@ -319,6 +320,12 @@ export default function VoiceDocumentation() {
     }
   });
 
+  // Fetch medical images query
+  const { data: medicalImages = [], isLoading: isLoadingImages } = useQuery<MedicalImage[]>({
+    queryKey: ['/api/voice-documentation/photos'],
+    enabled: true,
+  });
+
   // Upload photo mutation
   const uploadPhotoMutation = useMutation({
     mutationFn: async (data: { photo: File; patientId: string; type: string; description: string }) => {
@@ -341,8 +348,22 @@ export default function VoiceDocumentation() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/photos"] });
-      toast({ title: "Photo uploaded and analyzed" });
+      toast({
+        title: "Photo uploaded successfully",
+        description: "The clinical photo has been saved to the patient record.",
+      });
+      // Reset form
+      setCapturedPhoto(null);
+      setSelectedPhotoPatient("");
+      setSelectedPhotoType("");
+      setPhotoDescription("");
+      stopCamera("photo-success");
+      
+      // Invalidate and refetch photos
+      queryClient.invalidateQueries({ queryKey: ['/api/voice-documentation/photos'] });
+      
+      // Switch to Captured Photos tab to show the saved photo
+      setActiveTab("captured-photos");
     }
   });
 
@@ -1255,10 +1276,11 @@ export default function VoiceDocumentation() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="voice">Voice Notes</TabsTrigger>
           <TabsTrigger value="templates">Smart Templates</TabsTrigger>
           <TabsTrigger value="photos">Clinical Photos</TabsTrigger>
+          <TabsTrigger value="captured-photos">Captured Photos</TabsTrigger>
           <TabsTrigger value="coding">Medical Coding</TabsTrigger>
         </TabsList>
 
@@ -2182,6 +2204,121 @@ export default function VoiceDocumentation() {
               </Card>
             ))}
           </div>
+        </TabsContent>
+
+        <TabsContent value="captured-photos" className="space-y-4">
+          {isLoadingImages ? (
+            <div className="flex items-center justify-center p-8">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                <p className="text-sm text-gray-500">Loading captured photos...</p>
+              </div>
+            </div>
+          ) : medicalImages.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Camera className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No captured photos yet</h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  Start capturing clinical photos using the camera feature. Your photos will appear here with patient details.
+                </p>
+                <Button 
+                  onClick={() => setActiveTab("voice")} 
+                  className="mt-2"
+                  data-testid="button-start-capturing"
+                >
+                  <Camera className="w-4 h-4 mr-2" />
+                  Start Capturing Photos
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4">
+              {medicalImages.map((photo) => (
+                <Card key={photo.id} data-testid={`card-captured-photo-${photo.id}`}>
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="text-lg" data-testid={`text-patient-name-${photo.id}`}>
+                          {photo.patientName || `Patient ID: ${photo.patientId}`}
+                        </CardTitle>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="outline" data-testid={`badge-photo-type-${photo.id}`}>
+                            {photo.type || 'clinical'}
+                          </Badge>
+                          <span className="text-sm text-gray-500" data-testid={`text-filename-${photo.id}`}>
+                            {photo.filename || 'captured_photo.jpg'}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-sm text-gray-500" data-testid={`text-timestamp-${photo.id}`}>
+                        {photo.createdAt ? format(new Date(photo.createdAt), 'MMM dd, HH:mm') : 'Recently'}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {photo.imageData && (
+                      <div className="flex justify-center">
+                        <img 
+                          src={photo.imageData} 
+                          alt={`Clinical photo for ${photo.patientName || 'patient'}`}
+                          className="max-w-full max-h-64 rounded-lg border"
+                          data-testid={`img-captured-photo-${photo.id}`}
+                        />
+                      </div>
+                    )}
+                    
+                    {photo.description && (
+                      <div>
+                        <h4 className="font-medium text-sm mb-2">Description</h4>
+                        <p className="text-sm text-gray-700" data-testid={`text-description-${photo.id}`}>
+                          {photo.description}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm"
+                        onClick={() => {
+                          setSelectedPhoto(photo);
+                          setViewFullDialogOpen(true);
+                        }}
+                        data-testid={`button-view-full-${photo.id}`}
+                      >
+                        <Maximize className="w-4 h-4 mr-1" />
+                        View Full
+                      </Button>
+                      {photo.imageData && (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => {
+                            // Create a download link for the photo
+                            const link = document.createElement('a');
+                            link.href = photo.imageData;
+                            link.download = `captured_photo_${photo.patientName?.replace(' ', '_') || photo.patientId}_${Date.now()}.jpg`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            
+                            toast({
+                              title: "Download Started",
+                              description: `Downloading photo for ${photo.patientName || `Patient ${photo.patientId}`}`,
+                            });
+                          }}
+                          data-testid={`button-download-${photo.id}`}
+                        >
+                          <Download className="w-4 h-4 mr-1" />
+                          Download
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="coding" className="space-y-4">
