@@ -627,6 +627,125 @@ export default function VoiceDocumentation() {
     });
   };
 
+  // Camera functions
+  const startCamera = async () => {
+    try {
+      console.log('Requesting camera access...');
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: 'environment' // Use back camera on mobile devices
+        } 
+      });
+      
+      console.log('Camera access granted');
+      streamRef.current = stream;
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+      
+      setIsCameraOpen(true);
+      toast({ title: "Camera started", description: "Position your camera to capture the image" });
+    } catch (error) {
+      console.error('Failed to access camera:', error);
+      toast({ 
+        title: "Camera access failed", 
+        description: "Please check camera permissions and try again",
+        variant: "destructive" 
+      });
+    }
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    
+    setIsCameraOpen(false);
+    setCapturedPhoto(null);
+    toast({ title: "Camera stopped" });
+  };
+
+  const capturePhoto = () => {
+    if (!videoRef.current || !canvasRef.current) {
+      toast({ title: "Camera not ready", variant: "destructive" });
+      return;
+    }
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+
+    if (!context) {
+      toast({ title: "Failed to capture photo", variant: "destructive" });
+      return;
+    }
+
+    // Set canvas dimensions to match video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    // Draw the video frame to canvas
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // Convert canvas to data URL
+    const photoDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+    setCapturedPhoto(photoDataUrl);
+    
+    // Stop camera after capture
+    stopCamera();
+    
+    toast({ title: "Photo captured!", description: "Review and save your clinical photo" });
+  };
+
+  const savePhoto = async () => {
+    if (!capturedPhoto || !selectedPhotoPatient || !selectedPhotoType || !photoDescription) {
+      toast({ 
+        title: "Missing information", 
+        description: "Please fill in all fields before saving",
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    try {
+      // Convert data URL to blob
+      const response = await fetch(capturedPhoto);
+      const blob = await response.blob();
+      
+      // Create a file from the blob
+      const file = new File([blob], `clinical_photo_${Date.now()}.jpg`, { type: 'image/jpeg' });
+
+      // Upload using the existing mutation
+      uploadPhotoMutation.mutate({
+        photo: file,
+        patientId: selectedPhotoPatient,
+        type: selectedPhotoType,
+        description: photoDescription
+      });
+
+      // Reset form
+      setCapturedPhoto(null);
+      setSelectedPhotoPatient("");
+      setSelectedPhotoType("");
+      setPhotoDescription("");
+      
+    } catch (error) {
+      toast({ 
+        title: "Failed to save photo", 
+        description: "Please try again",
+        variant: "destructive" 
+      });
+    }
+  };
+
   const playAudio = (note: any) => {
     if (currentlyPlayingId === note.id && isPlaying) {
       // Stop current playback
