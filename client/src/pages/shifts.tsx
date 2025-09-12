@@ -145,17 +145,20 @@ export default function ShiftsPage() {
     return days;
   }, [currentMonth]);
 
-  // Fetch medical staff
+  // Fetch all users and filter for staff roles
   const { data: staff = [], isLoading: staffLoading } = useQuery({
-    queryKey: ["/api/medical-staff"],
+    queryKey: ["/api/users"],
     queryFn: async () => {
       try {
-        const response = await apiRequest("GET", "/api/medical-staff");
+        const response = await apiRequest("GET", "/api/users");
         const data = await response.json();
 
-        return Array.isArray(data.staff) ? data.staff : [];
+        // Filter for staff roles only
+        return Array.isArray(data) ? data.filter((user: any) => 
+          ['doctor', 'nurse', 'sample_taker', 'lab_technician', 'admin', 'receptionist'].includes(user.role)
+        ) : [];
       } catch (error) {
-        console.error("Medical staff fetch error:", error);
+        console.error("Users fetch error:", error);
         throw error;
       }
     },
