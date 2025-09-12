@@ -91,7 +91,9 @@ import {
   TrendingUp,
   TrendingDown,
   Minus,
-  Trash2
+  Trash2,
+  FileText as Prescription,
+  Printer
 } from "lucide-react";
 
 interface DatabaseLabResult {
@@ -127,6 +129,7 @@ interface DatabaseLabResult {
     start?: string;
     end?: string;
   };
+  doctorPermissions?: any;
 }
 
 // Database-driven lab results - no more mock data
@@ -138,6 +141,7 @@ export default function LabResultsPage() {
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [showPrescriptionDialog, setShowPrescriptionDialog] = useState(false);
   const [selectedResult, setSelectedResult] = useState<DatabaseLabResult | null>(null);
   
   // Doctor specialty states for lab order
@@ -350,6 +354,37 @@ Report generated from Cura EMR System`;
   const handleShareResult = (result: DatabaseLabResult) => {
     setSelectedResult(result);
     setShowReviewDialog(true);
+  };
+
+  const handleGeneratePrescription = (result: DatabaseLabResult) => {
+    setSelectedResult(result);
+    setShowPrescriptionDialog(true);
+  };
+
+  const handlePrintPrescription = () => {
+    window.print();
+  };
+
+  // Get doctor specialization from department or permissions
+  const getDoctorSpecialization = (result: DatabaseLabResult) => {
+    if (result.doctorDepartment) {
+      // Map department to specialty format
+      const specialtyMapping: { [key: string]: string } = {
+        'Cardiology': 'Cardiologist',
+        'Cardialogy': 'Cardiologist', // Handle typo
+        'Neurology': 'Neurologist',
+        'Pediatrics': 'Pediatrician',
+        'Orthopedics': 'Orthopedic Surgeon',
+        'Dermatology': 'Dermatologist',
+        'Radiology': 'Radiologist',
+        'Pathology': 'Pathologist',
+        'Emergency': 'Emergency Medicine Specialist',
+        'Internal Medicine': 'Internal Medicine Specialist',
+        'Surgery': 'General Surgeon'
+      };
+      return specialtyMapping[result.doctorDepartment] || result.doctorDepartment;
+    }
+    return 'Medical Doctor';
   };
 
   const handleFlagCritical = (resultId: string) => {
@@ -572,12 +607,19 @@ Report generated from Cura EMR System`;
                           <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
                             <div className="flex items-center gap-2">
                               <User className="h-4 w-4 text-blue-600" />
-                              <p className="font-medium text-gray-900 dark:text-gray-100">
-                                Dr. {result.doctorFirstName || 'Unknown'} {result.doctorLastName || 'Doctor'}
-                                {result.doctorDepartment && (
-                                  <span className="text-blue-700 dark:text-blue-300"> — {result.doctorDepartment}</span>
+                              <div>
+                                <p className="font-medium text-gray-900 dark:text-gray-100">
+                                  Dr. {result.doctorFirstName || 'Unknown'} {result.doctorLastName || 'Doctor'}
+                                  {result.doctorDepartment && (
+                                    <span className="text-blue-700 dark:text-blue-300"> — {getDoctorSpecialization(result)}</span>
+                                  )}
+                                </p>
+                                {result.doctorRole && (
+                                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                    Role: {result.doctorRole} {result.doctorDepartment && `• Department: ${result.doctorDepartment}`}
+                                  </p>
                                 )}
-                              </p>
+                              </div>
                             </div>
                           </div>
                           
@@ -625,6 +667,15 @@ Report generated from Cura EMR System`;
                         <Button variant="outline" size="sm" onClick={() => handleViewResult(result)}>
                           <Eye className="h-4 w-4 mr-1" />
                           View
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleGeneratePrescription(result)}
+                          className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                        >
+                          <Prescription className="h-4 w-4 mr-1" />
+                          Generate Prescription
                         </Button>
                         <Button variant="outline" size="sm" onClick={() => handleDownloadResult(result.id)}>
                           <Download className="h-4 w-4 mr-1" />
@@ -1207,6 +1258,158 @@ Report generated from Cura EMR System`;
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Lab Result Prescription Dialog */}
+      <Dialog open={showPrescriptionDialog} onOpenChange={setShowPrescriptionDialog}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader className="border-b pb-4">
+            <DialogTitle className="text-xl font-bold">Lab Result Prescription</DialogTitle>
+          </DialogHeader>
+          
+          {selectedResult && (
+            <div className="prescription-content space-y-6 py-4" id="prescription-print">
+              {/* Header */}
+              <div className="text-center border-b pb-4">
+                <h1 className="text-2xl font-bold text-medical-blue">CURA EMR SYSTEM</h1>
+                <p className="text-sm text-gray-600">Laboratory Test Prescription</p>
+              </div>
+
+              {/* Doctor and Patient Information */}
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-gray-800 border-b">Physician Information</h3>
+                  <div className="space-y-1 text-sm">
+                    <p><strong>Name:</strong> Dr. {selectedResult.doctorFirstName || 'Unknown'} {selectedResult.doctorLastName || 'Doctor'}</p>
+                    <p><strong>Specialization:</strong> {getDoctorSpecialization(selectedResult)}</p>
+                    {selectedResult.doctorDepartment && (
+                      <p><strong>Department:</strong> {selectedResult.doctorDepartment}</p>
+                    )}
+                    {selectedResult.doctorRole && (
+                      <p><strong>Role:</strong> {selectedResult.doctorRole}</p>
+                    )}
+                    {selectedResult.doctorEmail && (
+                      <p><strong>Contact:</strong> {selectedResult.doctorEmail}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-gray-800 border-b">Patient Information</h3>
+                  <div className="space-y-1 text-sm">
+                    <p><strong>Name:</strong> {getPatientName(selectedResult.patientId)}</p>
+                    <p><strong>Patient ID:</strong> {selectedResult.patientId}</p>
+                    <p><strong>Date:</strong> {format(new Date(), 'MMM dd, yyyy')}</p>
+                    <p><strong>Time:</strong> {format(new Date(), 'HH:mm')}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Prescription Details */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-gray-800 text-lg border-b pb-2">℞ Laboratory Test Prescription</h3>
+                
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Test ID:</p>
+                      <p className="font-mono text-blue-800">{selectedResult.testId}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Test Type:</p>
+                      <p className="font-semibold text-blue-800">{selectedResult.testType}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Ordered Date:</p>
+                      <p>{format(new Date(selectedResult.orderedAt), 'MMM dd, yyyy HH:mm')}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Status:</p>
+                      <Badge className={getStatusColor(selectedResult.status)}>
+                        {selectedResult.status.toUpperCase()}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {selectedResult.results && selectedResult.results.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-sm font-medium text-gray-700 mb-3">Test Results:</p>
+                      <div className="space-y-2">
+                        {selectedResult.results.map((testResult: any, index: number) => (
+                          <div key={index} className="bg-white border rounded p-3">
+                            <div className="flex justify-between items-start mb-2">
+                              <span className="font-medium text-gray-900">{testResult.name}</span>
+                              <Badge className={getResultStatusColor(testResult.status)}>
+                                {testResult.status.replace('_', ' ').toUpperCase()}
+                              </Badge>
+                            </div>
+                            <div className="text-sm text-gray-700">
+                              <p><strong>Value:</strong> {testResult.value} {testResult.unit}</p>
+                              <p><strong>Reference Range:</strong> {testResult.referenceRange}</p>
+                              {testResult.flag && (
+                                <p><strong>Flag:</strong> {testResult.flag}</p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedResult.notes && (
+                    <div className="mt-4 pt-4 border-t">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Clinical Notes:</p>
+                      <p className="text-sm text-gray-800 bg-yellow-50 border-l-4 border-yellow-400 p-3">
+                        {selectedResult.notes}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {selectedResult.criticalValues && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
+                    <div className="flex items-center gap-2 text-red-800">
+                      <AlertTriangle className="h-5 w-5" />
+                      <span className="font-semibold">CRITICAL VALUES DETECTED</span>
+                    </div>
+                    <p className="text-sm text-red-700 mt-2">
+                      This lab result contains critical values that require immediate attention.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="border-t pt-4 mt-6">
+                <div className="flex justify-between items-center text-xs text-gray-500">
+                  <p>Generated by Cura EMR System</p>
+                  <p>Date: {format(new Date(), 'MMM dd, yyyy HH:mm')}</p>
+                </div>
+                <div className="mt-4 text-center">
+                  <div className="border-t border-gray-300 w-64 mx-auto mb-2"></div>
+                  <p className="text-sm font-medium">Dr. {selectedResult.doctorFirstName} {selectedResult.doctorLastName}</p>
+                  <p className="text-xs text-gray-600">{getDoctorSpecialization(selectedResult)}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-between items-center pt-4 border-t">
+            <Button variant="outline" onClick={() => setShowPrescriptionDialog(false)}>
+              Close
+            </Button>
+            <Button 
+              onClick={handlePrintPrescription}
+              className="bg-medical-blue hover:bg-blue-700"
+            >
+              <Printer className="h-4 w-4 mr-2" />
+              Print Prescription
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </>

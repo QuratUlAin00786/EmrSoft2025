@@ -3371,7 +3371,7 @@ export class DatabaseStorage implements IStorage {
       .limit(limit);
   }
 
-  // Enhanced method to get lab results with doctor details
+  // Enhanced method to get lab results with comprehensive doctor details
   async getLabResultsWithDoctorDetails(organizationId: number, limit: number = 50): Promise<any[]> {
     const results = await db.select({
       // Lab result fields
@@ -3389,7 +3389,7 @@ export class DatabaseStorage implements IStorage {
       criticalValues: labResults.criticalValues,
       notes: labResults.notes,
       createdAt: labResults.createdAt,
-      // Doctor details
+      // Comprehensive doctor details including specializations
       doctorFirstName: users.firstName,
       doctorLastName: users.lastName,
       doctorEmail: users.email,
@@ -3397,6 +3397,7 @@ export class DatabaseStorage implements IStorage {
       doctorDepartment: users.department,
       doctorWorkingDays: users.workingDays,
       doctorWorkingHours: users.workingHours,
+      doctorPermissions: users.permissions,
     })
     .from(labResults)
     .leftJoin(users, eq(labResults.orderedBy, users.id))
