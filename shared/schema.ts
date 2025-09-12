@@ -741,6 +741,10 @@ export const labResults = pgTable("lab_results", {
   testId: varchar("test_id", { length: 50 }).notNull(),
   testType: text("test_type").notNull(),
   orderedBy: integer("ordered_by").notNull().references(() => users.id),
+  doctorName: text("doctor_name"), // Store doctor name as entered
+  mainSpecialty: text("main_specialty"), // Store main specialization as entered
+  subSpecialty: text("sub_specialty"), // Store sub-specialization as entered
+  priority: varchar("priority", { length: 20 }).default("routine"), // routine, urgent, stat
   orderedAt: timestamp("ordered_at").notNull(),
   collectedAt: timestamp("collected_at"),
   completedAt: timestamp("completed_at"),

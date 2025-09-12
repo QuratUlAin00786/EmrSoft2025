@@ -103,6 +103,10 @@ interface DatabaseLabResult {
   testId: string;
   testType: string;
   orderedBy: number;
+  doctorName?: string;
+  mainSpecialty?: string;
+  subSpecialty?: string;
+  priority?: string;
   orderedAt: string;
   collectedAt?: string;
   completedAt?: string;
@@ -118,7 +122,7 @@ interface DatabaseLabResult {
   criticalValues: boolean;
   notes?: string;
   createdAt: string;
-  // Enhanced doctor details
+  // Enhanced doctor details (legacy fields)
   doctorFirstName?: string;
   doctorLastName?: string;
   doctorEmail?: string;
@@ -620,16 +624,23 @@ Report generated from Cura EMR System`;
                           <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
                             <div className="flex items-center gap-2">
                               <User className="h-4 w-4 text-blue-600" />
-                              <div>
+                              <div className="space-y-1">
                                 <p className="font-medium text-gray-900 dark:text-gray-100">
-                                  Dr. {result.doctorFirstName || 'Unknown'} {result.doctorLastName || 'Doctor'}
-                                  {result.doctorDepartment && (
-                                    <span className="text-blue-700 dark:text-blue-300"> — {getDoctorSpecialization(result)}</span>
-                                  )}
+                                  {result.doctorName || `Dr. ${result.doctorFirstName || 'Unknown'} ${result.doctorLastName || 'Doctor'}`}
                                 </p>
-                                {result.doctorRole && (
-                                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                    Role: {result.doctorRole} {result.doctorDepartment && `• Department: ${result.doctorDepartment}`}
+                                {result.mainSpecialty && (
+                                  <p className="text-xs text-blue-700 dark:text-blue-300">
+                                    <strong>Main Specialization:</strong> {result.mainSpecialty}
+                                  </p>
+                                )}
+                                {result.subSpecialty && (
+                                  <p className="text-xs text-blue-700 dark:text-blue-300">
+                                    <strong>Sub-Specialization:</strong> {result.subSpecialty}
+                                  </p>
+                                )}
+                                {result.priority && (
+                                  <p className="text-xs text-green-700 dark:text-green-300">
+                                    <strong>Priority:</strong> {result.priority}
                                   </p>
                                 )}
                               </div>
@@ -888,6 +899,7 @@ Report generated from Cura EMR System`;
                   createLabOrderMutation.mutate({
                     patientId: parseInt(orderFormData.patientId),
                     testType: orderFormData.testType,
+                    priority: orderFormData.priority,
                     notes: orderFormData.notes,
                     doctorId: orderFormData.doctorId ? parseInt(orderFormData.doctorId) : null,
                     doctorName: orderFormData.doctorName,
@@ -1294,13 +1306,15 @@ Report generated from Cura EMR System`;
                 <div className="space-y-3">
                   <h3 className="font-semibold text-gray-800 border-b">Physician Information</h3>
                   <div className="space-y-1 text-sm">
-                    <p><strong>Name:</strong> Dr. {selectedResult.doctorFirstName || 'Unknown'} {selectedResult.doctorLastName || 'Doctor'}</p>
-                    <p><strong>Specialization:</strong> {getDoctorSpecialization(selectedResult)}</p>
-                    {selectedResult.doctorDepartment && (
-                      <p><strong>Department:</strong> {selectedResult.doctorDepartment}</p>
+                    <p><strong>Name:</strong> {selectedResult.doctorName || `Dr. ${selectedResult.doctorFirstName || 'Unknown'} ${selectedResult.doctorLastName || 'Doctor'}`}</p>
+                    {selectedResult.mainSpecialty && (
+                      <p><strong>Main Specialization:</strong> {selectedResult.mainSpecialty}</p>
                     )}
-                    {selectedResult.doctorRole && (
-                      <p><strong>Role:</strong> {selectedResult.doctorRole}</p>
+                    {selectedResult.subSpecialty && (
+                      <p><strong>Sub-Specialization:</strong> {selectedResult.subSpecialty}</p>
+                    )}
+                    {selectedResult.priority && (
+                      <p><strong>Priority:</strong> {selectedResult.priority}</p>
                     )}
                     {selectedResult.doctorEmail && (
                       <p><strong>Contact:</strong> {selectedResult.doctorEmail}</p>

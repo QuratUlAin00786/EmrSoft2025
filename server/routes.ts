@@ -2597,6 +2597,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         testId: testId,
         testType: labData.testType,
         orderedBy: req.user.id,
+        doctorName: labData.doctorName || null,
+        mainSpecialty: labData.mainSpecialty || null,
+        subSpecialty: labData.subSpecialty || null,
+        priority: labData.priority || "routine",
         orderedAt: new Date(),
         status: "pending",
         notes: labData.notes || null
