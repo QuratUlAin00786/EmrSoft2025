@@ -1391,39 +1391,6 @@ Report generated from Cura EMR System`;
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="doctor">Select Doctor</Label>
-              <Select 
-                value={orderFormData.doctorId} 
-                onValueChange={(value) => {
-                  const selectedDoctor = doctors.find((d: any) => d.id.toString() === value);
-                  setOrderFormData(prev => ({ 
-                    ...prev, 
-                    doctorId: value,
-                    doctorName: selectedDoctor ? `Dr. ${selectedDoctor.firstName} ${selectedDoctor.lastName}` : ''
-                  }));
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a doctor" />
-                </SelectTrigger>
-                <SelectContent>
-                  {medicalStaffLoading ? (
-                    <SelectItem value="loading" disabled>Loading doctors...</SelectItem>
-                  ) : doctors.length > 0 ? (
-                    doctors.filter((doctor: any) => doctor.role !== 'admin').map((doctor: any) => (
-                      <SelectItem key={doctor.id} value={doctor.id.toString()}>
-                        Dr. {doctor.firstName} {doctor.lastName}
-                        {doctor.department && ` - ${doctor.department}`}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="none" disabled>No doctors available</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
               <Label htmlFor="mainSpecialty">Main Specialization</Label>
               <Select 
                 value={selectedSpecialtyCategory}
@@ -1431,7 +1398,7 @@ Report generated from Cura EMR System`;
                   setSelectedSpecialtyCategory(value);
                   setSelectedSubSpecialty("");
                   setSelectedSpecificArea("");
-                  setOrderFormData(prev => ({ ...prev, mainSpecialty: value, subSpecialty: "" }));
+                  setOrderFormData(prev => ({ ...prev, mainSpecialty: value, subSpecialty: "", doctorId: "", doctorName: "" }));
                 }}
               >
                 <SelectTrigger>
@@ -1455,7 +1422,7 @@ Report generated from Cura EMR System`;
                   onValueChange={(value) => {
                     setSelectedSubSpecialty(value);
                     setSelectedSpecificArea("");
-                    setOrderFormData(prev => ({ ...prev, subSpecialty: value }));
+                    setOrderFormData(prev => ({ ...prev, subSpecialty: value, doctorId: "", doctorName: "" }));
                   }}
                 >
                   <SelectTrigger>
@@ -1471,6 +1438,62 @@ Report generated from Cura EMR System`;
                 </Select>
               </div>
             )}
+
+            <div className="space-y-2">
+              <Label htmlFor="doctor">Select Doctor</Label>
+              <Select 
+                value={orderFormData.doctorId} 
+                onValueChange={(value) => {
+                  const selectedDoctor = doctors.find((d: any) => d.id.toString() === value);
+                  setOrderFormData(prev => ({ 
+                    ...prev, 
+                    doctorId: value,
+                    doctorName: selectedDoctor ? `Dr. ${selectedDoctor.firstName} ${selectedDoctor.lastName}` : ''
+                  }));
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a doctor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {medicalStaffLoading ? (
+                    <SelectItem value="loading" disabled>Loading doctors...</SelectItem>
+                  ) : (() => {
+                    // Filter doctors based on selected specializations
+                    let filteredDoctors = doctors.filter((doctor: any) => doctor.role !== 'admin');
+                    
+                    // Apply specialization filtering
+                    if (selectedSubSpecialty) {
+                      filteredDoctors = filteredDoctors.filter((doctor: any) => 
+                        doctor.department && doctor.department.toLowerCase().includes(selectedSubSpecialty.toLowerCase())
+                      );
+                    } else if (selectedSpecialtyCategory) {
+                      // If only main specialization is selected, filter by category keywords
+                      const categoryKeywords = selectedSpecialtyCategory.toLowerCase();
+                      filteredDoctors = filteredDoctors.filter((doctor: any) => 
+                        doctor.department && doctor.department.toLowerCase().includes(categoryKeywords.replace(/\s+/g, ''))
+                      );
+                    }
+                    
+                    return filteredDoctors.length > 0 ? (
+                      filteredDoctors.map((doctor: any) => (
+                        <SelectItem key={doctor.id} value={doctor.id.toString()}>
+                          Dr. {doctor.firstName} {doctor.lastName}
+                          {doctor.department && ` - ${doctor.department}`}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="none" disabled>
+                        {selectedSpecialtyCategory || selectedSubSpecialty 
+                          ? `No doctors available for ${selectedSubSpecialty || selectedSpecialtyCategory}` 
+                          : "No doctors available"
+                        }
+                      </SelectItem>
+                    );
+                  })()}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="testType">Test Type</Label>
               <Select value={orderFormData.testType} onValueChange={(value) => setOrderFormData(prev => ({ ...prev, testType: value }))}>
