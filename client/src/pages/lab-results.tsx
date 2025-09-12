@@ -718,97 +718,23 @@ Report generated from Cura EMR System`;
               filteredResults.map((result) => (
                 <Card key={result.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-3">
-                          <h3 className="text-lg font-semibold">{getPatientName(result.patientId)}</h3>
-                          <Badge className={getStatusColor(result.status)}>
-                            {result.status}
+                    {/* Header with patient name, status and action buttons */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <h3 className="text-lg font-semibold">{getPatientName(result.patientId)}</h3>
+                        <Badge className={getStatusColor(result.status)}>
+                          {result.status}
+                        </Badge>
+                        {result.criticalValues && (
+                          <Badge variant="destructive" className="flex items-center gap-1">
+                            <AlertTriangle className="h-3 w-3" />
+                            Critical
                           </Badge>
-                          {result.criticalValues && (
-                            <Badge variant="destructive" className="flex items-center gap-1">
-                              <AlertTriangle className="h-3 w-3" />
-                              Critical
-                            </Badge>
-                          )}
-                        </div>
-                        
-                        <div className="space-y-2 mb-4">
-                          <p className="text-sm text-gray-600">
-                            <strong>Test:</strong> {result.testType}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            <strong>Test ID:</strong> {result.testId}
-                          </p>
-                          
-                          {/* Doctor Information Display */}
-                          <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
-                            <div className="flex items-center gap-2">
-                              <User className="h-4 w-4 text-blue-600" />
-                              <div className="space-y-1">
-                                <p className="font-medium text-gray-900 dark:text-gray-100">
-                                  {result.doctorName || 'Doctor'}
-                                </p>
-                                {result.mainSpecialty && (
-                                  <p className="text-xs text-blue-700 dark:text-blue-300">
-                                    <strong>Main Specialization:</strong> {result.mainSpecialty}
-                                  </p>
-                                )}
-                                {result.subSpecialty && (
-                                  <p className="text-xs text-blue-700 dark:text-blue-300">
-                                    <strong>Sub-Specialization:</strong> {result.subSpecialty}
-                                  </p>
-                                )}
-                                {result.priority && (
-                                  <p className="text-xs text-green-700 dark:text-green-300">
-                                    <strong>Priority:</strong> {result.priority}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <p className="text-sm text-gray-600">
-                            <strong>Ordered:</strong> {format(new Date(result.orderedAt), 'MMM dd, yyyy HH:mm')}
-                          </p>
-                          {result.completedAt && (
-                            <p className="text-sm text-gray-600">
-                              <strong>Completed:</strong> {format(new Date(result.completedAt), 'MMM dd, yyyy HH:mm')}
-                            </p>
-                          )}
-                        </div>
-                        
-                        {result.results && result.results.length > 0 && (
-                          <div className="mt-4">
-                            <h4 className="font-medium mb-2">Test Results:</h4>
-                            <div className="space-y-2">
-                              {result.results.map((testResult: any, index: number) => (
-                                <div key={index} className="p-3 rounded-lg border bg-blue-50 border-blue-200">
-                                  <div className="flex items-center justify-between">
-                                    <span className="font-medium">{testResult.name}</span>
-                                    <Badge className={getStatusColor(testResult.status)}>
-                                      {testResult.status}
-                                    </Badge>
-                                  </div>
-                                  <div className="text-sm text-gray-600 mt-1">
-                                    <span className="font-medium">{testResult.value} {testResult.unit}</span>
-                                    <span className="ml-2">Ref: {testResult.referenceRange}</span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        
-                        {result.notes && (
-                          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                            <h4 className="font-medium text-blue-800 mb-1">Notes</h4>
-                            <p className="text-sm text-blue-700">{result.notes}</p>
-                          </div>
                         )}
                       </div>
                       
-                      <div className="flex gap-2 ml-4">
+                      {/* Action buttons */}
+                      <div className="flex gap-2">
                         <Button variant="outline" size="sm" onClick={() => handleViewResult(result)}>
                           <Eye className="h-4 w-4 mr-1" />
                           View
@@ -819,7 +745,7 @@ Report generated from Cura EMR System`;
                           onClick={() => handleGeneratePrescription(result)}
                           className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
                         >
-                          <Prescription className="h-4 w-4 mr-1" />
+                          <FileText className="h-4 w-4 mr-1" />
                           Generate Prescription
                         </Button>
                         <Button variant="outline" size="sm" onClick={() => handleDownloadResult(result.id)}>
@@ -841,6 +767,90 @@ Report generated from Cura EMR System`;
                         </Button>
                       </div>
                     </div>
+
+                    {/* Main content area */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Left section - Test details */}
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm text-gray-600 mb-1">
+                            <strong>Test:</strong> {result.testType}
+                          </p>
+                          <p className="text-sm text-gray-600 mb-3">
+                            <strong>Test ID:</strong> {result.testId}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            <strong>Ordered:</strong> {format(new Date(result.orderedAt), 'MMM dd, yyyy HH:mm')}
+                          </p>
+                          {result.completedAt && (
+                            <p className="text-sm text-gray-600">
+                              <strong>Completed:</strong> {format(new Date(result.completedAt), 'MMM dd, yyyy HH:mm')}
+                            </p>
+                          )}
+                        </div>
+                        
+                        {/* Notes section */}
+                        {result.notes && (
+                          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <h4 className="font-semibold text-blue-800 mb-2">Notes</h4>
+                            <p className="text-sm text-blue-700">{result.notes}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Right section - Doctor information */}
+                      <div>
+                        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="flex items-center gap-2 mb-3">
+                            <User className="h-4 w-4 text-blue-600" />
+                            <h4 className="font-semibold text-gray-900">
+                              {result.doctorName || 'Doctor'}
+                            </h4>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            {result.mainSpecialty && (
+                              <p className="text-sm text-blue-700">
+                                <strong>Main Specialization:</strong> {result.mainSpecialty}
+                              </p>
+                            )}
+                            {result.subSpecialty && (
+                              <p className="text-sm text-blue-700">
+                                <strong>Sub-Specialization:</strong> {result.subSpecialty}
+                              </p>
+                            )}
+                            {result.priority && (
+                              <p className="text-sm text-green-700">
+                                <strong>Priority:</strong> {result.priority}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Test Results section (if available) */}
+                    {result.results && result.results.length > 0 && (
+                      <div className="mt-6">
+                        <h4 className="font-medium mb-3">Test Results:</h4>
+                        <div className="grid gap-3">
+                          {result.results.map((testResult: any, index: number) => (
+                            <div key={index} className="p-3 rounded-lg border bg-blue-50 border-blue-200">
+                              <div className="flex items-center justify-between">
+                                <span className="font-medium">{testResult.name}</span>
+                                <Badge className={getStatusColor(testResult.status)}>
+                                  {testResult.status}
+                                </Badge>
+                              </div>
+                              <div className="text-sm text-gray-600 mt-1">
+                                <span className="font-medium">{testResult.value} {testResult.unit}</span>
+                                <span className="ml-2">Ref: {testResult.referenceRange}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))
