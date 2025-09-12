@@ -632,121 +632,59 @@ export default function VoiceDocumentation() {
 
   // Camera functions
   const startCamera = async () => {
-    // Prevent multiple simultaneous camera starts
     if (isStartingCamera || isCameraOpen) {
       console.log('Camera already starting or open, skipping...');
       return;
     }
 
     setIsStartingCamera(true);
+    console.log('🎥 Starting camera access...');
     
     try {
-      console.log('Requesting camera access...');
-      
-      // Clean up any existing stream first
+      // Clean up any existing stream
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => {
-          track.stop();
-        });
+        streamRef.current.getTracks().forEach(track => track.stop());
         streamRef.current = null;
       }
-      
-      // Clear any pending timeouts
-      if (restartTimeoutRef.current) {
-        clearTimeout(restartTimeoutRef.current);
-        restartTimeoutRef.current = null;
-      }
 
-      // Request camera access
+      // Request camera access with simple config
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          width: { ideal: 1280, min: 640 },
-          height: { ideal: 720, min: 480 },
-          facingMode: 'user'
-        } 
+        video: { facingMode: 'user' }
       });
       
-      console.log('Camera access granted, setting up video...');
+      console.log('✅ Camera access granted, stream obtained');
       streamRef.current = stream;
       
-      if (videoRef.current) {
-        const video = videoRef.current;
-        
-        // Reset video element completely
-        video.srcObject = null;
-        video.onloadedmetadata = null;
-        video.oncanplay = null;
-        video.onpause = null;
-        video.onended = null;
-        video.onerror = null;
-        
-        // Set up video with proper attributes
-        video.srcObject = stream;
-        video.muted = true;
-        video.playsInline = true;
-        video.autoplay = true;
-        
-        // Wait for video to be ready and playing
-        let playStarted = false;
-        
-        const checkVideoPlaying = () => {
-          if (!playStarted && video.srcObject && !video.paused && !video.ended && video.readyState >= 2) {
-            playStarted = true;
-            console.log('Video is now playing successfully');
-            setIsCameraOpen(true);
-            toast({ 
-              title: "Camera started", 
-              description: "Position your camera to capture the image" 
-            });
-          }
-        };
-        
-        // Set up event handlers
-        video.onloadedmetadata = () => {
-          console.log('Video metadata loaded');
+      // Set state immediately to show video element
+      setIsCameraOpen(true);
+      
+      // Small delay to ensure React has rendered the video element
+      setTimeout(() => {
+        if (videoRef.current && streamRef.current) {
+          console.log('📹 Attaching stream to video element');
+          const video = videoRef.current;
+          
+          // Simple stream assignment
+          video.srcObject = streamRef.current;
+          video.muted = true;
+          video.playsInline = true;
+          video.autoplay = true;
+          
+          // Try to play the video
           video.play().then(() => {
-            console.log('Video play() successful');
-            setTimeout(checkVideoPlaying, 100);
-          }).catch(err => {
-            console.error('Video play() failed:', err);
-            setIsCameraOpen(false);
-          });
-        };
-        
-        video.oncanplay = () => {
-          console.log('Video can play');
-          if (video.paused) {
-            video.play().then(() => {
-              console.log('Video resumed from canplay');
-              setTimeout(checkVideoPlaying, 100);
-            }).catch(console.error);
-          } else {
-            setTimeout(checkVideoPlaying, 100);
-          }
-        };
-        
-        // Fallback: try to play immediately
-        setTimeout(() => {
-          if (!playStarted) {
-            video.play().then(() => {
-              console.log('Video started via fallback');
-              setTimeout(checkVideoPlaying, 100);
-            }).catch(console.error);
-          }
-        }, 500);
-        
-        // Final fallback after 2 seconds
-        setTimeout(() => {
-          if (!playStarted) {
-            console.log('Video setup completed via timeout');
-            setIsCameraOpen(true);
+            console.log('🎬 Video playing successfully');
             toast({ 
               title: "Camera started", 
-              description: "Position your camera to capture the image" 
+              description: "Position your camera and click Take Photo" 
             });
-          }
-        }, 2000);
-      }
+          }).catch(err => {
+            console.error('Video play error:', err);
+            // Video might still work even if play() fails in some browsers
+          });
+        } else {
+          console.error('❌ Video element or stream not available');
+        }
+      }, 100);
       
     } catch (error) {
       console.error('Failed to access camera:', error);
