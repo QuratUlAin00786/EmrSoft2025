@@ -754,8 +754,8 @@ export default function VoiceDocumentation() {
       return;
     }
 
-    // Check if camera is actually running
-    if (!isCameraOpen || video.paused || video.ended || !video.srcObject) {
+    // Check if camera is actually running - focus on video element state
+    if (!video.srcObject || video.paused || video.ended) {
       toast({ 
         title: "Camera not running", 
         description: "Please start the camera first",
