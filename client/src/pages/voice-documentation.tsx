@@ -152,6 +152,8 @@ export default function VoiceDocumentation() {
   const streamRef = useRef<MediaStream | null>(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
+  const [isStartingCamera, setIsStartingCamera] = useState(false);
+  const restartTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [selectedPhotoPatient, setSelectedPhotoPatient] = useState<string>("");
   const [selectedPhotoType, setSelectedPhotoType] = useState<string>("");
   const [photoDescription, setPhotoDescription] = useState<string>("");
@@ -629,8 +631,30 @@ export default function VoiceDocumentation() {
 
   // Camera functions
   const startCamera = async () => {
+    // Prevent multiple simultaneous camera starts
+    if (isStartingCamera) {
+      console.log('Camera start already in progress, skipping...');
+      return;
+    }
+
     try {
+      setIsStartingCamera(true);
       console.log('Requesting camera access...');
+      
+      // Clear any existing stream and timeouts first
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => {
+          track.onended = null; // Remove event handlers
+          track.stop();
+        });
+        streamRef.current = null;
+      }
+      
+      if (restartTimeoutRef.current) {
+        clearTimeout(restartTimeoutRef.current);
+        restartTimeoutRef.current = null;
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
           width: { ideal: 1280, min: 640 },
@@ -642,50 +666,25 @@ export default function VoiceDocumentation() {
       console.log('Camera access granted');
       streamRef.current = stream;
       
-      // Add stream ended handler to detect when camera stops
-      stream.getTracks().forEach(track => {
-        track.onended = () => {
-          console.log('Camera stream ended, attempting to restart...');
-          if (isCameraOpen) {
-            // Attempt to restart camera after a short delay
-            setTimeout(startCamera, 1000);
-          }
-        };
-      });
-      
       if (videoRef.current) {
         const video = videoRef.current;
+        
+        // Clear any existing event handlers
+        video.onloadedmetadata = null;
+        video.onpause = null;
+        video.onended = null;
+        video.onerror = null;
+        
         video.srcObject = stream;
         
-        // Enhanced video event handlers
+        // Set up fresh event handlers
         video.onloadedmetadata = () => {
           console.log('Video metadata loaded, starting playback...');
           video.play().then(() => {
             console.log('Video playback started successfully');
           }).catch(err => {
             console.error('Failed to start video playback:', err);
-            // Try to restart camera if play fails
-            setTimeout(startCamera, 500);
           });
-        };
-        
-        video.onpause = () => {
-          console.log('Video paused, attempting to resume...');
-          video.play().catch(console.error);
-        };
-        
-        video.onended = () => {
-          console.log('Video ended, restarting camera...');
-          if (isCameraOpen) {
-            setTimeout(startCamera, 500);
-          }
-        };
-        
-        video.onerror = (e) => {
-          console.error('Video error:', e);
-          if (isCameraOpen) {
-            setTimeout(startCamera, 1000);
-          }
         };
         
         // Immediate play attempt
@@ -701,21 +700,41 @@ export default function VoiceDocumentation() {
         description: "Please check camera permissions and try again",
         variant: "destructive" 
       });
+    } finally {
+      setIsStartingCamera(false);
     }
   };
 
   const stopCamera = () => {
+    console.log('Stopping camera...');
+    
+    // Clear any pending restart timeouts
+    if (restartTimeoutRef.current) {
+      clearTimeout(restartTimeoutRef.current);
+      restartTimeoutRef.current = null;
+    }
+    
+    // Clean up stream and remove all event handlers
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach(track => {
+        track.onended = null; // Remove event handlers to prevent restart conflicts
+        track.stop();
+      });
       streamRef.current = null;
     }
     
+    // Clean up video element
     if (videoRef.current) {
       videoRef.current.srcObject = null;
+      videoRef.current.onloadedmetadata = null;
+      videoRef.current.onpause = null;
+      videoRef.current.onended = null;
+      videoRef.current.onerror = null;
     }
     
     setIsCameraOpen(false);
     setCapturedPhoto(null);
+    setIsStartingCamera(false);
     toast({ title: "Camera stopped" });
   };
 
