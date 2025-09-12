@@ -132,6 +132,14 @@ interface DatabaseLabResult {
   doctorPermissions?: any;
 }
 
+interface User {
+  id: number;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  role?: string;
+}
+
 // Database-driven lab results - no more mock data
 
 export default function LabResultsPage() {
@@ -197,10 +205,11 @@ export default function LabResultsPage() {
   const doctors = medicalStaffData?.staff?.filter((staff: any) => staff.role === 'doctor') || [];
 
 
-  const { data: users = [] } = useQuery({
+  const { data: users = [] } = useQuery<User[]>({
     queryKey: ["/api/users"],
     queryFn: async () => {
-      return await apiRequest("GET", "/api/users");
+      const res = await apiRequest("GET", "/api/users");
+      return res.json();
     }
   });
 
@@ -275,8 +284,8 @@ export default function LabResultsPage() {
     console.log("showViewDialog set to true");
   };
 
-  const handleDownloadResult = async (resultId: string) => {
-    const result = Array.isArray(labResults) ? labResults.find((r: any) => r.id.toString() === resultId) : null;
+  const handleDownloadResult = async (resultId: number | string) => {
+    const result = Array.isArray(labResults) ? labResults.find((r: any) => r.id.toString() === resultId.toString()) : null;
     if (result) {
       const patientName = getPatientName(result.patientId);
       
@@ -401,15 +410,19 @@ Report generated from Cura EMR System`;
 
   // Helper function to get patient name from patient ID
   const getPatientName = (patientId: number) => {
-    const patient = Array.isArray(patients) ? patients.find((p: any) => p.id === patientId) : null;
-    return patient ? `${patient.firstName} ${patient.lastName}` : `Patient #${patientId}`;
+    const patient = Array.isArray(patients) && patients ? patients.find((p: any) => p?.id === patientId) : null;
+    return patient && patient.firstName && patient.lastName ? `${patient.firstName} ${patient.lastName}` : `Patient #${patientId}`;
   };
 
   // Helper function to get user name from user ID  
   const getUserName = (userId: number) => {
-    const userData = Array.isArray(users) ? users : [];
-    const user = userData.find((u: any) => u.id === userId);
-    return user ? `${user.firstName} ${user.lastName}` : `User #${userId}`;
+    if (!Array.isArray(users) || !users) return `User #${userId}`;
+    const user = users.find((u: any) => u && u.id === userId);
+    if (!user) return `User #${userId}`;
+    const firstName = user?.firstName ?? '';
+    const lastName = user?.lastName ?? '';
+    if (!firstName || !lastName) return `User #${userId}`;
+    return `${firstName} ${lastName}`;
   };
 
   const filteredResults = Array.isArray(labResults) ? labResults.filter((result: DatabaseLabResult) => {
@@ -1157,7 +1170,7 @@ Report generated from Cura EMR System`;
           {selectedResult && (
             <div className="space-y-4">
               <div className="text-sm text-gray-600">
-                Share results for <strong>{selectedResult.patientName}</strong>
+                Share results for <strong>{getPatientName(selectedResult.patientId)}</strong>
               </div>
 
               <div className="space-y-3">
@@ -1238,7 +1251,7 @@ Report generated from Cura EMR System`;
                     
                     toast({
                       title: "Results Shared",
-                      description: `Lab results sent to ${selectedResult.patientName} via ${method} (${contact})`,
+                      description: `Lab results sent to ${getPatientName(selectedResult.patientId)} via ${method} (${contact})`,
                     });
                     setShowShareDialog(false);
                     setShareFormData({
