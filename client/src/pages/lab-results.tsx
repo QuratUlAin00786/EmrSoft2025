@@ -1051,7 +1051,7 @@ Report generated from Cura EMR System`;
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <DialogTitle className="text-xl font-bold">
-                  {getPatientName(selectedResult?.patientId || 0)}
+                  Lab Result Details
                 </DialogTitle>
                 {selectedResult && (
                   <Badge 
