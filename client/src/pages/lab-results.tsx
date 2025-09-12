@@ -1035,10 +1035,16 @@ Report generated from Cura EMR System`;
       </Dialog>
 
       {/* View Lab Result Dialog */}
-      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+      <Dialog open={showViewDialog} onOpenChange={(open) => {
+        setShowViewDialog(open);
+        if (!open) {
+          setIsEditMode(false);
+          setEditFormData({});
+        }
+      }}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Lab Result Details</DialogTitle>
+            <DialogTitle>{isEditMode ? 'Edit Lab Result' : 'Lab Result Details'}</DialogTitle>
           </DialogHeader>
           {selectedResult && (
             <div className="space-y-6">
@@ -1053,19 +1059,91 @@ Report generated from Cura EMR System`;
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-gray-600">Test Type</Label>
-                  <p className="text-lg">{selectedResult.testType}</p>
+                  {isEditMode ? (
+                    <Select 
+                      value={editFormData.testType || selectedResult.testType} 
+                      onValueChange={(value) => setEditFormData(prev => ({ ...prev, testType: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select test type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Complete Blood Count (CBC)">Complete Blood Count (CBC)</SelectItem>
+                        <SelectItem value="Basic Metabolic Panel">Basic Metabolic Panel</SelectItem>
+                        <SelectItem value="Comprehensive Metabolic Panel">Comprehensive Metabolic Panel</SelectItem>
+                        <SelectItem value="Lipid Panel">Lipid Panel</SelectItem>
+                        <SelectItem value="Liver Function Tests">Liver Function Tests</SelectItem>
+                        <SelectItem value="Thyroid Function Tests">Thyroid Function Tests</SelectItem>
+                        <SelectItem value="Hemoglobin A1C">Hemoglobin A1C</SelectItem>
+                        <SelectItem value="Urinalysis">Urinalysis</SelectItem>
+                        <SelectItem value="Vitamin D">Vitamin D</SelectItem>
+                        <SelectItem value="Iron Studies">Iron Studies</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <p className="text-lg">{selectedResult.testType}</p>
+                  )}
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-gray-600">Status</Label>
-                  <Badge 
-                    variant={
-                      selectedResult.status === 'completed' ? 'default' : 
-                      selectedResult.status === 'pending' ? 'secondary' : 
-                      selectedResult.status === 'processing' ? 'outline' : 'destructive'
-                    }
-                  >
-                    {selectedResult.status}
-                  </Badge>
+                  {isEditMode ? (
+                    <Select 
+                      value={editFormData.status || selectedResult.status} 
+                      onValueChange={(value) => setEditFormData(prev => ({ ...prev, status: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="processing">Processing</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Badge 
+                      variant={
+                        selectedResult.status === 'completed' ? 'default' : 
+                        selectedResult.status === 'pending' ? 'secondary' : 
+                        selectedResult.status === 'processing' ? 'outline' : 'destructive'
+                      }
+                    >
+                      {selectedResult.status}
+                    </Badge>
+                  )}
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Priority</Label>
+                  {isEditMode ? (
+                    <Select 
+                      value={editFormData.priority || selectedResult.priority} 
+                      onValueChange={(value) => setEditFormData(prev => ({ ...prev, priority: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select priority" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="routine">Routine</SelectItem>
+                        <SelectItem value="urgent">Urgent</SelectItem>
+                        <SelectItem value="stat">STAT</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <p className="text-lg capitalize">{selectedResult.priority}</p>
+                  )}
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Doctor Name</Label>
+                  {isEditMode ? (
+                    <Input
+                      value={editFormData.doctorName || selectedResult.doctorName || ""}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, doctorName: e.target.value }))}
+                      placeholder="Enter doctor name"
+                    />
+                  ) : (
+                    <p className="text-lg">{selectedResult.doctorName || "Not specified"}</p>
+                  )}
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-gray-600">Ordered By</Label>
@@ -1087,6 +1165,30 @@ Report generated from Cura EMR System`;
                     <p className="text-lg">{format(new Date(selectedResult.completedAt), "PPP")}</p>
                   </div>
                 )}
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Main Specialty</Label>
+                  {isEditMode ? (
+                    <Input
+                      value={editFormData.mainSpecialty || selectedResult.mainSpecialty || ""}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, mainSpecialty: e.target.value }))}
+                      placeholder="Enter main specialty"
+                    />
+                  ) : (
+                    <p className="text-lg">{selectedResult.mainSpecialty || "Not specified"}</p>
+                  )}
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Sub Specialty</Label>
+                  {isEditMode ? (
+                    <Input
+                      value={editFormData.subSpecialty || selectedResult.subSpecialty || ""}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, subSpecialty: e.target.value }))}
+                      placeholder="Enter sub specialty"
+                    />
+                  ) : (
+                    <p className="text-lg">{selectedResult.subSpecialty || "Not specified"}</p>
+                  )}
+                </div>
               </div>
 
               {selectedResult.results && selectedResult.results.length > 0 && (
@@ -1123,12 +1225,19 @@ Report generated from Cura EMR System`;
                 </div>
               )}
 
-              {selectedResult.notes && (
-                <div>
-                  <Label className="text-sm font-medium text-gray-600">Clinical Notes</Label>
-                  <p className="text-sm mt-1 p-3 bg-gray-50 rounded-md">{selectedResult.notes}</p>
-                </div>
-              )}
+              <div>
+                <Label className="text-sm font-medium text-gray-600">Clinical Notes</Label>
+                {isEditMode ? (
+                  <Textarea
+                    value={editFormData.notes !== undefined ? editFormData.notes : (selectedResult.notes || "")}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, notes: e.target.value }))}
+                    placeholder="Enter clinical notes or special instructions"
+                    rows={3}
+                  />
+                ) : (
+                  <p className="text-sm mt-1 p-3 bg-gray-50 rounded-md">{selectedResult.notes || "No notes"}</p>
+                )}
+              </div>
 
               {selectedResult.criticalValues && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -1138,12 +1247,32 @@ Report generated from Cura EMR System`;
               )}
 
               <div className="flex justify-end gap-2 pt-4">
-                <Button variant="outline" onClick={() => setShowViewDialog(false)}>
-                  Close
-                </Button>
-                <Button onClick={() => handleDownloadResult(selectedResult.id)} className="bg-medical-blue hover:bg-blue-700">
-                  Download Report
-                </Button>
+                {isEditMode ? (
+                  <>
+                    <Button variant="outline" onClick={handleCancelEdit}>
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleSaveEdit}
+                      disabled={updateLabResultMutation.isPending}
+                      className="bg-medical-blue hover:bg-blue-700"
+                    >
+                      {updateLabResultMutation.isPending ? "Saving..." : "Save Changes"}
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="outline" onClick={() => setShowViewDialog(false)}>
+                      Close
+                    </Button>
+                    <Button variant="outline" onClick={handleStartEdit}>
+                      Edit
+                    </Button>
+                    <Button onClick={() => handleDownloadResult(selectedResult.id)} className="bg-medical-blue hover:bg-blue-700">
+                      Download Report
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           )}
