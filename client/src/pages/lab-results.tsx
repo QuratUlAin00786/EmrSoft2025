@@ -378,45 +378,90 @@ Report generated from Cura EMR System`;
         return;
       }
 
+      // Check if element is visible
+      const rect = element.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) {
+        toast({
+          title: "Error",
+          description: "Prescription content is not visible for PDF generation",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Show loading state
       toast({
         title: "Generating PDF",
         description: "Please wait while we create your prescription PDF...",
       });
 
-      // Create canvas from HTML element
+      // Store original styles and temporarily remove constraints for full content capture
+      const originalStyles = {
+        maxHeight: element.style.maxHeight,
+        overflow: element.style.overflow,
+        height: element.style.height
+      };
+
+      // Remove height constraints to capture full content
+      element.style.maxHeight = 'none';
+      element.style.overflow = 'visible';
+      element.style.height = 'auto';
+
+      // Wait for layout to update
+      await new Promise(resolve => requestAnimationFrame(resolve));
+
+      // Create canvas from HTML element with high quality settings
       const canvas = await html2canvas(element, {
-        scale: 2, // Higher resolution
+        scale: window.devicePixelRatio || 2, // Use device pixel ratio for sharp output
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
         removeContainer: true,
+        allowTaint: false,
+        foreignObjectRendering: true,
+        scrollX: 0,
+        scrollY: 0,
       });
 
-      // Create PDF
-      const imgData = canvas.toDataURL('image/png');
+      // Restore original styles
+      element.style.maxHeight = originalStyles.maxHeight;
+      element.style.overflow = originalStyles.overflow;
+      element.style.height = originalStyles.height;
+
+      // Create PDF with proper margins
       const pdf = new jsPDF('p', 'mm', 'a4');
-      
-      const imgWidth = 210; // A4 width in mm
+      const pageWidth = 210; // A4 width in mm
       const pageHeight = 297; // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const margin = 10; // 10mm margins
+      const usableWidth = pageWidth - (2 * margin);
+      const usableHeight = pageHeight - (2 * margin);
+      
+      const imgData = canvas.toDataURL('image/png');
+      const imgWidth = usableWidth;
+      const imgHeight = (canvas.height * usableWidth) / canvas.width;
+      
       let heightLeft = imgHeight;
       let position = 0;
 
-      // Add first page
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+      // Add first page with margins
+      pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
+      heightLeft -= usableHeight;
 
       // Add additional pages if content is longer than one page
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
+      while (heightLeft > 0) {
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+        const y = margin - (imgHeight - heightLeft);
+        pdf.addImage(imgData, 'PNG', margin, y, imgWidth, imgHeight);
+        heightLeft -= usableHeight;
       }
 
-      // Download the PDF with testId as filename
-      const filename = `${selectedResult.testId}.pdf`;
+      // Sanitize filename and add fallback
+      const baseFilename = (selectedResult.testId || 'prescription')
+        .replace(/[^a-z0-9-_.]/gi, '_')
+        .replace(/_{2,}/g, '_')
+        .replace(/^_+|_+$/g, '');
+      const filename = `${baseFilename || 'prescription'}.pdf`;
+      
       pdf.save(filename);
 
       toast({
