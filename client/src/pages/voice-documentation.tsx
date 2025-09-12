@@ -642,18 +642,50 @@ export default function VoiceDocumentation() {
       console.log('Camera access granted');
       streamRef.current = stream;
       
+      // Add stream ended handler to detect when camera stops
+      stream.getTracks().forEach(track => {
+        track.onended = () => {
+          console.log('Camera stream ended, attempting to restart...');
+          if (isCameraOpen) {
+            // Attempt to restart camera after a short delay
+            setTimeout(startCamera, 1000);
+          }
+        };
+      });
+      
       if (videoRef.current) {
         const video = videoRef.current;
         video.srcObject = stream;
         
-        // Force video to play and wait for it to actually start
+        // Enhanced video event handlers
         video.onloadedmetadata = () => {
           console.log('Video metadata loaded, starting playback...');
           video.play().then(() => {
             console.log('Video playback started successfully');
           }).catch(err => {
             console.error('Failed to start video playback:', err);
+            // Try to restart camera if play fails
+            setTimeout(startCamera, 500);
           });
+        };
+        
+        video.onpause = () => {
+          console.log('Video paused, attempting to resume...');
+          video.play().catch(console.error);
+        };
+        
+        video.onended = () => {
+          console.log('Video ended, restarting camera...');
+          if (isCameraOpen) {
+            setTimeout(startCamera, 500);
+          }
+        };
+        
+        video.onerror = (e) => {
+          console.error('Video error:', e);
+          if (isCameraOpen) {
+            setTimeout(startCamera, 1000);
+          }
         };
         
         // Immediate play attempt
@@ -702,13 +734,26 @@ export default function VoiceDocumentation() {
       return;
     }
 
+    // Check if video is actually playing
+    if (video.paused || video.ended || !video.srcObject) {
+      console.log('Video not playing, restarting camera...');
+      await startCamera();
+      // Wait a moment for camera to start
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
     // Small delay to let video stabilize
     await new Promise(resolve => setTimeout(resolve, 100));
 
     try {
-      // Use default dimensions if video dimensions aren't available yet
-      const width = video.videoWidth || 640;
-      const height = video.videoHeight || 480;
+      // Check video readiness again
+      if (!video.videoWidth || !video.videoHeight) {
+        throw new Error('Video dimensions not available');
+      }
+
+      // Use actual video dimensions
+      const width = video.videoWidth;
+      const height = video.videoHeight;
       
       // Set canvas dimensions
       canvas.width = width;
