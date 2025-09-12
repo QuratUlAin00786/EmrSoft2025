@@ -368,7 +368,7 @@ Report generated from Cura EMR System`;
     if (!selectedResult) return;
     
     try {
-      // Find the prescription content specifically
+      // Find the prescription content element
       const element = document.getElementById('prescription-print');
       if (!element) {
         toast({
@@ -379,137 +379,80 @@ Report generated from Cura EMR System`;
         return;
       }
 
-      // Check if element is visible and has content
-      const rect = element.getBoundingClientRect();
-      if (rect.width === 0 || rect.height === 0) {
-        toast({
-          title: "Error",
-          description: "Prescription content is not visible for PDF generation",
-          variant: "destructive",
-        });
-        return;
-      }
-
       console.log('PDF Generation: Found element', element);
-      console.log('PDF Generation: Element content preview', element.innerHTML.substring(0, 200));
 
-      // Show loading state
-      toast({
-        title: "Generating PDF",
-        description: "Please wait while we create your prescription PDF...",
-      });
+      // Show loading state (don't show immediately to avoid interfering with capture)
+      setTimeout(() => {
+        toast({
+          title: "Generating PDF",
+          description: "Please wait while we create your prescription PDF...",
+        });
+      }, 50);
 
-      // Store original styles and temporarily remove constraints for full content capture
-      const dialogContent = element.closest('.max-h-\\[80vh\\]') || element.closest('[class*="max-h"]');
-      let originalDialogStyles = {};
-      
-      if (dialogContent) {
-        originalDialogStyles = {
-          maxHeight: dialogContent.style.maxHeight,
-          overflow: dialogContent.style.overflow,
-          height: dialogContent.style.height
-        };
-        
-        // Remove dialog height constraints
-        dialogContent.style.maxHeight = 'none';
-        dialogContent.style.overflow = 'visible';
-        dialogContent.style.height = 'auto';
-      }
+      // Wait a moment for any layout changes
+      await new Promise(resolve => setTimeout(resolve, 200));
 
-      const originalStyles = {
-        maxHeight: element.style.maxHeight,
-        overflow: element.style.overflow,
-        height: element.style.height
-      };
+      console.log('PDF Generation: Starting canvas capture');
 
-      // Remove height constraints to capture full content
-      element.style.maxHeight = 'none';
-      element.style.overflow = 'visible';
-      element.style.height = 'auto';
-
-      // Scroll to top of dialog to ensure we capture from the beginning
-      if (dialogContent) {
-        dialogContent.scrollTop = 0;
-      }
-
-      // Wait for layout to update
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      console.log('PDF Generation: About to capture canvas');
-
-      // Create canvas from HTML element with high quality settings
+      // Create canvas from HTML element - simple approach
       const canvas = await html2canvas(element, {
-        scale: window.devicePixelRatio || 2, // Use device pixel ratio for sharp output
+        scale: 2, // Higher resolution for better quality
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
-        removeContainer: true,
-        allowTaint: false,
-        foreignObjectRendering: true,
-        scrollX: 0,
-        scrollY: 0,
-        ignoreElements: (element) => {
-          // Ignore toast notifications and other overlays
-          return element.classList.contains('sonner-toast') || 
-                 element.classList.contains('toast') ||
-                 element.getAttribute('role') === 'alert' ||
-                 element.classList.contains('alert');
-        }
+        width: element.scrollWidth,
+        height: element.scrollHeight
       });
 
       console.log('PDF Generation: Canvas created', canvas.width, 'x', canvas.height);
 
-      // Restore original styles
-      element.style.maxHeight = originalStyles.maxHeight;
-      element.style.overflow = originalStyles.overflow;
-      element.style.height = originalStyles.height;
-      
-      if (dialogContent && originalDialogStyles) {
-        dialogContent.style.maxHeight = originalDialogStyles.maxHeight;
-        dialogContent.style.overflow = originalDialogStyles.overflow;
-        dialogContent.style.height = originalDialogStyles.height;
-      }
-
-      // Create PDF with proper margins
+      // Create PDF
       const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgData = canvas.toDataURL('image/png');
+      
+      // A4 dimensions
       const pageWidth = 210; // A4 width in mm
       const pageHeight = 297; // A4 height in mm
       const margin = 10; // 10mm margins
+      
+      // Calculate dimensions to fit content with margins
       const usableWidth = pageWidth - (2 * margin);
       const usableHeight = pageHeight - (2 * margin);
       
-      const imgData = canvas.toDataURL('image/png');
+      // Scale image to fit width
       const imgWidth = usableWidth;
-      const imgHeight = (canvas.height * usableWidth) / canvas.width;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
+      // Add content to PDF
+      let yPosition = margin;
       let heightLeft = imgHeight;
 
-      // Add first page with margins
-      pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
+      // First page
+      pdf.addImage(imgData, 'PNG', margin, yPosition, imgWidth, Math.min(imgHeight, usableHeight));
       heightLeft -= usableHeight;
 
-      // Add additional pages if content is longer than one page
+      // Add additional pages if needed
       while (heightLeft > 0) {
         pdf.addPage();
-        const y = margin - (imgHeight - heightLeft);
-        pdf.addImage(imgData, 'PNG', margin, y, imgWidth, imgHeight);
+        yPosition = margin - (imgHeight - heightLeft);
+        pdf.addImage(imgData, 'PNG', margin, yPosition, imgWidth, imgHeight);
         heightLeft -= usableHeight;
       }
 
-      // Sanitize filename and add fallback
-      const baseFilename = (selectedResult.testId || 'prescription')
-        .replace(/[^a-z0-9-_.]/gi, '_')
-        .replace(/_{2,}/g, '_')
-        .replace(/^_+|_+$/g, '');
-      const filename = `${baseFilename || 'prescription'}.pdf`;
+      // Create filename from testId
+      const filename = `${selectedResult.testId}.pdf`;
       
       console.log('PDF Generation: Saving as', filename);
       pdf.save(filename);
 
-      toast({
-        title: "PDF Generated",
-        description: `Prescription PDF downloaded as ${filename}`,
-      });
+      // Success message
+      setTimeout(() => {
+        toast({
+          title: "PDF Generated",
+          description: `Prescription PDF downloaded as ${filename}`,
+        });
+      }, 100);
+
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast({
