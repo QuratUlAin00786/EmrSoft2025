@@ -754,19 +754,21 @@ export default function VoiceDocumentation() {
       return;
     }
 
-    // Check if video is actually playing
-    if (video.paused || video.ended || !video.srcObject) {
-      console.log('Video not playing, restarting camera...');
-      await startCamera();
-      // Wait a moment for camera to start
-      await new Promise(resolve => setTimeout(resolve, 1000));
+    // Check if camera is actually running
+    if (!isCameraOpen || video.paused || video.ended || !video.srcObject) {
+      toast({ 
+        title: "Camera not running", 
+        description: "Please start the camera first",
+        variant: "destructive" 
+      });
+      return;
     }
 
-    // Small delay to let video stabilize
+    // Small delay to ensure video frame is stable
     await new Promise(resolve => setTimeout(resolve, 100));
 
     try {
-      // Check video readiness again
+      // Check video readiness
       if (!video.videoWidth || !video.videoHeight) {
         throw new Error('Video dimensions not available');
       }
@@ -781,7 +783,7 @@ export default function VoiceDocumentation() {
 
       console.log('Capturing with dimensions:', width, 'x', height);
 
-      // Draw the video frame to canvas
+      // Draw the current video frame to canvas
       context.drawImage(video, 0, 0, width, height);
 
       // Convert canvas to data URL
@@ -791,20 +793,19 @@ export default function VoiceDocumentation() {
 
       setCapturedPhoto(photoDataUrl);
       
-      // Stop camera after capture
-      stopCamera();
+      // Keep camera running - don't stop it automatically
+      // User can choose to take another photo or stop manually
       
-      // Show success notification as requested
       toast({ 
-        title: "Photo Successfully Captured!", 
-        description: "Photo captured and camera stopped. Please review and save your clinical photo."
+        title: "Photo Captured!", 
+        description: "Review your photo and choose to save, retake, or cancel."
       });
 
     } catch (error) {
       console.error('Failed to capture photo:', error);
       toast({ 
         title: "Failed to capture photo", 
-        description: "Please try again or restart the camera",
+        description: "Please try again",
         variant: "destructive" 
       });
     }
@@ -836,11 +837,12 @@ export default function VoiceDocumentation() {
         description: photoDescription
       });
 
-      // Reset form
+      // Reset form and stop camera after successful save
       setCapturedPhoto(null);
       setSelectedPhotoPatient("");
       setSelectedPhotoType("");
       setPhotoDescription("");
+      stopCamera();
       
       // Switch to Clinical Photos tab to show the saved photo
       setActiveTab("photos");
@@ -1028,14 +1030,7 @@ export default function VoiceDocumentation() {
         <div className="flex gap-3">
           <Dialog>
             <DialogTrigger asChild>
-              <Button onClick={() => {
-                // Auto-start camera when dialog opens
-                setTimeout(() => {
-                  if (!isCameraOpen && !capturedPhoto) {
-                    startCamera();
-                  }
-                }, 300); // Small delay to let dialog open
-              }}>
+              <Button>
                 <Camera className="w-4 h-4 mr-2" />
                 Capture Photo
               </Button>
@@ -1097,46 +1092,52 @@ export default function VoiceDocumentation() {
                   />
                 </div>
 
-                {/* Camera Preview or Captured Photo */}
+                {/* Camera Preview and Captured Photo */}
                 <div className="space-y-3">
                   {isCameraOpen && (
-                    <div className="relative">
-                      <video 
-                        ref={videoRef}
-                        autoPlay={true}
-                        playsInline={true}
-                        muted={true}
-                        controls={false}
-                        width={640}
-                        height={480}
-                        className="w-full h-64 bg-black rounded-lg object-cover"
-                        style={{
-                          width: '100%',
-                          height: '16rem',
-                          backgroundColor: '#000000',
-                          objectFit: 'cover',
-                          borderRadius: '0.5rem',
-                          display: 'block'
-                        }}
-                        onLoadStart={() => console.log('Video load started')}
-                        onLoadedData={() => console.log('Video data loaded')}
-                        onPlay={() => console.log('Video started playing')}
-                        onError={(e) => console.error('Video error:', e)}
-                      />
-                      <div className="absolute bottom-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-medium">
-                        LIVE
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Camera Preview</label>
+                      <div className="relative">
+                        <video 
+                          ref={videoRef}
+                          autoPlay={true}
+                          playsInline={true}
+                          muted={true}
+                          controls={false}
+                          width={640}
+                          height={480}
+                          className="w-full h-64 bg-black rounded-lg object-cover"
+                          style={{
+                            width: '100%',
+                            height: '16rem',
+                            backgroundColor: '#000000',
+                            objectFit: 'cover',
+                            borderRadius: '0.5rem',
+                            display: 'block'
+                          }}
+                          onLoadStart={() => console.log('Video load started')}
+                          onLoadedData={() => console.log('Video data loaded')}
+                          onPlay={() => console.log('Video started playing')}
+                          onError={(e) => console.error('Video error:', e)}
+                        />
+                        <div className="absolute bottom-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-medium">
+                          LIVE
+                        </div>
                       </div>
                     </div>
                   )}
 
                   {capturedPhoto && (
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">Captured Photo</label>
+                      <label className="text-sm font-medium">Captured Photo Preview</label>
                       <img 
                         src={capturedPhoto} 
                         alt="Captured clinical photo" 
                         className="w-full h-64 object-cover rounded-lg border"
                       />
+                      <p className="text-xs text-gray-500 text-center">
+                        Review your photo and choose an action below
+                      </p>
                     </div>
                   )}
 
@@ -1148,19 +1149,22 @@ export default function VoiceDocumentation() {
                 <div className="flex gap-2">
                   {!isCameraOpen && !capturedPhoto && (
                     <>
-                      <div className="text-center p-4 bg-blue-50 rounded-lg">
-                        <Camera className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-                        <p className="text-sm text-blue-800 font-medium">Camera is starting...</p>
-                        <p className="text-xs text-blue-600 mt-1">Please allow camera access when prompted</p>
-                      </div>
-                      <Button variant="outline" className="flex-1" onClick={startCamera}>
+                      <Button 
+                        className="flex-1"
+                        onClick={startCamera}
+                        data-testid="button-start-camera"
+                      >
+                        <Camera className="w-4 h-4 mr-2" />
+                        Start Camera
+                      </Button>
+                      <Button variant="outline" className="flex-1">
                         <Upload className="w-4 h-4 mr-2" />
-                        Upload File Instead
+                        Upload File
                       </Button>
                     </>
                   )}
 
-                  {isCameraOpen && (
+                  {isCameraOpen && !capturedPhoto && (
                     <>
                       <Button 
                         className="flex-1"
@@ -1177,7 +1181,7 @@ export default function VoiceDocumentation() {
                         data-testid="button-stop-camera"
                       >
                         <X className="w-4 h-4 mr-2" />
-                        Cancel
+                        Stop Camera
                       </Button>
                     </>
                   )}
@@ -1198,11 +1202,24 @@ export default function VoiceDocumentation() {
                         className="flex-1"
                         onClick={() => {
                           setCapturedPhoto(null);
+                          // Keep camera running for another shot if it was running
                         }}
                         data-testid="button-retake-photo"
                       >
                         <RotateCcw className="w-4 h-4 mr-2" />
                         Retake
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="flex-1"
+                        onClick={() => {
+                          setCapturedPhoto(null);
+                          stopCamera();
+                        }}
+                        data-testid="button-cancel-photo"
+                      >
+                        <X className="w-4 h-4 mr-2" />
+                        Cancel
                       </Button>
                     </>
                   )}
