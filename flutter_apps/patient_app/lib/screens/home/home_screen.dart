@@ -7,6 +7,7 @@ import '../lab_results/lab_results_screen.dart';
 import '../prescriptions/prescriptions_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../profile/profile_screen.dart';
+import '../find_doctors/find_doctors_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -226,6 +227,19 @@ class DashboardScreen extends StatelessWidget {
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => const PrescriptionsScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _buildQuickActionCard(
+                  context,
+                  'Find Doctors',
+                  Icons.local_hospital,
+                  Colors.teal,
+                  () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const FindDoctorsScreen(),
                       ),
                     );
                   },
