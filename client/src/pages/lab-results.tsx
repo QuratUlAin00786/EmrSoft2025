@@ -366,27 +366,6 @@ Report generated from Cura EMR System`;
     window.print();
   };
 
-  // Get doctor specialization from department or permissions
-  const getDoctorSpecialization = (result: DatabaseLabResult) => {
-    if (result.doctorDepartment) {
-      // Map department to specialty format
-      const specialtyMapping: { [key: string]: string } = {
-        'Cardiology': 'Cardiologist',
-        'Cardialogy': 'Cardiologist', // Handle typo
-        'Neurology': 'Neurologist',
-        'Pediatrics': 'Pediatrician',
-        'Orthopedics': 'Orthopedic Surgeon',
-        'Dermatology': 'Dermatologist',
-        'Radiology': 'Radiologist',
-        'Pathology': 'Pathologist',
-        'Emergency': 'Emergency Medicine Specialist',
-        'Internal Medicine': 'Internal Medicine Specialist',
-        'Surgery': 'General Surgeon'
-      };
-      return specialtyMapping[result.doctorDepartment] || result.doctorDepartment;
-    }
-    return 'Medical Doctor';
-  };
 
   const handleFlagCritical = (resultId: string) => {
     const result = Array.isArray(labResults) ? labResults.find((r: any) => r.id === resultId) : null;
@@ -614,7 +593,7 @@ Report generated from Cura EMR System`;
                               <User className="h-4 w-4 text-blue-600" />
                               <div className="space-y-1">
                                 <p className="font-medium text-gray-900 dark:text-gray-100">
-                                  {result.doctorName || `Dr. ${result.doctorFirstName || 'Unknown'} ${result.doctorLastName || 'Doctor'}`}
+                                  {result.doctorName || 'Doctor'}
                                 </p>
                                 {result.mainSpecialty && (
                                   <p className="text-xs text-blue-700 dark:text-blue-300">
@@ -1294,7 +1273,7 @@ Report generated from Cura EMR System`;
                 <div className="space-y-3">
                   <h3 className="font-semibold text-gray-800 border-b">Physician Information</h3>
                   <div className="space-y-1 text-sm">
-                    <p><strong>Name:</strong> {selectedResult.doctorName || `Dr. ${selectedResult.doctorFirstName || 'Unknown'} ${selectedResult.doctorLastName || 'Doctor'}`}</p>
+                    <p><strong>Name:</strong> {selectedResult.doctorName || 'Doctor'}</p>
                     {selectedResult.mainSpecialty && (
                       <p><strong>Main Specialization:</strong> {selectedResult.mainSpecialty}</p>
                     )}
@@ -1303,9 +1282,6 @@ Report generated from Cura EMR System`;
                     )}
                     {selectedResult.priority && (
                       <p><strong>Priority:</strong> {selectedResult.priority}</p>
-                    )}
-                    {selectedResult.doctorEmail && (
-                      <p><strong>Contact:</strong> {selectedResult.doctorEmail}</p>
                     )}
                   </div>
                 </div>
@@ -1406,8 +1382,10 @@ Report generated from Cura EMR System`;
                 </div>
                 <div className="mt-4 text-center">
                   <div className="border-t border-gray-300 w-64 mx-auto mb-2"></div>
-                  <p className="text-sm font-medium">Dr. {selectedResult.doctorFirstName} {selectedResult.doctorLastName}</p>
-                  <p className="text-xs text-gray-600">{getDoctorSpecialization(selectedResult)}</p>
+                  <p className="text-sm font-medium">{selectedResult.doctorName || 'Doctor'}</p>
+                  {selectedResult.mainSpecialty && (
+                    <p className="text-xs text-gray-600">{selectedResult.mainSpecialty}</p>
+                  )}
                 </div>
               </div>
             </div>
