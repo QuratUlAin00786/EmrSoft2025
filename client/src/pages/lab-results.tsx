@@ -387,6 +387,36 @@ Report generated from Cura EMR System`;
     setShowPrescriptionDialog(true);
   };
 
+  const handleStartEdit = () => {
+    if (!selectedResult) return;
+    
+    // Initialize edit form data with current result data
+    setEditFormData({
+      testType: selectedResult.testType,
+      priority: selectedResult.priority,
+      notes: selectedResult.notes || "",
+      status: selectedResult.status,
+      doctorName: selectedResult.doctorName || "",
+      mainSpecialty: selectedResult.mainSpecialty || "",
+      subSpecialty: selectedResult.subSpecialty || ""
+    });
+    setIsEditMode(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (!selectedResult) return;
+    
+    updateLabResultMutation.mutate({
+      id: selectedResult.id,
+      data: editFormData
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditMode(false);
+    setEditFormData({});
+  };
+
   const handleGeneratePDF = async () => {
     if (!selectedResult) return;
     
