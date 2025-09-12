@@ -633,108 +633,124 @@ export default function VoiceDocumentation() {
   // Camera functions
   const startCamera = async () => {
     // Prevent multiple simultaneous camera starts
-    if (isStartingCamera) {
-      console.log('Camera start already in progress, skipping...');
+    if (isStartingCamera || isCameraOpen) {
+      console.log('Camera already starting or open, skipping...');
       return;
     }
 
+    setIsStartingCamera(true);
+    
     try {
-      setIsStartingCamera(true);
       console.log('Requesting camera access...');
       
-      // Clear any existing stream and timeouts first
+      // Clean up any existing stream first
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => {
-          track.onended = null; // Remove event handlers
           track.stop();
         });
         streamRef.current = null;
       }
       
+      // Clear any pending timeouts
       if (restartTimeoutRef.current) {
         clearTimeout(restartTimeoutRef.current);
         restartTimeoutRef.current = null;
       }
 
+      // Request camera access
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
           width: { ideal: 1280, min: 640 },
           height: { ideal: 720, min: 480 },
-          facingMode: 'user' // Use front camera which is more likely to work
+          facingMode: 'user'
         } 
       });
       
-      console.log('Camera access granted');
+      console.log('Camera access granted, setting up video...');
       streamRef.current = stream;
       
       if (videoRef.current) {
         const video = videoRef.current;
         
-        // Clear any existing event handlers
+        // Reset video element completely
+        video.srcObject = null;
         video.onloadedmetadata = null;
+        video.oncanplay = null;
         video.onpause = null;
         video.onended = null;
         video.onerror = null;
         
+        // Set up video with proper attributes
         video.srcObject = stream;
-        video.muted = true; // Ensure video is muted to prevent echo
+        video.muted = true;
+        video.playsInline = true;
+        video.autoplay = true;
         
-        // Use a Promise-based approach to ensure proper video setup
-        await new Promise<void>((resolve, reject) => {
-          const timeoutId = setTimeout(() => {
-            reject(new Error('Video setup timeout'));
-          }, 5000);
-          
-          const cleanup = () => {
-            clearTimeout(timeoutId);
-            video.onloadedmetadata = null;
-            video.oncanplay = null;
-          };
-          
-          video.onloadedmetadata = () => {
-            console.log('Video metadata loaded, starting playback...');
-            video.play().then(() => {
-              console.log('Video playback started successfully');
-              cleanup();
-              resolve();
-            }).catch(err => {
-              console.error('Failed to start video playback:', err);
-              cleanup();
-              reject(err);
+        // Wait for video to be ready and playing
+        let playStarted = false;
+        
+        const checkVideoPlaying = () => {
+          if (!playStarted && video.srcObject && !video.paused && !video.ended && video.readyState >= 2) {
+            playStarted = true;
+            console.log('Video is now playing successfully');
+            setIsCameraOpen(true);
+            toast({ 
+              title: "Camera started", 
+              description: "Position your camera to capture the image" 
             });
-          };
-          
-          video.oncanplay = () => {
-            console.log('Video can play, attempting play...');
-            if (video.paused) {
-              video.play().then(() => {
-                console.log('Video playback started via canplay');
-                cleanup();
-                resolve();
-              }).catch(err => {
-                console.error('Failed to start video playback via canplay:', err);
-                cleanup();
-                reject(err);
-              });
-            }
-          };
-          
-          // Immediate play attempt
+          }
+        };
+        
+        // Set up event handlers
+        video.onloadedmetadata = () => {
+          console.log('Video metadata loaded');
           video.play().then(() => {
-            console.log('Video playback started immediately');
-            cleanup();
-            resolve();
+            console.log('Video play() successful');
+            setTimeout(checkVideoPlaying, 100);
           }).catch(err => {
-            console.log('Immediate play failed, waiting for events...', err);
-            // Don't reject here, wait for events
+            console.error('Video play() failed:', err);
+            setIsCameraOpen(false);
           });
-        });
+        };
+        
+        video.oncanplay = () => {
+          console.log('Video can play');
+          if (video.paused) {
+            video.play().then(() => {
+              console.log('Video resumed from canplay');
+              setTimeout(checkVideoPlaying, 100);
+            }).catch(console.error);
+          } else {
+            setTimeout(checkVideoPlaying, 100);
+          }
+        };
+        
+        // Fallback: try to play immediately
+        setTimeout(() => {
+          if (!playStarted) {
+            video.play().then(() => {
+              console.log('Video started via fallback');
+              setTimeout(checkVideoPlaying, 100);
+            }).catch(console.error);
+          }
+        }, 500);
+        
+        // Final fallback after 2 seconds
+        setTimeout(() => {
+          if (!playStarted) {
+            console.log('Video setup completed via timeout');
+            setIsCameraOpen(true);
+            toast({ 
+              title: "Camera started", 
+              description: "Position your camera to capture the image" 
+            });
+          }
+        }, 2000);
       }
       
-      setIsCameraOpen(true);
-      toast({ title: "Camera started", description: "Position your camera to capture the image" });
     } catch (error) {
       console.error('Failed to access camera:', error);
+      setIsCameraOpen(false);
       toast({ 
         title: "Camera access failed", 
         description: "Please check camera permissions and try again",
@@ -745,19 +761,13 @@ export default function VoiceDocumentation() {
     }
   };
 
-  const stopCamera = () => {
-    console.log('Stopping camera...');
+  const stopCamera = (caller?: string) => {
+    console.log('Stopping camera...', caller ? `Called by: ${caller}` : 'Called from unknown location');
+    console.trace('stopCamera call stack');
     
-    // Clear any pending restart timeouts
-    if (restartTimeoutRef.current) {
-      clearTimeout(restartTimeoutRef.current);
-      restartTimeoutRef.current = null;
-    }
-    
-    // Clean up stream and remove all event handlers
+    // Clean up stream 
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => {
-        track.onended = null; // Remove event handlers to prevent restart conflicts
         track.stop();
       });
       streamRef.current = null;
@@ -767,9 +777,16 @@ export default function VoiceDocumentation() {
     if (videoRef.current) {
       videoRef.current.srcObject = null;
       videoRef.current.onloadedmetadata = null;
+      videoRef.current.oncanplay = null;
       videoRef.current.onpause = null;
       videoRef.current.onended = null;
       videoRef.current.onerror = null;
+    }
+    
+    // Clear any pending timeouts
+    if (restartTimeoutRef.current) {
+      clearTimeout(restartTimeoutRef.current);
+      restartTimeoutRef.current = null;
     }
     
     setIsCameraOpen(false);
@@ -907,7 +924,7 @@ export default function VoiceDocumentation() {
       setSelectedPhotoPatient("");
       setSelectedPhotoType("");
       setPhotoDescription("");
-      stopCamera();
+      stopCamera("error-cleanup");
       
       // Switch to Clinical Photos tab to show the saved photo
       setActiveTab("photos");
@@ -1242,7 +1259,7 @@ export default function VoiceDocumentation() {
                       <Button 
                         variant="outline" 
                         className="flex-1"
-                        onClick={stopCamera}
+                        onClick={() => stopCamera("stop-button")}
                         data-testid="button-stop-camera"
                       >
                         <X className="w-4 h-4 mr-2" />
@@ -1279,7 +1296,7 @@ export default function VoiceDocumentation() {
                         className="flex-1"
                         onClick={() => {
                           setCapturedPhoto(null);
-                          stopCamera();
+                          stopCamera("error-cleanup");
                         }}
                         data-testid="button-cancel-photo"
                       >
