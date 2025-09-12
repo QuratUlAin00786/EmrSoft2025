@@ -48,6 +48,8 @@ const userSchema = z.object({
   lastName: z.string().min(1, "Last name is required"),
   role: z.enum(["admin", "doctor", "nurse", "receptionist", "patient", "sample_taker", "lab_technician"]),
   department: z.string().optional(),
+  medicalSpecialtyCategory: z.string().optional(),
+  subSpecialty: z.string().optional(),
   workingDays: z.array(z.string()).optional(),
   workingHours: z.object({
     start: z.string(),
@@ -84,6 +86,8 @@ interface User {
   lastName: string;
   role: string;
   department?: string;
+  medicalSpecialtyCategory?: string;
+  subSpecialty?: string;
   workingDays?: string[];
   workingHours?: {
     start: string;
@@ -609,16 +613,33 @@ export default function UserManagement() {
   });
 
   const onSubmit = (data: UserFormData) => {
+    // Include medical specialty fields for doctor role
+    const submitData = {
+      ...data,
+      medicalSpecialtyCategory: data.role === 'doctor' ? selectedSpecialtyCategory : undefined,
+      subSpecialty: data.role === 'doctor' ? selectedSubSpecialty : undefined,
+    };
+    
     if (editingUser) {
-      updateUserMutation.mutate({ id: editingUser.id, userData: data });
+      updateUserMutation.mutate({ id: editingUser.id, userData: submitData });
     } else {
-      createUserMutation.mutate(data);
+      createUserMutation.mutate(submitData);
     }
   };
 
   const handleEdit = (user: User) => {
     setEditingUser(user);
     setSelectedRole(user.role);
+    
+    // Set medical specialty fields for doctor role
+    if (user.role === 'doctor') {
+      setSelectedSpecialtyCategory(user.medicalSpecialtyCategory || "");
+      setSelectedSubSpecialty(user.subSpecialty || "");
+    } else {
+      setSelectedSpecialtyCategory("");
+      setSelectedSubSpecialty("");
+    }
+    
     form.reset({
       email: user.email,
       firstName: user.firstName,
