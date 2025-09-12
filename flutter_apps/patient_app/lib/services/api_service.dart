@@ -283,6 +283,25 @@ class ApiService {
     return await get('/api/medical-staff');
   }
 
+  // Doctor filtering endpoints
+  static Future<Map<String, dynamic>> getDoctorsBySpecialization({
+    String? mainSpecialty,
+    String? subSpecialty,
+  }) async {
+    final queryParams = <String, String>{};
+    if (mainSpecialty != null && mainSpecialty.isNotEmpty) {
+      queryParams['mainSpecialty'] = mainSpecialty;
+    }
+    if (subSpecialty != null && subSpecialty.isNotEmpty) {
+      queryParams['subSpecialty'] = subSpecialty;
+    }
+    
+    final queryString = queryParams.entries.map((e) => '${e.key}=${Uri.encodeComponent(e.value)}').join('&');
+    final endpoint = queryString.isEmpty ? '/api/doctors/by-specialization' : '/api/doctors/by-specialization?$queryString';
+    
+    return await get(endpoint);
+  }
+
   // Users endpoints
   static Future<List<dynamic>> getUsers() async {
     final response = await get('/api/users');
