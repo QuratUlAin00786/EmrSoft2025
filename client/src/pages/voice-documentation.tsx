@@ -644,6 +644,32 @@ export default function VoiceDocumentation() {
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        
+        // Wait for video to load metadata and start playing
+        const video = videoRef.current;
+        
+        // Ensure video plays automatically
+        await new Promise((resolve, reject) => {
+          const handleLoadedMetadata = () => {
+            console.log('Video metadata loaded, dimensions:', video.videoWidth, 'x', video.videoHeight);
+            video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+            video.removeEventListener('error', handleError);
+            resolve(true);
+          };
+          
+          const handleError = (e: any) => {
+            console.error('Video loading error:', e);
+            video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+            video.removeEventListener('error', handleError);
+            reject(e);
+          };
+          
+          video.addEventListener('loadedmetadata', handleLoadedMetadata);
+          video.addEventListener('error', handleError);
+          
+          // Try to play the video
+          video.play().catch(console.error);
+        });
       }
       
       setIsCameraOpen(true);
@@ -688,21 +714,61 @@ export default function VoiceDocumentation() {
       return;
     }
 
-    // Set canvas dimensions to match video
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    // Check if video has loaded and has dimensions
+    if (video.videoWidth === 0 || video.videoHeight === 0) {
+      toast({ 
+        title: "Camera not ready", 
+        description: "Please wait for camera to fully load",
+        variant: "destructive" 
+      });
+      return;
+    }
 
-    // Draw the video frame to canvas
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    // Ensure video is playing
+    if (video.paused || video.ended) {
+      toast({ 
+        title: "Camera not active", 
+        description: "Please restart the camera",
+        variant: "destructive" 
+      });
+      return;
+    }
 
-    // Convert canvas to data URL
-    const photoDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-    setCapturedPhoto(photoDataUrl);
-    
-    // Stop camera after capture
-    stopCamera();
-    
-    toast({ title: "Photo captured!", description: "Review and save your clinical photo" });
+    try {
+      // Set canvas dimensions to match video
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
+      console.log('Canvas dimensions:', canvas.width, 'x', canvas.height);
+
+      // Draw the video frame to canvas
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Convert canvas to data URL
+      const photoDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      
+      // Check if we actually captured something
+      if (photoDataUrl === 'data:,' || photoDataUrl.length < 100) {
+        throw new Error('Empty photo captured');
+      }
+
+      setCapturedPhoto(photoDataUrl);
+      
+      // Stop camera after capture
+      stopCamera();
+      
+      toast({ title: "Photo captured!", description: "Review and save your clinical photo" });
+      console.log('Photo captured successfully, data URL length:', photoDataUrl.length);
+
+    } catch (error) {
+      console.error('Failed to capture photo:', error);
+      toast({ 
+        title: "Failed to capture photo", 
+        description: "Please try again or restart the camera",
+        variant: "destructive" 
+      });
+    }
   };
 
   const savePhoto = async () => {
