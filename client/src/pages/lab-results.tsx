@@ -568,38 +568,16 @@ Report generated from Cura EMR System`;
                             <strong>Test ID:</strong> {result.testId}
                           </p>
                           
-                          {/* Enhanced Doctor Information Display */}
+                          {/* Doctor Information Display */}
                           <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
-                            <div className="flex items-center gap-2 mb-2">
+                            <div className="flex items-center gap-2">
                               <User className="h-4 w-4 text-blue-600" />
-                              <span className="font-medium text-blue-800 dark:text-blue-300">
-                                Ordering Physician
-                              </span>
-                            </div>
-                            <div className="space-y-1 text-sm">
                               <p className="font-medium text-gray-900 dark:text-gray-100">
                                 Dr. {result.doctorFirstName || 'Unknown'} {result.doctorLastName || 'Doctor'}
+                                {result.doctorDepartment && (
+                                  <span className="text-blue-700 dark:text-blue-300"> — {result.doctorDepartment}</span>
+                                )}
                               </p>
-                              {result.doctorDepartment && (
-                                <p className="text-gray-600 dark:text-gray-400">
-                                  <strong>Department:</strong> {result.doctorDepartment}
-                                </p>
-                              )}
-                              {result.doctorEmail && (
-                                <p className="text-gray-600 dark:text-gray-400">
-                                  <strong>Email:</strong> {result.doctorEmail}
-                                </p>
-                              )}
-                              {result.doctorRole && (
-                                <p className="text-gray-600 dark:text-gray-400">
-                                  <strong>Role:</strong> {result.doctorRole}
-                                </p>
-                              )}
-                              {result.doctorWorkingHours?.start && result.doctorWorkingHours?.end && (
-                                <p className="text-gray-600 dark:text-gray-400">
-                                  <strong>Working Hours:</strong> {result.doctorWorkingHours.start} - {result.doctorWorkingHours.end}
-                                </p>
-                              )}
                             </div>
                           </div>
                           
