@@ -145,6 +145,8 @@ export default function LabResultsPage() {
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [showPrescriptionDialog, setShowPrescriptionDialog] = useState(false);
   const [selectedResult, setSelectedResult] = useState<DatabaseLabResult | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editFormData, setEditFormData] = useState<any>({});
   
   // Doctor specialty states for lab order
   const [selectedSpecialtyCategory, setSelectedSpecialtyCategory] = useState<string>("");

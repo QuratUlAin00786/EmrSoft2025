@@ -2613,6 +2613,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update lab result
+  app.put("/api/lab-results/:id", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const { id } = req.params;
+      const updateData = req.body;
+      
+      // Convert patientId from string to number if needed
+      if (updateData.patientId) {
+        updateData.patientId = typeof updateData.patientId === 'string' ? 
+          parseInt(updateData.patientId) || null : 
+          updateData.patientId;
+      }
+
+      const updatedLabResult = await storage.updateLabResult(parseInt(id), req.tenant!.id, updateData);
+
+      if (!updatedLabResult) {
+        return res.status(404).json({ error: "Lab result not found" });
+      }
+
+      res.json(updatedLabResult);
+    } catch (error) {
+      console.error("Error updating lab result:", error);
+      res.status(500).json({ error: "Failed to update lab result" });
+    }
+  });
+
   app.delete("/api/lab-results/:id", authMiddleware, requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
     try {
       const labResultId = parseInt(req.params.id);
