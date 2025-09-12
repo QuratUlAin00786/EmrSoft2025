@@ -38,6 +38,36 @@ const medicalSpecialties = {
       "Pediatric Neurosurgery",
       "Functional Neurosurgery (Parkinson's, epilepsy, DBS)",
       "Trauma Neurosurgery"
+    ],
+    "Cardiothoracic Surgeon": [
+      "Cardiac Surgery – Bypass, valve replacement",
+      "Thoracic Surgery – Lungs, esophagus, chest tumors", 
+      "Congenital Heart Surgery – Pediatric heart defects",
+      "Heart & Lung Transplants",
+      "Minimally Invasive / Robotic Heart Surgery"
+    ],
+    "Plastic & Reconstructive Surgeon": [
+      "Cosmetic Surgery (nose job, facelift, liposuction)",
+      "Reconstructive Surgery (after cancer, trauma)",
+      "Burn Surgery",
+      "Craniofacial Surgery (cleft lip/palate, facial bones)",
+      "Hand Surgery"
+    ],
+    "ENT Surgeon (Otolaryngologist)": [
+      "Otology (ear surgeries, cochlear implants)",
+      "Rhinology (sinus, deviated septum)",
+      "Laryngology (voice box, throat)",
+      "Head & Neck Surgery (thyroid, tumors)",
+      "Pediatric ENT (tonsils, adenoids, ear tubes)",
+      "Facial Plastic Surgery (nose/ear correction)"
+    ],
+    "Urologist": [
+      "Endourology (kidney stones, minimally invasive)",
+      "Uro-Oncology (prostate, bladder, kidney cancer)",
+      "Pediatric Urology",
+      "Male Infertility & Andrology",
+      "Renal Transplant Surgery",
+      "Neurourology (bladder control disorders)"
     ]
   },
   "Heart & Circulation": {
@@ -59,17 +89,58 @@ const medicalSpecialties = {
     "Psychiatrist": ["Mental health (depression, anxiety)"],
     "Psychologist (Clinical)": ["Therapy & counseling"]
   },
+  "Skin, Hair & Appearance": {
+    "Dermatologist": ["Skin", "Hair", "Nails"],
+    "Cosmetologist": ["Non-surgical cosmetic treatments"],
+    "Aesthetic / Cosmetic Surgeon": ["Surgical enhancements"]
+  },
+  "Eye & Vision": {
+    "Ophthalmologist": ["Cataracts", "Glaucoma", "Surgeries"],
+    "Optometrist": ["Vision correction (glasses, lenses)"]
+  },
+  "Teeth & Mouth": {
+    "Dentist (General)": ["Oral health", "Fillings"],
+    "Orthodontist": ["Braces", "Alignment"],
+    "Oral & Maxillofacial Surgeon": ["Jaw surgery", "Implants"],
+    "Periodontist": ["Gum disease specialist"],
+    "Endodontist": ["Root canal specialist"]
+  },
   "Digestive System": {
     "Gastroenterologist": ["Stomach", "Intestines"],
     "Hepatologist": ["Liver specialist"],
     "Colorectal Surgeon": ["Colon", "Rectum", "Anus"]
+  },
+  "Kidneys & Urinary Tract": {
+    "Nephrologist": ["Kidney diseases", "Dialysis"],
+    "Urologist": ["Surgical urological procedures"]
+  },
+  "Respiratory System": {
+    "Pulmonologist": ["Asthma", "COPD", "Tuberculosis"],
+    "Thoracic Surgeon": ["Lung surgeries"]
+  },
+  "Cancer": {
+    "Oncologist": ["Medical cancer specialist"],
+    "Radiation Oncologist": ["Radiation therapy"],
+    "Surgical Oncologist": ["Cancer surgeries"]
+  },
+  "Endocrine & Hormones": {
+    "Endocrinologist": ["Diabetes", "Thyroid", "Hormones"]
+  },
+  "Muscles & Joints": {
+    "Rheumatologist": ["Arthritis", "Autoimmune"],
+    "Sports Medicine Specialist": ["Athlete injuries"]
+  },
+  "Blood & Immunity": {
+    "Hematologist": ["Blood diseases (anemia, leukemia)"],
+    "Immunologist / Allergist": ["Immune & allergy disorders"]
   },
   "Others": {
     "Geriatrician": ["Elderly care"],
     "Pathologist": ["Lab & diagnostic testing"],
     "Radiologist": ["Imaging (X-ray, CT, MRI)"],
     "Anesthesiologist": ["Pain & anesthesia"],
-    "Emergency Medicine Specialist": ["Accidents", "Trauma"]
+    "Emergency Medicine Specialist": ["Accidents", "Trauma"],
+    "Occupational Medicine Specialist": ["Workplace health"]
   }
 };
 import { Card, CardContent } from "@/components/ui/card";
@@ -1417,7 +1488,7 @@ Report generated from Cura EMR System`;
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="mainSpecialty">Main Specialization</Label>
+              <Label htmlFor="mainSpecialty">Medical Specialty Category</Label>
               <Select 
                 value={selectedSpecialtyCategory}
                 onValueChange={(value) => {
@@ -1428,7 +1499,7 @@ Report generated from Cura EMR System`;
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select main specialization" />
+                  <SelectValue placeholder="Select medical specialty category" />
                 </SelectTrigger>
                 <SelectContent>
                   {Object.keys(medicalSpecialties).map((category) => (
@@ -1442,7 +1513,7 @@ Report generated from Cura EMR System`;
             
             {selectedSpecialtyCategory && (
               <div className="space-y-2">
-                <Label htmlFor="subSpecialty">Sub-Specialization</Label>
+                <Label htmlFor="subSpecialty">Sub-Specialty</Label>
                 <Select 
                   value={selectedSubSpecialty}
                   onValueChange={(value) => {
@@ -1452,7 +1523,7 @@ Report generated from Cura EMR System`;
                   }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select sub-specialization" />
+                    <SelectValue placeholder="Select sub-specialty" />
                   </SelectTrigger>
                   <SelectContent>
                     {Object.keys(medicalSpecialties[selectedSpecialtyCategory as keyof typeof medicalSpecialties] || {}).map((subSpecialty) => (
