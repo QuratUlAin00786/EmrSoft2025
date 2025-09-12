@@ -198,7 +198,33 @@ export default function LabResultsPage() {
     }
   });
 
-  const doctors = medicalStaffData?.staff?.filter((staff: any) => staff.role === 'doctor') || [];
+  // Fetch filtered doctors based on specialization
+  const { data: filteredDoctorsData, isLoading: filteredDoctorsLoading } = useQuery({
+    queryKey: ["/api/doctors/by-specialization", selectedSpecialtyCategory, selectedSubSpecialty],
+    queryFn: async () => {
+      if (!selectedSpecialtyCategory && !selectedSubSpecialty) {
+        return { doctors: [], count: 0 };
+      }
+      
+      const params = new URLSearchParams();
+      if (selectedSpecialtyCategory) {
+        params.append('mainSpecialty', selectedSpecialtyCategory);
+      }
+      if (selectedSubSpecialty) {
+        params.append('subSpecialty', selectedSubSpecialty);
+      }
+      
+      const response = await apiRequest("GET", `/api/doctors/by-specialization?${params.toString()}`);
+      const data = await response.json();
+      return data;
+    },
+    enabled: !!(selectedSpecialtyCategory || selectedSubSpecialty)
+  });
+
+  // Use filtered doctors when specializations are selected, otherwise use all doctors
+  const doctors = (selectedSpecialtyCategory || selectedSubSpecialty) 
+    ? (filteredDoctorsData?.doctors || [])
+    : (medicalStaffData?.staff?.filter((staff: any) => staff.role === 'doctor') || []);
 
 
   const { data: users = [] } = useQuery<User[]>({
@@ -1456,41 +1482,24 @@ Report generated from Cura EMR System`;
                   <SelectValue placeholder="Select a doctor" />
                 </SelectTrigger>
                 <SelectContent>
-                  {medicalStaffLoading ? (
+                  {(medicalStaffLoading || filteredDoctorsLoading) ? (
                     <SelectItem value="loading" disabled>Loading doctors...</SelectItem>
-                  ) : (() => {
-                    // Filter doctors based on selected specializations
-                    let filteredDoctors = doctors.filter((doctor: any) => doctor.role !== 'admin');
-                    
-                    // Apply specialization filtering
-                    if (selectedSubSpecialty) {
-                      filteredDoctors = filteredDoctors.filter((doctor: any) => 
-                        doctor.department && doctor.department.toLowerCase().includes(selectedSubSpecialty.toLowerCase())
-                      );
-                    } else if (selectedSpecialtyCategory) {
-                      // If only main specialization is selected, filter by category keywords
-                      const categoryKeywords = selectedSpecialtyCategory.toLowerCase();
-                      filteredDoctors = filteredDoctors.filter((doctor: any) => 
-                        doctor.department && doctor.department.toLowerCase().includes(categoryKeywords.replace(/\s+/g, ''))
-                      );
-                    }
-                    
-                    return filteredDoctors.length > 0 ? (
-                      filteredDoctors.map((doctor: any) => (
-                        <SelectItem key={doctor.id} value={doctor.id.toString()}>
-                          Dr. {doctor.firstName} {doctor.lastName}
-                          {doctor.department && ` - ${doctor.department}`}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="none" disabled>
-                        {selectedSpecialtyCategory || selectedSubSpecialty 
-                          ? `No doctors available for ${selectedSubSpecialty || selectedSpecialtyCategory}` 
-                          : "No doctors available"
-                        }
+                  ) : doctors.length > 0 ? (
+                    doctors.map((doctor: any) => (
+                      <SelectItem key={doctor.id} value={doctor.id.toString()}>
+                        Dr. {doctor.firstName} {doctor.lastName}
+                        {doctor.medicalSpecialtyCategory && ` - ${doctor.medicalSpecialtyCategory}`}
+                        {doctor.subSpecialty && ` (${doctor.subSpecialty})`}
                       </SelectItem>
-                    );
-                  })()}
+                    ))
+                  ) : (
+                    <SelectItem value="none" disabled>
+                      {selectedSpecialtyCategory || selectedSubSpecialty 
+                        ? `No doctors available for ${selectedSubSpecialty || selectedSpecialtyCategory}` 
+                        : "No doctors available"
+                      }
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>

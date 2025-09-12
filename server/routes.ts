@@ -1652,33 +1652,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Filter doctors by specialization
   app.get("/api/doctors/by-specialization", authMiddleware, async (req: TenantRequest, res) => {
     try {
-      const { mainSpecialty, subSpecialty } = req.query;
+      if (!req.user || !req.tenant) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      // Validate and normalize query parameters
+      const querySchema = z.object({
+        mainSpecialty: z.string().trim().min(1).optional(),
+        subSpecialty: z.string().trim().min(1).optional()
+      });
+
+      const parseResult = querySchema.safeParse(req.query);
+      if (!parseResult.success) {
+        return res.status(400).json({ error: "Invalid query parameters" });
+      }
+
+      const { mainSpecialty, subSpecialty } = parseResult.data;
       
-      const users = await storage.getUsersByOrganization(req.tenant!.id);
+      // Get users filtered by organization (tenant isolation)
+      const users = await storage.getUsersByOrganization(req.tenant.id);
       
       // Filter for active doctors only
-      let filteredDoctors = users.filter(user => user.role === 'doctor' && user.isActive);
+      let filteredDoctors = users.filter(user => 
+        user.role === 'doctor' && 
+        user.isActive && 
+        user.organizationId === req.tenant!.id
+      );
       
-      // Apply specialization filtering
+      // Apply specialization filtering with case-insensitive exact matching
       if (mainSpecialty || subSpecialty) {
         filteredDoctors = filteredDoctors.filter(doctor => {
           const matchesMainSpecialty = !mainSpecialty || 
             (doctor.medicalSpecialtyCategory && 
-             doctor.medicalSpecialtyCategory.toLowerCase() === (mainSpecialty as string).toLowerCase());
+             doctor.medicalSpecialtyCategory.toLowerCase().trim() === mainSpecialty.toLowerCase().trim());
           
           const matchesSubSpecialty = !subSpecialty || 
             (doctor.subSpecialty && 
-             doctor.subSpecialty.toLowerCase() === (subSpecialty as string).toLowerCase());
+             doctor.subSpecialty.toLowerCase().trim() === subSpecialty.toLowerCase().trim());
           
           return matchesMainSpecialty && matchesSubSpecialty;
         });
       }
       
-      // Remove sensitive information
-      const safeDoctors = filteredDoctors.map(doctor => {
-        const { passwordHash, ...safeDoctor } = doctor;
-        return safeDoctor;
-      });
+      // Sanitize response - only include necessary fields for UI
+      const safeDoctors = filteredDoctors.map(doctor => ({
+        id: doctor.id,
+        firstName: doctor.firstName,
+        lastName: doctor.lastName,
+        email: doctor.email,
+        role: doctor.role,
+        department: doctor.department,
+        medicalSpecialtyCategory: doctor.medicalSpecialtyCategory,
+        subSpecialty: doctor.subSpecialty,
+        isActive: doctor.isActive
+      }));
       
       res.json({
         doctors: safeDoctors,
