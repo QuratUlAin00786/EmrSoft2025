@@ -1425,9 +1425,16 @@ Report generated from Cura EMR System`;
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        onClick={() => {
+                        onClick={async () => {
                           setSelectedResult(result);
-                          handleGeneratePDF();
+                          // Temporarily open the prescription dialog to render content
+                          setShowPrescriptionDialog(true);
+                          // Wait for the content to render
+                          await new Promise(resolve => setTimeout(resolve, 100));
+                          // Generate the PDF
+                          await handleGeneratePDF();
+                          // Close the dialog
+                          setShowPrescriptionDialog(false);
                         }}
                         className="bg-medical-blue hover:bg-blue-700 text-white"
                       >
