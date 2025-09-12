@@ -128,28 +128,24 @@ export default function VoiceDocumentation() {
   const { toast } = useToast();
 
   // Fetch voice notes
-  const { data: voiceNotesData, isLoading: notesLoading } = useQuery({
+  const { data: voiceNotes, isLoading: notesLoading } = useQuery({
     queryKey: ["/api/voice-documentation/notes", refreshTrigger]
   });
-  const voiceNotes = Array.isArray(voiceNotesData) ? voiceNotesData : [];
 
   // Fetch smart templates
-  const { data: templatesData, isLoading: templatesLoading } = useQuery({
+  const { data: templates, isLoading: templatesLoading } = useQuery({
     queryKey: ["/api/voice-documentation/templates"]
   });
-  const templates = Array.isArray(templatesData) ? templatesData : [];
 
   // Fetch clinical photos
-  const { data: photosData, isLoading: photosLoading } = useQuery({
+  const { data: photos, isLoading: photosLoading } = useQuery({
     queryKey: ["/api/voice-documentation/photos"]
   });
-  const photos = Array.isArray(photosData) ? photosData : [];
 
   // Fetch patients for dropdowns
-  const { data: patientsData, isLoading: patientsLoading } = useQuery({
+  const { data: patients, isLoading: patientsLoading } = useQuery({
     queryKey: ["/api/patients"]
   });
-  const patients = Array.isArray(patientsData) ? patientsData : [];
 
   // Create voice note mutation
   const createVoiceNoteMutation = useMutation({
@@ -235,12 +231,12 @@ export default function VoiceDocumentation() {
 
   // Upload photo mutation
   const uploadPhotoMutation = useMutation({
-    mutationFn: async (data: { photo: File; patientId: string; type: string; indication: string }) => {
+    mutationFn: async (data: { photo: File; patientId: string; type: string; description: string }) => {
       const formData = new FormData();
       formData.append('photo', data.photo);
       formData.append('patientId', data.patientId);
       formData.append('studyType', data.type);
-      formData.append('indication', data.indication);
+      formData.append('description', data.description);
 
       const response = await apiRequest('POST', '/api/voice-documentation/photos', formData);
       return response.json();
@@ -746,7 +742,7 @@ export default function VoiceDocumentation() {
         photo: file,
         patientId: selectedPhotoPatient,
         type: selectedPhotoType,
-        indication: photoDescription
+        description: photoDescription
       });
 
       // Reset form and stop camera after successful save
@@ -1146,163 +1142,197 @@ export default function VoiceDocumentation() {
         </div>
       </div>
 
-      {/* New Clean Voice Recording Interface */}
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* Voice Recording Section */}
-        <div className="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Voice Recording</h2>
-          
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="voice">Voice Notes</TabsTrigger>
+          <TabsTrigger value="templates">Smart Templates</TabsTrigger>
+          <TabsTrigger value="photos">Clinical Photos</TabsTrigger>
+          <TabsTrigger value="captured-photos">Captured Photos</TabsTrigger>
+          <TabsTrigger value="coding">Medical Coding</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="voice" className="space-y-6">
           {/* Recording Interface */}
-          <div className="flex items-center justify-center space-x-8 mb-8">
-            {/* Timer */}
-            <div className="text-center">
-              <div className="text-2xl font-mono text-gray-700 dark:text-gray-200 mb-1">
-                {formatTime(recordingTime)}
-              </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                {isRecording ? "Recording..." : "Ready to record"}
-              </div>
-            </div>
-            
-            {/* Central Record Button */}
-            <Button
-              size="lg"
-              onClick={isRecording ? stopRecording : startRecording}
-              className="rounded-full w-20 h-20 bg-purple-600 hover:bg-purple-700 text-white shadow-lg"
-              style={{ backgroundColor: isRecording ? '#DC2626' : '#9333EA' }}
-              data-testid="button-record"
-            >
-              {isRecording ? (
-                <Square className="w-10 h-10" />
-              ) : (
-                <Mic className="w-10 h-10" />
-              )}
-            </Button>
-            
-            {/* Control Buttons */}
-            <div className="flex flex-col space-y-2">
-              <Button 
-                size="sm" 
-                variant="outline" 
-                disabled={!isRecording}
-                className="text-sm"
-                data-testid="button-pause"
-              >
-                <Pause className="w-4 h-4 mr-1" />
-                Pause
-              </Button>
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => {
-                  setCurrentTranscript("");
-                  setRecordingTime(0);
-                }}
-                className="text-sm"
-                data-testid="button-reset"
-              >
-                <RotateCcw className="w-4 h-4 mr-1" />
-                Reset
-              </Button>
-            </div>
-          </div>
-
-          {/* Patient, Note Type, Template Row */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            <div>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">Patient</label>
-              <Select value={selectedPatient} onValueChange={setSelectedPatient}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select patient" />
-                </SelectTrigger>
-                <SelectContent>
-                  {patientsLoading ? (
-                    <SelectItem value="loading" disabled>Loading...</SelectItem>
-                  ) : patients && patients.length > 0 ? (
-                    (() => {
-                      const uniquePatients = patients.filter((patient: any, index: number, array: any[]) => 
-                        array.findIndex((p: any) => 
-                          `${p.firstName} ${p.lastName}` === `${patient.firstName} ${patient.lastName}`
-                        ) === index
-                      );
-                      return uniquePatients.map((patient: any) => (
-                        <SelectItem key={patient.id} value={patient.id.toString()}>
-                          {patient.firstName} {patient.lastName}
-                        </SelectItem>
-                      ));
-                    })()
+          <Card>
+            <CardHeader>
+              <CardTitle>Voice Recording</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-center space-x-6">
+                <div className="text-center">
+                  <div className="text-3xl font-mono mb-2">
+                    {formatTime(recordingTime)}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {isRecording ? "Recording..." : "Ready to record"}
+                  </div>
+                </div>
+                
+                <Button
+                  size="lg"
+                  variant={isRecording ? "destructive" : "default"}
+                  onClick={isRecording ? stopRecording : startRecording}
+                  className="rounded-full w-16 h-16"
+                >
+                  {isRecording ? (
+                    <Square className="w-8 h-8" />
                   ) : (
-                    <SelectItem value="no-patients" disabled>No patients found</SelectItem>
+                    <Mic className="w-8 h-8" />
                   )}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">Note Type</label>
-              <Select value={selectedNoteType} onValueChange={setSelectedNoteType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="clinical_note">Clinical Note</SelectItem>
-                  <SelectItem value="procedure_note">Procedure Note</SelectItem>
-                  <SelectItem value="consultation">Consultation</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">Template</label>
-              <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Use template" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="template_1">SOAP Note</SelectItem>
-                  <SelectItem value="template_2">Procedure Note</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Transcript Section */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Transcript</label>
-              <div className="flex gap-2">
-                <Button 
-                  size="sm"
-                  onClick={saveVoiceNote}
-                  disabled={!currentTranscript || !selectedPatient || !selectedNoteType || isRecording}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                  data-testid="button-save-note"
-                >
-                  <Save className="w-4 h-4 mr-1" />
-                  Save Note
                 </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => setCurrentTranscript("")}
-                  disabled={!currentTranscript}
-                  data-testid="button-clear"
-                >
-                  <X className="w-4 h-4 mr-1" />
-                  Clear
-                </Button>
+                
+                <div className="flex flex-col gap-2">
+                  <Button size="sm" variant="outline" disabled={!isRecording}>
+                    <Pause className="w-4 h-4 mr-1" />
+                    Pause
+                  </Button>
+                  <Button size="sm" variant="outline">
+                    <RotateCcw className="w-4 h-4 mr-1" />
+                    Reset
+                  </Button>
+                </div>
               </div>
-            </div>
-            <textarea
-              value={currentTranscript}
-              onChange={(e) => setCurrentTranscript(e.target.value)}
-              placeholder="Type your transcript here or start recording to capture speech automatically..."
-              className="w-full text-sm text-gray-700 dark:text-gray-200 min-h-[80px] p-3 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg resize-none placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              rows={4}
-              disabled={isRecording}
-            />
-          </div>
-        </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Patient</label>
+                  <Select value={selectedPatient} onValueChange={setSelectedPatient}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={patientsLoading ? "Loading patients..." : "Select patient"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {patientsLoading ? (
+                        <SelectItem value="loading" disabled>Loading...</SelectItem>
+                      ) : patients && patients.length > 0 ? (
+                        (() => {
+                          // Deduplicate patients by unique name combination
+                          const uniquePatients = patients.filter((patient: any, index: number, array: any[]) => 
+                            array.findIndex((p: any) => 
+                              `${p.firstName} ${p.lastName}` === `${patient.firstName} ${patient.lastName}`
+                            ) === index
+                          );
+                          return uniquePatients.map((patient: any) => (
+                            <SelectItem key={patient.id} value={patient.id.toString()}>
+                              {patient.firstName} {patient.lastName}
+                            </SelectItem>
+                          ));
+                        })()
+                      ) : (
+                        <SelectItem value="no-patients" disabled>No patients found</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Note Type</label>
+                  <Select value={selectedNoteType} onValueChange={setSelectedNoteType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="clinical_note">Clinical Note</SelectItem>
+                      <SelectItem value="procedure_note">Procedure Note</SelectItem>
+                      <SelectItem value="consultation">Consultation</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Template</label>
+                  <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Use template" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="template_1">SOAP Note</SelectItem>
+                      <SelectItem value="template_2">Procedure Note</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Transcript Display Area */}
+              <div className="mt-4 p-4 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    {isRecording ? (
+                      <>
+                        <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                        <span className="text-sm font-medium text-red-800 dark:text-red-400">Live Transcription</span>
+                      </>
+                    ) : (
+                      <span className="text-sm font-medium text-gray-800 dark:text-gray-200">Transcript</span>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="default"
+                      onClick={saveVoiceNote}
+                      disabled={!currentTranscript || !selectedPatient || !selectedNoteType || isRecording}
+                      style={{ 
+                        backgroundColor: (!currentTranscript || !selectedPatient || !selectedNoteType || isRecording) ? '#CBD5E1' : '#4A7DFF',
+                        borderColor: (!currentTranscript || !selectedPatient || !selectedNoteType || isRecording) ? '#94A3B8' : '#4A7DFF',
+                        color: (!currentTranscript || !selectedPatient || !selectedNoteType || isRecording) ? '#475569' : 'white',
+                        fontWeight: '700',
+                        fontSize: '14px',
+                        textShadow: (!currentTranscript || !selectedPatient || !selectedNoteType || isRecording) ? 'none' : '0 1px 2px rgba(0,0,0,0.3)',
+                        border: `2px solid ${(!currentTranscript || !selectedPatient || !selectedNoteType || isRecording) ? '#94A3B8' : '#4A7DFF'}`,
+                        opacity: 1
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!(!currentTranscript || !selectedPatient || !selectedNoteType || isRecording)) {
+                          e.currentTarget.style.backgroundColor = '#7279FB';
+                          e.currentTarget.style.borderColor = '#7279FB';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!(!currentTranscript || !selectedPatient || !selectedNoteType || isRecording)) {
+                          e.currentTarget.style.backgroundColor = '#4A7DFF';
+                          e.currentTarget.style.borderColor = '#4A7DFF';
+                        }
+                      }}
+                      className="transition-all duration-200 cursor-pointer"
+                    >
+                      <FileText className="w-4 h-4 mr-1" style={{ 
+                        filter: (!currentTranscript || !selectedPatient || !selectedNoteType || isRecording) ? 'none' : 'drop-shadow(0 1px 1px rgba(0,0,0,0.3))',
+                        color: (!currentTranscript || !selectedPatient || !selectedNoteType || isRecording) ? '#475569' : 'white'
+                      }} />
+                      Save Note
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setCurrentTranscript("")}
+                      disabled={!currentTranscript}
+                      style={{ 
+                        backgroundColor: !currentTranscript ? '#F1F5F9' : 'white',
+                        borderColor: !currentTranscript ? '#CBD5E1' : '#6B7280',
+                        color: !currentTranscript ? '#94A3B8' : 'black',
+                        fontWeight: '700',
+                        fontSize: '14px',
+                        border: `2px solid ${!currentTranscript ? '#CBD5E1' : '#6B7280'}`,
+                        opacity: 1
+                      }}
+                      className="transition-all duration-200 cursor-pointer"
+                    >
+                      <X className="w-4 h-4 mr-1" style={{ 
+                        color: !currentTranscript ? '#94A3B8' : 'black' 
+                      }} />
+                      Clear
+                    </Button>
+                  </div>
+                </div>
+                <textarea
+                  value={currentTranscript}
+                  onChange={(e) => setCurrentTranscript(e.target.value)}
+                  placeholder={isRecording ? "Start speaking to see real-time transcription..." : "Type your transcript here or start recording to capture speech automatically..."}
+                  className="w-full text-sm text-gray-700 dark:text-gray-200 min-h-[3rem] p-2 bg-white dark:bg-slate-800 border dark:border-slate-600 rounded resize-none placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                  rows={3}
+                  disabled={isRecording}
+                />
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Voice Notes List */}
           <div className="grid gap-4">
@@ -1919,19 +1949,19 @@ export default function VoiceDocumentation() {
                 <CardContent className="space-y-4">
                   <div>
                     <h4 className="font-medium text-sm mb-2">Description</h4>
-                    <p className="text-sm text-gray-700">{photo.indication || 'No description provided'}</p>
+                    <p className="text-sm text-gray-700">{photo.description}</p>
                   </div>
 
-                  {photo.metadata?.aiAnalysis && (
+                  {photo.aiAnalysis && (
                     <div>
                       <h4 className="font-medium text-sm mb-2">
-                        AI Analysis ({photo.metadata?.aiAnalysis?.confidence || 0}% confidence)
+                        AI Analysis ({photo.aiAnalysis.confidence}% confidence)
                       </h4>
                       <div className="space-y-2">
                         <div>
                           <strong className="text-xs">Findings:</strong>
                           <ul className="text-sm list-disc list-inside mt-1">
-                            {photo.metadata?.aiAnalysis?.findings?.map((finding: any, idx: number) => (
+                            {photo.aiAnalysis?.findings?.map((finding, idx) => (
                               <li key={idx}>{finding}</li>
                             )) || []}
                           </ul>
@@ -1939,7 +1969,7 @@ export default function VoiceDocumentation() {
                         <div>
                           <strong className="text-xs">Recommendations:</strong>
                           <ul className="text-sm list-disc list-inside mt-1">
-                            {photo.metadata?.aiAnalysis?.recommendations?.map((rec: any, idx: number) => (
+                            {photo.aiAnalysis?.recommendations?.map((rec, idx) => (
                               <li key={idx}>{rec}</li>
                             )) || []}
                           </ul>
@@ -2368,22 +2398,22 @@ export default function VoiceDocumentation() {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle>
-              {selectedPhoto?.fileName} - {selectedPhoto?.metadata?.patientName || 'Unknown Patient'}
+              {selectedPhoto?.fileName} - {selectedPhoto?.patientName}
             </DialogTitle>
           </DialogHeader>
           {selectedPhoto && (
             <div className="space-y-4">
               <div className="flex justify-center">
                 <img 
-                  src={selectedPhoto.imageData || ''} 
-                  alt={selectedPhoto.indication || 'Clinical photo'}
+                  src={selectedPhoto.imageData} 
+                  alt={selectedPhoto.description}
                   className="max-w-full max-h-[70vh] object-contain rounded-lg"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg">
                 <div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">Patient</div>
-                  <div className="font-medium text-gray-900 dark:text-gray-100">{selectedPhoto.metadata?.patientName || 'Unknown Patient'}</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100">{selectedPhoto.patientName}</div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">Type</div>
@@ -2391,11 +2421,11 @@ export default function VoiceDocumentation() {
                 </div>
                 <div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">Date Taken</div>
-                  <div className="font-medium text-gray-900 dark:text-gray-100">{format(new Date(selectedPhoto.createdAt), 'MMM dd, yyyy')}</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100">{selectedPhoto.dateTaken}</div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">AI Analysis</div>
-                  <div className="font-medium text-gray-900 dark:text-gray-100">{selectedPhoto.metadata?.aiAnalysis?.findings?.join(', ') || 'No findings available'}</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100">{selectedPhoto.aiAnalysis?.findings?.join(', ') || 'No findings available'}</div>
                 </div>
               </div>
               <div className="flex justify-end gap-2">
@@ -2428,7 +2458,7 @@ export default function VoiceDocumentation() {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              Annotate Photo - {selectedPhoto?.fileName}
+              Annotate Photo - {selectedPhoto?.filename}
             </DialogTitle>
           </DialogHeader>
           {selectedPhoto && (
@@ -2436,8 +2466,8 @@ export default function VoiceDocumentation() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <img 
-                    src={selectedPhoto.imageData || ''} 
-                    alt={selectedPhoto.indication || 'Clinical photo'}
+                    src={selectedPhoto.url} 
+                    alt={selectedPhoto.description}
                     className="w-full h-64 object-cover rounded-lg"
                   />
                 </div>
@@ -2546,7 +2576,7 @@ export default function VoiceDocumentation() {
                 </label>
                 <Textarea 
                   placeholder="Enter caption that will appear with the image in the report..."
-                  defaultValue={selectedPhoto.indication || ''}
+                  defaultValue={selectedPhoto.description}
                   className="min-h-[80px]"
                 />
               </div>
@@ -2574,7 +2604,7 @@ export default function VoiceDocumentation() {
                 <Button onClick={() => {
                   toast({
                     title: "Photo Added to Report",
-                    description: `${selectedPhoto.fileName} has been added to the selected report`,
+                    description: `${selectedPhoto.filename} has been added to the selected report`,
                   });
                   setAddToReportDialogOpen(false);
                 }}>
