@@ -737,7 +737,7 @@ Report generated from Cura EMR System`;
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" onClick={() => handleViewResult(result)}>
                           <Eye className="h-4 w-4 mr-1" />
-                          View
+                          Edit
                         </Button>
                         <Button 
                           variant="outline" 
@@ -791,9 +791,9 @@ Report generated from Cura EMR System`;
                         
                         {/* Notes section */}
                         {result.notes && (
-                          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                            <h4 className="font-semibold text-blue-800 mb-2">Notes</h4>
-                            <p className="text-sm text-blue-700">{result.notes}</p>
+                          <div className="p-4 bg-white border border-gray-200 rounded-lg">
+                            <h4 className="font-semibold text-gray-800 mb-2">Notes</h4>
+                            <p className="text-sm text-gray-700">{result.notes}</p>
                           </div>
                         )}
                       </div>
