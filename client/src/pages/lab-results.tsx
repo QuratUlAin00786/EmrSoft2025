@@ -1065,31 +1065,13 @@ Report generated from Cura EMR System`;
                   </Badge>
                 )}
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm">
-                  <Eye className="w-4 h-4 mr-1" />
-                  View
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => selectedResult && handleGeneratePrescription(selectedResult)}>
-                  <FileText className="w-4 h-4 mr-1" />
-                  Generate Prescription
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => selectedResult && handleShareResult(selectedResult)}>
-                  <Eye className="w-4 h-4 mr-1" />
-                  Review
-                </Button>
-                <Button variant="destructive" size="sm" onClick={() => selectedResult && handleDeleteResult(selectedResult.id)}>
-                  <Trash2 className="w-4 h-4 mr-1" />
-                  Delete
-                </Button>
-              </div>
             </div>
           </DialogHeader>
           {selectedResult && (
             <div className="grid grid-cols-2 gap-6 pt-4">
               {/* Left Section - Test Details */}
               <div className="space-y-4">
-                <div className="bg-gray-900 text-white p-4 rounded-lg">
+                <div className="p-4 rounded-lg border">
                   <div className="space-y-3">
                     <div>
                       <p className="text-sm text-gray-300">Test:</p>
@@ -1120,7 +1102,7 @@ Report generated from Cura EMR System`;
                     </div>
                     <div>
                       <p className="text-sm text-gray-300">Test ID:</p>
-                      <p className="text-white font-medium">{selectedResult.testId}</p>
+                      <p className="font-medium">{selectedResult.testId}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-300">Ordered:</p>
@@ -1208,7 +1190,7 @@ Report generated from Cura EMR System`;
                   </div>
                   
                   <div>
-                    <p className="text-sm font-medium text-black">Main Specialization:</p>
+                    <p className="text-sm font-medium text-gray-600">Main Specialization:</p>
                     {isEditMode ? (
                       <Select 
                         value={editFormData.mainSpecialty || selectedResult.mainSpecialty || ""} 
@@ -1226,12 +1208,12 @@ Report generated from Cura EMR System`;
                         </SelectContent>
                       </Select>
                     ) : (
-                      <p className="text-black font-medium">{selectedResult.mainSpecialty || "Surgical Specialties"}</p>
+                      <p className="text-gray-600 font-medium">{selectedResult.mainSpecialty || "Surgical Specialties"}</p>
                     )}
                   </div>
 
                   <div>
-                    <p className="text-sm font-medium text-black">Sub-Specialization:</p>
+                    <p className="text-sm font-medium text-gray-600">Sub-Specialization:</p>
                     {isEditMode ? (
                       <Select 
                         value={editFormData.subSpecialty || selectedResult.subSpecialty || ""} 
@@ -1249,7 +1231,7 @@ Report generated from Cura EMR System`;
                         </SelectContent>
                       </Select>
                     ) : (
-                      <p className="text-black font-medium">{selectedResult.subSpecialty || "Orthopedic Surgeon"}</p>
+                      <p className="text-gray-600 font-medium">{selectedResult.subSpecialty || "Orthopedic Surgeon"}</p>
                     )}
                   </div>
 
