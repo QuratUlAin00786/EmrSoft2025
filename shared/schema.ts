@@ -167,6 +167,8 @@ export const users = pgTable("users", {
   lastName: text("last_name").notNull(),
   role: varchar("role", { length: 20 }).notNull().default("doctor"), // admin, doctor, nurse, receptionist, patient, sample_taker
   department: text("department"),
+  medicalSpecialtyCategory: text("medical_specialty_category"),
+  subSpecialty: text("sub_specialty"),
   workingDays: jsonb("working_days").$type<string[]>().default([]),
   workingHours: jsonb("working_hours").$type<{
     start?: string;
