@@ -1008,6 +1008,16 @@ export default function VoiceDocumentation() {
                         autoPlay 
                         playsInline 
                         muted
+                        controls={false}
+                        width="640"
+                        height="480"
+                        style={{
+                          width: '100%',
+                          height: '16rem',
+                          backgroundColor: 'black',
+                          objectFit: 'cover',
+                          borderRadius: '0.5rem'
+                        }}
                         className="w-full h-64 bg-black rounded-lg object-cover"
                       />
                       <div className="absolute bottom-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-medium">
