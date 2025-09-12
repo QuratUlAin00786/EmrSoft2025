@@ -1146,197 +1146,163 @@ export default function VoiceDocumentation() {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="voice">Voice Notes</TabsTrigger>
-          <TabsTrigger value="templates">Smart Templates</TabsTrigger>
-          <TabsTrigger value="photos">Clinical Photos</TabsTrigger>
-          <TabsTrigger value="captured-photos">Captured Photos</TabsTrigger>
-          <TabsTrigger value="coding">Medical Coding</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="voice" className="space-y-6">
+      {/* New Clean Voice Recording Interface */}
+      <div className="max-w-4xl mx-auto space-y-8">
+        {/* Voice Recording Section */}
+        <div className="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 p-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Voice Recording</h2>
+          
           {/* Recording Interface */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Voice Recording</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-center space-x-6">
-                <div className="text-center">
-                  <div className="text-3xl font-mono mb-2">
-                    {formatTime(recordingTime)}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {isRecording ? "Recording..." : "Ready to record"}
-                  </div>
-                </div>
-                
-                <Button
-                  size="lg"
-                  variant={isRecording ? "destructive" : "default"}
-                  onClick={isRecording ? stopRecording : startRecording}
-                  className="rounded-full w-16 h-16"
-                >
-                  {isRecording ? (
-                    <Square className="w-8 h-8" />
+          <div className="flex items-center justify-center space-x-8 mb-8">
+            {/* Timer */}
+            <div className="text-center">
+              <div className="text-2xl font-mono text-gray-700 dark:text-gray-200 mb-1">
+                {formatTime(recordingTime)}
+              </div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                {isRecording ? "Recording..." : "Ready to record"}
+              </div>
+            </div>
+            
+            {/* Central Record Button */}
+            <Button
+              size="lg"
+              onClick={isRecording ? stopRecording : startRecording}
+              className="rounded-full w-20 h-20 bg-purple-600 hover:bg-purple-700 text-white shadow-lg"
+              style={{ backgroundColor: isRecording ? '#DC2626' : '#9333EA' }}
+              data-testid="button-record"
+            >
+              {isRecording ? (
+                <Square className="w-10 h-10" />
+              ) : (
+                <Mic className="w-10 h-10" />
+              )}
+            </Button>
+            
+            {/* Control Buttons */}
+            <div className="flex flex-col space-y-2">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                disabled={!isRecording}
+                className="text-sm"
+                data-testid="button-pause"
+              >
+                <Pause className="w-4 h-4 mr-1" />
+                Pause
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => {
+                  setCurrentTranscript("");
+                  setRecordingTime(0);
+                }}
+                className="text-sm"
+                data-testid="button-reset"
+              >
+                <RotateCcw className="w-4 h-4 mr-1" />
+                Reset
+              </Button>
+            </div>
+          </div>
+
+          {/* Patient, Note Type, Template Row */}
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <div>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">Patient</label>
+              <Select value={selectedPatient} onValueChange={setSelectedPatient}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select patient" />
+                </SelectTrigger>
+                <SelectContent>
+                  {patientsLoading ? (
+                    <SelectItem value="loading" disabled>Loading...</SelectItem>
+                  ) : patients && patients.length > 0 ? (
+                    (() => {
+                      const uniquePatients = patients.filter((patient: any, index: number, array: any[]) => 
+                        array.findIndex((p: any) => 
+                          `${p.firstName} ${p.lastName}` === `${patient.firstName} ${patient.lastName}`
+                        ) === index
+                      );
+                      return uniquePatients.map((patient: any) => (
+                        <SelectItem key={patient.id} value={patient.id.toString()}>
+                          {patient.firstName} {patient.lastName}
+                        </SelectItem>
+                      ));
+                    })()
                   ) : (
-                    <Mic className="w-8 h-8" />
+                    <SelectItem value="no-patients" disabled>No patients found</SelectItem>
                   )}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">Note Type</label>
+              <Select value={selectedNoteType} onValueChange={setSelectedNoteType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="clinical_note">Clinical Note</SelectItem>
+                  <SelectItem value="procedure_note">Procedure Note</SelectItem>
+                  <SelectItem value="consultation">Consultation</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">Template</label>
+              <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Use template" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="template_1">SOAP Note</SelectItem>
+                  <SelectItem value="template_2">Procedure Note</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Transcript Section */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Transcript</label>
+              <div className="flex gap-2">
+                <Button 
+                  size="sm"
+                  onClick={saveVoiceNote}
+                  disabled={!currentTranscript || !selectedPatient || !selectedNoteType || isRecording}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  data-testid="button-save-note"
+                >
+                  <Save className="w-4 h-4 mr-1" />
+                  Save Note
                 </Button>
-                
-                <div className="flex flex-col gap-2">
-                  <Button size="sm" variant="outline" disabled={!isRecording}>
-                    <Pause className="w-4 h-4 mr-1" />
-                    Pause
-                  </Button>
-                  <Button size="sm" variant="outline">
-                    <RotateCcw className="w-4 h-4 mr-1" />
-                    Reset
-                  </Button>
-                </div>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => setCurrentTranscript("")}
+                  disabled={!currentTranscript}
+                  data-testid="button-clear"
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Clear
+                </Button>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="text-sm font-medium">Patient</label>
-                  <Select value={selectedPatient} onValueChange={setSelectedPatient}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={patientsLoading ? "Loading patients..." : "Select patient"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {patientsLoading ? (
-                        <SelectItem value="loading" disabled>Loading...</SelectItem>
-                      ) : patients && patients.length > 0 ? (
-                        (() => {
-                          // Deduplicate patients by unique name combination
-                          const uniquePatients = patients.filter((patient: any, index: number, array: any[]) => 
-                            array.findIndex((p: any) => 
-                              `${p.firstName} ${p.lastName}` === `${patient.firstName} ${patient.lastName}`
-                            ) === index
-                          );
-                          return uniquePatients.map((patient: any) => (
-                            <SelectItem key={patient.id} value={patient.id.toString()}>
-                              {patient.firstName} {patient.lastName}
-                            </SelectItem>
-                          ));
-                        })()
-                      ) : (
-                        <SelectItem value="no-patients" disabled>No patients found</SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Note Type</label>
-                  <Select value={selectedNoteType} onValueChange={setSelectedNoteType}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="clinical_note">Clinical Note</SelectItem>
-                      <SelectItem value="procedure_note">Procedure Note</SelectItem>
-                      <SelectItem value="consultation">Consultation</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Template</label>
-                  <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Use template" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="template_1">SOAP Note</SelectItem>
-                      <SelectItem value="template_2">Procedure Note</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Transcript Display Area */}
-              <div className="mt-4 p-4 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    {isRecording ? (
-                      <>
-                        <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                        <span className="text-sm font-medium text-red-800 dark:text-red-400">Live Transcription</span>
-                      </>
-                    ) : (
-                      <span className="text-sm font-medium text-gray-800 dark:text-gray-200">Transcript</span>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      size="sm" 
-                      variant="default"
-                      onClick={saveVoiceNote}
-                      disabled={!currentTranscript || !selectedPatient || !selectedNoteType || isRecording}
-                      style={{ 
-                        backgroundColor: (!currentTranscript || !selectedPatient || !selectedNoteType || isRecording) ? '#CBD5E1' : '#4A7DFF',
-                        borderColor: (!currentTranscript || !selectedPatient || !selectedNoteType || isRecording) ? '#94A3B8' : '#4A7DFF',
-                        color: (!currentTranscript || !selectedPatient || !selectedNoteType || isRecording) ? '#475569' : 'white',
-                        fontWeight: '700',
-                        fontSize: '14px',
-                        textShadow: (!currentTranscript || !selectedPatient || !selectedNoteType || isRecording) ? 'none' : '0 1px 2px rgba(0,0,0,0.3)',
-                        border: `2px solid ${(!currentTranscript || !selectedPatient || !selectedNoteType || isRecording) ? '#94A3B8' : '#4A7DFF'}`,
-                        opacity: 1
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!(!currentTranscript || !selectedPatient || !selectedNoteType || isRecording)) {
-                          e.currentTarget.style.backgroundColor = '#7279FB';
-                          e.currentTarget.style.borderColor = '#7279FB';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!(!currentTranscript || !selectedPatient || !selectedNoteType || isRecording)) {
-                          e.currentTarget.style.backgroundColor = '#4A7DFF';
-                          e.currentTarget.style.borderColor = '#4A7DFF';
-                        }
-                      }}
-                      className="transition-all duration-200 cursor-pointer"
-                    >
-                      <FileText className="w-4 h-4 mr-1" style={{ 
-                        filter: (!currentTranscript || !selectedPatient || !selectedNoteType || isRecording) ? 'none' : 'drop-shadow(0 1px 1px rgba(0,0,0,0.3))',
-                        color: (!currentTranscript || !selectedPatient || !selectedNoteType || isRecording) ? '#475569' : 'white'
-                      }} />
-                      Save Note
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => setCurrentTranscript("")}
-                      disabled={!currentTranscript}
-                      style={{ 
-                        backgroundColor: !currentTranscript ? '#F1F5F9' : 'white',
-                        borderColor: !currentTranscript ? '#CBD5E1' : '#6B7280',
-                        color: !currentTranscript ? '#94A3B8' : 'black',
-                        fontWeight: '700',
-                        fontSize: '14px',
-                        border: `2px solid ${!currentTranscript ? '#CBD5E1' : '#6B7280'}`,
-                        opacity: 1
-                      }}
-                      className="transition-all duration-200 cursor-pointer"
-                    >
-                      <X className="w-4 h-4 mr-1" style={{ 
-                        color: !currentTranscript ? '#94A3B8' : 'black' 
-                      }} />
-                      Clear
-                    </Button>
-                  </div>
-                </div>
-                <textarea
-                  value={currentTranscript}
-                  onChange={(e) => setCurrentTranscript(e.target.value)}
-                  placeholder={isRecording ? "Start speaking to see real-time transcription..." : "Type your transcript here or start recording to capture speech automatically..."}
-                  className="w-full text-sm text-gray-700 dark:text-gray-200 min-h-[3rem] p-2 bg-white dark:bg-slate-800 border dark:border-slate-600 rounded resize-none placeholder:text-gray-500 dark:placeholder:text-gray-400"
-                  rows={3}
-                  disabled={isRecording}
-                />
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+            <textarea
+              value={currentTranscript}
+              onChange={(e) => setCurrentTranscript(e.target.value)}
+              placeholder="Type your transcript here or start recording to capture speech automatically..."
+              className="w-full text-sm text-gray-700 dark:text-gray-200 min-h-[80px] p-3 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg resize-none placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              rows={4}
+              disabled={isRecording}
+            />
+          </div>
+        </div>
 
           {/* Voice Notes List */}
           <div className="grid gap-4">
