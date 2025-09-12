@@ -249,6 +249,27 @@ export default function LabResultsPage() {
     },
   });
 
+  const updateLabResultMutation = useMutation({
+    mutationFn: async (updateData: { id: number; data: any }) => {
+      return await apiRequest("PUT", `/api/lab-results/${updateData.id}`, updateData.data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Lab result updated successfully",
+      });
+      setIsEditMode(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update lab result",
+        variant: "destructive",
+      });
+    },
+  });
+
   const deleteLabResultMutation = useMutation({
     mutationFn: async (resultId: number) => {
       return await apiRequest("DELETE", `/api/lab-results/${resultId.toString()}`);
