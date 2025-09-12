@@ -1649,6 +1649,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Filter doctors by specialization
+  app.get("/api/doctors/by-specialization", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const { mainSpecialty, subSpecialty } = req.query;
+      
+      const users = await storage.getUsersByOrganization(req.tenant!.id);
+      
+      // Filter for active doctors only
+      let filteredDoctors = users.filter(user => user.role === 'doctor' && user.isActive);
+      
+      // Apply specialization filtering
+      if (mainSpecialty || subSpecialty) {
+        filteredDoctors = filteredDoctors.filter(doctor => {
+          const matchesMainSpecialty = !mainSpecialty || 
+            (doctor.medicalSpecialtyCategory && 
+             doctor.medicalSpecialtyCategory.toLowerCase() === (mainSpecialty as string).toLowerCase());
+          
+          const matchesSubSpecialty = !subSpecialty || 
+            (doctor.subSpecialty && 
+             doctor.subSpecialty.toLowerCase() === (subSpecialty as string).toLowerCase());
+          
+          return matchesMainSpecialty && matchesSubSpecialty;
+        });
+      }
+      
+      // Remove sensitive information
+      const safeDoctors = filteredDoctors.map(doctor => {
+        const { passwordHash, ...safeDoctor } = doctor;
+        return safeDoctor;
+      });
+      
+      res.json({
+        doctors: safeDoctors,
+        count: safeDoctors.length
+      });
+    } catch (error) {
+      console.error("Error filtering doctors by specialization:", error);
+      res.status(500).json({ error: "Failed to filter doctors" });
+    }
+  });
+
   app.get("/api/users", authMiddleware, async (req: TenantRequest, res) => {
     try {
       const users = await storage.getUsersByOrganization(req.tenant!.id);
