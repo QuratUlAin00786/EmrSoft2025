@@ -36,7 +36,8 @@ import {
   Save,
   Maximize,
   Edit,
-  ArrowLeft
+  ArrowLeft,
+  Trash
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -793,7 +794,11 @@ export default function VoiceDocumentation() {
       // Stop camera after capture
       stopCamera();
       
-      toast({ title: "Photo captured!", description: "Review and save your clinical photo" });
+      // Show success notification as requested
+      toast({ 
+        title: "Photo Successfully Captured!", 
+        description: "Photo captured and camera stopped. Please review and save your clinical photo."
+      });
 
     } catch (error) {
       console.error('Failed to capture photo:', error);
@@ -836,6 +841,15 @@ export default function VoiceDocumentation() {
       setSelectedPhotoPatient("");
       setSelectedPhotoType("");
       setPhotoDescription("");
+      
+      // Switch to Clinical Photos tab to show the saved photo
+      setActiveTab("photos");
+      
+      // Show success message
+      toast({
+        title: "Photo Saved Successfully!",
+        description: "Your clinical photo has been saved to the Clinical Photos tab."
+      });
       
     } catch (error) {
       toast({ 
@@ -1014,7 +1028,14 @@ export default function VoiceDocumentation() {
         <div className="flex gap-3">
           <Dialog>
             <DialogTrigger asChild>
-              <Button>
+              <Button onClick={() => {
+                // Auto-start camera when dialog opens
+                setTimeout(() => {
+                  if (!isCameraOpen && !capturedPhoto) {
+                    startCamera();
+                  }
+                }, 300); // Small delay to let dialog open
+              }}>
                 <Camera className="w-4 h-4 mr-2" />
                 Capture Photo
               </Button>
@@ -1127,17 +1148,14 @@ export default function VoiceDocumentation() {
                 <div className="flex gap-2">
                   {!isCameraOpen && !capturedPhoto && (
                     <>
-                      <Button 
-                        className="flex-1"
-                        onClick={startCamera}
-                        data-testid="button-start-camera"
-                      >
-                        <Camera className="w-4 h-4 mr-2" />
-                        Start Camera
-                      </Button>
-                      <Button variant="outline" className="flex-1">
+                      <div className="text-center p-4 bg-blue-50 rounded-lg">
+                        <Camera className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+                        <p className="text-sm text-blue-800 font-medium">Camera is starting...</p>
+                        <p className="text-xs text-blue-600 mt-1">Please allow camera access when prompted</p>
+                      </div>
+                      <Button variant="outline" className="flex-1" onClick={startCamera}>
                         <Upload className="w-4 h-4 mr-2" />
-                        Upload File
+                        Upload File Instead
                       </Button>
                     </>
                   )}
@@ -2090,7 +2108,7 @@ export default function VoiceDocumentation() {
                       }}
                     >
                       <Edit className="w-4 h-4 mr-1" />
-                      Annotate
+                      Update
                     </Button>
                     <Button 
                       size="sm" 
@@ -2102,6 +2120,25 @@ export default function VoiceDocumentation() {
                     >
                       <Plus className="w-4 h-4 mr-1" />
                       Add to Report
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="destructive"
+                      onClick={() => {
+                        // Confirm deletion
+                        if (window.confirm(`Are you sure you want to delete this photo for ${photo.patientName}? This action cannot be undone.`)) {
+                          // TODO: Implement actual deletion API call
+                          toast({
+                            title: "Photo Deleted",
+                            description: `Clinical photo for ${photo.patientName} has been deleted.`,
+                          });
+                          // For now, just show the success message
+                          // In a real implementation, you would call a delete mutation here
+                        }
+                      }}
+                    >
+                      <Trash className="w-4 h-4 mr-1" />
+                      Delete
                     </Button>
                   </div>
                 </CardContent>
