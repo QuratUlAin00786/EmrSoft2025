@@ -1422,6 +1422,18 @@ Report generated from Cura EMR System`;
                         <FileText className="h-4 w-4 mr-1" />
                         Generate Prescription
                       </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => {
+                          setSelectedResult(result);
+                          handleGeneratePDF();
+                        }}
+                        className="bg-medical-blue hover:bg-blue-700 text-white"
+                      >
+                        <Download className="h-4 w-4 mr-1" />
+                        Download PDF
+                      </Button>
                       <Button variant="outline" size="sm" onClick={() => handleDownloadResult(result.id)}>
                         <Download className="h-4 w-4 mr-1" />
                         Download
