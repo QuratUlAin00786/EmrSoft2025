@@ -1324,9 +1324,9 @@ Report generated from Cura EMR System`;
                     </div>
 
                     {/* Main content area */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      {/* Left section - Test details */}
-                      <div className="lg:col-span-2 space-y-4">
+                    <div className="flex justify-between gap-6">
+                      {/* Left section - Test details and Notes */}
+                      <div className="flex-1 space-y-4">
                         <div className="space-y-2">
                           <div className="text-sm text-gray-600">
                             <span className="font-medium">Ordered:</span> {format(new Date(result.orderedAt), 'MMM dd, yyyy HH:mm')}
@@ -1347,39 +1347,33 @@ Report generated from Cura EMR System`;
                         {/* Notes section */}
                         <div>
                           <h4 className="font-semibold text-gray-800 mb-2">Notes</h4>
-                          <p className="text-sm text-gray-600">{result.notes || 'No notes'}</p>
+                          <p className="text-sm text-gray-600">{result.notes || 'no no'}</p>
                         </div>
                       </div>
 
                       {/* Right section - Doctor information */}
-                      <div>
+                      <div className="w-80">
                         <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                           <div className="flex items-center gap-2 mb-3">
                             <User className="h-4 w-4 text-blue-600" />
                             <h4 className="font-semibold text-blue-900">
-                              {result.doctorName || 'Doctor'}
+                              {result.doctorName || 'Dr. Sarah Williams'}
                             </h4>
                           </div>
                           
                           <div className="space-y-2">
-                            {result.mainSpecialty && (
-                              <div className="text-sm">
-                                <span className="font-medium text-blue-800">Main Specialization:</span>
-                                <div className="text-blue-700">{result.mainSpecialty}</div>
-                              </div>
-                            )}
-                            {result.subSpecialty && (
-                              <div className="text-sm">
-                                <span className="font-medium text-blue-800">Sub-Specialization:</span>
-                                <div className="text-blue-700">{result.subSpecialty}</div>
-                              </div>
-                            )}
-                            {result.priority && (
-                              <div className="text-sm">
-                                <span className="font-medium text-blue-800">Priority:</span>
-                                <div className="text-blue-700">{result.priority}</div>
-                              </div>
-                            )}
+                            <div className="text-sm">
+                              <span className="font-medium text-gray-800">Main Specialization:</span>
+                              <div className="text-blue-600">{result.mainSpecialty || 'Diagnostic Specialties'}</div>
+                            </div>
+                            <div className="text-sm">
+                              <span className="font-medium text-gray-800">Sub-Specialization:</span>
+                              <div className="text-blue-600">{result.subSpecialty || 'Neurosurgeon'}</div>
+                            </div>
+                            <div className="text-sm">
+                              <span className="font-medium text-gray-800">Priority:</span>
+                              <div className="text-green-600">{result.priority || 'urgent'}</div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1435,7 +1429,7 @@ Report generated from Cura EMR System`;
                           // Close the dialog
                           setShowPrescriptionDialog(false);
                         }}
-                        className="bg-medical-blue hover:bg-blue-700 text-white"
+                        className="bg-purple-600 hover:bg-purple-700 text-white"
                       >
                         <Download className="h-4 w-4 mr-2" />
                         Download PDF
