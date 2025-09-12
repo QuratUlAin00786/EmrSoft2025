@@ -147,6 +147,14 @@ export default function VoiceDocumentation() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const speechRecognitionRef = useRef<any>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
+  const [selectedPhotoPatient, setSelectedPhotoPatient] = useState<string>("");
+  const [selectedPhotoType, setSelectedPhotoType] = useState<string>("");
+  const [photoDescription, setPhotoDescription] = useState<string>("");
   const { toast } = useToast();
 
   // Fetch voice notes
