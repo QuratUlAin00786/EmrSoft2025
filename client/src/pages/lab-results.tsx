@@ -787,7 +787,7 @@ Report generated from Cura EMR System`;
                   {medicalStaffLoading ? (
                     <SelectItem value="loading" disabled>Loading doctors...</SelectItem>
                   ) : doctors.length > 0 ? (
-                    doctors.map((doctor: any) => (
+                    doctors.filter((doctor: any) => doctor.role !== 'admin').map((doctor: any) => (
                       <SelectItem key={doctor.id} value={doctor.id.toString()}>
                         Dr. {doctor.firstName} {doctor.lastName}
                         {doctor.department && ` - ${doctor.department}`}
