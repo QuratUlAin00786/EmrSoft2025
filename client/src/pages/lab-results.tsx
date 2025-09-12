@@ -122,18 +122,6 @@ interface DatabaseLabResult {
   criticalValues: boolean;
   notes?: string;
   createdAt: string;
-  // Enhanced doctor details (legacy fields)
-  doctorFirstName?: string;
-  doctorLastName?: string;
-  doctorEmail?: string;
-  doctorRole?: string;
-  doctorDepartment?: string;
-  doctorWorkingDays?: string[];
-  doctorWorkingHours?: {
-    start?: string;
-    end?: string;
-  };
-  doctorPermissions?: any;
 }
 
 interface User {
