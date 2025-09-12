@@ -932,54 +932,18 @@ Report generated from Cura EMR System`;
               filteredResults.map((result) => (
                 <Card key={result.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
-                    {/* Header with patient name, status and action buttons */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <h3 className="text-lg font-semibold">{getPatientName(result.patientId)}</h3>
-                        <Badge className={getStatusColor(result.status)}>
-                          {result.status}
+                    {/* Header with patient name and status */}
+                    <div className="flex items-center gap-3 mb-4">
+                      <h3 className="text-lg font-semibold">{getPatientName(result.patientId)}</h3>
+                      <Badge className={getStatusColor(result.status)}>
+                        {result.status}
+                      </Badge>
+                      {result.criticalValues && (
+                        <Badge variant="destructive" className="flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3" />
+                          Critical
                         </Badge>
-                        {result.criticalValues && (
-                          <Badge variant="destructive" className="flex items-center gap-1">
-                            <AlertTriangle className="h-3 w-3" />
-                            Critical
-                          </Badge>
-                        )}
-                      </div>
-                      
-                      {/* Action buttons */}
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => handleViewResult(result)}>
-                          <Eye className="h-4 w-4 mr-1" />
-                          Edit
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => handleGeneratePrescription(result)}
-                          className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
-                        >
-                          <FileText className="h-4 w-4 mr-1" />
-                          Generate Prescription
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => handleDownloadResult(result.id)}>
-                          <Download className="h-4 w-4 mr-1" />
-                          Download
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => handleShareResult(result)}>
-                          <User className="h-4 w-4 mr-1" />
-                          Review
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => deleteLabResultMutation.mutate(result.id)}
-                          disabled={deleteLabResultMutation.isPending}
-                        >
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          Delete
-                        </Button>
-                      </div>
+                      )}
                     </div>
 
                     {/* Main content area */}
@@ -1065,6 +1029,40 @@ Report generated from Cura EMR System`;
                         </div>
                       </div>
                     )}
+
+                    {/* Action buttons at bottom */}
+                    <div className="flex gap-2 mt-6 pt-4 border-t border-gray-200">
+                      <Button variant="outline" size="sm" onClick={() => handleViewResult(result)}>
+                        <Eye className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleGeneratePrescription(result)}
+                        className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                      >
+                        <FileText className="h-4 w-4 mr-1" />
+                        Generate Prescription
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => handleDownloadResult(result.id)}>
+                        <Download className="h-4 w-4 mr-1" />
+                        Download
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => handleShareResult(result)}>
+                        <User className="h-4 w-4 mr-1" />
+                        Review
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => deleteLabResultMutation.mutate(result.id)}
+                        disabled={deleteLabResultMutation.isPending}
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Delete
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))
