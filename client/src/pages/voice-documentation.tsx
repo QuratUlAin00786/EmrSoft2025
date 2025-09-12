@@ -677,19 +677,58 @@ export default function VoiceDocumentation() {
         video.onerror = null;
         
         video.srcObject = stream;
+        video.muted = true; // Ensure video is muted to prevent echo
         
-        // Set up fresh event handlers
-        video.onloadedmetadata = () => {
-          console.log('Video metadata loaded, starting playback...');
+        // Use a Promise-based approach to ensure proper video setup
+        await new Promise<void>((resolve, reject) => {
+          const timeoutId = setTimeout(() => {
+            reject(new Error('Video setup timeout'));
+          }, 5000);
+          
+          const cleanup = () => {
+            clearTimeout(timeoutId);
+            video.onloadedmetadata = null;
+            video.oncanplay = null;
+          };
+          
+          video.onloadedmetadata = () => {
+            console.log('Video metadata loaded, starting playback...');
+            video.play().then(() => {
+              console.log('Video playback started successfully');
+              cleanup();
+              resolve();
+            }).catch(err => {
+              console.error('Failed to start video playback:', err);
+              cleanup();
+              reject(err);
+            });
+          };
+          
+          video.oncanplay = () => {
+            console.log('Video can play, attempting play...');
+            if (video.paused) {
+              video.play().then(() => {
+                console.log('Video playback started via canplay');
+                cleanup();
+                resolve();
+              }).catch(err => {
+                console.error('Failed to start video playback via canplay:', err);
+                cleanup();
+                reject(err);
+              });
+            }
+          };
+          
+          // Immediate play attempt
           video.play().then(() => {
-            console.log('Video playback started successfully');
+            console.log('Video playback started immediately');
+            cleanup();
+            resolve();
           }).catch(err => {
-            console.error('Failed to start video playback:', err);
+            console.log('Immediate play failed, waiting for events...', err);
+            // Don't reject here, wait for events
           });
-        };
-        
-        // Immediate play attempt
-        video.play().catch(console.error);
+        });
       }
       
       setIsCameraOpen(true);
@@ -754,14 +793,40 @@ export default function VoiceDocumentation() {
       return;
     }
 
-    // Check if camera is actually running - focus on video element state
-    if (!video.srcObject || video.paused || video.ended) {
+    // Check if camera is actually running - with better validation
+    if (!video.srcObject) {
       toast({ 
-        title: "Camera not running", 
+        title: "Camera not ready", 
         description: "Please start the camera first",
         variant: "destructive" 
       });
       return;
+    }
+    
+    if (video.ended) {
+      toast({ 
+        title: "Camera stream ended", 
+        description: "Please restart the camera",
+        variant: "destructive" 
+      });
+      return;
+    }
+    
+    // If video is paused, try to resume playback
+    if (video.paused) {
+      console.log('Video is paused, attempting to resume...');
+      try {
+        await video.play();
+        console.log('Video resumed successfully');
+      } catch (err) {
+        console.error('Failed to resume video:', err);
+        toast({ 
+          title: "Camera playback issue", 
+          description: "Please restart the camera",
+          variant: "destructive" 
+        });
+        return;
+      }
     }
 
     // Small delay to ensure video frame is stable
