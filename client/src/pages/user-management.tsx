@@ -839,6 +839,14 @@ export default function UserManagement() {
           </div>
           
           <div className="flex gap-2">
+            <Button 
+              onClick={() => setIsCreateModalOpen(true)} 
+              variant="default" 
+              className="flex items-center gap-2 bg-gray-800 text-white hover:bg-gray-700"
+            >
+              <UserPlus className="h-4 w-4" />
+              Add New User
+            </Button>
             <Link href="/permissions-reference">
               <Button variant="outline" className="flex items-center gap-2">
                 <BookOpen className="h-4 w-4" />
@@ -856,12 +864,6 @@ export default function UserManagement() {
               form.reset();
             }
           }}>
-            <DialogTrigger asChild>
-              <Button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2">
-                <UserPlus className="h-4 w-4" />
-                Add New User
-              </Button>
-            </DialogTrigger>
             <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>
