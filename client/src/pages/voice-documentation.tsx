@@ -633,9 +633,9 @@ export default function VoiceDocumentation() {
       console.log('Requesting camera access...');
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-          facingMode: 'environment' // Use back camera on mobile devices
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 720, min: 480 },
+          facingMode: 'user' // Use front camera which is more likely to work
         } 
       });
       
@@ -643,8 +643,21 @@ export default function VoiceDocumentation() {
       streamRef.current = stream;
       
       if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play().catch(console.error);
+        const video = videoRef.current;
+        video.srcObject = stream;
+        
+        // Force video to play and wait for it to actually start
+        video.onloadedmetadata = () => {
+          console.log('Video metadata loaded, starting playback...');
+          video.play().then(() => {
+            console.log('Video playback started successfully');
+          }).catch(err => {
+            console.error('Failed to start video playback:', err);
+          });
+        };
+        
+        // Immediate play attempt
+        video.play().catch(console.error);
       }
       
       setIsCameraOpen(true);
@@ -1005,20 +1018,25 @@ export default function VoiceDocumentation() {
                     <div className="relative">
                       <video 
                         ref={videoRef}
-                        autoPlay 
-                        playsInline 
-                        muted
+                        autoPlay={true}
+                        playsInline={true}
+                        muted={true}
                         controls={false}
-                        width="640"
-                        height="480"
+                        width={640}
+                        height={480}
+                        className="w-full h-64 bg-black rounded-lg object-cover"
                         style={{
                           width: '100%',
                           height: '16rem',
-                          backgroundColor: 'black',
+                          backgroundColor: '#000000',
                           objectFit: 'cover',
-                          borderRadius: '0.5rem'
+                          borderRadius: '0.5rem',
+                          display: 'block'
                         }}
-                        className="w-full h-64 bg-black rounded-lg object-cover"
+                        onLoadStart={() => console.log('Video load started')}
+                        onLoadedData={() => console.log('Video data loaded')}
+                        onPlay={() => console.log('Video started playing')}
+                        onError={(e) => console.error('Video error:', e)}
                       />
                       <div className="absolute bottom-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-medium">
                         LIVE
