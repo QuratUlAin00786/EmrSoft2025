@@ -1907,7 +1907,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         firstName: z.string().min(1),
         lastName: z.string().min(1),
         role: z.enum(["admin", "doctor", "nurse", "receptionist", "patient", "sample_taker"]),
-        department: z.string().optional()
+        department: z.string().optional(),
+        medicalSpecialtyCategory: z.string().optional(),
+        subSpecialty: z.string().optional()
       }).parse(req.body);
 
       // Hash password
