@@ -1115,7 +1115,7 @@ Report generated from Cura EMR System`;
                           </SelectContent>
                         </Select>
                       ) : (
-                        <p className="text-white font-medium">{selectedResult.testType}</p>
+                        <p className="font-medium">{selectedResult.testType}</p>
                       )}
                     </div>
                     <div>
@@ -1124,7 +1124,7 @@ Report generated from Cura EMR System`;
                     </div>
                     <div>
                       <p className="text-sm text-gray-300">Ordered:</p>
-                      <p className="text-white font-medium">{format(new Date(selectedResult.orderedAt), "MMM dd, yyyy HH:mm")}</p>
+                      <p className="font-medium">{format(new Date(selectedResult.orderedAt), "MMM dd, yyyy HH:mm")}</p>
                     </div>
                   </div>
                 </div>
@@ -1208,7 +1208,7 @@ Report generated from Cura EMR System`;
                   </div>
                   
                   <div>
-                    <p className="text-sm font-medium text-blue-600">Main Specialization:</p>
+                    <p className="text-sm font-medium text-black">Main Specialization:</p>
                     {isEditMode ? (
                       <Select 
                         value={editFormData.mainSpecialty || selectedResult.mainSpecialty || ""} 
@@ -1226,12 +1226,12 @@ Report generated from Cura EMR System`;
                         </SelectContent>
                       </Select>
                     ) : (
-                      <p className="text-blue-800 font-medium">{selectedResult.mainSpecialty || "Surgical Specialties"}</p>
+                      <p className="text-black font-medium">{selectedResult.mainSpecialty || "Surgical Specialties"}</p>
                     )}
                   </div>
 
                   <div>
-                    <p className="text-sm font-medium text-blue-600">Sub-Specialization:</p>
+                    <p className="text-sm font-medium text-black">Sub-Specialization:</p>
                     {isEditMode ? (
                       <Select 
                         value={editFormData.subSpecialty || selectedResult.subSpecialty || ""} 
@@ -1249,7 +1249,7 @@ Report generated from Cura EMR System`;
                         </SelectContent>
                       </Select>
                     ) : (
-                      <p className="text-blue-800 font-medium">{selectedResult.subSpecialty || "Orthopedic Surgeon"}</p>
+                      <p className="text-black font-medium">{selectedResult.subSpecialty || "Orthopedic Surgeon"}</p>
                     )}
                   </div>
 
@@ -1619,7 +1619,7 @@ Report generated from Cura EMR System`;
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
                       <p className="text-sm font-medium text-gray-700">Test ID:</p>
-                      <p className="font-mono text-blue-800">{selectedResult.testId}</p>
+                      <p className="font-mono">{selectedResult.testId}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-700">Test Type:</p>
