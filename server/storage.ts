@@ -129,49 +129,7 @@ class SubscriptionCache {
 // Global cache instance
 const subscriptionCache = new SubscriptionCache();
 
-// Retry logic with exponential backoff for DB connection errors
-async function retryDatabaseOperation<T>(
-  operation: () => Promise<T>, 
-  operationName = 'database operation'
-): Promise<T> {
-  const maxRetries = 2;
-  const baseDelay = 100; // Start with 100ms
-  
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    try {
-      return await operation();
-    } catch (error: any) {
-      const isTransientError = 
-        error?.code === '57P01' || // Connection terminated
-        error?.code === 'ECONNRESET' || 
-        error?.code === 'ETIMEDOUT' ||
-        error?.message?.includes('terminating connection');
-      
-      if (isTransientError && attempt < maxRetries) {
-        const jitter = Math.random() * 0.1; // 10% jitter
-        const delay = baseDelay * Math.pow(3, attempt) * (1 + jitter);
-        console.warn(`[RETRY] ${operationName} failed (attempt ${attempt + 1}/${maxRetries + 1}), retrying in ${delay.toFixed(0)}ms:`, error?.message);
-        await new Promise(resolve => setTimeout(resolve, delay));
-        continue;
-      }
-      
-      // Last attempt or non-transient error
-      if (isTransientError) {
-        console.error(`[DB_TRANSIENT_ERROR] ${operationName} failed after ${maxRetries + 1} attempts:`, error?.message);
-        // Return a service unavailable error that can be distinguished from validation errors
-        const serviceError = new Error(`Service temporarily unavailable. Please try again in a moment.`);
-        (serviceError as any).code = 'SERVICE_UNAVAILABLE';
-        (serviceError as any).statusCode = 503;
-        throw serviceError;
-      } else {
-        console.error(`[DB_ERROR] ${operationName} failed with non-transient error:`, error);
-        throw error;
-      }
-    }
-  }
-  
-  throw new Error('Unexpected retry logic error');
-}
+// Database retry logic has been moved to db-utils.ts and is now applied at the Pool.query level
 
 export interface IStorage {
   // Organizations
@@ -1075,22 +1033,20 @@ export class DatabaseStorage implements IStorage {
   // Subscriptions
   async getSubscription(organizationId: number): Promise<Subscription | undefined> {
     return await subscriptionCache.get(organizationId, async () => {
-      return await retryDatabaseOperation(async () => {
-        const [subscription] = await db.select().from(subscriptions).where(eq(subscriptions.organizationId, organizationId));
-        if (!subscription) return undefined;
-        
-        // Transform data to match frontend type expectations
-        return {
-          ...subscription,
-          monthlyPrice: subscription.monthlyPrice ? String(subscription.monthlyPrice) : null,
-          features: subscription.features || {
-            aiInsights: true,
-            advancedReporting: true,
-            apiAccess: true,
-            whiteLabel: false
-          }
-        };
-      }, `getSubscription(organizationId=${organizationId})`);
+      const [subscription] = await db.select().from(subscriptions).where(eq(subscriptions.organizationId, organizationId));
+      if (!subscription) return undefined;
+      
+      // Transform data to match frontend type expectations
+      return {
+        ...subscription,
+        monthlyPrice: subscription.monthlyPrice ? String(subscription.monthlyPrice) : null,
+        features: subscription.features || {
+          aiInsights: true,
+          advancedReporting: true,
+          apiAccess: true,
+          whiteLabel: false
+        }
+      };
     });
   }
 
