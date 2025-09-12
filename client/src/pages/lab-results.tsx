@@ -534,51 +534,68 @@ Report generated from Cura EMR System`;
       return;
     }
 
-    // Get the prescription content
-    const element = document.getElementById('prescription-print');
-    if (!element) {
-      toast({
-        title: "Error",
-        description: "Could not find prescription content to print",
-        variant: "destructive",
-      });
-      printWindow.close();
-      return;
-    }
+    // Helper function to get status class based on result status
+    const getStatusClass = (status: string) => {
+      switch (status) {
+        case 'normal': return 'status-normal';
+        case 'abnormal_high':
+        case 'abnormal_low': return 'status-abnormal';
+        case 'critical': return 'status-critical';
+        default: return 'status-normal';
+      }
+    };
 
-    // Create the print HTML with the same styling
+    // Helper function to format status text
+    const formatStatus = (status: string) => {
+      return status.replace('_', ' ').toUpperCase();
+    };
+
+    // Create properly structured HTML for printing with complete styling
     const printHTML = `
       <!DOCTYPE html>
       <html>
         <head>
           <title>Lab Result Prescription - ${selectedResult.testId}</title>
           <style>
+            * {
+              box-sizing: border-box;
+              margin: 0;
+              padding: 0;
+            }
             body {
-              font-family: system-ui, -apple-system, sans-serif;
-              margin: 20px;
-              line-height: 1.5;
+              font-family: 'Arial', sans-serif;
+              margin: 0;
+              padding: 20px;
+              line-height: 1.6;
               color: #333;
+              background: white;
             }
             .prescription-content {
               max-width: 800px;
               margin: 0 auto;
+              background: white;
             }
+            
+            /* Header Styles */
             .header {
               text-align: center;
-              border-bottom: 2px solid #e5e7eb;
+              border-bottom: 3px solid #4A7DFF;
               padding-bottom: 20px;
               margin-bottom: 30px;
             }
             .clinic-name {
-              font-size: 24px;
+              font-size: 28px;
               font-weight: bold;
-              color: #1f2937;
-              margin-bottom: 8px;
+              color: #4A7DFF;
+              margin-bottom: 5px;
             }
-            .clinic-details {
+            .clinic-subtitle {
               font-size: 14px;
               color: #6b7280;
+              font-weight: 500;
             }
+            
+            /* Patient Information Grid */
             .patient-info {
               display: grid;
               grid-template-columns: 1fr 1fr;
@@ -586,133 +603,396 @@ Report generated from Cura EMR System`;
               margin-bottom: 30px;
             }
             .info-section {
-              background: #f9fafb;
-              padding: 20px;
+              border: 2px solid #e5e7eb;
               border-radius: 8px;
-              border: 1px solid #e5e7eb;
+              padding: 20px;
+              background: #f8f9fa;
             }
             .section-title {
               font-size: 16px;
-              font-weight: 600;
+              font-weight: 700;
               color: #374151;
               margin-bottom: 15px;
               padding-bottom: 8px;
-              border-bottom: 1px solid #d1d5db;
+              border-bottom: 2px solid #d1d5db;
             }
             .info-item {
+              margin-bottom: 10px;
               display: flex;
               justify-content: space-between;
-              margin-bottom: 8px;
-              font-size: 14px;
+              align-items: center;
             }
             .info-label {
-              font-weight: 500;
-              color: #6b7280;
+              font-weight: 600;
+              color: #4b5563;
+              font-size: 13px;
             }
             .info-value {
               color: #1f2937;
+              font-weight: 500;
+              font-size: 13px;
             }
-            .test-results {
+            
+            /* Prescription Section */
+            .prescription-section {
               margin: 30px 0;
             }
+            .prescription-title {
+              font-size: 20px;
+              font-weight: 700;
+              color: #374151;
+              border-bottom: 2px solid #e5e7eb;
+              padding-bottom: 10px;
+              margin-bottom: 20px;
+            }
+            .prescription-symbol {
+              font-size: 24px;
+              color: #4A7DFF;
+              margin-right: 10px;
+            }
+            
+            /* Test Details Box */
+            .test-details {
+              background: #eff6ff;
+              border: 2px solid #bfdbfe;
+              border-radius: 8px;
+              padding: 20px;
+              margin: 20px 0;
+            }
+            .test-grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 20px;
+              margin-bottom: 20px;
+            }
+            .test-item {
+              background: white;
+              padding: 15px;
+              border-radius: 6px;
+              border: 1px solid #cbd5e1;
+            }
+            .test-label {
+              font-size: 12px;
+              font-weight: 600;
+              color: #64748b;
+              margin-bottom: 5px;
+              text-transform: uppercase;
+            }
+            .test-value {
+              font-size: 14px;
+              font-weight: 600;
+              color: #1e293b;
+            }
+            .test-id {
+              font-family: 'Courier New', monospace;
+              background: #f1f5f9;
+              padding: 2px 6px;
+              border-radius: 4px;
+            }
+            
+            /* Test Results */
+            .test-results {
+              margin: 20px 0;
+            }
+            .results-title {
+              font-size: 14px;
+              font-weight: 600;
+              color: #4b5563;
+              margin-bottom: 15px;
+            }
             .result-item {
-              background: #f0f9ff;
-              border: 1px solid #bae6fd;
+              background: white;
+              border: 1px solid #cbd5e1;
               border-radius: 6px;
               padding: 15px;
-              margin-bottom: 10px;
+              margin-bottom: 12px;
             }
             .result-header {
               display: flex;
               justify-content: space-between;
               align-items: center;
-              margin-bottom: 8px;
+              margin-bottom: 10px;
             }
             .result-name {
               font-weight: 600;
               color: #1f2937;
+              font-size: 14px;
             }
             .result-status {
-              padding: 4px 8px;
+              padding: 4px 10px;
               border-radius: 4px;
-              font-size: 12px;
-              font-weight: 500;
+              font-size: 11px;
+              font-weight: 600;
+              text-transform: uppercase;
             }
             .status-normal {
               background: #dcfce7;
               color: #166534;
+              border: 1px solid #bbf7d0;
             }
             .status-abnormal {
               background: #fee2e2;
               color: #dc2626;
+              border: 1px solid #fecaca;
+            }
+            .status-critical {
+              background: #fef2f2;
+              color: #991b1b;
+              border: 1px solid #fca5a5;
             }
             .result-details {
-              font-size: 14px;
+              font-size: 13px;
               color: #4b5563;
+              line-height: 1.4;
             }
-            .notes {
-              background: #ffffff;
-              border: 1px solid #d1d5db;
+            .result-value {
+              font-weight: 600;
+              color: #1f2937;
+            }
+            
+            /* Notes Section */
+            .notes-section {
+              background: #fffbeb;
+              border: 2px solid #fcd34d;
+              border-left: 6px solid #f59e0b;
               border-radius: 8px;
               padding: 20px;
               margin: 20px 0;
             }
             .notes-title {
               font-weight: 600;
-              color: #374151;
+              color: #92400e;
               margin-bottom: 10px;
+              font-size: 14px;
             }
+            .notes-content {
+              color: #78350f;
+              font-size: 13px;
+              line-height: 1.5;
+            }
+            
+            /* Critical Warning */
             .critical-warning {
               background: #fef2f2;
-              border: 1px solid #fecaca;
+              border: 2px solid #fca5a5;
+              border-left: 6px solid #dc2626;
               border-radius: 8px;
               padding: 20px;
               margin: 20px 0;
-              color: #dc2626;
             }
             .critical-header {
               display: flex;
               align-items: center;
               gap: 8px;
-              font-weight: 600;
+              font-weight: 700;
+              color: #dc2626;
               margin-bottom: 10px;
+              font-size: 14px;
             }
+            .critical-text {
+              color: #991b1b;
+              font-size: 13px;
+              line-height: 1.5;
+            }
+            
+            /* Footer */
             .footer {
-              border-top: 1px solid #e5e7eb;
+              border-top: 2px solid #e5e7eb;
               padding-top: 20px;
-              margin-top: 30px;
+              margin-top: 40px;
             }
             .footer-info {
               display: flex;
               justify-content: space-between;
-              font-size: 12px;
+              font-size: 11px;
               color: #6b7280;
-              margin-bottom: 20px;
+              margin-bottom: 25px;
             }
-            .signature {
+            .signature-section {
               text-align: center;
+              margin-top: 30px;
             }
             .signature-line {
-              border-top: 1px solid #d1d5db;
+              border-top: 2px solid #374151;
               width: 250px;
-              margin: 0 auto 10px;
+              margin: 0 auto 15px;
             }
             .doctor-name {
-              font-weight: 500;
+              font-weight: 600;
               font-size: 14px;
+              color: #1f2937;
+              margin-bottom: 5px;
             }
             .doctor-specialty {
               font-size: 12px;
               color: #6b7280;
+              font-style: italic;
             }
+            
+            /* Print Specific Styles */
             @media print {
-              body { margin: 0; }
-              .prescription-content { max-width: none; }
+              body {
+                margin: 0;
+                padding: 15px;
+                font-size: 12px;
+              }
+              .prescription-content {
+                max-width: none;
+                width: 100%;
+              }
+              .patient-info {
+                break-inside: avoid;
+              }
+              .test-details {
+                break-inside: avoid;
+              }
+              .result-item {
+                break-inside: avoid;
+              }
+              .footer {
+                break-inside: avoid;
+                page-break-inside: avoid;
+              }
             }
           </style>
         </head>
         <body>
-          ${element.outerHTML}
+          <div class="prescription-content">
+            <!-- Header -->
+            <div class="header">
+              <h1 class="clinic-name">CURA EMR SYSTEM</h1>
+              <p class="clinic-subtitle">Laboratory Test Prescription</p>
+            </div>
+
+            <!-- Patient and Doctor Information -->
+            <div class="patient-info">
+              <div class="info-section">
+                <h3 class="section-title">Physician Information</h3>
+                <div class="info-item">
+                  <span class="info-label">Name:</span>
+                  <span class="info-value">${selectedResult.doctorName || 'Doctor'}</span>
+                </div>
+                ${selectedResult.mainSpecialty ? `
+                <div class="info-item">
+                  <span class="info-label">Main Specialization:</span>
+                  <span class="info-value">${selectedResult.mainSpecialty}</span>
+                </div>
+                ` : ''}
+                ${selectedResult.subSpecialty ? `
+                <div class="info-item">
+                  <span class="info-label">Sub-Specialization:</span>
+                  <span class="info-value">${selectedResult.subSpecialty}</span>
+                </div>
+                ` : ''}
+                ${selectedResult.priority ? `
+                <div class="info-item">
+                  <span class="info-label">Priority:</span>
+                  <span class="info-value">${selectedResult.priority.toUpperCase()}</span>
+                </div>
+                ` : ''}
+              </div>
+
+              <div class="info-section">
+                <h3 class="section-title">Patient Information</h3>
+                <div class="info-item">
+                  <span class="info-label">Name:</span>
+                  <span class="info-value">${getPatientName(selectedResult.patientId)}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Patient ID:</span>
+                  <span class="info-value">${selectedResult.patientId}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Date:</span>
+                  <span class="info-value">${format(new Date(), 'MMM dd, yyyy')}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Time:</span>
+                  <span class="info-value">${format(new Date(), 'HH:mm')}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Prescription Details -->
+            <div class="prescription-section">
+              <h2 class="prescription-title">
+                <span class="prescription-symbol">℞</span>Laboratory Test Prescription
+              </h2>
+              
+              <div class="test-details">
+                <div class="test-grid">
+                  <div class="test-item">
+                    <div class="test-label">Test ID</div>
+                    <div class="test-value test-id">${selectedResult.testId}</div>
+                  </div>
+                  <div class="test-item">
+                    <div class="test-label">Test Type</div>
+                    <div class="test-value">${selectedResult.testType}</div>
+                  </div>
+                  <div class="test-item">
+                    <div class="test-label">Ordered Date</div>
+                    <div class="test-value">${format(new Date(selectedResult.orderedAt), 'MMM dd, yyyy HH:mm')}</div>
+                  </div>
+                  <div class="test-item">
+                    <div class="test-label">Status</div>
+                    <div class="test-value">${selectedResult.status.toUpperCase()}</div>
+                  </div>
+                </div>
+
+                ${selectedResult.results && selectedResult.results.length > 0 ? `
+                <div class="test-results">
+                  <div class="results-title">Test Results:</div>
+                  ${selectedResult.results.map((testResult: any) => `
+                    <div class="result-item">
+                      <div class="result-header">
+                        <span class="result-name">${testResult.name}</span>
+                        <span class="result-status ${getStatusClass(testResult.status)}">
+                          ${formatStatus(testResult.status)}
+                        </span>
+                      </div>
+                      <div class="result-details">
+                        <div><strong>Value:</strong> <span class="result-value">${testResult.value} ${testResult.unit}</span></div>
+                        <div><strong>Reference Range:</strong> ${testResult.referenceRange}</div>
+                        ${testResult.flag ? `<div><strong>Flag:</strong> ${testResult.flag}</div>` : ''}
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+                ` : ''}
+
+                ${selectedResult.notes ? `
+                <div class="notes-section">
+                  <div class="notes-title">Clinical Notes:</div>
+                  <div class="notes-content">${selectedResult.notes}</div>
+                </div>
+                ` : ''}
+              </div>
+
+              ${selectedResult.criticalValues ? `
+              <div class="critical-warning">
+                <div class="critical-header">
+                  <span>⚠️ CRITICAL VALUES DETECTED</span>
+                </div>
+                <div class="critical-text">
+                  This lab result contains critical values that require immediate attention.
+                </div>
+              </div>
+              ` : ''}
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+              <div class="footer-info">
+                <span>Generated by Cura EMR System</span>
+                <span>Date: ${format(new Date(), 'MMM dd, yyyy HH:mm')}</span>
+              </div>
+              <div class="signature-section">
+                <div class="signature-line"></div>
+                <div class="doctor-name">${selectedResult.doctorName || 'Doctor'}</div>
+                ${selectedResult.mainSpecialty ? `<div class="doctor-specialty">${selectedResult.mainSpecialty}</div>` : ''}
+              </div>
+            </div>
+          </div>
         </body>
       </html>
     `;
