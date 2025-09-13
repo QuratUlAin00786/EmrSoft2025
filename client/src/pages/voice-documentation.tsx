@@ -158,6 +158,7 @@ export default function VoiceDocumentation() {
   const [selectedPhotoPatient, setSelectedPhotoPatient] = useState<string>("");
   const [selectedPhotoType, setSelectedPhotoType] = useState<string>("");
   const [photoDescription, setPhotoDescription] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { toast } = useToast();
 
   // Fetch voice notes
@@ -831,6 +832,41 @@ export default function VoiceDocumentation() {
     }
   };
 
+  const handleFileUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select an image file",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Create preview URL
+    const previewUrl = URL.createObjectURL(file);
+    setCapturedPhoto(previewUrl);
+    
+    // Store the file for upload
+    const fileReader = new FileReader();
+    fileReader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      setCapturedPhoto(dataUrl);
+    };
+    fileReader.readAsDataURL(file);
+
+    toast({
+      title: "File selected",
+      description: "Photo loaded successfully. Fill in the details and save."
+    });
+  };
+
   const savePhoto = async () => {
     if (!capturedPhoto || !selectedPhotoPatient || !selectedPhotoType || !photoDescription) {
       toast({ 
@@ -1177,10 +1213,22 @@ export default function VoiceDocumentation() {
                         <Camera className="w-4 h-4 mr-2" />
                         Start Camera
                       </Button>
-                      <Button variant="outline" className="flex-1">
+                      <Button 
+                        variant="outline" 
+                        className="flex-1"
+                        onClick={handleFileUpload}
+                        data-testid="button-upload-file"
+                      >
                         <Upload className="w-4 h-4 mr-2" />
                         Upload File
                       </Button>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        accept="image/*"
+                        className="hidden"
+                      />
                     </>
                   )}
 
