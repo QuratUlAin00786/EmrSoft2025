@@ -33,7 +33,6 @@ const patientSchema = z.object({
   address: z.object({
     street: z.string().trim().min(1, "Street address is required"),
     city: z.string().trim().min(1, "City is required"),
-    state: z.string().trim().optional(),
     postcode: z.string().trim().min(1, "Postcode is required"),
     country: z.string().trim().min(1, "Country is required")
   }),
@@ -90,7 +89,6 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
       address: {
         street: "",
         city: "",
-        state: "",
         postcode: "",
         country: tenant?.region === "UK" ? "United Kingdom" : ""
       },
@@ -175,7 +173,6 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
         if (data.result) {
           // Auto-fill address fields
           form.setValue('address.city', data.result.admin_district || '');
-          form.setValue('address.state', data.result.admin_county || '');
           form.setValue('address.country', 'United Kingdom');
           
           toast({
@@ -502,19 +499,6 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
                       )}
                     />
 
-                    <FormField
-                      control={form.control}
-                      name="address.state"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>County/State</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Enter county" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
 
                     <FormField
                       control={form.control}
