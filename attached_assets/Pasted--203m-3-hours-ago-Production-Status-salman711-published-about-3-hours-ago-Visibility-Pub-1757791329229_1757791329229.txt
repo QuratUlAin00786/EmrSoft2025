@@ -1,0 +1,315 @@
+
+203m
+ • 
+3 hours ago
+Production
+Status
+salman711 published about 3 hours ago
+Visibility
+Public
+Domain
+https://cura-emr-uk-backup-1-sep-25-salman711.replit.app
+https://curaemr.ai
+Type
+Autoscale
+(4 vCPU / 8 GiB RAM / 3 Max)
+See all usage
+Database
+Production database connected
+63c8f450
+SA
+
+salman711
+salman711
+published about 22 hours ago
+0ceb76a7
+SA
+
+salman711
+salman711
+published 1 day ago
+3807215a
+SA
+
+salman711
+salman711
+published 4 days ago
+e1f91036
+SA
+
+salman711
+salman711
+published 5 days ago
+ec27a5ac
+SA
+
+salman711
+salman711
+published 5 days ago
+8615cd64
+SA
+
+salman711
+salman711
+published 5 days ago
+407e842c
+SA
+
+salman711
+salman711
+published 5 days ago
+4db23d2b
+SA
+
+salman711
+salman711
+failed to publish 5 days ago
+cf6bc03f
+SA
+
+salman711
+salman711
+published 5 days ago
+dfd7b0a5
+SA
+
+salman711
+salman711
+published 5 days ago
+80eec4c9
+SA
+
+salman711
+salman711
+published 5 days ago
+6b379a4b
+SA
+
+salman711
+salman711
+published 5 days ago
+11d1b48b
+SA
+
+salman711
+salman711
+published 5 days ago
+75521406
+SA
+
+salman711
+salman711
+published 5 days ago
+fdefdaf8
+SA
+
+salman711
+salman711
+published 5 days ago
+3f13ab4e
+SA
+
+salman711
+salman711
+published 5 days ago
+6b7f4e2e
+SA
+
+salman711
+salman711
+published 5 days ago
+6dc08daf
+SA
+
+salman711
+salman711
+published 5 days ago
+51fbbc9f
+SA
+
+salman711
+salman711
+published 5 days ago
+606d2175
+SA
+
+salman711
+salman711
+published 5 days ago
+43e2313b
+SA
+
+salman711
+salman711
+published 5 days ago
+63711b4d
+SA
+
+salman711
+salman711
+published 6 days ago
+3be5609b
+SA
+
+salman711
+salman711
+published 6 days ago
+623c26f7
+SA
+
+salman711
+salman711
+published 6 days ago
+Databases
+Development Database
+32.59MB / 10GB
+Production Database
+36.17MB / 100GB
+Billing Period
+Renews monthly, 29 Sept
+Hours of Compute Used
+631.35 hours
+--
+--
+
+ALTER TABLE ONLY public.medical_images
+    ADD CONSTRAINT medical_images_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+
+
+--
+-- Name: medical_images medical_images_patient_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.medical_images
+    ADD CONSTRAINT medical_images_patient_id_fkey FOREIGN KEY (patient_id) REFERENCES public.patients(id);
+
+
+--
+-- Name: medical_images medical_images_uploaded_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.medical_images
+    ADD CONSTRAINT medical_images_uploaded_by_fkey FOREIGN KEY (uploaded_by) REFERENCES public.users(id);
+
+
+--
+-- Name: notifications notifications_organization_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+
+
+--
+-- Name: notifications notifications_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: roles roles_organization_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.roles
+    ADD CONSTRAINT roles_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+
+
+--
+-- Name: users users_organization_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+
+Commit
+Improve multi-tenant support by dynamically setting subdomain
+Implement dynamic subdomain retrieval for tenant identification and adjust API request handling to support both JSON and FormData payloads. Remove unused interface definitions and update type declarations for better code clarity.
+
+SA
+
+salman711
+salman711
+committed
+1 day ago
+1 parent 
+Filter changed files
+Showing 2 changed files.
+
+
+Unified
+
+Split
+queryClient.ts
+client/src/lib
+Modified
+voice-documentation.tsx
+client/src/pages
+Modified
+Update doctor selection to display all available medical staff
+
+3 messages & 9 actions
+Now I understand the issues. Let me fix both problems: 1. **Upload File button** - It's missing an `onClick` handler and file input functionality 2. **Save Photo button** - It's correctly disabled when required fields are empty, but there may be an issue with state management Let me read the specific part of the file containing the Upload File button and add the missing functionality:
+Checkpoint made
+8 hours ago
+Enable uploading clinical photos through the documentation interface
+2 minutes of work
+In the voice-documentation.tsx file, the 'Capture Photo' button opens the 'Capture Clinical Photo' popup. In this popup, the 'Upload File' button is now functional, but after uploading, the 'Save Photo' button remains disabled — please fix this. The 'Start Camera' button successfully starts the camera, and clicking 'Take Photo' captures the photo successfully. The 'Save Photo' button becomes enabled, and I can click on it to save the photo. After clicking 'Save Photo', a message appears saying 'Your clinical photo has been saved to the Clinical Photo tab', but the photo is not actually saved in the 'Clinical Photo' tab.. Do not change anything else in the application while making this update.
+
+8 hours ago
+
+9 messages & 26 actions
+I need to investigate both issues. Let me first check the logs to see if there are any errors, then examine the code to fix the problems.
+Checkpoint made
+7 hours ago
+Fix clinical photo saving and display issues
+Can you test the photo capture functionality? Try both the Upload File button (should enable Save Photo after selecting a file) and camera capture (photos should now save to Clinical Photos tab).
+
+4 minutes of work
+"In the voice-documentation.tsx file, the 'Capture Photo' button opens the 'Capture Clinical Photo' popup. In this popup, the 'Upload File' button is now functional, but after uploading, the 'Save Photo' button remains disabled —enable it . The 'Start Camera' button successfully starts the camera, and clicking 'Take Photo' captures the photo successfully. The 'Save Photo' button becomes disabled please enable it , and I can not click on it to save the photo. if i click 'Save Photo' button the photo is not actually saved in the 'Clinical Photo' tab."Do not change anything else in the application while making this update.
+
+7 hours ago
+
+19 messages & 48 actions
+Let me refresh the logs to see what's happening and then fix the remaining issues with the Save Photo button.
+Checkpoint made
+7 hours ago
+Enable saving clinical photos and improve photo display functionality
+
+1 action
+Checkpoint made
+4 hours ago
+Integrate AI capabilities for analyzing and summarizing clinical documents
+38 seconds of work
+In the patients.tsx file, when clicking the 'Add Patient' button, the 'Add New Patient' popup opens. Please remove the 'County/State' input and label, and include the selected country value from the dropdown instead when the 'Create Patient' button is clicked. Do not change anything else in the application while making this update.
+
+4 hours ago
+
+3 messages & 16 actions
+I'll help you modify the 'Add New Patient' popup in the patients.tsx file to remove the 'County/State' input and include the selected country value when creating patients.
+Checkpoint made
+4 hours ago
+Update patient form to remove county/state and use selected country
+Please test the 'Add New Patient' functionality - the County/State field should now be removed from the popup, while the country selection should still work and be included when creating patients.
+
+3 minutes of work
+In the prescriptions.tsx file, when the 'Print' button is clicked, the prescription should print exactly like the given image, including all details, design, layput, and colors. Do not change anything else in the application while making this update
+
+3 hours ago
+
+3 messages & 11 actions
+I'll help you implement the print functionality for prescriptions to match the design shown in the image. Let me first find the prescriptions.tsx file and understand the current structure.
+Checkpoint made
+3 hours ago
+Update prescription printing to match specified design and layout
+Please test the Print button for any prescription - it should now open a new window with the exact prescription layout shown in the image, including all design elements, colors, and formatting.
+
+3 minutes of work
+in appointments.tsx file,
