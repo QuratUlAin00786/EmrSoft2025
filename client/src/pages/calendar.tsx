@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Calendar, Plus, Users, Clock, User, X } from "lucide-react";
 import { useState, useEffect } from "react";
-import { format } from "date-fns";
+import { format, isBefore, startOfDay } from "date-fns";
 import { useLocation } from "wouter";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +18,12 @@ import { apiRequest } from "@/lib/queryClient";
 
 export default function CalendarPage() {
   const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
+  const [showNewAppointmentModal, setShowNewAppointmentModal] = useState(false);
+  const [selectedSpecialty, setSelectedSpecialty] = useState("");
+  const [selectedSubSpecialty, setSelectedSubSpecialty] = useState("");
+  const [filteredDoctors, setFilteredDoctors] = useState<any[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
   const [bookingForm, setBookingForm] = useState({
     patientId: "",
     title: "",
@@ -37,6 +44,111 @@ export default function CalendarPage() {
     retry: false,
   });
   
+  // Fetch medical staff for specialty filtering
+  const { data: medicalStaffResponse } = useQuery<any>({
+    queryKey: ["/api/medical-staff"],
+    retry: false,
+  });
+  
+  const medicalStaff = medicalStaffResponse?.staff || [];
+  
+  // Helper functions for specialty filtering
+  const getUniqueSpecialties = (): string[] => {
+    if (!Array.isArray(medicalStaff)) return [];
+    const specialties = (medicalStaff as any[])
+      .filter((staff: any) => staff.role === 'doctor' && staff.medicalSpecialtyCategory)
+      .map((staff: any) => staff.medicalSpecialtyCategory as string);
+    return [...new Set(specialties)];
+  };
+  
+  const getSubSpecialties = (specialty: string): string[] => {
+    if (!Array.isArray(medicalStaff)) return [];
+    const subSpecialties = (medicalStaff as any[])
+      .filter((staff: any) => 
+        staff.role === 'doctor' && 
+        staff.medicalSpecialtyCategory === specialty && 
+        staff.subSpecialty
+      )
+      .map((staff: any) => staff.subSpecialty as string);
+    return [...new Set(subSpecialties)];
+  };
+  
+  const filterDoctorsBySpecialty = () => {
+    if (!selectedSpecialty || !Array.isArray(medicalStaff)) return [];
+    
+    const filtered = (medicalStaff as any[]).filter((staff: any) => 
+      staff.role === 'doctor' && 
+      staff.medicalSpecialtyCategory === selectedSpecialty &&
+      (!selectedSubSpecialty || staff.subSpecialty === selectedSubSpecialty)
+    );
+    
+    setFilteredDoctors(filtered);
+    return filtered;
+  };
+  
+  // Generate time slots based on doctor's working hours
+  const generateTimeSlots = (workingHours: any) => {
+    const slots = [];
+    const startHour = parseInt(workingHours?.start?.split(':')[0] || '9');
+    const endHour = parseInt(workingHours?.end?.split(':')[0] || '17');
+    
+    for (let hour = startHour; hour < endHour; hour++) {
+      slots.push(`${hour.toString().padStart(2, '0')}:00`);
+      slots.push(`${hour.toString().padStart(2, '0')}:30`);
+    }
+    
+    return slots;
+  };
+  
+  // Fetch existing appointments for selected doctor and date
+  const { data: existingAppointments = [] } = useQuery<any[]>({
+    queryKey: ["/api/appointments", selectedDoctor?.id, selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null],
+    enabled: !!(selectedDoctor && selectedDate),
+    retry: false,
+  });
+  
+  // Check if time slot is available with proper overlap detection
+  const isTimeSlotAvailable = (timeSlot: string) => {
+    if (!selectedDate) return false;
+    
+    // Calculate slot start and end times
+    const slotDate = format(selectedDate, 'yyyy-MM-dd');
+    const slotStart = new Date(`${slotDate}T${timeSlot}:00`);
+    const slotDuration = parseInt(bookingForm.duration) || 30; // Default 30 minutes
+    const slotEnd = new Date(slotStart.getTime() + slotDuration * 60 * 1000);
+    
+    // Check if slot is in the past (for same-day bookings)
+    const isToday = format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+    if (isToday && slotStart < new Date()) {
+      return false; // Disable past time slots on today
+    }
+    
+    // Check for overlaps with existing appointments
+    if (existingAppointments?.length) {
+      return !existingAppointments.some((apt: any) => {
+        // Only check appointments for the same doctor
+        if (apt.providerId !== selectedDoctor?.id) return false;
+        
+        // Calculate existing appointment start and end times
+        const aptStart = new Date(apt.scheduledAt);
+        const aptDuration = apt.duration || 30; // Default 30 minutes
+        const aptEnd = new Date(aptStart.getTime() + aptDuration * 60 * 1000);
+        
+        // Check for overlap: slotStart < aptEnd && aptStart < slotEnd
+        return slotStart < aptEnd && aptStart < slotEnd;
+      });
+    }
+    
+    return true;
+  };
+  
+  // Update filtered doctors when specialty/sub-specialty changes
+  useEffect(() => {
+    if (selectedSpecialty) {
+      filterDoctorsBySpecialty();
+    }
+  }, [selectedSpecialty, selectedSubSpecialty, medicalStaff]);
+  
   // Check for patientId in URL params to auto-book appointment
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -56,11 +168,24 @@ export default function CalendarPage() {
         title: "Appointment Created",
         description: "The appointment has been successfully booked.",
       });
-      // Update calendar data
+      // Update calendar data with proper cache invalidation
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+      // Invalidate specific appointment queries for the doctor/date
+      if (selectedDoctor && selectedDate) {
+        queryClient.invalidateQueries({ 
+          queryKey: ["/api/appointments", selectedDoctor.id, format(selectedDate, 'yyyy-MM-dd')] 
+        });
+      }
       // Force immediate refetch to ensure appointments list updates
       queryClient.refetchQueries({ queryKey: ["/api/appointments"] });
+      // Close modal and reset form
+      setShowNewAppointmentModal(false);
+      setSelectedSpecialty("");
+      setSelectedSubSpecialty("");
+      setFilteredDoctors([]);
       setSelectedDoctor(null);
+      setSelectedDate(undefined);
+      setSelectedTimeSlot("");
       setBookingForm({
         patientId: "",
         title: "",
@@ -129,7 +254,7 @@ export default function CalendarPage() {
       />
       
       <div className="flex-1 overflow-auto p-6">
-        <div className="mb-6">
+        <div className="mb-6 flex justify-between items-center">
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
               <Calendar className="h-5 w-5 text-gray-900 dark:text-white" />
@@ -139,6 +264,14 @@ export default function CalendarPage() {
               View appointments, manage schedules, and book new consultations.
             </p>
           </div>
+          <Button 
+            onClick={() => setShowNewAppointmentModal(true)}
+            className="flex items-center gap-2"
+            data-testid="button-new-appointment"
+          >
+            <Plus className="h-4 w-4" />
+            New Appointment
+          </Button>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
@@ -173,7 +306,7 @@ export default function CalendarPage() {
         </div>
 
         {/* Booking Form */}
-        {selectedDoctor && (
+        {selectedDoctor && !showNewAppointmentModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
               <div className="p-6">
@@ -293,6 +426,274 @@ export default function CalendarPage() {
                     {createAppointmentMutation.isPending ? "Booking..." : "Book Appointment"}
                   </Button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* New Appointment Modal */}
+        {showNewAppointmentModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                    Schedule New Appointment
+                  </h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setShowNewAppointmentModal(false);
+                      setSelectedSpecialty("");
+                      setSelectedSubSpecialty("");
+                      setFilteredDoctors([]);
+                      setSelectedDoctor(null);
+                      setSelectedDate(undefined);
+                      setSelectedTimeSlot("");
+                    }}
+                    data-testid="button-close-modal"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                <div className="grid gap-6 lg:grid-cols-2">
+                  {/* Left Column - Filters and Doctor Selection */}
+                  <div className="space-y-6">
+                    {/* Step 1: Select Specialty */}
+                    <div>
+                      <Label className="text-sm font-medium text-gray-900 dark:text-white">
+                        Select Medical Specialty Category
+                      </Label>
+                      <Select 
+                        value={selectedSpecialty} 
+                        onValueChange={setSelectedSpecialty}
+                        data-testid="select-specialty"
+                      >
+                        <SelectTrigger className="mt-2">
+                          <SelectValue placeholder="Select Specialty" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getUniqueSpecialties().map((specialty) => (
+                            <SelectItem key={specialty} value={specialty}>
+                              {specialty}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Step 2: Select Sub-Specialty */}
+                    {selectedSpecialty && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-900 dark:text-white">
+                          Select Sub-Specialty
+                        </Label>
+                        <Select 
+                          value={selectedSubSpecialty} 
+                          onValueChange={setSelectedSubSpecialty}
+                          data-testid="select-subspecialty"
+                        >
+                          <SelectTrigger className="mt-2">
+                            <SelectValue placeholder="Select Sub-Specialty" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {getSubSpecialties(selectedSpecialty).map((subSpecialty) => (
+                              <SelectItem key={subSpecialty} value={subSpecialty}>
+                                {subSpecialty}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+
+                    {/* Step 3: Select Doctor */}
+                    {selectedSpecialty && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-900 dark:text-white">
+                          Select Doctor
+                        </Label>
+                        {filteredDoctors.length > 0 ? (
+                          <Select 
+                            value={selectedDoctor?.id?.toString() || ""} 
+                            onValueChange={(value) => {
+                              const doctor = filteredDoctors.find(d => d.id.toString() === value);
+                              setSelectedDoctor(doctor);
+                            }}
+                            data-testid="select-doctor"
+                          >
+                            <SelectTrigger className="mt-2">
+                              <SelectValue placeholder="Select Doctor" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {filteredDoctors.map((doctor) => (
+                                <SelectItem key={doctor.id} value={doctor.id.toString()}>
+                                  Dr. {doctor.firstName} {doctor.lastName} 
+                                  {doctor.department && ` (${doctor.department})`}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                            <p className="text-sm text-yellow-800">
+                              No doctors found for the selected specialty combination. Please try a different selection.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Patient Selection */}
+                    {selectedDoctor && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-900 dark:text-white">
+                          Select Patient
+                        </Label>
+                        <Select 
+                          value={bookingForm.patientId} 
+                          onValueChange={(value) => setBookingForm(prev => ({ ...prev, patientId: value }))}
+                          data-testid="select-patient"
+                        >
+                          <SelectTrigger className="mt-2">
+                            <SelectValue placeholder="Select patient..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {patients.map((patient: any) => (
+                              <SelectItem key={patient.id} value={patient.patientId || patient.id.toString()}>
+                                {patient.firstName} {patient.lastName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right Column - Calendar and Time Slots */}
+                  <div className="space-y-6">
+                    {/* Step 4: Select Date */}
+                    {selectedDoctor && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
+                          Select Date
+                        </Label>
+                        <CalendarComponent
+                          mode="single"
+                          selected={selectedDate}
+                          onSelect={setSelectedDate}
+                          disabled={(date) => {
+                            // Disable past dates (but allow today)
+                            if (isBefore(startOfDay(date), startOfDay(new Date()))) return true;
+                            
+                            // Disable days not in doctor's working days
+                            if (selectedDoctor?.workingDays?.length > 0) {
+                              const dayName = format(date, 'EEEE');
+                              return !selectedDoctor.workingDays.includes(dayName);
+                            }
+                            
+                            return false;
+                          }}
+                          className="rounded-md border"
+                          data-testid="calendar-date-picker"
+                        />
+                      </div>
+                    )}
+
+                    {/* Step 5: Select Time Slot */}
+                    {selectedDoctor && selectedDate && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-900 dark:text-white mb-3 block">
+                          Select Time Slot
+                        </Label>
+                        <div className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto">
+                          {generateTimeSlots(selectedDoctor.workingHours).map((timeSlot) => {
+                            const isAvailable = isTimeSlotAvailable(timeSlot);
+                            const isSelected = selectedTimeSlot === timeSlot;
+                            
+                            return (
+                              <Button
+                                key={timeSlot}
+                                variant={isSelected ? "default" : "outline"}
+                                size="sm"
+                                className={`
+                                  ${isAvailable && !isSelected 
+                                    ? "bg-green-100 hover:bg-green-200 text-green-800 border-green-300" 
+                                    : ""
+                                  }
+                                  ${!isAvailable 
+                                    ? "bg-gray-300 text-gray-500 cursor-not-allowed opacity-50" 
+                                    : ""
+                                  }
+                                  ${isSelected 
+                                    ? "bg-blue-600 text-white" 
+                                    : ""
+                                  }
+                                `}
+                                onClick={() => isAvailable && setSelectedTimeSlot(timeSlot)}
+                                disabled={!isAvailable}
+                                data-testid={`time-slot-${timeSlot.replace(':', '-')}`}
+                              >
+                                {format(new Date(`2000-01-01T${timeSlot}:00`), 'h:mm a')}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Book Appointment Button */}
+                {selectedDoctor && selectedDate && selectedTimeSlot && bookingForm.patientId && (
+                  <div className="flex justify-end gap-2 mt-6 pt-6 border-t">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowNewAppointmentModal(false);
+                        setSelectedSpecialty("");
+                        setSelectedSubSpecialty("");
+                        setFilteredDoctors([]);
+                        setSelectedDoctor(null);
+                        setSelectedDate(undefined);
+                        setSelectedTimeSlot("");
+                      }}
+                      data-testid="button-cancel-appointment"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        const appointmentDateTime = `${format(selectedDate, 'yyyy-MM-dd')}T${selectedTimeSlot}:00`;
+                        
+                        // Handle both numeric and string patient IDs
+                        let patientId: string | number = bookingForm.patientId;
+                        if (/^\d+$/.test(bookingForm.patientId)) {
+                          patientId = parseInt(bookingForm.patientId);
+                        }
+
+                        const appointmentData = {
+                          ...bookingForm,
+                          patientId: patientId,
+                          providerId: selectedDoctor.id,
+                          title: bookingForm.title || `${bookingForm.type} with ${selectedDoctor.firstName} ${selectedDoctor.lastName}`,
+                          location: bookingForm.location || `${selectedDoctor.department} Department`,
+                          duration: parseInt(bookingForm.duration),
+                          scheduledAt: appointmentDateTime
+                        };
+
+                        createAppointmentMutation.mutate(appointmentData);
+                      }}
+                      disabled={createAppointmentMutation.isPending}
+                      data-testid="button-book-appointment"
+                    >
+                      <Clock className="h-4 w-4 mr-2" />
+                      {createAppointmentMutation.isPending ? "Booking..." : "Book Appointment"}
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
