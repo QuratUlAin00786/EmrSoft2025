@@ -1092,8 +1092,13 @@ export default function VoiceDocumentation() {
                 <DialogTitle>Capture Clinical Photo</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg mb-4">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    📝 <strong>Complete all fields below</strong> and upload/capture a photo to enable the Save Photo button.
+                  </p>
+                </div>
                 <div>
-                  <label className="text-sm font-medium">Patient</label>
+                  <label className="text-sm font-medium">Patient *</label>
                   <Select value={selectedPhotoPatient} onValueChange={setSelectedPhotoPatient}>
                     <SelectTrigger>
                       <SelectValue placeholder={patientsLoading ? "Loading patients..." : "Select patient"} />
@@ -1122,7 +1127,7 @@ export default function VoiceDocumentation() {
                   </Select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Photo Type</label>
+                  <label className="text-sm font-medium">Photo Type *</label>
                   <Select value={selectedPhotoType} onValueChange={setSelectedPhotoType}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select type" />
@@ -1136,7 +1141,7 @@ export default function VoiceDocumentation() {
                   </Select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Description</label>
+                  <label className="text-sm font-medium">Description *</label>
                   <Textarea 
                     value={photoDescription}
                     onChange={(e) => setPhotoDescription(e.target.value)}
@@ -2085,7 +2090,13 @@ export default function VoiceDocumentation() {
 
         <TabsContent value="photos" className="space-y-4">
           <div className="grid gap-4">
-            {mockPhotos.map((photo) => (
+            {photosLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading clinical photos...</p>
+              </div>
+            ) : photos && photos.length > 0 ? (
+              photos.map((photo) => (
               <Card key={photo.id}>
                 <CardHeader>
                   <div className="flex justify-between items-start">
@@ -2224,7 +2235,14 @@ export default function VoiceDocumentation() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <Camera className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium mb-2">No clinical photos yet</h3>
+                <p className="text-muted-foreground">Capture your first clinical photo using the "Capture Photo" button above.</p>
+              </div>
+            )}
           </div>
         </TabsContent>
 
