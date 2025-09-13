@@ -641,37 +641,425 @@ export default function PrescriptionsPage() {
     }
   };
 
-  const handlePrintPrescription = (prescriptionId: string) => {
-    // Simulate printing functionality
+  const handlePrintPrescription = async (prescriptionId: string) => {
+    // Get prescription details
+    const prescription = Array.isArray(prescriptions) ? prescriptions.find((p: any) => p.id === prescriptionId) : null;
+    if (!prescription) return;
+
+    // Get patient details
+    const patient = patients.find(p => p.id === prescription.patientId);
+    const provider = providers.find(p => p.id === prescription.providerId);
+    
+    // Calculate age from DOB
+    const calculateAge = (dob: string) => {
+      if (!dob) return "N/A";
+      const birthDate = new Date(dob);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age;
+    };
+
+    const formatDate = (dateString: string) => {
+      return new Date(dateString).toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit', 
+        year: 'numeric'
+      });
+    };
+
+    // Get first medication for main prescription details
+    const firstMed = prescription.medications[0] || {};
+    
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Prescription - ${prescription.patientName}</title>
+            <style>
+              * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+              }
+              
+              body {
+                font-family: Arial, sans-serif;
+                font-size: 11px;
+                line-height: 1.2;
+                color: #333;
+                background: #f8f9fa;
+                padding: 20px;
+                position: relative;
+              }
+              
+              .prescription-container {
+                width: 210mm;
+                min-height: 297mm;
+                background: white;
+                margin: 0 auto;
+                padding: 15mm;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                position: relative;
+                overflow: hidden;
+              }
+              
+              .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 15px;
+                border-bottom: 1px solid #e9ecef;
+                padding-bottom: 10px;
+              }
+              
+              .header-left {
+                flex: 1;
+              }
+              
+              .header-left h1 {
+                font-size: 14px;
+                font-weight: bold;
+                color: #2c3e50;
+                margin-bottom: 3px;
+              }
+              
+              .license-info {
+                font-size: 9px;
+                color: #6c757d;
+                line-height: 1.3;
+              }
+              
+              .status-badge {
+                background: #28a745;
+                color: white;
+                padding: 4px 8px;
+                border-radius: 3px;
+                font-size: 8px;
+                font-weight: bold;
+                text-transform: uppercase;
+              }
+              
+              .provider-section {
+                text-align: center;
+                margin: 20px 0;
+                padding: 15px 0;
+                border-bottom: 1px solid #e9ecef;
+              }
+              
+              .provider-title {
+                font-size: 16px;
+                font-weight: bold;
+                color: #2c3e50;
+                margin-bottom: 8px;
+                letter-spacing: 1px;
+              }
+              
+              .provider-details {
+                font-size: 10px;
+                color: #6c757d;
+                line-height: 1.4;
+              }
+              
+              .patient-info {
+                display: flex;
+                justify-content: space-between;
+                margin: 20px 0;
+                background: #f8f9fa;
+                padding: 15px;
+                border-radius: 5px;
+              }
+              
+              .patient-left, .patient-right {
+                flex: 1;
+              }
+              
+              .patient-right {
+                text-align: right;
+              }
+              
+              .info-line {
+                margin: 3px 0;
+                font-size: 10px;
+              }
+              
+              .info-label {
+                font-weight: bold;
+                color: #495057;
+              }
+              
+              .watermark {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 120px;
+                font-weight: bold;
+                color: rgba(173, 216, 230, 0.3);
+                z-index: 1;
+                pointer-events: none;
+                letter-spacing: 10px;
+              }
+              
+              .prescription-details {
+                margin: 25px 0;
+                position: relative;
+                z-index: 2;
+                background: white;
+              }
+              
+              .medication-name {
+                font-size: 14px;
+                font-weight: bold;
+                color: #2c3e50;
+                margin-bottom: 10px;
+              }
+              
+              .prescription-instructions {
+                margin: 8px 0;
+                font-size: 10px;
+                line-height: 1.4;
+              }
+              
+              .diagnosis-section {
+                margin: 20px 0;
+                padding: 10px;
+                background: #f8f9fa;
+                border-radius: 5px;
+                position: relative;
+                z-index: 2;
+              }
+              
+              .diagnosis-label {
+                font-weight: bold;
+                color: #495057;
+                font-size: 10px;
+              }
+              
+              .footer {
+                position: absolute;
+                bottom: 15mm;
+                left: 15mm;
+                right: 15mm;
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-end;
+                border-top: 1px solid #e9ecef;
+                padding-top: 15px;
+              }
+              
+              .signature-section {
+                flex: 1;
+              }
+              
+              .signature-label {
+                font-size: 9px;
+                color: #6c757d;
+                margin-bottom: 25px;
+              }
+              
+              .substitute-section {
+                text-align: right;
+                flex: 1;
+              }
+              
+              .substitute-label {
+                font-size: 9px;
+                color: #6c757d;
+              }
+              
+              .pharmacy-info {
+                text-align: center;
+                font-size: 9px;
+                color: #6c757d;
+                margin-top: 10px;
+              }
+              
+              .action-buttons {
+                position: absolute;
+                bottom: -15mm;
+                left: 15mm;
+                right: 15mm;
+                display: flex;
+                justify-content: center;
+                gap: 15px;
+                padding: 10px;
+                background: white;
+              }
+              
+              .action-btn {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                padding: 8px 12px;
+                border: 1px solid #dee2e6;
+                background: white;
+                border-radius: 4px;
+                font-size: 9px;
+                color: #495057;
+                text-decoration: none;
+                cursor: pointer;
+                transition: all 0.2s;
+              }
+              
+              .action-btn:hover {
+                background: #f8f9fa;
+                border-color: #adb5bd;
+              }
+              
+              .btn-view { color: #007bff; }
+              .btn-print { color: #6c757d; }
+              .btn-send { color: #28a745; }
+              .btn-sign { color: #ffc107; }
+              .btn-edit { color: #17a2b8; }
+              .btn-delete { color: #dc3545; }
+              
+              @media print {
+                body { padding: 0; background: white; }
+                .prescription-container { 
+                  box-shadow: none; 
+                  margin: 0;
+                  padding: 10mm;
+                }
+                .action-buttons { display: none; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="prescription-container">
+              <!-- Header -->
+              <div class="header">
+                <div class="header-left">
+                  <h1>CURA HEALTH EMR</h1>
+                  <div class="license-info">
+                    License # 123456<br>
+                    NPI # 1234567890
+                  </div>
+                </div>
+                <div class="status-badge">active</div>
+              </div>
+              
+              <!-- Provider Section -->
+              <div class="provider-section">
+                <div class="provider-title">RESIDENT PHYSICIAN M.D</div>
+                <div class="provider-details">
+                  Provider undefined<br>
+                  Halo Health Clinic<br>
+                  Unit 2 Drayton Court, Solihull<br>
+                  B90 4NG, UK<br>
+                  +44(0)121 827 5531
+                </div>
+              </div>
+              
+              <!-- Patient Information -->
+              <div class="patient-info">
+                <div class="patient-left">
+                  <div class="info-line">
+                    <span class="info-label">Name:</span> ${prescription.patientName}
+                  </div>
+                  <div class="info-line">
+                    <span class="info-label">Address:</span> ${patient?.address?.street || 'Patient Address'}
+                  </div>
+                  <div class="info-line">
+                    <span class="info-label">Allergies:</span> ${patient?.medicalHistory?.allergies?.length > 0 ? patient.medicalHistory.allergies.join(', ') : 'NKDA'}
+                  </div>
+                  <div class="info-line">
+                    <span class="info-label">Weight:</span> 70 kg
+                  </div>
+                </div>
+                <div class="patient-right">
+                  <div class="info-line">
+                    <span class="info-label">DOB:</span> ${patient?.dateOfBirth ? formatDate(patient.dateOfBirth) : '01/01/1985'}
+                  </div>
+                  <div class="info-line">
+                    <span class="info-label">Age:</span> ${patient?.dateOfBirth ? calculateAge(patient.dateOfBirth) : '39'}
+                  </div>
+                  <div class="info-line">
+                    <span class="info-label">Sex:</span> M
+                  </div>
+                  <div class="info-line">
+                    <span class="info-label">Date:</span> ${formatDate(prescription.prescribedAt)}
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Watermark -->
+              <div class="watermark">HHC</div>
+              
+              <!-- Prescription Details -->
+              <div class="prescription-details">
+                <div class="medication-name">${firstMed.name || 'Neuberal 10'}</div>
+                <div class="prescription-instructions">
+                  Sig: ${firstMed.instructions || 'Please visit the doctor after 15 days.'}<br>
+                  Disp: ${firstMed.quantity || '30'} (${firstMed.duration || '30 days'})<br>
+                  Refills: ${firstMed.refills || '1'}
+                </div>
+              </div>
+              
+              <!-- Diagnosis -->
+              <div class="diagnosis-section">
+                <span class="diagnosis-label">Diagnosis:</span> ${prescription.diagnosis || 'Migraine'}
+              </div>
+              
+              <!-- Footer -->
+              <div class="footer">
+                <div class="signature-section">
+                  <div class="signature-label">Resident Physician<br>(Signature)</div>
+                </div>
+                <div class="substitute-section">
+                  <div class="substitute-label">May Substitute</div>
+                </div>
+              </div>
+              
+              <!-- Pharmacy Info -->
+              <div class="pharmacy-info">
+                Pharmacy: Halo Health - +44(0)121 827 5531
+              </div>
+              
+              <!-- Action Buttons -->
+              <div class="action-buttons">
+                <button class="action-btn btn-view" onclick="window.close()">
+                  👁️ View
+                </button>
+                <button class="action-btn btn-print" onclick="window.print()">
+                  🖨️ Print
+                </button>
+                <button class="action-btn btn-send">
+                  📤 Send to Pharmacy
+                </button>
+                <button class="action-btn btn-sign">
+                  ✍️ E-Sign
+                </button>
+                <button class="action-btn btn-edit">
+                  ✏️ Edit
+                </button>
+                <button class="action-btn btn-delete">
+                  🗑️ Delete
+                </button>
+              </div>
+            </div>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      
+      // Auto-print after content loads
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print();
+        }, 100);
+      };
+    }
+    
     toast({
       title: "Printing Prescription",
       description: "Prescription sent to printer successfully",
     });
-    
-    // In a real implementation, this would generate a PDF and send to printer
-    const prescription = Array.isArray(prescriptions) ? prescriptions.find((p: any) => p.id === prescriptionId) : null;
-    if (prescription) {
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.write(`
-          <html>
-            <head><title>Prescription - ${prescription.patientName}</title></head>
-            <body>
-              <h2>Prescription</h2>
-              <p><strong>Patient:</strong> ${prescription.patientName}</p>
-              <p><strong>Provider:</strong> ${prescription.providerName}</p>
-              <p><strong>Date:</strong> ${new Date(prescription.prescribedAt).toLocaleDateString()}</p>
-              <h3>Medications:</h3>
-              ${prescription.medications.map((med: any) => 
-                `<p><strong>${med.name}</strong> ${med.dosage} - ${med.frequency} for ${med.duration}</p>`
-              ).join('')}
-            </body>
-          </html>
-        `);
-        printWindow.document.close();
-        printWindow.print();
-      }
-    }
   };
 
   const handleSendToPharmacy = (prescriptionId: string) => {
