@@ -32,7 +32,7 @@ export default function CalendarPage() {
   const queryClient = useQueryClient();
 
   // Fetch patients for the dropdown
-  const { data: patients = [] } = useQuery({
+  const { data: patients = [] } = useQuery<any[]>({
     queryKey: ["/api/patients"],
     retry: false,
   });
