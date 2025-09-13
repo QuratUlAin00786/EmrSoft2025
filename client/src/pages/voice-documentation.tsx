@@ -849,22 +849,18 @@ export default function VoiceDocumentation() {
       return;
     }
 
-    // Create preview URL
-    const previewUrl = URL.createObjectURL(file);
-    setCapturedPhoto(previewUrl);
-    
-    // Store the file for upload
+    // Convert file to data URL for preview
     const fileReader = new FileReader();
     fileReader.onload = (e) => {
       const dataUrl = e.target?.result as string;
       setCapturedPhoto(dataUrl);
+      
+      toast({
+        title: "File selected",
+        description: "Photo loaded successfully. Fill in the details and save."
+      });
     };
     fileReader.readAsDataURL(file);
-
-    toast({
-      title: "File selected",
-      description: "Photo loaded successfully. Fill in the details and save."
-    });
   };
 
   const savePhoto = async () => {

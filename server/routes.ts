@@ -4731,29 +4731,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // In-memory storage for clinical photos (simple temporary solution)
+  const clinicalPhotosStorage: any[] = [
+    {
+      id: "photo_1",
+      patientId: "158",
+      patientName: "Imran Mubashir",
+      type: "wound",
+      filename: "wound_assessment_001.jpg",
+      description: "Post-surgical wound assessment",
+      url: "/api/photos/wound_assessment_001.jpg",
+      dateTaken: new Date().toISOString(),
+      metadata: {
+        camera: "iPhone 14 Pro",
+        resolution: "4032x3024",
+        lighting: "Natural"
+      },
+      annotations: [],
+      createdAt: new Date().toISOString()
+    }
+  ];
+
   app.get("/api/voice-documentation/photos", authMiddleware, async (req: TenantRequest, res) => {
     try {
-      const photos = [
-        {
-          id: "photo_1",
-          patientId: "158",
-          patientName: "Imran Mubashir",
-          type: "wound",
-          filename: "wound_assessment_001.jpg",
-          description: "Post-surgical wound assessment",
-          url: "/api/photos/wound_assessment_001.jpg",
-          dateTaken: new Date().toISOString(),
-          metadata: {
-            camera: "iPhone 14 Pro",
-            resolution: "4032x3024",
-            lighting: "Natural"
-          },
-          annotations: [],
-          createdAt: new Date().toISOString()
-        }
-      ];
+      // Filter photos by tenant organization
+      const tenantPhotos = clinicalPhotosStorage.filter(photo => {
+        // For now, return all photos as we don't have organizationId in photos
+        // In production, this would be filtered by tenant
+        return true;
+      });
 
-      res.json(photos);
+      res.json(tenantPhotos);
     } catch (error) {
       console.error("Error fetching photos:", error);
       res.status(500).json({ error: "Failed to fetch photos" });
@@ -4790,6 +4798,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         annotations: [],
         createdAt: new Date().toISOString()
       };
+
+      // Add photo to in-memory storage
+      clinicalPhotosStorage.push(newPhoto);
+      console.log('📸 Clinical photo saved to memory storage:', newPhoto.id);
+      console.log('📊 Total photos in storage:', clinicalPhotosStorage.length);
 
       res.status(201).json(newPhoto);
     } catch (error) {
