@@ -303,8 +303,7 @@ export default function CalendarPage() {
   
   // Check if time slot is available with proper overlap detection
   const isTimeSlotAvailable = (timeSlot: string) => {
-    if (!selectedDate) {
-      console.log('No selected date for availability check');
+    if (!selectedDate || !selectedDoctor) {
       return false;
     }
     
@@ -322,10 +321,9 @@ export default function CalendarPage() {
     
     // Check for overlaps with existing appointments
     if (existingAppointments?.length) {
-      const hasOverlap = existingAppointments.some((apt: any) => {
-        // Only check appointments for the same doctor
-        if (apt.providerId !== selectedDoctor?.id) return false;
-        
+      const doctorAppointments = existingAppointments.filter((apt: any) => apt.providerId === selectedDoctor.id);
+      
+      const hasOverlap = doctorAppointments.some((apt: any) => {
         // Calculate existing appointment start and end times
         const aptStart = new Date(apt.scheduledAt);
         const aptDuration = apt.duration || 30; // Default 30 minutes
@@ -333,6 +331,7 @@ export default function CalendarPage() {
         
         // Check for overlap: slotStart < aptEnd && aptStart < slotEnd
         const overlaps = slotStart < aptEnd && aptStart < slotEnd;
+        
         return overlaps;
       });
       
@@ -795,7 +794,10 @@ export default function CalendarPage() {
                                   const selectedPatient = patients.find((patient: any) => 
                                     (patient.patientId || patient.id.toString()) === bookingForm.patientId
                                   );
-                                  return selectedPatient ? `${selectedPatient.firstName} ${selectedPatient.lastName}` : "Select patient...";
+                                  if (!selectedPatient) return "Select patient...";
+                                  const displayName = `${selectedPatient.firstName} ${selectedPatient.lastName}`;
+                                  const patientId = selectedPatient.patientId || `P${selectedPatient.id.toString().padStart(6, '0')}`;
+                                  return `${displayName} (${patientId})`;
                                 })()
                               : "Select patient..."}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -812,11 +814,13 @@ export default function CalendarPage() {
                               <CommandGroup>
                                 {patients.map((patient: any) => {
                                   const patientValue = patient.patientId || patient.id.toString();
-                                  const patientName = `${patient.firstName} ${patient.lastName}`;
+                                  const patientDisplayName = `${patient.firstName} ${patient.lastName}`;
+                                  const patientWithId = `${patientDisplayName} (${patient.patientId || `P${patient.id.toString().padStart(6, '0')}`})`;
+                                  
                                   return (
                                     <CommandItem
                                       key={patient.id}
-                                      value={patientName}
+                                      value={patientWithId}
                                       onSelect={() => {
                                         setBookingForm(prev => ({ ...prev, patientId: patientValue }));
                                         setPatientComboboxOpen(false);
@@ -828,7 +832,7 @@ export default function CalendarPage() {
                                           patientValue === bookingForm.patientId ? "opacity-100" : "opacity-0"
                                         }`}
                                       />
-                                      {patientName}
+                                      {patientWithId}
                                     </CommandItem>
                                   );
                                 })}
