@@ -11,7 +11,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Calendar, Plus, Users, Clock, User, X, Check, ChevronsUpDown, Phone, Mail, FileText, MapPin, Filter, FilterX } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { format, isBefore, startOfDay } from "date-fns";
 import { useLocation } from "wouter";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -242,22 +242,36 @@ export default function CalendarPage() {
     }
   }, [filterDoctor, filterDate, allAppointments, showFilterPanel]);
   
-  // Filter doctors by specialty for filter panel
-  const getFilteredDoctorsBySpecialty = () => {
+  // Filter doctors by specialty for filter panel - reactive to filter changes
+  const filteredDoctorsBySpecialty = useMemo(() => {
+    console.log('Filtering doctors - Specialty:', filterSpecialty, 'Sub-specialty:', filterSubSpecialty);
+    console.log('All doctors:', allDoctors);
+    
     if (!filterSpecialty && !filterSubSpecialty) {
+      console.log('No filters, returning all doctors:', allDoctors.length);
       return allDoctors;
     }
     
-    return allDoctors.filter((doctor: any) => {
+    const filtered = allDoctors.filter((doctor: any) => {
+      console.log(`Checking doctor: ${doctor.firstName} ${doctor.lastName}, specialization: ${doctor.specialization}`);
+      
       if (filterSubSpecialty) {
-        return doctor.specialization === filterSubSpecialty;
+        const matches = doctor.specialization === filterSubSpecialty;
+        console.log(`Sub-specialty filter: ${filterSubSpecialty} matches ${doctor.specialization}:`, matches);
+        return matches;
       } else if (filterSpecialty) {
         const specialtyData = medicalSpecialties[filterSpecialty as keyof typeof medicalSpecialties];
-        return specialtyData && Object.keys(specialtyData).includes(doctor.specialization);
+        const subSpecialties = specialtyData ? Object.keys(specialtyData) : [];
+        const matches = subSpecialties.includes(doctor.specialization);
+        console.log(`Specialty filter: ${filterSpecialty} includes ${doctor.specialization}:`, matches);
+        return matches;
       }
       return true;
     });
-  };
+    
+    console.log('Filtered doctors result:', filtered.length, filtered);
+    return filtered;
+  }, [allDoctors, filterSpecialty, filterSubSpecialty]);
   
   // Helper functions for specialty filtering - using consistent data from medicalSpecialties object
   const getUniqueSpecialties = (): string[] => {
@@ -653,7 +667,7 @@ export default function CalendarPage() {
                         <SelectValue placeholder="Select doctor..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {getFilteredDoctorsBySpecialty().map((doctor: any) => (
+                        {filteredDoctorsBySpecialty.map((doctor: any) => (
                           <SelectItem key={doctor.id} value={doctor.id.toString()}>
                             Dr. {doctor.firstName} {doctor.lastName} - {doctor.specialization}
                           </SelectItem>
