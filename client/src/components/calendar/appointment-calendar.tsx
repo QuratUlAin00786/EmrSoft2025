@@ -20,7 +20,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import type { Appointment } from "@/types";
-import { NewAppointmentModal } from "./new-appointment-modal";
 import ConsultationNotes from "@/components/medical/consultation-notes";
 import { FullConsultationInterface } from "@/components/consultation/full-consultation-interface";
 
@@ -74,7 +73,6 @@ export default function AppointmentCalendar() {
   const [viewMode, setViewMode] = useState<"month" | "week" | "day">("month");
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [showAppointmentDetails, setShowAppointmentDetails] = useState(false);
-  const [showNewAppointment, setShowNewAppointment] = useState(false);
   const [dialogStable, setDialogStable] = useState(true);
   const [activeTab, setActiveTab] = useState("basic");
   
@@ -456,10 +454,6 @@ Medical License: [License Number]
             </Button>
           </div>
         </div>
-        <Button onClick={() => setShowNewAppointment(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Appointment
-        </Button>
       </div>
 
       {/* Calendar Grid */}
@@ -874,17 +868,6 @@ Medical License: [License Number]
         </DialogContent>
       </Dialog>
 
-      {/* New Appointment Modal */}
-      {showNewAppointment && (
-        <NewAppointmentModal
-          isOpen={showNewAppointment}
-          onClose={() => setShowNewAppointment(false)}
-          onAppointmentCreated={() => {
-            setShowNewAppointment(false);
-            refetch();
-          }}
-        />
-      )}
 
       {/* ConsultationNotes Modal */}
       {showConsultationNotes && selectedAppointment && (
