@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Calendar, Plus, Users, Clock, User, X, Check, ChevronsUpDown } from "lucide-react";
+import { Calendar, Plus, Users, Clock, User, X, Check, ChevronsUpDown, Phone, Mail, FileText, MapPin } from "lucide-react";
 import { useState, useEffect } from "react";
 import { format, isBefore, startOfDay } from "date-fns";
 import { useLocation } from "wouter";
@@ -851,54 +851,70 @@ export default function CalendarPage() {
                           
                           if (!selectedPatient) return null;
                           
+                          // Calculate age from date of birth
+                          const age = selectedPatient.dateOfBirth 
+                            ? new Date().getFullYear() - new Date(selectedPatient.dateOfBirth).getFullYear()
+                            : null;
+                          
+                          // Get patient initials for avatar
+                          const initials = `${selectedPatient.firstName?.[0] || ''}${selectedPatient.lastName?.[0] || ''}`.toUpperCase();
+                          
                           return (
                             <Card className="mt-2">
                               <CardContent className="p-4">
-                                <div className="grid grid-cols-2 gap-3 text-sm">
-                                  <div>
-                                    <Label className="text-gray-600 dark:text-gray-400">Name</Label>
-                                    <p className="font-medium" data-testid={`text-patient-name-${selectedPatient.id}`}>
-                                      {selectedPatient.firstName} {selectedPatient.lastName}
-                                    </p>
+                                <div className="flex items-start gap-4">
+                                  {/* Patient Avatar */}
+                                  <div className="flex-shrink-0">
+                                    <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-lg" data-testid={`avatar-patient-${selectedPatient.id}`}>
+                                      {initials}
+                                    </div>
                                   </div>
-                                  <div>
-                                    <Label className="text-gray-600 dark:text-gray-400">Patient ID</Label>
-                                    <p className="font-medium" data-testid={`text-patient-mrn-${selectedPatient.id}`}>
-                                      {selectedPatient.patientId || `P${selectedPatient.id.toString().padStart(3, '0')}`}
-                                    </p>
+                                  
+                                  {/* Patient Details */}
+                                  <div className="flex-1 space-y-3">
+                                    {/* Name and Age/ID */}
+                                    <div>
+                                      <h3 className="font-semibold text-lg text-gray-900 dark:text-white" data-testid={`text-patient-name-${selectedPatient.id}`}>
+                                        {selectedPatient.firstName} {selectedPatient.lastName}
+                                      </h3>
+                                      <p className="text-gray-600 dark:text-gray-400" data-testid={`text-patient-age-id-${selectedPatient.id}`}>
+                                        {age && `Age ${age} • `}{selectedPatient.patientId || `P${selectedPatient.id.toString().padStart(6, '0')}`}
+                                      </p>
+                                    </div>
+                                    
+                                    {/* Contact Information */}
+                                    <div className="space-y-2 text-sm">
+                                      {(selectedPatient.phone || selectedPatient.phoneNumber) && (
+                                        <div className="flex items-center gap-2" data-testid={`text-patient-phone-${selectedPatient.id}`}>
+                                          <Phone className="h-4 w-4 text-gray-500" />
+                                          <span className="text-gray-700 dark:text-gray-300">{selectedPatient.phone || selectedPatient.phoneNumber}</span>
+                                        </div>
+                                      )}
+                                      
+                                      {selectedPatient.email && (
+                                        <div className="flex items-center gap-2" data-testid={`text-patient-email-${selectedPatient.id}`}>
+                                          <Mail className="h-4 w-4 text-gray-500" />
+                                          <span className="text-gray-700 dark:text-gray-300">{selectedPatient.email}</span>
+                                        </div>
+                                      )}
+                                      
+                                      {selectedPatient.nhsNumber && (
+                                        <div className="flex items-center gap-2" data-testid={`text-patient-nhs-${selectedPatient.id}`}>
+                                          <FileText className="h-4 w-4 text-gray-500" />
+                                          <span className="text-gray-700 dark:text-gray-300">NHS: {selectedPatient.nhsNumber}</span>
+                                        </div>
+                                      )}
+                                      
+                                      {selectedPatient.address && (selectedPatient.address.city || selectedPatient.address.country) && (
+                                        <div className="flex items-center gap-2" data-testid={`text-patient-address-${selectedPatient.id}`}>
+                                          <MapPin className="h-4 w-4 text-gray-500" />
+                                          <span className="text-gray-700 dark:text-gray-300">
+                                            {[selectedPatient.address.city, selectedPatient.address.country].filter(Boolean).join(', ')}
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
-                                  {selectedPatient.dateOfBirth && (
-                                    <div>
-                                      <Label className="text-gray-600 dark:text-gray-400">Date of Birth</Label>
-                                      <p className="font-medium" data-testid={`text-patient-dob-${selectedPatient.id}`}>
-                                        {format(new Date(selectedPatient.dateOfBirth), 'MMM dd, yyyy')}
-                                      </p>
-                                    </div>
-                                  )}
-                                  {selectedPatient.gender && (
-                                    <div>
-                                      <Label className="text-gray-600 dark:text-gray-400">Gender</Label>
-                                      <p className="font-medium" data-testid={`text-patient-gender-${selectedPatient.id}`}>
-                                        {selectedPatient.gender}
-                                      </p>
-                                    </div>
-                                  )}
-                                  {selectedPatient.phoneNumber && (
-                                    <div>
-                                      <Label className="text-gray-600 dark:text-gray-400">Phone</Label>
-                                      <p className="font-medium" data-testid={`text-patient-phone-${selectedPatient.id}`}>
-                                        {selectedPatient.phoneNumber}
-                                      </p>
-                                    </div>
-                                  )}
-                                  {selectedPatient.email && (
-                                    <div>
-                                      <Label className="text-gray-600 dark:text-gray-400">Email</Label>
-                                      <p className="font-medium" data-testid={`text-patient-email-${selectedPatient.id}`}>
-                                        {selectedPatient.email}
-                                      </p>
-                                    </div>
-                                  )}
                                 </div>
                               </CardContent>
                             </Card>
