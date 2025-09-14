@@ -253,17 +253,15 @@ export default function CalendarPage() {
     }
     
     const filtered = allDoctors.filter((doctor: any) => {
-      console.log(`Checking doctor: ${doctor.firstName} ${doctor.lastName}, specialization: ${doctor.specialization}`);
+      console.log(`Checking doctor: ${doctor.firstName} ${doctor.lastName}, category: ${doctor.medicalSpecialtyCategory}, subSpecialty: ${doctor.subSpecialty}`);
       
       if (filterSubSpecialty) {
-        const matches = doctor.specialization === filterSubSpecialty;
-        console.log(`Sub-specialty filter: ${filterSubSpecialty} matches ${doctor.specialization}:`, matches);
+        const matches = doctor.subSpecialty === filterSubSpecialty;
+        console.log(`Sub-specialty filter: ${filterSubSpecialty} matches ${doctor.subSpecialty}:`, matches);
         return matches;
       } else if (filterSpecialty) {
-        const specialtyData = medicalSpecialties[filterSpecialty as keyof typeof medicalSpecialties];
-        const subSpecialties = specialtyData ? Object.keys(specialtyData) : [];
-        const matches = subSpecialties.includes(doctor.specialization);
-        console.log(`Specialty filter: ${filterSpecialty} includes ${doctor.specialization}:`, matches);
+        const matches = doctor.medicalSpecialtyCategory === filterSpecialty;
+        console.log(`Specialty filter: ${filterSpecialty} matches ${doctor.medicalSpecialtyCategory}:`, matches);
         return matches;
       }
       return true;
