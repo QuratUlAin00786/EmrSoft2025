@@ -74,29 +74,70 @@ export default function CalendarPage() {
   };
   
   const filterDoctorsBySpecialty = () => {
-    if (!selectedSpecialty || !Array.isArray(medicalStaff)) return [];
+    if (!selectedSpecialty || !Array.isArray(medicalStaff)) {
+      setFilteredDoctors([]);
+      return [];
+    }
     
-    const filtered = (medicalStaff as any[]).filter((staff: any) => 
-      staff.role === 'doctor' && 
-      staff.medicalSpecialtyCategory === selectedSpecialty &&
-      (!selectedSubSpecialty || staff.subSpecialty === selectedSubSpecialty)
-    );
+    console.log('Filtering doctors with specialty:', selectedSpecialty, 'sub-specialty:', selectedSubSpecialty);
+    console.log('Available medical staff:', medicalStaff);
     
+    const filtered = (medicalStaff as any[]).filter((staff: any) => {
+      const isDoctor = staff.role === 'doctor';
+      const hasSpecialty = staff.medicalSpecialtyCategory === selectedSpecialty;
+      const hasSubSpecialty = !selectedSubSpecialty || staff.subSpecialty === selectedSubSpecialty;
+      
+      console.log(`Checking ${staff.firstName} ${staff.lastName}:`, {
+        isDoctor,
+        specialty: staff.medicalSpecialtyCategory,
+        hasSpecialty,
+        subSpecialty: staff.subSpecialty,
+        hasSubSpecialty
+      });
+      
+      return isDoctor && hasSpecialty && hasSubSpecialty;
+    });
+    
+    console.log('Filtered doctors:', filtered);
     setFilteredDoctors(filtered);
     return filtered;
   };
   
   // Generate time slots based on doctor's working hours
   const generateTimeSlots = (workingHours: any) => {
+    console.log('Generating time slots for working hours:', workingHours);
+    
+    if (!workingHours || !workingHours.start || !workingHours.end) {
+      console.log('No valid working hours found, using default 9 AM to 5 PM');
+      workingHours = { start: '09:00', end: '17:00' };
+    }
+    
     const slots = [];
-    const startHour = parseInt(workingHours?.start?.split(':')[0] || '9');
-    const endHour = parseInt(workingHours?.end?.split(':')[0] || '17');
+    const startHour = parseInt(workingHours.start.split(':')[0]);
+    const startMinute = parseInt(workingHours.start.split(':')[1] || '0');
+    const endHour = parseInt(workingHours.end.split(':')[0]);
+    const endMinute = parseInt(workingHours.end.split(':')[1] || '0');
+    
+    console.log(`Generating slots from ${startHour}:${startMinute.toString().padStart(2, '0')} to ${endHour}:${endMinute.toString().padStart(2, '0')}`);
     
     for (let hour = startHour; hour < endHour; hour++) {
       slots.push(`${hour.toString().padStart(2, '0')}:00`);
       slots.push(`${hour.toString().padStart(2, '0')}:30`);
     }
     
+    // If the end time is not on the hour, we might want to include the last half hour
+    if (endMinute > 0 && slots.length > 0) {
+      const lastHour = endHour - 1;
+      if (endMinute >= 30) {
+        // Make sure we include the 30-minute slot for the last hour
+        const thirtyMinSlot = `${lastHour.toString().padStart(2, '0')}:30`;
+        if (!slots.includes(thirtyMinSlot)) {
+          slots.push(thirtyMinSlot);
+        }
+      }
+    }
+    
+    console.log('Generated time slots:', slots);
     return slots;
   };
   
@@ -109,7 +150,10 @@ export default function CalendarPage() {
   
   // Check if time slot is available with proper overlap detection
   const isTimeSlotAvailable = (timeSlot: string) => {
-    if (!selectedDate) return false;
+    if (!selectedDate) {
+      console.log('No selected date for availability check');
+      return false;
+    }
     
     // Calculate slot start and end times
     const slotDate = format(selectedDate, 'yyyy-MM-dd');
@@ -117,15 +161,18 @@ export default function CalendarPage() {
     const slotDuration = parseInt(bookingForm.duration) || 30; // Default 30 minutes
     const slotEnd = new Date(slotStart.getTime() + slotDuration * 60 * 1000);
     
+    console.log(`Checking availability for slot ${timeSlot} on ${slotDate}`);
+    
     // Check if slot is in the past (for same-day bookings)
     const isToday = format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
     if (isToday && slotStart < new Date()) {
+      console.log(`Slot ${timeSlot} is in the past`);
       return false; // Disable past time slots on today
     }
     
     // Check for overlaps with existing appointments
     if (existingAppointments?.length) {
-      return !existingAppointments.some((apt: any) => {
+      const hasOverlap = existingAppointments.some((apt: any) => {
         // Only check appointments for the same doctor
         if (apt.providerId !== selectedDoctor?.id) return false;
         
@@ -135,10 +182,17 @@ export default function CalendarPage() {
         const aptEnd = new Date(aptStart.getTime() + aptDuration * 60 * 1000);
         
         // Check for overlap: slotStart < aptEnd && aptStart < slotEnd
-        return slotStart < aptEnd && aptStart < slotEnd;
+        const overlaps = slotStart < aptEnd && aptStart < slotEnd;
+        if (overlaps) {
+          console.log(`Slot ${timeSlot} overlaps with existing appointment:`, apt);
+        }
+        return overlaps;
       });
+      
+      return !hasOverlap;
     }
     
+    console.log(`Slot ${timeSlot} is available`);
     return true;
   };
   
