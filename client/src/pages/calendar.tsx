@@ -287,7 +287,7 @@ export default function CalendarPage() {
   };
   
   // Fetch existing appointments for selected date
-  const { data: existingAppointments = [] } = useQuery<any[]>({
+  const { data: existingAppointments = [], refetch: refetchAppointments } = useQuery<any[]>({
     queryKey: ["/api/appointments", { date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null }],
     queryFn: () => {
       if (!selectedDate) return Promise.resolve([]);
@@ -297,6 +297,8 @@ export default function CalendarPage() {
     },
     enabled: !!selectedDate,
     retry: false,
+    refetchInterval: false, // Disable automatic refetching
+    staleTime: 0, // Always consider data stale to ensure fresh data
   });
   
   // Check if time slot is available with proper overlap detection
@@ -370,6 +372,8 @@ export default function CalendarPage() {
         queryClient.invalidateQueries({ 
           queryKey: ["/api/appointments", { date: format(selectedDate, 'yyyy-MM-dd') }] 
         });
+        // Force refetch of date-specific appointments to update time slot availability
+        refetchAppointments();
       }
       // Force immediate refetch to ensure appointments list updates
       queryClient.refetchQueries({ queryKey: ["/api/appointments"] });
@@ -787,11 +791,12 @@ export default function CalendarPage() {
                             data-testid="trigger-patient-combobox"
                           >
                             {bookingForm.patientId 
-                              ? patients.find((patient: any) => 
-                                  (patient.patientId || patient.id.toString()) === bookingForm.patientId
-                                )?.firstName + " " + patients.find((patient: any) => 
-                                  (patient.patientId || patient.id.toString()) === bookingForm.patientId
-                                )?.lastName
+                              ? (() => {
+                                  const selectedPatient = patients.find((patient: any) => 
+                                    (patient.patientId || patient.id.toString()) === bookingForm.patientId
+                                  );
+                                  return selectedPatient ? `${selectedPatient.firstName} ${selectedPatient.lastName}` : "Select patient...";
+                                })()
                               : "Select patient..."}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
