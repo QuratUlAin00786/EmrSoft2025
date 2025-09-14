@@ -8,7 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Calendar, Plus, Users, Clock, User, X } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Calendar, Plus, Users, Clock, User, X, Check, ChevronsUpDown } from "lucide-react";
 import { useState, useEffect } from "react";
 import { format, isBefore, startOfDay } from "date-fns";
 import { useLocation } from "wouter";
@@ -161,6 +163,8 @@ export default function CalendarPage() {
   const [filteredDoctors, setFilteredDoctors] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
+  const [specialtyComboboxOpen, setSpecialtyComboboxOpen] = useState(false);
+  const [patientComboboxOpen, setPatientComboboxOpen] = useState(false);
   const [bookingForm, setBookingForm] = useState({
     patientId: "",
     title: "",
@@ -659,22 +663,51 @@ export default function CalendarPage() {
                       <Label className="text-sm font-medium text-gray-900 dark:text-white">
                         Select Medical Specialty Category
                       </Label>
-                      <Select 
-                        value={selectedSpecialty} 
-                        onValueChange={setSelectedSpecialty}
-                        data-testid="select-specialty"
-                      >
-                        <SelectTrigger className="mt-2">
-                          <SelectValue placeholder="Select Specialty" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {getUniqueSpecialties().map((specialty) => (
-                            <SelectItem key={specialty} value={specialty}>
-                              {specialty}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Popover open={specialtyComboboxOpen} onOpenChange={setSpecialtyComboboxOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={specialtyComboboxOpen}
+                            className="mt-2 w-full justify-between"
+                            data-testid="trigger-specialty-combobox"
+                          >
+                            {selectedSpecialty || "Select Specialty"}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0">
+                          <Command>
+                            <CommandInput 
+                              placeholder="Search specialties..." 
+                              data-testid="input-search-specialty"
+                            />
+                            <CommandList>
+                              <CommandEmpty>No specialty found.</CommandEmpty>
+                              <CommandGroup>
+                                {getUniqueSpecialties().map((specialty) => (
+                                  <CommandItem
+                                    key={specialty}
+                                    value={specialty}
+                                    onSelect={(currentValue) => {
+                                      setSelectedSpecialty(currentValue === selectedSpecialty ? "" : currentValue);
+                                      setSpecialtyComboboxOpen(false);
+                                    }}
+                                    data-testid={`item-specialty-${specialty.replace(/\s+/g, '-').toLowerCase()}`}
+                                  >
+                                    <Check
+                                      className={`mr-2 h-4 w-4 ${
+                                        specialty === selectedSpecialty ? "opacity-100" : "opacity-0"
+                                      }`}
+                                    />
+                                    {specialty}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                     </div>
 
                     {/* Step 2: Select Sub-Specialty */}
