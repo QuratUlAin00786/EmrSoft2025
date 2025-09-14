@@ -16,6 +16,143 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
+// Medical Specialties Data Structure - same as user-management.tsx
+const medicalSpecialties = {
+  "General & Primary Care": {
+    "General Practitioner (GP) / Family Physician": ["Common illnesses", "Preventive care"],
+    "Internal Medicine Specialist": ["Adult health", "Chronic diseases (diabetes, hypertension)"]
+  },
+  "Surgical Specialties": {
+    "General Surgeon": [
+      "Abdominal Surgery",
+      "Hernia Repair", 
+      "Gallbladder & Appendix Surgery",
+      "Colorectal Surgery",
+      "Breast Surgery",
+      "Endocrine Surgery (thyroid, parathyroid, adrenal)",
+      "Trauma & Emergency Surgery"
+    ],
+    "Orthopedic Surgeon": [
+      "Joint Replacement (hip, knee, shoulder)",
+      "Spine Surgery",
+      "Sports Orthopedics (ACL tears, ligament reconstruction)",
+      "Pediatric Orthopedics",
+      "Arthroscopy (keyhole joint surgery)",
+      "Trauma & Fracture Care"
+    ],
+    "Neurosurgeon": [
+      "Brain Tumor Surgery",
+      "Spinal Surgery", 
+      "Cerebrovascular Surgery (stroke, aneurysm)",
+      "Pediatric Neurosurgery",
+      "Functional Neurosurgery (Parkinson's, epilepsy, DBS)",
+      "Trauma Neurosurgery"
+    ],
+    "Cardiothoracic Surgeon": [
+      "Cardiac Surgery – Bypass, valve replacement",
+      "Thoracic Surgery – Lungs, esophagus, chest tumors", 
+      "Congenital Heart Surgery – Pediatric heart defects",
+      "Heart & Lung Transplants",
+      "Minimally Invasive / Robotic Heart Surgery"
+    ],
+    "Plastic & Reconstructive Surgeon": [
+      "Cosmetic Surgery (nose job, facelift, liposuction)",
+      "Reconstructive Surgery (after cancer, trauma)",
+      "Burn Surgery",
+      "Craniofacial Surgery (cleft lip/palate, facial bones)",
+      "Hand Surgery"
+    ],
+    "ENT Surgeon (Otolaryngologist)": [
+      "Otology (ear surgeries, cochlear implants)",
+      "Rhinology (sinus, deviated septum)",
+      "Laryngology (voice box, throat)",
+      "Head & Neck Surgery (thyroid, tumors)",
+      "Pediatric ENT (tonsils, adenoids, ear tubes)",
+      "Facial Plastic Surgery (nose/ear correction)"
+    ],
+    "Urologist": [
+      "Endourology (kidney stones, minimally invasive)",
+      "Uro-Oncology (prostate, bladder, kidney cancer)",
+      "Pediatric Urology",
+      "Male Infertility & Andrology",
+      "Renal Transplant Surgery",
+      "Neurourology (bladder control disorders)"
+    ]
+  },
+  "Heart & Circulation": {
+    "Cardiologist": ["Heart diseases", "ECG", "Angiography"],
+    "Vascular Surgeon": ["Arteries", "Veins", "Blood vessels"]
+  },
+  "Women's Health": {
+    "Gynecologist": ["Female reproductive system"],
+    "Obstetrician": ["Pregnancy & childbirth"],
+    "Fertility Specialist (IVF Expert)": ["Infertility treatment"]
+  },
+  "Children's Health": {
+    "Pediatrician": ["General child health"],
+    "Pediatric Surgeon": ["Infant & child surgeries"],
+    "Neonatologist": ["Newborn intensive care"]
+  },
+  "Brain & Nervous System": {
+    "Neurologist": ["Stroke", "Epilepsy", "Parkinson's"],
+    "Psychiatrist": ["Mental health (depression, anxiety)"],
+    "Psychologist (Clinical)": ["Therapy & counseling"]
+  },
+  "Skin, Hair & Appearance": {
+    "Dermatologist": ["Skin", "Hair", "Nails"],
+    "Cosmetologist": ["Non-surgical cosmetic treatments"],
+    "Aesthetic / Cosmetic Surgeon": ["Surgical enhancements"]
+  },
+  "Eye & Vision": {
+    "Ophthalmologist": ["Cataracts", "Glaucoma", "Surgeries"],
+    "Optometrist": ["Vision correction (glasses, lenses)"]
+  },
+  "Teeth & Mouth": {
+    "Dentist (General)": ["Oral health", "Fillings"],
+    "Orthodontist": ["Braces", "Alignment"],
+    "Oral & Maxillofacial Surgeon": ["Jaw surgery", "Implants"],
+    "Periodontist": ["Gum disease specialist"],
+    "Endodontist": ["Root canal specialist"]
+  },
+  "Digestive System": {
+    "Gastroenterologist": ["Stomach", "Intestines"],
+    "Hepatologist": ["Liver specialist"],
+    "Colorectal Surgeon": ["Colon", "Rectum", "Anus"]
+  },
+  "Kidneys & Urinary Tract": {
+    "Nephrologist": ["Kidney diseases", "Dialysis"],
+    "Urologist": ["Surgical urological procedures"]
+  },
+  "Respiratory System": {
+    "Pulmonologist": ["Asthma", "COPD", "Tuberculosis"],
+    "Thoracic Surgeon": ["Lung surgeries"]
+  },
+  "Cancer": {
+    "Oncologist": ["Medical cancer specialist"],
+    "Radiation Oncologist": ["Radiation therapy"],
+    "Surgical Oncologist": ["Cancer surgeries"]
+  },
+  "Endocrine & Hormones": {
+    "Endocrinologist": ["Diabetes", "Thyroid", "Hormones"]
+  },
+  "Muscles & Joints": {
+    "Rheumatologist": ["Arthritis", "Autoimmune"],
+    "Sports Medicine Specialist": ["Athlete injuries"]
+  },
+  "Blood & Immunity": {
+    "Hematologist": ["Blood diseases (anemia, leukemia)"],
+    "Immunologist / Allergist": ["Immune & allergy disorders"]
+  },
+  "Others": {
+    "Geriatrician": ["Elderly care"],
+    "Pathologist": ["Lab & diagnostic testing"],
+    "Radiologist": ["Imaging (X-ray, CT, MRI)"],
+    "Anesthesiologist": ["Pain & anesthesia"],
+    "Emergency Medicine Specialist": ["Accidents", "Trauma"],
+    "Occupational Medicine Specialist": ["Workplace health"]
+  }
+};
+
 export default function CalendarPage() {
   const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
   const [showNewAppointmentModal, setShowNewAppointmentModal] = useState(false);
@@ -52,34 +189,23 @@ export default function CalendarPage() {
   
   const medicalStaff = medicalStaffResponse?.staff || [];
   
-  // Helper functions for specialty filtering
+  // Helper functions for specialty filtering - using consistent data from medicalSpecialties object
   const getUniqueSpecialties = (): string[] => {
-    if (!Array.isArray(medicalStaff)) return [];
-    const specialties = (medicalStaff as any[])
-      .filter((staff: any) => staff.role === 'doctor' && staff.medicalSpecialtyCategory)
-      .map((staff: any) => staff.medicalSpecialtyCategory as string);
-    return [...new Set(specialties)];
+    return Object.keys(medicalSpecialties);
   };
   
   const getSubSpecialties = (specialty?: string): string[] => {
-    if (!Array.isArray(medicalStaff)) return [];
-    
     if (!specialty) {
       // If no specialty selected, return all sub-specialties
-      const allSubSpecialties = (medicalStaff as any[])
-        .filter((staff: any) => staff.role === 'doctor' && staff.subSpecialty)
-        .map((staff: any) => staff.subSpecialty as string);
-      return [...new Set(allSubSpecialties)];
+      const allSubSpecialties: string[] = [];
+      Object.values(medicalSpecialties).forEach(specialtyData => {
+        allSubSpecialties.push(...Object.keys(specialtyData));
+      });
+      return allSubSpecialties;
     }
     
-    const subSpecialties = (medicalStaff as any[])
-      .filter((staff: any) => 
-        staff.role === 'doctor' && 
-        staff.medicalSpecialtyCategory === specialty && 
-        staff.subSpecialty
-      )
-      .map((staff: any) => staff.subSpecialty as string);
-    return [...new Set(subSpecialties)];
+    const specialtyData = medicalSpecialties[specialty as keyof typeof medicalSpecialties];
+    return specialtyData ? Object.keys(specialtyData) : [];
   };
   
   const filterDoctorsBySpecialty = () => {
