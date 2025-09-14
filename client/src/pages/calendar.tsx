@@ -980,6 +980,68 @@ export default function CalendarPage() {
                   </div>
                 </div>
 
+                {/* Booking Summary - Always visible */}
+                <div className="mt-6 pt-6 border-t">
+                  <Label className="text-lg font-medium text-gray-900 dark:text-white mb-4 block">
+                    Booking Summary
+                  </Label>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <Label className="text-gray-600 dark:text-gray-400">Medical Specialty</Label>
+                          <p className="font-medium" data-testid="text-summary-specialty">
+                            {selectedSpecialty || "Not selected"}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-gray-600 dark:text-gray-400">Sub-Specialty</Label>
+                          <p className="font-medium" data-testid="text-summary-subspecialty">
+                            {selectedSubSpecialty || "Not selected"}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-gray-600 dark:text-gray-400">Patient</Label>
+                          <p className="font-medium" data-testid="text-summary-patient">
+                            {bookingForm.patientId 
+                              ? (() => {
+                                  const patient = patients.find((p: any) => 
+                                    (p.patientId || p.id.toString()) === bookingForm.patientId
+                                  );
+                                  return patient ? `${patient.firstName} ${patient.lastName}` : "Not found";
+                                })()
+                              : "Not selected"}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-gray-600 dark:text-gray-400">Doctor</Label>
+                          <p className="font-medium" data-testid="text-summary-doctor">
+                            {selectedDoctor 
+                              ? `Dr. ${selectedDoctor.firstName} ${selectedDoctor.lastName}`
+                              : "Not selected"}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-gray-600 dark:text-gray-400">Date</Label>
+                          <p className="font-medium" data-testid="text-summary-date">
+                            {selectedDate 
+                              ? format(selectedDate, 'EEEE, MMMM dd, yyyy')
+                              : "Not selected"}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-gray-600 dark:text-gray-400">Time</Label>
+                          <p className="font-medium" data-testid="text-summary-time">
+                            {selectedTimeSlot 
+                              ? format(new Date(`2000-01-01T${selectedTimeSlot}:00`), 'h:mm a')
+                              : "Not selected"}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
                 {/* Book Appointment Button */}
                 {selectedDoctor && selectedDate && selectedTimeSlot && bookingForm.patientId && (
                   <div className="flex justify-end gap-2 mt-6 pt-6 border-t">
