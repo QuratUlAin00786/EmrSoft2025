@@ -289,11 +289,12 @@ export default function CalendarPage() {
   // Fetch existing appointments for selected date
   const { data: existingAppointments = [], refetch: refetchAppointments } = useQuery<any[]>({
     queryKey: ["/api/appointments", { date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null }],
-    queryFn: () => {
-      if (!selectedDate) return Promise.resolve([]);
+    queryFn: async () => {
+      if (!selectedDate) return [];
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
-      return fetch(`/api/appointments?date=${dateStr}`)
-        .then(res => res.json());
+      const response = await fetch(`/api/appointments?date=${dateStr}`);
+      const data = await response.json();
+      return data;
     },
     enabled: !!selectedDate,
     retry: false,
@@ -313,21 +314,15 @@ export default function CalendarPage() {
     const slotDuration = parseInt(bookingForm.duration) || 30; // Default 30 minutes
     const slotEnd = new Date(slotStart.getTime() + slotDuration * 60 * 1000);
     
-    console.log(`[AVAILABILITY] Checking ${timeSlot} on ${slotDate} for doctor ${selectedDoctor.id}`);
-    console.log(`[AVAILABILITY] Slot: ${slotStart.toISOString()} to ${slotEnd.toISOString()}`);
-    console.log(`[AVAILABILITY] Existing appointments:`, existingAppointments);
-    
     // Check if slot is in the past (for same-day bookings)
     const isToday = format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
     if (isToday && slotStart < new Date()) {
-      console.log(`[AVAILABILITY] ${timeSlot} is in the past`);
       return false; // Disable past time slots on today
     }
     
     // Check for overlaps with existing appointments
     if (existingAppointments?.length) {
       const doctorAppointments = existingAppointments.filter((apt: any) => apt.providerId === selectedDoctor.id);
-      console.log(`[AVAILABILITY] Found ${doctorAppointments.length} appointments for doctor ${selectedDoctor.id}:`, doctorAppointments);
       
       const hasOverlap = doctorAppointments.some((apt: any) => {
         // Calculate existing appointment start and end times
@@ -335,20 +330,15 @@ export default function CalendarPage() {
         const aptDuration = apt.duration || 30; // Default 30 minutes
         const aptEnd = new Date(aptStart.getTime() + aptDuration * 60 * 1000);
         
-        console.log(`[AVAILABILITY] Checking apt ${apt.id}: ${aptStart.toISOString()} to ${aptEnd.toISOString()}`);
-        
         // Check for overlap: slotStart < aptEnd && aptStart < slotEnd
         const overlaps = slotStart < aptEnd && aptStart < slotEnd;
-        console.log(`[AVAILABILITY] Overlap with apt ${apt.id}: ${overlaps}`);
         
         return overlaps;
       });
       
-      console.log(`[AVAILABILITY] Final result for ${timeSlot}: ${!hasOverlap ? 'AVAILABLE' : 'NOT AVAILABLE'}`);
       return !hasOverlap;
     }
     
-    console.log(`[AVAILABILITY] No appointments found, ${timeSlot} is AVAILABLE`);
     return true;
   };
   
@@ -356,6 +346,13 @@ export default function CalendarPage() {
   useEffect(() => {
     filterDoctorsBySpecialty();
   }, [selectedSpecialty, selectedSubSpecialty, allDoctors]);
+  
+  // Refresh appointments when doctor or date changes to update time slot availability
+  useEffect(() => {
+    if (selectedDoctor && selectedDate) {
+      refetchAppointments();
+    }
+  }, [selectedDoctor, selectedDate, refetchAppointments]);
   
   // Check for patientId in URL params to auto-book appointment
   useEffect(() => {
@@ -803,10 +800,15 @@ export default function CalendarPage() {
                           >
                             {bookingForm.patientId 
                               ? (() => {
-                                  const selectedPatient = patients.find((patient: any) => 
-                                    (patient.patientId || patient.id.toString()) === bookingForm.patientId
-                                  );
-                                  if (!selectedPatient) return "Select patient...";
+                                  const selectedPatient = patients.find((patient: any) => {
+                                    const pId = patient.patientId || patient.id.toString();
+                                    return pId === bookingForm.patientId;
+                                  });
+                                  
+                                  if (!selectedPatient) {
+                                    return "Select patient...";
+                                  }
+                                  
                                   const displayName = `${selectedPatient.firstName} ${selectedPatient.lastName}`;
                                   const patientId = selectedPatient.patientId || `P${selectedPatient.id.toString().padStart(6, '0')}`;
                                   return `${displayName} (${patientId})`;
@@ -833,7 +835,7 @@ export default function CalendarPage() {
                                     <CommandItem
                                       key={patient.id}
                                       value={patientWithId}
-                                      onSelect={() => {
+                                      onSelect={(currentValue) => {
                                         setBookingForm(prev => ({ ...prev, patientId: patientValue }));
                                         setPatientComboboxOpen(false);
                                       }}
