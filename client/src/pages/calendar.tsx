@@ -366,19 +366,33 @@ export default function CalendarPage() {
   // Get booked time slots for selected doctor and date
   const getBookedTimeSlots = () => {
     if (!selectedDate || !selectedDoctor) {
+      console.log(`[TIME_SLOTS] No doctor or date selected`);
       return [];
     }
 
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
     console.log(`[TIME_SLOTS] Getting booked slots for doctor ${selectedDoctor.id} on ${dateStr}`);
     
-    // Get all appointments data from global query
-    const appointmentsData = queryClient.getQueryData(["/api/appointments"]) as any[] || [];
-    console.log(`[TIME_SLOTS] Found ${appointmentsData.length} total appointments in cache`);
+    // Get appointments from React Query - try different keys
+    let appointmentsData = queryClient.getQueryData(["/api/appointments"]) as any[] || [];
+    
+    // If no data from cache, try to use the appointments from the calendar component
+    if (appointmentsData.length === 0) {
+      console.log(`[TIME_SLOTS] No appointments in cache, checking if appointments are available from allAppointments`);
+      // This will be populated by the appointments query on the main calendar
+      appointmentsData = allAppointments || [];
+    }
+    
+    console.log(`[TIME_SLOTS] Found ${appointmentsData.length} total appointments:`, appointmentsData.map(apt => ({ id: apt.id, providerId: apt.providerId, scheduledAt: apt.scheduledAt })));
     
     // Filter for selected doctor and date
     const doctorAppointments = appointmentsData
       .filter(apt => {
+        if (!apt.providerId || !apt.scheduledAt) {
+          console.log(`[TIME_SLOTS] Skipping invalid appointment ${apt.id}`);
+          return false;
+        }
+        
         const matchesDoctor = Number(apt.providerId) === Number(selectedDoctor.id);
         const appointmentDate = format(new Date(apt.scheduledAt), 'yyyy-MM-dd');
         const matchesDate = appointmentDate === dateStr;
@@ -390,14 +404,14 @@ export default function CalendarPage() {
 
     console.log(`[TIME_SLOTS] Found ${doctorAppointments.length} appointments for doctor ${selectedDoctor.id} on ${dateStr}:`, doctorAppointments);
 
-    // Extract time slots from appointments
+    // Extract time slots from appointments - SHOW EXACT FORMAT
     const bookedSlots = doctorAppointments.map(apt => {
       const timeSlot = format(new Date(apt.scheduledAt), 'HH:mm');
-      console.log(`[TIME_SLOTS] Appointment ${apt.id} at ${timeSlot}`);
+      console.log(`[TIME_SLOTS] Appointment ${apt.id} scheduled at "${apt.scheduledAt}" extracts to time slot "${timeSlot}"`);
       return timeSlot;
     });
 
-    console.log(`[TIME_SLOTS] Booked time slots:`, bookedSlots);
+    console.log(`[TIME_SLOTS] Final booked time slots:`, bookedSlots);
     return bookedSlots;
   };
 
