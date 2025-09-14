@@ -314,9 +314,6 @@ export default function CalendarPage() {
     const slotDuration = parseInt(bookingForm.duration) || 30; // Default 30 minutes
     const slotEnd = new Date(slotStart.getTime() + slotDuration * 60 * 1000);
     
-    console.log(`[SLOT-DEBUG] Checking ${timeSlot} on ${slotDate} for doctor ${selectedDoctor.id}`);
-    console.log(`[SLOT-DEBUG] existingAppointments:`, existingAppointments);
-    
     // Check if slot is in the past (for same-day bookings)
     const isToday = format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
     if (isToday && slotStart < new Date()) {
@@ -324,26 +321,29 @@ export default function CalendarPage() {
     }
     
     // Check for overlaps with existing appointments
-    if (existingAppointments?.length) {
-      // Fix type mismatch: normalize IDs to numbers for comparison
-      const doctorAppointments = existingAppointments.filter((apt: any) => Number(apt.providerId) === Number(selectedDoctor.id));
-      console.log(`[SLOT-DEBUG] Doctor ${selectedDoctor.id} appointments:`, doctorAppointments);
+    if (existingAppointments?.length > 0) {
+      // Filter appointments for the selected doctor - ensure consistent type comparison
+      const doctorAppointments = existingAppointments.filter((apt: any) => {
+        // Convert both to strings for consistent comparison
+        const aptProviderId = String(apt.providerId);
+        const selectedDoctorId = String(selectedDoctor.id);
+        return aptProviderId === selectedDoctorId;
+      });
       
+      // Check if any doctor appointment overlaps with the requested time slot
       const hasOverlap = doctorAppointments.some((apt: any) => {
         // Calculate existing appointment start and end times
         const aptStart = new Date(apt.scheduledAt);
         const aptDuration = apt.duration || 30; // Default 30 minutes
         const aptEnd = new Date(aptStart.getTime() + aptDuration * 60 * 1000);
         
-        // Check for overlap: slotStart < aptEnd && aptStart < slotEnd
+        // Check for exact time match or overlap: slotStart < aptEnd && aptStart < slotEnd
         const overlaps = slotStart < aptEnd && aptStart < slotEnd;
         
         return overlaps;
       });
       
-      const result = !hasOverlap;
-      console.log(`[SLOT-DEBUG] Final result for ${timeSlot}: ${result ? 'AVAILABLE' : 'NOT AVAILABLE'}`);
-      return result;
+      return !hasOverlap;
     }
     
     return true;
