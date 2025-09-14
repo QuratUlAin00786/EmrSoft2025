@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Calendar, Plus, Users, Clock, User, X, Check, ChevronsUpDown, Phone, Mail, FileText, MapPin } from "lucide-react";
+import { Calendar, Plus, Users, Clock, User, X, Check, ChevronsUpDown, Phone, Mail, FileText, MapPin, Filter, FilterX } from "lucide-react";
 import { useState, useEffect } from "react";
 import { format, isBefore, startOfDay } from "date-fns";
 import { useLocation } from "wouter";
@@ -165,6 +165,14 @@ export default function CalendarPage() {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
   const [specialtyComboboxOpen, setSpecialtyComboboxOpen] = useState(false);
   const [patientComboboxOpen, setPatientComboboxOpen] = useState(false);
+  
+  // Filter functionality state
+  const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [filterSpecialty, setFilterSpecialty] = useState("");
+  const [filterSubSpecialty, setFilterSubSpecialty] = useState("");
+  const [filterDoctor, setFilterDoctor] = useState("");
+  const [filterDate, setFilterDate] = useState<Date | undefined>(undefined);
+  const [filteredAppointments, setFilteredAppointments] = useState<any[]>([]);
   const [bookingForm, setBookingForm] = useState({
     patientId: "",
     title: "",
@@ -193,6 +201,63 @@ export default function CalendarPage() {
   
   // Filter to get all doctors for specialty filtering
   const allDoctors = allUsers.filter((user: any) => user.role === 'doctor');
+  
+  // Query for filtered appointments
+  const { data: allAppointments = [] } = useQuery<any[]>({
+    queryKey: ["/api/appointments"],
+    retry: false,
+  });
+  
+  // Function to apply filters
+  const applyFilters = () => {
+    if (!filterDoctor && !filterDate) {
+      setFilteredAppointments([]);
+      return;
+    }
+    
+    let filtered = [...allAppointments];
+    
+    // Filter by doctor
+    if (filterDoctor) {
+      const selectedDoctorId = parseInt(filterDoctor);
+      filtered = filtered.filter((appointment: any) => appointment.providerId === selectedDoctorId);
+    }
+    
+    // Filter by date
+    if (filterDate) {
+      const filterDateStr = format(filterDate, 'yyyy-MM-dd');
+      filtered = filtered.filter((appointment: any) => {
+        const appointmentDate = new Date(appointment.scheduledAt);
+        return format(appointmentDate, 'yyyy-MM-dd') === filterDateStr;
+      });
+    }
+    
+    setFilteredAppointments(filtered);
+  };
+  
+  // Apply filters when filter values change
+  useEffect(() => {
+    if (showFilterPanel) {
+      applyFilters();
+    }
+  }, [filterDoctor, filterDate, allAppointments, showFilterPanel]);
+  
+  // Filter doctors by specialty for filter panel
+  const getFilteredDoctorsBySpecialty = () => {
+    if (!filterSpecialty && !filterSubSpecialty) {
+      return allDoctors;
+    }
+    
+    return allDoctors.filter((doctor: any) => {
+      if (filterSubSpecialty) {
+        return doctor.specialization === filterSubSpecialty;
+      } else if (filterSpecialty) {
+        const specialtyData = medicalSpecialties[filterSpecialty as keyof typeof medicalSpecialties];
+        return specialtyData && Object.keys(specialtyData).includes(doctor.specialization);
+      }
+      return true;
+    });
+  };
   
   // Helper functions for specialty filtering - using consistent data from medicalSpecialties object
   const getUniqueSpecialties = (): string[] => {
@@ -486,9 +551,35 @@ export default function CalendarPage() {
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
               <Calendar className="h-5 w-5 text-gray-900 dark:text-white" />
               Calendar & Scheduling
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowFilterPanel(!showFilterPanel);
+                  if (showFilterPanel) {
+                    // Reset filter when closing
+                    setFilterSpecialty("");
+                    setFilterSubSpecialty("");
+                    setFilterDoctor("");
+                    setFilterDate(undefined);
+                    setFilteredAppointments([]);
+                  }
+                }}
+                className="ml-2"
+                data-testid="button-filter-appointments"
+              >
+                {showFilterPanel ? (
+                  <FilterX className="h-4 w-4" />
+                ) : (
+                  <Filter className="h-4 w-4" />
+                )}
+              </Button>
             </h3>
             <p className="text-sm text-neutral-600 dark:text-neutral-300">
-              View appointments, manage schedules, and book new consultations.
+              {showFilterPanel 
+                ? "Use filters to find specific appointments by doctor, specialty, or date."
+                : "View appointments, manage schedules, and book new consultations."
+              }
             </p>
           </div>
           <Button 
@@ -501,29 +592,210 @@ export default function CalendarPage() {
           </Button>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Main Calendar - 2 columns */}
-          <div className="lg:col-span-2">
-            <AppointmentCalendar />
+        {/* Filter Panel */}
+        {showFilterPanel && (
+          <div className="mb-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Filter className="h-5 w-5" />
+                  Filter Appointments
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-4">
+                  {/* Medical Specialty Category */}
+                  <div>
+                    <Label>Medical Specialty Category</Label>
+                    <Select value={filterSpecialty} onValueChange={(value) => {
+                      setFilterSpecialty(value);
+                      setFilterSubSpecialty(""); // Reset sub-specialty when specialty changes
+                      setFilterDoctor(""); // Reset doctor when specialty changes
+                    }}>
+                      <SelectTrigger data-testid="select-filter-specialty">
+                        <SelectValue placeholder="Select category..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getUniqueSpecialties().map((specialty) => (
+                          <SelectItem key={specialty} value={specialty}>
+                            {specialty}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Sub-Specialty */}
+                  <div>
+                    <Label>Sub-Specialty</Label>
+                    <Select value={filterSubSpecialty} onValueChange={(value) => {
+                      setFilterSubSpecialty(value);
+                      setFilterDoctor(""); // Reset doctor when sub-specialty changes
+                    }}>
+                      <SelectTrigger data-testid="select-filter-subspecialty">
+                        <SelectValue placeholder="Select sub-specialty..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getSubSpecialties(filterSpecialty).map((subSpecialty) => (
+                          <SelectItem key={subSpecialty} value={subSpecialty}>
+                            {subSpecialty}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Doctor */}
+                  <div>
+                    <Label>Doctor</Label>
+                    <Select value={filterDoctor} onValueChange={setFilterDoctor}>
+                      <SelectTrigger data-testid="select-filter-doctor">
+                        <SelectValue placeholder="Select doctor..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getFilteredDoctorsBySpecialty().map((doctor: any) => (
+                          <SelectItem key={doctor.id} value={doctor.id.toString()}>
+                            Dr. {doctor.firstName} {doctor.lastName} - {doctor.specialization}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Date */}
+                  <div>
+                    <Label>Date</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left font-normal"
+                          data-testid="button-filter-date"
+                        >
+                          <Calendar className="mr-2 h-4 w-4" />
+                          {filterDate ? format(filterDate, "PPP") : "Select date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarComponent
+                          mode="single"
+                          selected={filterDate}
+                          onSelect={setFilterDate}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-          
-          {/* Doctor List - 1 column */}
-          <div>
-            <div className="mb-4">
-              <h4 className="font-medium text-gray-900 dark:text-white flex items-center gap-2 mb-3">
-                <Users className="h-4 w-4 text-gray-900 dark:text-white" />
-                Available Doctors
+        )}
+
+        {/* Conditional Content - Either Default Calendar or Filtered Appointments */}
+        {showFilterPanel && (filterDoctor || filterDate) ? (
+          /* Filtered Appointments View */
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium text-gray-900 dark:text-white">
+                Filtered Appointments ({filteredAppointments.length} found)
               </h4>
             </div>
-            <DoctorList 
-              onSelectDoctor={(doctor) => {
-                console.log("Setting selected doctor:", doctor);
-                setSelectedDoctor(doctor);
-              }}
-              showAppointmentButton={true}
-            />
+            
+            {filteredAppointments.length === 0 ? (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                    No appointments found
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    No appointments match your filter criteria. Try adjusting your filters.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {filteredAppointments.map((appointment: any) => {
+                  const doctor = allUsers.find((u: any) => u.id === appointment.providerId);
+                  const patient = patients.find((p: any) => p.id === appointment.patientId);
+                  const appointmentDate = new Date(appointment.scheduledAt);
+                  
+                  return (
+                    <Card key={appointment.id} className="p-4">
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <h5 className="font-semibold text-gray-900 dark:text-white">
+                              {appointment.title || "Appointment"}
+                            </h5>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              appointment.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                              appointment.status === 'completed' ? 'bg-green-100 text-green-800' :
+                              appointment.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {appointment.status}
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                            <div className="flex items-center gap-2">
+                              <User className="h-4 w-4" />
+                              <span>Patient: {patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Users className="h-4 w-4" />
+                              <span>Doctor: {doctor ? `Dr. ${doctor.firstName} ${doctor.lastName}` : 'Unknown'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4" />
+                              <span>{format(appointmentDate, 'EEEE, MMMM dd, yyyy')}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4" />
+                              <span>{format(appointmentDate, 'h:mm a')} ({appointment.duration} mins)</span>
+                            </div>
+                            {appointment.location && (
+                              <div className="flex items-center gap-2">
+                                <MapPin className="h-4 w-4" />
+                                <span>{appointment.location}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        </div>
+        ) : (
+          /* Default Calendar View */
+          <div className="grid gap-6 lg:grid-cols-3">
+            {/* Main Calendar - 2 columns */}
+            <div className="lg:col-span-2">
+              <AppointmentCalendar />
+            </div>
+            
+            {/* Doctor List - 1 column */}
+            <div>
+              <div className="mb-4">
+                <h4 className="font-medium text-gray-900 dark:text-white flex items-center gap-2 mb-3">
+                  <Users className="h-4 w-4 text-gray-900 dark:text-white" />
+                  Available Doctors
+                </h4>
+              </div>
+              <DoctorList 
+                onSelectDoctor={(doctor) => {
+                  console.log("Setting selected doctor:", doctor);
+                  setSelectedDoctor(doctor);
+                }}
+                showAppointmentButton={true}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Selected Doctor Indicator */}
         <div className="mt-6">
