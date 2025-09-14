@@ -382,58 +382,30 @@ export default function CalendarPage() {
   
   // Check if time slot is available
   const isTimeSlotAvailable = (timeSlot: string) => {
-    console.log(`🔥 isTimeSlotAvailable called for ${timeSlot}`);
-    console.log(`🔥 selectedDate:`, selectedDate);
-    console.log(`🔥 selectedDoctor:`, selectedDoctor);
-    console.log(`🔥 existingAppointments:`, existingAppointments);
-    
     if (!selectedDate || !selectedDoctor) {
-      console.log(`🔥 Missing date or doctor for ${timeSlot} - returning FALSE`);
       return false;
     }
     
     // Check if slot is in the past (for same-day bookings)
-    const slotDate = format(selectedDate, 'yyyy-MM-dd');
-    const slotStart = new Date(`${slotDate}T${timeSlot}:00`);
+    const slotDateStr = format(selectedDate, 'yyyy-MM-dd');
+    const slotStart = new Date(`${slotDateStr}T${timeSlot}:00`);
     const isToday = format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
     if (isToday && slotStart < new Date()) {
-      console.log(`🔥 ${timeSlot} is in the past - returning FALSE`);
       return false; // Disable past time slots on today
     }
     
-    // Check for overlaps with existing appointments
-    if (existingAppointments?.length > 0) {
-      console.log(`🔥 Checking ${timeSlot} against ${existingAppointments.length} appointments`);
-      
-      // Filter appointments for the selected doctor
-      const doctorAppointments = existingAppointments.filter((apt: any) => {
-        const matches = Number(apt.providerId) === Number(selectedDoctor.id);
-        console.log(`🔥 Appointment ${apt.id}: providerId=${apt.providerId}, doctorId=${selectedDoctor.id}, matches=${matches}`);
-        return matches;
-      });
-      
-      console.log(`🔥 Found ${doctorAppointments.length} appointments for doctor ${selectedDoctor.id}:`, doctorAppointments);
-      
-      // Check if any appointment conflicts with this time slot
-      const hasConflict = doctorAppointments.some((apt: any) => {
-        const aptStart = new Date(apt.scheduledAt);
-        const aptTime = format(aptStart, 'HH:mm');
-        
-        console.log(`🔥 Comparing timeSlot="${timeSlot}" with appointment ${apt.id} aptTime="${aptTime}"`);
-        
-        // Direct time comparison - if appointment starts at this exact time slot, it's booked
-        const conflicts = aptTime === timeSlot;
-        console.log(`🔥 "${aptTime}" === "${timeSlot}" = ${conflicts}`);
-        return conflicts;
-      });
-      
-      const result = !hasConflict;
-      console.log(`🔥 ${timeSlot} final result: ${result ? 'AVAILABLE (GREEN)' : 'BLOCKED (GREY)'}`);
-      return result;
-    }
+    // Filter appointments for the selected doctor AND selected date
+    const doctorAppointments = (existingAppointments || [])
+      .filter(apt => Number(apt.providerId) === Number(selectedDoctor.id))
+      .filter(apt => format(new Date(apt.scheduledAt), 'yyyy-MM-dd') === slotDateStr);
     
-    console.log(`🔥 ${timeSlot} is AVAILABLE (no appointments) - should be GREEN`);
-    return true;
+    // Check if any appointment conflicts with this time slot
+    const hasConflict = doctorAppointments.some((apt: any) => {
+      const aptTime = format(new Date(apt.scheduledAt), 'HH:mm');
+      return aptTime === timeSlot;
+    });
+    
+    return !hasConflict; // true = available (green), false = blocked (grey)
   };
   
   // Update filtered doctors when specialty/sub-specialty changes or when doctors data loads
@@ -472,13 +444,11 @@ export default function CalendarPage() {
       // Invalidate specific appointment queries for the selected date
       if (selectedDate) {
         queryClient.invalidateQueries({ 
-          queryKey: ["/api/appointments", { date: format(selectedDate, 'yyyy-MM-dd') }] 
+          queryKey: ["/api/appointments", format(selectedDate, 'yyyy-MM-dd')] 
         });
         // Force refetch of date-specific appointments to update time slot availability
         refetchAppointments();
       }
-      // Force immediate refetch to ensure appointments list updates
-      queryClient.refetchQueries({ queryKey: ["/api/appointments"] });
       // Close modal and reset form
       setShowNewAppointmentModal(false);
       setSelectedSpecialty("");
