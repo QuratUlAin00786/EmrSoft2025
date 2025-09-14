@@ -19,8 +19,20 @@ function getPatientInitials(firstName: string, lastName: string): string {
 }
 
 function calculateAge(dateOfBirth: string): number {
+  if (!dateOfBirth) {
+    console.warn('No dateOfBirth provided for age calculation');
+    return 0;
+  }
+  
   const today = new Date();
   const birthDate = new Date(dateOfBirth);
+  
+  // Check if birthDate is valid
+  if (isNaN(birthDate.getTime())) {
+    console.warn('Invalid dateOfBirth format:', dateOfBirth);
+    return 0;
+  }
+  
   let age = today.getFullYear() - birthDate.getFullYear();
   const monthDiff = today.getMonth() - birthDate.getMonth();
   
@@ -28,6 +40,7 @@ function calculateAge(dateOfBirth: string): number {
     age--;
   }
   
+  console.log(`Calculated age for DOB ${dateOfBirth}: ${age}`);
   return age;
 }
 
@@ -370,7 +383,10 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                           </TooltipProvider>
                         </CardTitle>
                       <p className="text-sm patient-info">
-                        Age {calculateAge(patient.dateOfBirth)} • {patient.patientId}
+                        {patient.dateOfBirth ? 
+                          `Age ${calculateAge(patient.dateOfBirth)}` : 
+                          "Age Not Available"
+                        } • {patient.patientId}
                       </p>
                     </div>
                   </div>
