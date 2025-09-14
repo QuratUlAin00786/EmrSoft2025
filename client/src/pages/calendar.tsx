@@ -181,13 +181,14 @@ export default function CalendarPage() {
     retry: false,
   });
   
-  // Fetch medical staff for specialty filtering
-  const { data: medicalStaffResponse } = useQuery<any>({
-    queryKey: ["/api/medical-staff"],
+  // Fetch all users for specialty filtering (we need all doctors, not just available ones)
+  const { data: allUsers = [] } = useQuery<any[]>({
+    queryKey: ["/api/users"],
     retry: false,
   });
   
-  const medicalStaff = medicalStaffResponse?.staff || [];
+  // Filter to get all doctors for specialty filtering
+  const allDoctors = allUsers.filter((user: any) => user.role === 'doctor');
   
   // Helper functions for specialty filtering - using consistent data from medicalSpecialties object
   const getUniqueSpecialties = (): string[] => {
@@ -209,36 +210,33 @@ export default function CalendarPage() {
   };
   
   const filterDoctorsBySpecialty = () => {
-    if (!Array.isArray(medicalStaff)) {
+    if (!Array.isArray(allDoctors)) {
       setFilteredDoctors([]);
       return [];
     }
     
     console.log('Filtering doctors with specialty:', selectedSpecialty, 'sub-specialty:', selectedSubSpecialty);
-    console.log('Available medical staff:', medicalStaff);
+    console.log('Available doctors:', allDoctors);
     
     // If no specialty is selected, show all doctors
     if (!selectedSpecialty) {
-      const allDoctors = (medicalStaff as any[]).filter((staff: any) => staff.role === 'doctor');
       console.log('No specialty selected, showing all doctors:', allDoctors);
       setFilteredDoctors(allDoctors);
       return allDoctors;
     }
     
-    const filtered = (medicalStaff as any[]).filter((staff: any) => {
-      const isDoctor = staff.role === 'doctor';
-      const hasSpecialty = staff.medicalSpecialtyCategory === selectedSpecialty;
-      const hasSubSpecialty = !selectedSubSpecialty || staff.subSpecialty === selectedSubSpecialty;
+    const filtered = allDoctors.filter((doctor: any) => {
+      const hasSpecialty = doctor.medicalSpecialtyCategory === selectedSpecialty;
+      const hasSubSpecialty = !selectedSubSpecialty || doctor.subSpecialty === selectedSubSpecialty;
       
-      console.log(`Checking ${staff.firstName} ${staff.lastName}:`, {
-        isDoctor,
-        specialty: staff.medicalSpecialtyCategory,
+      console.log(`Checking ${doctor.firstName} ${doctor.lastName}:`, {
+        specialty: doctor.medicalSpecialtyCategory,
         hasSpecialty,
-        subSpecialty: staff.subSpecialty,
+        subSpecialty: doctor.subSpecialty,
         hasSubSpecialty
       });
       
-      return isDoctor && hasSpecialty && hasSubSpecialty;
+      return hasSpecialty && hasSubSpecialty;
     });
     
     console.log('Filtered doctors:', filtered);
@@ -339,10 +337,10 @@ export default function CalendarPage() {
     return true;
   };
   
-  // Update filtered doctors when specialty/sub-specialty changes or when medical staff loads
+  // Update filtered doctors when specialty/sub-specialty changes or when doctors data loads
   useEffect(() => {
     filterDoctorsBySpecialty();
-  }, [selectedSpecialty, selectedSubSpecialty, medicalStaff]);
+  }, [selectedSpecialty, selectedSubSpecialty, allDoctors]);
   
   // Check for patientId in URL params to auto-book appointment
   useEffect(() => {
