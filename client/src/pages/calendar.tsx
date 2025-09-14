@@ -305,6 +305,7 @@ export default function CalendarPage() {
   // Check if time slot is available with proper overlap detection
   const isTimeSlotAvailable = (timeSlot: string) => {
     if (!selectedDate || !selectedDoctor) {
+      console.log(`[DEBUG] Missing date or doctor for ${timeSlot}`);
       return false;
     }
     
@@ -314,21 +315,32 @@ export default function CalendarPage() {
     const slotDuration = parseInt(bookingForm.duration) || 30; // Default 30 minutes
     const slotEnd = new Date(slotStart.getTime() + slotDuration * 60 * 1000);
     
+    console.log(`[DEBUG] Checking ${timeSlot} for doctor ${selectedDoctor.id} on ${slotDate}`);
+    
     // Check if slot is in the past (for same-day bookings)
     const isToday = format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
     if (isToday && slotStart < new Date()) {
+      console.log(`[DEBUG] ${timeSlot} is in the past`);
       return false; // Disable past time slots on today
     }
     
     // Check for overlaps with existing appointments
     if (existingAppointments?.length > 0) {
+      console.log(`[DEBUG] Checking ${existingAppointments.length} existing appointments`);
+      
       // Filter appointments for the selected doctor - ensure consistent type comparison
       const doctorAppointments = existingAppointments.filter((apt: any) => {
         // Convert both to strings for consistent comparison
         const aptProviderId = String(apt.providerId);
         const selectedDoctorId = String(selectedDoctor.id);
-        return aptProviderId === selectedDoctorId;
+        const matches = aptProviderId === selectedDoctorId;
+        if (!matches) {
+          console.log(`[DEBUG] Skipping appointment ${apt.id} - provider ${aptProviderId} != ${selectedDoctorId}`);
+        }
+        return matches;
       });
+      
+      console.log(`[DEBUG] Found ${doctorAppointments.length} appointments for doctor ${selectedDoctor.id}`);
       
       // Check if any doctor appointment overlaps with the requested time slot
       const hasOverlap = doctorAppointments.some((apt: any) => {
@@ -337,15 +349,24 @@ export default function CalendarPage() {
         const aptDuration = apt.duration || 30; // Default 30 minutes
         const aptEnd = new Date(aptStart.getTime() + aptDuration * 60 * 1000);
         
+        console.log(`[DEBUG] Appointment ${apt.id}: ${format(aptStart, 'HH:mm')} to ${format(aptEnd, 'HH:mm')}`);
+        
         // Check for exact time match or overlap: slotStart < aptEnd && aptStart < slotEnd
         const overlaps = slotStart < aptEnd && aptStart < slotEnd;
+        
+        if (overlaps) {
+          console.log(`[DEBUG] OVERLAP FOUND: ${timeSlot} conflicts with appointment ${apt.id}`);
+        }
         
         return overlaps;
       });
       
-      return !hasOverlap;
+      const result = !hasOverlap;
+      console.log(`[DEBUG] ${timeSlot} availability: ${result ? 'AVAILABLE' : 'BLOCKED'}`);
+      return result;
     }
     
+    console.log(`[DEBUG] ${timeSlot} is AVAILABLE (no appointments)`);
     return true;
   };
   
