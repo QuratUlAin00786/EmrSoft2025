@@ -286,10 +286,16 @@ export default function CalendarPage() {
     return slots;
   };
   
-  // Fetch existing appointments for selected doctor and date
+  // Fetch existing appointments for selected date
   const { data: existingAppointments = [] } = useQuery<any[]>({
-    queryKey: ["/api/appointments", selectedDoctor?.id, selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null],
-    enabled: !!(selectedDoctor && selectedDate),
+    queryKey: ["/api/appointments", { date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null }],
+    queryFn: () => {
+      if (!selectedDate) return Promise.resolve([]);
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
+      return fetch(`/api/appointments?date=${dateStr}`)
+        .then(res => res.json());
+    },
+    enabled: !!selectedDate,
     retry: false,
   });
   
@@ -367,10 +373,10 @@ export default function CalendarPage() {
       });
       // Update calendar data with proper cache invalidation
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
-      // Invalidate specific appointment queries for the doctor/date
-      if (selectedDoctor && selectedDate) {
+      // Invalidate specific appointment queries for the selected date
+      if (selectedDate) {
         queryClient.invalidateQueries({ 
-          queryKey: ["/api/appointments", selectedDoctor.id, format(selectedDate, 'yyyy-MM-dd')] 
+          queryKey: ["/api/appointments", { date: format(selectedDate, 'yyyy-MM-dd') }] 
         });
       }
       // Force immediate refetch to ensure appointments list updates
