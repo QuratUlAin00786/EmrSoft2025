@@ -775,23 +775,131 @@ export default function CalendarPage() {
                       <Label className="text-sm font-medium text-gray-900 dark:text-white">
                         Select Patient
                       </Label>
-                      <Select 
-                        value={bookingForm.patientId} 
-                        onValueChange={(value) => setBookingForm(prev => ({ ...prev, patientId: value }))}
-                        data-testid="select-patient"
-                      >
-                        <SelectTrigger className="mt-2">
-                          <SelectValue placeholder="Select patient..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {patients.map((patient: any) => (
-                            <SelectItem key={patient.id} value={patient.patientId || patient.id.toString()}>
-                              {patient.firstName} {patient.lastName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Popover open={patientComboboxOpen} onOpenChange={setPatientComboboxOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={patientComboboxOpen}
+                            className="mt-2 w-full justify-between"
+                            data-testid="trigger-patient-combobox"
+                          >
+                            {bookingForm.patientId 
+                              ? patients.find((patient: any) => 
+                                  (patient.patientId || patient.id.toString()) === bookingForm.patientId
+                                )?.firstName + " " + patients.find((patient: any) => 
+                                  (patient.patientId || patient.id.toString()) === bookingForm.patientId
+                                )?.lastName
+                              : "Select patient..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0">
+                          <Command>
+                            <CommandInput 
+                              placeholder="Search patients..." 
+                              data-testid="input-search-patient"
+                            />
+                            <CommandList>
+                              <CommandEmpty>No patient found.</CommandEmpty>
+                              <CommandGroup>
+                                {patients.map((patient: any) => {
+                                  const patientValue = patient.patientId || patient.id.toString();
+                                  const patientName = `${patient.firstName} ${patient.lastName}`;
+                                  return (
+                                    <CommandItem
+                                      key={patient.id}
+                                      value={patientName}
+                                      onSelect={() => {
+                                        setBookingForm(prev => ({ ...prev, patientId: patientValue }));
+                                        setPatientComboboxOpen(false);
+                                      }}
+                                      data-testid={`item-patient-${patient.id}`}
+                                    >
+                                      <Check
+                                        className={`mr-2 h-4 w-4 ${
+                                          patientValue === bookingForm.patientId ? "opacity-100" : "opacity-0"
+                                        }`}
+                                      />
+                                      {patientName}
+                                    </CommandItem>
+                                  );
+                                })}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                     </div>
+
+                    {/* Patient Information Card - Shows when patient is selected */}
+                    {bookingForm.patientId && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
+                          Patient Information
+                        </Label>
+                        {(() => {
+                          const selectedPatient = patients.find((patient: any) => 
+                            (patient.patientId || patient.id.toString()) === bookingForm.patientId
+                          );
+                          
+                          if (!selectedPatient) return null;
+                          
+                          return (
+                            <Card className="mt-2">
+                              <CardContent className="p-4">
+                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                  <div>
+                                    <Label className="text-gray-600 dark:text-gray-400">Name</Label>
+                                    <p className="font-medium" data-testid={`text-patient-name-${selectedPatient.id}`}>
+                                      {selectedPatient.firstName} {selectedPatient.lastName}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <Label className="text-gray-600 dark:text-gray-400">Patient ID</Label>
+                                    <p className="font-medium" data-testid={`text-patient-mrn-${selectedPatient.id}`}>
+                                      {selectedPatient.patientId || `P${selectedPatient.id.toString().padStart(3, '0')}`}
+                                    </p>
+                                  </div>
+                                  {selectedPatient.dateOfBirth && (
+                                    <div>
+                                      <Label className="text-gray-600 dark:text-gray-400">Date of Birth</Label>
+                                      <p className="font-medium" data-testid={`text-patient-dob-${selectedPatient.id}`}>
+                                        {format(new Date(selectedPatient.dateOfBirth), 'MMM dd, yyyy')}
+                                      </p>
+                                    </div>
+                                  )}
+                                  {selectedPatient.gender && (
+                                    <div>
+                                      <Label className="text-gray-600 dark:text-gray-400">Gender</Label>
+                                      <p className="font-medium" data-testid={`text-patient-gender-${selectedPatient.id}`}>
+                                        {selectedPatient.gender}
+                                      </p>
+                                    </div>
+                                  )}
+                                  {selectedPatient.phoneNumber && (
+                                    <div>
+                                      <Label className="text-gray-600 dark:text-gray-400">Phone</Label>
+                                      <p className="font-medium" data-testid={`text-patient-phone-${selectedPatient.id}`}>
+                                        {selectedPatient.phoneNumber}
+                                      </p>
+                                    </div>
+                                  )}
+                                  {selectedPatient.email && (
+                                    <div>
+                                      <Label className="text-gray-600 dark:text-gray-400">Email</Label>
+                                      <p className="font-medium" data-testid={`text-patient-email-${selectedPatient.id}`}>
+                                        {selectedPatient.email}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        })()}
+                      </div>
+                    )}
                   </div>
 
                   {/* Right Column - Calendar and Time Slots */}
