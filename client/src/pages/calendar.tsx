@@ -314,6 +314,7 @@ export default function CalendarPage() {
     const slotDuration = parseInt(bookingForm.duration) || 30; // Default 30 minutes
     const slotEnd = new Date(slotStart.getTime() + slotDuration * 60 * 1000);
     
+    
     // Check if slot is in the past (for same-day bookings)
     const isToday = format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
     if (isToday && slotStart < new Date()) {
@@ -322,7 +323,8 @@ export default function CalendarPage() {
     
     // Check for overlaps with existing appointments
     if (existingAppointments?.length) {
-      const doctorAppointments = existingAppointments.filter((apt: any) => apt.providerId === selectedDoctor.id);
+      // Fix type mismatch: normalize IDs to numbers for comparison
+      const doctorAppointments = existingAppointments.filter((apt: any) => Number(apt.providerId) === Number(selectedDoctor.id));
       
       const hasOverlap = doctorAppointments.some((apt: any) => {
         // Calculate existing appointment start and end times
@@ -1114,7 +1116,7 @@ export default function CalendarPage() {
                         const appointmentData = {
                           ...bookingForm,
                           patientId: patientId,
-                          providerId: selectedDoctor.id,
+                          providerId: Number(selectedDoctor.id), // Ensure numeric ID consistency
                           title: bookingForm.title || `${bookingForm.type} with ${selectedDoctor.firstName} ${selectedDoctor.lastName}`,
                           location: bookingForm.location || `${selectedDoctor.department} Department`,
                           duration: parseInt(bookingForm.duration),
