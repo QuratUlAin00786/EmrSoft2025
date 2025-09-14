@@ -381,17 +381,6 @@ Medical License: [License Number]
       // Parse the date more reliably to avoid timezone issues
       const appointmentDate = new Date(apt.scheduledAt);
       const result = isSameDay(appointmentDate, date);
-      
-      // Debug logging to help troubleshoot
-      if (format(date, 'yyyy-MM-dd') === '2025-09-07') {
-        console.log(`[Calendar] Filtering for Sept 7, 2025 - Appointment ${apt.id}:`, {
-          aptDate: apt.scheduledAt,
-          parsedDate: appointmentDate,
-          targetDate: date,
-          matches: result
-        });
-      }
-      
       return result;
     });
   };
