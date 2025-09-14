@@ -382,58 +382,57 @@ export default function CalendarPage() {
   
   // Check if time slot is available
   const isTimeSlotAvailable = (timeSlot: string) => {
+    console.log(`🔥 isTimeSlotAvailable called for ${timeSlot}`);
+    console.log(`🔥 selectedDate:`, selectedDate);
+    console.log(`🔥 selectedDoctor:`, selectedDoctor);
+    console.log(`🔥 existingAppointments:`, existingAppointments);
+    
     if (!selectedDate || !selectedDoctor) {
-      console.log(`[AVAILABILITY] Missing date or doctor for ${timeSlot}`);
+      console.log(`🔥 Missing date or doctor for ${timeSlot} - returning FALSE`);
       return false;
     }
-    
-    console.log(`[AVAILABILITY] Checking ${timeSlot} for doctor ${selectedDoctor.id} on ${format(selectedDate, 'yyyy-MM-dd')}`);
-    console.log(`[AVAILABILITY] existingAppointments:`, existingAppointments);
     
     // Check if slot is in the past (for same-day bookings)
     const slotDate = format(selectedDate, 'yyyy-MM-dd');
     const slotStart = new Date(`${slotDate}T${timeSlot}:00`);
     const isToday = format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
     if (isToday && slotStart < new Date()) {
-      console.log(`[AVAILABILITY] ${timeSlot} is in the past`);
+      console.log(`🔥 ${timeSlot} is in the past - returning FALSE`);
       return false; // Disable past time slots on today
     }
     
     // Check for overlaps with existing appointments
     if (existingAppointments?.length > 0) {
-      console.log(`[AVAILABILITY] Checking against ${existingAppointments.length} appointments`);
+      console.log(`🔥 Checking ${timeSlot} against ${existingAppointments.length} appointments`);
       
       // Filter appointments for the selected doctor
       const doctorAppointments = existingAppointments.filter((apt: any) => {
         const matches = Number(apt.providerId) === Number(selectedDoctor.id);
-        console.log(`[AVAILABILITY] Appointment ${apt.id}: providerId=${apt.providerId}, doctorId=${selectedDoctor.id}, matches=${matches}, scheduledAt=${apt.scheduledAt}`);
+        console.log(`🔥 Appointment ${apt.id}: providerId=${apt.providerId}, doctorId=${selectedDoctor.id}, matches=${matches}`);
         return matches;
       });
       
-      console.log(`[AVAILABILITY] Found ${doctorAppointments.length} appointments for doctor ${selectedDoctor.id}:`, doctorAppointments);
+      console.log(`🔥 Found ${doctorAppointments.length} appointments for doctor ${selectedDoctor.id}:`, doctorAppointments);
       
       // Check if any appointment conflicts with this time slot
       const hasConflict = doctorAppointments.some((apt: any) => {
         const aptStart = new Date(apt.scheduledAt);
         const aptTime = format(aptStart, 'HH:mm');
         
-        console.log(`[AVAILABILITY] Comparing timeSlot="${timeSlot}" with appointment ${apt.id} aptTime="${aptTime}" (from ${apt.scheduledAt})`);
+        console.log(`🔥 Comparing timeSlot="${timeSlot}" with appointment ${apt.id} aptTime="${aptTime}"`);
         
         // Direct time comparison - if appointment starts at this exact time slot, it's booked
         const conflicts = aptTime === timeSlot;
-        console.log(`[AVAILABILITY] Comparison result: "${aptTime}" === "${timeSlot}" = ${conflicts}`);
-        if (conflicts) {
-          console.log(`[AVAILABILITY] CONFLICT FOUND: ${timeSlot} conflicts with appointment ${apt.id}`);
-        }
+        console.log(`🔥 "${aptTime}" === "${timeSlot}" = ${conflicts}`);
         return conflicts;
       });
       
       const result = !hasConflict;
-      console.log(`[AVAILABILITY] ${timeSlot} hasConflict=${hasConflict}, final result: ${result ? 'AVAILABLE (GREEN)' : 'BLOCKED (GREY)'}`);
+      console.log(`🔥 ${timeSlot} final result: ${result ? 'AVAILABLE (GREEN)' : 'BLOCKED (GREY)'}`);
       return result;
     }
     
-    console.log(`[AVAILABILITY] ${timeSlot} is AVAILABLE (no appointments) - should be GREEN`);
+    console.log(`🔥 ${timeSlot} is AVAILABLE (no appointments) - should be GREEN`);
     return true;
   };
   
