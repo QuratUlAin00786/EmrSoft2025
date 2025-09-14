@@ -387,7 +387,8 @@ export default function CalendarPage() {
       return false;
     }
     
-    console.log(`[AVAILABILITY] Checking ${timeSlot} for doctor ${selectedDoctor.id}`);
+    console.log(`[AVAILABILITY] Checking ${timeSlot} for doctor ${selectedDoctor.id} on ${format(selectedDate, 'yyyy-MM-dd')}`);
+    console.log(`[AVAILABILITY] existingAppointments:`, existingAppointments);
     
     // Check if slot is in the past (for same-day bookings)
     const slotDate = format(selectedDate, 'yyyy-MM-dd');
@@ -405,21 +406,22 @@ export default function CalendarPage() {
       // Filter appointments for the selected doctor
       const doctorAppointments = existingAppointments.filter((apt: any) => {
         const matches = Number(apt.providerId) === Number(selectedDoctor.id);
-        console.log(`[AVAILABILITY] Appointment ${apt.id}: providerId=${apt.providerId}, doctorId=${selectedDoctor.id}, matches=${matches}`);
+        console.log(`[AVAILABILITY] Appointment ${apt.id}: providerId=${apt.providerId}, doctorId=${selectedDoctor.id}, matches=${matches}, scheduledAt=${apt.scheduledAt}`);
         return matches;
       });
       
-      console.log(`[AVAILABILITY] Found ${doctorAppointments.length} appointments for doctor ${selectedDoctor.id}`);
+      console.log(`[AVAILABILITY] Found ${doctorAppointments.length} appointments for doctor ${selectedDoctor.id}:`, doctorAppointments);
       
       // Check if any appointment conflicts with this time slot
       const hasConflict = doctorAppointments.some((apt: any) => {
         const aptStart = new Date(apt.scheduledAt);
         const aptTime = format(aptStart, 'HH:mm');
         
-        console.log(`[AVAILABILITY] Comparing ${timeSlot} with appointment ${apt.id} at ${aptTime}`);
+        console.log(`[AVAILABILITY] Comparing timeSlot="${timeSlot}" with appointment ${apt.id} aptTime="${aptTime}" (from ${apt.scheduledAt})`);
         
         // Direct time comparison - if appointment starts at this exact time slot, it's booked
         const conflicts = aptTime === timeSlot;
+        console.log(`[AVAILABILITY] Comparison result: "${aptTime}" === "${timeSlot}" = ${conflicts}`);
         if (conflicts) {
           console.log(`[AVAILABILITY] CONFLICT FOUND: ${timeSlot} conflicts with appointment ${apt.id}`);
         }
@@ -427,11 +429,11 @@ export default function CalendarPage() {
       });
       
       const result = !hasConflict;
-      console.log(`[AVAILABILITY] ${timeSlot} final result: ${result ? 'AVAILABLE' : 'BLOCKED'}`);
+      console.log(`[AVAILABILITY] ${timeSlot} hasConflict=${hasConflict}, final result: ${result ? 'AVAILABLE (GREEN)' : 'BLOCKED (GREY)'}`);
       return result;
     }
     
-    console.log(`[AVAILABILITY] ${timeSlot} is AVAILABLE (no appointments)`);
+    console.log(`[AVAILABILITY] ${timeSlot} is AVAILABLE (no appointments) - should be GREEN`);
     return true;
   };
   
