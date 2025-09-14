@@ -312,12 +312,9 @@ export default function CalendarPage() {
     const slotDuration = parseInt(bookingForm.duration) || 30; // Default 30 minutes
     const slotEnd = new Date(slotStart.getTime() + slotDuration * 60 * 1000);
     
-    console.log(`Checking availability for slot ${timeSlot} on ${slotDate}`);
-    
     // Check if slot is in the past (for same-day bookings)
     const isToday = format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
     if (isToday && slotStart < new Date()) {
-      console.log(`Slot ${timeSlot} is in the past`);
       return false; // Disable past time slots on today
     }
     
@@ -334,16 +331,11 @@ export default function CalendarPage() {
         
         // Check for overlap: slotStart < aptEnd && aptStart < slotEnd
         const overlaps = slotStart < aptEnd && aptStart < slotEnd;
-        if (overlaps) {
-          console.log(`Slot ${timeSlot} overlaps with existing appointment:`, apt);
-        }
         return overlaps;
       });
       
       return !hasOverlap;
     }
-    
-    console.log(`Slot ${timeSlot} is available`);
     return true;
   };
   
@@ -404,13 +396,17 @@ export default function CalendarPage() {
       console.error("Appointment creation error:", error);
       let errorMessage = "Failed to create appointment. Please try again.";
       
-      // Check if the error message contains patient not found (server returns 400: {"error":"Patient not found"})
+      // Check if the error message contains specific errors
       if (error.message && error.message.includes("Patient not found")) {
         errorMessage = "Patient not found. Please use a valid patient ID like: 165, 159, P000004, P000005, or P000158.";
+      } else if (error.message && error.message.includes("already scheduled at this time")) {
+        errorMessage = "This time slot is already booked. Please select a different time slot.";
+      } else if (error.message && error.message.includes("Doctor is already scheduled")) {
+        errorMessage = "The selected doctor is not available at this time. Please choose a different time slot.";
       }
       
       toast({
-        title: "Error",
+        title: "Booking Error",
         description: errorMessage,
         variant: "destructive",
       });
