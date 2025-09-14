@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -77,6 +77,25 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
   const [showAiInsights, setShowAiInsights] = useState(false);
   const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
 
+  // Function to calculate age from date of birth
+  const calculateAge = (dateOfBirth: string): string => {
+    if (!dateOfBirth) return "";
+    
+    const birthDate = new Date(dateOfBirth);
+    const currentDate = new Date();
+    
+    if (birthDate > currentDate) return "";
+    
+    let age = currentDate.getFullYear() - birthDate.getFullYear();
+    const monthDiff = currentDate.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && currentDate.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    return age.toString();
+  };
+
   const form = useForm<PatientFormData>({
     resolver: zodResolver(patientSchema),
     defaultValues: {
@@ -116,6 +135,10 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
       }
     }
   });
+
+  // Watch for changes in date of birth to calculate age
+  const watchedDateOfBirth = form.watch("dateOfBirth");
+  const calculatedAge = useMemo(() => calculateAge(watchedDateOfBirth), [watchedDateOfBirth]);
 
   const createPatientMutation = useMutation({
     mutationFn: async (data: PatientFormData) => {
@@ -238,12 +261,25 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
                         <FormItem>
                           <FormLabel className="required">Date of Birth</FormLabel>
                           <FormControl>
-                            <Input type="date" {...field} />
+                            <Input type="date" {...field} data-testid="input-date-of-birth" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+                    
+                    {/* Age field - automatically calculated */}
+                    <div className="space-y-2">
+                      <FormLabel>Age</FormLabel>
+                      <Input 
+                        type="text" 
+                        value={calculatedAge ? `${calculatedAge} years old` : ""} 
+                        placeholder="Age will be calculated automatically"
+                        readOnly 
+                        className="bg-gray-50 text-gray-700" 
+                        data-testid="input-calculated-age"
+                      />
+                    </div>
                     
                     <FormField
                       control={form.control}
