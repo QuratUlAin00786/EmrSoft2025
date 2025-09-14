@@ -25,23 +25,6 @@ import multer from "multer";
 // In-memory storage for voice notes - persistent across server restarts
 let voiceNotes: any[] = [];
 
-// Helper function to calculate age from date of birth
-function calculateAge(dateOfBirth: Date): number {
-  if (!dateOfBirth || isNaN(dateOfBirth.getTime())) {
-    return 0;
-  }
-  
-  const today = new Date();
-  let age = today.getFullYear() - dateOfBirth.getFullYear();
-  const monthDiff = today.getMonth() - dateOfBirth.getMonth();
-  
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dateOfBirth.getDate())) {
-    age--;
-  }
-  
-  return Math.max(0, age); // Ensure age is never negative
-}
-
 // Enhanced error handling helper to distinguish different error types
 function handleRouteError(error: any, operation: string, res: express.Response) {
   // Handle Zod validation errors (return 400)
@@ -979,7 +962,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         firstName: z.string().min(1),
         lastName: z.string().min(1),
         dateOfBirth: z.string().transform(str => new Date(str)),
-        age: z.number().int().min(0),
         email: z.string().email().optional(),
         phone: z.string().optional(),
         nhsNumber: z.string().optional(),
@@ -1046,12 +1028,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const patientCount = await storage.getPatientsByOrganization(req.tenant!.id, 999999);
       const patientId = `P${(patientCount.length + 1).toString().padStart(6, '0')}`;
 
-      // Calculate age from dateOfBirth for data consistency
-      const calculatedAge = calculateAge(patientData.dateOfBirth);
-      
       const patient = await storage.createPatient({
         ...patientData,
-        age: calculatedAge, // Use server-calculated age for consistency
         organizationId: req.tenant!.id,
         patientId,
         address: patientData.address || {},
@@ -5268,10 +5246,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const firstName = nameParts[0] || patientName;
         const lastName = nameParts.slice(1).join(' ') || '';
         
-        // Create new patient with reasonable default age (30 years old)
-        const defaultDateOfBirth = new Date();
-        defaultDateOfBirth.setFullYear(defaultDateOfBirth.getFullYear() - 30);
-        
+        // Create new patient
         const patientData = {
           firstName,
           lastName,
@@ -5279,8 +5254,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           phone: patientPhone,
           organizationId: tenant.id,
           patientId: `P${String(Date.now()).slice(-6)}`, // Generate patient ID
-          dateOfBirth: defaultDateOfBirth,
-          age: calculateAge(defaultDateOfBirth),
+          dateOfBirth: new Date(), // Default date
           address: {},
           emergencyContact: {
             phone: patientPhone
@@ -5372,10 +5346,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const firstName = nameParts[0] || patientName;
         const lastName = nameParts.slice(1).join(' ') || '';
         
-        // Create new patient with reasonable default age (30 years old)
-        const defaultDateOfBirth = new Date();
-        defaultDateOfBirth.setFullYear(defaultDateOfBirth.getFullYear() - 30);
-        
+        // Create new patient
         const patientData = {
           firstName,
           lastName,
@@ -5383,8 +5354,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           phone: patientPhone,
           organizationId: tenant.id,
           patientId: `P${String(Date.now()).slice(-6)}`, // Generate patient ID
-          dateOfBirth: defaultDateOfBirth,
-          age: calculateAge(defaultDateOfBirth),
+          dateOfBirth: new Date(), // Default date
           address: {
             street: '',
             city: '',
@@ -7568,10 +7538,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let patient = await storage.getPatientByEmail(email, organization.id);
       
       if (!patient) {
-        // Create new patient with reasonable default age (30 years old)
-        const defaultDateOfBirth = new Date();
-        defaultDateOfBirth.setFullYear(defaultDateOfBirth.getFullYear() - 30);
-        
+        // Create new patient
         const patientData = {
           organizationId: organization.id,
           firstName: name.split(' ')[0] || '',
@@ -7579,8 +7546,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: email,
           phone: phone,
           patientId: `P${Date.now()}`,
-          dateOfBirth: defaultDateOfBirth,
-          age: calculateAge(defaultDateOfBirth),
           isActive: true
         };
         patient = await storage.createPatient(patientData);
@@ -7647,10 +7612,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let patient = await storage.getPatientByEmail(email, organization.id);
       
       if (!patient) {
-        // Create new patient with reasonable default age (30 years old)
-        const defaultDateOfBirth = new Date();
-        defaultDateOfBirth.setFullYear(defaultDateOfBirth.getFullYear() - 30);
-        
+        // Create new patient
         const patientData = {
           organizationId: organization.id,
           firstName: name.split(' ')[0] || '',
@@ -7658,8 +7620,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: email,
           phone: phone,
           patientId: `P${Date.now()}`,
-          dateOfBirth: defaultDateOfBirth,
-          age: calculateAge(defaultDateOfBirth),
           isActive: true
         };
         patient = await storage.createPatient(patientData);

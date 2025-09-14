@@ -266,7 +266,6 @@ export const patients = pgTable("patients", {
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   dateOfBirth: timestamp("date_of_birth").notNull(),
-  age: integer("age").notNull().default(0),
   email: text("email"),
   phone: text("phone"),
   nhsNumber: text("nhs_number"), // NHS number for UK patients

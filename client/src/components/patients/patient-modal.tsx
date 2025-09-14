@@ -24,7 +24,6 @@ const patientSchema = z.object({
     (val) => !isNaN(Date.parse(val)),
     { message: "Please enter a valid date" }
   ),
-  age: z.number().int().min(0, "Age must be a positive integer"),
   email: z.string().trim().email("Please enter a valid email address").optional().or(z.literal("")),
   phone: z.string().trim().min(1, "Phone number is required").regex(
     /^[\+]?[0-9\s\-\(\)]{10,}$/,
@@ -103,7 +102,6 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
       firstName: "",
       lastName: "",
       dateOfBirth: "",
-      age: 0,
       email: "",
       phone: "",
       nhsNumber: "",
@@ -144,12 +142,8 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
 
   const createPatientMutation = useMutation({
     mutationFn: async (data: PatientFormData) => {
-      // Calculate age from dateOfBirth
-      const calculatedAge = parseInt(calculateAge(data.dateOfBirth)) || 0;
-      
       const transformedData = {
         ...data,
-        age: calculatedAge,
         email: data.email || undefined,
         medicalHistory: {
           allergies: data.medicalHistory?.allergies ? data.medicalHistory.allergies.split(',').map(s => s.trim()).filter(Boolean) : [],
