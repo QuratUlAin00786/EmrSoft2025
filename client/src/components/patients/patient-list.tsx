@@ -384,8 +384,8 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                         </CardTitle>
                       <p className="text-sm patient-info">
                         {patient.dateOfBirth ? 
-                          `Age ${calculateAge(patient.dateOfBirth)}` : 
-                          "Age Not Available"
+                          `DOB ${new Date(patient.dateOfBirth).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}` : 
+                          "DOB Not Available"
                         } • {patient.patientId}
                       </p>
                     </div>
