@@ -61,8 +61,17 @@ export default function CalendarPage() {
     return [...new Set(specialties)];
   };
   
-  const getSubSpecialties = (specialty: string): string[] => {
+  const getSubSpecialties = (specialty?: string): string[] => {
     if (!Array.isArray(medicalStaff)) return [];
+    
+    if (!specialty) {
+      // If no specialty selected, return all sub-specialties
+      const allSubSpecialties = (medicalStaff as any[])
+        .filter((staff: any) => staff.role === 'doctor' && staff.subSpecialty)
+        .map((staff: any) => staff.subSpecialty as string);
+      return [...new Set(allSubSpecialties)];
+    }
+    
     const subSpecialties = (medicalStaff as any[])
       .filter((staff: any) => 
         staff.role === 'doctor' && 
@@ -74,13 +83,21 @@ export default function CalendarPage() {
   };
   
   const filterDoctorsBySpecialty = () => {
-    if (!selectedSpecialty || !Array.isArray(medicalStaff)) {
+    if (!Array.isArray(medicalStaff)) {
       setFilteredDoctors([]);
       return [];
     }
     
     console.log('Filtering doctors with specialty:', selectedSpecialty, 'sub-specialty:', selectedSubSpecialty);
     console.log('Available medical staff:', medicalStaff);
+    
+    // If no specialty is selected, show all doctors
+    if (!selectedSpecialty) {
+      const allDoctors = (medicalStaff as any[]).filter((staff: any) => staff.role === 'doctor');
+      console.log('No specialty selected, showing all doctors:', allDoctors);
+      setFilteredDoctors(allDoctors);
+      return allDoctors;
+    }
     
     const filtered = (medicalStaff as any[]).filter((staff: any) => {
       const isDoctor = staff.role === 'doctor';
@@ -196,11 +213,9 @@ export default function CalendarPage() {
     return true;
   };
   
-  // Update filtered doctors when specialty/sub-specialty changes
+  // Update filtered doctors when specialty/sub-specialty changes or when medical staff loads
   useEffect(() => {
-    if (selectedSpecialty) {
-      filterDoctorsBySpecialty();
-    }
+    filterDoctorsBySpecialty();
   }, [selectedSpecialty, selectedSubSpecialty, medicalStaff]);
   
   // Check for patientId in URL params to auto-book appointment
@@ -539,129 +554,123 @@ export default function CalendarPage() {
                     </div>
 
                     {/* Step 2: Select Sub-Specialty */}
-                    {selectedSpecialty && (
-                      <div>
-                        <Label className="text-sm font-medium text-gray-900 dark:text-white">
-                          Select Sub-Specialty
-                        </Label>
-                        <Select 
-                          value={selectedSubSpecialty} 
-                          onValueChange={setSelectedSubSpecialty}
-                          data-testid="select-subspecialty"
-                        >
-                          <SelectTrigger className="mt-2">
-                            <SelectValue placeholder="Select Sub-Specialty" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {getSubSpecialties(selectedSpecialty).map((subSpecialty) => (
-                              <SelectItem key={subSpecialty} value={subSpecialty}>
-                                {subSpecialty}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
+                    <div>
+                      <Label className="text-sm font-medium text-gray-900 dark:text-white">
+                        Select Sub-Specialty
+                      </Label>
+                      <Select 
+                        value={selectedSubSpecialty} 
+                        onValueChange={setSelectedSubSpecialty}
+                        data-testid="select-subspecialty"
+                      >
+                        <SelectTrigger className="mt-2">
+                          <SelectValue placeholder="Select Sub-Specialty" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getSubSpecialties(selectedSpecialty).map((subSpecialty) => (
+                            <SelectItem key={subSpecialty} value={subSpecialty}>
+                              {subSpecialty}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
                     {/* Step 3: Select Doctor */}
-                    {selectedSpecialty && (
-                      <div>
-                        <Label className="text-sm font-medium text-gray-900 dark:text-white">
-                          Select Doctor
-                        </Label>
-                        {filteredDoctors.length > 0 ? (
-                          <Select 
-                            value={selectedDoctor?.id?.toString() || ""} 
-                            onValueChange={(value) => {
-                              const doctor = filteredDoctors.find(d => d.id.toString() === value);
-                              setSelectedDoctor(doctor);
-                            }}
-                            data-testid="select-doctor"
-                          >
-                            <SelectTrigger className="mt-2">
-                              <SelectValue placeholder="Select Doctor" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {filteredDoctors.map((doctor) => (
-                                <SelectItem key={doctor.id} value={doctor.id.toString()}>
-                                  Dr. {doctor.firstName} {doctor.lastName} 
-                                  {doctor.department && ` (${doctor.department})`}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                            <p className="text-sm text-yellow-800">
-                              No doctors found for the selected specialty combination. Please try a different selection.
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Patient Selection */}
-                    {selectedDoctor && (
-                      <div>
-                        <Label className="text-sm font-medium text-gray-900 dark:text-white">
-                          Select Patient
-                        </Label>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-900 dark:text-white">
+                        Select Doctor
+                      </Label>
+                      {filteredDoctors.length > 0 ? (
                         <Select 
-                          value={bookingForm.patientId} 
-                          onValueChange={(value) => setBookingForm(prev => ({ ...prev, patientId: value }))}
-                          data-testid="select-patient"
+                          value={selectedDoctor?.id?.toString() || ""} 
+                          onValueChange={(value) => {
+                            const doctor = filteredDoctors.find(d => d.id.toString() === value);
+                            setSelectedDoctor(doctor);
+                          }}
+                          data-testid="select-doctor"
                         >
                           <SelectTrigger className="mt-2">
-                            <SelectValue placeholder="Select patient..." />
+                            <SelectValue placeholder="Select Doctor" />
                           </SelectTrigger>
                           <SelectContent>
-                            {patients.map((patient: any) => (
-                              <SelectItem key={patient.id} value={patient.patientId || patient.id.toString()}>
-                                {patient.firstName} {patient.lastName}
+                            {filteredDoctors.map((doctor) => (
+                              <SelectItem key={doctor.id} value={doctor.id.toString()}>
+                                Dr. {doctor.firstName} {doctor.lastName} 
+                                {doctor.department && ` (${doctor.department})`}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
-                      </div>
-                    )}
+                      ) : (
+                        <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                          <p className="text-sm text-yellow-800">
+                            {selectedSpecialty ? 
+                              "No doctors found for the selected specialty combination. Please try a different selection." :
+                              "Loading doctors..."}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Patient Selection */}
+                    <div>
+                      <Label className="text-sm font-medium text-gray-900 dark:text-white">
+                        Select Patient
+                      </Label>
+                      <Select 
+                        value={bookingForm.patientId} 
+                        onValueChange={(value) => setBookingForm(prev => ({ ...prev, patientId: value }))}
+                        data-testid="select-patient"
+                      >
+                        <SelectTrigger className="mt-2">
+                          <SelectValue placeholder="Select patient..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {patients.map((patient: any) => (
+                            <SelectItem key={patient.id} value={patient.patientId || patient.id.toString()}>
+                              {patient.firstName} {patient.lastName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
                   {/* Right Column - Calendar and Time Slots */}
                   <div className="space-y-6">
                     {/* Step 4: Select Date */}
-                    {selectedDoctor && (
-                      <div>
-                        <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
-                          Select Date
-                        </Label>
-                        <CalendarComponent
-                          mode="single"
-                          selected={selectedDate}
-                          onSelect={setSelectedDate}
-                          disabled={(date) => {
-                            // Disable past dates (but allow today)
-                            if (isBefore(startOfDay(date), startOfDay(new Date()))) return true;
-                            
-                            // Disable days not in doctor's working days
-                            if (selectedDoctor?.workingDays?.length > 0) {
-                              const dayName = format(date, 'EEEE');
-                              return !selectedDoctor.workingDays.includes(dayName);
-                            }
-                            
-                            return false;
-                          }}
-                          className="rounded-md border"
-                          data-testid="calendar-date-picker"
-                        />
-                      </div>
-                    )}
+                    <div>
+                      <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
+                        Select Date
+                      </Label>
+                      <CalendarComponent
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        disabled={(date) => {
+                          // Disable past dates (but allow today)
+                          if (isBefore(startOfDay(date), startOfDay(new Date()))) return true;
+                          
+                          // Disable days not in doctor's working days (if doctor is selected)
+                          if (selectedDoctor?.workingDays?.length > 0) {
+                            const dayName = format(date, 'EEEE');
+                            return !selectedDoctor.workingDays.includes(dayName);
+                          }
+                          
+                          return false;
+                        }}
+                        className="rounded-md border"
+                        data-testid="calendar-date-picker"
+                      />
+                    </div>
 
                     {/* Step 5: Select Time Slot */}
-                    {selectedDoctor && selectedDate && (
-                      <div>
-                        <Label className="text-sm font-medium text-gray-900 dark:text-white mb-3 block">
-                          Select Time Slot
-                        </Label>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-900 dark:text-white mb-3 block">
+                        Select Time Slot
+                      </Label>
+                      {selectedDoctor && selectedDate ? (
                         <div className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto">
                           {generateTimeSlots(selectedDoctor.workingHours).map((timeSlot) => {
                             const isAvailable = isTimeSlotAvailable(timeSlot);
@@ -695,8 +704,14 @@ export default function CalendarPage() {
                             );
                           })}
                         </div>
-                      </div>
-                    )}
+                      ) : (
+                        <div className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-md">
+                          <p className="text-sm text-gray-600">
+                            Please select a doctor and date to view available time slots.
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
