@@ -313,15 +313,21 @@ export default function CalendarPage() {
     const slotDuration = parseInt(bookingForm.duration) || 30; // Default 30 minutes
     const slotEnd = new Date(slotStart.getTime() + slotDuration * 60 * 1000);
     
+    console.log(`[AVAILABILITY] Checking ${timeSlot} on ${slotDate} for doctor ${selectedDoctor.id}`);
+    console.log(`[AVAILABILITY] Slot: ${slotStart.toISOString()} to ${slotEnd.toISOString()}`);
+    console.log(`[AVAILABILITY] Existing appointments:`, existingAppointments);
+    
     // Check if slot is in the past (for same-day bookings)
     const isToday = format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
     if (isToday && slotStart < new Date()) {
+      console.log(`[AVAILABILITY] ${timeSlot} is in the past`);
       return false; // Disable past time slots on today
     }
     
     // Check for overlaps with existing appointments
     if (existingAppointments?.length) {
       const doctorAppointments = existingAppointments.filter((apt: any) => apt.providerId === selectedDoctor.id);
+      console.log(`[AVAILABILITY] Found ${doctorAppointments.length} appointments for doctor ${selectedDoctor.id}:`, doctorAppointments);
       
       const hasOverlap = doctorAppointments.some((apt: any) => {
         // Calculate existing appointment start and end times
@@ -329,14 +335,20 @@ export default function CalendarPage() {
         const aptDuration = apt.duration || 30; // Default 30 minutes
         const aptEnd = new Date(aptStart.getTime() + aptDuration * 60 * 1000);
         
+        console.log(`[AVAILABILITY] Checking apt ${apt.id}: ${aptStart.toISOString()} to ${aptEnd.toISOString()}`);
+        
         // Check for overlap: slotStart < aptEnd && aptStart < slotEnd
         const overlaps = slotStart < aptEnd && aptStart < slotEnd;
+        console.log(`[AVAILABILITY] Overlap with apt ${apt.id}: ${overlaps}`);
         
         return overlaps;
       });
       
+      console.log(`[AVAILABILITY] Final result for ${timeSlot}: ${!hasOverlap ? 'AVAILABLE' : 'NOT AVAILABLE'}`);
       return !hasOverlap;
     }
+    
+    console.log(`[AVAILABILITY] No appointments found, ${timeSlot} is AVAILABLE`);
     return true;
   };
   
