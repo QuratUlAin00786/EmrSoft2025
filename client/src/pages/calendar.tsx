@@ -370,18 +370,8 @@ export default function CalendarPage() {
     return slots;
   };
   
-  // Helper function to convert UTC time to Pakistan Standard Time (UTC+5)
-  const convertUTCToPakistanTime = (utcDateString: string) => {
-    // Create a Date object from the UTC string
-    const utcDate = new Date(utcDateString);
-    
-    // Add 5 hours for Pakistan Standard Time (UTC+5)
-    const pakistanTime = new Date(utcDate.getTime() + (5 * 60 * 60 * 1000));
-    
-    return pakistanTime;
-  };
 
-  // Get booked time slots for selected doctor and date - PAKISTAN TIMEZONE VERSION
+  // Get booked time slots for selected doctor and date - FIXED VERSION
   const getBookedTimeSlots = () => {
     if (!selectedDate || !selectedDoctor) {
       console.log(`[TIME_SLOTS] No doctor or date selected`);
@@ -422,38 +412,41 @@ export default function CalendarPage() {
     
     console.log(`[TIME_SLOTS] Found ${appointmentsData.length} total appointments`);
     
-    // Filter appointments for the selected doctor and date using Pakistan timezone
+    // Filter appointments for the selected doctor and date using local browser timezone
     const doctorAppointments = appointmentsData.filter(apt => {
-      if (!apt || !apt.providerId || !apt.scheduledAt) {
+      // Use fallback for both field names
+      const scheduledTime = apt.scheduledAt ?? apt.scheduled_at;
+      if (!apt || !apt.providerId || !scheduledTime) {
         console.log(`[TIME_SLOTS] Skipping invalid appointment:`, apt);
         return false;
       }
       
       const matchesDoctor = Number(apt.providerId) === Number(selectedDoctor.id);
       
-      // Convert UTC appointment time to Pakistan timezone for date comparison
-      const pakistanAppointmentTime = convertUTCToPakistanTime(apt.scheduledAt);
-      const pakistanDateStr = format(pakistanAppointmentTime, 'yyyy-MM-dd');
-      const matchesDate = pakistanDateStr === dateStr;
+      // Use local browser timezone for consistent comparison with UI
+      const appointmentTime = new Date(scheduledTime);
+      const appointmentDateStr = format(appointmentTime, 'yyyy-MM-dd');
+      const matchesDate = appointmentDateStr === dateStr;
       
-      console.log(`[TIME_SLOTS] Appointment ${apt.id}: doctor_match=${matchesDoctor}, date_match=${matchesDate}, scheduledAt=${apt.scheduledAt} UTC, pakistanDate=${pakistanDateStr}`);
+      console.log(`[TIME_SLOTS] Appointment ${apt.id}: doctor_match=${matchesDoctor}, date_match=${matchesDate}, scheduledAt=${scheduledTime}, localDate=${appointmentDateStr}`);
       
       return matchesDoctor && matchesDate;
     });
 
-    console.log(`[TIME_SLOTS] Found ${doctorAppointments.length} appointments for doctor ${selectedDoctor.id} on ${dateStr} (Pakistan timezone)`);
+    console.log(`[TIME_SLOTS] Found ${doctorAppointments.length} appointments for doctor ${selectedDoctor.id} on ${dateStr}`);
 
-    // Extract time slots in HH:mm format using Pakistan timezone
+    // Extract time slots in HH:mm format using local browser timezone
     const bookedSlots = doctorAppointments.map(apt => {
-      // Convert UTC time to Pakistan time and extract time portion
-      const pakistanAppointmentTime = convertUTCToPakistanTime(apt.scheduledAt);
-      const pakistanTime = format(pakistanAppointmentTime, 'HH:mm');
+      // Use fallback and local timezone
+      const scheduledTime = apt.scheduledAt ?? apt.scheduled_at;
+      const appointmentTime = new Date(scheduledTime);
+      const localTime = format(appointmentTime, 'HH:mm');
       
-      console.log(`[TIME_SLOTS] Appointment ${apt.id}: UTC=${apt.scheduledAt} -> Pakistan=${pakistanTime}`);
-      return pakistanTime;
+      console.log(`[TIME_SLOTS] Appointment ${apt.id}: scheduled=${scheduledTime} -> local=${localTime}`);
+      return localTime;
     }).filter(slot => slot !== ''); // Remove empty slots
 
-    console.log(`[TIME_SLOTS] Final booked time slots (Pakistan timezone):`, bookedSlots);
+    console.log(`[TIME_SLOTS] Final booked time slots (local timezone):`, bookedSlots);
     return bookedSlots;
   };
 
@@ -508,7 +501,13 @@ export default function CalendarPage() {
     if (selectedTimeSlot) {
       setSelectedTimeSlot("");
     }
-  }, [selectedDoctor, selectedDate]);
+    
+    // Refetch appointments data to ensure fresh availability checking
+    if (selectedDate && selectedDoctor) {
+      console.log(`[TIME_SLOTS] Refetching appointments for updated availability checking`);
+      queryClient.refetchQueries({ queryKey: ["/api/appointments"] });
+    }
+  }, [selectedDoctor, selectedDate, queryClient]);
   
   // Check for patientId in URL params to auto-book appointment
   useEffect(() => {
