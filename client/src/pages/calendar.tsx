@@ -518,6 +518,36 @@ export default function CalendarPage() {
     }
   }, [location]);
 
+  // Handle View Time Slot button click
+  const handleViewTimeSlot = () => {
+    if (!selectedDoctor || !selectedDate) {
+      toast({
+        title: "Selection Required",
+        description: "Please select both a doctor and a date to view time slots.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log(`[VIEW_TIME_SLOT] Checking availability for Doctor: ${selectedDoctor.firstName} ${selectedDoctor.lastName} (ID: ${selectedDoctor.id})`);
+    console.log(`[VIEW_TIME_SLOT] Selected Date: ${format(selectedDate, 'yyyy-MM-dd')}`);
+
+    // Get booked time slots using existing function
+    const bookedSlots = getBookedTimeSlots();
+    const allTimeSlots = generateTimeSlots(selectedDoctor.workingHours);
+    
+    console.log(`[VIEW_TIME_SLOT] Total time slots: ${allTimeSlots.length}`);
+    console.log(`[VIEW_TIME_SLOT] Booked time slots: ${bookedSlots.length}`, bookedSlots);
+    
+    // Create availability summary
+    const availableSlots = allTimeSlots.filter(slot => !bookedSlots.includes(slot));
+    
+    toast({
+      title: "Time Slot Availability",
+      description: `Doctor: ${selectedDoctor.firstName} ${selectedDoctor.lastName} | Date: ${format(selectedDate, 'MMM dd, yyyy')} | Available: ${availableSlots.length}/${allTimeSlots.length} slots | Booked: ${bookedSlots.length > 0 ? bookedSlots.map(slot => format(new Date(`2000-01-01T${slot}:00`), 'h:mm a')).join(', ') : 'None'}`,
+    });
+  };
+
   const createAppointmentMutation = useMutation({
     mutationFn: async (appointmentData: any) => {
       const response = await apiRequest("POST", "/api/appointments", appointmentData);
@@ -1327,6 +1357,21 @@ export default function CalendarPage() {
                         className="rounded-md border"
                         data-testid="calendar-date-picker"
                       />
+                    </div>
+
+                    {/* View Time Slot Button */}
+                    <div className="flex justify-center">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleViewTimeSlot}
+                        disabled={!selectedDoctor || !selectedDate}
+                        className="text-sm"
+                        data-testid="button-view-time-slot"
+                      >
+                        <Clock className="h-4 w-4 mr-2" />
+                        View Time Slot
+                      </Button>
                     </div>
 
                     {/* Step 5: Select Time Slot */}
