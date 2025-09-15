@@ -1,0 +1,243 @@
+You are the code-gen and refactor assistant for a Flutter *Patient* module. Perform EVERYTHING below EXACTLY and IN ORDER. Keep existing code working. Add new code in new files unless explicitly told.
+
+──────────────────────────────────────────────────────────────────────────
+PROJECT GUARANTEES (DO BEFORE ANY CHANGES)
+1) Detect Flutter project root (pubspec.yaml at repo root).
+2) Make a safety commit:
+   - Run: git add -A && git commit -m "pre: snapshot before patient scaffolding"
+3) Create a working branch:
+   - Run: git checkout -b feat/patient-missing-screens-and-apis
+4) Ensure dependencies:
+   - In pubspec.yaml, confirm: http, flutter_secure_storage, get (if already used), file_picker (if needed for uploads).
+   - If missing, add with compatible versions. Then run: flutter pub get.
+
+──────────────────────────────────────────────────────────────────────────
+STEP 1 — FULL REPO DISCOVERY (PRINT A STRUCTURED REPORT)
+Scan ONLY under lib/ (recursively):
+- List ALL classes that extend StatelessWidget or StatefulWidget = “SCREENS”.
+- Detect routing usage:
+  • MaterialApp.routes / onGenerateRoute
+  • GetX: GetMaterialApp + GetPage
+  • go_router: GoRouter + GoRoute
+  • Direct Navigator.push / pushNamed occurrences
+- Detect base URLs:
+  • Any ‘baseUrl’, ‘BASE_URL’, ‘apiBase’, ‘api_base’, hard-coded strings in services.
+- Detect API calls:
+  • http.(get|post|put|patch|delete)
+  • Dio or custom client .get/.post/.put/.patch/.delete
+  • Literal endpoints ("/api/...","/mobile/..."), collect METHOD + PATH + FILE.
+PRINT the “FOUND SUMMARY” as JSON blocks with these sections:
+{
+  "screens": [{"class":"ClassName","type":"Stateless|Stateful","file":"lib/..."}],
+  "routing": {"type":"material|getx|gorouter|direct","files":[...]},
+  "baseUrls": [{"key":"sourceKey","value":"https://...","file":"lib/..."}],
+  "endpoints": [{"method":"GET","path":"/api/...","file":"lib/..."}]
+}
+
+──────────────────────────────────────────────────────────────────────────
+STEP 2 — REQUIRED PATIENT SCREENS (TARGET SET)
+Create ANY missing screens below. Keep names & paths exact. Each must compile.
+
+Create these files with a minimal, production-friendly scaffold:
+- lib/screens/auth/register_screen.dart              → class RegisterScreen
+- lib/screens/auth/verify_otp_screen.dart            → class VerifyOTPScreen
+- lib/screens/auth/forgot_password_screen.dart       → class ForgotPasswordScreen
+- lib/screens/auth/reset_password_screen.dart        → class ResetPasswordScreen
+
+- lib/screens/appointments/appointment_detail_screen.dart → class AppointmentDetailScreen
+
+- lib/screens/billing/invoice_detail_screen.dart     → class InvoiceDetailScreen
+
+- lib/screens/profile/edit_profile_screen.dart       → class EditProfileScreen
+
+- lib/screens/insurance/insurance_screen.dart        → class InsuranceScreen
+
+- lib/screens/dependents/dependents_screen.dart      → class DependentsScreen
+
+- lib/screens/labs/order_lab_test_screen.dart        → class OrderLabTestScreen
+
+- lib/screens/imaging/order_imaging_screen.dart      → class OrderImagingScreen
+
+- lib/screens/documents/upload_document_screen.dart  → class UploadDocumentScreen
+
+- lib/screens/notifications/notification_detail_screen.dart → class NotificationDetailScreen
+
+- lib/screens/settings/change_password_screen.dart   → class ChangePasswordScreen
+
+SCREEN TEMPLATE (use this for each new screen, customize fields):
+---------------------------------------------------------------
+import 'package:flutter/material.dart';
+
+class %%CLASS_NAME%% extends StatelessWidget {
+  const %%CLASS_NAME%%({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('%%CLASS_NAME%%')),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: ListView(
+          children: const [
+            Text('TODO: UI fields & actions for %%CLASS_NAME%%'),
+            SizedBox(height: 12),
+            Text('Expected API calls: see comments at top of file.'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+// Expected API calls (implementations in ApiService):
+// (Fill with the relevant methods from STEP 3 for this screen)
+---------------------------------------------------------------
+
+For each created screen, add file-top comments listing exactly which ApiService methods it will call (from STEP 3).
+
+──────────────────────────────────────────────────────────────────────────
+STEP 3 — API SERVICE: ADD ALL MISSING METHODS WITH FULL SPECS
+Locate: lib/services/api_service.dart
+- Keep existing _makeRequest(String method, String endpoint, {Map<String,String>? headers, Map<String,dynamic>? body, Map<String,String>? queryParams})
+- If absent, create it consistent with current codebase style.
+- Add a helper for JSON convenience:
+
+/// Helper: calls _makeRequest and returns decoded JSON map.
+/// path: must start with "/"
+Future<Map<String, dynamic>> _json(String path, String method, [Map<String, dynamic>? body]) async {
+  final res = await _makeRequest(method, path, body: body);
+  return jsonDecode(res.body) as Map<String, dynamic>;
+}
+
+HEADERS (use across methods):
+- Content-Type: application/json
+- Accept: application/json
+- Authorization: Bearer <token from secure storage>
+- X-Tenant-Subdomain: demo (ONLY IF already used in repo)
+
+BASE URL:
+- Prefer detected baseUrl; if none found, default to "https://curaemr.ai/api"
+
+ADD the following methods IF MISSING (skip ones that already exist). For each, add dartdoc with Method/Endpoint/Headers/Request/Response examples EXACTLY as shown.
+
+/// AUTH
+Future<Map<String,dynamic>> register(Map<String,dynamic> body)               // POST /api/auth/register
+Future<Map<String,dynamic>> sendOtp(String emailOrPhone)                     // POST /api/auth/send-otp {emailOrPhone}
+Future<Map<String,dynamic>> verifyOtp(String emailOrPhone, String otp)       // POST /api/auth/verify-otp {emailOrPhone, otp}
+Future<Map<String,dynamic>> forgotPassword(String emailOrPhone)              // POST /api/auth/forgot-password {emailOrPhone}
+Future<Map<String,dynamic>> resetPassword(String emailOrPhone,String otp,String newPassword) // POST /api/auth/reset-password
+Future<Map<String,dynamic>> changePassword(String oldPwd,String newPwd)      // POST /api/auth/change-password {oldPassword,newPassword}
+
+/// APPOINTMENTS
+Future<Map<String,dynamic>> getAppointment(String id)                        // GET  /api/appointments/{id}
+Future<Map<String,dynamic>> cancelAppointment(String id, String reason)      // POST /api/appointments/{id}/cancel {reason}
+Future<Map<String,dynamic>> rescheduleAppointment(String id, String newSlotId) // POST /api/appointments/{id}/reschedule {newSlotId}
+
+/// BILLING
+Future<Map<String,dynamic>> listInvoices()                                   // GET  /api/billing/invoices
+Future<Map<String,dynamic>> getInvoice(String id)                            // GET  /api/billing/invoices/{id}
+Future<Map<String,dynamic>> payInvoice(String id, Map<String,dynamic> payment) // POST /api/billing/invoices/{id}/pay {"method":"card","token":"<gateway>","saveMethod":false}
+
+/// PROFILE
+Future<Map<String,dynamic>> updateProfile(Map<String,dynamic> body)          // PUT  /mobile/patient/profile
+
+/// INSURANCE
+Future<Map<String,dynamic>> listPolicies()                                   // GET  /api/insurance/policies
+Future<Map<String,dynamic>> createPolicy(Map<String,dynamic> body)           // POST /api/insurance/policies
+Future<Map<String,dynamic>> updatePolicy(String id, Map<String,dynamic> body) // PUT /api/insurance/policies/{id}
+Future<Map<String,dynamic>> deletePolicy(String id)                          // DELETE /api/insurance/policies/{id}
+
+/// DEPENDENTS
+Future<Map<String,dynamic>> listDependents()                                 // GET  /api/patient/dependents
+Future<Map<String,dynamic>> createDependent(Map<String,dynamic> body)        // POST /api/patient/dependents
+Future<Map<String,dynamic>> updateDependent(String id, Map<String,dynamic> body) // PUT /api/patient/dependents/{id}
+Future<Map<String,dynamic>> deleteDependent(String id)                       // DELETE /api/patient/dependents/{id}
+
+/// LAB ORDERS
+Future<Map<String,dynamic>> listLabCatalog()                                 // GET  /api/labs/catalog
+Future<Map<String,dynamic>> createLabOrder(Map<String,dynamic> body)         // POST /api/labs/orders
+Future<Map<String,dynamic>> getLabOrder(String id)                           // GET  /api/labs/orders/{id}
+Future<Map<String,dynamic>> cancelLabOrder(String id)                        // POST /api/labs/orders/{id}/cancel
+
+/// IMAGING ORDERS
+Future<Map<String,dynamic>> listImagingCatalog()                             // GET  /api/imaging/catalog
+Future<Map<String,dynamic>> createImagingOrder(Map<String,dynamic> body)     // POST /api/imaging/orders
+Future<Map<String,dynamic>> getImagingOrder(String id)                       // GET  /api/imaging/orders/{id}
+Future<Map<String,dynamic>> cancelImagingOrder(String id)                    // POST /api/imaging/orders/{id}/cancel
+
+/// DOCUMENT UPLOAD (multipart)
+Future<Map<String,dynamic>> uploadDocument(File file, {String? type, String? notes}) // POST /api/patient/documents
+Implementation details:
+- Use http.MultipartRequest with same Authorization/Accept headers; DO NOT set Content-Type manually.
+- Fields: "file" (binary), "type" (optional string), "notes" (optional string).
+
+For EACH method, include dartdoc showing:
+- Headers
+- Request JSON example
+- Response JSON example (key fields)
+
+──────────────────────────────────────────────────────────────────────────
+STEP 4 — TEMP NAVIGATION ACCESS FOR QA
+If a central route system exists, register routes for each new screen.
+If not, MODIFY the main home/dashboard screen to add a temporary Drawer called “QA NAV” that links to EVERY new screen. Example:
+
+Drawer(
+  child: ListView(
+    children: const [
+      ListTile(title: Text('RegisterScreen')),
+      ListTile(title: Text('VerifyOTPScreen')),
+      ...
+    ],
+  ),
+)
+
+Each list tile should Navigator.push to the corresponding screen widget. Use direct widget navigation; do NOT break existing flows.
+
+──────────────────────────────────────────────────────────────────────────
+STEP 5 — LINT, BUILD, & AUTO-FIX
+- Run: flutter analyze
+- If issues are purely formatting/imports, auto-fix with dart fix --apply (if available) and organize imports.
+- Ensure a debug build compiles: flutter build apk --debug (or flutter run --machine just to compile).
+
+──────────────────────────────────────────────────────────────────────────
+STEP 6 — PRINT FINAL VERIFICATION CHECKLIST (MUST BE CLEAR & AUDITABLE)
+Print a final markdown section with these exact headings and bullet points:
+
+## ✅ Patient Module Audit
+- Base URL(s) detected:
+  - <list with source files>
+- Auth header strategy:
+  - Bearer from secure storage? <yes/no> (file refs)
+
+## ✅ Screens Found
+- (class → file)
+
+## ✅ Screens Created Now
+- (file path → class)
+
+## ✅ API Methods Found (Before)
+- METHOD PATH (file)
+
+## ✅ API Methods Added (Now)
+- METHOD PATH (ApiService method name)
+
+## ✅ Temporary Navigation
+- Type: (routes | Drawer)
+- How to reach each new screen: (list link label → target class)
+
+## ✅ Next Actions For Backend
+- Confirm each endpoint exists and returns the documented shape.
+- Provide gateway tokenization for /billing/.../pay.
+- Confirm multipart upload limits for /api/patient/documents.
+
+──────────────────────────────────────────────────────────────────────────
+COMMIT & PR
+- Run: git add -A
+- Run: git commit -m "feat(patient): add missing screens + ApiService methods + QA nav"
+- Print a short PR description for review.
+
+STRICT RULES
+- Do NOT rename/move existing files.
+- Do NOT delete code.
+- Create only the specified files & ApiService additions.
+- Maintain null-safety and app theming.
+- All new code must compile.
