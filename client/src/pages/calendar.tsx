@@ -325,10 +325,119 @@ export default function CalendarPage() {
     return filtered;
   };
   
-  
+  // Predefined time slots from 9:00 AM to 5:00 PM in 30-minute intervals
+  const PREDEFINED_TIME_SLOTS = [
+    '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+    '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
+    '15:00', '15:30', '16:00', '16:30', '17:00'
+  ];
 
+  // Fetch appointments from database for selected date and doctor
+  const fetchAppointmentsForDateAndDoctor = async (doctorId: number, date: Date): Promise<string[]> => {
+    try {
+      console.log(`[NEW_TIME_SLOTS] Fetching appointments for Doctor ID: ${doctorId}, Date: ${format(date, 'yyyy-MM-dd')}`);
+      
+      // Query database directly for appointments
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
 
-  
+      const response = await fetch('/api/appointments', {
+        headers,
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const appointments = await response.json();
+      console.log(`[NEW_TIME_SLOTS] Fetched ${appointments.length} total appointments from database`);
+
+      // Filter appointments for selected doctor and date
+      const dateStr = format(date, 'yyyy-MM-dd');
+      const doctorAppointments = appointments.filter((apt: any) => {
+        const scheduledTime = apt.scheduledAt ?? apt.scheduled_at;
+        if (!apt || !apt.providerId || !scheduledTime) {
+          return false;
+        }
+        
+        const matchesDoctor = Number(apt.providerId) === Number(doctorId);
+        const appointmentTime = new Date(scheduledTime);
+        const appointmentDateStr = format(appointmentTime, 'yyyy-MM-dd');
+        const matchesDate = appointmentDateStr === dateStr;
+        
+        return matchesDoctor && matchesDate;
+      });
+
+      console.log(`[NEW_TIME_SLOTS] Found ${doctorAppointments.length} appointments for doctor ${doctorId} on ${dateStr}`);
+
+      // Extract booked time slots from scheduledAt field
+      const bookedTimes = doctorAppointments.map((apt: any) => {
+        const scheduledTime = apt.scheduledAt ?? apt.scheduled_at;
+        const appointmentTime = new Date(scheduledTime);
+        const timeSlot = format(appointmentTime, 'HH:mm');
+        console.log(`[NEW_TIME_SLOTS] Booked time slot from database: ${timeSlot} (from ${scheduledTime})`);
+        return timeSlot;
+      }).filter(Boolean);
+
+      console.log(`[NEW_TIME_SLOTS] Final booked time slots from database:`, bookedTimes);
+      return bookedTimes;
+      
+    } catch (error) {
+      console.error('[NEW_TIME_SLOTS] Error fetching appointments:', error);
+      return [];
+    }
+  };
+
+  // State to store time slot availability status
+  const [timeSlotAvailability, setTimeSlotAvailability] = useState<Record<string, boolean>>({});
+
+  // Function to check all time slots availability
+  const checkAllTimeSlots = async () => {
+    if (!selectedDate || !selectedDoctor) {
+      setTimeSlotAvailability({});
+      return;
+    }
+
+    console.log(`[NEW_TIME_SLOTS] Checking availability for all time slots`);
+    const bookedSlots = await fetchAppointmentsForDateAndDoctor(selectedDoctor.id, selectedDate);
+    
+    const availability: Record<string, boolean> = {};
+    
+    // Check each predefined time slot
+    PREDEFINED_TIME_SLOTS.forEach(timeSlot => {
+      // Check if slot is in the past (only for today's date)
+      const slotDateStr = format(selectedDate!, 'yyyy-MM-dd');
+      const today = new Date();
+      const todayStr = format(today, 'yyyy-MM-dd');
+      const isToday = slotDateStr === todayStr;
+      
+      if (isToday) {
+        const now = new Date();
+        const [hours, minutes] = timeSlot.split(':').map(Number);
+        const slotTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
+        
+        if (slotTime < now) {
+          availability[timeSlot] = false; // Past time, blocked
+          return;
+        }
+      }
+      
+      // Check if slot is booked in database
+      const isBooked = bookedSlots.includes(timeSlot);
+      availability[timeSlot] = !isBooked; // true = available (green), false = blocked (grey)
+    });
+    
+    console.log(`[NEW_TIME_SLOTS] Time slot availability:`, availability);
+    setTimeSlotAvailability(availability);
+  };
+
   // Update filtered doctors when specialty/sub-specialty changes or when doctors data loads
   useEffect(() => {
     filterDoctorsBySpecialty();
