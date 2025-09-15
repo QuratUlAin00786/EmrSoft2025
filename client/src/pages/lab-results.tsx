@@ -1308,9 +1308,36 @@ Report generated from Cura EMR System`;
             ) : (
               filteredResults.map((result) => (
                 <Card key={result.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    {/* Header with patient name and status */}
-                    <div className="flex items-center gap-3 mb-4">
+                  <CardContent className="p-6 relative">
+                    {/* Doctor information - Top Right Position */}
+                    <div className="absolute top-6 right-6 w-64">
+                      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center gap-2 mb-3">
+                          <User className="h-4 w-4 text-blue-600" />
+                          <h4 className="font-semibold text-blue-900">
+                            {result.doctorName || 'Dr. Sarah Williams'}
+                          </h4>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <div className="text-sm">
+                            <span className="font-medium text-gray-800">Main Specialization:</span>
+                            <div className="text-blue-600">{result.mainSpecialty || 'Diagnostic Specialties'}</div>
+                          </div>
+                          <div className="text-sm">
+                            <span className="font-medium text-gray-800">Sub-Specialization:</span>
+                            <div className="text-blue-600">{result.subSpecialty || 'Neurosurgeon'}</div>
+                          </div>
+                          <div className="text-sm">
+                            <span className="font-medium text-gray-800">Priority:</span>
+                            <div className="text-green-600">{result.priority || 'urgent'}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Header with patient name and status - with right margin for blue box */}
+                    <div className="flex items-center gap-3 mb-4 mr-72">
                       <h3 className="text-lg font-semibold text-gray-900">{getPatientName(result.patientId)}</h3>
                       <Badge className={getStatusColor(result.status)}>
                         {result.status}
@@ -1323,10 +1350,10 @@ Report generated from Cura EMR System`;
                       )}
                     </div>
 
-                    {/* Main content area */}
-                    <div className="flex justify-between gap-6">
-                      {/* Left section - Test details and Notes */}
-                      <div className="flex-1 space-y-4">
+                    {/* Main content area - with right margin for blue box */}
+                    <div className="mr-72">
+                      {/* Test details and Notes */}
+                      <div className="space-y-4">
                         <div className="space-y-2">
                           <div className="text-sm text-gray-600">
                             <span className="font-medium">Ordered:</span> {format(new Date(result.orderedAt), 'MMM dd, yyyy HH:mm')}
@@ -1350,38 +1377,11 @@ Report generated from Cura EMR System`;
                           <p className="text-sm text-gray-600">{result.notes || 'no no'}</p>
                         </div>
                       </div>
-
-                      {/* Right section - Doctor information */}
-                      <div className="w-80">
-                        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                          <div className="flex items-center gap-2 mb-3">
-                            <User className="h-4 w-4 text-blue-600" />
-                            <h4 className="font-semibold text-blue-900">
-                              {result.doctorName || 'Dr. Sarah Williams'}
-                            </h4>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <div className="text-sm">
-                              <span className="font-medium text-gray-800">Main Specialization:</span>
-                              <div className="text-blue-600">{result.mainSpecialty || 'Diagnostic Specialties'}</div>
-                            </div>
-                            <div className="text-sm">
-                              <span className="font-medium text-gray-800">Sub-Specialization:</span>
-                              <div className="text-blue-600">{result.subSpecialty || 'Neurosurgeon'}</div>
-                            </div>
-                            <div className="text-sm">
-                              <span className="font-medium text-gray-800">Priority:</span>
-                              <div className="text-green-600">{result.priority || 'urgent'}</div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
                     </div>
 
-                    {/* Test Results section (if available) */}
+                    {/* Test Results section (if available) - with right margin for blue box */}
                     {result.results && result.results.length > 0 && (
-                      <div className="mt-6">
+                      <div className="mt-6 mr-72">
                         <h4 className="font-medium mb-3">Test Results:</h4>
                         <div className="grid gap-3">
                           {result.results.map((testResult: any, index: number) => (
@@ -1402,8 +1402,8 @@ Report generated from Cura EMR System`;
                       </div>
                     )}
 
-                    {/* Action buttons at bottom */}
-                    <div className="flex gap-2 mt-6 pt-4 border-t border-gray-200">
+                    {/* Action buttons at bottom - with right margin for blue box */}
+                    <div className="flex gap-2 mt-6 pt-4 border-t border-gray-200 mr-72">
                       <Button variant="outline" size="sm" onClick={() => handleViewResult(result)}>
                         <Eye className="h-4 w-4 mr-2" />
                         Edit
