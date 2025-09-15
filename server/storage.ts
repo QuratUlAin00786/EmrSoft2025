@@ -616,15 +616,103 @@ export class DatabaseStorage implements IStorage {
     return result.length > 0;
   }
 
+  // Production compatibility layer - normalize legacy flat structure to expected JSONB format
+  private normalizePatientData(rawPatient: any): Patient | undefined {
+    if (!rawPatient) return undefined;
+    
+    // Helper function to safely parse JSON or return default
+    const safeJsonParse = (value: any, defaultValue: any) => {
+      if (!value) return defaultValue;
+      if (typeof value === 'object') return value; // Already parsed
+      try {
+        return JSON.parse(value);
+      } catch {
+        return defaultValue;
+      }
+    };
+
+    // Helper to split comma-separated strings to arrays
+    const splitToArray = (value: any) => {
+      if (!value) return [];
+      if (Array.isArray(value)) return value;
+      if (typeof value === 'string') {
+        return value.split(',').map(item => item.trim()).filter(Boolean);
+      }
+      return [];
+    };
+
+    return {
+      ...rawPatient,
+      // Ensure required fields have values
+      patientId: rawPatient.patientId || rawPatient.patient_id || String(rawPatient.id),
+      dateOfBirth: rawPatient.dateOfBirth || rawPatient.date_of_birth,
+      
+      // Normalize address structure
+      address: safeJsonParse(rawPatient.address, {
+        street: typeof rawPatient.address === 'string' ? rawPatient.address : '',
+        city: '',
+        postcode: '',
+        country: ''
+      }),
+      
+      // Normalize emergency contact structure
+      emergencyContact: safeJsonParse(rawPatient.emergencyContact || rawPatient.emergency_contact, {
+        name: rawPatient.emergency_contact_name || rawPatient.emergencyContactName || '',
+        relationship: '',
+        phone: rawPatient.emergency_contact_phone || rawPatient.emergencyContactPhone || '',
+        email: ''
+      }),
+      
+      // Normalize medical history structure
+      medicalHistory: safeJsonParse(rawPatient.medicalHistory || rawPatient.medical_history, {
+        allergies: splitToArray(rawPatient.allergies),
+        chronicConditions: [],
+        medications: splitToArray(rawPatient.medications),
+        familyHistory: {
+          father: [],
+          mother: [],
+          siblings: [],
+          grandparents: []
+        },
+        socialHistory: {
+          smoking: { status: 'never' },
+          alcohol: { status: 'never' },
+          drugs: { status: 'never' },
+          occupation: '',
+          maritalStatus: 'single',
+          education: '',
+          exercise: { frequency: 'none' }
+        },
+        immunizations: []
+      }),
+      
+      // Normalize insurance info structure
+      insuranceInfo: safeJsonParse(rawPatient.insuranceInfo || rawPatient.insurance_info, null),
+      
+      // Normalize communication preferences structure
+      communicationPreferences: safeJsonParse(rawPatient.communicationPreferences || rawPatient.communication_preferences, null),
+      
+      // Normalize flags array
+      flags: Array.isArray(rawPatient.flags) ? rawPatient.flags : (rawPatient.flags ? [rawPatient.flags] : []),
+      
+      // Ensure boolean fields are properly typed
+      isActive: rawPatient.isActive !== undefined ? rawPatient.isActive : (rawPatient.is_active !== undefined ? rawPatient.is_active : true),
+      
+      // Normalize timestamps
+      createdAt: rawPatient.createdAt || rawPatient.created_at || new Date(),
+      updatedAt: rawPatient.updatedAt || rawPatient.updated_at || new Date()
+    } as Patient;
+  }
+
   // Patients
   async getPatient(id: number, organizationId: number): Promise<Patient | undefined> {
     const [patient] = await db.select().from(patients).where(and(eq(patients.id, id), eq(patients.organizationId, organizationId)));
-    return patient || undefined;
+    return this.normalizePatientData(patient);
   }
 
   async getPatientByPatientId(patientId: string, organizationId: number): Promise<Patient | undefined> {
     const [patient] = await db.select().from(patients).where(and(eq(patients.patientId, patientId), eq(patients.organizationId, organizationId)));
-    return patient || undefined;
+    return this.normalizePatientData(patient);
   }
 
   async getPatientByUserId(userId: number, organizationId: number): Promise<Patient | undefined> {
@@ -633,13 +721,13 @@ export class DatabaseStorage implements IStorage {
     const [patient] = await db.select().from(patients)
       .where(and(eq(patients.organizationId, organizationId), eq(patients.isActive, true)))
       .limit(1);
-    return patient || undefined;
+    return this.normalizePatientData(patient);
   }
 
   async getPatientByEmail(email: string, organizationId: number): Promise<Patient | undefined> {
     const [patient] = await db.select().from(patients)
       .where(and(eq(patients.email, email), eq(patients.organizationId, organizationId)));
-    return patient || undefined;
+    return this.normalizePatientData(patient);
   }
 
   async getPatientsByOrganization(organizationId: number, limit = 50): Promise<Patient[]> {
@@ -653,7 +741,8 @@ export class DatabaseStorage implements IStorage {
       index === self.findIndex(p => p.id === patient.id)
     );
     
-    return uniqueResults;
+    // Normalize all patient data before returning
+    return uniqueResults.map(patient => this.normalizePatientData(patient)).filter(Boolean) as Patient[];
   }
 
   async createPatient(patient: InsertPatient): Promise<Patient> {
