@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, decimal, real } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, decimal, real, date } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -265,7 +265,7 @@ export const patients = pgTable("patients", {
   patientId: text("patient_id").notNull(), // Custom patient ID per organization
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
-  dateOfBirth: timestamp("date_of_birth").notNull(),
+  dateOfBirth: date("date_of_birth", { mode: 'string' }).notNull(),
   email: text("email"),
   phone: text("phone"),
   nhsNumber: text("nhs_number"), // NHS number for UK patients

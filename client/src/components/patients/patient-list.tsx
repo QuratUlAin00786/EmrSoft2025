@@ -383,21 +383,10 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                           </TooltipProvider>
                         </CardTitle>
                       <p className="text-sm patient-info">
-                        {(() => {
-                          // Check if dateOfBirth exists and is valid
-                          if (patient.dateOfBirth && patient.dateOfBirth !== null && patient.dateOfBirth !== "") {
-                            try {
-                              const date = new Date(patient.dateOfBirth);
-                              // Check if the date is valid (not Invalid Date)
-                              if (!isNaN(date.getTime()) && date.getFullYear() > 1900) {
-                                return `DOB ${date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
-                              }
-                            } catch (e) {
-                              console.error(`Error parsing date for ${patient.firstName}:`, e);
-                            }
-                          }
-                          return "DOB Not Available";
-                        })()} • {patient.patientId}
+                        {patient.dateOfBirth ? 
+                          `DOB ${new Date(patient.dateOfBirth).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}` : 
+                          "DOB Not Available"
+                        } • {patient.patientId}
                       </p>
                     </div>
                   </div>
