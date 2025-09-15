@@ -397,45 +397,74 @@ export default function CalendarPage() {
 
   // State to store time slot availability status
   const [timeSlotAvailability, setTimeSlotAvailability] = useState<Record<string, boolean>>({});
+  const [timeSlotError, setTimeSlotError] = useState<string | null>(null);
 
   // Function to check all time slots availability
   const checkAllTimeSlots = async () => {
     if (!selectedDate || !selectedDoctor) {
       setTimeSlotAvailability({});
+      setTimeSlotError(null);
       return;
     }
 
     console.log(`[NEW_TIME_SLOTS] Checking availability for all time slots`);
-    const bookedSlots = await fetchAppointmentsForDateAndDoctor(selectedDoctor.id, selectedDate);
+    setTimeSlotError(null);
     
-    const availability: Record<string, boolean> = {};
-    
-    // Check each predefined time slot
-    PREDEFINED_TIME_SLOTS.forEach(timeSlot => {
-      // Check if slot is in the past (only for today's date)
-      const slotDateStr = format(selectedDate!, 'yyyy-MM-dd');
-      const today = new Date();
-      const todayStr = format(today, 'yyyy-MM-dd');
-      const isToday = slotDateStr === todayStr;
+    try {
+      const bookedSlots = await fetchAppointmentsForDateAndDoctor(selectedDoctor.id, selectedDate);
       
-      if (isToday) {
-        const now = new Date();
-        const [hours, minutes] = timeSlot.split(':').map(Number);
-        const slotTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
-        
-        if (slotTime < now) {
-          availability[timeSlot] = false; // Past time, blocked
-          return;
-        }
+      // Check if fetch was successful (not an empty array due to error)
+      if (bookedSlots.length === 0) {
+        // Verify this is actually "no appointments" vs fetch error by checking console logs
+        console.log(`[NEW_TIME_SLOTS] No booked slots found - could be no appointments or fetch error`);
       }
       
-      // Check if slot is booked in database
-      const isBooked = bookedSlots.includes(timeSlot);
-      availability[timeSlot] = !isBooked; // true = available (green), false = blocked (grey)
-    });
-    
-    console.log(`[NEW_TIME_SLOTS] Time slot availability:`, availability);
-    setTimeSlotAvailability(availability);
+      const availability: Record<string, boolean> = {};
+      
+      // Check each predefined time slot
+      PREDEFINED_TIME_SLOTS.forEach(timeSlot => {
+        // Check if slot is in the past (only for today's date)
+        const slotDateStr = format(selectedDate!, 'yyyy-MM-dd');
+        const today = new Date();
+        const todayStr = format(today, 'yyyy-MM-dd');
+        const isToday = slotDateStr === todayStr;
+        
+        if (isToday) {
+          const now = new Date();
+          const [hours, minutes] = timeSlot.split(':').map(Number);
+          const slotTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
+          
+          if (slotTime < now) {
+            availability[timeSlot] = false; // Past time, blocked
+            return;
+          }
+        }
+        
+        // Check if slot is booked in database
+        const isBooked = bookedSlots.includes(timeSlot);
+        availability[timeSlot] = !isBooked; // true = available (green), false = blocked (grey)
+      });
+      
+      console.log(`[NEW_TIME_SLOTS] Time slot availability:`, availability);
+      setTimeSlotAvailability(availability);
+      
+    } catch (error) {
+      console.error('[NEW_TIME_SLOTS] Error checking time slot availability:', error);
+      setTimeSlotError('Failed to load appointment availability. Please try again.');
+      
+      // Mark all slots as unavailable on error
+      const errorAvailability: Record<string, boolean> = {};
+      PREDEFINED_TIME_SLOTS.forEach(timeSlot => {
+        errorAvailability[timeSlot] = false;
+      });
+      setTimeSlotAvailability(errorAvailability);
+      
+      toast({
+        title: "Error Loading Time Slots",
+        description: "Failed to check appointment availability. Please try refreshing.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Update filtered doctors when specialty/sub-specialty changes or when doctors data loads
@@ -450,12 +479,15 @@ export default function CalendarPage() {
       setSelectedTimeSlot("");
     }
     
-    // Refetch appointments data to ensure fresh availability checking
+    // Check availability for all time slots
     if (selectedDate && selectedDoctor) {
-      console.log(`[TIME_SLOTS] Refetching appointments for updated availability checking`);
-      queryClient.refetchQueries({ queryKey: ["/api/appointments"] });
+      console.log(`[NEW_TIME_SLOTS] Doctor or date changed, checking all time slots availability`);
+      checkAllTimeSlots();
+    } else {
+      // Clear availability when no doctor or date selected
+      setTimeSlotAvailability({});
     }
-  }, [selectedDoctor, selectedDate, queryClient]);
+  }, [selectedDoctor, selectedDate]);
   
   // Check for patientId in URL params to auto-book appointment
   useEffect(() => {
@@ -1289,8 +1321,8 @@ export default function CalendarPage() {
                           key={`${selectedDoctor.id}-${format(selectedDate, 'yyyy-MM-dd')}`}
                           className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto"
                         >
-                          {generateTimeSlots(selectedDoctor.workingHours).map((timeSlot) => {
-                            const isAvailable = isTimeSlotAvailable(timeSlot);
+                          {PREDEFINED_TIME_SLOTS.map((timeSlot) => {
+                            const isAvailable = timeSlotAvailability[timeSlot] ?? false;
                             const isSelected = selectedTimeSlot === timeSlot;
                             
                             return (
