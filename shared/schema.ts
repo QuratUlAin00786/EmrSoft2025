@@ -370,8 +370,6 @@ export const appointments = pgTable("appointments", {
   title: text("title").notNull(),
   description: text("description"),
   scheduledAt: timestamp("scheduled_at").notNull(),
-  timeLabel: varchar("time_label", { length: 10 }), // e.g., "9:00 AM", "4:30 PM"
-  dateLocal: varchar("date_local", { length: 10 }), // e.g., "2025-09-15"
   duration: integer("duration").notNull().default(30), // minutes
   status: varchar("status", { length: 20 }).notNull().default("scheduled"), // scheduled, completed, cancelled, no_show, rescheduled
   type: varchar("type", { length: 20 }).notNull().default("consultation"), // consultation, follow_up, procedure, emergency, routine_checkup

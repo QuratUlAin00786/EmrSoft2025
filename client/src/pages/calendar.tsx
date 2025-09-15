@@ -370,7 +370,7 @@ export default function CalendarPage() {
     return slots;
   };
   
-  // Get booked time slots for selected doctor and date
+  // Get booked time slots for selected doctor and date - COMPLETELY REPLACED WITH LABEL-BASED MATCHING
   const getBookedTimeSlots = () => {
     if (!selectedDate || !selectedDoctor) {
       console.log(`[TIME_SLOTS] No doctor or date selected`);
@@ -378,9 +378,9 @@ export default function CalendarPage() {
     }
 
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
-    console.log(`[TIME_SLOTS] Getting booked slots for doctor ${selectedDoctor.id} on ${dateStr}`);
+    console.log(`[TIME_SLOTS] LABEL-BASED: Getting booked slots for doctor ${selectedDoctor.id} on ${dateStr}`);
     
-    // IMPROVED: Try multiple sources for appointment data with better error handling
+    // Get appointment data from multiple sources
     let appointmentsData: any[] = [];
     
     // First try: React Query cache
@@ -388,60 +388,102 @@ export default function CalendarPage() {
       const cacheData = queryClient.getQueryData(["/api/appointments"]) as any[];
       if (cacheData && Array.isArray(cacheData) && cacheData.length > 0) {
         appointmentsData = cacheData;
-        console.log(`[TIME_SLOTS] Using React Query cache data: ${appointmentsData.length} appointments`);
+        console.log(`[TIME_SLOTS] LABEL-BASED: Using React Query cache data: ${appointmentsData.length} appointments`);
       }
     } catch (error) {
-      console.log(`[TIME_SLOTS] Error accessing React Query cache:`, error);
+      console.log(`[TIME_SLOTS] LABEL-BASED: Error accessing React Query cache:`, error);
     }
     
     // Second try: allAppointments from useQuery hook
     if (appointmentsData.length === 0) {
       if (allAppointments && Array.isArray(allAppointments) && allAppointments.length > 0) {
         appointmentsData = allAppointments;
-        console.log(`[TIME_SLOTS] Using allAppointments hook data: ${appointmentsData.length} appointments`);
+        console.log(`[TIME_SLOTS] LABEL-BASED: Using allAppointments hook data: ${appointmentsData.length} appointments`);
       } else {
-        console.log(`[TIME_SLOTS] allAppointments is empty or invalid:`, allAppointments);
+        console.log(`[TIME_SLOTS] LABEL-BASED: allAppointments is empty or invalid:`, allAppointments);
       }
     }
     
-    // Third try: Fetch fresh data if needed
     if (appointmentsData.length === 0) {
-      console.log(`[TIME_SLOTS] No appointment data available from any source - time slots will show as available`);
-      return []; // Return empty array - all slots will be available
+      console.log(`[TIME_SLOTS] LABEL-BASED: No appointment data available - all slots will show as available`);
+      return [];
     }
     
-    console.log(`[TIME_SLOTS] Found ${appointmentsData.length} total appointments:`, appointmentsData.map(apt => ({ id: apt.id, providerId: apt.providerId, scheduledAt: apt.scheduledAt })));
+    console.log(`[TIME_SLOTS] LABEL-BASED: Found ${appointmentsData.length} total appointments`);
     
-    // Filter for selected doctor and date - FIXED: Use string slicing to avoid timezone conversion
-    const selectedDateUtc = selectedDate.toISOString().slice(0, 10); // yyyy-MM-dd
-    console.log(`[TIME_SLOTS] Comparing against UTC date: ${selectedDateUtc}`);
-    
-    const doctorAppointments = appointmentsData
-      .filter(apt => {
-        if (!apt || !apt.providerId || !apt.scheduledAt) {
-          console.log(`[TIME_SLOTS] Skipping invalid appointment:`, apt);
-          return false;
-        }
-        
-        const matchesDoctor = Number(apt.providerId) === Number(selectedDoctor.id);
-        const appointmentDate = apt.scheduledAt.slice(0, 10); // Direct string slice: "2025-09-15T09:00:00.000Z" → "2025-09-15"
-        const matchesDate = appointmentDate === selectedDateUtc;
-        
-        console.log(`[TIME_SLOTS] Appointment ${apt.id}: doctor_match=${matchesDoctor} (${apt.providerId} vs ${selectedDoctor.id}), date_match=${matchesDate} (${appointmentDate} vs ${selectedDateUtc})`);
-        
+    // NEW LABEL-BASED FILTERING: Use exact string matching
+    const doctorAppointments = appointmentsData.filter(apt => {
+      if (!apt || !apt.providerId) {
+        console.log(`[TIME_SLOTS] LABEL-BASED: Skipping invalid appointment:`, apt);
+        return false;
+      }
+      
+      const matchesDoctor = Number(apt.providerId) === Number(selectedDoctor.id);
+      
+      // Try new label-based fields first (timeLabel and dateLocal)
+      if (apt.dateLocal && apt.timeLabel) {
+        const matchesDate = apt.dateLocal === dateStr;
+        console.log(`[TIME_SLOTS] LABEL-BASED: Appointment ${apt.id} using NEW fields: doctor_match=${matchesDoctor}, date_match=${matchesDate} (${apt.dateLocal} vs ${dateStr}), timeLabel="${apt.timeLabel}"`);
         return matchesDoctor && matchesDate;
-      });
-
-    console.log(`[TIME_SLOTS] Found ${doctorAppointments.length} appointments for doctor ${selectedDoctor.id} on ${selectedDateUtc}:`, doctorAppointments);
-
-    // Extract time slots from appointments - FIXED: Use string slicing to avoid timezone conversion
-    const bookedSlots = doctorAppointments.map(apt => {
-      const timeSlot = apt.scheduledAt.slice(11, 16); // Direct string slice: "2025-09-15T09:00:00.000Z" → "09:00"
-      console.log(`[TIME_SLOTS] Appointment ${apt.id} scheduled at "${apt.scheduledAt}" extracts to time slot "${timeSlot}"`);
-      return timeSlot;
+      }
+      
+      // Fallback to old logic with PROPER TIMEZONE HANDLING
+      if (apt.scheduledAt) {
+        const appointmentLocalDate = new Date(apt.scheduledAt);
+        const aptDate = format(appointmentLocalDate, 'yyyy-MM-dd');
+        const matchesDate = aptDate === dateStr;
+        console.log(`[TIME_SLOTS] LABEL-BASED: Appointment ${apt.id} using FALLBACK fields: doctor_match=${matchesDoctor}, date_match=${matchesDate} (${aptDate} vs ${dateStr})`);
+        return matchesDoctor && matchesDate;
+      }
+      
+      console.log(`[TIME_SLOTS] LABEL-BASED: Appointment ${apt.id} has no usable date fields - skipping`);
+      return false;
     });
 
-    console.log(`[TIME_SLOTS] Final booked time slots:`, bookedSlots);
+    console.log(`[TIME_SLOTS] LABEL-BASED: Found ${doctorAppointments.length} appointments for doctor ${selectedDoctor.id} on ${dateStr}`);
+
+    // NEW LABEL-BASED TIME EXTRACTION: Use exact labels or convert display format
+    const bookedSlots = doctorAppointments.map(apt => {
+      // Try new timeLabel field first (e.g., "9:00 AM", "4:30 PM")
+      if (apt.timeLabel) {
+        // Convert display format (e.g., "9:00 AM") to 24-hour format (e.g., "09:00")
+        const timeLabel = apt.timeLabel;
+        let time24 = '';
+        
+        if (timeLabel.includes('AM') || timeLabel.includes('PM')) {
+          const [time, period] = timeLabel.split(' ');
+          const [hours, minutes] = time.split(':');
+          let hour24 = parseInt(hours, 10);
+          
+          if (period === 'PM' && hour24 !== 12) {
+            hour24 += 12;
+          } else if (period === 'AM' && hour24 === 12) {
+            hour24 = 0;
+          }
+          
+          time24 = `${hour24.toString().padStart(2, '0')}:${minutes}`;
+        } else {
+          // Assume it's already in 24-hour format
+          time24 = timeLabel;
+        }
+        
+        console.log(`[TIME_SLOTS] LABEL-BASED: Appointment ${apt.id} timeLabel="${timeLabel}" converted to "${time24}"`);
+        return time24;
+      }
+      
+      // Fallback to proper timezone-aware time extraction
+      if (apt.scheduledAt) {
+        const appointmentLocalDate = new Date(apt.scheduledAt);
+        const aptTime = format(appointmentLocalDate, 'HH:mm');
+        console.log(`[TIME_SLOTS] LABEL-BASED: Appointment ${apt.id} FALLBACK scheduledAt="${apt.scheduledAt}" converted to local time "${aptTime}"`);
+        return aptTime;
+      }
+      
+      console.log(`[TIME_SLOTS] LABEL-BASED: Appointment ${apt.id} has no usable time fields - returning empty`);
+      return '';
+    }).filter(slot => slot !== ''); // Remove empty slots
+
+    console.log(`[TIME_SLOTS] LABEL-BASED: Final booked time slots:`, bookedSlots);
     return bookedSlots;
   };
 
