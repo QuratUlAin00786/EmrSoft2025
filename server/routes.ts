@@ -1419,6 +1419,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: z.string().optional(),
         appointmentDate: z.string().optional(),
         scheduledAt: z.string().optional(),
+        timeLabel: z.string().optional(), // e.g., "9:00 AM", "4:30 PM"
+        dateLocal: z.string().optional(), // e.g., "2025-09-15"
         duration: z.number().default(30),
         type: z.enum(["consultation", "follow_up", "procedure"]).default("consultation"),
         location: z.string().optional(),
