@@ -518,8 +518,8 @@ export default function CalendarPage() {
     }
   }, [location]);
 
-  // Handle View Time Slot button click - triggers availability check and visual update
-  const handleViewTimeSlot = () => {
+  // Handle View Time Slot button click - queries database and updates time slot display
+  const handleViewTimeSlot = async () => {
     if (!selectedDoctor || !selectedDate) {
       toast({
         title: "Selection Required",
@@ -529,21 +529,82 @@ export default function CalendarPage() {
       return;
     }
 
-    console.log(`[VIEW_TIME_SLOT] Checking availability for Doctor: ${selectedDoctor.firstName} ${selectedDoctor.lastName} (ID: ${selectedDoctor.id})`);
-    console.log(`[VIEW_TIME_SLOT] Selected Date: ${format(selectedDate, 'yyyy-MM-dd')}`);
+    try {
+      console.log(`[VIEW_TIME_SLOT] Querying database for Doctor ID: ${selectedDoctor.id}, Date: ${format(selectedDate, 'yyyy-MM-dd')}`);
+      
+      // Query database directly for appointments
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
 
-    // Force refresh of time slot grid by clearing and resetting selection
-    // This will trigger re-rendering with updated availability colors
-    const currentDoctor = selectedDoctor;
-    const currentDate = selectedDate;
-    setSelectedDoctor(null);
-    setSelectedDate(undefined);
-    
-    // Reset after a brief moment to trigger re-render
-    setTimeout(() => {
-      setSelectedDoctor(currentDoctor);
-      setSelectedDate(currentDate);
-    }, 10);
+      const response = await fetch('/api/appointments', {
+        headers,
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const appointments = await response.json();
+      console.log(`[VIEW_TIME_SLOT] Fetched ${appointments.length} appointments from database`);
+
+      // Filter appointments for selected doctor and date
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
+      const doctorAppointments = appointments.filter((apt: any) => {
+        const scheduledTime = apt.scheduledAt ?? apt.scheduled_at;
+        if (!apt || !apt.providerId || !scheduledTime) {
+          return false;
+        }
+        
+        const matchesDoctor = Number(apt.providerId) === Number(selectedDoctor.id);
+        const appointmentTime = new Date(scheduledTime);
+        const appointmentDateStr = format(appointmentTime, 'yyyy-MM-dd');
+        const matchesDate = appointmentDateStr === dateStr;
+        
+        return matchesDoctor && matchesDate;
+      });
+
+      console.log(`[VIEW_TIME_SLOT] Found ${doctorAppointments.length} appointments for doctor ${selectedDoctor.id} on ${dateStr}`);
+
+      // Extract booked time slots from scheduledAt field
+      const bookedTimes = doctorAppointments.map((apt: any) => {
+        const scheduledTime = apt.scheduledAt ?? apt.scheduled_at;
+        const appointmentTime = new Date(scheduledTime);
+        const timeSlot = format(appointmentTime, 'HH:mm');
+        console.log(`[VIEW_TIME_SLOT] Booked time slot from database: ${timeSlot} (from ${scheduledTime})`);
+        return timeSlot;
+      }).filter(Boolean);
+
+      console.log(`[VIEW_TIME_SLOT] Final booked time slots from database:`, bookedTimes);
+      
+      // Force refresh of appointments cache to ensure UI reflects database state
+      queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+      
+      // Trigger re-render of time slots by clearing and resetting
+      const currentDoctor = selectedDoctor;
+      const currentDate = selectedDate;
+      setSelectedDoctor(null);
+      setSelectedDate(undefined);
+      
+      setTimeout(() => {
+        setSelectedDoctor(currentDoctor);
+        setSelectedDate(currentDate);
+      }, 100);
+
+    } catch (error) {
+      console.error('[VIEW_TIME_SLOT] Error querying database:', error);
+      toast({
+        title: "Database Error",
+        description: "Failed to check time slot availability. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const createAppointmentMutation = useMutation({
