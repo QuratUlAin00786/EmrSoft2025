@@ -370,6 +370,8 @@ export const appointments = pgTable("appointments", {
   title: text("title").notNull(),
   description: text("description"),
   scheduledAt: timestamp("scheduled_at").notNull(),
+  timeLabel: varchar("time_label", { length: 10 }), // e.g., "9:00 AM", "4:30 PM"
+  dateLocal: varchar("date_local", { length: 10 }), // e.g., "2025-09-15"
   duration: integer("duration").notNull().default(30), // minutes
   status: varchar("status", { length: 20 }).notNull().default("scheduled"), // scheduled, completed, cancelled, no_show, rescheduled
   type: varchar("type", { length: 20 }).notNull().default("consultation"), // consultation, follow_up, procedure, emergency, routine_checkup
@@ -1664,6 +1666,13 @@ export const insertMedicalRecordSchema = createInsertSchema(medicalRecords).omit
   content: z.string().trim().min(1, "Content is required"),
 });
 
+// Valid time slots for appointments (9:00 AM to 4:30 PM in 30-minute intervals)
+const VALID_TIME_SLOTS = [
+  "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
+  "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM",
+  "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM"
+] as const;
+
 export const insertAppointmentSchema = createInsertSchema(appointments).omit({
   id: true,
   createdAt: true,
@@ -1681,6 +1690,12 @@ export const insertAppointmentSchema = createInsertSchema(appointments).omit({
     required_error: "Appointment date and time is required",
     invalid_type_error: "Please enter a valid date and time"
   }),
+  timeLabel: z.string().refine((val) => VALID_TIME_SLOTS.includes(val as any), {
+    message: "Invalid time slot. Must be between 9:00 AM and 4:30 PM in 30-minute intervals"
+  }).optional(),
+  dateLocal: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
+    message: "Date must be in YYYY-MM-DD format"
+  }).optional(),
   duration: z.coerce.number({
     invalid_type_error: "Duration must be a number"
   }).positive("Duration must be greater than 0").default(30),
