@@ -407,7 +407,7 @@ export default function CalendarPage() {
       return;
     }
 
-    console.log(`[NEW_TIME_SLOTS] Checking availability for all time slots`);
+    console.log(`[NEW_TIME_SLOTS] Checking availability for doctor ${selectedDoctor.id} on ${format(selectedDate, 'yyyy-MM-dd')}`);
     setTimeSlotError(null);
     
     try {
@@ -429,17 +429,12 @@ export default function CalendarPage() {
         const todayStr = format(today, 'yyyy-MM-dd');
         const isToday = slotDateStr === todayStr;
         
-        console.log(`[NEW_TIME_SLOTS] Checking slot ${timeSlot} - Selected date: ${slotDateStr}, Today: ${todayStr}, isToday: ${isToday}`);
-        
         if (isToday) {
           const now = new Date();
           const [hours, minutes] = timeSlot.split(':').map(Number);
           const slotTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
           
-          console.log(`[NEW_TIME_SLOTS] Past time check - slot time: ${slotTime.toLocaleTimeString()}, current time: ${now.toLocaleTimeString()}`);
-          
           if (slotTime < now) {
-            console.log(`[NEW_TIME_SLOTS] Slot ${timeSlot} is in the past, marking as unavailable`);
             availability[timeSlot] = false; // Past time, blocked
             return; // Continue to next slot
           }
@@ -447,7 +442,6 @@ export default function CalendarPage() {
         
         // Check if slot is booked in database
         const isBooked = bookedSlots.includes(timeSlot);
-        console.log(`[NEW_TIME_SLOTS] Slot ${timeSlot} - isBooked: ${isBooked}, setting availability to: ${!isBooked}`);
         availability[timeSlot] = !isBooked; // true = available (green), false = blocked (grey)
       });
       
@@ -1328,7 +1322,7 @@ export default function CalendarPage() {
                           className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto"
                         >
                           {PREDEFINED_TIME_SLOTS.map((timeSlot) => {
-                            const isAvailable = timeSlotAvailability[timeSlot] ?? false;
+                            const isAvailable = timeSlotAvailability[timeSlot] ?? true;
                             const isSelected = selectedTimeSlot === timeSlot;
                             
                             return (
