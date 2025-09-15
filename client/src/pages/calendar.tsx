@@ -389,7 +389,7 @@ export default function CalendarPage() {
     }
 
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
-    console.log(`[TIME_SLOTS] Getting booked slots for doctor ${selectedDoctor.id} on ${dateStr} (Pakistan timezone)`);
+    console.log(`[TIME_SLOTS] Getting booked slots for doctor ${selectedDoctor.id} on ${dateStr}`);
     
     // Get appointment data
     let appointmentsData: any[] = [];
@@ -501,6 +501,14 @@ export default function CalendarPage() {
   useEffect(() => {
     filterDoctorsBySpecialty();
   }, [selectedSpecialty, selectedSubSpecialty, allDoctors]);
+
+  // Auto-update time slots when doctor or date changes
+  useEffect(() => {
+    // Clear selected time slot when doctor or date changes to force grid refresh
+    if (selectedTimeSlot) {
+      setSelectedTimeSlot("");
+    }
+  }, [selectedDoctor, selectedDate]);
   
   // Check for patientId in URL params to auto-book appointment
   useEffect(() => {
@@ -1328,7 +1336,10 @@ export default function CalendarPage() {
                         Select Time Slot
                       </Label>
                       {selectedDoctor && selectedDate ? (
-                        <div className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto">
+                        <div 
+                          key={`${selectedDoctor.id}-${format(selectedDate, 'yyyy-MM-dd')}`}
+                          className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto"
+                        >
                           {generateTimeSlots(selectedDoctor.workingHours).map((timeSlot) => {
                             const isAvailable = isTimeSlotAvailable(timeSlot);
                             const isSelected = selectedTimeSlot === timeSlot;
