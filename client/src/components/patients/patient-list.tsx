@@ -390,9 +390,9 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                             const age = today.getFullYear() - birthDate.getFullYear() - 
                               (today.getMonth() < birthDate.getMonth() || 
                                (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate()) ? 1 : 0);
-                            return `DOB ${birthDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} (${age}y)`;
+                            return `Age ${age}y`;
                           })() : 
-                          "DOB Not Available"
+                          "Age Not Available"
                         } • {patient.patientId}
                       </p>
                     </div>
