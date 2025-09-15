@@ -370,7 +370,18 @@ export default function CalendarPage() {
     return slots;
   };
   
-  // Get booked time slots for selected doctor and date - SIMPLIFIED TIMEZONE-AWARE VERSION
+  // Helper function to convert UTC time to Pakistan Standard Time (UTC+5)
+  const convertUTCToPakistanTime = (utcDateString: string) => {
+    // Create a Date object from the UTC string
+    const utcDate = new Date(utcDateString);
+    
+    // Add 5 hours for Pakistan Standard Time (UTC+5)
+    const pakistanTime = new Date(utcDate.getTime() + (5 * 60 * 60 * 1000));
+    
+    return pakistanTime;
+  };
+
+  // Get booked time slots for selected doctor and date - PAKISTAN TIMEZONE VERSION
   const getBookedTimeSlots = () => {
     if (!selectedDate || !selectedDoctor) {
       console.log(`[TIME_SLOTS] No doctor or date selected`);
@@ -378,7 +389,7 @@ export default function CalendarPage() {
     }
 
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
-    console.log(`[TIME_SLOTS] Getting booked slots for doctor ${selectedDoctor.id} on ${dateStr}`);
+    console.log(`[TIME_SLOTS] Getting booked slots for doctor ${selectedDoctor.id} on ${dateStr} (Pakistan timezone)`);
     
     // Get appointment data
     let appointmentsData: any[] = [];
@@ -411,7 +422,7 @@ export default function CalendarPage() {
     
     console.log(`[TIME_SLOTS] Found ${appointmentsData.length} total appointments`);
     
-    // Filter appointments for the selected doctor and date
+    // Filter appointments for the selected doctor and date using Pakistan timezone
     const doctorAppointments = appointmentsData.filter(apt => {
       if (!apt || !apt.providerId || !apt.scheduledAt) {
         console.log(`[TIME_SLOTS] Skipping invalid appointment:`, apt);
@@ -420,29 +431,29 @@ export default function CalendarPage() {
       
       const matchesDoctor = Number(apt.providerId) === Number(selectedDoctor.id);
       
-      // Convert appointment UTC time to local date for comparison
-      const appointmentDate = new Date(apt.scheduledAt);
-      const localDateStr = format(appointmentDate, 'yyyy-MM-dd');
-      const matchesDate = localDateStr === dateStr;
+      // Convert UTC appointment time to Pakistan timezone for date comparison
+      const pakistanAppointmentTime = convertUTCToPakistanTime(apt.scheduledAt);
+      const pakistanDateStr = format(pakistanAppointmentTime, 'yyyy-MM-dd');
+      const matchesDate = pakistanDateStr === dateStr;
       
-      console.log(`[TIME_SLOTS] Appointment ${apt.id}: doctor_match=${matchesDoctor}, date_match=${matchesDate}, scheduledAt=${apt.scheduledAt}, localDate=${localDateStr}`);
+      console.log(`[TIME_SLOTS] Appointment ${apt.id}: doctor_match=${matchesDoctor}, date_match=${matchesDate}, scheduledAt=${apt.scheduledAt} UTC, pakistanDate=${pakistanDateStr}`);
       
       return matchesDoctor && matchesDate;
     });
 
-    console.log(`[TIME_SLOTS] Found ${doctorAppointments.length} appointments for doctor ${selectedDoctor.id} on ${dateStr}`);
+    console.log(`[TIME_SLOTS] Found ${doctorAppointments.length} appointments for doctor ${selectedDoctor.id} on ${dateStr} (Pakistan timezone)`);
 
-    // Extract time slots in HH:mm format (24-hour format to match time slot generation)
+    // Extract time slots in HH:mm format using Pakistan timezone
     const bookedSlots = doctorAppointments.map(apt => {
-      // Convert UTC time to local time and extract time portion
-      const appointmentDate = new Date(apt.scheduledAt);
-      const localTime = format(appointmentDate, 'HH:mm');
+      // Convert UTC time to Pakistan time and extract time portion
+      const pakistanAppointmentTime = convertUTCToPakistanTime(apt.scheduledAt);
+      const pakistanTime = format(pakistanAppointmentTime, 'HH:mm');
       
-      console.log(`[TIME_SLOTS] Appointment ${apt.id}: scheduledAt=${apt.scheduledAt} -> localTime=${localTime}`);
-      return localTime;
+      console.log(`[TIME_SLOTS] Appointment ${apt.id}: UTC=${apt.scheduledAt} -> Pakistan=${pakistanTime}`);
+      return pakistanTime;
     }).filter(slot => slot !== ''); // Remove empty slots
 
-    console.log(`[TIME_SLOTS] Final booked time slots:`, bookedSlots);
+    console.log(`[TIME_SLOTS] Final booked time slots (Pakistan timezone):`, bookedSlots);
     return bookedSlots;
   };
 
