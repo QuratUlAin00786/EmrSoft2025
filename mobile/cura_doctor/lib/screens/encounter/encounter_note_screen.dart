@@ -63,9 +63,8 @@ class _EncounterNoteScreenState extends State<EncounterNoteScreen> {
     try {
       setState(() => _isLoading = true);
       
-      final encounterData = {
-        'patientId': widget.patientId,
-        'appointmentId': widget.appointmentId,
+      final encounterData = <String, dynamic>{
+        'patientId': int.tryParse(widget.patientId) ?? widget.patientId,
         'chiefComplaint': _chiefComplaintController.text,
         'soap': {
           's': _subjectiveController.text,
@@ -74,6 +73,11 @@ class _EncounterNoteScreenState extends State<EncounterNoteScreen> {
           'p': _planController.text,
         }
       };
+      
+      // Only include appointmentId if it's not null
+      if (widget.appointmentId != null) {
+        encounterData['appointmentId'] = widget.appointmentId;
+      }
 
       if (widget.encounterId != null) {
         await ApiService.updateEncounter(widget.encounterId!, encounterData);

@@ -89,6 +89,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 validator: (value) {
                   if (value?.isEmpty == true) return 'Required';
                   if (value!.length < 6) return 'Minimum 6 characters';
+                  if (value == _currentPasswordController.text) return 'Must be different from current password';
                   return null;
                 },
               ),

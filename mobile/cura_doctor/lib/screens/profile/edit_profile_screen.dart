@@ -122,7 +122,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                       validator: (value) {
                         if (value?.isEmpty == true) return 'Required';
-                        if (!value!.contains('@')) return 'Invalid email';
+                        if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value!)) return 'Invalid email format';
                         return null;
                       },
                     ),
