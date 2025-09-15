@@ -368,9 +368,9 @@ export default function CalendarPage() {
         }
         
         const matchesDoctor = Number(apt.providerId) === Number(doctorId);
-        // Extract date directly from scheduled_at string to avoid timezone conversion
-        // Format: "2025-09-16 14:30:00" -> extract "2025-09-16"
-        const appointmentDateStr = scheduledTime.split(' ')[0];
+        // Extract date directly from ISO string without timezone conversion
+        // Format: "2025-09-16T09:00:00.000Z" -> extract "2025-09-16"
+        const appointmentDateStr = scheduledTime.split('T')[0];
         const matchesDate = appointmentDateStr === dateStr;
         
         return matchesDoctor && matchesDate;
@@ -378,13 +378,13 @@ export default function CalendarPage() {
 
       console.log(`[NEW_TIME_SLOTS] Found ${doctorAppointments.length} appointments for doctor ${doctorId} on ${dateStr}`);
 
-      // Extract booked time slots from scheduledAt field - TIMEZONE SAFE
+      // Extract booked time slots from scheduledAt field - NO TIMEZONE CONVERSION
       const bookedTimes = doctorAppointments.map((apt: any) => {
         const scheduledTime = apt.scheduledAt ?? apt.scheduled_at;
-        // Extract time directly from string to avoid timezone conversion
-        // Format: "2025-09-16 14:30:00" -> extract "14:30"
-        const timeSlot = scheduledTime.split(' ')[1]?.substring(0, 5);
-        console.log(`[NEW_TIME_SLOTS] [TIMEZONE-SAFE] Booked time slot from database: ${timeSlot} (from ${scheduledTime})`);
+        // Extract time directly from ISO string without any timezone conversion
+        // Format: "2025-09-16T09:00:00.000Z" -> extract "09:00" exactly as stored
+        const timeSlot = scheduledTime.split('T')[1]?.substring(0, 5);
+        console.log(`[NEW_TIME_SLOTS] [NO-CONVERSION] Exact time from database: ${timeSlot} (from ${scheduledTime})`);
         return timeSlot;
       }).filter(Boolean);
 
