@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useLocation } from "wouter";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +51,7 @@ interface FullConsultationInterfaceProps {
 
 export function FullConsultationInterface({ open, onOpenChange, patient }: FullConsultationInterfaceProps) {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   // Save consultation mutation
   const saveConsultationMutation = useMutation({
@@ -82,6 +84,58 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
       });
     },
   });
+
+  // Save vitals mutation
+  const saveVitalsMutation = useMutation({
+    mutationFn: async (vitalsData: any) => {
+      const response = await fetch(`/api/patients/${patient?.id}/records`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'vitals',
+          title: `Vital Signs - ${format(new Date(), 'MMM dd, yyyy HH:mm')}`,
+          notes: `Blood Pressure: ${vitalsData.bloodPressure || 'N/A'}\nHeart Rate: ${vitalsData.heartRate || 'N/A'} bpm\nTemperature: ${vitalsData.temperature || 'N/A'}°C\nRespiratory Rate: ${vitalsData.respiratoryRate || 'N/A'}/min\nOxygen Saturation: ${vitalsData.oxygenSaturation || 'N/A'}%\nWeight: ${vitalsData.weight || 'N/A'} kg\nHeight: ${vitalsData.height || 'N/A'} cm\nBMI: ${vitalsData.bmi || 'N/A'}`,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to save vitals');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Vitals Saved",
+        description: "The vital signs have been saved to medical records successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/patients', patient?.id, 'records'] });
+      // Navigate to Medical Records & Consultation Notes
+      onOpenChange(false);
+      setLocation(`/patients/${patient?.id}`);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Save Failed",
+        description: error.message || "Failed to save vitals. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle save vitals
+  const handleSaveVitals = () => {
+    if (!patient?.id) {
+      toast({
+        title: "Error",
+        description: "Patient information is missing. Cannot save vitals.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    saveVitalsMutation.mutate(vitals);
+  };
 
   // Handle save consultation
   const handleSaveConsultation = () => {
@@ -858,6 +912,18 @@ Patient should be advised of potential side effects and expected timeline for re
                   </div>
                 </CardContent>
               </Card>
+              
+              {/* Save Vitals Button */}
+              <div className="flex justify-end mt-6">
+                <Button 
+                  onClick={handleSaveVitals} 
+                  disabled={saveVitalsMutation.isPending}
+                  className="bg-medical-blue hover:bg-blue-700 text-white"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {saveVitalsMutation.isPending ? "Saving..." : "Save"}
+                </Button>
+              </div>
               </div>
             </TabsContent>
 
