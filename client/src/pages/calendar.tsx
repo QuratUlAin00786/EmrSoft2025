@@ -1169,20 +1169,6 @@ export default function CalendarPage() {
                       />
                     </div>
 
-                    {/* View Time Slot Button */}
-                    <div className="flex justify-center">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleViewTimeSlot}
-                        disabled={!selectedDoctor || !selectedDate}
-                        className="text-sm"
-                        data-testid="button-view-time-slot"
-                      >
-                        <Clock className="h-4 w-4 mr-2" />
-                        View Time Slot
-                      </Button>
-                    </div>
 
                     {/* Step 5: Select Time Slot */}
                     <div>
