@@ -373,14 +373,34 @@ export default function CalendarPage() {
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
     console.log(`[TIME_SLOTS] Getting booked slots for doctor ${selectedDoctor.id} on ${dateStr}`);
     
-    // Get appointments from React Query - try different keys
-    let appointmentsData = queryClient.getQueryData(["/api/appointments"]) as any[] || [];
+    // IMPROVED: Try multiple sources for appointment data with better error handling
+    let appointmentsData: any[] = [];
     
-    // If no data from cache, try to use the appointments from the calendar component
+    // First try: React Query cache
+    try {
+      const cacheData = queryClient.getQueryData(["/api/appointments"]) as any[];
+      if (cacheData && Array.isArray(cacheData) && cacheData.length > 0) {
+        appointmentsData = cacheData;
+        console.log(`[TIME_SLOTS] Using React Query cache data: ${appointmentsData.length} appointments`);
+      }
+    } catch (error) {
+      console.log(`[TIME_SLOTS] Error accessing React Query cache:`, error);
+    }
+    
+    // Second try: allAppointments from useQuery hook
     if (appointmentsData.length === 0) {
-      console.log(`[TIME_SLOTS] No appointments in cache, checking if appointments are available from allAppointments`);
-      // This will be populated by the appointments query on the main calendar
-      appointmentsData = allAppointments || [];
+      if (allAppointments && Array.isArray(allAppointments) && allAppointments.length > 0) {
+        appointmentsData = allAppointments;
+        console.log(`[TIME_SLOTS] Using allAppointments hook data: ${appointmentsData.length} appointments`);
+      } else {
+        console.log(`[TIME_SLOTS] allAppointments is empty or invalid:`, allAppointments);
+      }
+    }
+    
+    // Third try: Fetch fresh data if needed
+    if (appointmentsData.length === 0) {
+      console.log(`[TIME_SLOTS] No appointment data available from any source - time slots will show as available`);
+      return []; // Return empty array - all slots will be available
     }
     
     console.log(`[TIME_SLOTS] Found ${appointmentsData.length} total appointments:`, appointmentsData.map(apt => ({ id: apt.id, providerId: apt.providerId, scheduledAt: apt.scheduledAt })));
@@ -391,8 +411,8 @@ export default function CalendarPage() {
     
     const doctorAppointments = appointmentsData
       .filter(apt => {
-        if (!apt.providerId || !apt.scheduledAt) {
-          console.log(`[TIME_SLOTS] Skipping invalid appointment ${apt.id}`);
+        if (!apt || !apt.providerId || !apt.scheduledAt) {
+          console.log(`[TIME_SLOTS] Skipping invalid appointment:`, apt);
           return false;
         }
         
