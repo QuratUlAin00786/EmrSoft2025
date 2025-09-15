@@ -192,6 +192,69 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
     saveHistoryMutation.mutate(historyData);
   };
 
+  // Examination states
+  const [examinationDiagnosis, setExaminationDiagnosis] = useState('');
+  const [examinationTreatmentPlan, setExaminationTreatmentPlan] = useState('');
+
+  // Save examination mutation
+  const saveExaminationMutation = useMutation({
+    mutationFn: async (examinationData: any) => {
+      const response = await fetch(`/api/patients/${patient?.id}/records`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'examination',
+          title: `Clinical Examination - ${format(new Date(), 'MMM dd, yyyy HH:mm')}`,
+          notes: `Clinical Notes: ${examinationData.clinicalNotes || 'N/A'}\n\nDiagnosis: ${examinationData.diagnosis || 'N/A'}\n\nTreatment Plan: ${examinationData.treatmentPlan || 'N/A'}\n\nExamination Type: ${examinationData.examinationType || 'N/A'}`,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to save examination');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Examination Saved",
+        description: "The examination record has been saved to medical records successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/patients', patient?.id, 'records'] });
+      // Navigate to Medical Records & Consultation Notes
+      onOpenChange(false);
+      setLocation(`/patients/${patient?.id}`);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Save Failed",
+        description: error.message || "Failed to save examination. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle save examination
+  const handleSaveExamination = () => {
+    if (!patient?.id) {
+      toast({
+        title: "Error",
+        description: "Patient information is missing. Cannot save examination.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const examinationData = {
+      clinicalNotes: clinicalNotes + transcript,
+      diagnosis: examinationDiagnosis,
+      treatmentPlan: examinationTreatmentPlan,
+      examinationType: selectedExaminationType
+    };
+
+    saveExaminationMutation.mutate(examinationData);
+  };
+
   // Handle save consultation
   const handleSaveConsultation = () => {
     if (!patient?.id) {
@@ -1139,6 +1202,8 @@ Patient should be advised of potential side effects and expected timeline for re
                       <Textarea
                         placeholder="Primary and secondary diagnoses with ICD codes..."
                         className="h-32"
+                        value={examinationDiagnosis}
+                        onChange={(e) => setExaminationDiagnosis(e.target.value)}
                       />
                     </CardContent>
                   </Card>
@@ -1151,6 +1216,8 @@ Patient should be advised of potential side effects and expected timeline for re
                       <Textarea
                         placeholder="Treatment recommendations and care plan..."
                         className="h-32"
+                        value={examinationTreatmentPlan}
+                        onChange={(e) => setExaminationTreatmentPlan(e.target.value)}
                       />
                     </CardContent>
                   </Card>
@@ -1165,11 +1232,11 @@ Patient should be advised of potential side effects and expected timeline for re
                     Cancel
                   </Button>
                   <Button 
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                    onClick={handleSaveConsultation}
-                    disabled={saveConsultationMutation.isPending}
+                    className="bg-medical-blue hover:bg-blue-700 text-white"
+                    onClick={handleSaveExamination}
+                    disabled={saveExaminationMutation.isPending}
                   >
-                    {saveConsultationMutation.isPending ? 'Saving...' : 'Save Record'}
+                    {saveExaminationMutation.isPending ? 'Saving...' : 'Save Record'}
                   </Button>
                 </div>
               </div>
