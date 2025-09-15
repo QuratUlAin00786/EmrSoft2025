@@ -232,6 +232,9 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
     
     if (query.trim()) {
       const searchTerm = query.toLowerCase().trim();
+      // Normalize phone numbers for searching - remove spaces, dashes, parentheses
+      const normalizePhone = (phone: string) => phone?.replace(/[\s\-\(\)]/g, '') || '';
+      
       filtered = filtered.filter(patient => {
         switch (filters.searchType) {
           case 'name':
@@ -239,15 +242,19 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
           case 'postcode':
             return patient.address?.postcode?.toLowerCase().includes(searchTerm);
           case 'phone':
-            return patient.phone?.toLowerCase().includes(searchTerm);
+            const patientPhone = normalizePhone(patient.phone?.toLowerCase() || '');
+            const normalizedSearchTerm = normalizePhone(searchTerm);
+            return patientPhone.includes(normalizedSearchTerm);
           case 'nhsNumber':
             return patient.nhsNumber?.toLowerCase().includes(searchTerm);
           case 'email':
             return patient.email?.toLowerCase().includes(searchTerm);
           default:
+            const defaultPatientPhone = normalizePhone(patient.phone?.toLowerCase() || '');
+            const defaultNormalizedSearchTerm = normalizePhone(searchTerm);
             return `${patient.firstName} ${patient.lastName}`.toLowerCase().includes(searchTerm) ||
                    patient.address?.postcode?.toLowerCase().includes(searchTerm) ||
-                   patient.phone?.toLowerCase().includes(searchTerm) ||
+                   defaultPatientPhone.includes(defaultNormalizedSearchTerm) ||
                    patient.nhsNumber?.toLowerCase().includes(searchTerm) ||
                    patient.email?.toLowerCase().includes(searchTerm);
         }
