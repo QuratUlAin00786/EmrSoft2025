@@ -327,10 +327,10 @@ export default function CalendarPage() {
   
   // Generate time slots based on doctor's working hours
   const generateTimeSlots = (workingHours: any) => {
-    console.log('Generating time slots for working hours:', workingHours);
+    console.log('[TIME_SLOTS] Generating time slots for working hours:', workingHours);
     
     if (!workingHours || !workingHours.start || !workingHours.end) {
-      console.log('No valid working hours found, using default 9 AM to 5 PM');
+      console.log('[TIME_SLOTS] No valid working hours found, using default 9 AM to 5 PM');
       workingHours = { start: '09:00', end: '17:00' };
     }
     
@@ -340,26 +340,33 @@ export default function CalendarPage() {
     const endHour = parseInt(workingHours.end.split(':')[0]);
     const endMinute = parseInt(workingHours.end.split(':')[1] || '0');
     
-    console.log(`Generating slots from ${startHour}:${startMinute.toString().padStart(2, '0')} to ${endHour}:${endMinute.toString().padStart(2, '0')}`);
+    console.log(`[TIME_SLOTS] Generating slots from ${startHour}:${startMinute.toString().padStart(2, '0')} to ${endHour}:${endMinute.toString().padStart(2, '0')}`);
     
+    // FIXED: Generate time slots in 30-minute intervals up to but not including end time
     for (let hour = startHour; hour < endHour; hour++) {
-      slots.push(`${hour.toString().padStart(2, '0')}:00`);
-      slots.push(`${hour.toString().padStart(2, '0')}:30`);
+      // Add the top of the hour slot
+      const hourSlot = `${hour.toString().padStart(2, '0')}:00`;
+      slots.push(hourSlot);
+      console.log(`[TIME_SLOTS] Added slot: ${hourSlot}`);
+      
+      // Add the half-hour slot  
+      const halfHourSlot = `${hour.toString().padStart(2, '0')}:30`;
+      slots.push(halfHourSlot);
+      console.log(`[TIME_SLOTS] Added slot: ${halfHourSlot}`);
     }
     
-    // If the end time is not on the hour, we might want to include the last half hour
-    if (endMinute > 0 && slots.length > 0) {
-      const lastHour = endHour - 1;
-      if (endMinute >= 30) {
-        // Make sure we include the 30-minute slot for the last hour
-        const thirtyMinSlot = `${lastHour.toString().padStart(2, '0')}:30`;
-        if (!slots.includes(thirtyMinSlot)) {
-          slots.push(thirtyMinSlot);
-        }
+    console.log(`[TIME_SLOTS] Generated ${slots.length} time slots:`, slots);
+    console.log(`[TIME_SLOTS] First slot: ${slots[0]}, Last slot: ${slots[slots.length - 1]}`);
+    
+    // Verify 4:30 PM slot is included for default working hours
+    if (workingHours.start === '09:00' && workingHours.end === '17:00') {
+      const has430PM = slots.includes('16:30');
+      console.log(`[TIME_SLOTS] VERIFICATION: 4:30 PM (16:30) slot included: ${has430PM}`);
+      if (!has430PM) {
+        console.error(`[TIME_SLOTS] ERROR: 4:30 PM slot missing from generated slots!`);
       }
     }
     
-    console.log('Generated time slots:', slots);
     return slots;
   };
   
@@ -438,30 +445,44 @@ export default function CalendarPage() {
     return bookedSlots;
   };
 
-  // Check if time slot is available - REWRITTEN LOGIC
+  // Check if time slot is available - ENHANCED WITH DEBUGGING
   const isTimeSlotAvailable = (timeSlot: string) => {
+    console.log(`[TIME_SLOTS] ========== CHECKING AVAILABILITY FOR ${timeSlot} ==========`);
+    
     if (!selectedDate || !selectedDoctor) {
-      console.log(`[TIME_SLOTS] No doctor or date selected for ${timeSlot}`);
+      console.log(`[TIME_SLOTS] ${timeSlot} - No doctor or date selected - RETURNING FALSE`);
       return false;
     }
+    
+    console.log(`[TIME_SLOTS] ${timeSlot} - Selected doctor: ${selectedDoctor.id} (${selectedDoctor.firstName} ${selectedDoctor.lastName})`);
+    console.log(`[TIME_SLOTS] ${timeSlot} - Selected date: ${format(selectedDate, 'yyyy-MM-dd')}`);
     
     // Check if slot is in the past (for same-day bookings)
     const slotDateStr = format(selectedDate, 'yyyy-MM-dd');
     const slotStart = new Date(`${slotDateStr}T${timeSlot}:00`);
     const isToday = slotDateStr === format(new Date(), 'yyyy-MM-dd');
+    const currentTime = new Date();
     
-    if (isToday && slotStart < new Date()) {
-      console.log(`[TIME_SLOTS] ${timeSlot} is in the past - BLOCKED`);
+    console.log(`[TIME_SLOTS] ${timeSlot} - Date check: slotDate=${slotDateStr}, isToday=${isToday}, currentTime=${currentTime.toISOString()}, slotTime=${slotStart.toISOString()}`);
+    
+    if (isToday && slotStart < currentTime) {
+      console.log(`[TIME_SLOTS] ${timeSlot} - SLOT IS IN THE PAST - BLOCKED (GREY)`);
       return false;
     }
     
     // Get booked time slots for this doctor and date
+    console.log(`[TIME_SLOTS] ${timeSlot} - Getting booked slots...`);
     const bookedSlots = getBookedTimeSlots();
     const isBooked = bookedSlots.includes(timeSlot);
     
-    console.log(`[TIME_SLOTS] ${timeSlot} - booked: ${isBooked} - ${isBooked ? 'BLOCKED (GREY)' : 'AVAILABLE (GREEN)'}`);
+    console.log(`[TIME_SLOTS] ${timeSlot} - Booked slots for this doctor/date:`, bookedSlots);
+    console.log(`[TIME_SLOTS] ${timeSlot} - Is this slot booked? ${isBooked}`);
     
-    return !isBooked; // true = available (green), false = blocked (grey)
+    const result = !isBooked;
+    console.log(`[TIME_SLOTS] ${timeSlot} - FINAL RESULT: ${result ? 'AVAILABLE (GREEN)' : 'BLOCKED (GREY)'}`);
+    console.log(`[TIME_SLOTS] ========== END CHECK FOR ${timeSlot} ==========`);
+    
+    return result; // true = available (green), false = blocked (grey)
   };
   
   // Update filtered doctors when specialty/sub-specialty changes or when doctors data loads
