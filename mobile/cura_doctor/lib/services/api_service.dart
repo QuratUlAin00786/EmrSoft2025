@@ -426,4 +426,183 @@ class ApiService {
       throw Exception('Network error: $e');
     }
   }
+
+  /// Get doctor profile (typed return)
+  /// Method: GET /api/doctor/profile
+  /// Headers: Content-Type: application/json, Accept: application/json, Authorization: Bearer <token>, X-Tenant-Subdomain: demo
+  /// Response: User object with doctor profile data
+  static Future<User> getDoctorProfile() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/doctor/profile'),
+        headers: await _getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        return User.fromJson(jsonDecode(response.body));
+      } else {
+        throw Exception('Failed to load doctor profile');
+      }
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
+  /// Get encounter details
+  /// Method: GET /api/doctor/encounters/{id}
+  /// Headers: Content-Type: application/json, Accept: application/json, Authorization: Bearer <token>, X-Tenant-Subdomain: demo
+  /// Response: Encounter details with SOAP notes, diagnoses, vitals
+  static Future<Map<String, dynamic>> getEncounter(String id) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/doctor/encounters/$id'),
+        headers: await _getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Failed to load encounter');
+      }
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
+  /// Update existing encounter
+  /// Method: PUT /api/doctor/encounters/{id}
+  /// Headers: Content-Type: application/json, Accept: application/json, Authorization: Bearer <token>, X-Tenant-Subdomain: demo
+  /// Request: {"soap":{"s":"Updated subjective","o":"Updated objective","a":"Updated assessment","p":"Updated plan"}}
+  /// Response: {"success": true, "encounter": {"id": "enc_123", "updatedAt": "2025-09-15T10:30:00Z"}}
+  static Future<Map<String, dynamic>> updateEncounter(String id, Map<String, dynamic> body) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/doctor/encounters/$id'),
+        headers: await _getHeaders(),
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Failed to update encounter');
+      }
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
+  /// List doctor appointments (consistent naming)
+  /// Method: GET /api/doctor/appointments
+  /// Headers: Content-Type: application/json, Accept: application/json, Authorization: Bearer <token>, X-Tenant-Subdomain: demo
+  /// Query: Optional filters like date range, status
+  /// Response: List of Appointment objects
+  static Future<List<Appointment>> listDoctorAppointments({Map<String, String>? queryParams}) async {
+    try {
+      Uri uri = Uri.parse('$baseUrl/doctor/appointments');
+      if (queryParams != null) {
+        uri = uri.replace(queryParameters: queryParams);
+      }
+      
+      final response = await http.get(uri, headers: await _getHeaders());
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => Appointment.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load doctor appointments');
+      }
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
+  /// List doctor notifications
+  /// Method: GET /api/doctor/notifications
+  /// Headers: Content-Type: application/json, Accept: application/json, Authorization: Bearer <token>, X-Tenant-Subdomain: demo
+  /// Response: List of notifications
+  static Future<List<Map<String, dynamic>>> listNotifications() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/doctor/notifications'),
+        headers: await _getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.cast<Map<String, dynamic>>();
+      } else {
+        throw Exception('Failed to load notifications');
+      }
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
+  /// Mark notification as read
+  /// Method: POST /api/doctor/notifications/{id}/read
+  /// Headers: Content-Type: application/json, Accept: application/json, Authorization: Bearer <token>, X-Tenant-Subdomain: demo
+  /// Response: {"success": true, "message": "Notification marked as read"}
+  static Future<Map<String, dynamic>> markNotificationRead(String id) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/doctor/notifications/$id/read'),
+        headers: await _getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Failed to mark notification as read');
+      }
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
+  /// Send message to patient
+  /// Method: POST /api/doctor/messaging/send
+  /// Headers: Content-Type: application/json, Accept: application/json, Authorization: Bearer <token>, X-Tenant-Subdomain: demo
+  /// Request: {"toPatientId":"p_1","text":"Hello..."}
+  /// Response: {"success": true, "message": {"id": "msg_123", "text": "Hello...", "sentAt": "2025-09-15T10:30:00Z"}}
+  static Future<Map<String, dynamic>> sendMessage(String toPatientId, String text) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/doctor/messaging/send'),
+        headers: await _getHeaders(),
+        body: jsonEncode({'toPatientId': toPatientId, 'text': text}),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Failed to send message');
+      }
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
+  /// Join video session
+  /// Method: POST /api/doctor/video/join
+  /// Headers: Content-Type: application/json, Accept: application/json, Authorization: Bearer <token>, X-Tenant-Subdomain: demo
+  /// Request: {"appointmentId": appointmentId}
+  /// Response: {"success": true, "videoUrl": "https://...", "sessionId": "session_123"}
+  static Future<Map<String, dynamic>> joinVideoSession(int appointmentId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/doctor/video/join'),
+        headers: await _getHeaders(),
+        body: jsonEncode({'appointmentId': appointmentId}),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Failed to join video session');
+      }
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
 }
