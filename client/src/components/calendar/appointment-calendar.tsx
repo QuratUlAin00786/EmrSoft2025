@@ -57,13 +57,14 @@ function FullConsultationWrapper({ patientId, show, onOpenChange }: { patientId:
   });
 
   if (!show) return null;
-  if (isLoading) return null; // Or a loading spinner
 
+  // Always render the consultation interface, even during loading
+  // This ensures the dialog shows properly and doesn't appear empty to the user
   return (
     <FullConsultationInterface
       open={show}
       onOpenChange={onOpenChange}
-      patient={patient}
+      patient={patient || undefined}
     />
   );
 }
