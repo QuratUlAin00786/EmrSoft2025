@@ -518,7 +518,7 @@ export default function CalendarPage() {
     }
   }, [location]);
 
-  // Handle View Time Slot button click
+  // Handle View Time Slot button click - triggers availability check and visual update
   const handleViewTimeSlot = () => {
     if (!selectedDoctor || !selectedDate) {
       toast({
@@ -532,20 +532,18 @@ export default function CalendarPage() {
     console.log(`[VIEW_TIME_SLOT] Checking availability for Doctor: ${selectedDoctor.firstName} ${selectedDoctor.lastName} (ID: ${selectedDoctor.id})`);
     console.log(`[VIEW_TIME_SLOT] Selected Date: ${format(selectedDate, 'yyyy-MM-dd')}`);
 
-    // Get booked time slots using existing function
-    const bookedSlots = getBookedTimeSlots();
-    const allTimeSlots = generateTimeSlots(selectedDoctor.workingHours);
+    // Force refresh of time slot grid by clearing and resetting selection
+    // This will trigger re-rendering with updated availability colors
+    const currentDoctor = selectedDoctor;
+    const currentDate = selectedDate;
+    setSelectedDoctor(null);
+    setSelectedDate(undefined);
     
-    console.log(`[VIEW_TIME_SLOT] Total time slots: ${allTimeSlots.length}`);
-    console.log(`[VIEW_TIME_SLOT] Booked time slots: ${bookedSlots.length}`, bookedSlots);
-    
-    // Create availability summary
-    const availableSlots = allTimeSlots.filter(slot => !bookedSlots.includes(slot));
-    
-    toast({
-      title: "Time Slot Availability",
-      description: `Doctor: ${selectedDoctor.firstName} ${selectedDoctor.lastName} | Date: ${format(selectedDate, 'MMM dd, yyyy')} | Available: ${availableSlots.length}/${allTimeSlots.length} slots | Booked: ${bookedSlots.length > 0 ? bookedSlots.map(slot => format(new Date(`2000-01-01T${slot}:00`), 'h:mm a')).join(', ') : 'None'}`,
-    });
+    // Reset after a brief moment to trigger re-render
+    setTimeout(() => {
+      setSelectedDoctor(currentDoctor);
+      setSelectedDate(currentDate);
+    }, 10);
   };
 
   const createAppointmentMutation = useMutation({
@@ -1395,7 +1393,7 @@ export default function CalendarPage() {
                                 size="sm"
                                 className={`
                                   ${isAvailable && !isSelected 
-                                    ? "bg-green-100 hover:bg-green-200 text-green-800 border-green-300" 
+                                    ? "bg-green-500 hover:bg-green-600 text-white border-green-600" 
                                     : ""
                                   }
                                   ${!isAvailable 
