@@ -229,7 +229,8 @@ export default function CalendarPage() {
       filtered = filtered.filter((appointment: any) => {
         // Extract date directly from ISO string without timezone conversion
         // Format: "2025-09-16T09:00:00.000Z" -> extract "2025-09-16"
-        const appointmentDateStr = appointment.scheduledAt?.split('T')[0];
+        const scheduledTime = appointment.scheduledAt ?? appointment.scheduled_at;
+        const appointmentDateStr = scheduledTime?.split('T')[0];
         return appointmentDateStr === filterDateStr;
       });
     }
