@@ -450,7 +450,7 @@ export default function CalendarPage() {
     return bookedSlots;
   };
 
-  // Check if time slot is available - ENHANCED WITH DEBUGGING
+  // Check if time slot is available - FIXED TIMEZONE HANDLING
   const isTimeSlotAvailable = (timeSlot: string) => {
     console.log(`[TIME_SLOTS] ========== CHECKING AVAILABILITY FOR ${timeSlot} ==========`);
     
@@ -462,17 +462,29 @@ export default function CalendarPage() {
     console.log(`[TIME_SLOTS] ${timeSlot} - Selected doctor: ${selectedDoctor.id} (${selectedDoctor.firstName} ${selectedDoctor.lastName})`);
     console.log(`[TIME_SLOTS] ${timeSlot} - Selected date: ${format(selectedDate, 'yyyy-MM-dd')}`);
     
-    // Check if slot is in the past (for same-day bookings)
+    // Check if slot is in the past (only for today's date)
     const slotDateStr = format(selectedDate, 'yyyy-MM-dd');
-    const slotStart = new Date(`${slotDateStr}T${timeSlot}:00`);
-    const isToday = slotDateStr === format(new Date(), 'yyyy-MM-dd');
-    const currentTime = new Date();
+    const today = new Date();
+    const todayStr = format(today, 'yyyy-MM-dd');
+    const isToday = slotDateStr === todayStr;
     
-    console.log(`[TIME_SLOTS] ${timeSlot} - Date check: slotDate=${slotDateStr}, isToday=${isToday}, currentTime=${currentTime.toISOString()}, slotTime=${slotStart.toISOString()}`);
+    console.log(`[TIME_SLOTS] ${timeSlot} - Date comparison: slotDate=${slotDateStr}, todayDate=${todayStr}, isToday=${isToday}`);
     
-    if (isToday && slotStart < currentTime) {
-      console.log(`[TIME_SLOTS] ${timeSlot} - SLOT IS IN THE PAST - BLOCKED (GREY)`);
-      return false;
+    // Only check past time for today's appointments
+    if (isToday) {
+      // Create slot time in the same timezone as current time
+      const now = new Date();
+      const [hours, minutes] = timeSlot.split(':').map(Number);
+      const slotTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
+      
+      console.log(`[TIME_SLOTS] ${timeSlot} - Today's time check: currentTime=${now.toLocaleTimeString()}, slotTime=${slotTime.toLocaleTimeString()}`);
+      
+      if (slotTime < now) {
+        console.log(`[TIME_SLOTS] ${timeSlot} - SLOT IS IN THE PAST TODAY - BLOCKED (GREY)`);
+        return false;
+      }
+    } else {
+      console.log(`[TIME_SLOTS] ${timeSlot} - Future date selected, checking only database bookings`);
     }
     
     // Get booked time slots for this doctor and date
