@@ -775,7 +775,18 @@ export default function CalendarPage() {
                 {filteredAppointments.map((appointment: any) => {
                   const doctor = allUsers.find((u: any) => u.id === appointment.providerId);
                   const patient = patients.find((p: any) => p.id === appointment.patientId);
-                  const appointmentDate = new Date(appointment.scheduledAt);
+                  // Extract exact time and date from database without timezone conversion
+                  const scheduledTime = appointment.scheduledAt ?? appointment.scheduled_at;
+                  const appointmentDate = new Date(scheduledTime); // For date formatting only
+                  const exactTime = scheduledTime?.split('T')[1]?.substring(0, 5); // Extract HH:mm from UTC
+                  // Convert 24-hour to 12-hour format without timezone conversion
+                  const formatExactTime = (time24: string) => {
+                    const [hours, minutes] = time24.split(':');
+                    const hour = parseInt(hours);
+                    const ampm = hour >= 12 ? 'PM' : 'AM';
+                    const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+                    return `${hour12}:${minutes} ${ampm}`;
+                  };
                   
                   return (
                     <Card key={appointment.id} className="p-4">
@@ -809,7 +820,7 @@ export default function CalendarPage() {
                             </div>
                             <div className="flex items-center gap-2">
                               <Clock className="h-4 w-4" />
-                              <span>{format(appointmentDate, 'h:mm a')} ({appointment.duration} mins)</span>
+                              <span>{exactTime ? formatExactTime(exactTime) : 'Time unavailable'} ({appointment.duration} mins)</span>
                             </div>
                             {appointment.location && (
                               <div className="flex items-center gap-2">
