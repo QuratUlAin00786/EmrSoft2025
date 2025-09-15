@@ -110,9 +110,6 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
         description: "The vital signs have been saved to medical records successfully.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/patients', patient?.id, 'records'] });
-      // Navigate to Medical Records & Consultation Notes
-      onOpenChange(false);
-      setLocation(`/patients/${patient?.id}`);
     },
     onError: (error: any) => {
       toast({
@@ -135,6 +132,64 @@ export function FullConsultationInterface({ open, onOpenChange, patient }: FullC
     }
 
     saveVitalsMutation.mutate(vitals);
+  };
+
+  // Save history mutation
+  const saveHistoryMutation = useMutation({
+    mutationFn: async (historyData: any) => {
+      const response = await fetch(`/api/patients/${patient?.id}/records`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'history',
+          title: `Medical History - ${format(new Date(), 'MMM dd, yyyy HH:mm')}`,
+          notes: `Chief Complaint: ${historyData.chiefComplaint || 'N/A'}\n\nHistory of Presenting Complaint: ${historyData.historyPresentingComplaint || 'N/A'}\n\nReview of Systems:\n- Cardiovascular: ${historyData.reviewOfSystems?.cardiovascular || 'N/A'}\n- Respiratory: ${historyData.reviewOfSystems?.respiratory || 'N/A'}\n- Gastrointestinal: ${historyData.reviewOfSystems?.gastrointestinal || 'N/A'}\n- Genitourinary: ${historyData.reviewOfSystems?.genitourinary || 'N/A'}\n- Neurological: ${historyData.reviewOfSystems?.neurological || 'N/A'}\n- Musculoskeletal: ${historyData.reviewOfSystems?.musculoskeletal || 'N/A'}\n- Skin: ${historyData.reviewOfSystems?.skin || 'N/A'}\n- Psychiatric: ${historyData.reviewOfSystems?.psychiatric || 'N/A'}`,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to save history');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "History Saved",
+        description: "The medical history has been saved to medical records successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/patients', patient?.id, 'records'] });
+      // Navigate to Medical Records & Consultation Notes
+      onOpenChange(false);
+      setLocation(`/patients/${patient?.id}`);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Save Failed",
+        description: error.message || "Failed to save history. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle save history
+  const handleSaveHistory = () => {
+    if (!patient?.id) {
+      toast({
+        title: "Error",
+        description: "Patient information is missing. Cannot save history.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const historyData = {
+      chiefComplaint: consultationData.chiefComplaint,
+      historyPresentingComplaint: consultationData.historyPresentingComplaint,
+      reviewOfSystems: consultationData.reviewOfSystems
+    };
+
+    saveHistoryMutation.mutate(historyData);
   };
 
   // Handle save consultation
@@ -980,6 +1035,18 @@ Patient should be advised of potential side effects and expected timeline for re
                     </div>
                   </CardContent>
                 </Card>
+                
+                {/* Save History Button */}
+                <div className="flex justify-end mt-6">
+                  <Button 
+                    onClick={handleSaveHistory} 
+                    disabled={saveHistoryMutation.isPending}
+                    className="bg-medical-blue hover:bg-blue-700 text-white"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    {saveHistoryMutation.isPending ? "Saving..." : "Save History"}
+                  </Button>
+                </div>
               </div>
             </TabsContent>
 
