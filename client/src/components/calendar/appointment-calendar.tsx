@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Clock, MapPin, User, Video, Stethoscope, FileText, Plus, Save, X, Mic, Square } from "lucide-react";
+import { Calendar, Clock, MapPin, User, Video, Stethoscope, FileText, Plus, Save, X, Mic, Square, Edit, Trash2 } from "lucide-react";
 import anatomicalDiagramImage from "@assets/2_1754469563272.png";
 import facialDiagramImage from "@assets/1_1754469776185.png";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from "date-fns";
@@ -18,7 +18,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Appointment } from "@/types";
 import ConsultationNotes from "@/components/medical/consultation-notes";
 import { FullConsultationInterface } from "@/components/consultation/full-consultation-interface";
@@ -90,6 +90,9 @@ export default function AppointmentCalendar() {
   const [showConsultationNotes, setShowConsultationNotes] = useState(false);
   // State for Full Consultation interface
   const [showFullConsultation, setShowFullConsultation] = useState(false);
+  // State for edit appointment modal
+  const [showEditAppointment, setShowEditAppointment] = useState(false);
+  const [editingAppointment, setEditingAppointment] = useState<any>(null);
 
   // Define muscle coordinates for interactive highlighting
   const muscleCoordinates = {
@@ -109,6 +112,68 @@ export default function AppointmentCalendar() {
     platysma: { x: 350, y: 450 }
   };
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Delete appointment mutation
+  const deleteAppointmentMutation = useMutation({
+    mutationFn: async (appointmentId: number) => {
+      const response = await apiRequest("DELETE", `/api/appointments/${appointmentId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+      toast({
+        title: "Appointment Deleted",
+        description: "The appointment has been successfully deleted.",
+      });
+    },
+    onError: (error) => {
+      console.error("Delete appointment error:", error);
+      toast({
+        title: "Delete Failed",
+        description: "Failed to delete the appointment. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Edit appointment mutation
+  const editAppointmentMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      const response = await apiRequest("PATCH", `/api/appointments/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+      setShowEditAppointment(false);
+      setEditingAppointment(null);
+      toast({
+        title: "Appointment Updated",
+        description: "The appointment has been successfully updated.",
+      });
+    },
+    onError: (error) => {
+      console.error("Edit appointment error:", error);
+      toast({
+        title: "Update Failed", 
+        description: "Failed to update the appointment. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle delete appointment
+  const handleDeleteAppointment = (appointmentId: number, appointmentTitle: string) => {
+    if (window.confirm(`Are you sure you want to delete "${appointmentTitle}"? This action cannot be undone.`)) {
+      deleteAppointmentMutation.mutate(appointmentId);
+    }
+  };
+
+  // Handle edit appointment
+  const handleEditAppointment = (appointment: any) => {
+    setEditingAppointment(appointment);
+    setShowEditAppointment(true);
+  };
 
   // Generate comprehensive treatment plan
   const generateTreatmentPlan = async () => {
@@ -521,13 +586,15 @@ Medical License: [License Number]
               {selectedDateAppointments.map((appointment: any) => (
                 <div
                   key={appointment.id}
-                  className="flex items-center justify-between p-4 border dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
-                  onClick={() => {
-                    setSelectedAppointment(appointment);
-                    setShowAppointmentDetails(true);
-                  }}
+                  className="flex items-center justify-between p-4 border dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
-                  <div className="flex items-center space-x-4">
+                  <div 
+                    className="flex items-center space-x-4 flex-1 cursor-pointer"
+                    onClick={() => {
+                      setSelectedAppointment(appointment);
+                      setShowAppointmentDetails(true);
+                    }}
+                  >
                     <div className="flex flex-col">
                       <Badge
                         style={{
@@ -549,9 +616,37 @@ Medical License: [License Number]
                       </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="font-medium">{appointment.title}</div>
-                    <div className="text-sm text-gray-500">Dr. {appointment.providerName}</div>
+                  <div className="flex items-center space-x-2">
+                    <div className="text-right mr-4">
+                      <div className="font-medium">{appointment.title}</div>
+                      <div className="text-sm text-gray-500">Dr. {appointment.providerName}</div>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditAppointment(appointment);
+                        }}
+                        className="h-8 w-8 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                        data-testid={`edit-appointment-${appointment.id}`}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteAppointment(appointment.id, appointment.title);
+                        }}
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-800 hover:bg-red-50"
+                        data-testid={`delete-appointment-${appointment.id}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -878,6 +973,148 @@ Medical License: [License Number]
           onOpenChange={setShowFullConsultation}
         />
       )}
+
+      {/* Edit Appointment Dialog */}
+      <Dialog open={showEditAppointment} onOpenChange={setShowEditAppointment}>
+        <DialogContent className="max-w-2xl">
+          {editingAppointment && (
+            <div>
+              <DialogHeader>
+                <DialogTitle className="text-xl font-bold text-blue-800">
+                  Edit Appointment
+                </DialogTitle>
+                <DialogDescription>
+                  Update appointment details for {getPatientName(editingAppointment.patientId)}
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4 mt-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Title</Label>
+                    <Input 
+                      defaultValue={editingAppointment.title}
+                      onChange={(e) => {
+                        setEditingAppointment({ ...editingAppointment, title: e.target.value });
+                      }}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Type</Label>
+                    <Select 
+                      defaultValue={editingAppointment.type}
+                      onValueChange={(value) => {
+                        setEditingAppointment({ ...editingAppointment, type: value });
+                      }}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="consultation">Consultation</SelectItem>
+                        <SelectItem value="follow_up">Follow-up</SelectItem>
+                        <SelectItem value="procedure">Procedure</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Date</Label>
+                    <Input 
+                      type="date"
+                      defaultValue={format(new Date(editingAppointment.scheduledAt), 'yyyy-MM-dd')}
+                      onChange={(e) => {
+                        const currentTime = format(new Date(editingAppointment.scheduledAt), 'HH:mm');
+                        const newDateTime = new Date(`${e.target.value}T${currentTime}:00`);
+                        setEditingAppointment({ ...editingAppointment, scheduledAt: newDateTime.toISOString() });
+                      }}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Time</Label>
+                    <Input 
+                      type="time"
+                      defaultValue={format(new Date(editingAppointment.scheduledAt), 'HH:mm')}
+                      onChange={(e) => {
+                        const currentDate = format(new Date(editingAppointment.scheduledAt), 'yyyy-MM-dd');
+                        const newDateTime = new Date(`${currentDate}T${e.target.value}:00`);
+                        setEditingAppointment({ ...editingAppointment, scheduledAt: newDateTime.toISOString() });
+                      }}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Status</Label>
+                  <Select 
+                    defaultValue={editingAppointment.status}
+                    onValueChange={(value) => {
+                      setEditingAppointment({ ...editingAppointment, status: value });
+                    }}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="scheduled">Scheduled</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                      <SelectItem value="no_show">No Show</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Description</Label>
+                  <Textarea 
+                    defaultValue={editingAppointment.description || ''}
+                    onChange={(e) => {
+                      setEditingAppointment({ ...editingAppointment, description: e.target.value });
+                    }}
+                    className="mt-1"
+                    rows={3}
+                    placeholder="Add appointment notes or description..."
+                  />
+                </div>
+
+                <div className="flex justify-end space-x-2 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowEditAppointment(false);
+                      setEditingAppointment(null);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      editAppointmentMutation.mutate({
+                        id: editingAppointment.id,
+                        data: {
+                          title: editingAppointment.title,
+                          type: editingAppointment.type,
+                          status: editingAppointment.status,
+                          scheduledAt: editingAppointment.scheduledAt,
+                          description: editingAppointment.description,
+                        }
+                      });
+                    }}
+                    disabled={editAppointmentMutation.isPending}
+                  >
+                    {editAppointmentMutation.isPending ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
