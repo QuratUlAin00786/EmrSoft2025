@@ -1203,236 +1203,181 @@ Report generated from Cura EMR System`;
         subtitle="View and manage laboratory test results"
       />
       
-      <div className="flex-1 overflow-auto p-6 bg-gradient-to-br from-blue-50 to-purple-50">
-        <div className="space-y-8">
-          {/* Enhanced Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-yellow-400 to-orange-500 text-white hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-              <CardContent className="p-6">
+      <div className="flex-1 overflow-auto p-6">
+        <div className="space-y-6">
+          {/* Quick Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-yellow-100 mb-1">Pending Results</p>
-                    <p className="text-3xl font-bold">{filteredResults.filter(r => r.status === 'pending').length}</p>
-                    <p className="text-xs text-yellow-100 mt-1">Awaiting processing</p>
+                    <p className="text-sm font-medium text-gray-600">Pending Results</p>
+                    <p className="text-2xl font-bold">{filteredResults.filter(r => r.status === 'pending').length}</p>
                   </div>
-                  <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
-                    <Clock className="h-8 w-8 text-white" />
-                  </div>
+                  <Clock className="h-8 w-8 text-yellow-600" />
                 </div>
               </CardContent>
             </Card>
             
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-red-500 to-pink-600 text-white hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-              <CardContent className="p-6">
+            <Card>
+              <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-red-100 mb-1">Critical Values</p>
-                    <p className="text-3xl font-bold">{filteredResults.filter(r => r.notes?.toLowerCase().includes('critical') || r.value?.toLowerCase().includes('high')).length}</p>
-                    <p className="text-xs text-red-100 mt-1">Need attention</p>
+                    <p className="text-sm font-medium text-gray-600">Critical Values</p>
+                    <p className="text-2xl font-bold">{filteredResults.filter(r => r.notes?.toLowerCase().includes('critical') || r.value?.toLowerCase().includes('high')).length}</p>
                   </div>
-                  <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
-                    <AlertTriangle className="h-8 w-8 text-white" />
-                  </div>
+                  <AlertTriangle className="h-8 w-8 text-red-600" />
                 </div>
               </CardContent>
             </Card>
             
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-green-500 to-emerald-600 text-white hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-              <CardContent className="p-6">
+            <Card>
+              <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-green-100 mb-1">Completed Today</p>
-                    <p className="text-3xl font-bold">
+                    <p className="text-sm font-medium text-gray-600">Completed Today</p>
+                    <p className="text-2xl font-bold">
                       {filteredResults.filter(r => r.status === 'completed' && 
                         new Date(r.createdAt || '').toDateString() === new Date().toDateString()).length}
                     </p>
-                    <p className="text-xs text-green-100 mt-1">Ready for review</p>
                   </div>
-                  <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
-                    <Check className="h-8 w-8 text-white" />
-                  </div>
+                  <Check className="h-8 w-8 text-green-600" />
                 </div>
               </CardContent>
             </Card>
             
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-600 to-indigo-700 text-white hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-              <CardContent className="p-6">
+            <Card>
+              <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-blue-100 mb-1">Total Results</p>
-                    <p className="text-3xl font-bold">{filteredResults.length}</p>
-                    <p className="text-xs text-blue-100 mt-1">All lab tests</p>
+                    <p className="text-sm font-medium text-gray-600">Total Results</p>
+                    <p className="text-2xl font-bold">{filteredResults.length}</p>
                   </div>
-                  <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
-                    <FileText className="h-8 w-8 text-white" />
-                  </div>
+                  <FileText className="h-8 w-8 text-blue-600" />
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Enhanced Filters */}
-          <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-md">
-            <CardContent className="p-8">
-              <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-6">
-                <div className="relative flex-1">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          {/* Filters */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-4">
+                <div className="relative flex-1 max-w-sm">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
-                    placeholder="Search by patient name, test type, or ID..."
+                    placeholder="Search lab results..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-12 h-14 border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl text-base font-medium"
+                    className="pl-9"
                   />
                 </div>
                 
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full lg:w-56 h-14 border-2 border-gray-200 rounded-xl text-base font-medium">
+                  <SelectTrigger className="w-40">
                     <SelectValue placeholder="Filter by status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">🔍 All Status</SelectItem>
-                    <SelectItem value="pending">⏳ Pending</SelectItem>
-                    <SelectItem value="collected">📋 Collected</SelectItem>
-                    <SelectItem value="processing">🔄 Processing</SelectItem>
-                    <SelectItem value="completed">✅ Completed</SelectItem>
-                    <SelectItem value="cancelled">❌ Cancelled</SelectItem>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="collected">Collected</SelectItem>
+                    <SelectItem value="processing">Processing</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
                 
-                <Button 
-                  onClick={handleOrderTest} 
-                  className="h-14 px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 rounded-xl"
-                  data-testid="button-order-test"
-                >
-                  <Plus className="h-5 w-5 mr-3" />
+                <Button onClick={handleOrderTest} className="bg-medical-blue hover:bg-blue-700">
+                  <Plus className="h-4 w-4 mr-2" />
                   Order Lab Test
                 </Button>
               </div>
             </CardContent>
           </Card>
 
-          {/* Enhanced Lab Results List */}
-          <div className="space-y-8">
+          {/* Lab Results List */}
+          <div className="space-y-4">
             {filteredResults.length === 0 ? (
-              <Card className="border-0 shadow-xl bg-white">
-                <CardContent className="p-16 text-center">
-                  <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <FileText className="h-12 w-12 text-blue-500" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">No lab results found</h3>
-                  <p className="text-gray-600 text-lg mb-8">Try adjusting your search terms or filters to find the results you're looking for</p>
-                  <Button 
-                    onClick={handleOrderTest}
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 text-base font-semibold"
-                  >
-                    <Plus className="h-5 w-5 mr-2" />
-                    Order First Test
-                  </Button>
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-600 mb-2">No lab results found</h3>
+                  <p className="text-gray-600">Try adjusting your search terms or filters</p>
                 </CardContent>
               </Card>
             ) : (
               filteredResults.map((result) => (
-                <Card key={result.id} className="group border-0 shadow-xl bg-white hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 rounded-2xl overflow-hidden">
-                  <CardContent className="p-0">
-                    {/* Modern Header Section */}
-                    <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-white">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                            <span className="text-2xl font-bold text-white">{getPatientName(result.patientId).charAt(0)}</span>
-                          </div>
-                          <div>
-                            <h3 className="text-2xl font-bold text-white mb-1">{getPatientName(result.patientId)}</h3>
-                            <p className="text-blue-100 text-sm font-medium">Patient ID: {result.patientId}</p>
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-end space-y-2">
-                          <Badge className={`${getStatusColor(result.status)} border-0 shadow-lg text-sm px-4 py-2`}>
-                            {result.status.toUpperCase()}
-                          </Badge>
-                          {result.criticalValues && (
-                            <Badge className="bg-red-500 text-white border-0 shadow-lg flex items-center gap-2 px-3 py-1">
-                              <AlertTriangle className="h-4 w-4" />
-                              Critical Alert
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {/* Test Type Highlight */}
-                      <div className="bg-white/20 rounded-xl p-4 backdrop-blur-sm">
-                        <p className="text-blue-100 text-sm font-medium mb-1">Test Type</p>
-                        <p className="text-white text-xl font-bold">{result.testType}</p>
-                        <p className="text-blue-100 text-sm mt-1">ID: <span className="font-mono">{result.testId}</span></p>
-                      </div>
+                <Card key={result.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    {/* Header with patient name and status */}
+                    <div className="flex items-center gap-3 mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900">{getPatientName(result.patientId)}</h3>
+                      <Badge className={getStatusColor(result.status)}>
+                        {result.status}
+                      </Badge>
+                      {result.criticalValues && (
+                        <Badge variant="destructive" className="flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3" />
+                          Critical
+                        </Badge>
+                      )}
                     </div>
 
-                    <div className="p-8">
-
-                      {/* Enhanced Content Layout */}
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                        {/* Left section - Test Information */}
-                        <div className="space-y-6">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-blue-50 p-4 rounded-xl">
-                              <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">Ordered Date</p>
-                              <p className="text-sm font-bold text-blue-900">{format(new Date(result.orderedAt), 'MMM dd, yyyy')}</p>
-                              <p className="text-xs text-blue-700">{format(new Date(result.orderedAt), 'HH:mm')}</p>
+                    {/* Main content area */}
+                    <div className="flex justify-between gap-6">
+                      {/* Left section - Test details and Notes */}
+                      <div className="flex-1 space-y-4">
+                        <div className="space-y-2">
+                          <div className="text-sm text-gray-600">
+                            <span className="font-medium">Ordered:</span> {format(new Date(result.orderedAt), 'MMM dd, yyyy HH:mm')}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            <span className="font-medium">Test:</span> {result.testType}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            <span className="font-medium">Test ID:</span> {result.testId}
+                          </div>
+                          {result.completedAt && (
+                            <div className="text-sm text-gray-600">
+                              <span className="font-medium">Completed:</span> {format(new Date(result.completedAt), 'MMM dd, yyyy HH:mm')}
                             </div>
-                            {result.completedAt && (
-                              <div className="bg-green-50 p-4 rounded-xl">
-                                <p className="text-xs font-semibold text-green-600 uppercase tracking-wide mb-1">Completed</p>
-                                <p className="text-sm font-bold text-green-900">{format(new Date(result.completedAt), 'MMM dd, yyyy')}</p>
-                                <p className="text-xs text-green-700">{format(new Date(result.completedAt), 'HH:mm')}</p>
-                              </div>
-                            )}
-                          </div>
-                          
-                          {/* Notes section */}
-                          <div className="bg-gray-50 p-6 rounded-xl">
-                            <h4 className="font-bold text-gray-800 mb-3 flex items-center">
-                              <FileText className="h-5 w-5 mr-2 text-gray-600" />
-                              Clinical Notes
-                            </h4>
-                            <p className="text-gray-700 leading-relaxed">{result.notes || 'No additional notes available'}</p>
-                          </div>
+                          )}
                         </div>
+                        
+                        {/* Notes section */}
+                        <div>
+                          <h4 className="font-semibold text-gray-800 mb-2">Notes</h4>
+                          <p className="text-sm text-gray-600">{result.notes || 'no no'}</p>
+                        </div>
+                      </div>
 
-                        {/* Right section - Enhanced Doctor Information */}
-                        <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-6 rounded-2xl border border-blue-200">
-                          <div className="flex items-center gap-3 mb-6">
-                            <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
-                              <User className="h-6 w-6 text-white" />
-                            </div>
-                            <div>
-                              <h4 className="text-xl font-bold text-blue-900">
-                                {result.doctorName || 'Dr. Qurat doctor'}
-                              </h4>
-                              <p className="text-blue-600 text-sm font-medium">Attending Physician</p>
-                            </div>
+                      {/* Right section - Doctor information */}
+                      <div className="w-80">
+                        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="flex items-center gap-2 mb-3">
+                            <User className="h-4 w-4 text-blue-600" />
+                            <h4 className="font-semibold text-blue-900">
+                              {result.doctorName || 'Dr. Sarah Williams'}
+                            </h4>
                           </div>
                           
-                          <div className="space-y-4">
-                            <div className="bg-white/70 p-4 rounded-xl">
-                              <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">Main Specialization</p>
-                              <p className="text-blue-900 font-bold">{result.mainSpecialty || 'Digestive system'}</p>
+                          <div className="space-y-2">
+                            <div className="text-sm">
+                              <span className="font-medium text-gray-800">Main Specialization:</span>
+                              <div className="text-blue-600">{result.mainSpecialty || 'Diagnostic Specialties'}</div>
                             </div>
-                            <div className="bg-white/70 p-4 rounded-xl">
-                              <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">Sub-Specialization</p>
-                              <p className="text-blue-900 font-bold">{result.subSpecialty || 'Hepatologist'}</p>
+                            <div className="text-sm">
+                              <span className="font-medium text-gray-800">Sub-Specialization:</span>
+                              <div className="text-blue-600">{result.subSpecialty || 'Neurosurgeon'}</div>
                             </div>
-                            <div className="bg-white/70 p-4 rounded-xl">
-                              <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">Priority</p>
-                              <Badge 
-                                variant={result.priority === 'stat' ? 'destructive' : result.priority === 'urgent' ? 'secondary' : 'outline'}
-                                className="font-bold text-sm"
-                              >
-                                {(result.priority || 'routine').toUpperCase()}
-                              </Badge>
+                            <div className="text-sm">
+                              <span className="font-medium text-gray-800">Priority:</span>
+                              <div className="text-green-600">{result.priority || 'urgent'}</div>
                             </div>
                           </div>
                         </div>
                       </div>
+                    </div>
 
                     {/* Test Results section (if available) */}
                     {result.results && result.results.length > 0 && (
@@ -1457,71 +1402,51 @@ Report generated from Cura EMR System`;
                       </div>
                     )}
 
-                      {/* Modern Action Buttons */}
-                      <div className="space-y-4 pt-6 border-t border-gray-200">
-                        {/* Primary Actions */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => handleViewResult(result)}
-                            className="h-12 border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 font-medium"
-                            data-testid="button-edit"
-                          >
-                            <Eye className="h-4 w-4 mr-2" />
-                            Edit
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            onClick={() => handleGeneratePrescription(result)}
-                            className="h-12 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200"
-                            data-testid="button-generate-prescription"
-                          >
-                            <FileText className="h-4 w-4 mr-2" />
-                            Generate Prescription
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            onClick={async () => {
-                              setSelectedResult(result);
-                              setShowPrescriptionDialog(true);
-                              await new Promise(resolve => setTimeout(resolve, 100));
-                              await handleGeneratePDF();
-                              setShowPrescriptionDialog(false);
-                            }}
-                            className="h-12 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200"
-                            data-testid="button-download-pdf"
-                          >
-                            <Download className="h-4 w-4 mr-2" />
-                            Download PDF
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => handleShareResult(result)}
-                            className="h-12 border-2 border-indigo-200 hover:border-indigo-400 hover:bg-indigo-50 transition-all duration-200 font-medium"
-                            data-testid="button-review"
-                          >
-                            <User className="h-4 w-4 mr-2" />
-                            Review
-                          </Button>
-                        </div>
-                        
-                        {/* Secondary Action */}
-                        <div className="flex justify-center">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => deleteLabResultMutation.mutate(result.id)}
-                            disabled={deleteLabResultMutation.isPending}
-                            className="text-red-500 hover:text-red-700 hover:bg-red-50 transition-all duration-200 font-medium"
-                            data-testid="button-delete"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            {deleteLabResultMutation.isPending ? 'Deleting...' : 'Delete Result'}
-                          </Button>
-                        </div>
-                      </div>
+                    {/* Action buttons at bottom */}
+                    <div className="flex gap-2 mt-6 pt-4 border-t border-gray-200">
+                      <Button variant="outline" size="sm" onClick={() => handleViewResult(result)}>
+                        <Eye className="h-4 w-4 mr-2" />
+                        Edit
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        onClick={() => handleGeneratePrescription(result)}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        Generate Prescription
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        onClick={async () => {
+                          setSelectedResult(result);
+                          // Temporarily open the prescription dialog to render content
+                          setShowPrescriptionDialog(true);
+                          // Wait for the content to render
+                          await new Promise(resolve => setTimeout(resolve, 100));
+                          // Generate the PDF
+                          await handleGeneratePDF();
+                          // Close the dialog
+                          setShowPrescriptionDialog(false);
+                        }}
+                        className="bg-purple-600 hover:bg-purple-700 text-white"
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download PDF
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => handleShareResult(result)}>
+                        <User className="h-4 w-4 mr-2" />
+                        Review
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => deleteLabResultMutation.mutate(result.id)}
+                        disabled={deleteLabResultMutation.isPending}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
