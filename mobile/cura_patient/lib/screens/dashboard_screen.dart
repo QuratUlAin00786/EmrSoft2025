@@ -13,6 +13,22 @@ import 'billing_screen.dart';
 import 'voice_documentation_screen.dart';
 import 'patient_portal_screen.dart';
 
+// QA NAV - New Screens Import
+import 'auth/register_screen.dart';
+import 'auth/verify_otp_screen.dart';
+import 'auth/forgot_password_screen.dart';
+import 'auth/reset_password_screen.dart';
+import 'appointments/appointment_detail_screen.dart';
+import 'billing/invoice_detail_screen.dart';
+import 'profile/edit_profile_screen.dart';
+import 'insurance/insurance_screen.dart';
+import 'dependents/dependents_screen.dart';
+import 'labs/order_lab_test_screen.dart';
+import 'imaging/order_imaging_screen.dart';
+import 'documents/upload_document_screen.dart';
+import 'notifications/notification_detail_screen.dart';
+import 'settings/change_password_screen.dart';
+
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -207,6 +223,88 @@ class _DashboardScreenState extends State<DashboardScreen> {
             icon: Icons.notifications,
             title: 'Notifications & Alerts',
             onTap: () => _navigateToIndex(4),
+          ),
+          const Divider(),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Text(
+              'QA NAV - Testing Screens',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.red,
+              ),
+            ),
+          ),
+          _buildDrawerItem(
+            icon: Icons.person_add,
+            title: 'RegisterScreen',
+            onTap: () => _navigateToScreen(const RegisterScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.verified,
+            title: 'VerifyOTPScreen',
+            onTap: () => _navigateToScreen(const VerifyOTPScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.lock_reset,
+            title: 'ForgotPasswordScreen',
+            onTap: () => _navigateToScreen(const ForgotPasswordScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.lock_open,
+            title: 'ResetPasswordScreen',
+            onTap: () => _navigateToScreen(const ResetPasswordScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.event_note,
+            title: 'AppointmentDetailScreen',
+            onTap: () => _navigateToScreen(const AppointmentDetailScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.receipt,
+            title: 'InvoiceDetailScreen',
+            onTap: () => _navigateToScreen(const InvoiceDetailScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.edit,
+            title: 'EditProfileScreen',
+            onTap: () => _navigateToScreen(const EditProfileScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.security,
+            title: 'InsuranceScreen',
+            onTap: () => _navigateToScreen(const InsuranceScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.family_restroom,
+            title: 'DependentsScreen',
+            onTap: () => _navigateToScreen(const DependentsScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.biotech,
+            title: 'OrderLabTestScreen',
+            onTap: () => _navigateToScreen(const OrderLabTestScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.camera_alt,
+            title: 'OrderImagingScreen',
+            onTap: () => _navigateToScreen(const OrderImagingScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.upload_file,
+            title: 'UploadDocumentScreen',
+            onTap: () => _navigateToScreen(const UploadDocumentScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.notification_important,
+            title: 'NotificationDetailScreen',
+            onTap: () => _navigateToScreen(const NotificationDetailScreen()),
+          ),
+          _buildDrawerItem(
+            icon: Icons.password,
+            title: 'ChangePasswordScreen',
+            onTap: () => _navigateToScreen(const ChangePasswordScreen()),
           ),
           const Divider(),
           _buildDrawerItem(
