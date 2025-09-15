@@ -385,7 +385,10 @@ export default function CalendarPage() {
     
     console.log(`[TIME_SLOTS] Found ${appointmentsData.length} total appointments:`, appointmentsData.map(apt => ({ id: apt.id, providerId: apt.providerId, scheduledAt: apt.scheduledAt })));
     
-    // Filter for selected doctor and date
+    // Filter for selected doctor and date - FIXED: Use string slicing to avoid timezone conversion
+    const selectedDateUtc = selectedDate.toISOString().slice(0, 10); // yyyy-MM-dd
+    console.log(`[TIME_SLOTS] Comparing against UTC date: ${selectedDateUtc}`);
+    
     const doctorAppointments = appointmentsData
       .filter(apt => {
         if (!apt.providerId || !apt.scheduledAt) {
@@ -394,19 +397,19 @@ export default function CalendarPage() {
         }
         
         const matchesDoctor = Number(apt.providerId) === Number(selectedDoctor.id);
-        const appointmentDate = format(new Date(apt.scheduledAt), 'yyyy-MM-dd');
-        const matchesDate = appointmentDate === dateStr;
+        const appointmentDate = apt.scheduledAt.slice(0, 10); // Direct string slice: "2025-09-15T09:00:00.000Z" → "2025-09-15"
+        const matchesDate = appointmentDate === selectedDateUtc;
         
-        console.log(`[TIME_SLOTS] Appointment ${apt.id}: doctor_match=${matchesDoctor} (${apt.providerId} vs ${selectedDoctor.id}), date_match=${matchesDate} (${appointmentDate} vs ${dateStr})`);
+        console.log(`[TIME_SLOTS] Appointment ${apt.id}: doctor_match=${matchesDoctor} (${apt.providerId} vs ${selectedDoctor.id}), date_match=${matchesDate} (${appointmentDate} vs ${selectedDateUtc})`);
         
         return matchesDoctor && matchesDate;
       });
 
-    console.log(`[TIME_SLOTS] Found ${doctorAppointments.length} appointments for doctor ${selectedDoctor.id} on ${dateStr}:`, doctorAppointments);
+    console.log(`[TIME_SLOTS] Found ${doctorAppointments.length} appointments for doctor ${selectedDoctor.id} on ${selectedDateUtc}:`, doctorAppointments);
 
-    // Extract time slots from appointments - SHOW EXACT FORMAT
+    // Extract time slots from appointments - FIXED: Use string slicing to avoid timezone conversion
     const bookedSlots = doctorAppointments.map(apt => {
-      const timeSlot = format(new Date(apt.scheduledAt), 'HH:mm');
+      const timeSlot = apt.scheduledAt.slice(11, 16); // Direct string slice: "2025-09-15T09:00:00.000Z" → "09:00"
       console.log(`[TIME_SLOTS] Appointment ${apt.id} scheduled at "${apt.scheduledAt}" extracts to time slot "${timeSlot}"`);
       return timeSlot;
     });
