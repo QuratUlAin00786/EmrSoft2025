@@ -223,12 +223,14 @@ export default function CalendarPage() {
       filtered = filtered.filter((appointment: any) => appointment.providerId === selectedDoctorId);
     }
     
-    // Filter by date
+    // Filter by date - NO TIMEZONE CONVERSION
     if (filterDate) {
       const filterDateStr = format(filterDate, 'yyyy-MM-dd');
       filtered = filtered.filter((appointment: any) => {
-        const appointmentDate = new Date(appointment.scheduledAt);
-        return format(appointmentDate, 'yyyy-MM-dd') === filterDateStr;
+        // Extract date directly from ISO string without timezone conversion
+        // Format: "2025-09-16T09:00:00.000Z" -> extract "2025-09-16"
+        const appointmentDateStr = appointment.scheduledAt?.split('T')[0];
+        return appointmentDateStr === filterDateStr;
       });
     }
     
