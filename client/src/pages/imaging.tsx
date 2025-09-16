@@ -1445,14 +1445,6 @@ export default function ImagingPage() {
                       </div>
                       <div className="flex gap-2">
                         <Button
-                          onClick={() => setShowReportDialog(false)}
-                          variant="outline"
-                          className="flex-1"
-                          data-testid="button-close-report-dialog"
-                        >
-                          Close
-                        </Button>
-                        <Button
                           onClick={() => {
                             setGeneratedReportId(null);
                             setGeneratedReportFileName(null);
