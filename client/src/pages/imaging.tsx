@@ -30,6 +30,7 @@ import {
   Trash2
 } from "lucide-react";
 import { format } from "date-fns";
+import jsPDF from "jspdf";
 
 interface ImagingStudy {
   id: string;
@@ -484,6 +485,173 @@ export default function ImagingPage() {
         radiologist: study.radiologist || "Dr. Michael Chen"
       });
       setShowReportDialog(true);
+    }
+  };
+
+  const generatePDFReport = async (study: any) => {
+    try {
+      const pdf = new jsPDF();
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const margin = 20;
+      let yPosition = 30;
+
+      // Header
+      pdf.setFontSize(20);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("RADIOLOGY REPORT", pageWidth / 2, yPosition, { align: "center" });
+      yPosition += 20;
+
+      // Institution info
+      pdf.setFontSize(12);
+      pdf.setFont("helvetica", "normal");
+      pdf.text("Cura Healthcare System", pageWidth / 2, yPosition, { align: "center" });
+      yPosition += 10;
+      pdf.text("Department of Radiology", pageWidth / 2, yPosition, { align: "center" });
+      yPosition += 20;
+
+      // Patient Information Section
+      pdf.setFontSize(14);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("PATIENT INFORMATION", margin, yPosition);
+      yPosition += 15;
+
+      pdf.setFontSize(11);
+      pdf.setFont("helvetica", "normal");
+      const patientInfo = [
+        `Patient Name: ${study.patientName}`,
+        `Patient ID: ${study.patientId}`,
+        `Date of Study: ${format(new Date(study.orderedAt), "PPP")}`,
+        `Study Type: ${study.studyType}`,
+        `Modality: ${study.modality}`,
+        `Body Part: ${study.bodyPart}`,
+        `Ordering Physician: ${study.orderedBy}`,
+        `Radiologist: ${study.radiologist || "Dr. Michael Chen"}`,
+        `Priority: ${study.priority.toUpperCase()}`
+      ];
+
+      patientInfo.forEach((info) => {
+        pdf.text(info, margin, yPosition);
+        yPosition += 8;
+      });
+
+      yPosition += 10;
+
+      // Clinical Information Section
+      pdf.setFontSize(14);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("CLINICAL INFORMATION", margin, yPosition);
+      yPosition += 15;
+
+      pdf.setFontSize(11);
+      pdf.setFont("helvetica", "normal");
+      pdf.text("Indication:", margin, yPosition);
+      yPosition += 8;
+      const indicationLines = pdf.splitTextToSize(study.indication || "Not specified", pageWidth - 2 * margin);
+      pdf.text(indicationLines, margin, yPosition);
+      yPosition += indicationLines.length * 6 + 10;
+
+      // Image Series Section
+      if (study.images && study.images.length > 0) {
+        pdf.setFontSize(14);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("IMAGE SERIES", margin, yPosition);
+        yPosition += 15;
+
+        study.images.forEach((image: any, index: number) => {
+          pdf.setFontSize(11);
+          pdf.setFont("helvetica", "normal");
+          pdf.text(`${index + 1}. ${image.seriesDescription}`, margin, yPosition);
+          yPosition += 8;
+          pdf.text(`   Images: ${image.imageCount} • Type: ${image.type} • Size: ${image.size}`, margin, yPosition);
+          yPosition += 12;
+
+          // Include image if available and it's base64 data
+          if (image.imageData && image.mimeType && (image.mimeType.includes('jpeg') || image.mimeType.includes('png'))) {
+            try {
+              const imgData = `data:${image.mimeType};base64,${image.imageData}`;
+              const imgWidth = 80;
+              const imgHeight = 60;
+              
+              if (yPosition + imgHeight > pdf.internal.pageSize.getHeight() - margin) {
+                pdf.addPage();
+                yPosition = margin;
+              }
+              
+              pdf.addImage(imgData, 'JPEG', margin, yPosition, imgWidth, imgHeight);
+              yPosition += imgHeight + 10;
+            } catch (imgError) {
+              console.log("Could not add image to PDF:", imgError);
+              pdf.text("   [Image available in system]", margin, yPosition);
+              yPosition += 10;
+            }
+          }
+        });
+        yPosition += 10;
+      }
+
+      // Check if we need a new page
+      if (yPosition > pdf.internal.pageSize.getHeight() - 100) {
+        pdf.addPage();
+        yPosition = margin;
+      }
+
+      // Findings Section
+      pdf.setFontSize(14);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("FINDINGS", margin, yPosition);
+      yPosition += 15;
+
+      pdf.setFontSize(11);
+      pdf.setFont("helvetica", "normal");
+      const findingsText = reportFormData.findings || study.findings || "Pending radiologist interpretation.";
+      const findingsLines = pdf.splitTextToSize(findingsText, pageWidth - 2 * margin);
+      pdf.text(findingsLines, margin, yPosition);
+      yPosition += findingsLines.length * 6 + 15;
+
+      // Impression Section
+      pdf.setFontSize(14);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("IMPRESSION", margin, yPosition);
+      yPosition += 15;
+
+      pdf.setFontSize(11);
+      pdf.setFont("helvetica", "normal");
+      const impressionText = reportFormData.impression || study.impression || "Pending radiologist review.";
+      const impressionLines = pdf.splitTextToSize(impressionText, pageWidth - 2 * margin);
+      pdf.text(impressionLines, margin, yPosition);
+      yPosition += impressionLines.length * 6 + 20;
+
+      // Signature Section
+      const finalYPosition = Math.max(yPosition, pdf.internal.pageSize.getHeight() - 60);
+      pdf.setFontSize(11);
+      pdf.setFont("helvetica", "normal");
+      pdf.text("Electronically signed by:", margin, finalYPosition);
+      pdf.text(`${reportFormData.radiologist || study.radiologist || "Dr. Michael Chen"}`, margin, finalYPosition + 10);
+      pdf.text(`Date: ${format(new Date(), "PPP p")}`, margin, finalYPosition + 20);
+
+      // Footer
+      pdf.setFontSize(9);
+      pdf.text("This report was generated electronically and is considered final.", 
+               pageWidth / 2, pdf.internal.pageSize.getHeight() - 20, { align: "center" });
+
+      // Download the PDF
+      const filename = `radiology-report-${study.patientName.replace(/\s+/g, '-').toLowerCase()}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+      pdf.save(filename);
+
+      toast({
+        title: "Report Generated Successfully",
+        description: `PDF report for ${study.patientName} has been generated and downloaded`,
+      });
+
+      setShowReportDialog(false);
+
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      toast({
+        title: "Report Generation Failed",
+        description: "Failed to generate PDF report. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -1091,11 +1259,7 @@ export default function ImagingPage() {
                         setShowReportDialog(false);
                         setShowFinalReportDialog(true);
                       } else {
-                        toast({
-                          title: "Report Generated",
-                          description: `Radiology report for ${selectedStudy.patientName} has been generated and signed`,
-                        });
-                        setShowReportDialog(false);
+                        generatePDFReport(selectedStudy);
                       }
                     }}
                     className="bg-medical-blue hover:bg-blue-700"
