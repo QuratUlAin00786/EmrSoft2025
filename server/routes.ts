@@ -8846,7 +8846,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (req.organizationId && study.id) {
         try {
-          await storage.updateMedicalImageReport(study.id, {
+          await storage.updateMedicalImageReport(study.id, req.tenant!.id, {
             reportFileName,
             reportFilePath,
             findings: reportFormData?.findings || null,

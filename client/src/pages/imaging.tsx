@@ -240,7 +240,6 @@ export default function ImagingPage() {
       try {
         const response = await apiRequest('GET', '/api/medical-images');
         const data = await response.json();
-        console.log('🔍 Raw medical images API response:', data);
         return Array.isArray(data) ? data : [];
       } catch (error) {
         console.error('Error fetching medical images:', error);
@@ -248,9 +247,6 @@ export default function ImagingPage() {
       }
     }
   });
-
-  // Debug: Log the processed medical images data
-  console.log('🔍 Processed medical images data:', medicalImages);
 
   // Individual field update mutations
   const updateFieldMutation = useMutation({

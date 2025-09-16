@@ -275,7 +275,7 @@ export interface IStorage {
   createMedicalImage(image: InsertMedicalImage): Promise<MedicalImage>;
   updateMedicalImage(id: number, organizationId: number, updates: Partial<InsertMedicalImage>): Promise<MedicalImage | undefined>;
   updateMedicalImageReportField(id: number, organizationId: number, fieldName: string, value: string): Promise<MedicalImage | undefined>;
-  updateMedicalImageReport(id: number, reportData: { reportFileName?: string; reportFilePath?: string; findings?: string | null; impression?: string | null; radiologist?: string | null }): Promise<MedicalImage | undefined>;
+  updateMedicalImageReport(id: number, organizationId: number, reportData: { reportFileName?: string; reportFilePath?: string; findings?: string | null; impression?: string | null; radiologist?: string | null }): Promise<MedicalImage | undefined>;
   deleteMedicalImage(id: number, organizationId: number): Promise<boolean>;
 
   // Documents
@@ -3419,7 +3419,7 @@ export class DatabaseStorage implements IStorage {
     return updatedImage;
   }
 
-  async updateMedicalImageReport(id: number, reportData: { reportFileName?: string; reportFilePath?: string; findings?: string | null; impression?: string | null; radiologist?: string | null }): Promise<MedicalImage | undefined> {
+  async updateMedicalImageReport(id: number, organizationId: number, reportData: { reportFileName?: string; reportFilePath?: string; findings?: string | null; impression?: string | null; radiologist?: string | null }): Promise<MedicalImage | undefined> {
     const updates: any = {
       updatedAt: new Date(),
     };
@@ -3444,7 +3444,7 @@ export class DatabaseStorage implements IStorage {
     const [updatedImage] = await db
       .update(medicalImages)
       .set(updates)
-      .where(eq(medicalImages.id, id))
+      .where(and(eq(medicalImages.id, id), eq(medicalImages.organizationId, organizationId)))
       .returning();
     return updatedImage;
   }
