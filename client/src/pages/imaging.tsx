@@ -948,10 +948,6 @@ export default function ImagingPage() {
                   </SelectContent>
                 </Select>
 
-                <Button onClick={() => setShowNewOrder(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Order Study
-                </Button>
                 <Button variant="outline" onClick={() => setShowUploadDialog(true)}>
                   <FileImage className="h-4 w-4 mr-2" />
                   Upload Images
