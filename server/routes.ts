@@ -8722,7 +8722,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         font,
         color: blueColor
       });
-      page.drawText('📞 +44-123-456-7890 | 📧 radiology@curamedical.com', {
+      page.drawText('Phone: +44-123-456-7890 | Email: radiology@curamedical.com', {
         x: 50,
         y: 35,
         size: 9,
