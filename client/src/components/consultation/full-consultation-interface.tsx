@@ -265,6 +265,139 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
     saveExaminationMutation.mutate(examinationData);
   };
 
+  // Save assessment mutation
+  const saveAssessmentMutation = useMutation({
+    mutationFn: async (assessmentData: any) => {
+      const currentPatientId = patientId || patient?.id;
+      const response = await fetch(`/api/patients/${currentPatientId}/records`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'assessment',
+          title: `Clinical Assessment - ${format(new Date(), 'MMM dd, yyyy HH:mm')}`,
+          notes: assessmentData.assessment || '',
+        }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to save assessment');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Assessment Saved",
+        description: "The clinical assessment has been saved to medical records successfully.",
+      });
+      const currentPatientId = patientId || patient?.id;
+      queryClient.invalidateQueries({ queryKey: ['/api/patients', currentPatientId, 'records'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Save Failed",
+        description: error.message || "Failed to save assessment. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle save assessment
+  const handleSaveAssessment = () => {
+    const currentPatientId = patientId || patient?.id;
+    if (!currentPatientId) {
+      toast({
+        title: "Error",
+        description: "Patient information is missing. Cannot save assessment.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const assessmentData = {
+      assessment: consultationData.assessment
+    };
+
+    saveAssessmentMutation.mutate(assessmentData);
+  };
+
+  // Save summary mutation
+  const saveSummaryMutation = useMutation({
+    mutationFn: async (summaryData: any) => {
+      const currentPatientId = patientId || patient?.id;
+      const response = await fetch(`/api/patients/${currentPatientId}/records`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'summary',
+          title: `Consultation Summary - ${format(new Date(), 'MMM dd, yyyy HH:mm')}`,
+          notes: summaryData.summaryText || '',
+        }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to save summary');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Summary Saved",
+        description: "The consultation summary has been saved to medical records successfully.",
+      });
+      const currentPatientId = patientId || patient?.id;
+      queryClient.invalidateQueries({ queryKey: ['/api/patients', currentPatientId, 'records'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Save Failed",
+        description: error.message || "Failed to save summary. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle save summary
+  const handleSaveSummary = () => {
+    const currentPatientId = patientId || patient?.id;
+    if (!currentPatientId) {
+      toast({
+        title: "Error",
+        description: "Patient information is missing. Cannot save summary.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create a comprehensive summary text from all consultation data
+    const summaryText = `Chief Complaint: ${consultationData.chiefComplaint || 'Not recorded'}
+
+Assessment: ${consultationData.assessment || 'Not recorded'}
+
+Plan: ${consultationData.plan || 'Not recorded'}
+
+${
+      consultationData.prescriptions.length > 0 
+        ? `Prescriptions (${consultationData.prescriptions.length}):\n${consultationData.prescriptions.map(rx => `- ${rx.medication} ${rx.dosage}, ${rx.frequency} for ${rx.duration}${rx.instructions ? ' - ' + rx.instructions : ''}`).join('\n')}\n\n`
+        : ''
+    }${
+      consultationData.referrals.length > 0 
+        ? `Referrals (${consultationData.referrals.length}):\n${consultationData.referrals.map(ref => `- ${ref.specialty} (${ref.urgency}) - ${ref.reason}`).join('\n')}\n\n`
+        : ''
+    }${
+      consultationData.investigations.length > 0 
+        ? `Investigations (${consultationData.investigations.length}):\n${consultationData.investigations.map(inv => `- ${inv.type} (${inv.urgency}) - ${inv.reason}`).join('\n')}`
+        : ''
+    }`;
+
+    const summaryData = {
+      summaryText: summaryText.trim()
+    };
+
+    saveSummaryMutation.mutate(summaryData);
+  };
+
   // Handle save consultation
   const handleSaveConsultation = () => {
     const currentPatientId = patientId || patient?.id;
@@ -1277,6 +1410,24 @@ Patient should be advised of potential side effects and expected timeline for re
                   </div>
                 </CardContent>
               </Card>
+              
+              {/* Save Assessment Button */}
+              <div className="flex justify-end gap-3 mt-6">
+                <Button 
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                  onClick={handleSaveAssessment}
+                  disabled={saveAssessmentMutation.isPending}
+                  data-testid="button-save-assessment"
+                >
+                  {saveAssessmentMutation.isPending ? 'Saving...' : 'Save Assessment'}
+                </Button>
+              </div>
               </div>
             </TabsContent>
 
@@ -1578,6 +1729,24 @@ Patient should be advised of potential side effects and expected timeline for re
                   </div>
                 </CardContent>
               </Card>
+              
+              {/* Save Summary Button */}
+              <div className="flex justify-end gap-3 mt-6">
+                <Button 
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={handleSaveSummary}
+                  disabled={saveSummaryMutation.isPending}
+                  data-testid="button-save-summary"
+                >
+                  {saveSummaryMutation.isPending ? 'Saving...' : 'Save Summary'}
+                </Button>
+              </div>
               </div>
             </TabsContent>
           </Tabs>
