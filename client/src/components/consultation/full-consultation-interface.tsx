@@ -47,9 +47,10 @@ interface FullConsultationInterfaceProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   patient?: any;
+  patientName?: string;
 }
 
-export function FullConsultationInterface({ open, onOpenChange, patient }: FullConsultationInterfaceProps) {
+export function FullConsultationInterface({ open, onOpenChange, patient, patientName }: FullConsultationInterfaceProps) {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
@@ -876,7 +877,7 @@ Patient should be advised of potential side effects and expected timeline for re
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-bold flex items-center gap-3">
               <FileText className="w-8 h-8 text-blue-600" />
-              Full Consultation - {patient?.firstName} {patient?.lastName}
+              Full Consultation - {patient?.firstName && patient?.lastName ? `${patient.firstName} ${patient.lastName}` : (patientName || 'Loading...')}
             </DialogTitle>
             <div className="flex items-center gap-4 text-sm text-gray-600">
               <div className="flex items-center gap-2">

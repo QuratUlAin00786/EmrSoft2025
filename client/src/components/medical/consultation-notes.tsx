@@ -677,6 +677,7 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
               open={isAddingNote} 
               onOpenChange={setIsAddingNote} 
               patient={patient}
+              patientName={patientName}
             />
           </Suspense>
 
