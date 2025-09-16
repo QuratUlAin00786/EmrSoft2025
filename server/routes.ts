@@ -8631,7 +8631,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     <div class="footer">
         <span>Cura Medical Center | Radiology Department</span>
-        <span>📞 +44-123-456-7890 | 📧 radiology@curamedical.com</span>
+        <span>Tel: +44-123-456-7890 | Email: radiology@curamedical.com</span>
     </div>
     
     <div style="text-align: center; font-size: 6pt; color: white; background-color: #1e3a8a; padding: 3px; margin-top: -10px;">
@@ -9068,7 +9068,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         color: primaryBlue
       });
       
-      page.drawText('📞 +44-123-456-7890  |  📧 radiology@curamedical.com  |  🌐 www.curamedical.com', {
+      page.drawText('Tel: +44-123-456-7890  |  Email: radiology@curamedical.com  |  Web: www.curamedical.com', {
         x: width / 2 - 140,
         y: footerY - 22,
         size: 8,
