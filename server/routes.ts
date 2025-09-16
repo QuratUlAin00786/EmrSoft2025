@@ -8698,32 +8698,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Position tracker
       let yPosition = height - 40;
       
-      // Professional Header with Logo Area
-      drawSectionBox(30, yPosition + 5, width - 60, 80);
+      // Professional Formal Header
+      const headerHeight = 100;
+      
+      // Main header background with formal design
+      page.drawRectangle({
+        x: 30,
+        y: yPosition - headerHeight + 5,
+        width: width - 60,
+        height: headerHeight,
+        color: rgb(0.96, 0.97, 0.99), // Very light blue background
+        borderColor: primaryBlue,
+        borderWidth: 2
+      });
+      
+      // Medical center logo area (left side)
+      page.drawRectangle({
+        x: 40,
+        y: yPosition - 75,
+        width: 60,
+        height: 60,
+        color: primaryBlue
+      });
+      
+      // Medical cross symbol in logo
+      page.drawText('⚕', {
+        x: 63,
+        y: yPosition - 55,
+        size: 28,
+        font: boldFont,
+        color: rgb(1, 1, 1)
+      });
+      
+      // Institution name and department
       page.drawText('CURA MEDICAL CENTER', {
-        x: 50,
-        y: yPosition - 10,
-        size: 14,
+        x: 120,
+        y: yPosition - 20,
+        size: 16,
         font: boldFont,
         color: primaryBlue
       });
-      page.drawText('DEPARTMENT OF RADIOLOGY', {
-        x: 50,
-        y: yPosition - 25,
-        size: 10,
+      
+      page.drawText('DEPARTMENT OF DIAGNOSTIC RADIOLOGY', {
+        x: 120,
+        y: yPosition - 38,
+        size: 11,
         font,
         color: darkGray
       });
       
-      page.drawText('RADIOLOGY REPORT', {
-        x: width - 200,
-        y: yPosition - 15,
-        size: 18,
-        font: boldFont,
+      page.drawText('Ground Floor Unit 2, Drayton Court, Drayton Road, Solihull, England B90 4NG', {
+        x: 120,
+        y: yPosition - 52,
+        size: 8,
+        font,
+        color: darkGray
+      });
+      
+      page.drawText('Tel: +44-123-456-7890 | Fax: +44-123-456-7891', {
+        x: 120,
+        y: yPosition - 65,
+        size: 8,
+        font,
+        color: darkGray
+      });
+      
+      // Report title (right side)
+      page.drawRectangle({
+        x: width - 180,
+        y: yPosition - 50,
+        width: 140,
+        height: 35,
         color: primaryBlue
       });
       
-      yPosition -= 100;
+      page.drawText('DIAGNOSTIC', {
+        x: width - 170,
+        y: yPosition - 30,
+        size: 12,
+        font: boldFont,
+        color: rgb(1, 1, 1)
+      });
+      
+      page.drawText('RADIOLOGY REPORT', {
+        x: width - 175,
+        y: yPosition - 43,
+        size: 11,
+        font: boldFont,
+        color: rgb(1, 1, 1)
+      });
+      
+      yPosition -= headerHeight + 20;
       
       // Patient Information Section
       drawSectionBox(30, yPosition + 5, (width - 80) / 2, 120);
