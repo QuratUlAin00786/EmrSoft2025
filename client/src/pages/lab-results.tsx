@@ -1403,20 +1403,22 @@ Report generated from Cura EMR System`;
                     )}
 
                     {/* Action buttons at bottom - with right margin for blue box */}
-                    <div className="flex gap-2 mt-6 pt-4 border-t border-gray-200 mr-72">
+                    <div className="flex gap-2 mt-6 pt-4 border-t border-gray-200 mr-72 justify-end">
                       <Button variant="outline" size="sm" onClick={() => handleViewResult(result)}>
                         <Eye className="h-4 w-4 mr-2" />
                         Edit
                       </Button>
                       <Button 
+                        variant="outline"
                         size="sm" 
                         onClick={() => handleGeneratePrescription(result)}
-                        className="bg-medical-blue hover:bg-blue-700 text-white"
+                        className="bg-white hover:bg-gray-50 text-gray-900 border-gray-300"
                       >
                         <FileText className="h-4 w-4 mr-2" />
                         Generate Prescription
                       </Button>
                       <Button 
+                        variant="outline"
                         size="sm" 
                         onClick={async () => {
                           setSelectedResult(result);
@@ -1429,7 +1431,7 @@ Report generated from Cura EMR System`;
                           // Close the dialog
                           setShowPrescriptionDialog(false);
                         }}
-                        className="bg-medical-blue hover:bg-blue-700 text-white"
+                        className="bg-white hover:bg-gray-50 text-gray-900 border-gray-300"
                       >
                         <Download className="h-4 w-4 mr-2" />
                         Download PDF
