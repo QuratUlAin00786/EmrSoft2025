@@ -496,22 +496,18 @@ export default function ImagingPage() {
       setGeneratedReportId(null);
 
       // Call server-side PDF generation endpoint
-      const response = await apiRequest('/api/imaging/generate-report', {
-        method: 'POST',
-        body: JSON.stringify({
-          study,
-          reportFormData
-        }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
+      const response = await apiRequest('POST', '/api/imaging/generate-report', {
+        study,
+        reportFormData
       });
 
-      if (response.success && response.reportId) {
-        setGeneratedReportId(response.reportId);
+      const data = await response.json();
+
+      if (data.success && data.reportId) {
+        setGeneratedReportId(data.reportId);
         toast({
           title: "PDF Report Generated Successfully",
-          description: `Report saved with ID: ${response.reportId.slice(0, 8)}...`,
+          description: `Report saved with ID: ${data.reportId.slice(0, 8)}...`,
         });
       } else {
         throw new Error('Failed to generate PDF report');
