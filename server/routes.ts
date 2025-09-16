@@ -8654,8 +8654,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Study data is required" });
       }
 
-      // Generate unique report ID
-      const reportId = uuidv4();
+      // Generate unique report ID using patient ID and imaging ID for better identification
+      const patientId = study.patientId || 'UNKNOWN';
+      const imagingId = study.id || 'IMG';
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5); // Remove milliseconds and format
+      const reportId = `${patientId}_${imagingId}_${timestamp}`;
       
       // Ensure reports directory exists
       const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Reports');
@@ -8858,8 +8861,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { reportId } = req.params;
       
-      // Validate reportId format (UUID)
-      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(reportId)) {
+      // Validate reportId format (PatientID_ImagingID_Timestamp or legacy UUID)
+      const isLegacyUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(reportId);
+      const isNewFormat = /^.+_.+_\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}$/.test(reportId);
+      
+      if (!isLegacyUUID && !isNewFormat) {
         return res.status(400).json({ error: "Invalid report ID format" });
       }
 
@@ -8871,9 +8877,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Report not found" });
       }
       
+      // Generate a meaningful filename for download
+      let downloadFilename;
+      if (isNewFormat) {
+        // Extract patient ID from the new format
+        const parts = reportId.split('_');
+        const patientId = parts[0];
+        const timestamp = parts[2];
+        downloadFilename = `radiology-report-${patientId}-${timestamp}.pdf`;
+      } else {
+        // Legacy UUID format
+        downloadFilename = `radiology-report-${reportId}.pdf`;
+      }
+      
       // Serve the PDF file
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `inline; filename="radiology-report-${reportId}.pdf"`);
+      res.setHeader('Content-Disposition', `inline; filename="${downloadFilename}"`);
       res.sendFile(filePath);
 
     } catch (error) {

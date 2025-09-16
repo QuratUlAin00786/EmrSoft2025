@@ -530,6 +530,21 @@ export default function ImagingPage() {
     window.open(reportUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
   };
 
+  const downloadPDFReport = (reportId: string) => {
+    const reportUrl = `/api/imaging/reports/${reportId}`;
+    const a = document.createElement('a');
+    a.href = reportUrl;
+    a.download = `radiology-report-${reportId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    toast({
+      title: "PDF Report Downloaded",
+      description: "Radiology report PDF has been downloaded successfully",
+    });
+  };
+
   const handleDeleteStudy = async (studyId: string) => {
     const study = (studies as any || []).find((s: any) => s.id === studyId);
     if (!study) return;
@@ -1144,21 +1159,32 @@ export default function ImagingPage() {
                         </div>
                         <p className="text-xs text-green-600 mt-1">Click the Report ID to view the PDF</p>
                       </div>
-                      <Button
-                        onClick={() => {
-                          setGeneratedReportId(null);
-                          setReportFormData({
-                            findings: "",
-                            impression: "",
-                            radiologist: ""
-                          });
-                        }}
-                        variant="outline"
-                        className="w-full"
-                        data-testid="button-generate-new"
-                      >
-                        Generate New Report
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => downloadPDFReport(generatedReportId)}
+                          variant="outline"
+                          className="flex-1"
+                          data-testid="button-download-pdf"
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Download PDF
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            setGeneratedReportId(null);
+                            setReportFormData({
+                              findings: "",
+                              impression: "",
+                              radiologist: ""
+                            });
+                          }}
+                          variant="outline"
+                          className="flex-1"
+                          data-testid="button-generate-new"
+                        >
+                          Generate New Report
+                        </Button>
+                      </div>
                     </div>
                   ) : (
                     <Button 
