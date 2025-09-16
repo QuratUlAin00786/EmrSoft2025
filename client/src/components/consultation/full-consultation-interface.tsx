@@ -117,8 +117,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
         description: "The vital signs have been saved to medical records successfully.",
       });
       const currentPatientId = patientId || patient?.id;
-      const key = `/api/patients/${currentPatientId}/records`;
-      queryClient.refetchQueries({ queryKey: [key] });
+      queryClient.invalidateQueries({ queryKey: ['/api/patients', currentPatientId, 'records'] });
     },
     onError: (error: any) => {
       toast({
