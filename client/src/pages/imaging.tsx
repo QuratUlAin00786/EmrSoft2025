@@ -1445,13 +1445,12 @@ export default function ImagingPage() {
                       </div>
                       <div className="flex gap-2">
                         <Button
-                          onClick={() => downloadPDFReport(generatedReportId)}
+                          onClick={() => setShowReportDialog(false)}
                           variant="outline"
                           className="flex-1"
-                          data-testid="button-download-pdf"
+                          data-testid="button-close-report-dialog"
                         >
-                          <Download className="h-4 w-4 mr-2" />
-                          Download PDF
+                          Close
                         </Button>
                         <Button
                           onClick={() => {
