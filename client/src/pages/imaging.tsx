@@ -492,155 +492,242 @@ export default function ImagingPage() {
     try {
       const pdf = new jsPDF();
       const pageWidth = pdf.internal.pageSize.getWidth();
-      const margin = 20;
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 24;
+      const contentWidth = pageWidth - 2 * margin;
       let yPosition = 30;
 
-      // Header
+      // Helper functions for consistent formatting
+      const ensureSpace = (needed: number) => {
+        if (yPosition + needed > pageHeight - 40) {
+          pdf.addPage();
+          yPosition = margin;
+        }
+      };
+
+      const sectionHeader = (title: string, size: number = 13) => {
+        ensureSpace(20);
+        pdf.setFontSize(size);
+        pdf.setFont("helvetica", "bold");
+        pdf.text(title, margin, yPosition);
+        // Add underline
+        pdf.setDrawColor(0, 0, 0);
+        pdf.setLineWidth(0.5);
+        pdf.line(margin, yPosition + 2, margin + contentWidth, yPosition + 2);
+        yPosition += 16;
+      };
+
+      const addKeyValue = (label: string, value: string, x: number = margin) => {
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "bold");
+        pdf.text(`${label}:`, x, yPosition);
+        pdf.setFont("helvetica", "normal");
+        const labelWidth = pdf.getTextWidth(`${label}: `);
+        pdf.text(value, x + labelWidth, yPosition);
+        yPosition += 12;
+      };
+
+      const addTextBlock = (text: string, fontSize: number = 10) => {
+        pdf.setFontSize(fontSize);
+        pdf.setFont("helvetica", "normal");
+        const lines = pdf.splitTextToSize(text, contentWidth);
+        ensureSpace(lines.length * 6);
+        pdf.text(lines, margin, yPosition);
+        yPosition += lines.length * 6 + 8;
+      };
+
+      // Add watermark for preliminary reports
+      const isPreliminary = study.status === 'preliminary' || study.status !== 'final';
+      if (isPreliminary) {
+        pdf.setGState(new pdf.GState({opacity: 0.1}));
+        pdf.setFontSize(48);
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(150, 150, 150);
+        pdf.text("PRELIMINARY", pageWidth / 2, pageHeight / 2, { align: "center", angle: 45 });
+        pdf.setGState(new pdf.GState({opacity: 1}));
+        pdf.setTextColor(0, 0, 0);
+      }
+
+      // HEADER - Institution and Report Title
+      pdf.setFontSize(16);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("CURA HEALTHCARE SYSTEM", pageWidth / 2, yPosition, { align: "center" });
+      yPosition += 12;
+      
+      pdf.setFontSize(12);
+      pdf.setFont("helvetica", "normal");
+      pdf.text("Department of Radiology", pageWidth / 2, yPosition, { align: "center" });
+      yPosition += 20;
+      
       pdf.setFontSize(20);
       pdf.setFont("helvetica", "bold");
       pdf.text("RADIOLOGY REPORT", pageWidth / 2, yPosition, { align: "center" });
-      yPosition += 20;
+      yPosition += 25;
 
-      // Institution info
-      pdf.setFontSize(12);
-      pdf.setFont("helvetica", "normal");
-      pdf.text("Cura Healthcare System", pageWidth / 2, yPosition, { align: "center" });
-      yPosition += 10;
-      pdf.text("Department of Radiology", pageWidth / 2, yPosition, { align: "center" });
-      yPosition += 20;
-
-      // Patient Information Section
-      pdf.setFontSize(14);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("PATIENT INFORMATION", margin, yPosition);
-      yPosition += 15;
-
-      pdf.setFontSize(11);
-      pdf.setFont("helvetica", "normal");
-      const patientInfo = [
-        `Patient Name: ${study.patientName}`,
-        `Patient ID: ${study.patientId}`,
-        `Date of Study: ${format(new Date(study.orderedAt), "PPP")}`,
-        `Study Type: ${study.studyType}`,
-        `Modality: ${study.modality}`,
-        `Body Part: ${study.bodyPart}`,
-        `Ordering Physician: ${study.orderedBy}`,
-        `Radiologist: ${study.radiologist || "Dr. Michael Chen"}`,
-        `Priority: ${study.priority.toUpperCase()}`
-      ];
-
-      patientInfo.forEach((info) => {
-        pdf.text(info, margin, yPosition);
-        yPosition += 8;
-      });
-
-      yPosition += 10;
-
-      // Clinical Information Section
-      pdf.setFontSize(14);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("CLINICAL INFORMATION", margin, yPosition);
-      yPosition += 15;
-
-      pdf.setFontSize(11);
-      pdf.setFont("helvetica", "normal");
-      pdf.text("Indication:", margin, yPosition);
-      yPosition += 8;
-      const indicationLines = pdf.splitTextToSize(study.indication || "Not specified", pageWidth - 2 * margin);
-      pdf.text(indicationLines, margin, yPosition);
-      yPosition += indicationLines.length * 6 + 10;
-
-      // Image Series Section
-      if (study.images && study.images.length > 0) {
-        pdf.setFontSize(14);
+      // Status badge
+      if (isPreliminary) {
+        pdf.setFillColor(255, 193, 7);
+        pdf.rect(pageWidth / 2 - 20, yPosition - 8, 40, 12, 'F');
+        pdf.setFontSize(10);
         pdf.setFont("helvetica", "bold");
-        pdf.text("IMAGE SERIES", margin, yPosition);
-        yPosition += 15;
+        pdf.text("PRELIMINARY", pageWidth / 2, yPosition, { align: "center" });
+        yPosition += 20;
+      }
 
+      // PATIENT INFORMATION & STUDY INFORMATION (Two columns)
+      sectionHeader("PATIENT INFORMATION");
+      const leftColumnX = margin;
+      const rightColumnX = margin + contentWidth / 2;
+      const savedY = yPosition;
+
+      // Left column - Patient Info
+      yPosition = savedY;
+      addKeyValue("Patient Name", study.patientName, leftColumnX);
+      addKeyValue("Patient ID", study.patientId, leftColumnX);
+      addKeyValue("Priority", study.priority.toUpperCase(), leftColumnX);
+
+      // Right column - Study Info
+      yPosition = savedY;
+      addKeyValue("Study Type", study.studyType, rightColumnX);
+      addKeyValue("Modality", study.modality, rightColumnX);
+      addKeyValue("Body Part", study.bodyPart, rightColumnX);
+      addKeyValue("Status", study.status?.charAt(0).toUpperCase() + study.status?.slice(1) || "Unknown", rightColumnX);
+
+      yPosition = Math.max(yPosition, savedY + 60);
+      yPosition += 10;
+
+      // TIMELINE SECTION
+      sectionHeader("TIMELINE");
+      if (study.orderedAt) {
+        addKeyValue("Ordered", `${format(new Date(study.orderedAt), "PPP 'at' p")} by ${study.orderedBy}`);
+      }
+      if (study.scheduledAt) {
+        addKeyValue("Scheduled", format(new Date(study.scheduledAt), "PPP 'at' p"));
+      }
+      if (study.performedAt) {
+        addKeyValue("Performed", format(new Date(study.performedAt), "PPP 'at' p"));
+      }
+      if (study.report?.dictatedAt) {
+        addKeyValue("Dictated", format(new Date(study.report.dictatedAt), "PPP 'at' p"));
+      }
+      if (study.report?.signedAt) {
+        addKeyValue("Signed", format(new Date(study.report.signedAt), "PPP 'at' p"));
+      }
+      yPosition += 10;
+
+      // CLINICAL INDICATION
+      sectionHeader("CLINICAL INDICATION");
+      addTextBlock(study.indication || "Not specified");
+
+      // IMAGE SERIES SECTION
+      if (study.images && study.images.length > 0) {
+        sectionHeader("IMAGE SERIES");
+        
         study.images.forEach((image: any, index: number) => {
+          ensureSpace(30);
+          
+          // Format detection
+          let format = "Unknown";
+          if (image.type) {
+            format = image.type;
+          } else if (image.mimeType) {
+            if (image.mimeType.includes('dicom')) format = "DICOM";
+            else if (image.mimeType.includes('jpeg')) format = "JPEG";
+            else if (image.mimeType.includes('png')) format = "PNG";
+          }
+
           pdf.setFontSize(11);
-          pdf.setFont("helvetica", "normal");
+          pdf.setFont("helvetica", "bold");
           pdf.text(`${index + 1}. ${image.seriesDescription}`, margin, yPosition);
-          yPosition += 8;
-          pdf.text(`   Images: ${image.imageCount} • Type: ${image.type} • Size: ${image.size}`, margin, yPosition);
+          yPosition += 14;
+          
+          pdf.setFontSize(10);
+          pdf.setFont("helvetica", "normal");
+          pdf.text(`Images: ${image.imageCount} | Format: ${format} | Size: ${image.size}`, margin + 10, yPosition);
           yPosition += 12;
 
-          // Include image if available and it's base64 data
-          if (image.imageData && image.mimeType && (image.mimeType.includes('jpeg') || image.mimeType.includes('png'))) {
+          // Include thumbnail if available
+          const hasImageData = image.imageData || (study.images[index] && study.images[index].imageData);
+          const hasMimeType = image.mimeType || (study.images[index] && study.images[index].mimeType);
+          
+          if (hasImageData && hasMimeType && (hasMimeType.includes('jpeg') || hasMimeType.includes('png'))) {
             try {
-              const imgData = `data:${image.mimeType};base64,${image.imageData}`;
-              const imgWidth = 80;
-              const imgHeight = 60;
-              
-              if (yPosition + imgHeight > pdf.internal.pageSize.getHeight() - margin) {
-                pdf.addPage();
-                yPosition = margin;
-              }
-              
-              pdf.addImage(imgData, 'JPEG', margin, yPosition, imgWidth, imgHeight);
-              yPosition += imgHeight + 10;
+              ensureSpace(50);
+              const imgData = `data:${hasMimeType};base64,${hasImageData}`;
+              pdf.addImage(imgData, format === 'JPEG' ? 'JPEG' : 'PNG', margin + 10, yPosition, 60, 45);
+              yPosition += 50;
             } catch (imgError) {
-              console.log("Could not add image to PDF:", imgError);
-              pdf.text("   [Image available in system]", margin, yPosition);
-              yPosition += 10;
+              pdf.setFontSize(9);
+              pdf.setTextColor(100, 100, 100);
+              pdf.text("[Image preview unavailable]", margin + 10, yPosition);
+              pdf.setTextColor(0, 0, 0);
+              yPosition += 12;
             }
           }
+          yPosition += 8;
         });
-        yPosition += 10;
       }
 
-      // Check if we need a new page
-      if (yPosition > pdf.internal.pageSize.getHeight() - 100) {
-        pdf.addPage();
-        yPosition = margin;
-      }
-
-      // Findings Section
-      pdf.setFontSize(14);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("FINDINGS", margin, yPosition);
-      yPosition += 15;
-
-      pdf.setFontSize(11);
-      pdf.setFont("helvetica", "normal");
+      // FINDINGS SECTION
+      sectionHeader("FINDINGS");
       const findingsText = reportFormData.findings || study.findings || "Pending radiologist interpretation.";
-      const findingsLines = pdf.splitTextToSize(findingsText, pageWidth - 2 * margin);
-      pdf.text(findingsLines, margin, yPosition);
-      yPosition += findingsLines.length * 6 + 15;
+      addTextBlock(findingsText, 11);
 
-      // Impression Section
-      pdf.setFontSize(14);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("IMPRESSION", margin, yPosition);
-      yPosition += 15;
-
-      pdf.setFontSize(11);
-      pdf.setFont("helvetica", "normal");
+      // IMPRESSION SECTION  
+      sectionHeader("IMPRESSION");
       const impressionText = reportFormData.impression || study.impression || "Pending radiologist review.";
-      const impressionLines = pdf.splitTextToSize(impressionText, pageWidth - 2 * margin);
-      pdf.text(impressionLines, margin, yPosition);
-      yPosition += impressionLines.length * 6 + 20;
+      addTextBlock(impressionText, 11);
+      yPosition += 10;
 
-      // Signature Section
-      const finalYPosition = Math.max(yPosition, pdf.internal.pageSize.getHeight() - 60);
-      pdf.setFontSize(11);
-      pdf.setFont("helvetica", "normal");
-      pdf.text("Electronically signed by:", margin, finalYPosition);
-      pdf.text(`${reportFormData.radiologist || study.radiologist || "Dr. Michael Chen"}`, margin, finalYPosition + 10);
-      pdf.text(`Date: ${format(new Date(), "PPP p")}`, margin, finalYPosition + 20);
+      // SIGNATURE SECTION (if final or signed)
+      if (!isPreliminary || study.report?.signedAt) {
+        ensureSpace(40);
+        pdf.setDrawColor(0, 0, 0);
+        pdf.setLineWidth(0.3);
+        pdf.line(margin, yPosition, margin + 120, yPosition);
+        yPosition += 8;
+        
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "normal");
+        pdf.text("Electronically signed by:", margin, yPosition);
+        yPosition += 12;
+        
+        pdf.setFont("helvetica", "bold");
+        pdf.text(`${reportFormData.radiologist || study.radiologist || "Dr. Michael Chen"}`, margin, yPosition);
+        yPosition += 12;
+        
+        pdf.setFont("helvetica", "normal");
+        pdf.text(`Date: ${format(new Date(), "PPP 'at' p")}`, margin, yPosition);
+      }
 
-      // Footer
-      pdf.setFontSize(9);
-      pdf.text("This report was generated electronically and is considered final.", 
-               pageWidth / 2, pdf.internal.pageSize.getHeight() - 20, { align: "center" });
+      // Add page numbers to all pages
+      const pageCount = pdf.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        pdf.setPage(i);
+        
+        // Footer content
+        pdf.setFontSize(9);
+        pdf.setFont("helvetica", "normal");
+        
+        // Patient identifier and study info (left)
+        pdf.text(`${study.patientName} • ${study.studyType} • ${format(new Date(study.orderedAt), "MMM dd, yyyy")}`, 
+                 margin, pageHeight - 20);
+        
+        // Page number (right)
+        pdf.text(`Page ${i} of ${pageCount}`, pageWidth - margin, pageHeight - 20, { align: "right" });
+        
+        // Report status (center)
+        pdf.text(isPreliminary ? "PRELIMINARY REPORT" : "FINAL REPORT", 
+                 pageWidth / 2, pageHeight - 20, { align: "center" });
+      }
 
       // Download the PDF
       const filename = `radiology-report-${study.patientName.replace(/\s+/g, '-').toLowerCase()}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
       pdf.save(filename);
 
       toast({
-        title: "Report Generated Successfully",
-        description: `PDF report for ${study.patientName} has been generated and downloaded`,
+        title: "Professional Radiology Report Generated",
+        description: `Complete PDF report for ${study.patientName} has been generated and downloaded`,
       });
 
       setShowReportDialog(false);
