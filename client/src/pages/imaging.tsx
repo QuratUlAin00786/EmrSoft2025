@@ -30,7 +30,7 @@ import {
   Trash2
 } from "lucide-react";
 import { format } from "date-fns";
-import jsPDF from "jspdf";
+import { queryClient } from '@/lib/queryClient';
 
 interface ImagingStudy {
   id: string;
@@ -189,6 +189,8 @@ export default function ImagingPage() {
     impression: "",
     radiologist: ""
   });
+  const [generatedReportId, setGeneratedReportId] = useState<string | null>(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [uploadFormData, setUploadFormData] = useState({
     patientId: "",
     studyType: "",
@@ -490,351 +492,46 @@ export default function ImagingPage() {
 
   const generatePDFReport = async (study: any) => {
     try {
-      const pdf = new jsPDF();
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 15;
-      const contentWidth = pageWidth - 2 * margin;
-      let yPosition = 20;
+      setIsGeneratingPDF(true);
+      setGeneratedReportId(null);
 
-      // Professional Medical Report - Single Page Layout
-      
-      // HEADER SECTION - Compact Company Logo Area & Title
-      pdf.setFillColor(245, 245, 245); // Light gray background
-      pdf.rect(0, 0, pageWidth, 28, 'F');
-      
-      // Main Title - Reduced size
-      pdf.setFontSize(16);
-      pdf.setFont("helvetica", "bold");
-      pdf.setTextColor(30, 58, 138); // Professional blue
-      pdf.text("CURA MEDICAL CENTER", pageWidth / 2, 12, { align: "center" });
-      
-      pdf.setFontSize(10);
-      pdf.setFont("helvetica", "normal");
-      pdf.setTextColor(100, 100, 100);
-      pdf.text("RADIOLOGY DIAGNOSTIC REPORT", pageWidth / 2, 20, { align: "center" });
-      
-      yPosition = 35;
-      pdf.setTextColor(0, 0, 0); // Reset to black
-
-      // PATIENT INFORMATION SECTION - Compact
-      pdf.setFillColor(248, 250, 252); // Very light blue
-      pdf.rect(margin, yPosition, contentWidth, 20, 'F');
-      pdf.setDrawColor(200, 200, 200);
-      pdf.rect(margin, yPosition, contentWidth, 20, 'S');
-      
-      yPosition += 6;
-      pdf.setFontSize(9);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("PATIENT INFORMATION", margin + 5, yPosition);
-      
-      yPosition += 6;
-      const leftCol = margin + 10;
-      const midCol = margin + contentWidth / 3;
-      const rightCol = margin + (2 * contentWidth / 3);
-      
-      pdf.setFontSize(8);
-      pdf.setFont("helvetica", "normal");
-      
-      // Patient details in three columns - Smaller text
-      pdf.setFont("helvetica", "bold");
-      pdf.text("Name:", leftCol, yPosition);
-      pdf.setFont("helvetica", "normal");
-      pdf.text(study.patientName || "N/A", leftCol + 18, yPosition);
-      
-      pdf.setFont("helvetica", "bold");
-      pdf.text("ID:", midCol, yPosition);
-      pdf.setFont("helvetica", "normal");
-      pdf.text(study.patientId || "N/A", midCol + 10, yPosition);
-      
-      pdf.setFont("helvetica", "bold");
-      pdf.text("Date:", rightCol, yPosition);
-      pdf.setFont("helvetica", "normal");
-      pdf.text(format(new Date(study.orderedAt), "dd/MM/yyyy"), rightCol + 18, yPosition);
-
-      yPosition += 22;
-
-      // STUDY INFORMATION SECTION - Compact
-      pdf.setFillColor(250, 248, 255); // Very light purple
-      pdf.rect(margin, yPosition, contentWidth, 20, 'F');
-      pdf.setDrawColor(200, 200, 200);
-      pdf.rect(margin, yPosition, contentWidth, 20, 'S');
-      
-      yPosition += 6;
-      pdf.setFontSize(9);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("STUDY INFORMATION", margin + 5, yPosition);
-      
-      yPosition += 6;
-      pdf.setFontSize(8);
-      pdf.setFont("helvetica", "normal");
-      
-      // Study details in three columns - Smaller text
-      pdf.setFont("helvetica", "bold");
-      pdf.text("Study:", leftCol, yPosition);
-      pdf.setFont("helvetica", "normal");
-      pdf.text(study.studyType || "N/A", leftCol + 22, yPosition);
-      
-      pdf.setFont("helvetica", "bold");
-      pdf.text("Modality:", midCol, yPosition);
-      pdf.setFont("helvetica", "normal");
-      pdf.text(study.modality || "N/A", midCol + 28, yPosition);
-      
-      pdf.setFont("helvetica", "bold");
-      pdf.text("Body Part:", rightCol, yPosition);
-      pdf.setFont("helvetica", "normal");
-      pdf.text(study.bodyPart || "N/A", rightCol + 32, yPosition);
-
-      yPosition += 24;
-
-      // CLINICAL INDICATION - Smaller heading
-      pdf.setFontSize(9);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("CLINICAL INDICATION:", margin, yPosition);
-      yPosition += 6;
-      
-      pdf.setFontSize(8);
-      pdf.setFont("helvetica", "normal");
-      const indicationText = study.indication || "Clinical evaluation requested";
-      const indicationLines = pdf.splitTextToSize(indicationText, contentWidth - 20);
-      pdf.text(indicationLines, margin + 5, yPosition);
-      yPosition += indicationLines.length * 5 + 8;
-
-      // TECHNIQUE - Smaller heading
-      pdf.setFontSize(9);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("TECHNIQUE:", margin, yPosition);
-      yPosition += 6;
-      
-      pdf.setFontSize(8);
-      pdf.setFont("helvetica", "normal");
-      const techniqueText = `${study.modality} imaging of the ${study.bodyPart} performed per standard protocol.`;
-      pdf.text(techniqueText, margin + 5, yPosition);
-      yPosition += 8;
-
-      // FINDINGS SECTION - Smaller heading
-      pdf.setFontSize(9);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("FINDINGS:", margin, yPosition);
-      yPosition += 6;
-      
-      pdf.setFontSize(8);
-      pdf.setFont("helvetica", "normal");
-      const findingsText = reportFormData.findings || study.findings || 
-        "Normal anatomical structures within imaging field. No acute abnormalities identified. Bone structures intact with no fracture or dislocation. Soft tissues show normal characteristics.";
-      
-      const findingsLines = pdf.splitTextToSize(findingsText, contentWidth - 10);
-      pdf.text(findingsLines, margin + 5, yPosition);
-      yPosition += findingsLines.length * 5 + 8;
-
-      // IMPRESSION SECTION - Smaller heading
-      pdf.setFontSize(9);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("IMPRESSION:", margin, yPosition);
-      yPosition += 6;
-      
-      pdf.setFontSize(8);
-      pdf.setFont("helvetica", "normal");
-      const impressionText = reportFormData.impression || study.impression || "Normal study. No acute findings.";
-      const impressionLines = pdf.splitTextToSize(impressionText, contentWidth - 10);
-      pdf.text(impressionLines, margin + 5, yPosition);
-      yPosition += impressionLines.length * 5 + 8;
-
-      // MEDICAL IMAGES SECTION - Larger space for images with debug logging
-      if (study.images && study.images.length > 0) {
-        const availableHeight = pageHeight - yPosition - 45; // More space for images
-        const imageHeight = Math.min(90, availableHeight); // Larger image area
-        
-        if (imageHeight > 40) { // Only show if enough space
-          pdf.setFontSize(9);
-          pdf.setFont("helvetica", "bold");
-          pdf.text("REPRESENTATIVE IMAGES:", margin, yPosition);
-          yPosition += 8;
-          
-          const imageWidth = 100; // Larger image width
-          const imageX = pageWidth / 2 - imageWidth / 2;
-          
-          // Enhanced image handling with better debugging
-          const mainImage = study.images[0];
-          let imageDisplayed = false;
-          
-          console.log("PDF Image Debug - Main image object:", mainImage);
-          
-          // Check if this is from the medical images table
-          if (mainImage.imageData && typeof mainImage.imageData === 'string' && mainImage.imageData.length > 100) {
-            try {
-              console.log("PDF Image Debug - Attempting to use imageData, length:", mainImage.imageData.length);
-              const mimeType = mainImage.mimeType || 'image/jpeg';
-              const imgData = mainImage.imageData.startsWith('data:') ? 
-                mainImage.imageData : 
-                `data:${mimeType};base64,${mainImage.imageData}`;
-              
-              pdf.addImage(imgData, 'JPEG', imageX, yPosition, imageWidth, imageHeight - 20);
-              imageDisplayed = true;
-              yPosition += imageHeight - 15;
-              
-              // Add image caption
-              pdf.setFontSize(7);
-              pdf.setFont("helvetica", "normal");
-              pdf.setTextColor(100, 100, 100);
-              pdf.text(`${mainImage.fileName || mainImage.seriesDescription || 'Medical Image'} - ${mainImage.studyType || 'Study'}`, 
-                       pageWidth / 2, yPosition + 5, { align: "center" });
-              pdf.setTextColor(0, 0, 0);
-              yPosition += 10;
-              console.log("PDF Image Debug - Image successfully added to PDF");
-            } catch (error) {
-              console.log("PDF Image Debug - Error adding image:", error);
-            }
-          } else {
-            console.log("PDF Image Debug - No valid imageData found, checking other sources");
-            
-            // Try alternative image data sources
-            const possibleImageSources = [
-              mainImage.data,
-              mainImage.base64,
-              mainImage.content
-            ];
-            
-            for (let i = 0; i < possibleImageSources.length && !imageDisplayed; i++) {
-              const imageData = possibleImageSources[i];
-              console.log(`PDF Image Debug - Trying source ${i}:`, imageData ? `Found data length ${imageData.length}` : 'No data');
-              
-              if (imageData && typeof imageData === 'string' && imageData.length > 100) {
-                try {
-                  const mimeType = mainImage.mimeType || mainImage.type || 'image/jpeg';
-                  const imgData = imageData.startsWith('data:') ? imageData : `data:${mimeType};base64,${imageData}`;
-                  pdf.addImage(imgData, 'JPEG', imageX, yPosition, imageWidth, imageHeight - 20);
-                  imageDisplayed = true;
-                  yPosition += imageHeight - 15;
-                  
-                  pdf.setFontSize(7);
-                  pdf.setFont("helvetica", "normal");
-                  pdf.setTextColor(100, 100, 100);
-                  pdf.text(`${mainImage.fileName || mainImage.seriesDescription || 'Medical Image'}`, 
-                           pageWidth / 2, yPosition + 5, { align: "center" });
-                  pdf.setTextColor(0, 0, 0);
-                  yPosition += 10;
-                  console.log("PDF Image Debug - Alternative image source successful");
-                  break;
-                } catch (error) {
-                  console.log(`PDF Image Debug - Alternative source ${i} failed:`, error);
-                }
-              }
-            }
-          }
-          
-          // If no image could be displayed, show professional placeholder
-          if (!imageDisplayed) {
-            console.log("PDF Image Debug - No images found, showing placeholder");
-            // Create a professional medical image placeholder
-            pdf.setDrawColor(30, 58, 138); // Professional blue border
-            pdf.setFillColor(248, 250, 252); // Light blue background
-            pdf.rect(imageX, yPosition, imageWidth, imageHeight - 20, 'FD');
-            
-            // Add medical cross symbol
-            const crossSize = 16;
-            const crossX = pageWidth / 2;
-            const crossY = yPosition + (imageHeight - 20) / 2;
-            
-            pdf.setDrawColor(30, 58, 138);
-            pdf.setLineWidth(2);
-            pdf.line(crossX - crossSize/2, crossY, crossX + crossSize/2, crossY); // Horizontal line
-            pdf.line(crossX, crossY - crossSize/2, crossX, crossY + crossSize/2); // Vertical line
-            
-            // Add image information
-            pdf.setFontSize(8);
-            pdf.setFont("helvetica", "bold");
-            pdf.setTextColor(30, 58, 138);
-            pdf.text("MEDICAL IMAGE", pageWidth / 2, yPosition + (imageHeight - 20) / 2 + 15, { align: "center" });
-            
-            pdf.setFontSize(7);
-            pdf.setFont("helvetica", "normal");
-            pdf.setTextColor(100, 100, 100);
-            pdf.text(`${mainImage.fileName || mainImage.seriesDescription || 'Imaging Study'}`, pageWidth / 2, yPosition + (imageHeight - 20) / 2 + 25, { align: "center" });
-            pdf.text(`${mainImage.studyType || mainImage.modality || 'Medical Study'} - Image Available`, pageWidth / 2, yPosition + (imageHeight - 20) / 2 + 32, { align: "center" });
-            
-            pdf.setTextColor(0, 0, 0);
-            yPosition += imageHeight - 10;
-          }
+      // Call server-side PDF generation endpoint
+      const response = await apiRequest('/api/imaging/generate-report', {
+        method: 'POST',
+        body: JSON.stringify({
+          study,
+          reportFormData
+        }),
+        headers: {
+          'Content-Type': 'application/json'
         }
-      }
-      
-      // IMAGE SERIES SUMMARY - Compact
-      if (study.images && study.images.length > 1) {
-        pdf.setFontSize(8);
-        pdf.setFont("helvetica", "bold");
-        pdf.text("Additional Series:", margin, yPosition);
-        yPosition += 5;
-        
-        pdf.setFontSize(7);
-        pdf.setFont("helvetica", "normal");
-        study.images.slice(1, 4).forEach((image: any, index: number) => { // Limit to 3 additional
-          pdf.text(`• ${image.fileName || image.seriesDescription || 'Medical Images'}`, margin + 5, yPosition);
-          yPosition += 4;
-        });
-        if (study.images.length > 4) {
-          pdf.text(`... and ${study.images.length - 4} more image series`, margin + 5, yPosition);
-          yPosition += 4;
-        }
-        yPosition += 3;
-      }
-
-      // RADIOLOGIST SIGNATURE SECTION - Compact
-      const footerStartY = pageHeight - 35;
-      yPosition = Math.max(yPosition + 5, footerStartY - 20);
-      
-      pdf.setDrawColor(200, 200, 200);
-      pdf.line(margin, yPosition, pageWidth - margin, yPosition);
-      yPosition += 6;
-      
-      pdf.setFontSize(8);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("REPORTED BY:", margin, yPosition);
-      
-      pdf.setFont("helvetica", "normal");
-      pdf.text(`${reportFormData.radiologist || study.radiologist || "Dr. Sarah Johnson"}`, margin + 40, yPosition);
-      
-      pdf.text("Date: " + format(new Date(), "dd/MM/yyyy HH:mm"), pageWidth - margin, yPosition, { align: "right" });
-      
-      yPosition += 6;
-      pdf.setFontSize(7);
-      pdf.text("MD, Diagnostic Radiology", margin + 40, yPosition);
-      pdf.text("License #: MD-RAD-2024", pageWidth - margin, yPosition, { align: "right" });
-
-      // FOOTER - Compact
-      const footerY = pageHeight - 12;
-      pdf.setFillColor(30, 58, 138); // Professional blue
-      pdf.rect(0, footerY, pageWidth, 12, 'F');
-      
-      pdf.setFontSize(7);
-      pdf.setTextColor(255, 255, 255);
-      pdf.text("Cura Medical Center | Radiology Department", margin, footerY + 6);
-      pdf.text("📞 +44-123-456-7890 | 📧 radiology@curamedical.com", pageWidth - margin, footerY + 6, { align: "right" });
-
-      // CONFIDENTIALITY NOTICE
-      pdf.setFontSize(6);
-      pdf.setTextColor(255, 255, 255);
-      pdf.text("CONFIDENTIAL MEDICAL REPORT - For authorized personnel only", pageWidth / 2, footerY + 10, { align: "center" });
-
-      // Download the PDF
-      const filename = `radiology-report-${study.patientName.replace(/\s+/g, '-').toLowerCase()}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
-      pdf.save(filename);
-
-      toast({
-        title: "Professional Medical Report Generated",
-        description: `Comprehensive radiology report for ${study.patientName} has been created successfully`,
       });
 
-      setShowReportDialog(false);
+      if (response.success && response.reportId) {
+        setGeneratedReportId(response.reportId);
+        toast({
+          title: "PDF Report Generated Successfully",
+          description: `Report saved with ID: ${response.reportId.slice(0, 8)}...`,
+        });
+      } else {
+        throw new Error('Failed to generate PDF report');
+      }
 
     } catch (error) {
       console.error("PDF generation error:", error);
       toast({
-        title: "Report Generation Failed",
+        title: "Report Generation Failed", 
         description: "Failed to generate PDF report. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsGeneratingPDF(false);
     }
+  };
+
+  const viewPDFReport = (reportId: string) => {
+    const reportUrl = `/api/imaging/reports/${reportId}`;
+    window.open(reportUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
   };
 
   const handleDeleteStudy = async (studyId: string) => {
@@ -1431,20 +1128,63 @@ export default function ImagingPage() {
                     <Download className="h-4 w-4 mr-2" />
                     Download Report
                   </Button>
-                  <Button 
-                    onClick={() => {
-                      if (selectedStudy.status === 'final') {
-                        setShowReportDialog(false);
-                        setShowFinalReportDialog(true);
-                      } else {
-                        generatePDFReport(selectedStudy);
+                  {generatedReportId ? (
+                    <div className="space-y-3">
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span className="text-green-700 font-medium">Report Generated Successfully!</span>
+                        </div>
+                        <div className="text-sm text-green-600">
+                          <strong>Report ID:</strong> 
+                          <Button
+                            variant="link"
+                            onClick={() => viewPDFReport(generatedReportId)}
+                            className="p-0 h-auto ml-2 text-blue-600 hover:text-blue-800 underline"
+                            data-testid="link-report-view"
+                          >
+                            {generatedReportId.slice(0, 8)}...
+                          </Button>
+                        </div>
+                        <p className="text-xs text-green-600 mt-1">Click the Report ID to view the PDF</p>
+                      </div>
+                      <Button
+                        onClick={() => {
+                          setGeneratedReportId(null);
+                          setReportFormData({
+                            findings: "",
+                            impression: "",
+                            radiologist: ""
+                          });
+                        }}
+                        variant="outline"
+                        className="w-full"
+                        data-testid="button-generate-new"
+                      >
+                        Generate New Report
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button 
+                      onClick={() => {
+                        if (selectedStudy.status === 'final') {
+                          setShowReportDialog(false);
+                          setShowFinalReportDialog(true);
+                        } else {
+                          generatePDFReport(selectedStudy);
+                        }
+                      }}
+                      disabled={isGeneratingPDF}
+                      className="bg-medical-blue hover:bg-blue-700 disabled:opacity-50"
+                      data-testid="button-generate-report"
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      {isGeneratingPDF 
+                        ? 'Generating...' 
+                        : selectedStudy.status === 'final' ? 'View Final Report' : 'Generate Report'
                       }
-                    }}
-                    className="bg-medical-blue hover:bg-blue-700"
-                  >
-                    <FileText className="h-4 w-4 mr-2" />
-                    {selectedStudy.status === 'final' ? 'View Final Report' : 'Generate Report'}
-                  </Button>
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>

@@ -21,6 +21,9 @@ import { processAppointmentBookingChat, generateAppointmentSummary } from "./ant
 import { inventoryService } from "./services/inventory";
 import { emailService } from "./services/email";
 import multer from "multer";
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
+import * as fs from 'fs-extra';
 
 // In-memory storage for voice notes - persistent across server restarts
 let voiceNotes: any[] = [];
@@ -8369,6 +8372,282 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // SaaS routes already registered above before tenant middleware
 
   const httpServer = createServer(app);
+  // HTML Generator for PDF Reports
+  function generateReportHTML(study: any, reportFormData: any = {}) {
+    const currentDate = new Date().toLocaleDateString('en-GB');
+    const currentDateTime = new Date().toLocaleString('en-GB');
+    
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Radiology Report</title>
+    <style>
+        @page { 
+            margin: 0.5in; 
+            size: A4;
+        }
+        body { 
+            font-family: 'Helvetica', 'Arial', sans-serif; 
+            font-size: 8pt; 
+            line-height: 1.3; 
+            margin: 0; 
+            color: #000;
+        }
+        .header { 
+            background-color: #f5f5f5; 
+            padding: 8px; 
+            text-align: center; 
+            margin-bottom: 15px;
+            border-bottom: 2px solid #1e3a8a;
+        }
+        .header h1 { 
+            font-size: 16pt; 
+            font-weight: bold; 
+            color: #1e3a8a; 
+            margin: 5px 0;
+        }
+        .header h2 { 
+            font-size: 10pt; 
+            color: #666; 
+            margin: 3px 0;
+        }
+        .info-section { 
+            background-color: #f8fafc; 
+            border: 1px solid #e2e8f0; 
+            padding: 8px; 
+            margin-bottom: 12px;
+        }
+        .info-header { 
+            font-size: 9pt; 
+            font-weight: bold; 
+            margin-bottom: 5px;
+        }
+        .info-row { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 3px;
+        }
+        .info-label { 
+            font-weight: bold; 
+            margin-right: 10px;
+        }
+        .section-title { 
+            font-size: 9pt; 
+            font-weight: bold; 
+            margin: 15px 0 5px 0; 
+            color: #1e3a8a;
+        }
+        .content { 
+            margin-left: 5px; 
+            margin-bottom: 8px;
+        }
+        .image-placeholder {
+            border: 2px solid #1e3a8a;
+            background-color: #f8fafc;
+            width: 100px;
+            height: 70px;
+            margin: 10px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .image-text {
+            font-size: 8pt;
+            color: #1e3a8a;
+            font-weight: bold;
+        }
+        .footer { 
+            background-color: #1e3a8a; 
+            color: white; 
+            padding: 6px 10px; 
+            font-size: 7pt; 
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .signature-section {
+            border-top: 1px solid #ccc;
+            margin-top: 15px;
+            padding-top: 8px;
+        }
+        .signature-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>CURA MEDICAL CENTER</h1>
+        <h2>RADIOLOGY DIAGNOSTIC REPORT</h2>
+    </div>
+
+    <div class="info-section">
+        <div class="info-header">PATIENT INFORMATION</div>
+        <div class="info-row">
+            <span><span class="info-label">Name:</span> ${study.patientName || 'N/A'}</span>
+            <span><span class="info-label">ID:</span> ${study.patientId || 'N/A'}</span>
+            <span><span class="info-label">Date:</span> ${currentDate}</span>
+        </div>
+    </div>
+
+    <div class="info-section">
+        <div class="info-header">STUDY INFORMATION</div>
+        <div class="info-row">
+            <span><span class="info-label">Study:</span> ${study.studyType || 'N/A'}</span>
+            <span><span class="info-label">Modality:</span> ${study.modality || 'N/A'}</span>
+            <span><span class="info-label">Body Part:</span> ${study.bodyPart || 'N/A'}</span>
+        </div>
+    </div>
+
+    <div class="section-title">CLINICAL INDICATION:</div>
+    <div class="content">${study.indication || 'Clinical evaluation requested'}</div>
+
+    <div class="section-title">TECHNIQUE:</div>
+    <div class="content">${study.modality || 'Imaging'} imaging of the ${study.bodyPart || 'target area'} performed per standard protocol.</div>
+
+    <div class="section-title">FINDINGS:</div>
+    <div class="content">${reportFormData.findings || study.findings || 'Normal anatomical structures within imaging field. No acute abnormalities identified. Bone structures intact with no fracture or dislocation. Soft tissues show normal characteristics.'}</div>
+
+    <div class="section-title">IMPRESSION:</div>
+    <div class="content">${reportFormData.impression || study.impression || 'Normal study. No acute findings.'}</div>
+
+    <div class="section-title">REPRESENTATIVE IMAGES:</div>
+    <div class="image-placeholder">
+        <div>
+            <div class="image-text">MEDICAL IMAGE</div>
+            <div style="font-size: 7pt; color: #666; margin-top: 5px;">
+                ${study.images && study.images[0] ? study.images[0].fileName || study.images[0].seriesDescription || 'Imaging Study' : 'Medical Study'}<br>
+                Image Available
+            </div>
+        </div>
+    </div>
+
+    <div class="signature-section">
+        <div class="signature-row">
+            <span><span class="info-label">REPORTED BY:</span> ${reportFormData.radiologist || study.radiologist || "Dr. Sarah Johnson"}</span>
+            <span><span class="info-label">Date:</span> ${currentDateTime}</span>
+        </div>
+        <div class="signature-row">
+            <span style="margin-left: 80px;">MD, Diagnostic Radiology</span>
+            <span>License #: MD-RAD-2024</span>
+        </div>
+    </div>
+
+    <div class="footer">
+        <span>Cura Medical Center | Radiology Department</span>
+        <span>📞 +44-123-456-7890 | 📧 radiology@curamedical.com</span>
+    </div>
+    
+    <div style="text-align: center; font-size: 6pt; color: white; background-color: #1e3a8a; padding: 3px; margin-top: -10px;">
+        CONFIDENTIAL MEDICAL REPORT - For authorized personnel only
+    </div>
+</body>
+</html>`;
+  }
+
+  // PDF Report Generation Endpoint
+  app.post("/api/imaging/generate-report", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const { study, reportFormData } = req.body;
+      
+      if (!study || !study.patientName) {
+        return res.status(400).json({ error: "Study data is required" });
+      }
+
+      // Generate unique report ID
+      const reportId = uuidv4();
+      
+      // Ensure reports directory exists
+      const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Reports');
+      await fs.ensureDir(reportsDir);
+      
+      // Import puppeteer dynamically for ESM compatibility
+      const puppeteer = (await import('puppeteer')).default;
+      
+      // Generate HTML content for PDF
+      const htmlContent = generateReportHTML(study, reportFormData);
+      
+      // Launch browser and generate PDF
+      const browser = await puppeteer.launch({ 
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        headless: true
+      });
+      
+      const page = await browser.newPage();
+      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+      
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        margin: {
+          top: '0.5in',
+          right: '0.5in',
+          bottom: '0.5in',
+          left: '0.5in'
+        },
+        printBackground: true
+      });
+      
+      await browser.close();
+      
+      // Save PDF to disk
+      const outputPath = path.join(reportsDir, `${reportId}.pdf`);
+      await fs.writeFile(outputPath, pdfBuffer);
+      
+      console.log(`PDF report generated and saved: ${outputPath}`);
+      
+      res.json({
+        success: true,
+        reportId: reportId,
+        message: "PDF report generated successfully"
+      });
+
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      res.status(500).json({ error: "Failed to generate PDF report" });
+    }
+  });
+
+  // Serve PDF Reports
+  app.get("/api/imaging/reports/:reportId", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const { reportId } = req.params;
+      
+      // Validate reportId format (UUID)
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(reportId)) {
+        return res.status(400).json({ error: "Invalid report ID format" });
+      }
+
+      const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Reports');
+      const filePath = path.join(reportsDir, `${reportId}.pdf`);
+      
+      // Check if file exists
+      if (!(await fs.pathExists(filePath))) {
+        return res.status(404).json({ error: "Report not found" });
+      }
+      
+      // Serve the PDF file
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="radiology-report-${reportId}.pdf"`);
+      res.sendFile(filePath);
+
+    } catch (error) {
+      console.error("PDF serving error:", error);
+      res.status(500).json({ error: "Failed to serve PDF report" });
+    }
+  });
   
   // Add WebSocket support for real-time messaging
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
