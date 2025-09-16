@@ -184,11 +184,9 @@ export default function ImagingPage() {
   });
   const [patients, setPatients] = useState<any[]>([]);
   const [patientsLoading, setPatientsLoading] = useState(false);
-  const [reportFormData, setReportFormData] = useState({
-    findings: "",
-    impression: "",
-    radiologist: ""
-  });
+  const [reportFindings, setReportFindings] = useState("");
+  const [reportImpression, setReportImpression] = useState("");
+  const [reportRadiologist, setReportRadiologist] = useState("");
   const [generatedReportId, setGeneratedReportId] = useState<string | null>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [uploadFormData, setUploadFormData] = useState({
@@ -481,11 +479,9 @@ export default function ImagingPage() {
     const study = (studies as any || []).find((s: any) => s.id === studyId);
     if (study) {
       setSelectedStudy(study);
-      setReportFormData({
-        findings: study.findings || "",
-        impression: study.impression || "",
-        radiologist: study.radiologist || "Dr. Michael Chen"
-      });
+      setReportFindings(study.findings || "");
+      setReportImpression(study.impression || "");
+      setReportRadiologist(study.radiologist || "Dr. Michael Chen");
       setShowReportDialog(true);
     }
   };
@@ -498,7 +494,11 @@ export default function ImagingPage() {
       // Call server-side PDF generation endpoint
       const response = await apiRequest('POST', '/api/imaging/generate-report', {
         study,
-        reportFormData
+        reportFormData: {
+          findings: reportFindings,
+          impression: reportImpression,
+          radiologist: reportRadiologist
+        }
       });
 
       const data = await response.json();
@@ -1061,8 +1061,8 @@ export default function ImagingPage() {
                   <Textarea
                     id="findings"
                     placeholder="Enter radiological findings..."
-                    value={reportFormData.findings}
-                    onChange={(e) => setReportFormData(prev => ({ ...prev, findings: e.target.value }))}
+                    value={reportFindings}
+                    onChange={(e) => setReportFindings(e.target.value)}
                     rows={4}
                     className="mt-1"
                   />
@@ -1075,8 +1075,8 @@ export default function ImagingPage() {
                   <Textarea
                     id="impression"
                     placeholder="Enter clinical impression..."
-                    value={reportFormData.impression}
-                    onChange={(e) => setReportFormData(prev => ({ ...prev, impression: e.target.value }))}
+                    value={reportImpression}
+                    onChange={(e) => setReportImpression(e.target.value)}
                     rows={3}
                     className="mt-1"
                   />
@@ -1088,8 +1088,8 @@ export default function ImagingPage() {
                   </Label>
                   <Input
                     id="radiologist"
-                    value={reportFormData.radiologist}
-                    onChange={(e) => setReportFormData(prev => ({ ...prev, radiologist: e.target.value }))}
+                    value={reportRadiologist}
+                    onChange={(e) => setReportRadiologist(e.target.value)}
                     className="mt-1"
                   />
                 </div>
@@ -1172,11 +1172,9 @@ export default function ImagingPage() {
                         <Button
                           onClick={() => {
                             setGeneratedReportId(null);
-                            setReportFormData({
-                              findings: "",
-                              impression: "",
-                              radiologist: ""
-                            });
+                            setReportFindings("");
+                            setReportImpression("");
+                            setReportRadiologist("");
                           }}
                           variant="outline"
                           className="flex-1"
