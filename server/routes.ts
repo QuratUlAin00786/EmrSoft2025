@@ -941,8 +941,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         providerId: req.user!.id, // Use the authenticated user as the provider
         type: recordData.type,
         title: recordData.title,
-        recordType: recordData.type, // Add required recordType field
-        content: recordData.notes, // Add required content field
         notes: recordData.notes,
         diagnosis: recordData.diagnosis,
         treatment: recordData.treatment,
