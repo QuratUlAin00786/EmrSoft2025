@@ -8570,37 +8570,179 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Reports');
       await fs.ensureDir(reportsDir);
       
-      // Import puppeteer dynamically for ESM compatibility
-      const puppeteer = (await import('puppeteer')).default;
+      // Import pdf-lib dynamically
+      const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib');
       
-      // Generate HTML content for PDF
-      const htmlContent = generateReportHTML(study, reportFormData);
+      // Create a new PDF document
+      const pdfDoc = await PDFDocument.create();
+      const page = pdfDoc.addPage([595, 842]); // A4 size in points
+      const { width, height } = page.getSize();
       
-      // Launch browser and generate PDF
-      const browser = await puppeteer.launch({ 
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        headless: true
+      // Load fonts
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      
+      // Colors
+      const blueColor = rgb(0.12, 0.23, 0.54); // #1e3a8a
+      const blackColor = rgb(0, 0, 0);
+      
+      // Position tracker
+      let yPosition = height - 50;
+      
+      // Header
+      page.drawText('RADIOLOGY REPORT', {
+        x: 50,
+        y: yPosition,
+        size: 18,
+        font: boldFont,
+        color: blueColor
       });
       
-      const page = await browser.newPage();
-      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+      yPosition -= 30;
       
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
-        margin: {
-          top: '0.5in',
-          right: '0.5in',
-          bottom: '0.5in',
-          left: '0.5in'
-        },
-        printBackground: true
+      // Patient Information
+      page.drawText('PATIENT INFORMATION', {
+        x: 50,
+        y: yPosition,
+        size: 12,
+        font: boldFont,
+        color: blueColor
       });
       
-      await browser.close();
+      yPosition -= 20;
+      page.drawText(`Patient Name: ${study.patientName}`, { x: 50, y: yPosition, size: 10, font });
+      yPosition -= 15;
+      page.drawText(`Patient ID: ${study.patientId || 'N/A'}`, { x: 50, y: yPosition, size: 10, font });
+      yPosition -= 15;
+      page.drawText(`Date of Birth: ${study.patientDOB || 'N/A'}`, { x: 50, y: yPosition, size: 10, font });
+      yPosition -= 15;
+      page.drawText(`Study Date: ${study.studyDate}`, { x: 50, y: yPosition, size: 10, font });
+      
+      yPosition -= 30;
+      
+      // Study Details
+      page.drawText('STUDY DETAILS', {
+        x: 50,
+        y: yPosition,
+        size: 12,
+        font: boldFont,
+        color: blueColor
+      });
+      
+      yPosition -= 20;
+      page.drawText(`Study Type: ${study.studyType}`, { x: 50, y: yPosition, size: 10, font });
+      yPosition -= 15;
+      page.drawText(`Body Part: ${study.bodyPart}`, { x: 50, y: yPosition, size: 10, font });
+      yPosition -= 15;
+      page.drawText(`Modality: ${study.modality}`, { x: 50, y: yPosition, size: 10, font });
+      
+      if (reportFormData) {
+        yPosition -= 30;
+        
+        // Clinical Indication
+        if (reportFormData.clinicalIndication) {
+          page.drawText('CLINICAL INDICATION', {
+            x: 50,
+            y: yPosition,
+            size: 12,
+            font: boldFont,
+            color: blueColor
+          });
+          yPosition -= 20;
+          page.drawText(reportFormData.clinicalIndication, { x: 50, y: yPosition, size: 10, font });
+          yPosition -= 30;
+        }
+        
+        // Technique
+        if (reportFormData.technique) {
+          page.drawText('TECHNIQUE', {
+            x: 50,
+            y: yPosition,
+            size: 12,
+            font: boldFont,
+            color: blueColor
+          });
+          yPosition -= 20;
+          page.drawText(reportFormData.technique, { x: 50, y: yPosition, size: 10, font });
+          yPosition -= 30;
+        }
+        
+        // Findings
+        if (reportFormData.findings) {
+          page.drawText('FINDINGS', {
+            x: 50,
+            y: yPosition,
+            size: 12,
+            font: boldFont,
+            color: blueColor
+          });
+          yPosition -= 20;
+          page.drawText(reportFormData.findings, { x: 50, y: yPosition, size: 10, font });
+          yPosition -= 30;
+        }
+        
+        // Impression
+        if (reportFormData.impression) {
+          page.drawText('IMPRESSION', {
+            x: 50,
+            y: yPosition,
+            size: 12,
+            font: boldFont,
+            color: blueColor
+          });
+          yPosition -= 20;
+          page.drawText(reportFormData.impression, { x: 50, y: yPosition, size: 10, font });
+          yPosition -= 30;
+        }
+      }
+      
+      // Signature section
+      yPosition -= 20;
+      page.drawText('REPORTED BY', {
+        x: 50,
+        y: yPosition,
+        size: 12,
+        font: boldFont,
+        color: blueColor
+      });
+      yPosition -= 20;
+      page.drawText(`${reportFormData?.radiologist || study.radiologist || "Dr. Sarah Johnson"}`, { x: 50, y: yPosition, size: 10, font });
+      yPosition -= 15;
+      page.drawText('MD, Diagnostic Radiology', { x: 50, y: yPosition, size: 10, font });
+      yPosition -= 15;
+      page.drawText('License #: MD-RAD-2024', { x: 50, y: yPosition, size: 10, font });
+      yPosition -= 15;
+      page.drawText(`Date: ${new Date().toLocaleDateString()}`, { x: 50, y: yPosition, size: 10, font });
+      
+      // Footer
+      page.drawText('Cura Medical Center | Radiology Department', {
+        x: 50,
+        y: 50,
+        size: 9,
+        font,
+        color: blueColor
+      });
+      page.drawText('📞 +44-123-456-7890 | 📧 radiology@curamedical.com', {
+        x: 50,
+        y: 35,
+        size: 9,
+        font,
+        color: blueColor
+      });
+      page.drawText('CONFIDENTIAL MEDICAL REPORT - For authorized personnel only', {
+        x: 50,
+        y: 20,
+        size: 8,
+        font,
+        color: rgb(0.5, 0.5, 0.5)
+      });
+      
+      // Generate PDF bytes
+      const pdfBytes = await pdfDoc.save();
       
       // Save PDF to disk
       const outputPath = path.join(reportsDir, `${reportId}.pdf`);
-      await fs.writeFile(outputPath, pdfBuffer);
+      await fs.writeFile(outputPath, pdfBytes);
       
       console.log(`PDF report generated and saved: ${outputPath}`);
       
