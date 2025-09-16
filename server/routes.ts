@@ -506,6 +506,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get tenant-aware storage
   const tenantStorage = multiTenantPackage.getTenantStorage();
 
+  // Secure admin endpoint for demo medical records bootstrapping  
+  app.post('/api/admin/demo-medical-records-bootstrap', authMiddleware, requireRole(["admin"]), withTenantIsolation, async (req: TenantRequest, res) => {
+    try {
+      // SECURITY: Strict production requirements
+      if (process.env.NODE_ENV === 'production') {
+        if (!process.env.SETUP_TOKEN) {
+          return res.status(403).json({ error: 'Setup token required in production' });
+        }
+        if (process.env.ALLOW_DEMO_BOOTSTRAP !== 'true') {
+          return res.status(403).json({ error: 'Demo bootstrap not enabled in production' });
+        }
+      }
+      
+      const { seedProductionMedicalRecords } = await import("./production-medical-records");
+      
+      // SECURITY: Strict setup token verification  
+      const setupToken = req.headers['x-setup-token'] as string;
+      if (process.env.SETUP_TOKEN) {
+        if (!setupToken || setupToken !== process.env.SETUP_TOKEN) {
+          console.log(`[BOOTSTRAP] Invalid or missing setup token`);
+          return res.status(403).json({ error: 'Invalid setup token' });
+        }
+      }
+      
+      // SECURITY: Strict demo-only enforcement
+      const orgSubdomain = req.tenant?.subdomain;
+      if (!orgSubdomain) {
+        return res.status(400).json({ error: 'Organization context required' });
+      }
+      
+      // In production, ONLY allow demo organization (no exceptions)
+      if (process.env.NODE_ENV === 'production' && orgSubdomain !== 'demo') {
+        console.log(`[BOOTSTRAP] Production bootstrap denied for organization: ${orgSubdomain} (only demo allowed in production)`);
+        return res.status(403).json({ error: 'Production bootstrap only allowed for demo organization' });
+      }
+      
+      // In development, allow demo or if explicitly enabled
+      if (process.env.NODE_ENV !== 'production' && orgSubdomain !== 'demo' && process.env.ALLOW_DEMO_BOOTSTRAP !== 'true') {
+        console.log(`[BOOTSTRAP] Bootstrap denied for organization: ${orgSubdomain} (not demo and ALLOW_DEMO_BOOTSTRAP not set)`);
+        return res.status(403).json({ error: 'Bootstrap only allowed for demo organization or if explicitly enabled' });
+      }
+      
+      console.log(`[BOOTSTRAP] Starting medical records bootstrap for organization: ${orgSubdomain}`);
+      console.log(`[BOOTSTRAP] Initiated by admin user: ${req.user?.username} (ID: ${req.user?.id})`);
+      
+      // Call the refactored function with proper scoping
+      const result = await seedProductionMedicalRecords({
+        orgSubdomain: orgSubdomain,
+        maxPatients: 1,
+        minRecordsPerPatient: 2
+      });
+      
+      if (!result.success) {
+        console.log(`[BOOTSTRAP] Failed: ${result.error}`);
+        return res.status(400).json({ 
+          error: result.error,
+          createdCount: result.createdCount
+        });
+      }
+      
+      // SECURITY: PHI-safe audit logging (no medical content)
+      console.log(`[BOOTSTRAP] ✅ Successfully bootstrapped ${result.createdCount} medical records`);
+      console.log(`[BOOTSTRAP] Organization: ${orgSubdomain} (ID: ${result.organizationId})`);
+      console.log(`[BOOTSTRAP] Processed ${result.results?.length || 0} patients`);
+      
+      // SECURITY: PHI-safe response (no medical record content)
+      const patientsProcessed = result.results?.map(r => ({
+        patientId: r.patientId,
+        createdCount: r.createdCount,
+        skipped: r.skipped
+      })) || [];
+      
+      res.json({
+        success: true,
+        message: 'Demo medical records bootstrap completed successfully',
+        createdCount: result.createdCount,
+        organizationId: result.organizationId,
+        orgSubdomain: result.orgSubdomain,
+        patientsProcessed: patientsProcessed,
+        timestamp: new Date().toISOString()
+      });
+      
+    } catch (error) {
+      console.error('[BOOTSTRAP] Medical records bootstrap error:', error);
+      res.status(500).json({ 
+        error: 'Medical records bootstrap failed',
+        details: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
+      });
+    }
+  });
+
   // Register remaining SaaS administration routes
   registerSaaSRoutes(app);
 
