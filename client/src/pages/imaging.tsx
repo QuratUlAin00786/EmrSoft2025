@@ -693,6 +693,9 @@ export default function ImagingPage() {
   let studies: any[] = [];
   
   if (medicalImages && Array.isArray(medicalImages)) {
+    // Debug: Log medical images data to see the actual structure
+    console.log('🔍 Raw medicalImages data:', medicalImages);
+    
     studies = medicalImages.map((image: any) => ({
       id: image.id.toString(),
       patientId: image.patientId,
@@ -722,6 +725,9 @@ export default function ImagingPage() {
         mimeType: image.mimeType // Include the MIME type
       }]
     }));
+    
+    // Debug: Log the transformed studies data to see reportFileName mapping
+    console.log('🔍 Transformed studies data:', studies);
   }
 
   const filteredStudies = (studies as any || []).filter((study: any) => {
