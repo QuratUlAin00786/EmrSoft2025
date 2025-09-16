@@ -950,7 +950,7 @@ export default function ImagingPage() {
 
                 <Button variant="outline" onClick={() => setShowUploadDialog(true)}>
                   <FileImage className="h-4 w-4 mr-2" />
-                  Upload Images
+                  Order Study
                 </Button>
               </div>
             </CardContent>
@@ -1968,7 +1968,7 @@ export default function ImagingPage() {
                 disabled={!uploadFormData.patientId || !uploadFormData.studyType || selectedFiles.length === 0}
               >
                 <FileImage className="h-4 w-4 mr-2" />
-                Upload Images
+                Save Images
               </Button>
             </div>
           </div>
