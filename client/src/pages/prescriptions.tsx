@@ -1888,53 +1888,6 @@ export default function PrescriptionsPage() {
                 </Card>
               )}
 
-              {/* Action Buttons */}
-              <div className="flex justify-end gap-3 pt-4 border-t">
-                <Button variant="outline" onClick={() => setShowViewDetails(false)}>
-                  Close
-                </Button>
-                <Button variant="outline" onClick={() => handlePrintPrescription(selectedPrescription.id)}>
-                  <Printer className="h-4 w-4 mr-2" />
-                  Print
-                </Button>
-                <Button variant="outline" onClick={() => handleSendToPharmacy(selectedPrescription.id)}>
-                  <Send className="h-4 w-4 mr-2" />
-                  Send to Pharmacy
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setShowViewDetails(false);
-                    setShowESignDialog(true);
-                  }}
-                >
-                  <PenTool className="h-4 w-4 mr-2" />
-                  E-Sign
-                </Button>
-                {selectedPrescription.status === 'active' && (
-                  <Button 
-                    onClick={() => {
-                      setShowViewDetails(false);
-                      handleEditPrescription(selectedPrescription);
-                    }}
-                    className="bg-medical-blue hover:bg-blue-700"
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit Prescription
-                  </Button>
-                )}
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setShowViewDetails(false);
-                    handleDeletePrescription(selectedPrescription.id);
-                  }}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
-              </div>
             </div>
           )}
         </DialogContent>
