@@ -121,6 +121,27 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
   // Use React Query for medical records to fix production caching issues
   const { data: medicalRecords = [], isLoading, refetch: refetchMedicalRecords } = useQuery<any[]>({
     queryKey: ['/api/patients', patientId, 'records'],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/patients/${patientId}/records`, {
+        headers,
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      return response.json();
+    },
     enabled: !!patientId
   });
 
