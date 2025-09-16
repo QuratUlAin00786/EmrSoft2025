@@ -79,8 +79,4 @@ externalPort = 6800
 localPort = 46315
 externalPort = 4200
 
-[[ports]]
-localPort = 46485
-externalPort = 8008
-
 [agent]
