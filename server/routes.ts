@@ -9077,7 +9077,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Confidentiality notice
-      page.drawText('⚠️  CONFIDENTIAL MEDICAL REPORT - Authorized Personnel Only  ⚠️', {
+      page.drawText('WARNING: CONFIDENTIAL MEDICAL REPORT - Authorized Personnel Only', {
         x: width / 2 - 130,
         y: 15,
         size: 8,
