@@ -8721,11 +8721,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         color: primaryBlue
       });
       
-      // Medical cross symbol in logo
-      page.drawText('⚕', {
-        x: 63,
+      // Medical cross symbol in logo (using standard plus symbol)
+      page.drawText('+', {
+        x: 67,
         y: yPosition - 55,
-        size: 28,
+        size: 32,
         font: boldFont,
         color: rgb(1, 1, 1)
       });
