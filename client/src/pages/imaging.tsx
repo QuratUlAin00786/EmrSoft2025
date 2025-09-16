@@ -626,6 +626,12 @@ export default function ImagingPage() {
           title: "PDF Report Generated Successfully",
           description: `Report saved as: ${data.fileName || `${data.reportId}.pdf`}`,
         });
+
+        // Reset the button state after a brief delay to show "Generate Report" button again
+        setTimeout(() => {
+          setGeneratedReportId(null);
+          setGeneratedReportFileName(null);
+        }, 2000);
       } else {
         throw new Error('Failed to generate PDF report');
       }

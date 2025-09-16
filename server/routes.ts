@@ -8880,10 +8880,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
               height: drawHeight
             });
             
-            // Image details
-            page.drawText(`Series: ${study.images[0].seriesDescription || 'N/A'}`, {
+            // Image Series information
+            const fileSize = study.images[0].fileSize ? (study.images[0].fileSize / (1024 * 1024)).toFixed(2) : '0.00';
+            const imageSeries = `${study.modality || 'X-Ray'} x ${study.images.length} images • ${fileSize} MB • ${(study.images[0].mimeType || 'image/jpeg').includes('jpeg') ? 'JPEG' : 'PNG'}`;
+            
+            page.drawText(`Image Series: ${imageSeries}`, {
               x: 50,
-              y: yPosition - imageHeight + 15,
+              y: yPosition - imageHeight + 25,
+              size: 9,
+              font,
+              color: darkGray
+            });
+            
+            page.drawText(`Series: ${study.images[0].seriesDescription || study.studyType || 'N/A'}`, {
+              x: 50,
+              y: yPosition - imageHeight + 10,
               size: 9,
               font,
               color: darkGray
