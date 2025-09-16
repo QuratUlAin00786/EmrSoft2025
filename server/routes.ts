@@ -8840,9 +8840,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`PDF report generated and saved: ${outputPath}`);
       
+      // Save report file information to database
+      const reportFileName = `${reportId}.pdf`;
+      const reportFilePath = outputPath;
+      
+      if (req.organizationId && study.id) {
+        try {
+          await storage.updateMedicalImageReport(study.id, {
+            reportFileName,
+            reportFilePath,
+            findings: reportFormData?.findings || null,
+            impression: reportFormData?.impression || null,
+            radiologist: reportFormData?.radiologist || null
+          });
+          console.log(`Report file information saved to database for study ID: ${study.id}`);
+        } catch (dbError) {
+          console.error("Failed to save report info to database:", dbError);
+          // Continue without failing the response since PDF was generated successfully
+        }
+      }
+      
       res.json({
         success: true,
         reportId: reportId,
+        fileName: reportFileName,
+        filePath: reportFilePath,
         message: "PDF report generated successfully"
       });
 

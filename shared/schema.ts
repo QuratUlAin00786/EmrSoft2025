@@ -552,6 +552,9 @@ export const medicalImages = pgTable("medical_images", {
   findings: text("findings"), // Radiological findings
   impression: text("impression"), // Clinical impression
   radiologist: text("radiologist"), // Radiologist who interpreted the study
+  // Generated PDF report storage
+  reportFileName: text("report_file_name"), // Generated PDF report file name
+  reportFilePath: text("report_file_path"), // Generated PDF report file path
   metadata: jsonb("metadata").$type<{
     imageCount?: number;
     totalSize?: string;

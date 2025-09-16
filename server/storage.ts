@@ -275,6 +275,7 @@ export interface IStorage {
   createMedicalImage(image: InsertMedicalImage): Promise<MedicalImage>;
   updateMedicalImage(id: number, organizationId: number, updates: Partial<InsertMedicalImage>): Promise<MedicalImage | undefined>;
   updateMedicalImageReportField(id: number, organizationId: number, fieldName: string, value: string): Promise<MedicalImage | undefined>;
+  updateMedicalImageReport(id: number, reportData: { reportFileName?: string; reportFilePath?: string; findings?: string | null; impression?: string | null; radiologist?: string | null }): Promise<MedicalImage | undefined>;
   deleteMedicalImage(id: number, organizationId: number): Promise<boolean>;
 
   // Documents
@@ -3414,6 +3415,36 @@ export class DatabaseStorage implements IStorage {
       .update(medicalImages)
       .set(updates)
       .where(and(eq(medicalImages.id, id), eq(medicalImages.organizationId, organizationId)))
+      .returning();
+    return updatedImage;
+  }
+
+  async updateMedicalImageReport(id: number, reportData: { reportFileName?: string; reportFilePath?: string; findings?: string | null; impression?: string | null; radiologist?: string | null }): Promise<MedicalImage | undefined> {
+    const updates: any = {
+      updatedAt: new Date(),
+    };
+
+    // Add only the provided fields to the update
+    if (reportData.reportFileName !== undefined) {
+      updates.reportFileName = reportData.reportFileName;
+    }
+    if (reportData.reportFilePath !== undefined) {
+      updates.reportFilePath = reportData.reportFilePath;
+    }
+    if (reportData.findings !== undefined) {
+      updates.findings = reportData.findings;
+    }
+    if (reportData.impression !== undefined) {
+      updates.impression = reportData.impression;
+    }
+    if (reportData.radiologist !== undefined) {
+      updates.radiologist = reportData.radiologist;
+    }
+
+    const [updatedImage] = await db
+      .update(medicalImages)
+      .set(updates)
+      .where(eq(medicalImages.id, id))
       .returning();
     return updatedImage;
   }

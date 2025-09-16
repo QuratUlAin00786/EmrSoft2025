@@ -206,6 +206,7 @@ export default function ImagingPage() {
   });
 
   const [generatedReportId, setGeneratedReportId] = useState<string | null>(null);
+  const [generatedReportFileName, setGeneratedReportFileName] = useState<string | null>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [uploadFormData, setUploadFormData] = useState({
     patientId: "",
@@ -612,9 +613,14 @@ export default function ImagingPage() {
 
       if (data.success && data.reportId) {
         setGeneratedReportId(data.reportId);
+        setGeneratedReportFileName(data.fileName || `${data.reportId}.pdf`);
+        
+        // Refresh the medical images to get updated data
+        refetchImages();
+        
         toast({
           title: "PDF Report Generated Successfully",
-          description: `Report saved with ID: ${data.reportId.slice(0, 8)}...`,
+          description: `Report saved as: ${data.fileName || `${data.reportId}.pdf`}`,
         });
       } else {
         throw new Error('Failed to generate PDF report');
@@ -1333,6 +1339,30 @@ export default function ImagingPage() {
                   )}
                 </div>
 
+                {/* Saved Reports Section */}
+                {selectedStudy.reportFileName && (
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <h4 className="font-medium text-purple-800 mb-2">Saved Reports</h4>
+                    <div className="text-sm text-purple-700">
+                      <div className="flex items-center gap-2">
+                        <strong>Report File:</strong>
+                        <Button
+                          variant="link"
+                          onClick={() => {
+                            const reportUrl = `/api/imaging/reports/${selectedStudy.reportFileName.replace('.pdf', '')}`;
+                            window.open(reportUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+                          }}
+                          className="p-0 h-auto text-blue-600 hover:text-blue-800 underline"
+                          data-testid="link-saved-report"
+                        >
+                          {selectedStudy.reportFileName}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-purple-600 mt-1">Click the file name to view the PDF report</p>
+                    </div>
+                  </div>
+                )}
+
                 {selectedStudy.report && (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                     <h4 className="font-medium text-green-800 mb-2">Existing Report</h4>
@@ -1352,32 +1382,6 @@ export default function ImagingPage() {
                   Close
                 </Button>
                 <div className="flex gap-2">
-                  <Button 
-                    variant="outline"
-                    onClick={() => {
-                      // Download existing report logic
-                      const reportContent = selectedStudy.report?.content || 
-                        `RADIOLOGY REPORT\n\nPatient: ${selectedStudy.patientName}\nStudy: ${selectedStudy.studyType}\nModality: ${selectedStudy.modality}\nDate: ${new Date(selectedStudy.orderedAt).toLocaleDateString()}\n\nFindings: ${selectedStudy.findings || 'To be documented'}\n\nImpression: ${selectedStudy.impression || 'To be documented'}\n\nRadiologist: ${selectedStudy.radiologist || 'Dr. Michael Chen'}`;
-                      
-                      const blob = new Blob([reportContent], { type: 'text/plain' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = `radiology-report-${selectedStudy.patientName.replace(' ', '-').toLowerCase()}.txt`;
-                      document.body.appendChild(a);
-                      a.click();
-                      document.body.removeChild(a);
-                      URL.revokeObjectURL(url);
-                      
-                      toast({
-                        title: "Report Downloaded",
-                        description: `Radiology report for ${selectedStudy.patientName} downloaded successfully`,
-                      });
-                    }}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Report
-                  </Button>
                   {generatedReportId ? (
                     <div className="space-y-3">
                       <div className="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -1386,17 +1390,17 @@ export default function ImagingPage() {
                           <span className="text-green-700 font-medium">Report Generated Successfully!</span>
                         </div>
                         <div className="text-sm text-green-600">
-                          <strong>Report ID:</strong> 
+                          <strong>Report File:</strong> 
                           <Button
                             variant="link"
                             onClick={() => viewPDFReport(generatedReportId)}
                             className="p-0 h-auto ml-2 text-blue-600 hover:text-blue-800 underline"
                             data-testid="link-report-view"
                           >
-                            {generatedReportId.slice(0, 8)}...
+                            {generatedReportFileName || `${generatedReportId.slice(0, 8)}...`}
                           </Button>
                         </div>
-                        <p className="text-xs text-green-600 mt-1">Click the Report ID to view the PDF</p>
+                        <p className="text-xs text-green-600 mt-1">Click the file name to view the PDF</p>
                       </div>
                       <div className="flex gap-2">
                         <Button
@@ -1411,6 +1415,7 @@ export default function ImagingPage() {
                         <Button
                           onClick={() => {
                             setGeneratedReportId(null);
+                            setGeneratedReportFileName(null);
                             setReportFindings("");
                             setReportImpression("");
                             setReportRadiologist("");
