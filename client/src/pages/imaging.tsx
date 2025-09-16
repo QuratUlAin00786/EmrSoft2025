@@ -52,6 +52,8 @@ interface ImagingStudy {
   findings?: string;
   impression?: string;
   radiologist?: string;
+  reportFileName?: string;
+  reportFilePath?: string;
   images: Array<{
     id: string;
     type: 'DICOM' | 'JPEG' | 'PNG';
@@ -238,6 +240,7 @@ export default function ImagingPage() {
       try {
         const response = await apiRequest('GET', '/api/medical-images');
         const data = await response.json();
+        console.log('🔍 Raw medical images API response:', data);
         return Array.isArray(data) ? data : [];
       } catch (error) {
         console.error('Error fetching medical images:', error);
@@ -245,6 +248,9 @@ export default function ImagingPage() {
       }
     }
   });
+
+  // Debug: Log the processed medical images data
+  console.log('🔍 Processed medical images data:', medicalImages);
 
   // Individual field update mutations
   const updateFieldMutation = useMutation({
@@ -1387,8 +1393,10 @@ export default function ImagingPage() {
                         <Button
                           variant="link"
                           onClick={() => {
-                            const reportUrl = `/api/imaging/reports/${selectedStudy.reportFileName.replace('.pdf', '')}`;
-                            window.open(reportUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+                            if (selectedStudy.reportFileName) {
+                              const reportUrl = `/api/imaging/reports/${selectedStudy.reportFileName.replace('.pdf', '')}`;
+                              window.open(reportUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+                            }
                           }}
                           className="p-0 h-auto text-blue-600 hover:text-blue-800 underline"
                           data-testid="link-saved-report"
