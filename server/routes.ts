@@ -8677,158 +8677,336 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
       
       // Colors
-      const blueColor = rgb(0.12, 0.23, 0.54); // #1e3a8a
+      const primaryBlue = rgb(0.12, 0.23, 0.54); // #1e3a8a
+      const lightGray = rgb(0.95, 0.95, 0.95); // Light background
+      const darkGray = rgb(0.3, 0.3, 0.3);
       const blackColor = rgb(0, 0, 0);
       
-      // Position tracker
-      let yPosition = height - 50;
+      // Helper function to draw a section box
+      const drawSectionBox = (x: number, y: number, width: number, height: number) => {
+        page.drawRectangle({
+          x: x,
+          y: y - height,
+          width: width,
+          height: height,
+          color: lightGray,
+          borderColor: primaryBlue,
+          borderWidth: 1
+        });
+      };
       
-      // Header
-      page.drawText('RADIOLOGY REPORT', {
+      // Position tracker
+      let yPosition = height - 40;
+      
+      // Professional Header with Logo Area
+      drawSectionBox(30, yPosition + 5, width - 60, 80);
+      page.drawText('CURA MEDICAL CENTER', {
         x: 50,
-        y: yPosition,
+        y: yPosition - 10,
+        size: 14,
+        font: boldFont,
+        color: primaryBlue
+      });
+      page.drawText('DEPARTMENT OF RADIOLOGY', {
+        x: 50,
+        y: yPosition - 25,
+        size: 10,
+        font,
+        color: darkGray
+      });
+      
+      page.drawText('RADIOLOGY REPORT', {
+        x: width - 200,
+        y: yPosition - 15,
         size: 18,
         font: boldFont,
-        color: blueColor
+        color: primaryBlue
       });
       
-      yPosition -= 30;
+      yPosition -= 100;
       
-      // Patient Information
+      // Patient Information Section
+      drawSectionBox(30, yPosition + 5, (width - 80) / 2, 120);
       page.drawText('PATIENT INFORMATION', {
-        x: 50,
-        y: yPosition,
+        x: 40,
+        y: yPosition - 10,
         size: 12,
         font: boldFont,
-        color: blueColor
+        color: primaryBlue
       });
-      
-      yPosition -= 20;
-      page.drawText(`Patient Name: ${study.patientName}`, { x: 50, y: yPosition, size: 10, font });
-      yPosition -= 15;
-      page.drawText(`Patient ID: ${study.patientId || 'N/A'}`, { x: 50, y: yPosition, size: 10, font });
-      yPosition -= 15;
-      page.drawText(`Date of Birth: ${study.patientDOB || 'N/A'}`, { x: 50, y: yPosition, size: 10, font });
-      yPosition -= 15;
-      page.drawText(`Study Date: ${study.studyDate}`, { x: 50, y: yPosition, size: 10, font });
       
       yPosition -= 30;
+      page.drawText(`Name: ${study.patientName}`, { x: 50, y: yPosition, size: 10, font });
+      yPosition -= 15;
+      page.drawText(`ID: ${study.patientId || 'N/A'}`, { x: 50, y: yPosition, size: 10, font });
+      yPosition -= 15;
+      page.drawText(`DOB: ${study.patientDOB || 'N/A'}`, { x: 50, y: yPosition, size: 10, font });
+      yPosition -= 15;
+      page.drawText(`Study Date: ${new Date().toLocaleDateString()}`, { x: 50, y: yPosition, size: 10, font });
       
-      // Study Details
-      page.drawText('STUDY DETAILS', {
-        x: 50,
-        y: yPosition,
+      // Study Information Section (Right side)
+      const rightColumnX = width / 2 + 10;
+      drawSectionBox(rightColumnX, yPosition + 60, (width - 80) / 2, 120);
+      page.drawText('STUDY INFORMATION', {
+        x: rightColumnX + 10,
+        y: yPosition + 50,
         size: 12,
         font: boldFont,
-        color: blueColor
+        color: primaryBlue
       });
       
-      yPosition -= 20;
-      page.drawText(`Study Type: ${study.studyType}`, { x: 50, y: yPosition, size: 10, font });
-      yPosition -= 15;
-      page.drawText(`Body Part: ${study.bodyPart}`, { x: 50, y: yPosition, size: 10, font });
-      yPosition -= 15;
-      page.drawText(`Modality: ${study.modality}`, { x: 50, y: yPosition, size: 10, font });
+      page.drawText(`Study Type: ${study.studyType}`, { x: rightColumnX + 20, y: yPosition + 30, size: 10, font });
+      page.drawText(`Body Part: ${study.bodyPart}`, { x: rightColumnX + 20, y: yPosition + 15, size: 10, font });
+      page.drawText(`Modality: ${study.modality}`, { x: rightColumnX + 20, y: yPosition, size: 10, font });
+      page.drawText(`Status: ${study.status || 'Complete'}`, { x: rightColumnX + 20, y: yPosition - 15, size: 10, font });
       
-      if (reportFormData) {
-        yPosition -= 30;
-        
-        // Clinical Indication
-        if (reportFormData.clinicalIndication) {
-          page.drawText('CLINICAL INDICATION', {
-            x: 50,
-            y: yPosition,
-            size: 12,
-            font: boldFont,
-            color: blueColor
-          });
-          yPosition -= 20;
-          page.drawText(reportFormData.clinicalIndication, { x: 50, y: yPosition, size: 10, font });
-          yPosition -= 30;
-        }
-        
-        // Technique
-        if (reportFormData.technique) {
-          page.drawText('TECHNIQUE', {
-            x: 50,
-            y: yPosition,
-            size: 12,
-            font: boldFont,
-            color: blueColor
-          });
-          yPosition -= 20;
-          page.drawText(reportFormData.technique, { x: 50, y: yPosition, size: 10, font });
-          yPosition -= 30;
-        }
-        
-        // Findings
-        if (reportFormData.findings) {
-          page.drawText('FINDINGS', {
-            x: 50,
-            y: yPosition,
-            size: 12,
-            font: boldFont,
-            color: blueColor
-          });
-          yPosition -= 20;
-          page.drawText(reportFormData.findings, { x: 50, y: yPosition, size: 10, font });
-          yPosition -= 30;
-        }
-        
-        // Impression
-        if (reportFormData.impression) {
-          page.drawText('IMPRESSION', {
-            x: 50,
-            y: yPosition,
-            size: 12,
-            font: boldFont,
-            color: blueColor
-          });
-          yPosition -= 20;
-          page.drawText(reportFormData.impression, { x: 50, y: yPosition, size: 10, font });
-          yPosition -= 30;
+      yPosition -= 50;
+      
+      // Medical Image Section
+      let imageHeight = 0;
+      if (study.images && study.images[0] && study.images[0].imageData) {
+        try {
+          // Extract base64 image data
+          const imageData = study.images[0].imageData;
+          const mimeType = study.images[0].mimeType || 'image/jpeg';
+          
+          // Convert base64 to buffer
+          const imageBuffer = Buffer.from(imageData, 'base64');
+          
+          // Embed image based on MIME type
+          let image;
+          if (mimeType.includes('jpeg') || mimeType.includes('jpg')) {
+            image = await pdfDoc.embedJpg(imageBuffer);
+          } else if (mimeType.includes('png')) {
+            image = await pdfDoc.embedPng(imageBuffer);
+          }
+          
+          if (image) {
+            // Calculate image dimensions to fit nicely in the PDF
+            const maxImageWidth = 200;
+            const maxImageHeight = 150;
+            const imageAspectRatio = image.width / image.height;
+            
+            let drawWidth = maxImageWidth;
+            let drawHeight = maxImageWidth / imageAspectRatio;
+            
+            if (drawHeight > maxImageHeight) {
+              drawHeight = maxImageHeight;
+              drawWidth = maxImageHeight * imageAspectRatio;
+            }
+            
+            imageHeight = drawHeight + 60;
+            
+            // Image Section with border
+            drawSectionBox(30, yPosition + 10, width - 60, imageHeight);
+            page.drawText('MEDICAL IMAGE', {
+              x: 40,
+              y: yPosition - 5,
+              size: 12,
+              font: boldFont,
+              color: primaryBlue
+            });
+            
+            // Draw the medical image
+            page.drawImage(image, {
+              x: (width - drawWidth) / 2, // Center the image
+              y: yPosition - drawHeight - 40,
+              width: drawWidth,
+              height: drawHeight
+            });
+            
+            // Image details
+            page.drawText(`Series: ${study.images[0].seriesDescription || 'N/A'}`, {
+              x: 50,
+              y: yPosition - imageHeight + 15,
+              size: 9,
+              font,
+              color: darkGray
+            });
+            
+            yPosition -= imageHeight;
+          }
+        } catch (imageError) {
+          console.log('Could not embed image, continuing without it:', imageError);
+          // Continue without image if there's an error
         }
       }
       
-      // Signature section
+      if (reportFormData) {
+        yPosition -= 20;
+        
+        // Clinical sections with professional formatting
+        const clinicalSections = [
+          { title: 'CLINICAL INDICATION', content: reportFormData.clinicalIndication },
+          { title: 'TECHNIQUE', content: reportFormData.technique },
+          { title: 'FINDINGS', content: reportFormData.findings },
+          { title: 'IMPRESSION', content: reportFormData.impression }
+        ];
+        
+        clinicalSections.forEach(section => {
+          if (section.content) {
+            // Calculate section height for text wrapping
+            const maxLineLength = 70;
+            const lines = section.content.match(new RegExp(`.{1,${maxLineLength}}(\\s|$)`, 'g')) || [section.content];
+            const sectionHeight = Math.max(60, lines.length * 15 + 40);
+            
+            // Draw section background
+            drawSectionBox(30, yPosition + 10, width - 60, sectionHeight);
+            
+            page.drawText(section.title, {
+              x: 40,
+              y: yPosition - 5,
+              size: 12,
+              font: boldFont,
+              color: primaryBlue
+            });
+            
+            // Draw content with text wrapping
+            let textY = yPosition - 25;
+            lines.forEach(line => {
+              page.drawText(line.trim(), { 
+                x: 50, 
+                y: textY, 
+                size: 10, 
+                font,
+                maxWidth: width - 100
+              });
+              textY -= 15;
+            });
+            
+            yPosition -= sectionHeight + 10;
+          }
+        });
+      } else {
+        // Add indication and findings from study data if no form data
+        yPosition -= 20;
+        
+        if (study.indication) {
+          drawSectionBox(30, yPosition + 10, width - 60, 50);
+          page.drawText('CLINICAL INDICATION', {
+            x: 40,
+            y: yPosition - 5,
+            size: 12,
+            font: boldFont,
+            color: primaryBlue
+          });
+          page.drawText(study.indication, { x: 50, y: yPosition - 25, size: 10, font });
+          yPosition -= 70;
+        }
+        
+        if (study.findings) {
+          drawSectionBox(30, yPosition + 10, width - 60, 50);
+          page.drawText('FINDINGS', {
+            x: 40,
+            y: yPosition - 5,
+            size: 12,
+            font: boldFont,
+            color: primaryBlue
+          });
+          page.drawText(study.findings, { x: 50, y: yPosition - 25, size: 10, font });
+          yPosition -= 70;
+        }
+      }
+      
+      // Professional Signature Section
       yPosition -= 20;
-      page.drawText('REPORTED BY', {
-        x: 50,
-        y: yPosition,
+      const signatureHeight = 120;
+      drawSectionBox(30, yPosition + 10, width - 60, signatureHeight);
+      
+      page.drawText('RADIOLOGIST REPORT', {
+        x: 40,
+        y: yPosition - 5,
         size: 12,
         font: boldFont,
-        color: blueColor
+        color: primaryBlue
       });
-      yPosition -= 20;
-      page.drawText(`${reportFormData?.radiologist || study.radiologist || "Dr. Sarah Johnson"}`, { x: 50, y: yPosition, size: 10, font });
-      yPosition -= 15;
-      page.drawText('MD, Diagnostic Radiology', { x: 50, y: yPosition, size: 10, font });
-      yPosition -= 15;
-      page.drawText('License #: MD-RAD-2024', { x: 50, y: yPosition, size: 10, font });
-      yPosition -= 15;
-      page.drawText(`Date: ${new Date().toLocaleDateString()}`, { x: 50, y: yPosition, size: 10, font });
       
-      // Footer
-      page.drawText('Cura Medical Center | Radiology Department', {
-        x: 50,
-        y: 50,
-        size: 9,
-        font,
-        color: blueColor
+      // Radiologist information
+      const radiologistName = reportFormData?.radiologist || study.radiologist || "Dr. Sarah Johnson, MD";
+      page.drawText(`Reported by: ${radiologistName}`, { 
+        x: 50, 
+        y: yPosition - 30, 
+        size: 11, 
+        font: boldFont,
+        color: blackColor
       });
-      page.drawText('Phone: +44-123-456-7890 | Email: radiology@curamedical.com', {
-        x: 50,
-        y: 35,
-        size: 9,
+      
+      page.drawText('Board Certified Diagnostic Radiologist', { 
+        x: 50, 
+        y: yPosition - 45, 
+        size: 10, 
         font,
-        color: blueColor
+        color: darkGray
       });
-      page.drawText('CONFIDENTIAL MEDICAL REPORT - For authorized personnel only', {
-        x: 50,
-        y: 20,
+      
+      page.drawText('Medical License: MD-RAD-2024', { 
+        x: 50, 
+        y: yPosition - 60, 
+        size: 10, 
+        font,
+        color: darkGray
+      });
+      
+      // Report completion info
+      const reportDate = new Date().toLocaleDateString('en-GB', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      page.drawText(`Report Date: ${reportDate}`, { 
+        x: width - 250, 
+        y: yPosition - 30, 
+        size: 10, 
+        font,
+        color: darkGray
+      });
+      
+      page.drawText(`Report ID: ${reportId}`, { 
+        x: width - 250, 
+        y: yPosition - 45, 
+        size: 9, 
+        font,
+        color: rgb(0.6, 0.6, 0.6)
+      });
+      
+      // Digital signature placeholder
+      page.drawText('Electronically Signed', { 
+        x: 50, 
+        y: yPosition - 85, 
+        size: 9, 
+        font,
+        color: primaryBlue
+      });
+      
+      // Professional Footer
+      const footerY = 60;
+      drawSectionBox(30, footerY + 5, width - 60, 40);
+      
+      page.drawText('CURA MEDICAL CENTER - DEPARTMENT OF RADIOLOGY', {
+        x: width / 2 - 120,
+        y: footerY - 8,
+        size: 10,
+        font: boldFont,
+        color: primaryBlue
+      });
+      
+      page.drawText('📞 +44-123-456-7890  |  📧 radiology@curamedical.com  |  🌐 www.curamedical.com', {
+        x: width / 2 - 140,
+        y: footerY - 22,
         size: 8,
         font,
-        color: rgb(0.5, 0.5, 0.5)
+        color: darkGray
+      });
+      
+      // Confidentiality notice
+      page.drawText('⚠️  CONFIDENTIAL MEDICAL REPORT - Authorized Personnel Only  ⚠️', {
+        x: width / 2 - 130,
+        y: 15,
+        size: 8,
+        font: boldFont,
+        color: rgb(0.8, 0, 0)
       });
       
       // Generate PDF bytes

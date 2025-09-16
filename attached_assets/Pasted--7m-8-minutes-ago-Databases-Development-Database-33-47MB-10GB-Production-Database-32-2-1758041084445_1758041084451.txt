@@ -1,0 +1,203 @@
+
+7m
+ • 
+8 minutes ago
+Databases
+Development Database
+33.47MB / 10GB
+Production Database
+32.22MB / 100GB
+Billing Period
+Renews monthly, 29 Sept
+Hours of Compute Used
+698.44 hours
+Production
+Status
+salman711 published about 7 hours ago
+Visibility
+Public
+Domain
+https://cura-emr-uk-backup-1-sep-25-salman711.replit.app
+https://curaemr.ai
+Type
+Autoscale
+(4 vCPU / 8 GiB RAM / 3 Max)
+See all usage
+Database
+Production database connected
+274eb3bb
+SA
+
+salman711
+salman711
+published about 8 hours ago
+5c226e6d
+SA
+
+salman711
+salman711
+published about 8 hours ago
+bd4b98e5
+SA
+
+salman711
+salman711
+published about 8 hours ago
+eaff6759
+SA
+
+salman711
+salman711
+published about 9 hours ago
+251d957c
+SA
+
+salman711
+salman711
+published about 9 hours ago
+a4c6e5f4
+SA
+
+salman711
+salman711
+published about 10 hours ago
+5dab3cf9
+SA
+
+salman711
+salman711
+published about 11 hours ago
+04905e3f
+SA
+
+salman711
+salman711
+published about 13 hours ago
+00ae01dc
+SA
+
+salman711
+salman711
+published about 13 hours ago
+e885000e
+SA
+
+salman711
+salman711
+published about 22 hours ago
+cfbb21a7
+SA
+
+salman711
+salman711
+published 3 days ago
+63c8f450
+SA
+
+salman711
+salman711
+published 4 days ago
+0ceb76a7
+SA
+
+salman711
+salman711
+published 4 days ago
+3807215a
+SA
+
+salman711
+salman711
+published 7 days ago
+e1f91036
+SA
+
+salman711
+salman711
+published 8 days ago
+ec27a5ac
+SA
+
+salman711
+salman711
+published 8 days ago
+8615cd64
+SA
+
+salman711
+salman711
+published 8 days ago
+407e842c
+SA
+
+salman711
+salman711
+published 8 days ago
+4db23d2b
+SA
+
+salman711
+salman711
+failed to publish 8 days ago
+Preview
+Place doctor information in the top-right corner of lab reports
+
+7 messages & 22 actions
+Perfect! I found the issue. The PDF generation is calling `storage.updateMedicalImageReport(study.id, {...})` to save the report file information, but this method might not exist or work correctly. Let me check if this method exists in the storage:
+1 hour ago
+Update imaging report file path and name in the database
+I've fixed the critical database bug that was preventing PDF report information from being saved. Can you please test the PDF report generation again? Generate a new radiology report and see if the View and Download PDF icons now appear on the main imaging page for studies with generated reports.
+
+6 minutes of work
+where is download and view icons?
+
+1 hour ago
+1 hour ago
+Display and enable downloading of imaging reports from the application
+
+7 messages & 13 actions
+I can see the icons are still not appearing. Let me check the latest logs to see what's happening with the PDF generation and database update:
+1 hour ago
+Update imaging records to include report file information
+2 minutes of work
+Download PDF Icon still not working
+
+1 hour ago
+1 hour ago
+Add capability to view and download imaging reports
+
+2 messages & 12 actions
+Let me check the latest logs to see what's happening with the PDF icons:
+59 minutes ago
+Add logging to imaging page for debugging PDF download issues
+I've added debugging to see what data is being returned. Can you please navigate to the imaging page and open the browser developer console (F12) to check what the debug logs show? Look for messages starting with "🔍 Raw medicalImages data:" and "🔍 Transformed studies data:" to see what data structure is actually being returned.
+
+2 minutes of work
+match development database and production database table name "medical_images" in report_file_path and report_file_name update if any other fields are there please update production database
+
+56 minutes ago
+
+5 messages & 16 actions
+You're absolutely right! The issue is likely that the production database doesn't have the `report_file_name` and `report_file_path` columns that we added to the development schema. Let me check the current schema and sync the production database.
+52 minutes ago
+Update imaging report file names to match database schema
+3 minutes of work
+In imaging.tsx, on the main page, delete download icon in black color right side of eye icon .Please fix this issue without making any other changes to the component or application logic.
+
+49 minutes ago
+
+3 messages & 5 actions
+I'll locate and remove the download icon (Download button) that appears next to the eye icon in the imaging.tsx file.
+48 minutes ago
+Remove download icon from imaging studies page
+55 seconds of work
+In imaging.tsx, on the main page, pdf view icon blue color working ok , but pdf download green icon not downloading report file,Please fix this issue without making any other changes to the component or application logic.
+
+19 minutes ago
+
+6 messages & 22 actions
+Let me check the logs to see what's happening when you try to download the PDF report.
+16 minutes ago
+Enable downloading of radiology reports for imaging studies
+2 minutes of work
+In imaging.tsx, on the main page, when click on file icon black color then "Generate Radiology Report" popup open ,
