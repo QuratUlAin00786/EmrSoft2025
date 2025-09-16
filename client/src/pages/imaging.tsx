@@ -640,55 +640,115 @@ export default function ImagingPage() {
       pdf.text(impressionLines, margin + 5, yPosition);
       yPosition += impressionLines.length * 6 + 12;
 
-      // MEDICAL IMAGES SECTION
+      // MEDICAL IMAGES SECTION - Enhanced with better image handling
       if (study.images && study.images.length > 0) {
         const availableHeight = pageHeight - yPosition - 55; // Reserve space for footer
-        const imageHeight = Math.min(60, availableHeight);
+        const imageHeight = Math.min(70, availableHeight);
         
-        if (imageHeight > 30) { // Only show if enough space
+        if (imageHeight > 35) { // Only show if enough space
           pdf.setFontSize(11);
           pdf.setFont("helvetica", "bold");
           pdf.text("REPRESENTATIVE IMAGES:", margin, yPosition);
-          yPosition += 10;
+          yPosition += 12;
           
-          const imageWidth = 80;
+          const imageWidth = 90;
           const imageX = pageWidth / 2 - imageWidth / 2;
           
-          // Try to display actual medical image
+          // Enhanced image handling - try multiple approaches to display images
           const mainImage = study.images[0];
-          const hasImageData = (study.images[0] as any)?.imageData;
-          const hasMimeType = (study.images[0] as any)?.mimeType;
+          let imageDisplayed = false;
           
-          if (hasImageData && hasMimeType && (hasMimeType.includes('jpeg') || hasMimeType.includes('png'))) {
-            try {
-              const imgData = `data:${hasMimeType};base64,${hasImageData}`;
-              pdf.addImage(imgData, 'JPEG', imageX, yPosition, imageWidth, imageHeight - 10);
-              yPosition += imageHeight;
-            } catch (error) {
-              // Medical image placeholder
-              pdf.setDrawColor(180, 180, 180);
-              pdf.setFillColor(250, 250, 250);
-              pdf.rect(imageX, yPosition, imageWidth, imageHeight - 10, 'FD');
-              pdf.setFontSize(9);
-              pdf.setTextColor(100, 100, 100);
-              pdf.text(`${mainImage.seriesDescription}`, pageWidth / 2, yPosition + (imageHeight - 10) / 2 - 5, { align: "center" });
-              pdf.text(`${mainImage.imageCount} images available`, pageWidth / 2, yPosition + (imageHeight - 10) / 2 + 5, { align: "center" });
-              pdf.setTextColor(0, 0, 0);
-              yPosition += imageHeight;
+          // Try different image data sources that might exist
+          const possibleImageSources = [
+            (study.images[0] as any)?.imageData,
+            (study.images[0] as any)?.data,
+            (study.images[0] as any)?.base64,
+            (study.images[0] as any)?.content
+          ];
+          
+          const possibleMimeTypes = [
+            (study.images[0] as any)?.mimeType,
+            (study.images[0] as any)?.type,
+            (study.images[0] as any)?.contentType,
+            'image/jpeg' // fallback
+          ];
+          
+          // Try to find and use any available image data
+          for (let i = 0; i < possibleImageSources.length && !imageDisplayed; i++) {
+            const imageData = possibleImageSources[i];
+            const mimeType = possibleMimeTypes.find(mt => mt) || 'image/jpeg';
+            
+            if (imageData && typeof imageData === 'string' && imageData.length > 100) {
+              try {
+                const imgData = imageData.startsWith('data:') ? imageData : `data:${mimeType};base64,${imageData}`;
+                pdf.addImage(imgData, 'JPEG', imageX, yPosition, imageWidth, imageHeight - 15);
+                imageDisplayed = true;
+                yPosition += imageHeight - 10;
+                
+                // Add image caption
+                pdf.setFontSize(8);
+                pdf.setFont("helvetica", "normal");
+                pdf.setTextColor(100, 100, 100);
+                pdf.text(`${mainImage.seriesDescription || 'Medical Image'} - Series ${mainImage.imageCount || 1} images`, 
+                         pageWidth / 2, yPosition + 8, { align: "center" });
+                pdf.setTextColor(0, 0, 0);
+                yPosition += 15;
+              } catch (error) {
+                console.log("Image display attempt failed:", error);
+                // Continue to placeholder if this attempt fails
+              }
             }
-          } else {
-            // Medical image placeholder
-            pdf.setDrawColor(180, 180, 180);
-            pdf.setFillColor(250, 250, 250);
-            pdf.rect(imageX, yPosition, imageWidth, imageHeight - 10, 'FD');
-            pdf.setFontSize(9);
+          }
+          
+          // If no image could be displayed, show professional placeholder
+          if (!imageDisplayed) {
+            // Create a professional medical image placeholder
+            pdf.setDrawColor(30, 58, 138); // Professional blue border
+            pdf.setFillColor(248, 250, 252); // Light blue background
+            pdf.rect(imageX, yPosition, imageWidth, imageHeight - 15, 'FD');
+            
+            // Add medical cross symbol
+            const crossSize = 20;
+            const crossX = pageWidth / 2;
+            const crossY = yPosition + (imageHeight - 15) / 2;
+            
+            pdf.setDrawColor(30, 58, 138);
+            pdf.setLineWidth(3);
+            pdf.line(crossX - crossSize/2, crossY, crossX + crossSize/2, crossY); // Horizontal line
+            pdf.line(crossX, crossY - crossSize/2, crossX, crossY + crossSize/2); // Vertical line
+            
+            // Add image information
+            pdf.setFontSize(10);
+            pdf.setFont("helvetica", "bold");
+            pdf.setTextColor(30, 58, 138);
+            pdf.text("MEDICAL IMAGE", pageWidth / 2, yPosition + (imageHeight - 15) / 2 + 25, { align: "center" });
+            
+            pdf.setFontSize(8);
+            pdf.setFont("helvetica", "normal");
             pdf.setTextColor(100, 100, 100);
-            pdf.text(`${mainImage.seriesDescription}`, pageWidth / 2, yPosition + (imageHeight - 10) / 2 - 5, { align: "center" });
-            pdf.text(`${mainImage.imageCount} images - ${mainImage.size}`, pageWidth / 2, yPosition + (imageHeight - 10) / 2 + 5, { align: "center" });
+            pdf.text(`${mainImage.seriesDescription || 'Imaging Study'}`, pageWidth / 2, yPosition + (imageHeight - 15) / 2 + 35, { align: "center" });
+            pdf.text(`${mainImage.imageCount || 'Multiple'} images available (${mainImage.size || 'Various sizes'})`, pageWidth / 2, yPosition + (imageHeight - 15) / 2 + 45, { align: "center" });
+            
             pdf.setTextColor(0, 0, 0);
             yPosition += imageHeight;
           }
         }
+      }
+      
+      // IMAGE SERIES SUMMARY
+      if (study.images && study.images.length > 1) {
+        pdf.setFontSize(9);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("Additional Image Series:", margin, yPosition);
+        yPosition += 8;
+        
+        pdf.setFontSize(8);
+        pdf.setFont("helvetica", "normal");
+        study.images.slice(1).forEach((image: any, index: number) => {
+          pdf.text(`• Series ${index + 2}: ${image.seriesDescription || 'Medical Images'} (${image.imageCount || 1} images)`, margin + 5, yPosition);
+          yPosition += 6;
+        });
+        yPosition += 5;
       }
 
       // RADIOLOGIST SIGNATURE SECTION
