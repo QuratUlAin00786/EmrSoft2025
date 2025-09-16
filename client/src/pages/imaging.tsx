@@ -60,6 +60,8 @@ interface ImagingStudy {
     seriesDescription: string;
     imageCount: number;
     size: string;
+    imageData?: string;
+    mimeType?: string;
   }>;
   report?: {
     status: 'preliminary' | 'final';
