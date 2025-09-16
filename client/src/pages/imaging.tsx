@@ -497,210 +497,244 @@ export default function ImagingPage() {
       const contentWidth = pageWidth - 2 * margin;
       let yPosition = 20;
 
-      // Professional medical report with CURA header and detailed DRLOGY-style layout
+      // Professional Medical Report - Single Page Layout
       
-      // HEADER SECTION - CURA EMR SYSTEM (from second image)
-      pdf.setFillColor(240, 240, 240); // Light gray background
-      pdf.rect(0, 0, pageWidth, 25, 'F');
+      // HEADER SECTION - Company Logo Area & Title
+      pdf.setFillColor(245, 245, 245); // Light gray background
+      pdf.rect(0, 0, pageWidth, 35, 'F');
       
-      pdf.setFontSize(16);
+      // Main Title
+      pdf.setFontSize(20);
       pdf.setFont("helvetica", "bold");
-      pdf.setTextColor(70, 130, 180); // Blue color
-      pdf.text("CURA EMR SYSTEM", pageWidth / 2, 12, { align: "center" });
+      pdf.setTextColor(30, 58, 138); // Professional blue
+      pdf.text("CURA MEDICAL CENTER", pageWidth / 2, 15, { align: "center" });
       
-      pdf.setFontSize(10);
+      pdf.setFontSize(12);
       pdf.setFont("helvetica", "normal");
-      pdf.setTextColor(120, 120, 120); // Gray color
-      pdf.text("Radiology Imaging Report", pageWidth / 2, 20, { align: "center" });
+      pdf.setTextColor(100, 100, 100);
+      pdf.text("RADIOLOGY DEPARTMENT - DIAGNOSTIC IMAGING REPORT", pageWidth / 2, 25, { align: "center" });
       
-      yPosition = 35;
+      yPosition = 45;
       pdf.setTextColor(0, 0, 0); // Reset to black
 
-      // PATIENT DETAILS SECTION - Left side like DRLOGY sample
-      const leftColX = margin;
-      const rightColX = margin + contentWidth * 0.6;
+      // PATIENT INFORMATION SECTION
+      pdf.setFillColor(248, 250, 252); // Very light blue
+      pdf.rect(margin, yPosition, contentWidth, 25, 'F');
+      pdf.setDrawColor(200, 200, 200);
+      pdf.rect(margin, yPosition, contentWidth, 25, 'S');
       
+      yPosition += 8;
       pdf.setFontSize(11);
       pdf.setFont("helvetica", "bold");
-      pdf.text(study.patientName || "Patient Name", leftColX, yPosition);
+      pdf.text("PATIENT INFORMATION", margin + 5, yPosition);
+      
+      yPosition += 8;
+      const leftCol = margin + 10;
+      const midCol = margin + contentWidth / 3;
+      const rightCol = margin + (2 * contentWidth / 3);
+      
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "normal");
+      
+      // Patient details in three columns
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Name:", leftCol, yPosition);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(study.patientName || "N/A", leftCol + 20, yPosition);
+      
+      pdf.setFont("helvetica", "bold");
+      pdf.text("ID:", midCol, yPosition);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(study.patientId || "N/A", midCol + 12, yPosition);
+      
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Date:", rightCol, yPosition);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(format(new Date(study.orderedAt), "dd/MM/yyyy"), rightCol + 20, yPosition);
+
+      yPosition += 30;
+
+      // STUDY INFORMATION SECTION
+      pdf.setFillColor(250, 248, 255); // Very light purple
+      pdf.rect(margin, yPosition, contentWidth, 25, 'F');
+      pdf.setDrawColor(200, 200, 200);
+      pdf.rect(margin, yPosition, contentWidth, 25, 'S');
+      
+      yPosition += 8;
+      pdf.setFontSize(11);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("STUDY INFORMATION", margin + 5, yPosition);
       
       yPosition += 8;
       pdf.setFontSize(9);
       pdf.setFont("helvetica", "normal");
       
-      const currentDate = new Date();
-      const birthYear = new Date(study.orderedAt).getFullYear() - 25; // Estimate age
-      const age = currentDate.getFullYear() - birthYear;
-      
-      pdf.text(`Age: ${age} Years`, leftColX, yPosition);
-      yPosition += 6;
-      pdf.text(`Sex: Not specified`, leftColX, yPosition);
-      yPosition += 6;
-      pdf.text(`PID: ${study.patientId || "555"}`, leftColX, yPosition);
-
-      // RIGHT SIDE DETAILS - Registration info like sample
-      let rightY = yPosition - 20;
-      pdf.setFontSize(9);
+      // Study details in three columns
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Study:", leftCol, yPosition);
       pdf.setFont("helvetica", "normal");
-      pdf.text(`Report ID: RPT${study.id}`, rightColX, rightY);
-      rightY += 6;
-      pdf.text(`Study ID: ${study.id}25252`, rightColX, rightY);
-      rightY += 6;
-      pdf.text(`Ref: ${study.orderedBy || "Dr. Hiren Shah"}`, rightColX, rightY);
-      rightY += 10;
+      pdf.text(study.studyType || "N/A", leftCol + 25, yPosition);
       
       pdf.setFont("helvetica", "bold");
-      pdf.text("Registered on:", rightColX, rightY);
+      pdf.text("Modality:", midCol, yPosition);
       pdf.setFont("helvetica", "normal");
-      rightY += 6;
-      pdf.text(format(new Date(study.orderedAt), "dd.MM yyyy, HH:mm"), rightColX, rightY);
-      rightY += 8;
+      pdf.text(study.modality || "N/A", midCol + 30, yPosition);
+      
       pdf.setFont("helvetica", "bold");
-      pdf.text("Reported on:", rightColX, rightY);
+      pdf.text("Body Part:", rightCol, yPosition);
       pdf.setFont("helvetica", "normal");
-      rightY += 6;
-      pdf.text(format(new Date(), "dd.MM yyyy, HH:mm"), rightColX, rightY);
+      pdf.text(study.bodyPart || "N/A", rightCol + 35, yPosition);
 
-      yPosition += 20;
+      yPosition += 30;
 
-      // STUDY TITLE - Center aligned like sample
-      pdf.setFontSize(14);
+      // CLINICAL INDICATION
+      pdf.setFontSize(11);
       pdf.setFont("helvetica", "bold");
-      pdf.text(`${study.studyType.toUpperCase()}`, pageWidth / 2, yPosition, { align: "center" });
+      pdf.text("CLINICAL INDICATION:", margin, yPosition);
       yPosition += 8;
       
       pdf.setFontSize(10);
       pdf.setFont("helvetica", "normal");
-      pdf.text(`${study.studyType} - ${study.bodyPart} View`, pageWidth / 2, yPosition, { align: "center" });
-      yPosition += 15;
+      const indicationText = study.indication || "Clinical evaluation requested";
+      const indicationLines = pdf.splitTextToSize(indicationText, contentWidth - 20);
+      pdf.text(indicationLines, margin + 5, yPosition);
+      yPosition += indicationLines.length * 6 + 12;
 
-      // FINDINGS SECTION - Bullet points like DRLOGY sample
-      const findingsText = reportFormData.findings || study.findings || 
-        "• Bronchovascular markings are prominent in bilateral lung fields.\n• Rest of the visualised lung fields are normal.\n• Bilateral hilum appears normal.\n• Cardiac silhouette is normal.\n• Both CP angles are normal.\n• Visualised bones & soft tissues appear normal.";
+      // TECHNIQUE
+      pdf.setFontSize(11);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("TECHNIQUE:", margin, yPosition);
+      yPosition += 8;
       
-      pdf.setFontSize(9);
+      pdf.setFontSize(10);
       pdf.setFont("helvetica", "normal");
-      const findings = findingsText.split('\n');
-      findings.forEach((finding: string) => {
-        if (finding.trim()) {
-          if (!finding.startsWith('•')) {
-            pdf.text(`• ${finding.trim()}`, margin, yPosition);
-          } else {
-            pdf.text(finding.trim(), margin, yPosition);
-          }
-          yPosition += 6;
-        }
-      });
-      yPosition += 10;
+      const techniqueText = `${study.modality} imaging of the ${study.bodyPart} was performed according to standard protocol.`;
+      pdf.text(techniqueText, margin + 5, yPosition);
+      yPosition += 12;
+
+      // FINDINGS SECTION
+      pdf.setFontSize(11);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("FINDINGS:", margin, yPosition);
+      yPosition += 8;
+      
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "normal");
+      const findingsText = reportFormData.findings || study.findings || 
+        "The examination demonstrates normal anatomical structures within the imaging field. No acute abnormalities are identified. Bone structures appear intact with no evidence of fracture or dislocation. Soft tissues show normal signal characteristics.";
+      
+      const findingsLines = pdf.splitTextToSize(findingsText, contentWidth - 10);
+      pdf.text(findingsLines, margin + 5, yPosition);
+      yPosition += findingsLines.length * 6 + 12;
 
       // IMPRESSION SECTION
-      pdf.setFontSize(10);
+      pdf.setFontSize(11);
       pdf.setFont("helvetica", "bold");
-      pdf.text("IMPRESSION", margin, yPosition);
+      pdf.text("IMPRESSION:", margin, yPosition);
       yPosition += 8;
       
-      pdf.setFontSize(9);
-      pdf.setFont("helvetica", "normal");
-      const impressionText = reportFormData.impression || study.impression || "Above features are suggestive of bronchitis, likely allergic/infective.";
-      const impressionLines = pdf.splitTextToSize(impressionText, contentWidth - 20);
-      pdf.text(impressionLines, margin, yPosition);
-      yPosition += impressionLines.length * 6 + 10;
-
-      // ADVICE SECTION
       pdf.setFontSize(10);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("ADVICE", margin, yPosition);
-      yPosition += 8;
-      
-      pdf.setFontSize(9);
       pdf.setFont("helvetica", "normal");
-      pdf.text("Clinical correlation.", margin, yPosition);
-      yPosition += 15;
+      const impressionText = reportFormData.impression || study.impression || "Normal study. No acute findings.";
+      const impressionLines = pdf.splitTextToSize(impressionText, contentWidth - 10);
+      pdf.text(impressionLines, margin + 5, yPosition);
+      yPosition += impressionLines.length * 6 + 12;
 
-      // MEDICAL IMAGE SECTION - Large image like sample
+      // MEDICAL IMAGES SECTION
       if (study.images && study.images.length > 0) {
-        const availableSpace = pageHeight - yPosition - 70;
-        const imageSpace = Math.min(availableSpace, 80);
+        const availableHeight = pageHeight - yPosition - 55; // Reserve space for footer
+        const imageHeight = Math.min(60, availableHeight);
         
-        // Try to display the main medical image
-        const mainImage = study.images[0];
-        const hasImageData = (study.images[0] as any)?.imageData;
-        const hasMimeType = (study.images[0] as any)?.mimeType;
-        
-        if (hasImageData && hasMimeType && (hasMimeType.includes('jpeg') || hasMimeType.includes('png'))) {
-          try {
-            const imgData = `data:${hasMimeType};base64,${hasImageData}`;
-            const imageWidth = 100;
-            const imageHeight = 75;
-            const imageX = pageWidth / 2 - imageWidth / 2;
-            
-            pdf.addImage(imgData, 'JPEG', imageX, yPosition, imageWidth, imageHeight);
-            yPosition += imageHeight + 10;
-          } catch (error) {
-            // Fallback with placeholder
-            pdf.setDrawColor(200, 200, 200);
-            pdf.rect(pageWidth / 2 - 50, yPosition, 100, 60, 'S');
-            pdf.setFontSize(8);
-            pdf.text(`[${mainImage.seriesDescription}]`, pageWidth / 2, yPosition + 30, { align: "center" });
-            pdf.text(`${mainImage.imageCount} images`, pageWidth / 2, yPosition + 38, { align: "center" });
-            yPosition += 65;
+        if (imageHeight > 30) { // Only show if enough space
+          pdf.setFontSize(11);
+          pdf.setFont("helvetica", "bold");
+          pdf.text("REPRESENTATIVE IMAGES:", margin, yPosition);
+          yPosition += 10;
+          
+          const imageWidth = 80;
+          const imageX = pageWidth / 2 - imageWidth / 2;
+          
+          // Try to display actual medical image
+          const mainImage = study.images[0];
+          const hasImageData = (study.images[0] as any)?.imageData;
+          const hasMimeType = (study.images[0] as any)?.mimeType;
+          
+          if (hasImageData && hasMimeType && (hasMimeType.includes('jpeg') || hasMimeType.includes('png'))) {
+            try {
+              const imgData = `data:${hasMimeType};base64,${hasImageData}`;
+              pdf.addImage(imgData, 'JPEG', imageX, yPosition, imageWidth, imageHeight - 10);
+              yPosition += imageHeight;
+            } catch (error) {
+              // Medical image placeholder
+              pdf.setDrawColor(180, 180, 180);
+              pdf.setFillColor(250, 250, 250);
+              pdf.rect(imageX, yPosition, imageWidth, imageHeight - 10, 'FD');
+              pdf.setFontSize(9);
+              pdf.setTextColor(100, 100, 100);
+              pdf.text(`${mainImage.seriesDescription}`, pageWidth / 2, yPosition + (imageHeight - 10) / 2 - 5, { align: "center" });
+              pdf.text(`${mainImage.imageCount} images available`, pageWidth / 2, yPosition + (imageHeight - 10) / 2 + 5, { align: "center" });
+              pdf.setTextColor(0, 0, 0);
+              yPosition += imageHeight;
+            }
+          } else {
+            // Medical image placeholder
+            pdf.setDrawColor(180, 180, 180);
+            pdf.setFillColor(250, 250, 250);
+            pdf.rect(imageX, yPosition, imageWidth, imageHeight - 10, 'FD');
+            pdf.setFontSize(9);
+            pdf.setTextColor(100, 100, 100);
+            pdf.text(`${mainImage.seriesDescription}`, pageWidth / 2, yPosition + (imageHeight - 10) / 2 - 5, { align: "center" });
+            pdf.text(`${mainImage.imageCount} images - ${mainImage.size}`, pageWidth / 2, yPosition + (imageHeight - 10) / 2 + 5, { align: "center" });
+            pdf.setTextColor(0, 0, 0);
+            yPosition += imageHeight;
           }
-        } else {
-          // Placeholder for DICOM or unavailable images
-          pdf.setDrawColor(200, 200, 200);
-          pdf.rect(pageWidth / 2 - 50, yPosition, 100, 60, 'S');
-          pdf.setFontSize(8);
-          pdf.text(`[${mainImage.seriesDescription}]`, pageWidth / 2, yPosition + 25, { align: "center" });
-          pdf.text(`${mainImage.imageCount} images - ${mainImage.size}`, pageWidth / 2, yPosition + 33, { align: "center" });
-          pdf.text("Medical Image", pageWidth / 2, yPosition + 41, { align: "center" });
-          yPosition += 65;
         }
       }
 
-      // SIGNATURES SECTION - Three signatures like DRLOGY sample
-      const signaturesY = Math.max(yPosition, pageHeight - 45);
+      // RADIOLOGIST SIGNATURE SECTION
+      const footerStartY = pageHeight - 45;
+      yPosition = Math.max(yPosition + 10, footerStartY - 25);
       
-      pdf.setFontSize(7);
+      pdf.setDrawColor(200, 200, 200);
+      pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 10;
+      
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("REPORTED BY:", margin, yPosition);
+      
       pdf.setFont("helvetica", "normal");
+      pdf.text(`${reportFormData.radiologist || study.radiologist || "Dr. Sarah Johnson"}`, margin + 50, yPosition);
       
-      // Left signature - Technician
-      pdf.text("Thanks for Reference", margin, signaturesY);
-      pdf.text("Radiologic Technologists", margin, signaturesY + 8);
-      pdf.text("(MSc, PGDM)", margin, signaturesY + 14);
+      pdf.text("Date: " + format(new Date(), "dd/MM/yyyy HH:mm"), pageWidth - margin, yPosition, { align: "right" });
       
-      // Center signature - Main Doctor
-      const centerX = pageWidth / 2;
-      pdf.text("*****End of Report*****", centerX, signaturesY, { align: "center" });
-      pdf.text(`${reportFormData.radiologist || study.radiologist || "Dr. Payal Shah"}`, centerX, signaturesY + 8, { align: "center" });
-      pdf.text("(MD, Radiologist)", centerX, signaturesY + 14, { align: "center" });
-      
-      // Right signature - Secondary Doctor
-      const rightSigX = pageWidth - margin;
-      pdf.text("Dr. Vimal Shah", rightSigX, signaturesY + 8, { align: "right" });
-      pdf.text("(MD, Radiologist)", rightSigX, signaturesY + 14, { align: "right" });
+      yPosition += 8;
+      pdf.setFontSize(9);
+      pdf.text("MD, Diagnostic Radiology", margin + 50, yPosition);
+      pdf.text("License #: MD-RAD-2024", pageWidth - margin, yPosition, { align: "right" });
 
-      // FOOTER - Contact info like DRLOGY sample
+      // FOOTER
       const footerY = pageHeight - 15;
-      pdf.setFillColor(0, 0, 0); // Black background
+      pdf.setFillColor(30, 58, 138); // Professional blue
       pdf.rect(0, footerY, pageWidth, 15, 'F');
       
       pdf.setFontSize(8);
-      pdf.setTextColor(255, 255, 255); // White text
-      pdf.text("Generated on: " + format(new Date(), "dd.MM.yyyy, HH:mm"), margin, footerY + 8);
-      pdf.text("📱 01234567889", pageWidth / 2 - 15, footerY + 8, { align: "center" });
-      pdf.text("⚡ 24X7 Services", pageWidth - margin, footerY + 8, { align: "right" });
-      
-      // Page indicator
+      pdf.setTextColor(255, 255, 255);
+      pdf.text("Cura Medical Center | Radiology Department", margin, footerY + 8);
+      pdf.text("📞 +44-123-456-7890 | 📧 radiology@curamedical.com", pageWidth - margin, footerY + 8, { align: "right" });
+
+      // CONFIDENTIALITY NOTICE
       pdf.setFontSize(7);
-      pdf.text("Page 1 of 1", pageWidth - margin, footerY + 12, { align: "right" });
+      pdf.setTextColor(255, 255, 255);
+      pdf.text("CONFIDENTIAL MEDICAL REPORT - For authorized personnel only", pageWidth / 2, footerY + 12, { align: "center" });
 
       // Download the PDF
       const filename = `radiology-report-${study.patientName.replace(/\s+/g, '-').toLowerCase()}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
       pdf.save(filename);
 
       toast({
-        title: "Professional Radiology Report Generated",
-        description: `Complete medical report for ${study.patientName} has been generated successfully`,
+        title: "Professional Medical Report Generated",
+        description: `Comprehensive radiology report for ${study.patientName} has been created successfully`,
       });
 
       setShowReportDialog(false);
