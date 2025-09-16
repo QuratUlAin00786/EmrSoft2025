@@ -48,9 +48,10 @@ interface FullConsultationInterfaceProps {
   onOpenChange: (open: boolean) => void;
   patient?: any;
   patientName?: string;
+  patientId?: number;
 }
 
-export function FullConsultationInterface({ open, onOpenChange, patient, patientName }: FullConsultationInterfaceProps) {
+export function FullConsultationInterface({ open, onOpenChange, patient, patientName, patientId }: FullConsultationInterfaceProps) {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
@@ -74,7 +75,8 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
         title: "Consultation Saved",
         description: "The consultation record has been saved successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/patients', patient?.id, 'records'] });
+      const currentPatientId = patientId || patient?.id;
+      queryClient.invalidateQueries({ queryKey: ['/api/patients', currentPatientId, 'records'] });
       onOpenChange(false);
     },
     onError: (error: any) => {
@@ -89,7 +91,8 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
   // Save vitals mutation
   const saveVitalsMutation = useMutation({
     mutationFn: async (vitalsData: any) => {
-      const response = await fetch(`/api/patients/${patient?.id}/records`, {
+      const currentPatientId = patientId || patient?.id;
+      const response = await fetch(`/api/patients/${currentPatientId}/records`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -110,7 +113,8 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
         title: "Vitals Saved",
         description: "The vital signs have been saved to medical records successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/patients', patient?.id, 'records'] });
+      const currentPatientId = patientId || patient?.id;
+      queryClient.invalidateQueries({ queryKey: ['/api/patients', currentPatientId, 'records'] });
     },
     onError: (error: any) => {
       toast({
@@ -123,7 +127,8 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
 
   // Handle save vitals
   const handleSaveVitals = () => {
-    if (!patient?.id) {
+    const currentPatientId = patientId || patient?.id;
+    if (!currentPatientId) {
       toast({
         title: "Error",
         description: "Patient information is missing. Cannot save vitals.",
@@ -138,7 +143,8 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
   // Save history mutation
   const saveHistoryMutation = useMutation({
     mutationFn: async (historyData: any) => {
-      const response = await fetch(`/api/patients/${patient?.id}/records`, {
+      const currentPatientId = patientId || patient?.id;
+      const response = await fetch(`/api/patients/${currentPatientId}/records`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -175,7 +181,8 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
 
   // Handle save history
   const handleSaveHistory = () => {
-    if (!patient?.id) {
+    const currentPatientId = patientId || patient?.id;
+    if (!currentPatientId) {
       toast({
         title: "Error",
         description: "Patient information is missing. Cannot save history.",
@@ -200,7 +207,8 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
   // Save examination mutation
   const saveExaminationMutation = useMutation({
     mutationFn: async (examinationData: any) => {
-      const response = await fetch(`/api/patients/${patient?.id}/records`, {
+      const currentPatientId = patientId || patient?.id;
+      const response = await fetch(`/api/patients/${currentPatientId}/records`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -237,7 +245,8 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
 
   // Handle save examination
   const handleSaveExamination = () => {
-    if (!patient?.id) {
+    const currentPatientId = patientId || patient?.id;
+    if (!currentPatientId) {
       toast({
         title: "Error",
         description: "Patient information is missing. Cannot save examination.",
@@ -258,7 +267,8 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
 
   // Handle save consultation
   const handleSaveConsultation = () => {
-    if (!patient?.id) {
+    const currentPatientId = patientId || patient?.id;
+    if (!currentPatientId) {
       toast({
         title: "Error",
         description: "Patient information is missing. Cannot save consultation.",
@@ -269,7 +279,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
 
     // Map the consultation data to match backend schema exactly
     const consultationRecord = {
-      patientId: patient.id,
+      patientId: currentPatientId,
       chiefComplaint: consultationData.chiefComplaint || "",
       historyPresentingComplaint: consultationData.historyPresentingComplaint || "",
       reviewOfSystems: {
