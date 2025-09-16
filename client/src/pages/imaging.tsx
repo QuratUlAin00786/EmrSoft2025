@@ -1004,6 +1004,44 @@ export default function ImagingPage() {
                       <Button variant="outline" size="sm" onClick={() => handleDownloadStudy(study.id)}>
                         <Download className="h-4 w-4" />
                       </Button>
+                      
+                      {/* PDF Report Download and View Icons */}
+                      {study.reportFileName && (
+                        <>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => {
+                              const reportUrl = `/api/imaging/reports/${study.reportFileName.replace('.pdf', '')}`;
+                              window.open(reportUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+                            }}
+                            title="View PDF Report"
+                            data-testid="button-view-pdf-report"
+                            className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
+                          >
+                            <FileText className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => {
+                              const reportUrl = `/api/imaging/reports/${study.reportFileName.replace('.pdf', '')}`;
+                              const a = document.createElement('a');
+                              a.href = reportUrl;
+                              a.download = study.reportFileName;
+                              document.body.appendChild(a);
+                              a.click();
+                              document.body.removeChild(a);
+                            }}
+                            title="Download PDF Report"
+                            data-testid="button-download-pdf-report"
+                            className="border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
+                      
                       <Button variant="outline" size="sm" onClick={() => handleShareStudy(study)}>
                         <Share className="h-4 w-4" />
                       </Button>
