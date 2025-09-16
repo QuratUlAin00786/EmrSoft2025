@@ -223,12 +223,12 @@ export async function verifyMedicalRecordsExist() {
     const anatomicalCount = patientRecords.filter(r => r.title?.includes("Anatomical Analysis")).length;
     console.log(`🎯 Found ${anatomicalCount} Anatomical Analysis records`);
     
-    if (anatomicalCount === 0) {
+    if (anatomicalCount === 0 && process.env.NODE_ENV !== 'production') {
       console.log("⚠️  NO ANATOMICAL ANALYSIS RECORDS FOUND - FORCE CREATING...");
-      // Force create the records if they don't exist
+      // Force create the records if they don't exist (only in development)
       await seedProductionMedicalRecords();
     } else {
-      console.log("✅ Anatomical Analysis records confirmed present");
+      console.log("✅ Anatomical Analysis records confirmed present OR in production mode");
     }
     
   } catch (error) {

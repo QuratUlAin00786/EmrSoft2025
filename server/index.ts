@@ -75,7 +75,7 @@ app.use((req, res, next) => {
   // Run database seeding in background AFTER server is listening
   // This prevents health check timeouts during deployment
   // PRODUCTION FIX: Only seed in development to preserve production data
-  if (process.env.NODE_ENV !== 'production' || process.env.FORCE_SEED === 'true') {
+  if (process.env.NODE_ENV !== 'production' && process.env.FORCE_SEED !== 'false') {
     console.log("🚀 BACKGROUND SEEDING: Starting database seeding process...");
     console.log(`Environment: ${process.env.NODE_ENV}`);
     
