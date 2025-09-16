@@ -429,36 +429,36 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
     fetchPatientData();
   }, [patientId]);
 
-  useEffect(() => {
-    const fetchMedicalRecords = async () => {
-      if (!patientId) return;
+  const fetchMedicalRecords = async () => {
+    if (!patientId) return;
+    
+    try {
+      setIsLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/patients/${patientId}/records`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
       
-      try {
-        setIsLoading(true);
-        const token = localStorage.getItem('token');
-        const response = await fetch(`/api/patients/${patientId}/records`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'X-Tenant-Subdomain': 'demo',
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include'
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        
-        const data = await response.json();
-        setMedicalRecords(data || []);
-      } catch (err) {
-        console.error("Error fetching medical records:", err);
-        setMedicalRecords([]);
-      } finally {
-        setIsLoading(false);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
       }
-    };
+      
+      const data = await response.json();
+      setMedicalRecords(data || []);
+    } catch (err) {
+      console.error("Error fetching medical records:", err);
+      setMedicalRecords([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchMedicalRecords();
   }, [patientId]);
 
@@ -675,7 +675,13 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
           <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>}>
             <FullConsultationInterface 
               open={isAddingNote} 
-              onOpenChange={setIsAddingNote} 
+              onOpenChange={(open) => {
+                setIsAddingNote(open);
+                if (!open) {
+                  // Refresh medical records when dialog closes
+                  fetchMedicalRecords();
+                }
+              }} 
               patient={patient}
               patientName={patientName}
               patientId={patientId}
