@@ -8742,7 +8742,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Save PDF to disk
       const outputPath = path.join(reportsDir, `${reportId}.pdf`);
-      await fs.writeFile(outputPath, pdfBytes);
+      await fs.outputFile(outputPath, pdfBytes);
       
       console.log(`PDF report generated and saved: ${outputPath}`);
       
