@@ -116,9 +116,13 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const anatomicalImages = [facialMuscleImage, facialOutlineImage];
 
-  const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [patient, setPatient] = useState<any>(null);
+
+  // Use React Query for medical records to fix production caching issues
+  const { data: medicalRecords = [], isLoading, refetch: refetchMedicalRecords } = useQuery<any[]>({
+    queryKey: ['/api/patients', patientId, 'records'],
+    enabled: !!patientId
+  });
 
   // Define muscle coordinates for each anatomical image separately
   const muscleCoordinatesForImages = {
@@ -278,20 +282,8 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
         throw new Error(`HTTP ${response.status}`);
       }
 
-      // Refresh medical records by re-fetching them
-      const refreshResponse = await fetch(`/api/patients/${patientId}/records`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo',
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include'
-      });
-      
-      if (refreshResponse.ok) {
-        const refreshedData = await refreshResponse.json();
-        setMedicalRecords(refreshedData || []);
-      }
+      // Refresh medical records using React Query
+      refetchMedicalRecords();
       
       toast({
         title: "Analysis Saved",
@@ -429,38 +421,7 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
     fetchPatientData();
   }, [patientId]);
 
-  const fetchMedicalRecords = async () => {
-    if (!patientId) return;
-    
-    try {
-      setIsLoading(true);
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/patients/${patientId}/records`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo',
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      
-      const data = await response.json();
-      setMedicalRecords(data || []);
-    } catch (err) {
-      console.error("Error fetching medical records:", err);
-      setMedicalRecords([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchMedicalRecords();
-  }, [patientId]);
+  // Removed direct fetch function - now using React Query
 
   const form = useForm({
     defaultValues: {
@@ -517,7 +478,8 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
       }
 
       const newRecord = await response.json();
-      setMedicalRecords(prev => [newRecord, ...prev]);
+      // Invalidate and refetch medical records
+      queryClient.invalidateQueries({ queryKey: ['/api/patients', patientId, 'records'] });
       
       if (!isDraft) {
         setIsAddingNote(false);
@@ -678,8 +640,8 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
               onOpenChange={(open) => {
                 setIsAddingNote(open);
                 if (!open) {
-                  // Refresh medical records when dialog closes
-                  fetchMedicalRecords();
+                  // Refresh medical records when dialog closes using React Query
+                  queryClient.invalidateQueries({ queryKey: ['/api/patients', patientId, 'records'] });
                 }
               }} 
               patient={patient}
