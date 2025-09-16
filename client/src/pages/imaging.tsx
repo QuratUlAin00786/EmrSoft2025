@@ -707,9 +707,11 @@ export default function ImagingPage() {
       status: image.status === "uploaded" ? "completed" : image.status,
       priority: image.priority || "routine",
       indication: image.indication || "No indication provided",
-      findings: `Medical image uploaded: ${image.fileName}`,
-      impression: `File: ${image.fileName} (${(image.fileSize / (1024 * 1024)).toFixed(2)} MB)`,
-      radiologist: image.uploadedByName || "Unknown",
+      findings: image.findings || `Medical image uploaded: ${image.fileName}`,
+      impression: image.impression || `File: ${image.fileName} (${(image.fileSize / (1024 * 1024)).toFixed(2)} MB)`,
+      radiologist: image.radiologist || image.uploadedByName || "Unknown",
+      reportFileName: image.reportFileName, // Include PDF report file name
+      reportFilePath: image.reportFilePath, // Include PDF report file path
       images: [{
         id: image.id.toString(),
         type: image.mimeType?.includes('jpeg') ? 'JPEG' : 'DICOM',
