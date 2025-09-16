@@ -16,7 +16,7 @@ import { initializeMultiTenantPackage, getMultiTenantPackage } from "./packages/
 import { messagingService } from "./messaging-service";
 import { createPaypalOrder, capturePaypalOrder, loadPaypalDefault } from "./paypal";
 import { gdprComplianceService } from "./services/gdpr-compliance";
-import { insertGdprConsentSchema, insertGdprDataRequestSchema } from "../shared/schema";
+import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema } from "../shared/schema";
 import { processAppointmentBookingChat, generateAppointmentSummary } from "./anthropic";
 import { inventoryService } from "./services/inventory";
 import { emailService } from "./services/email";
@@ -8898,6 +8898,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("PDF serving error:", error);
       res.status(500).json({ error: "Failed to serve PDF report" });
+    }
+  });
+
+  // Update Individual Report Field
+  app.patch("/api/imaging/studies/:studyId/report-field", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      if (!req.user || !req.organizationId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const { studyId } = req.params;
+      const { fieldName, value } = req.body;
+
+      // Validate request body
+      const validation = updateMedicalImageReportFieldSchema.safeParse({ fieldName, value });
+      if (!validation.success) {
+        return res.status(400).json({ error: "Invalid field data", details: validation.error.issues });
+      }
+
+      // Update the specific field
+      const updatedStudy = await storage.updateMedicalImageReportField(
+        parseInt(studyId),
+        req.organizationId,
+        fieldName,
+        value
+      );
+
+      if (!updatedStudy) {
+        return res.status(404).json({ error: "Study not found" });
+      }
+
+      res.json({
+        success: true,
+        studyId: updatedStudy.id,
+        updated: {
+          [fieldName]: value
+        }
+      });
+
+    } catch (error) {
+      console.error("Error updating report field:", error);
+      res.status(500).json({ error: "Failed to update report field" });
     }
   });
   

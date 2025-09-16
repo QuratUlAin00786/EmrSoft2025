@@ -548,6 +548,10 @@ export const medicalImages = pgTable("medical_images", {
   mimeType: varchar("mime_type", { length: 100 }).notNull(),
   imageData: text("image_data"), // base64 encoded image data
   status: varchar("status", { length: 20 }).notNull().default("uploaded"), // uploaded, processing, analyzed, reported
+  // Report fields for radiological interpretation
+  findings: text("findings"), // Radiological findings
+  impression: text("impression"), // Clinical impression
+  radiologist: text("radiologist"), // Radiologist who interpreted the study
   metadata: jsonb("metadata").$type<{
     imageCount?: number;
     totalSize?: string;
@@ -1746,6 +1750,14 @@ export const insertMedicalImageSchema = createInsertSchema(medicalImages).omit({
   createdAt: true,
   updatedAt: true,
 });
+
+// Schema for updating individual report fields
+export const updateMedicalImageReportFieldSchema = z.object({
+  fieldName: z.enum(['findings', 'impression', 'radiologist']),
+  value: z.string().max(5000), // Reasonable max length for report fields
+});
+
+export type UpdateMedicalImageReportField = z.infer<typeof updateMedicalImageReportFieldSchema>;
 
 export const insertLabResultSchema = createInsertSchema(labResults).omit({
   id: true,

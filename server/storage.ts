@@ -13,7 +13,7 @@ import {
   type Notification, type InsertNotification,
   type Prescription, type InsertPrescription,
   type Document, type InsertDocument,
-  type MedicalImage, type InsertMedicalImage,
+  type MedicalImage, type InsertMedicalImage, type UpdateMedicalImageReportField,
   type LabResult, type InsertLabResult,
   type Claim, type InsertClaim,
   type RevenueRecord, type InsertRevenueRecord,
@@ -274,6 +274,7 @@ export interface IStorage {
   getMedicalImagesByOrganization(organizationId: number, limit?: number): Promise<MedicalImage[]>;
   createMedicalImage(image: InsertMedicalImage): Promise<MedicalImage>;
   updateMedicalImage(id: number, organizationId: number, updates: Partial<InsertMedicalImage>): Promise<MedicalImage | undefined>;
+  updateMedicalImageReportField(id: number, organizationId: number, fieldName: string, value: string): Promise<MedicalImage | undefined>;
   deleteMedicalImage(id: number, organizationId: number): Promise<boolean>;
 
   // Documents
@@ -3392,6 +3393,26 @@ export class DatabaseStorage implements IStorage {
     const [updatedImage] = await db
       .update(medicalImages)
       .set(cleanUpdates as any)
+      .where(and(eq(medicalImages.id, id), eq(medicalImages.organizationId, organizationId)))
+      .returning();
+    return updatedImage;
+  }
+
+  async updateMedicalImageReportField(id: number, organizationId: number, fieldName: string, value: string): Promise<MedicalImage | undefined> {
+    // Validate field name to prevent SQL injection
+    const allowedFields = ['findings', 'impression', 'radiologist'];
+    if (!allowedFields.includes(fieldName)) {
+      throw new Error(`Invalid field name: ${fieldName}`);
+    }
+
+    const updates: any = {
+      updatedAt: new Date(),
+    };
+    updates[fieldName] = value;
+
+    const [updatedImage] = await db
+      .update(medicalImages)
+      .set(updates)
       .where(and(eq(medicalImages.id, id), eq(medicalImages.organizationId, organizationId)))
       .returning();
     return updatedImage;

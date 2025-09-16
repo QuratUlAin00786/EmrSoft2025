@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Header } from "@/components/layout/header";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,10 +27,13 @@ import {
   Share2,
   Mail,
   MessageCircle,
-  Trash2
+  Trash2,
+  Edit2,
+  Check,
+  X,
+  Loader2
 } from "lucide-react";
 import { format } from "date-fns";
-import { queryClient } from '@/lib/queryClient';
 
 interface ImagingStudy {
   id: string;
@@ -187,6 +190,21 @@ export default function ImagingPage() {
   const [reportFindings, setReportFindings] = useState("");
   const [reportImpression, setReportImpression] = useState("");
   const [reportRadiologist, setReportRadiologist] = useState("");
+  
+  // Edit mode states for individual fields
+  const [editModes, setEditModes] = useState({
+    findings: false,
+    impression: false,
+    radiologist: false
+  });
+
+  // Saving states for individual fields
+  const [saving, setSaving] = useState({
+    findings: false,
+    impression: false,
+    radiologist: false
+  });
+
   const [generatedReportId, setGeneratedReportId] = useState<string | null>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [uploadFormData, setUploadFormData] = useState({
@@ -226,6 +244,95 @@ export default function ImagingPage() {
       }
     }
   });
+
+  // Individual field update mutations
+  const updateFieldMutation = useMutation({
+    mutationFn: async ({ studyId, fieldName, value }: { studyId: string; fieldName: string; value: string }) => {
+      const response = await apiRequest('PATCH', `/api/imaging/studies/${studyId}/report-field`, {
+        fieldName,
+        value
+      });
+      return response.json();
+    },
+    onSuccess: (data, variables) => {
+      // Update local state
+      if (variables.fieldName === 'findings') setReportFindings(variables.value);
+      if (variables.fieldName === 'impression') setReportImpression(variables.value);  
+      if (variables.fieldName === 'radiologist') setReportRadiologist(variables.value);
+      
+      // Exit edit mode
+      setEditModes(prev => ({
+        ...prev,
+        [variables.fieldName]: false
+      }));
+      
+      // Invalidate related queries
+      queryClient.invalidateQueries({ queryKey: ['/api/imaging/studies'] });
+      
+      toast({
+        title: "Field Updated",
+        description: `${variables.fieldName.charAt(0).toUpperCase() + variables.fieldName.slice(1)} saved successfully`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update field. Please try again.",
+        variant: "destructive",
+      });
+    },
+    onMutate: (variables) => {
+      // Set saving state
+      setSaving(prev => ({
+        ...prev,
+        [variables.fieldName]: true
+      }));
+    },
+    onSettled: (data, error, variables) => {
+      // Clear saving state
+      setSaving(prev => ({
+        ...prev,
+        [variables.fieldName]: false
+      }));
+    }
+  });
+
+  // Helper functions for individual field editing
+  const handleFieldEdit = (fieldName: 'findings' | 'impression' | 'radiologist') => {
+    setEditModes(prev => ({
+      ...prev,
+      [fieldName]: true
+    }));
+  };
+
+  const handleFieldCancel = (fieldName: 'findings' | 'impression' | 'radiologist') => {
+    setEditModes(prev => ({
+      ...prev,
+      [fieldName]: false
+    }));
+    
+    // Reset field to original value
+    if (selectedStudy) {
+      if (fieldName === 'findings') setReportFindings(selectedStudy.findings || "");
+      if (fieldName === 'impression') setReportImpression(selectedStudy.impression || "");
+      if (fieldName === 'radiologist') setReportRadiologist(selectedStudy.radiologist || "Dr. Michael Chen");
+    }
+  };
+
+  const handleFieldSave = (fieldName: 'findings' | 'impression' | 'radiologist') => {
+    if (!selectedStudy) return;
+    
+    let value = "";
+    if (fieldName === 'findings') value = reportFindings;
+    if (fieldName === 'impression') value = reportImpression;
+    if (fieldName === 'radiologist') value = reportRadiologist;
+    
+    updateFieldMutation.mutate({
+      studyId: selectedStudy.id,
+      fieldName,
+      value
+    });
+  };
 
   // Fetch patients using the exact working pattern from prescriptions
   const fetchPatients = async () => {
@@ -1055,43 +1162,175 @@ export default function ImagingPage() {
 
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="findings" className="text-sm font-medium">
-                    Findings
-                  </Label>
-                  <Textarea
-                    id="findings"
-                    placeholder="Enter radiological findings..."
-                    value={reportFindings}
-                    onChange={(e) => setReportFindings(e.target.value)}
-                    rows={4}
-                    className="mt-1"
-                  />
+                  <div className="flex items-center justify-between mb-2">
+                    <Label htmlFor="findings" className="text-sm font-medium">
+                      Findings
+                    </Label>
+                    {!editModes.findings ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleFieldEdit('findings')}
+                        className="h-6 w-6 p-0"
+                        data-testid="button-edit-findings"
+                      >
+                        <Edit2 className="h-3 w-3" />
+                      </Button>
+                    ) : (
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleFieldSave('findings')}
+                          disabled={saving.findings}
+                          className="h-6 w-6 p-0 text-green-600 hover:text-green-700"
+                          data-testid="button-save-findings"
+                        >
+                          {saving.findings ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleFieldCancel('findings')}
+                          disabled={saving.findings}
+                          className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                          data-testid="button-cancel-findings"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  {editModes.findings ? (
+                    <Textarea
+                      id="findings"
+                      placeholder="Enter radiological findings..."
+                      value={reportFindings}
+                      onChange={(e) => setReportFindings(e.target.value)}
+                      rows={4}
+                      className="mt-1"
+                      autoFocus
+                      data-testid="textarea-findings"
+                    />
+                  ) : (
+                    <div className="mt-1 min-h-[100px] p-3 bg-gray-50 dark:bg-gray-800 rounded-md border text-sm" data-testid="display-findings">
+                      {reportFindings || "Click edit to add findings..."}
+                    </div>
+                  )}
                 </div>
 
                 <div>
-                  <Label htmlFor="impression" className="text-sm font-medium">
-                    Impression
-                  </Label>
-                  <Textarea
-                    id="impression"
-                    placeholder="Enter clinical impression..."
-                    value={reportImpression}
-                    onChange={(e) => setReportImpression(e.target.value)}
-                    rows={3}
-                    className="mt-1"
-                  />
+                  <div className="flex items-center justify-between mb-2">
+                    <Label htmlFor="impression" className="text-sm font-medium">
+                      Impression
+                    </Label>
+                    {!editModes.impression ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleFieldEdit('impression')}
+                        className="h-6 w-6 p-0"
+                        data-testid="button-edit-impression"
+                      >
+                        <Edit2 className="h-3 w-3" />
+                      </Button>
+                    ) : (
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleFieldSave('impression')}
+                          disabled={saving.impression}
+                          className="h-6 w-6 p-0 text-green-600 hover:text-green-700"
+                          data-testid="button-save-impression"
+                        >
+                          {saving.impression ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleFieldCancel('impression')}
+                          disabled={saving.impression}
+                          className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                          data-testid="button-cancel-impression"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  {editModes.impression ? (
+                    <Textarea
+                      id="impression"
+                      placeholder="Enter clinical impression..."
+                      value={reportImpression}
+                      onChange={(e) => setReportImpression(e.target.value)}
+                      rows={3}
+                      className="mt-1"
+                      autoFocus
+                      data-testid="textarea-impression"
+                    />
+                  ) : (
+                    <div className="mt-1 min-h-[75px] p-3 bg-gray-50 dark:bg-gray-800 rounded-md border text-sm" data-testid="display-impression">
+                      {reportImpression || "Click edit to add impression..."}
+                    </div>
+                  )}
                 </div>
 
                 <div>
-                  <Label htmlFor="radiologist" className="text-sm font-medium">
-                    Radiologist
-                  </Label>
-                  <Input
-                    id="radiologist"
-                    value={reportRadiologist}
-                    onChange={(e) => setReportRadiologist(e.target.value)}
-                    className="mt-1"
-                  />
+                  <div className="flex items-center justify-between mb-2">
+                    <Label htmlFor="radiologist" className="text-sm font-medium">
+                      Radiologist
+                    </Label>
+                    {!editModes.radiologist ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleFieldEdit('radiologist')}
+                        className="h-6 w-6 p-0"
+                        data-testid="button-edit-radiologist"
+                      >
+                        <Edit2 className="h-3 w-3" />
+                      </Button>
+                    ) : (
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleFieldSave('radiologist')}
+                          disabled={saving.radiologist}
+                          className="h-6 w-6 p-0 text-green-600 hover:text-green-700"
+                          data-testid="button-save-radiologist"
+                        >
+                          {saving.radiologist ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleFieldCancel('radiologist')}
+                          disabled={saving.radiologist}
+                          className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                          data-testid="button-cancel-radiologist"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  {editModes.radiologist ? (
+                    <Input
+                      id="radiologist"
+                      value={reportRadiologist}
+                      onChange={(e) => setReportRadiologist(e.target.value)}
+                      className="mt-1"
+                      autoFocus
+                      data-testid="input-radiologist"
+                    />
+                  ) : (
+                    <div className="mt-1 min-h-[40px] p-3 bg-gray-50 dark:bg-gray-800 rounded-md border text-sm flex items-center" data-testid="display-radiologist">
+                      {reportRadiologist || "Click edit to add radiologist..."}
+                    </div>
+                  )}
                 </div>
 
                 {selectedStudy.report && (
