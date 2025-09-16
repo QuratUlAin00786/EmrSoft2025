@@ -8912,9 +8912,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         downloadFilename = `radiology-report-${reportId}.pdf`;
       }
       
+      // Check if this is a download request vs view request
+      const isDownload = req.query.download === 'true';
+      
       // Serve the PDF file
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `inline; filename="${downloadFilename}"`);
+      res.setHeader('Content-Disposition', `${isDownload ? 'attachment' : 'inline'}; filename="${downloadFilename}"`);
       res.sendFile(filePath);
 
     } catch (error) {

@@ -1026,7 +1026,7 @@ export default function ImagingPage() {
                             variant="outline" 
                             size="sm" 
                             onClick={() => {
-                              const reportUrl = `/api/imaging/reports/${study.reportFileName.replace('.pdf', '')}`;
+                              const reportUrl = `/api/imaging/reports/${study.reportFileName.replace('.pdf', '')}?download=true`;
                               const a = document.createElement('a');
                               a.href = reportUrl;
                               a.download = study.reportFileName;
