@@ -1005,9 +1005,6 @@ export default function ImagingPage() {
                       <Button variant="outline" size="sm" onClick={() => handleViewStudy(study)}>
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleDownloadStudy(study.id)}>
-                        <Download className="h-4 w-4" />
-                      </Button>
                       
                       {/* PDF Report Download and View Icons */}
                       {study.reportFileName && (
