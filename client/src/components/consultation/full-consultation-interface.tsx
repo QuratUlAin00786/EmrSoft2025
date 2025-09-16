@@ -92,10 +92,13 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
   const saveVitalsMutation = useMutation({
     mutationFn: async (vitalsData: any) => {
       const currentPatientId = patientId || patient?.id;
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`/api/patients/${currentPatientId}/records`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
         },
         body: JSON.stringify({
           type: 'vitals',
@@ -269,10 +272,13 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
   const saveAssessmentMutation = useMutation({
     mutationFn: async (assessmentData: any) => {
       const currentPatientId = patientId || patient?.id;
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`/api/patients/${currentPatientId}/records`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
         },
         body: JSON.stringify({
           type: 'assessment',
@@ -325,10 +331,13 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
   const saveSummaryMutation = useMutation({
     mutationFn: async (summaryData: any) => {
       const currentPatientId = patientId || patient?.id;
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`/api/patients/${currentPatientId}/records`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
         },
         body: JSON.stringify({
           type: 'summary',
