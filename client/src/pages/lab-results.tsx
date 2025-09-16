@@ -1411,7 +1411,7 @@ Report generated from Cura EMR System`;
                       <Button 
                         size="sm" 
                         onClick={() => handleGeneratePrescription(result)}
-                        className="bg-green-600 hover:bg-green-700 text-white"
+                        className="bg-medical-blue hover:bg-blue-700 text-white"
                       >
                         <FileText className="h-4 w-4 mr-2" />
                         Generate Prescription
@@ -1429,7 +1429,7 @@ Report generated from Cura EMR System`;
                           // Close the dialog
                           setShowPrescriptionDialog(false);
                         }}
-                        className="bg-purple-600 hover:bg-purple-700 text-white"
+                        className="bg-medical-blue hover:bg-blue-700 text-white"
                       >
                         <Download className="h-4 w-4 mr-2" />
                         Download PDF
