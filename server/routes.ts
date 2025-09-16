@@ -8682,17 +8682,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const darkGray = rgb(0.3, 0.3, 0.3);
       const blackColor = rgb(0, 0, 0);
       
-      // Helper function to draw a section box
+      // Helper function to draw a section box (borders and background removed)
       const drawSectionBox = (x: number, y: number, width: number, height: number) => {
-        page.drawRectangle({
-          x: x,
-          y: y - height,
-          width: width,
-          height: height,
-          color: lightGray,
-          borderColor: primaryBlue,
-          borderWidth: 1
-        });
+        // No borders or background - content only
       };
       
       // Position tracker
@@ -8701,33 +8693,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Professional Formal Header
       const headerHeight = 100;
       
-      // Main header background with formal design
-      page.drawRectangle({
-        x: 30,
-        y: yPosition - headerHeight + 5,
-        width: width - 60,
-        height: headerHeight,
-        color: rgb(0.96, 0.97, 0.99), // Very light blue background
-        borderColor: primaryBlue,
-        borderWidth: 2
-      });
-      
-      // Medical center logo area (left side)
-      page.drawRectangle({
-        x: 40,
-        y: yPosition - 75,
-        width: 60,
-        height: 60,
-        color: primaryBlue
-      });
-      
-      // Medical cross symbol in logo (using standard plus symbol)
+      // Medical cross symbol (using standard plus symbol) - no background
       page.drawText('+', {
         x: 67,
         y: yPosition - 55,
         size: 32,
         font: boldFont,
-        color: rgb(1, 1, 1)
+        color: primaryBlue
       });
       
       // Institution name and department
@@ -8763,21 +8735,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         color: darkGray
       });
       
-      // Report title (right side)
-      page.drawRectangle({
-        x: width - 180,
-        y: yPosition - 50,
-        width: 140,
-        height: 35,
-        color: primaryBlue
-      });
-      
+      // Report title (right side) - no background
       page.drawText('DIAGNOSTIC', {
         x: width - 170,
         y: yPosition - 30,
         size: 12,
         font: boldFont,
-        color: rgb(1, 1, 1)
+        color: primaryBlue
       });
       
       page.drawText('RADIOLOGY REPORT', {
@@ -8785,7 +8749,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         y: yPosition - 43,
         size: 11,
         font: boldFont,
-        color: rgb(1, 1, 1)
+        color: primaryBlue
       });
       
       yPosition -= headerHeight + 20;
