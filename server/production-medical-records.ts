@@ -5,57 +5,77 @@ import { db } from "./db.js";
 import { medicalRecords } from "@shared/schema.js";
 import { eq, and } from "drizzle-orm";
 
-export async function seedProductionMedicalRecords() {
+interface SeedOptions {
+  orgSubdomain?: string;
+  maxPatients?: number;
+  minRecordsPerPatient?: number;
+}
+
+export async function seedProductionMedicalRecords(options: SeedOptions = {}) {
   try {
-    console.log("🏥 Seeding production medical records for ALL patients...");
+    const { orgSubdomain = "demo", maxPatients = 1, minRecordsPerPatient = 2 } = options;
     
-    // Get the main organization (Demo Healthcare Clinic)
+    console.log(`🏥 Seeding production medical records for organization: ${orgSubdomain}...`);
+    
+    // Get the specified organization
     const { organizations, patients } = await import("@shared/schema.js");
-    const [org] = await db.select().from(organizations).where(eq(organizations.subdomain, "demo"));
+    const [org] = await db.select().from(organizations).where(eq(organizations.subdomain, orgSubdomain));
     
     if (!org) {
-      console.log("⚠️  No organization found - cannot seed medical records");
-      return;
+      console.log(`⚠️  Organization '${orgSubdomain}' not found - cannot seed medical records`);
+      return { success: false, error: "Organization not found", createdCount: 0 };
     }
     
-    // Get all patients in the database to seed medical records for them
-    const allPatients = await db.select().from(patients).where(eq(patients.organizationId, org.id));
+    // Get patients in the organization (limited by maxPatients)
+    const allPatients = await db.select().from(patients)
+      .where(eq(patients.organizationId, org.id))
+      .limit(maxPatients);
     
-    console.log(`🔍 Found ${allPatients.length} patients in production database`);
+    console.log(`🔍 Found ${allPatients.length} patients in ${orgSubdomain} organization`);
     
     if (allPatients.length === 0) {
-      console.log("⚠️  No patients found in production database - cannot seed medical records");
-      return;
+      console.log("⚠️  No patients found - cannot seed medical records");
+      return { success: false, error: "No patients found", createdCount: 0 };
     }
     
-    // Use the first patient for seeding (universal approach)
-    const targetPatient = allPatients[0];
-    console.log(`🎯 Target patient: ID ${targetPatient.id}, Name: ${targetPatient.firstName} ${targetPatient.lastName}`);
+    let totalCreated = 0;
+    const results = [];
     
-    // Check if medical records already exist for this patient
-    const existingRecords = await db.select().from(medicalRecords)
-      .where(and(
-        eq(medicalRecords.patientId, targetPatient.id), 
-        eq(medicalRecords.organizationId, org.id)
-      ));
+    // Process each patient (up to maxPatients)
+    for (const targetPatient of allPatients) {
+      console.log(`🎯 Processing patient: ID ${targetPatient.id}, Name: ${targetPatient.firstName} ${targetPatient.lastName}`);
+      
+      // Check if medical records already exist for this patient
+      const existingRecords = await db.select().from(medicalRecords)
+        .where(and(
+          eq(medicalRecords.patientId, targetPatient.id), 
+          eq(medicalRecords.organizationId, org.id)
+        ));
+      
+      if (existingRecords.length >= minRecordsPerPatient) {
+        console.log(`✅ Patient ${targetPatient.id} already has ${existingRecords.length} records (minimum: ${minRecordsPerPatient}), skipping`);
+        results.push({ patientId: targetPatient.id, createdCount: 0, skipped: true });
+        continue;
+      }
     
-    if (existingRecords.length >= 2) {
-      console.log(`✅ Medical records already exist for Patient ${targetPatient.id}, skipping seed`);
-      return;
-    }
-    
-    console.log("🔍 No sufficient medical records found, creating medical records...");
-    
-    // Get the first provider for this organization
-    const { users } = await import("@shared/schema.js");
-    const providers = await db.select().from(users)
-      .where(and(eq(users.organizationId, org.id), eq(users.role, "doctor")));
-    
-    const targetProvider = providers.length > 0 ? providers[0] : { id: 1 };
-    console.log(`🩺 Using provider: ID ${targetProvider.id}`);
-    
-    // Production medical records data - universal for any patient
-    const productionRecords = [
+      console.log(`🔍 Patient ${targetPatient.id} needs more medical records (has ${existingRecords.length}, minimum: ${minRecordsPerPatient})`);
+      
+      // Get the first provider for this organization
+      const { users } = await import("@shared/schema.js");
+      const providers = await db.select().from(users)
+        .where(and(eq(users.organizationId, org.id), eq(users.role, "doctor")));
+      
+      if (providers.length === 0) {
+        console.log(`❌ No doctor found in organization ${orgSubdomain} - cannot create medical records`);
+        return { success: false, error: "No provider found in organization", createdCount: totalCreated };
+      }
+      
+      const targetProvider = providers[0];
+      console.log(`🩺 Using provider: ID ${targetProvider.id}`);
+      
+      // Production medical records data - universal for any patient
+      const recordsToCreate = minRecordsPerPatient - existingRecords.length;
+      const productionRecords = [
       {
         organizationId: org.id,
         patientId: targetPatient.id,
@@ -154,33 +174,48 @@ Analysis completed on: Aug 21, 2025, 9:59:28 PM`,
         patientId: targetPatient.id,
         providerId: targetProvider.id,
         type: "consultation",
-        title: "",
+        title: "General Medical Consultation",
         notes: "The Patient has come to the hospital with headache, Nausea and high fever.",
-        diagnosis: "fdxgchjhk",
-        treatment: "jtrdyktfuyg.ikuh/lkm",
+        diagnosis: "Acute viral syndrome with neurological symptoms",
+        treatment: "Symptomatic treatment and monitoring",
         prescription: { medications: [] },
         attachments: [],
         aiSuggestions: {}
       }
-    ];
+    ].slice(0, recordsToCreate); // Only create the needed number of records
 
-    // Insert the records with better error handling
-    const insertedRecords = await db.insert(medicalRecords).values(productionRecords).returning();
+      // Insert the records with better error handling
+      const insertedRecords = await db.insert(medicalRecords).values(productionRecords).returning();
+      
+      console.log(`✅ Successfully created ${insertedRecords.length} medical records for Patient ${targetPatient.id}`);
+      insertedRecords.forEach(record => {
+        console.log(`   • ID ${record.id}: ${record.title || 'Untitled consultation'}`);
+      });
+      
+      totalCreated += insertedRecords.length;
+      results.push({ 
+        patientId: targetPatient.id, 
+        createdCount: insertedRecords.length, 
+        skipped: false 
+      });
+    }
     
-    console.log(`✅ Successfully seeded production medical records for Patient ${targetPatient.id}`);
-    console.log(`📋 Created ${insertedRecords.length} medical records:`);
-    insertedRecords.forEach(record => {
-      console.log(`   • ID ${record.id}: ${record.title || 'Untitled consultation'}`);
-    });
-    
-    // Verify the records were created
-    const verificationRecords = await db.select().from(medicalRecords)
-      .where(and(eq(medicalRecords.patientId, targetPatient.id), eq(medicalRecords.organizationId, org.id)));
-    console.log(`🔍 Verification: Found ${verificationRecords.length} total records for Patient ${targetPatient.id}`);
+    console.log(`🎉 Seeding completed: ${totalCreated} total medical records created`);
+    return { 
+      success: true, 
+      createdCount: totalCreated, 
+      results,
+      organizationId: org.id,
+      orgSubdomain
+    };
     
   } catch (error) {
     console.error("❌ Failed to seed production medical records:", error);
-    console.error("Full error details:", error);
+    return { 
+      success: false, 
+      error: (error as Error).message, 
+      createdCount: 0 
+    };
   }
 }
 
