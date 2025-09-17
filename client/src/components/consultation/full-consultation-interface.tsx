@@ -2294,29 +2294,6 @@ Patient should be advised of potential side effects and expected timeline for re
                   <div className="mt-4 p-3 bg-gray-100 rounded-lg border">
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => {
-                            setCalibrationMode(!calibrationMode);
-                            if (calibrationMode) setCalibrationPoints([]);
-                          }}
-                          className={`px-3 py-2 rounded text-sm font-medium ${
-                            calibrationMode 
-                              ? 'bg-red-500 text-white' 
-                              : 'bg-blue-500 text-white hover:bg-blue-600'
-                          }`}
-                        >
-                          {calibrationMode ? '✕ Stop Calibration' : '🎯 Start Calibration'}
-                        </button>
-                        
-                        {/* Black Dot Detection Button */}
-                        <button
-                          onClick={detectBlackDots}
-                          disabled={!imageLoaded || !overlayPosition}
-                          className="px-3 py-2 bg-yellow-500 text-white rounded text-sm hover:bg-yellow-600 disabled:opacity-50 font-medium"
-                          data-testid="button-detect-black-dots"
-                        >
-                          🔍 Detect Black Dots
-                        </button>
                         
                         {showBlackDotPolygons && (
                           <>
@@ -2340,16 +2317,6 @@ Patient should be advised of potential side effects and expected timeline for re
                             </button>
                           </>
                         )}
-                        
-                        {/* Load Saved Positions Button */}
-                        <button
-                          onClick={loadSavedMusclePositions}
-                          disabled={!(patientId || patient?.id)}
-                          className="px-3 py-2 bg-purple-500 text-white rounded text-sm hover:bg-purple-600 disabled:opacity-50 font-medium"
-                          data-testid="button-load-saved-positions"
-                        >
-                          📊 Load Saved Positions
-                        </button>
                         
                         {showSavedPositions && (
                           <button
