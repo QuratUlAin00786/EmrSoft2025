@@ -9156,7 +9156,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const filename = `${reportId}.pdf`;
-      const filePath = path.join(process.cwd(), 'uploads', 'reports', filename);
+      const filePath = path.join(process.cwd(), 'uploads', 'Imaging_Reports', filename);
 
       // Check if file exists
       if (!(await fs.pathExists(filePath))) {
