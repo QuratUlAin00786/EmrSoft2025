@@ -1452,7 +1452,7 @@ export default function ImagingPage() {
                 </div>
 
                 {/* Saved Reports Section */}
-                {selectedStudy.reportFileName && (
+                {selectedStudy.reportFileName && !deletedStudyIds.has(selectedStudy.id) && (
                   <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
                     <h4 className="font-medium text-purple-800 mb-2">Saved Reports</h4>
                     <div className="text-sm text-purple-700">
@@ -1550,22 +1550,6 @@ export default function ImagingPage() {
                             </Button>
                           </div>
                           <p className="text-xs text-green-600 mt-1">Click the file name to view the PDF</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={() => {
-                              setGeneratedReportId(null);
-                              setGeneratedReportFileName(null);
-                              setReportFindings("");
-                              setReportImpression("");
-                              setReportRadiologist("");
-                            }}
-                            variant="outline"
-                            className="flex-1"
-                            data-testid="button-generate-new"
-                          >
-                            Generate New Report
-                          </Button>
                         </div>
                       </div>
                     ) : (
