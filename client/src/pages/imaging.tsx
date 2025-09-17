@@ -1117,7 +1117,7 @@ export default function ImagingPage() {
                       )}
                       
                       <Button variant="outline" size="sm" onClick={() => handleShareStudy(study)}>
-                        <Share className="h-4 w-4" />
+                        <Share2 className="h-4 w-4" />
                       </Button>
                       <Button variant="outline" size="sm" onClick={() => handleGenerateReport(study.id)}>
                         <FileText className="h-4 w-4" />
