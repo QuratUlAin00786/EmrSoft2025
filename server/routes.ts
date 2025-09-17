@@ -8568,6 +8568,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         <h1>CURA MEDICAL CENTER</h1>
         <h2>RADIOLOGY DIAGNOSTIC REPORT</h2>
     </div>
+    <div style="border-bottom: 1px solid #d1d5db; margin-bottom: 15px;"></div>
 
     <div class="info-section">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
