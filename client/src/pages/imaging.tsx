@@ -1480,22 +1480,42 @@ export default function ImagingPage() {
                             if (selectedStudy.reportFileName) {
                               try {
                                 const reportId = selectedStudy.reportFileName.replace('.pdf', '');
-                                await apiRequest('DELETE', `/api/imaging/reports/${reportId}`);
+                                const response = await apiRequest('DELETE', `/api/imaging/reports/${reportId}`);
                                 
                                 toast({
                                   title: "Success",
                                   description: "Report deleted successfully",
                                 });
                                 
+                                // Update the selectedStudy to remove reportFileName, hiding the "Saved Reports" box
+                                if (selectedStudy) {
+                                  setSelectedStudy({
+                                    ...selectedStudy,
+                                    reportFileName: undefined,
+                                    reportFilePath: undefined
+                                  });
+                                }
+                                
                                 // Refresh the studies data
                                 queryClient.invalidateQueries({ queryKey: ['/api/imaging/studies'] });
-                              } catch (error) {
+                                refetchImages();
+                              } catch (error: any) {
                                 console.error('Error deleting report:', error);
-                                toast({
-                                  title: "Error",
-                                  description: "Failed to delete report",
-                                  variant: "destructive"
-                                });
+                                
+                                // Check if the error is due to file not existing
+                                if (error?.message?.includes('404') || error?.response?.status === 404) {
+                                  toast({
+                                    title: "Error",
+                                    description: "File not existing on server",
+                                    variant: "destructive"
+                                  });
+                                } else {
+                                  toast({
+                                    title: "Error",
+                                    description: "Failed to delete report",
+                                    variant: "destructive"
+                                  });
+                                }
                               }
                             }
                           }}
