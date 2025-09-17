@@ -1,21 +1,78 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { 
-  Plus, Package, AlertTriangle, TrendingUp, Search, Filter, BarChart3, 
-  ShoppingCart, Edit, MoreVertical, Calendar, MapPin, Clock, CheckCircle,
-  XCircle, AlertCircle, FileText, Truck, Pill, Stethoscope, Archive,
-  Eye, Download, Upload, RefreshCw, Settings, Users, Building2, Trash2
+import {
+  Plus,
+  Package,
+  AlertTriangle,
+  TrendingUp,
+  Search,
+  Filter,
+  BarChart3,
+  ShoppingCart,
+  Edit,
+  MoreVertical,
+  Calendar,
+  MapPin,
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  FileText,
+  Truck,
+  Pill,
+  Stethoscope,
+  Archive,
+  Eye,
+  Download,
+  Upload,
+  RefreshCw,
+  Settings,
+  Users,
+  Building2,
+  Trash2,
 } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -52,7 +109,7 @@ interface InventoryItem {
   updatedAt: string;
 }
 
-// 2. Stock/Inventory Table Interface  
+// 2. Stock/Inventory Table Interface
 interface StockEntry {
   id: number;
   itemId: number; // Link to Item Master
@@ -162,7 +219,9 @@ interface InventoryValue {
 
 export default function Inventory() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
+  const [selectedCategory, setSelectedCategory] = useState<
+    number | undefined
+  >();
   const [showLowStock, setShowLowStock] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showStockDialog, setShowStockDialog] = useState(false);
@@ -173,14 +232,19 @@ export default function Inventory() {
   const [showPODetailsDialog, setShowPODetailsDialog] = useState(false);
   const [showItemDetailsDialog, setShowItemDetailsDialog] = useState(false);
   const [showEmailDialog, setShowEmailDialog] = useState(false);
-  const [selectedPOForEmail, setSelectedPOForEmail] = useState<PurchaseOrder | null>(null);
+  const [selectedPOForEmail, setSelectedPOForEmail] =
+    useState<PurchaseOrder | null>(null);
   const [emailAddress, setEmailAddress] = useState("");
   const [activeTab, setActiveTab] = useState("item-master");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // 1. Item Master Data
-  const { data: items = [], isLoading: itemsLoading, error: itemsError } = useQuery<InventoryItem[]>({
+  const {
+    data: items = [],
+    isLoading: itemsLoading,
+    error: itemsError,
+  } = useQuery<InventoryItem[]>({
     queryKey: ["/api/inventory/items"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/inventory/items");
@@ -190,7 +254,9 @@ export default function Inventory() {
   });
 
   // 2. Stock/Inventory Data
-  const { data: stockEntries = [], isLoading: stockLoading } = useQuery<StockEntry[]>({
+  const { data: stockEntries = [], isLoading: stockLoading } = useQuery<
+    StockEntry[]
+  >({
     queryKey: ["/api/inventory/batches"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/inventory/batches");
@@ -200,17 +266,24 @@ export default function Inventory() {
   });
 
   // 3. Purchase Orders Data
-  const { data: purchaseOrders = [], isLoading: poLoading } = useQuery<PurchaseOrder[]>({
+  const { data: purchaseOrders = [], isLoading: poLoading } = useQuery<
+    PurchaseOrder[]
+  >({
     queryKey: ["/api/inventory/purchase-orders"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/inventory/purchase-orders");
+      const response = await apiRequest(
+        "GET",
+        "/api/inventory/purchase-orders",
+      );
       return response.json();
     },
     retry: 3,
   });
 
   // 4. Goods Receipt Data
-  const { data: goodsReceipts = [], isLoading: receiptLoading } = useQuery<GoodsReceipt[]>({
+  const { data: goodsReceipts = [], isLoading: receiptLoading } = useQuery<
+    GoodsReceipt[]
+  >({
     queryKey: ["/api/inventory/goods-receipts"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/inventory/goods-receipts");
@@ -240,7 +313,10 @@ export default function Inventory() {
   const deleteItemMutation = useMutation({
     mutationFn: async (itemId: number) => {
       console.log("Starting deletion API call for ID:", itemId);
-      const response = await apiRequest("DELETE", `/api/inventory/items/${itemId}`);
+      const response = await apiRequest(
+        "DELETE",
+        `/api/inventory/items/${itemId}`,
+      );
       console.log("Delete API response:", response);
       return response;
     },
@@ -268,15 +344,15 @@ export default function Inventory() {
   // Delete item function with confirmation
   const deleteItem = (item: InventoryItem) => {
     console.log("Delete item clicked for:", item.name, "ID:", item.id);
-    
+
     // Add a small delay to ensure the dropdown closes properly
     setTimeout(() => {
       const confirmDelete = window.confirm(
-        `Are you sure you want to delete "${item.name}" (SKU: ${item.sku})?\n\nThis action cannot be undone and will permanently remove the item from your inventory database.`
+        `Are you sure you want to delete "${item.name}" (SKU: ${item.sku})?\n\nThis action cannot be undone and will permanently remove the item from your inventory database.`,
       );
-      
+
       console.log("User confirmed deletion:", confirmDelete);
-      
+
       if (confirmDelete) {
         console.log("Calling deleteItemMutation.mutate with ID:", item.id);
         deleteItemMutation.mutate(item.id);
@@ -293,41 +369,45 @@ export default function Inventory() {
         id: item.id,
         sku: item.sku,
         name: item.name,
-        category: item.categoryName || 'Uncategorized',
-        description: item.description || 'No description available',
-        barcode: item.barcode || 'N/A',
+        category: item.categoryName || "Uncategorized",
+        description: item.description || "No description available",
+        barcode: item.barcode || "N/A",
         unitOfMeasurement: item.unitOfMeasurement,
-        brandName: item.brandName || 'N/A',
-        manufacturer: item.manufacturer || 'N/A',
-        prescriptionRequired: item.prescriptionRequired ? 'Yes' : 'No',
-        isActive: item.isActive ? 'Active' : 'Inactive'
+        brandName: item.brandName || "N/A",
+        manufacturer: item.manufacturer || "N/A",
+        prescriptionRequired: item.prescriptionRequired ? "Yes" : "No",
+        isActive: item.isActive ? "Active" : "Inactive",
       },
       pricing: {
         purchasePrice: parseFloat(item.purchasePrice).toFixed(2),
         salePrice: parseFloat(item.salePrice).toFixed(2),
-        mrp: item.mrp ? parseFloat(item.mrp).toFixed(2) : 'N/A',
-        stockValue: parseFloat(item.stockValue.toString()).toFixed(2)
+        mrp: item.mrp ? parseFloat(item.mrp).toFixed(2) : "N/A",
+        stockValue: parseFloat(item.stockValue.toString()).toFixed(2),
       },
       inventory: {
         currentStock: item.currentStock,
         minimumStock: item.minimumStock,
         reorderPoint: item.reorderPoint,
-        stockStatus: item.isLowStock ? 'Low Stock' : 'In Stock',
-        expiryDate: item.expiryDate ? format(new Date(item.expiryDate), 'MMM dd, yyyy') : 'No expiry date',
-        isExpired: item.expiryDate ? new Date(item.expiryDate) < new Date() : false
+        stockStatus: item.isLowStock ? "Low Stock" : "In Stock",
+        expiryDate: item.expiryDate
+          ? format(new Date(item.expiryDate), "MMM dd, yyyy")
+          : "No expiry date",
+        isExpired: item.expiryDate
+          ? new Date(item.expiryDate) < new Date()
+          : false,
       },
       timestamps: {
-        created: format(new Date(item.createdAt), 'MMM dd, yyyy HH:mm'),
-        lastUpdated: format(new Date(item.updatedAt), 'MMM dd, yyyy HH:mm')
-      }
+        created: format(new Date(item.createdAt), "MMM dd, yyyy HH:mm"),
+        lastUpdated: format(new Date(item.updatedAt), "MMM dd, yyyy HH:mm"),
+      },
     };
 
     // Generate CSV content
     const csvContent = [
-      'CURA EMR - INVENTORY ITEM REPORT',
+      "CURA EMR - INVENTORY ITEM REPORT",
       `Generated: ${reportData.reportDate} at ${reportData.reportTime}`,
-      '',
-      'BASIC INFORMATION',
+      "",
+      "BASIC INFORMATION",
       `Item ID,${reportData.item.id}`,
       `SKU,${reportData.item.sku}`,
       `Name,${reportData.item.name}`,
@@ -339,35 +419,38 @@ export default function Inventory() {
       `Manufacturer,${reportData.item.manufacturer}`,
       `Prescription Required,${reportData.item.prescriptionRequired}`,
       `Status,${reportData.item.isActive}`,
-      '',
-      'PRICING INFORMATION',
+      "",
+      "PRICING INFORMATION",
       `Purchase Price (£),${reportData.pricing.purchasePrice}`,
       `Sale Price (£),${reportData.pricing.salePrice}`,
       `MRP (£),${reportData.pricing.mrp}`,
       `Total Stock Value (£),${reportData.pricing.stockValue}`,
-      '',
-      'INVENTORY MANAGEMENT',
+      "",
+      "INVENTORY MANAGEMENT",
       `Current Stock,${reportData.inventory.currentStock}`,
       `Minimum Stock Level,${reportData.inventory.minimumStock}`,
       `Reorder Point,${reportData.inventory.reorderPoint}`,
       `Stock Status,${reportData.inventory.stockStatus}`,
       `Expiry Date,${reportData.inventory.expiryDate}`,
-      `Expired Status,${reportData.inventory.isExpired ? 'EXPIRED' : 'Valid'}`,
-      '',
-      'RECORD INFORMATION',
+      `Expired Status,${reportData.inventory.isExpired ? "EXPIRED" : "Valid"}`,
+      "",
+      "RECORD INFORMATION",
       `Created,${reportData.timestamps.created}`,
       `Last Updated,${reportData.timestamps.lastUpdated}`,
-      '',
-      'Report generated by Cura EMR System'
-    ].join('\n');
+      "",
+      "Report generated by Cura EMR System",
+    ].join("\n");
 
     // Create and download the file
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `inventory-report-${item.sku}-${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `inventory-report-${item.sku}-${new Date().toISOString().split("T")[0]}.csv`,
+    );
+    link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -378,7 +461,9 @@ export default function Inventory() {
     });
   };
 
-  const { data: categories = [], error: categoriesError } = useQuery<InventoryCategory[]>({
+  const { data: categories = [], error: categoriesError } = useQuery<
+    InventoryCategory[]
+  >({
     queryKey: ["/api/inventory/categories"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/inventory/categories");
@@ -398,15 +483,27 @@ export default function Inventory() {
 
   // Send purchase order email mutation
   const sendEmailMutation = useMutation({
-    mutationFn: async ({ purchaseOrderId, email }: { purchaseOrderId: number; email: string }) => {
-      await apiRequest("POST", `/api/inventory/purchase-orders/${purchaseOrderId}/send-email`, { email });
+    mutationFn: async ({
+      purchaseOrderId,
+      email,
+    }: {
+      purchaseOrderId: number;
+      email: string;
+    }) => {
+      await apiRequest(
+        "POST",
+        `/api/inventory/purchase-orders/${purchaseOrderId}/send-email`,
+        { email },
+      );
     },
     onSuccess: () => {
       toast({
         title: "Email Sent",
         description: "Purchase order has been sent successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/inventory/purchase-orders"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/inventory/purchase-orders"],
+      });
       setShowEmailDialog(false);
       setEmailAddress("");
       setSelectedPOForEmail(null);
@@ -437,23 +534,28 @@ export default function Inventory() {
       });
       return;
     }
-    sendEmailMutation.mutate({ 
-      purchaseOrderId: selectedPOForEmail.id, 
-      email: emailAddress.trim() 
+    sendEmailMutation.mutate({
+      purchaseOrderId: selectedPOForEmail.id,
+      email: emailAddress.trim(),
     });
   };
 
   // Delete purchase order mutation
   const deletePurchaseOrderMutation = useMutation({
     mutationFn: async (purchaseOrderId: number) => {
-      await apiRequest("DELETE", `/api/inventory/purchase-orders/${purchaseOrderId}`);
+      await apiRequest(
+        "DELETE",
+        `/api/inventory/purchase-orders/${purchaseOrderId}`,
+      );
     },
     onSuccess: () => {
       toast({
         title: "Purchase Order Deleted",
         description: "Purchase order has been deleted successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/inventory/purchase-orders"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/inventory/purchase-orders"],
+      });
     },
     onError: (error: any) => {
       toast({
@@ -465,54 +567,72 @@ export default function Inventory() {
   });
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+    const variants: Record<
+      string,
+      "default" | "secondary" | "destructive" | "outline"
+    > = {
       pending: "outline",
       sent: "secondary",
       received: "default",
       cancelled: "destructive",
       ordered: "secondary",
-      delivered: "default"
+      delivered: "default",
     };
-    return <Badge variant={variants[status] || "outline"}>{status.toUpperCase()}</Badge>;
+    return (
+      <Badge variant={variants[status] || "outline"}>
+        {status.toUpperCase()}
+      </Badge>
+    );
   };
 
   const getAlertTypeBadge = (alertType: string) => {
-    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+    const variants: Record<
+      string,
+      "default" | "secondary" | "destructive" | "outline"
+    > = {
       low_stock: "destructive",
       expired: "destructive",
-      expiring_soon: "outline"
+      expiring_soon: "outline",
     };
-    return <Badge variant={variants[alertType] || "outline"}>{alertType.replace('_', ' ').toUpperCase()}</Badge>;
+    return (
+      <Badge variant={variants[alertType] || "outline"}>
+        {alertType.replace("_", " ").toUpperCase()}
+      </Badge>
+    );
   };
 
   // Filter items based on search and filters
-  const filteredItems = items.filter(item => {
+  const filteredItems = items.filter((item) => {
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
-      if (!item.name.toLowerCase().includes(searchLower) && 
-          !item.sku.toLowerCase().includes(searchLower) &&
-          !item.barcode?.toLowerCase().includes(searchLower)) {
+      if (
+        !item.name.toLowerCase().includes(searchLower) &&
+        !item.sku.toLowerCase().includes(searchLower) &&
+        !item.barcode?.toLowerCase().includes(searchLower)
+      ) {
         return false;
       }
     }
-    
+
     if (selectedCategory && item.categoryId !== selectedCategory) {
       return false;
     }
-    
+
     if (showLowStock && !item.isLowStock) {
       return false;
     }
-    
+
     return true;
   });
 
   // Filter stock entries
-  const filteredStockEntries = stockEntries.filter(entry => {
+  const filteredStockEntries = stockEntries.filter((entry) => {
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
-      if (!entry.itemName.toLowerCase().includes(searchLower) && 
-          !entry.batchNumber.toLowerCase().includes(searchLower)) {
+      if (
+        !entry.itemName.toLowerCase().includes(searchLower) &&
+        !entry.batchNumber.toLowerCase().includes(searchLower)
+      ) {
         return false;
       }
     }
@@ -530,7 +650,8 @@ export default function Inventory() {
                 Comprehensive Inventory Management
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mt-2">
-                Complete healthcare inventory system with Item Master, Stock Tracking, Purchase Orders, Goods Receipt & Alerts
+                Complete healthcare inventory system with Item Master, Stock
+                Tracking, Purchase Orders, Goods Receipt & Alerts
               </p>
             </div>
             <div className="flex space-x-3">
@@ -542,7 +663,10 @@ export default function Inventory() {
                 <ShoppingCart className="h-4 w-4 mr-2" />
                 New Purchase Order
               </Button>
-              <Button variant="outline" onClick={() => setShowReceiptDialog(true)}>
+              <Button
+                variant="outline"
+                onClick={() => setShowReceiptDialog(true)}
+              >
                 <Truck className="h-4 w-4 mr-2" />
                 Goods Receipt
               </Button>
@@ -562,14 +686,21 @@ export default function Inventory() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {alerts.slice(0, 3).map(alert => (
-                    <div key={alert.id} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg">
+                  {alerts.slice(0, 3).map((alert) => (
+                    <div
+                      key={alert.id}
+                      className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg"
+                    >
                       <div className="flex items-center space-x-3">
                         {getAlertTypeBadge(alert.alertType)}
                         <span className="font-medium">{alert.itemName}</span>
-                        <span className="text-sm text-gray-600">{alert.message}</span>
+                        <span className="text-sm text-gray-600">
+                          {alert.message}
+                        </span>
                       </div>
-                      <span className="text-xs text-gray-500">{format(new Date(alert.createdAt), 'MMM dd, HH:mm')}</span>
+                      <span className="text-xs text-gray-500">
+                        {format(new Date(alert.createdAt), "MMM dd, HH:mm")}
+                      </span>
                     </div>
                   ))}
                   {alerts.length > 3 && (
@@ -592,7 +723,10 @@ export default function Inventory() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                £{inventoryValue?.totalValue ? parseFloat(inventoryValue.totalValue).toFixed(2) : '0.00'}
+                £
+                {inventoryValue?.totalValue
+                  ? parseFloat(inventoryValue.totalValue).toFixed(2)
+                  : "0.00"}
               </div>
               <p className="text-xs text-muted-foreground">
                 Across {inventoryValue?.totalItems || 0} items
@@ -607,76 +741,90 @@ export default function Inventory() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {inventoryValue?.totalStock?.toLocaleString() || '0'}
+                {inventoryValue?.totalStock?.toLocaleString() || "0"}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Units in stock
-              </p>
+              <p className="text-xs text-muted-foreground">Units in stock</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Low Stock Items</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Low Stock Items
+              </CardTitle>
               <AlertTriangle className="h-4 w-4 text-orange-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-orange-500">
                 {inventoryValue?.lowStockItems || 0}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Need restocking
-              </p>
+              <p className="text-xs text-muted-foreground">Need restocking</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Expiring Soon</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Expiring Soon
+              </CardTitle>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-yellow-500">
                 {inventoryValue?.expiringItems || 0}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Within 30 days
-              </p>
+              <p className="text-xs text-muted-foreground">Within 30 days</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Expired Items</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Expired Items
+              </CardTitle>
               <XCircle className="h-4 w-4 text-red-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-red-500">
                 {inventoryValue?.expiredItems || 0}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Remove from stock
-              </p>
+              <p className="text-xs text-muted-foreground">Remove from stock</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Main Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-6"
+        >
           <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="item-master" className="flex items-center space-x-2">
+            <TabsTrigger
+              value="item-master"
+              className="flex items-center space-x-2"
+            >
               <Package className="h-4 w-4" />
               <span>Item Master</span>
             </TabsTrigger>
-            <TabsTrigger value="stock-inventory" className="flex items-center space-x-2">
+            <TabsTrigger
+              value="stock-inventory"
+              className="flex items-center space-x-2"
+            >
               <Archive className="h-4 w-4" />
               <span>Stock/Inventory</span>
             </TabsTrigger>
-            <TabsTrigger value="purchase-orders" className="flex items-center space-x-2">
+            <TabsTrigger
+              value="purchase-orders"
+              className="flex items-center space-x-2"
+            >
               <ShoppingCart className="h-4 w-4" />
               <span>Purchase Orders</span>
             </TabsTrigger>
-            <TabsTrigger value="goods-receipt" className="flex items-center space-x-2">
+            <TabsTrigger
+              value="goods-receipt"
+              className="flex items-center space-x-2"
+            >
               <Truck className="h-4 w-4" />
               <span>Goods Receipt</span>
             </TabsTrigger>
@@ -695,7 +843,8 @@ export default function Inventory() {
                   Item Master - Complete Item Database
                 </CardTitle>
                 <CardDescription>
-                  Manage item details including ID, Name & Category, Unit of Measurement, Expiry Date, and Reorder Level
+                  Manage item details including ID, Name & Category, Unit of
+                  Measurement, Expiry Date, and Reorder Level
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -710,14 +859,24 @@ export default function Inventory() {
                       className="pl-10"
                     />
                   </div>
-                  <Select value={selectedCategory?.toString() || "all"} onValueChange={(value) => setSelectedCategory(value === "all" ? undefined : parseInt(value))}>
+                  <Select
+                    value={selectedCategory?.toString() || "all"}
+                    onValueChange={(value) =>
+                      setSelectedCategory(
+                        value === "all" ? undefined : parseInt(value),
+                      )
+                    }
+                  >
                     <SelectTrigger className="w-48">
                       <SelectValue placeholder="Filter by category" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Categories</SelectItem>
-                      {categories.map(category => (
-                        <SelectItem key={category.id} value={category.id.toString()}>
+                      {categories.map((category) => (
+                        <SelectItem
+                          key={category.id}
+                          value={category.id.toString()}
+                        >
                           {category.name}
                         </SelectItem>
                       ))}
@@ -726,7 +885,9 @@ export default function Inventory() {
                   <Button
                     variant="outline"
                     onClick={() => setShowLowStock(!showLowStock)}
-                    className={showLowStock ? "bg-orange-100 text-orange-800" : ""}
+                    className={
+                      showLowStock ? "bg-orange-100 text-orange-800" : ""
+                    }
                   >
                     <AlertTriangle className="h-4 w-4 mr-2" />
                     Low Stock Only
@@ -760,24 +921,35 @@ export default function Inventory() {
                         </TableRow>
                       ) : filteredItems.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                          <TableCell
+                            colSpan={8}
+                            className="text-center py-8 text-gray-500"
+                          >
                             No items found matching your criteria
                           </TableCell>
                         </TableRow>
                       ) : (
                         filteredItems.map((item, index) => (
                           <TableRow key={item.id}>
-                            <TableCell className="font-medium">#{index + 1}</TableCell>
+                            <TableCell className="font-medium">
+                              #{index + 1}
+                            </TableCell>
                             <TableCell>
                               <div>
                                 <div className="font-medium">{item.name}</div>
-                                <div className="text-sm text-gray-500">{item.categoryName || 'Uncategorized'}</div>
-                                <div className="text-xs text-gray-400">SKU: {item.sku}</div>
+                                <div className="text-sm text-gray-500">
+                                  {item.categoryName || "Uncategorized"}
+                                </div>
+                                <div className="text-xs text-gray-400">
+                                  SKU: {item.sku}
+                                </div>
                               </div>
                             </TableCell>
                             <TableCell>{item.unitOfMeasurement}</TableCell>
                             <TableCell>
-                              <div className={`font-medium ${item.isLowStock ? 'text-orange-600' : ''}`}>
+                              <div
+                                className={`font-medium ${item.isLowStock ? "text-orange-600" : ""}`}
+                              >
                                 {item.currentStock}
                                 {item.isLowStock && (
                                   <AlertTriangle className="h-3 w-3 inline ml-1 text-orange-500" />
@@ -787,8 +959,17 @@ export default function Inventory() {
                             <TableCell>{item.reorderPoint}</TableCell>
                             <TableCell>
                               {item.expiryDate ? (
-                                <span className={new Date(item.expiryDate) < new Date() ? 'text-red-600' : ''}>
-                                  {format(new Date(item.expiryDate), 'MMM dd, yyyy')}
+                                <span
+                                  className={
+                                    new Date(item.expiryDate) < new Date()
+                                      ? "text-red-600"
+                                      : ""
+                                  }
+                                >
+                                  {format(
+                                    new Date(item.expiryDate),
+                                    "MMM dd, yyyy",
+                                  )}
                                 </span>
                               ) : (
                                 <span className="text-gray-400">No expiry</span>
@@ -804,31 +985,31 @@ export default function Inventory() {
                             <TableCell>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <Button
+                                    variant="ghost"
+                                    className="h-8 w-8 p-0"
+                                  >
                                     <MoreVertical className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => {
-                                    setSelectedItem(item);
-                                    setShowStockDialog(true);
-                                  }}>
-                                    <Edit className="mr-2 h-4 w-4" />
-                                    Adjust Stock
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => {
-                                    setSelectedItem(item);
-                                    setShowItemDetailsDialog(true);
-                                  }}>
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      setSelectedItem(item);
+                                      setShowItemDetailsDialog(true);
+                                    }}
+                                  >
                                     <Eye className="mr-2 h-4 w-4" />
                                     View Details
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => generateItemReport(item)}>
+                                  <DropdownMenuItem
+                                    onClick={() => generateItemReport(item)}
+                                  >
                                     <FileText className="mr-2 h-4 w-4" />
                                     Generate Report
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
-                                  <DropdownMenuItem 
+                                  <DropdownMenuItem
                                     onClick={(e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
@@ -842,7 +1023,9 @@ export default function Inventory() {
                                     ) : (
                                       <Trash2 className="mr-2 h-4 w-4" />
                                     )}
-                                    {deleteItemMutation.isPending ? "Deleting..." : "Delete Item"}
+                                    {deleteItemMutation.isPending
+                                      ? "Deleting..."
+                                      : "Delete Item"}
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
@@ -866,7 +1049,8 @@ export default function Inventory() {
                   Stock/Inventory Table - Batch & Location Tracking
                 </CardTitle>
                 <CardDescription>
-                  Track stock by batch number, location/department, expiry dates for complete traceability
+                  Track stock by batch number, location/department, expiry dates
+                  for complete traceability
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -909,7 +1093,10 @@ export default function Inventory() {
                         </TableRow>
                       ) : filteredStockEntries.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                          <TableCell
+                            colSpan={7}
+                            className="text-center py-8 text-gray-500"
+                          >
                             No stock entries found
                           </TableCell>
                         </TableRow>
@@ -918,11 +1105,17 @@ export default function Inventory() {
                           <TableRow key={entry.id}>
                             <TableCell>
                               <div>
-                                <div className="font-medium">#{index + 1} - {entry.itemName}</div>
+                                <div className="font-medium">
+                                  #{index + 1} - {entry.itemName}
+                                </div>
                               </div>
                             </TableCell>
-                            <TableCell className="font-mono text-sm">{entry.batchNumber}</TableCell>
-                            <TableCell className="font-medium">{entry.quantityAvailable}</TableCell>
+                            <TableCell className="font-mono text-sm">
+                              {entry.batchNumber}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {entry.quantityAvailable}
+                            </TableCell>
                             <TableCell>
                               <div className="flex items-center">
                                 <MapPin className="h-3 w-3 mr-1 text-gray-400" />
@@ -930,16 +1123,40 @@ export default function Inventory() {
                               </div>
                             </TableCell>
                             <TableCell>
-                              <span className={entry.isExpired ? 'text-red-600 font-medium' : new Date(entry.expiryDate) <= new Date(Date.now() + 30*24*60*60*1000) ? 'text-yellow-600' : ''}>
-                                {format(new Date(entry.expiryDate), 'MMM dd, yyyy')}
+                              <span
+                                className={
+                                  entry.isExpired
+                                    ? "text-red-600 font-medium"
+                                    : new Date(entry.expiryDate) <=
+                                        new Date(
+                                          Date.now() + 30 * 24 * 60 * 60 * 1000,
+                                        )
+                                      ? "text-yellow-600"
+                                      : ""
+                                }
+                              >
+                                {format(
+                                  new Date(entry.expiryDate),
+                                  "MMM dd, yyyy",
+                                )}
                               </span>
                             </TableCell>
-                            <TableCell>{entry.supplierName || 'Unknown'}</TableCell>
+                            <TableCell>
+                              {entry.supplierName || "Unknown"}
+                            </TableCell>
                             <TableCell>
                               {entry.isExpired ? (
                                 <Badge variant="destructive">Expired</Badge>
-                              ) : new Date(entry.expiryDate) <= new Date(Date.now() + 30*24*60*60*1000) ? (
-                                <Badge variant="outline" className="text-yellow-600 border-yellow-600">Expiring Soon</Badge>
+                              ) : new Date(entry.expiryDate) <=
+                                new Date(
+                                  Date.now() + 30 * 24 * 60 * 60 * 1000,
+                                ) ? (
+                                <Badge
+                                  variant="outline"
+                                  className="text-yellow-600 border-yellow-600"
+                                >
+                                  Expiring Soon
+                                </Badge>
                               ) : (
                                 <Badge variant="default">Valid</Badge>
                               )}
@@ -963,7 +1180,8 @@ export default function Inventory() {
                   Purchase Orders (POs) - Supplier & Order Management
                 </CardTitle>
                 <CardDescription>
-                  Manage PO Numbers, Supplier IDs, Order Status, and Items Ordered with quantities
+                  Manage PO Numbers, Supplier IDs, Order Status, and Items
+                  Ordered with quantities
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -992,25 +1210,38 @@ export default function Inventory() {
                         </TableRow>
                       ) : purchaseOrders.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                          <TableCell
+                            colSpan={7}
+                            className="text-center py-8 text-gray-500"
+                          >
                             No purchase orders found
                           </TableCell>
                         </TableRow>
                       ) : (
-                        purchaseOrders.map(po => (
+                        purchaseOrders.map((po) => (
                           <TableRow key={po.id}>
-                            <TableCell className="font-mono font-medium">{po.poNumber}</TableCell>
+                            <TableCell className="font-mono font-medium">
+                              {po.poNumber}
+                            </TableCell>
                             <TableCell>
                               <div>
-                                <div className="font-medium">#{po.supplierId} - {po.supplierName}</div>
+                                <div className="font-medium">
+                                  #{po.supplierId} - {po.supplierName}
+                                </div>
                                 {po.supplierEmail && (
-                                  <div className="text-sm text-gray-500">{po.supplierEmail}</div>
+                                  <div className="text-sm text-gray-500">
+                                    {po.supplierEmail}
+                                  </div>
                                 )}
                               </div>
                             </TableCell>
-                            <TableCell>{format(new Date(po.orderDate), 'MMM dd, yyyy')}</TableCell>
+                            <TableCell>
+                              {format(new Date(po.orderDate), "MMM dd, yyyy")}
+                            </TableCell>
                             <TableCell>{getStatusBadge(po.status)}</TableCell>
-                            <TableCell className="font-medium">£{parseFloat(po.totalAmount).toFixed(2)}</TableCell>
+                            <TableCell className="font-medium">
+                              £{parseFloat(po.totalAmount).toFixed(2)}
+                            </TableCell>
                             <TableCell>
                               <div className="text-sm">
                                 {po.itemsOrdered?.length || 0} items
@@ -1018,27 +1249,31 @@ export default function Inventory() {
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center space-x-2">
-                                <Button 
-                                  size="sm" 
+                                <Button
+                                  size="sm"
                                   variant="outline"
                                   onClick={() => viewPurchaseOrder(po)}
                                 >
                                   <Eye className="h-3 w-3 mr-1" />
                                   View
                                 </Button>
-                                <Button 
-                                  size="sm" 
+                                <Button
+                                  size="sm"
                                   onClick={() => handleSendEmail(po)}
                                   disabled={sendEmailMutation.isPending}
                                   variant={po.emailSent ? "outline" : "default"}
                                 >
                                   {po.emailSent ? "Resend" : "Send"}
                                 </Button>
-                                <Button 
-                                  size="sm" 
+                                <Button
+                                  size="sm"
                                   variant="destructive"
-                                  onClick={() => deletePurchaseOrderMutation.mutate(po.id)}
-                                  disabled={deletePurchaseOrderMutation.isPending}
+                                  onClick={() =>
+                                    deletePurchaseOrderMutation.mutate(po.id)
+                                  }
+                                  disabled={
+                                    deletePurchaseOrderMutation.isPending
+                                  }
                                 >
                                   <Trash2 className="h-3 w-3 mr-1" />
                                   Delete
@@ -1064,7 +1299,8 @@ export default function Inventory() {
                   Goods Receipt - Delivery & Batch Recording
                 </CardTitle>
                 <CardDescription>
-                  Record Receipt Numbers, Items Received with batch/expiry information, and Supplier Names
+                  Record Receipt Numbers, Items Received with batch/expiry
+                  information, and Supplier Names
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -1093,23 +1329,39 @@ export default function Inventory() {
                         </TableRow>
                       ) : goodsReceipts.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                          <TableCell
+                            colSpan={7}
+                            className="text-center py-8 text-gray-500"
+                          >
                             No goods receipts found
                           </TableCell>
                         </TableRow>
                       ) : (
-                        goodsReceipts.map(receipt => (
+                        goodsReceipts.map((receipt) => (
                           <TableRow key={receipt.id}>
-                            <TableCell className="font-mono font-medium">{receipt.receiptNumber}</TableCell>
-                            <TableCell className="font-mono">{receipt.poNumber}</TableCell>
-                            <TableCell className="font-medium">{receipt.supplierName}</TableCell>
-                            <TableCell>{format(new Date(receipt.receivedDate), 'MMM dd, yyyy')}</TableCell>
+                            <TableCell className="font-mono font-medium">
+                              {receipt.receiptNumber}
+                            </TableCell>
+                            <TableCell className="font-mono">
+                              {receipt.poNumber}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {receipt.supplierName}
+                            </TableCell>
+                            <TableCell>
+                              {format(
+                                new Date(receipt.receivedDate),
+                                "MMM dd, yyyy",
+                              )}
+                            </TableCell>
                             <TableCell>
                               <div className="text-sm">
                                 {receipt.itemsReceived?.length || 0} items
                               </div>
                             </TableCell>
-                            <TableCell className="font-medium">£{parseFloat(receipt.totalAmount).toFixed(2)}</TableCell>
+                            <TableCell className="font-medium">
+                              £{parseFloat(receipt.totalAmount).toFixed(2)}
+                            </TableCell>
                             <TableCell>
                               <Button size="sm" variant="outline">
                                 <Eye className="h-3 w-3 mr-1" />
@@ -1135,7 +1387,8 @@ export default function Inventory() {
                   Critical Alerts - Low Stock & Expiry Monitoring
                 </CardTitle>
                 <CardDescription>
-                  Monitor Low Stock alerts based on reorder levels and Expiry Alerts for patient safety
+                  Monitor Low Stock alerts based on reorder levels and Expiry
+                  Alerts for patient safety
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -1144,39 +1397,69 @@ export default function Inventory() {
                     <div className="text-center py-8 text-gray-500">
                       <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-500" />
                       <p className="text-lg font-medium">No Critical Alerts</p>
-                      <p className="text-sm">All inventory levels and expiry dates are within safe limits</p>
+                      <p className="text-sm">
+                        All inventory levels and expiry dates are within safe
+                        limits
+                      </p>
                     </div>
                   ) : (
-                    alerts.map(alert => (
-                      <Card key={alert.id} className={`${
-                        alert.alertType === 'expired' || alert.alertType === 'low_stock' 
-                          ? 'border-red-200 bg-red-50 dark:bg-red-950' 
-                          : 'border-yellow-200 bg-yellow-50 dark:bg-yellow-950'
-                      }`}>
+                    alerts.map((alert) => (
+                      <Card
+                        key={alert.id}
+                        className={`${
+                          alert.alertType === "expired" ||
+                          alert.alertType === "low_stock"
+                            ? "border-red-200 bg-red-50 dark:bg-red-950"
+                            : "border-yellow-200 bg-yellow-50 dark:bg-yellow-950"
+                        }`}
+                      >
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-3">
-                              <AlertTriangle className={`h-5 w-5 ${
-                                alert.alertType === 'expired' || alert.alertType === 'low_stock' 
-                                  ? 'text-red-500' 
-                                  : 'text-yellow-500'
-                              }`} />
+                              <AlertTriangle
+                                className={`h-5 w-5 ${
+                                  alert.alertType === "expired" ||
+                                  alert.alertType === "low_stock"
+                                    ? "text-red-500"
+                                    : "text-yellow-500"
+                                }`}
+                              />
                               {getAlertTypeBadge(alert.alertType)}
                               <div>
-                                <div className="font-medium">{alert.itemName}</div>
-                                <div className="text-sm text-gray-600">{alert.message}</div>
+                                <div className="font-medium">
+                                  {alert.itemName}
+                                </div>
+                                <div className="text-sm text-gray-600">
+                                  {alert.message}
+                                </div>
                                 {alert.batchNumber && (
-                                  <div className="text-xs text-gray-500">Batch: {alert.batchNumber}</div>
+                                  <div className="text-xs text-gray-500">
+                                    Batch: {alert.batchNumber}
+                                  </div>
                                 )}
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className="text-sm text-gray-500">{format(new Date(alert.createdAt), 'MMM dd, HH:mm')}</div>
+                              <div className="text-sm text-gray-500">
+                                {format(
+                                  new Date(alert.createdAt),
+                                  "MMM dd, HH:mm",
+                                )}
+                              </div>
                               {alert.currentStock !== undefined && (
-                                <div className="text-xs">Stock: {alert.currentStock}/{alert.minimumStock}</div>
+                                <div className="text-xs">
+                                  Stock: {alert.currentStock}/
+                                  {alert.minimumStock}
+                                </div>
                               )}
                               {alert.expiryDate && (
-                                <div className="text-xs">Expires: {format(new Date(alert.expiryDate), 'MMM dd, yyyy')}</div>
+                                <div className="text-xs">
+                                  Expires:{" "}
+                                  {format(
+                                    new Date(alert.expiryDate),
+                                    "MMM dd, yyyy",
+                                  )}
+                                </div>
                               )}
                             </div>
                           </div>
@@ -1192,10 +1475,7 @@ export default function Inventory() {
 
         {/* Dialogs */}
         {showAddDialog && (
-          <AddItemDialog 
-            open={showAddDialog} 
-            onOpenChange={setShowAddDialog}
-          />
+          <AddItemDialog open={showAddDialog} onOpenChange={setShowAddDialog} />
         )}
 
         {showStockDialog && selectedItem && (
@@ -1223,7 +1503,10 @@ export default function Inventory() {
         )}
 
         {showPODetailsDialog && selectedPO && (
-          <Dialog open={showPODetailsDialog} onOpenChange={setShowPODetailsDialog}>
+          <Dialog
+            open={showPODetailsDialog}
+            onOpenChange={setShowPODetailsDialog}
+          >
             <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="flex items-center">
@@ -1234,25 +1517,46 @@ export default function Inventory() {
                   Complete purchase order information and supplier details
                 </DialogDescription>
               </DialogHeader>
-              
+
               <div className="space-y-6">
                 {/* Header Information */}
                 <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <div>
-                    <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">PO Number</Label>
-                    <div className="font-mono font-semibold">{selectedPO.poNumber}</div>
+                    <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                      PO Number
+                    </Label>
+                    <div className="font-mono font-semibold">
+                      {selectedPO.poNumber}
+                    </div>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">Status</Label>
-                    <div className="mt-1">{getStatusBadge(selectedPO.status)}</div>
+                    <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                      Status
+                    </Label>
+                    <div className="mt-1">
+                      {getStatusBadge(selectedPO.status)}
+                    </div>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">Order Date</Label>
-                    <div>{format(new Date(selectedPO.orderDate), 'MMM dd, yyyy')}</div>
+                    <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                      Order Date
+                    </Label>
+                    <div>
+                      {format(new Date(selectedPO.orderDate), "MMM dd, yyyy")}
+                    </div>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">Expected Delivery</Label>
-                    <div>{selectedPO.expectedDeliveryDate ? format(new Date(selectedPO.expectedDeliveryDate), 'MMM dd, yyyy') : 'Not specified'}</div>
+                    <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                      Expected Delivery
+                    </Label>
+                    <div>
+                      {selectedPO.expectedDeliveryDate
+                        ? format(
+                            new Date(selectedPO.expectedDeliveryDate),
+                            "MMM dd, yyyy",
+                          )
+                        : "Not specified"}
+                    </div>
                   </div>
                 </div>
 
@@ -1264,16 +1568,26 @@ export default function Inventory() {
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">Supplier ID</Label>
+                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                        Supplier ID
+                      </Label>
                       <div>#{selectedPO.supplierId}</div>
                     </div>
                     <div>
-                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">Supplier Name</Label>
-                      <div className="font-medium">{selectedPO.supplierName}</div>
+                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                        Supplier Name
+                      </Label>
+                      <div className="font-medium">
+                        {selectedPO.supplierName}
+                      </div>
                     </div>
                     <div className="col-span-2">
-                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">Email Address</Label>
-                      <div className="font-mono text-sm">{selectedPO.supplierEmail || 'Not provided'}</div>
+                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                        Email Address
+                      </Label>
+                      <div className="font-mono text-sm">
+                        {selectedPO.supplierEmail || "Not provided"}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1286,19 +1600,33 @@ export default function Inventory() {
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Amount</Label>
-                      <div className="text-lg font-bold text-green-600">£{parseFloat(selectedPO.totalAmount).toFixed(2)}</div>
+                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                        Total Amount
+                      </Label>
+                      <div className="text-lg font-bold text-green-600">
+                        £{parseFloat(selectedPO.totalAmount).toFixed(2)}
+                      </div>
                     </div>
                     <div>
-                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">Tax Amount</Label>
-                      <div className="font-medium">£{parseFloat(selectedPO.taxAmount || '0').toFixed(2)}</div>
+                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                        Tax Amount
+                      </Label>
+                      <div className="font-medium">
+                        £{parseFloat(selectedPO.taxAmount || "0").toFixed(2)}
+                      </div>
                     </div>
                     <div>
-                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">Items Count</Label>
-                      <div className="font-medium">{selectedPO.itemsOrdered?.length || 0} items</div>
+                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                        Items Count
+                      </Label>
+                      <div className="font-medium">
+                        {selectedPO.itemsOrdered?.length || 0} items
+                      </div>
                     </div>
                     <div>
-                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">Email Status</Label>
+                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                        Email Status
+                      </Label>
                       <div className="font-medium">
                         {selectedPO.emailSent ? (
                           <Badge variant="default" className="text-white">
@@ -1320,13 +1648,15 @@ export default function Inventory() {
                 {selectedPO.notes && (
                   <div className="p-4 border rounded-lg">
                     <h3 className="font-semibold mb-2">Notes</h3>
-                    <div className="text-sm text-gray-600 dark:text-gray-300">{selectedPO.notes}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">
+                      {selectedPO.notes}
+                    </div>
                   </div>
                 )}
 
                 {/* Action Buttons */}
                 <div className="flex justify-end space-x-2 pt-4 border-t">
-                  <Button 
+                  <Button
                     onClick={() => {
                       handleSendEmail(selectedPO);
                       setShowPODetailsDialog(false);
@@ -1340,9 +1670,14 @@ export default function Inventory() {
                     ) : (
                       <FileText className="h-4 w-4 mr-2" />
                     )}
-                    {selectedPO.emailSent ? "Resend to Supplier" : "Send to Supplier"}
+                    {selectedPO.emailSent
+                      ? "Resend to Supplier"
+                      : "Send to Supplier"}
                   </Button>
-                  <Button variant="outline" onClick={() => setShowPODetailsDialog(false)}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowPODetailsDialog(false)}
+                  >
                     Close
                   </Button>
                 </div>
@@ -1353,7 +1688,10 @@ export default function Inventory() {
 
         {/* Item Details Dialog */}
         {showItemDetailsDialog && selectedItem && (
-          <Dialog open={showItemDetailsDialog} onOpenChange={setShowItemDetailsDialog}>
+          <Dialog
+            open={showItemDetailsDialog}
+            onOpenChange={setShowItemDetailsDialog}
+          >
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
@@ -1361,49 +1699,72 @@ export default function Inventory() {
                   Item Details - {selectedItem.name}
                 </DialogTitle>
                 <DialogDescription>
-                  Complete information about {selectedItem.name} including inventory, pricing, and status details
+                  Complete information about {selectedItem.name} including
+                  inventory, pricing, and status details
                 </DialogDescription>
               </DialogHeader>
-              
+
               <div className="space-y-6">
                 {/* Basic Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg">Basic Information</CardTitle>
+                      <CardTitle className="text-lg">
+                        Basic Information
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">Item ID</Label>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Item ID
+                          </Label>
                           <p className="font-mono text-sm">{selectedItem.id}</p>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">SKU</Label>
-                          <p className="font-mono text-sm">{selectedItem.sku}</p>
+                          <Label className="text-sm font-medium text-gray-600">
+                            SKU
+                          </Label>
+                          <p className="font-mono text-sm">
+                            {selectedItem.sku}
+                          </p>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">Name</Label>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Name
+                          </Label>
                           <p className="font-medium">{selectedItem.name}</p>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">Category</Label>
-                          <p>{selectedItem.categoryName || 'Uncategorized'}</p>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Category
+                          </Label>
+                          <p>{selectedItem.categoryName || "Uncategorized"}</p>
                         </div>
                         {selectedItem.description && (
                           <div className="col-span-2">
-                            <Label className="text-sm font-medium text-gray-600">Description</Label>
-                            <p className="text-sm">{selectedItem.description}</p>
+                            <Label className="text-sm font-medium text-gray-600">
+                              Description
+                            </Label>
+                            <p className="text-sm">
+                              {selectedItem.description}
+                            </p>
                           </div>
                         )}
                         {selectedItem.barcode && (
                           <div>
-                            <Label className="text-sm font-medium text-gray-600">Barcode</Label>
-                            <p className="font-mono text-sm">{selectedItem.barcode}</p>
+                            <Label className="text-sm font-medium text-gray-600">
+                              Barcode
+                            </Label>
+                            <p className="font-mono text-sm">
+                              {selectedItem.barcode}
+                            </p>
                           </div>
                         )}
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">Unit of Measurement</Label>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Unit of Measurement
+                          </Label>
                           <p>{selectedItem.unitOfMeasurement}</p>
                         </div>
                       </div>
@@ -1412,27 +1773,48 @@ export default function Inventory() {
 
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg">Pricing Information</CardTitle>
+                      <CardTitle className="text-lg">
+                        Pricing Information
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">Purchase Price</Label>
-                          <p className="font-bold text-lg">£{parseFloat(selectedItem.purchasePrice).toFixed(2)}</p>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Purchase Price
+                          </Label>
+                          <p className="font-bold text-lg">
+                            £{parseFloat(selectedItem.purchasePrice).toFixed(2)}
+                          </p>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">Sale Price</Label>
-                          <p className="font-bold text-lg text-green-600">£{parseFloat(selectedItem.salePrice).toFixed(2)}</p>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Sale Price
+                          </Label>
+                          <p className="font-bold text-lg text-green-600">
+                            £{parseFloat(selectedItem.salePrice).toFixed(2)}
+                          </p>
                         </div>
                         {selectedItem.mrp && (
                           <div>
-                            <Label className="text-sm font-medium text-gray-600">MRP</Label>
-                            <p className="font-medium">£{parseFloat(selectedItem.mrp).toFixed(2)}</p>
+                            <Label className="text-sm font-medium text-gray-600">
+                              MRP
+                            </Label>
+                            <p className="font-medium">
+                              £{parseFloat(selectedItem.mrp).toFixed(2)}
+                            </p>
                           </div>
                         )}
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">Stock Value</Label>
-                          <p className="font-bold text-lg text-blue-600">£{parseFloat(selectedItem.stockValue.toString()).toFixed(2)}</p>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Stock Value
+                          </Label>
+                          <p className="font-bold text-lg text-blue-600">
+                            £
+                            {parseFloat(
+                              selectedItem.stockValue.toString(),
+                            ).toFixed(2)}
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -1442,27 +1824,49 @@ export default function Inventory() {
                 {/* Inventory Information */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">Inventory Management</CardTitle>
+                    <CardTitle className="text-lg">
+                      Inventory Management
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="text-center p-4 border rounded-lg">
-                        <Label className="text-sm font-medium text-gray-600">Current Stock</Label>
-                        <p className="text-2xl font-bold mt-1">{selectedItem.currentStock}</p>
-                        <p className="text-sm text-gray-500">{selectedItem.unitOfMeasurement}</p>
+                        <Label className="text-sm font-medium text-gray-600">
+                          Current Stock
+                        </Label>
+                        <p className="text-2xl font-bold mt-1">
+                          {selectedItem.currentStock}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {selectedItem.unitOfMeasurement}
+                        </p>
                       </div>
                       <div className="text-center p-4 border rounded-lg">
-                        <Label className="text-sm font-medium text-gray-600">Minimum Stock</Label>
-                        <p className="text-2xl font-bold mt-1 text-orange-600">{selectedItem.minimumStock}</p>
-                        <p className="text-sm text-gray-500">{selectedItem.unitOfMeasurement}</p>
+                        <Label className="text-sm font-medium text-gray-600">
+                          Minimum Stock
+                        </Label>
+                        <p className="text-2xl font-bold mt-1 text-orange-600">
+                          {selectedItem.minimumStock}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {selectedItem.unitOfMeasurement}
+                        </p>
                       </div>
                       <div className="text-center p-4 border rounded-lg">
-                        <Label className="text-sm font-medium text-gray-600">Reorder Point</Label>
-                        <p className="text-2xl font-bold mt-1 text-red-600">{selectedItem.reorderPoint}</p>
-                        <p className="text-sm text-gray-500">{selectedItem.unitOfMeasurement}</p>
+                        <Label className="text-sm font-medium text-gray-600">
+                          Reorder Point
+                        </Label>
+                        <p className="text-2xl font-bold mt-1 text-red-600">
+                          {selectedItem.reorderPoint}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {selectedItem.unitOfMeasurement}
+                        </p>
                       </div>
                       <div className="text-center p-4 border rounded-lg">
-                        <Label className="text-sm font-medium text-gray-600">Stock Status</Label>
+                        <Label className="text-sm font-medium text-gray-600">
+                          Stock Status
+                        </Label>
                         <div className="mt-1">
                           {selectedItem.isLowStock ? (
                             <Badge variant="destructive">Low Stock</Badge>
@@ -1479,37 +1883,63 @@ export default function Inventory() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg">Additional Information</CardTitle>
+                      <CardTitle className="text-lg">
+                        Additional Information
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="grid grid-cols-2 gap-4">
                         {selectedItem.brandName && (
                           <div>
-                            <Label className="text-sm font-medium text-gray-600">Brand</Label>
+                            <Label className="text-sm font-medium text-gray-600">
+                              Brand
+                            </Label>
                             <p>{selectedItem.brandName}</p>
                           </div>
                         )}
                         {selectedItem.manufacturer && (
                           <div>
-                            <Label className="text-sm font-medium text-gray-600">Manufacturer</Label>
+                            <Label className="text-sm font-medium text-gray-600">
+                              Manufacturer
+                            </Label>
                             <p>{selectedItem.manufacturer}</p>
                           </div>
                         )}
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">Prescription Required</Label>
-                          <p>{selectedItem.prescriptionRequired ? 'Yes' : 'No'}</p>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Prescription Required
+                          </Label>
+                          <p>
+                            {selectedItem.prescriptionRequired ? "Yes" : "No"}
+                          </p>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">Active Status</Label>
-                          <p>{selectedItem.isActive ? 'Active' : 'Inactive'}</p>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Active Status
+                          </Label>
+                          <p>{selectedItem.isActive ? "Active" : "Inactive"}</p>
                         </div>
                         {selectedItem.expiryDate && (
                           <div className="col-span-2">
-                            <Label className="text-sm font-medium text-gray-600">Expiry Date</Label>
-                            <p className={new Date(selectedItem.expiryDate) < new Date() ? 'text-red-600 font-medium' : ''}>
-                              {format(new Date(selectedItem.expiryDate), 'MMM dd, yyyy')}
-                              {new Date(selectedItem.expiryDate) < new Date() && (
-                                <Badge variant="destructive" className="ml-2">Expired</Badge>
+                            <Label className="text-sm font-medium text-gray-600">
+                              Expiry Date
+                            </Label>
+                            <p
+                              className={
+                                new Date(selectedItem.expiryDate) < new Date()
+                                  ? "text-red-600 font-medium"
+                                  : ""
+                              }
+                            >
+                              {format(
+                                new Date(selectedItem.expiryDate),
+                                "MMM dd, yyyy",
+                              )}
+                              {new Date(selectedItem.expiryDate) <
+                                new Date() && (
+                                <Badge variant="destructive" className="ml-2">
+                                  Expired
+                                </Badge>
                               )}
                             </p>
                           </div>
@@ -1520,17 +1950,33 @@ export default function Inventory() {
 
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg">Record Information</CardTitle>
+                      <CardTitle className="text-lg">
+                        Record Information
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="space-y-2">
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">Created</Label>
-                          <p className="text-sm">{format(new Date(selectedItem.createdAt), 'MMM dd, yyyy HH:mm')}</p>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Created
+                          </Label>
+                          <p className="text-sm">
+                            {format(
+                              new Date(selectedItem.createdAt),
+                              "MMM dd, yyyy HH:mm",
+                            )}
+                          </p>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">Last Updated</Label>
-                          <p className="text-sm">{format(new Date(selectedItem.updatedAt), 'MMM dd, yyyy HH:mm')}</p>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Last Updated
+                          </Label>
+                          <p className="text-sm">
+                            {format(
+                              new Date(selectedItem.updatedAt),
+                              "MMM dd, yyyy HH:mm",
+                            )}
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -1539,7 +1985,7 @@ export default function Inventory() {
 
                 {/* Action Buttons */}
                 <div className="flex justify-end space-x-2 pt-4 border-t">
-                  <Button 
+                  <Button
                     variant="outline"
                     onClick={() => {
                       setShowItemDetailsDialog(false);
@@ -1549,7 +1995,10 @@ export default function Inventory() {
                     <Edit className="h-4 w-4 mr-2" />
                     Adjust Stock
                   </Button>
-                  <Button variant="outline" onClick={() => setShowItemDetailsDialog(false)}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowItemDetailsDialog(false)}
+                  >
                     Close
                   </Button>
                 </div>
@@ -1568,10 +2017,11 @@ export default function Inventory() {
                   Send Purchase Order
                 </DialogTitle>
                 <DialogDescription>
-                  Enter the email address to send purchase order {selectedPOForEmail.poNumber}
+                  Enter the email address to send purchase order{" "}
+                  {selectedPOForEmail.poNumber}
                 </DialogDescription>
               </DialogHeader>
-              
+
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="email" className="text-sm font-medium">
@@ -1591,8 +2041,8 @@ export default function Inventory() {
                 </div>
 
                 <div className="flex justify-end space-x-2 pt-4 border-t">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => {
                       setShowEmailDialog(false);
                       setEmailAddress("");
@@ -1601,9 +2051,11 @@ export default function Inventory() {
                   >
                     Cancel
                   </Button>
-                  <Button 
+                  <Button
                     onClick={confirmSendEmail}
-                    disabled={sendEmailMutation.isPending || !emailAddress.trim()}
+                    disabled={
+                      sendEmailMutation.isPending || !emailAddress.trim()
+                    }
                   >
                     {sendEmailMutation.isPending ? (
                       <>

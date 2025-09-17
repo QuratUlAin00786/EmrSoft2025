@@ -4,24 +4,30 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Header } from "@/components/layout/header";
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 // Medical Specialties Data Structure
 const medicalSpecialties = {
   "General & Primary Care": {
-    "General Practitioner (GP) / Family Physician": ["Common illnesses", "Preventive care"],
-    "Internal Medicine Specialist": ["Adult health", "Chronic diseases (diabetes, hypertension)"]
+    "General Practitioner (GP) / Family Physician": [
+      "Common illnesses",
+      "Preventive care",
+    ],
+    "Internal Medicine Specialist": [
+      "Adult health",
+      "Chronic diseases (diabetes, hypertension)",
+    ],
   },
   "Surgical Specialties": {
     "General Surgeon": [
       "Abdominal Surgery",
-      "Hernia Repair", 
+      "Hernia Repair",
       "Gallbladder & Appendix Surgery",
       "Colorectal Surgery",
       "Breast Surgery",
       "Endocrine Surgery (thyroid, parathyroid, adrenal)",
-      "Trauma & Emergency Surgery"
+      "Trauma & Emergency Surgery",
     ],
     "Orthopedic Surgeon": [
       "Joint Replacement (hip, knee, shoulder)",
@@ -29,29 +35,29 @@ const medicalSpecialties = {
       "Sports Orthopedics (ACL tears, ligament reconstruction)",
       "Pediatric Orthopedics",
       "Arthroscopy (keyhole joint surgery)",
-      "Trauma & Fracture Care"
+      "Trauma & Fracture Care",
     ],
-    "Neurosurgeon": [
+    Neurosurgeon: [
       "Brain Tumor Surgery",
-      "Spinal Surgery", 
+      "Spinal Surgery",
       "Cerebrovascular Surgery (stroke, aneurysm)",
       "Pediatric Neurosurgery",
       "Functional Neurosurgery (Parkinson's, epilepsy, DBS)",
-      "Trauma Neurosurgery"
+      "Trauma Neurosurgery",
     ],
     "Cardiothoracic Surgeon": [
       "Cardiac Surgery – Bypass, valve replacement",
-      "Thoracic Surgery – Lungs, esophagus, chest tumors", 
+      "Thoracic Surgery – Lungs, esophagus, chest tumors",
       "Congenital Heart Surgery – Pediatric heart defects",
       "Heart & Lung Transplants",
-      "Minimally Invasive / Robotic Heart Surgery"
+      "Minimally Invasive / Robotic Heart Surgery",
     ],
     "Plastic & Reconstructive Surgeon": [
       "Cosmetic Surgery (nose job, facelift, liposuction)",
       "Reconstructive Surgery (after cancer, trauma)",
       "Burn Surgery",
       "Craniofacial Surgery (cleft lip/palate, facial bones)",
-      "Hand Surgery"
+      "Hand Surgery",
     ],
     "ENT Surgeon (Otolaryngologist)": [
       "Otology (ear surgeries, cochlear implants)",
@@ -59,114 +65,125 @@ const medicalSpecialties = {
       "Laryngology (voice box, throat)",
       "Head & Neck Surgery (thyroid, tumors)",
       "Pediatric ENT (tonsils, adenoids, ear tubes)",
-      "Facial Plastic Surgery (nose/ear correction)"
+      "Facial Plastic Surgery (nose/ear correction)",
     ],
-    "Urologist": [
+    Urologist: [
       "Endourology (kidney stones, minimally invasive)",
       "Uro-Oncology (prostate, bladder, kidney cancer)",
       "Pediatric Urology",
       "Male Infertility & Andrology",
       "Renal Transplant Surgery",
-      "Neurourology (bladder control disorders)"
-    ]
+      "Neurourology (bladder control disorders)",
+    ],
   },
   "Heart & Circulation": {
-    "Cardiologist": ["Heart diseases", "ECG", "Angiography"],
-    "Vascular Surgeon": ["Arteries", "Veins", "Blood vessels"]
+    Cardiologist: ["Heart diseases", "ECG", "Angiography"],
+    "Vascular Surgeon": ["Arteries", "Veins", "Blood vessels"],
   },
   "Women's Health": {
-    "Gynecologist": ["Female reproductive system"],
-    "Obstetrician": ["Pregnancy & childbirth"],
-    "Fertility Specialist (IVF Expert)": ["Infertility treatment"]
+    Gynecologist: ["Female reproductive system"],
+    Obstetrician: ["Pregnancy & childbirth"],
+    "Fertility Specialist (IVF Expert)": ["Infertility treatment"],
   },
   "Children's Health": {
-    "Pediatrician": ["General child health"],
+    Pediatrician: ["General child health"],
     "Pediatric Surgeon": ["Infant & child surgeries"],
-    "Neonatologist": ["Newborn intensive care"]
+    Neonatologist: ["Newborn intensive care"],
   },
   "Brain & Nervous System": {
-    "Neurologist": ["Stroke", "Epilepsy", "Parkinson's"],
-    "Psychiatrist": ["Mental health (depression, anxiety)"],
-    "Psychologist (Clinical)": ["Therapy & counseling"]
+    Neurologist: ["Stroke", "Epilepsy", "Parkinson's"],
+    Psychiatrist: ["Mental health (depression, anxiety)"],
+    "Psychologist (Clinical)": ["Therapy & counseling"],
   },
   "Skin, Hair & Appearance": {
-    "Dermatologist": ["Skin", "Hair", "Nails"],
-    "Cosmetologist": ["Non-surgical cosmetic treatments"],
-    "Aesthetic / Cosmetic Surgeon": ["Surgical enhancements"]
+    Dermatologist: ["Skin", "Hair", "Nails"],
+    Cosmetologist: ["Non-surgical cosmetic treatments"],
+    "Aesthetic / Cosmetic Surgeon": ["Surgical enhancements"],
   },
   "Eye & Vision": {
-    "Ophthalmologist": ["Cataracts", "Glaucoma", "Surgeries"],
-    "Optometrist": ["Vision correction (glasses, lenses)"]
+    Ophthalmologist: ["Cataracts", "Glaucoma", "Surgeries"],
+    Optometrist: ["Vision correction (glasses, lenses)"],
   },
   "Teeth & Mouth": {
     "Dentist (General)": ["Oral health", "Fillings"],
-    "Orthodontist": ["Braces", "Alignment"],
+    Orthodontist: ["Braces", "Alignment"],
     "Oral & Maxillofacial Surgeon": ["Jaw surgery", "Implants"],
-    "Periodontist": ["Gum disease specialist"],
-    "Endodontist": ["Root canal specialist"]
+    Periodontist: ["Gum disease specialist"],
+    Endodontist: ["Root canal specialist"],
   },
   "Digestive System": {
-    "Gastroenterologist": ["Stomach", "Intestines"],
-    "Hepatologist": ["Liver specialist"],
-    "Colorectal Surgeon": ["Colon", "Rectum", "Anus"]
+    Gastroenterologist: ["Stomach", "Intestines"],
+    Hepatologist: ["Liver specialist"],
+    "Colorectal Surgeon": ["Colon", "Rectum", "Anus"],
   },
   "Kidneys & Urinary Tract": {
-    "Nephrologist": ["Kidney diseases", "Dialysis"],
-    "Urologist": ["Surgical urological procedures"]
+    Nephrologist: ["Kidney diseases", "Dialysis"],
+    Urologist: ["Surgical urological procedures"],
   },
   "Respiratory System": {
-    "Pulmonologist": ["Asthma", "COPD", "Tuberculosis"],
-    "Thoracic Surgeon": ["Lung surgeries"]
+    Pulmonologist: ["Asthma", "COPD", "Tuberculosis"],
+    "Thoracic Surgeon": ["Lung surgeries"],
   },
-  "Cancer": {
-    "Oncologist": ["Medical cancer specialist"],
+  Cancer: {
+    Oncologist: ["Medical cancer specialist"],
     "Radiation Oncologist": ["Radiation therapy"],
-    "Surgical Oncologist": ["Cancer surgeries"]
+    "Surgical Oncologist": ["Cancer surgeries"],
   },
   "Endocrine & Hormones": {
-    "Endocrinologist": ["Diabetes", "Thyroid", "Hormones"]
+    Endocrinologist: ["Diabetes", "Thyroid", "Hormones"],
   },
   "Muscles & Joints": {
-    "Rheumatologist": ["Arthritis", "Autoimmune"],
-    "Sports Medicine Specialist": ["Athlete injuries"]
+    Rheumatologist: ["Arthritis", "Autoimmune"],
+    "Sports Medicine Specialist": ["Athlete injuries"],
   },
   "Blood & Immunity": {
-    "Hematologist": ["Blood diseases (anemia, leukemia)"],
-    "Immunologist / Allergist": ["Immune & allergy disorders"]
+    Hematologist: ["Blood diseases (anemia, leukemia)"],
+    "Immunologist / Allergist": ["Immune & allergy disorders"],
   },
-  "Others": {
-    "Geriatrician": ["Elderly care"],
-    "Pathologist": ["Lab & diagnostic testing"],
-    "Radiologist": ["Imaging (X-ray, CT, MRI)"],
-    "Anesthesiologist": ["Pain & anesthesia"],
+  Others: {
+    Geriatrician: ["Elderly care"],
+    Pathologist: ["Lab & diagnostic testing"],
+    Radiologist: ["Imaging (X-ray, CT, MRI)"],
+    Anesthesiologist: ["Pain & anesthesia"],
     "Emergency Medicine Specialist": ["Accidents", "Trauma"],
-    "Occupational Medicine Specialist": ["Workplace health"]
-  }
+    "Occupational Medicine Specialist": ["Workplace health"],
+  },
 };
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Search, 
-  Plus, 
-  Eye, 
-  Download, 
-  User, 
-  Clock, 
-  AlertTriangle, 
-  Check, 
+import {
+  Search,
+  Plus,
+  Eye,
+  Download,
+  User,
+  Clock,
+  AlertTriangle,
+  Check,
   FileText,
   TrendingUp,
   TrendingDown,
   Minus,
   Trash2,
   FileText as Prescription,
-  Printer
+  Printer,
 } from "lucide-react";
 
 interface DatabaseLabResult {
@@ -183,7 +200,7 @@ interface DatabaseLabResult {
   orderedAt: string;
   collectedAt?: string;
   completedAt?: string;
-  status: 'pending' | 'processing' | 'completed' | 'cancelled';
+  status: "pending" | "processing" | "completed" | "cancelled";
   results: Array<{
     name: string;
     value: string;
@@ -215,19 +232,21 @@ export default function LabResultsPage() {
   const [showReviewDialog, setShowReviewDialog] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [showPrescriptionDialog, setShowPrescriptionDialog] = useState(false);
-  const [selectedResult, setSelectedResult] = useState<DatabaseLabResult | null>(null);
+  const [selectedResult, setSelectedResult] =
+    useState<DatabaseLabResult | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editFormData, setEditFormData] = useState<any>({});
-  
+
   // Doctor specialty states for lab order
-  const [selectedSpecialtyCategory, setSelectedSpecialtyCategory] = useState<string>("");
+  const [selectedSpecialtyCategory, setSelectedSpecialtyCategory] =
+    useState<string>("");
   const [selectedSubSpecialty, setSelectedSubSpecialty] = useState<string>("");
   const [selectedSpecificArea, setSelectedSpecificArea] = useState<string>("");
   const [shareFormData, setShareFormData] = useState({
     method: "",
     email: "",
     whatsapp: "",
-    message: ""
+    message: "",
   });
   const [orderFormData, setOrderFormData] = useState({
     patientId: "",
@@ -238,7 +257,7 @@ export default function LabResultsPage() {
     doctorId: "",
     doctorName: "",
     mainSpecialty: "",
-    subSpecialty: ""
+    subSpecialty: "",
   });
 
   const { data: labResults = [], isLoading } = useQuery({
@@ -246,7 +265,7 @@ export default function LabResultsPage() {
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/lab-results");
       return await response.json();
-    }
+    },
   });
 
   // Real API data fetching for patients
@@ -256,7 +275,7 @@ export default function LabResultsPage() {
       const response = await apiRequest("GET", "/api/patients");
       const data = await response.json();
       return data;
-    }
+    },
   });
 
   // Fetch medical staff for doctor selection
@@ -266,44 +285,54 @@ export default function LabResultsPage() {
       const response = await apiRequest("GET", "/api/medical-staff");
       const data = await response.json();
       return data;
-    }
+    },
   });
 
   // Fetch filtered doctors based on specialization
-  const { data: filteredDoctorsData, isLoading: filteredDoctorsLoading } = useQuery({
-    queryKey: ["/api/doctors/by-specialization", selectedSpecialtyCategory, selectedSubSpecialty],
-    queryFn: async () => {
-      if (!selectedSpecialtyCategory && !selectedSubSpecialty) {
-        return { doctors: [], count: 0 };
-      }
-      
-      const params = new URLSearchParams();
-      if (selectedSpecialtyCategory) {
-        params.append('mainSpecialty', selectedSpecialtyCategory);
-      }
-      if (selectedSubSpecialty) {
-        params.append('subSpecialty', selectedSubSpecialty);
-      }
-      
-      const response = await apiRequest("GET", `/api/doctors/by-specialization?${params.toString()}`);
-      const data = await response.json();
-      return data;
-    },
-    enabled: !!(selectedSpecialtyCategory || selectedSubSpecialty)
-  });
+  const { data: filteredDoctorsData, isLoading: filteredDoctorsLoading } =
+    useQuery({
+      queryKey: [
+        "/api/doctors/by-specialization",
+        selectedSpecialtyCategory,
+        selectedSubSpecialty,
+      ],
+      queryFn: async () => {
+        if (!selectedSpecialtyCategory && !selectedSubSpecialty) {
+          return { doctors: [], count: 0 };
+        }
+
+        const params = new URLSearchParams();
+        if (selectedSpecialtyCategory) {
+          params.append("mainSpecialty", selectedSpecialtyCategory);
+        }
+        if (selectedSubSpecialty) {
+          params.append("subSpecialty", selectedSubSpecialty);
+        }
+
+        const response = await apiRequest(
+          "GET",
+          `/api/doctors/by-specialization?${params.toString()}`,
+        );
+        const data = await response.json();
+        return data;
+      },
+      enabled: !!(selectedSpecialtyCategory || selectedSubSpecialty),
+    });
 
   // Use filtered doctors when specializations are selected, otherwise use all doctors
-  const doctors = (selectedSpecialtyCategory || selectedSubSpecialty) 
-    ? (filteredDoctorsData?.doctors || [])
-    : (medicalStaffData?.staff?.filter((staff: any) => staff.role === 'doctor') || []);
-
+  const doctors =
+    selectedSpecialtyCategory || selectedSubSpecialty
+      ? filteredDoctorsData?.doctors || []
+      : medicalStaffData?.staff?.filter(
+          (staff: any) => staff.role === "doctor",
+        ) || [];
 
   const { data: users = [] } = useQuery<User[]>({
     queryKey: ["/api/users"],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/users");
       return res.json();
-    }
+    },
   });
 
   const { toast } = useToast();
@@ -329,9 +358,9 @@ export default function LabResultsPage() {
         doctorId: "",
         doctorName: "",
         mainSpecialty: "",
-        subSpecialty: ""
+        subSpecialty: "",
       });
-      
+
       // Reset specialty states
       setSelectedSpecialtyCategory("");
       setSelectedSubSpecialty("");
@@ -348,7 +377,11 @@ export default function LabResultsPage() {
 
   const updateLabResultMutation = useMutation({
     mutationFn: async (updateData: { id: number; data: any }) => {
-      return await apiRequest("PUT", `/api/lab-results/${updateData.id}`, updateData.data);
+      return await apiRequest(
+        "PUT",
+        `/api/lab-results/${updateData.id}`,
+        updateData.data,
+      );
     },
     onSuccess: () => {
       toast({
@@ -369,7 +402,10 @@ export default function LabResultsPage() {
 
   const deleteLabResultMutation = useMutation({
     mutationFn: async (resultId: number) => {
-      return await apiRequest("DELETE", `/api/lab-results/${resultId.toString()}`);
+      return await apiRequest(
+        "DELETE",
+        `/api/lab-results/${resultId.toString()}`,
+      );
     },
     onSuccess: () => {
       toast({
@@ -399,46 +435,57 @@ export default function LabResultsPage() {
   };
 
   const handleDownloadResult = async (resultId: number | string) => {
-    const result = Array.isArray(labResults) ? labResults.find((r: any) => r.id.toString() === resultId.toString()) : null;
+    const result = Array.isArray(labResults)
+      ? labResults.find((r: any) => r.id.toString() === resultId.toString())
+      : null;
     if (result) {
       const patientName = getPatientName(result.patientId);
-      
+
       try {
         // Fetch prescriptions for this patient
-        const response = await apiRequest("GET", `/api/prescriptions/patient/${result.patientId.toString()}`);
+        const response = await apiRequest(
+          "GET",
+          `/api/prescriptions/patient/${result.patientId.toString()}`,
+        );
         const prescriptions = await response.json();
-        
+
         toast({
           title: "Download Report",
           description: `Prescription report for ${patientName} downloaded successfully`,
         });
-        
+
         // Create prescription document content
-        let prescriptionsText = '';
+        let prescriptionsText = "";
         if (prescriptions && prescriptions.length > 0) {
-          prescriptionsText = prescriptions.map((prescription: any) => {
-            const medications = prescription.medications || [];
-            const medicationsText = medications.length > 0 
-              ? medications.map((med: any) => 
-                  `  - ${med.name}: ${med.dosage}, ${med.frequency}, Duration: ${med.duration}\n    Instructions: ${med.instructions}\n    Quantity: ${med.quantity}, Refills: ${med.refills}`
-                ).join('\n')
-              : `  - ${prescription.medicationName}: ${prescription.dosage || 'N/A'}, ${prescription.frequency || 'N/A'}\n    Instructions: ${prescription.instructions || 'N/A'}`;
-            
-            return `Prescription #${prescription.prescriptionNumber || prescription.id}
+          prescriptionsText = prescriptions
+            .map((prescription: any) => {
+              const medications = prescription.medications || [];
+              const medicationsText =
+                medications.length > 0
+                  ? medications
+                      .map(
+                        (med: any) =>
+                          `  - ${med.name}: ${med.dosage}, ${med.frequency}, Duration: ${med.duration}\n    Instructions: ${med.instructions}\n    Quantity: ${med.quantity}, Refills: ${med.refills}`,
+                      )
+                      .join("\n")
+                  : `  - ${prescription.medicationName}: ${prescription.dosage || "N/A"}, ${prescription.frequency || "N/A"}\n    Instructions: ${prescription.instructions || "N/A"}`;
+
+              return `Prescription #${prescription.prescriptionNumber || prescription.id}
 Issued: ${new Date(prescription.issuedDate || prescription.createdAt).toLocaleDateString()}
 Status: ${prescription.status}
-Diagnosis: ${prescription.diagnosis || 'N/A'}
+Diagnosis: ${prescription.diagnosis || "N/A"}
 
 Medications:
 ${medicationsText}
 
-Notes: ${prescription.notes || 'No additional notes'}
+Notes: ${prescription.notes || "No additional notes"}
 -------------------------------------------`;
-          }).join('\n\n');
+            })
+            .join("\n\n");
         } else {
-          prescriptionsText = 'No prescriptions found for this patient.';
+          prescriptionsText = "No prescriptions found for this patient.";
         }
-        
+
         // Create and download the prescription document
         const documentContent = `PRESCRIPTION REPORT
 
@@ -452,19 +499,18 @@ ${prescriptionsText}
 
 ===========================================
 Report generated from Cura EMR System`;
-        
-        const blob = new Blob([documentContent], { type: 'text/plain' });
+
+        const blob = new Blob([documentContent], { type: "text/plain" });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
-        a.download = `prescriptions-${patientName.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.txt`;
+        a.download = `prescriptions-${patientName.replace(/\s+/g, "-").toLowerCase()}-${new Date().toISOString().split("T")[0]}.txt`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        
       } catch (error) {
-        console.error('Error fetching prescriptions:', error);
+        console.error("Error fetching prescriptions:", error);
         toast({
           title: "Error",
           description: "Failed to fetch prescriptions for this patient",
@@ -486,7 +532,7 @@ Report generated from Cura EMR System`;
 
   const handleStartEdit = () => {
     if (!selectedResult) return;
-    
+
     // Initialize edit form data with current result data
     setEditFormData({
       testType: selectedResult.testType,
@@ -495,17 +541,17 @@ Report generated from Cura EMR System`;
       status: selectedResult.status,
       doctorName: selectedResult.doctorName || "",
       mainSpecialty: selectedResult.mainSpecialty || "",
-      subSpecialty: selectedResult.subSpecialty || ""
+      subSpecialty: selectedResult.subSpecialty || "",
     });
     setIsEditMode(true);
   };
 
   const handleSaveEdit = () => {
     if (!selectedResult) return;
-    
+
     updateLabResultMutation.mutate({
       id: selectedResult.id,
-      data: editFormData
+      data: editFormData,
     });
   };
 
@@ -520,10 +566,10 @@ Report generated from Cura EMR System`;
 
   const handleGeneratePDF = async () => {
     if (!selectedResult) return;
-    
+
     try {
       // Find the prescription content element
-      const element = document.getElementById('prescription-print');
+      const element = document.getElementById("prescription-print");
       if (!element) {
         toast({
           title: "Error",
@@ -533,7 +579,7 @@ Report generated from Cura EMR System`;
         return;
       }
 
-      console.log('PDF Generation: Found element', element);
+      console.log("PDF Generation: Found element", element);
 
       // Show loading state (don't show immediately to avoid interfering with capture)
       setTimeout(() => {
@@ -544,59 +590,71 @@ Report generated from Cura EMR System`;
       }, 50);
 
       // Wait a moment for any layout changes
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
-      console.log('PDF Generation: Starting canvas capture');
+      console.log("PDF Generation: Starting canvas capture");
 
       // Create canvas from HTML element - simple approach
       const canvas = await html2canvas(element, {
         scale: 2, // Higher resolution for better quality
         useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff',
+        backgroundColor: "#ffffff",
         width: element.scrollWidth,
-        height: element.scrollHeight
+        height: element.scrollHeight,
       });
 
-      console.log('PDF Generation: Canvas created', canvas.width, 'x', canvas.height);
+      console.log(
+        "PDF Generation: Canvas created",
+        canvas.width,
+        "x",
+        canvas.height,
+      );
 
       // Create PDF
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgData = canvas.toDataURL('image/png');
-      
+      const pdf = new jsPDF("p", "mm", "a4");
+      const imgData = canvas.toDataURL("image/png");
+
       // A4 dimensions
       const pageWidth = 210; // A4 width in mm
       const pageHeight = 297; // A4 height in mm
       const margin = 10; // 10mm margins
-      
+
       // Calculate dimensions to fit content with margins
-      const usableWidth = pageWidth - (2 * margin);
-      const usableHeight = pageHeight - (2 * margin);
-      
+      const usableWidth = pageWidth - 2 * margin;
+      const usableHeight = pageHeight - 2 * margin;
+
       // Scale image to fit width
       const imgWidth = usableWidth;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
+
       // Add content to PDF
       let yPosition = margin;
       let heightLeft = imgHeight;
 
       // First page
-      pdf.addImage(imgData, 'PNG', margin, yPosition, imgWidth, Math.min(imgHeight, usableHeight));
+      pdf.addImage(
+        imgData,
+        "PNG",
+        margin,
+        yPosition,
+        imgWidth,
+        Math.min(imgHeight, usableHeight),
+      );
       heightLeft -= usableHeight;
 
       // Add additional pages if needed
       while (heightLeft > 0) {
         pdf.addPage();
         yPosition = margin - (imgHeight - heightLeft);
-        pdf.addImage(imgData, 'PNG', margin, yPosition, imgWidth, imgHeight);
+        pdf.addImage(imgData, "PNG", margin, yPosition, imgWidth, imgHeight);
         heightLeft -= usableHeight;
       }
 
       // Create filename from testId
       const filename = `${selectedResult.testId}.pdf`;
-      
-      console.log('PDF Generation: Saving as', filename);
+
+      console.log("PDF Generation: Saving as", filename);
       pdf.save(filename);
 
       // Success message
@@ -606,9 +664,8 @@ Report generated from Cura EMR System`;
           description: `Prescription PDF downloaded as ${filename}`,
         });
       }, 100);
-
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      console.error("Error generating PDF:", error);
       toast({
         title: "Error",
         description: "Failed to generate PDF. Please try again.",
@@ -619,13 +676,14 @@ Report generated from Cura EMR System`;
 
   const handlePrint = () => {
     if (!selectedResult) return;
-    
+
     // Create a new window for printing
-    const printWindow = window.open('', '_blank');
+    const printWindow = window.open("", "_blank");
     if (!printWindow) {
       toast({
         title: "Error",
-        description: "Unable to open print window. Please allow popups and try again.",
+        description:
+          "Unable to open print window. Please allow popups and try again.",
         variant: "destructive",
       });
       return;
@@ -823,40 +881,52 @@ Report generated from Cura EMR System`;
           <div class="prescription-content">
             <!-- Print Header -->
             <div class="print-header">
-              <h1>CURA EMR SYSTEM</h1>
+              <span style="font-size:25px;color:darkblue;">CURA EMR SYSTEM</span>
               <h2>Laboratory Test Prescription</h2>
             </div>
             
             <!-- Physician Information -->
             <div class="info-section">
-              <h3 class="section-title">Physician Information</h3>
+              <h5 class="section-title">Physician Information</h5>
               <div class="info-item">
                 <span class="info-label">Name:</span>
-                <span class="info-value">${selectedResult.doctorName || 'Doctor'}</span>
+                <span class="info-value">${selectedResult.doctorName || "Doctor"}</span>
               </div>
-              ${selectedResult.mainSpecialty ? `
+              ${
+                selectedResult.mainSpecialty
+                  ? `
               <div class="info-item">
                 <span class="info-label">Main Specialization:</span>
                 <span class="info-value">${selectedResult.mainSpecialty}</span>
               </div>
-              ` : ''}
-              ${selectedResult.subSpecialty ? `
+              `
+                  : ""
+              }
+              ${
+                selectedResult.subSpecialty
+                  ? `
               <div class="info-item">
                 <span class="info-label">Sub-Specialization:</span>
                 <span class="info-value">${selectedResult.subSpecialty}</span>
               </div>
-              ` : ''}
-              ${selectedResult.priority ? `
+              `
+                  : ""
+              }
+              ${
+                selectedResult.priority
+                  ? `
               <div class="info-item">
                 <span class="info-label">Priority:</span>
                 <span class="info-value">${selectedResult.priority.toUpperCase()}</span>
               </div>
-              ` : ''}
+              `
+                  : ""
+              }
             </div>
-
+<div class="row">
             <!-- Patient Information -->
             <div class="info-section">
-              <h3 class="section-title">Patient Information</h3>
+              <h5 class="section-title">Patient Information</h5>
               <div class="info-item">
                 <span class="info-label">Name:</span>
                 <span class="info-value">${getPatientName(selectedResult.patientId)}</span>
@@ -867,16 +937,16 @@ Report generated from Cura EMR System`;
               </div>
               <div class="info-item">
                 <span class="info-label">Date:</span>
-                <span class="info-value">${format(new Date(), 'MMM dd, yyyy')}</span>
+                <span class="info-value">${format(new Date(), "MMM dd, yyyy")}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">Time:</span>
-                <span class="info-value">${format(new Date(), 'HH:mm')}</span>
+                <span class="info-label">Time:</span>v
+                <span class="info-value">${format(new Date(), "HH:mm")}</span>
               </div>
             </div>
 
             <!-- Laboratory Test Prescription -->
-            <div class="lab-prescription-section">
+            <div class="lab-prescription-section" style="background-color:#FAF8F8 !important;">
               <h2 class="lab-prescription-title">Laboratory Test Prescription</h2>
               
               <div class="test-details">
@@ -890,50 +960,66 @@ Report generated from Cura EMR System`;
                 </div>
                 <div class="test-item">
                   <div class="test-label">ORDERED DATE</div>
-                  <div class="test-value">${format(new Date(selectedResult.orderedAt), 'MMM dd, yyyy HH:mm')}</div>
+                  <div class="test-value">${format(new Date(selectedResult.orderedAt), "MMM dd, yyyy HH:mm")}</div>
                 </div>
                 <div class="test-item">
                   <div class="test-label">STATUS</div>
                   <div class="test-value">${selectedResult.status.toUpperCase()}</div>
                 </div>
               </div>
-
-              ${selectedResult.results && selectedResult.results.length > 0 ? `
+</div>
+              ${
+                selectedResult.results && selectedResult.results.length > 0
+                  ? `
               <div class="test-results">
                 <div class="results-title">Test Results:</div>
-                ${selectedResult.results.map((testResult: any) => `
+                ${selectedResult.results
+                  .map(
+                    (testResult: any) => `
                   <div class="result-item">
                     <strong>${testResult.name}:</strong> ${testResult.value} ${testResult.unit} 
-                    (Reference: ${testResult.referenceRange}) - Status: ${testResult.status.replace('_', ' ').toUpperCase()}
+                    (Reference: ${testResult.referenceRange}) - Status: ${testResult.status.replace("_", " ").toUpperCase()}
                   </div>
-                `).join('')}
+                `,
+                  )
+                  .join("")}
               </div>
-              ` : ''}
+              `
+                  : ""
+              }
 
-              ${selectedResult.notes ? `
+              ${
+                selectedResult.notes
+                  ? `
               <div class="notes-section">
                 <strong>Clinical Notes:</strong><br>
                 ${selectedResult.notes}
               </div>
-              ` : ''}
+              `
+                  : ""
+              }
             </div>
 
-            ${selectedResult.criticalValues ? `
+            ${
+              selectedResult.criticalValues
+                ? `
             <div style="margin-top: 20px; padding: 15px; background: #fef2f2; border: 2px solid #dc2626; border-radius: 8px;">
               <strong style="color: #dc2626;">⚠️ CRITICAL VALUES DETECTED</strong><br>
               <span style="color: #991b1b;">This lab result contains critical values that require immediate attention.</span>
             </div>
-            ` : ''}
+            `
+                : ""
+            }
 
             <!-- Footer -->
             <div style="margin-top: 50px; text-align: center; border-top: 1px solid #ddd; padding-top: 20px;">
               <div style="margin-bottom: 30px;">
                 <div style="border-top: 2px solid #333; width: 300px; margin: 0 auto 10px;"></div>
-                <div style="font-weight: bold;">${selectedResult.doctorName || 'Doctor'}</div>
-                ${selectedResult.mainSpecialty ? `<div style="font-size: 12px; color: #666;">${selectedResult.mainSpecialty}</div>` : ''}
+                <div style="font-weight: bold;">${selectedResult.doctorName || "Doctor"}</div>
+                ${selectedResult.mainSpecialty ? `<div style="font-size: 12px; color: #666;">${selectedResult.mainSpecialty}</div>` : ""}
               </div>
               <div style="font-size: 12px; color: #666;">
-                Generated by Cura EMR System - ${format(new Date(), 'MMM dd, yyyy HH:mm')}
+                Generated by Cura EMR System - ${format(new Date(), "MMM dd, yyyy HH:mm")}
               </div>
             </div>
           </div>
@@ -955,12 +1041,15 @@ Report generated from Cura EMR System`;
 
     toast({
       title: "Printing",
-      description: "Print dialog opened. Please select your printer and print options.",
+      description:
+        "Print dialog opened. Please select your printer and print options.",
     });
   };
 
   const handleFlagCritical = (resultId: string) => {
-    const result = Array.isArray(labResults) ? labResults.find((r: any) => r.id === resultId) : null;
+    const result = Array.isArray(labResults)
+      ? labResults.find((r: any) => r.id === resultId)
+      : null;
     if (result) {
       toast({
         title: "Critical Value Flagged",
@@ -973,60 +1062,83 @@ Report generated from Cura EMR System`;
 
   // Helper function to get patient name from patient ID
   const getPatientName = (patientId: number) => {
-    const patient = Array.isArray(patients) && patients ? patients.find((p: any) => p?.id === patientId) : null;
-    return patient && patient.firstName && patient.lastName ? `${patient.firstName} ${patient.lastName}` : `Patient #${patientId}`;
+    const patient =
+      Array.isArray(patients) && patients
+        ? patients.find((p: any) => p?.id === patientId)
+        : null;
+    return patient && patient.firstName && patient.lastName
+      ? `${patient.firstName} ${patient.lastName}`
+      : `Patient #${patientId}`;
   };
 
-  // Helper function to get user name from user ID  
+  // Helper function to get user name from user ID
   const getUserName = (userId: number) => {
     if (!Array.isArray(users) || !users) return `User #${userId}`;
     const user = users.find((u: any) => u && u.id === userId);
     if (!user) return `User #${userId}`;
-    const firstName = user?.firstName ?? '';
-    const lastName = user?.lastName ?? '';
+    const firstName = user?.firstName ?? "";
+    const lastName = user?.lastName ?? "";
     if (!firstName || !lastName) return `User #${userId}`;
     return `${firstName} ${lastName}`;
   };
 
-  const filteredResults = Array.isArray(labResults) ? labResults.filter((result: DatabaseLabResult) => {
-    const patientName = getPatientName(result.patientId);
-    const matchesSearch = !searchQuery || 
-      patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      result.testType.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" || result.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  }) : [];
+  const filteredResults = Array.isArray(labResults)
+    ? labResults.filter((result: DatabaseLabResult) => {
+        const patientName = getPatientName(result.patientId);
+        const matchesSearch =
+          !searchQuery ||
+          patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          result.testType.toLowerCase().includes(searchQuery.toLowerCase());
+
+        const matchesStatus =
+          statusFilter === "all" || result.status === statusFilter;
+
+        return matchesSearch && matchesStatus;
+      })
+    : [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'collected': return 'bg-blue-100 text-blue-800';
-      case 'processing': return 'bg-blue-100 text-blue-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "collected":
+        return "bg-blue-100 text-blue-800";
+      case "processing":
+        return "bg-blue-100 text-blue-800";
+      case "completed":
+        return "bg-green-100 text-green-800";
+      case "cancelled":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getResultStatusColor = (status: string) => {
     switch (status) {
-      case 'normal': return 'bg-green-100 text-green-800';
-      case 'abnormal_high': return 'bg-orange-100 text-orange-800';
-      case 'abnormal_low': return 'bg-orange-100 text-orange-800';
-      case 'critical': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "normal":
+        return "bg-green-100 text-green-800";
+      case "abnormal_high":
+        return "bg-orange-100 text-orange-800";
+      case "abnormal_low":
+        return "bg-orange-100 text-orange-800";
+      case "critical":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   if (isLoading) {
     return (
       <>
-        <Header title="Lab Results" subtitle="View and manage laboratory test results" />
+        <Header
+          title="Lab Results"
+          subtitle="View and manage laboratory test results"
+        />
         <div className="flex-1 overflow-auto p-6">
           <div className="space-y-6">
-            {[1, 2, 3].map(i => (
+            {[1, 2, 3].map((i) => (
               <Card key={i}>
                 <CardContent className="p-6">
                   <div className="animate-pulse space-y-4">
@@ -1045,11 +1157,11 @@ Report generated from Cura EMR System`;
 
   return (
     <>
-      <Header 
-        title="Lab Results" 
+      <Header
+        title="Lab Results"
         subtitle="View and manage laboratory test results"
       />
-      
+
       <div className="flex-1 overflow-auto p-6">
         <div className="space-y-6">
           {/* Quick Stats */}
@@ -1058,47 +1170,76 @@ Report generated from Cura EMR System`;
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Pending Results</p>
-                    <p className="text-2xl font-bold">{filteredResults.filter(r => r.status === 'pending').length}</p>
+                    <p className="text-sm font-medium text-gray-600">
+                      Pending Results
+                    </p>
+                    <p className="text-2xl font-bold">
+                      {
+                        filteredResults.filter((r) => r.status === "pending")
+                          .length
+                      }
+                    </p>
                   </div>
                   <Clock className="h-8 w-8 text-yellow-600" />
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Critical Values</p>
-                    <p className="text-2xl font-bold">{filteredResults.filter(r => r.notes?.toLowerCase().includes('critical') || r.value?.toLowerCase().includes('high')).length}</p>
+                    <p className="text-sm font-medium text-gray-600">
+                      Critical Values
+                    </p>
+                    <p className="text-2xl font-bold">
+                      {
+                        filteredResults.filter(
+                          (r) =>
+                            r.notes?.toLowerCase().includes("critical") ||
+                            r.value?.toLowerCase().includes("high"),
+                        ).length
+                      }
+                    </p>
                   </div>
                   <AlertTriangle className="h-8 w-8 text-red-600" />
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Completed Today</p>
+                    <p className="text-sm font-medium text-gray-600">
+                      Completed Today
+                    </p>
                     <p className="text-2xl font-bold">
-                      {filteredResults.filter(r => r.status === 'completed' && 
-                        new Date(r.createdAt || '').toDateString() === new Date().toDateString()).length}
+                      {
+                        filteredResults.filter(
+                          (r) =>
+                            r.status === "completed" &&
+                            new Date(r.createdAt || "").toDateString() ===
+                              new Date().toDateString(),
+                        ).length
+                      }
                     </p>
                   </div>
                   <Check className="h-8 w-8 text-green-600" />
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Total Results</p>
-                    <p className="text-2xl font-bold">{filteredResults.length}</p>
+                    <p className="text-sm font-medium text-gray-600">
+                      Total Results
+                    </p>
+                    <p className="text-2xl font-bold">
+                      {filteredResults.length}
+                    </p>
                   </div>
                   <FileText className="h-8 w-8 text-blue-600" />
                 </div>
@@ -1119,7 +1260,7 @@ Report generated from Cura EMR System`;
                     className="pl-9"
                   />
                 </div>
-                
+
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="w-40">
                     <SelectValue placeholder="Filter by status" />
@@ -1133,8 +1274,11 @@ Report generated from Cura EMR System`;
                     <SelectItem value="cancelled">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
-                
-                <Button onClick={handleOrderTest} className="bg-medical-blue hover:bg-blue-700">
+
+                <Button
+                  onClick={handleOrderTest}
+                  className="bg-medical-blue hover:bg-blue-700"
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Order Lab Test
                 </Button>
@@ -1148,13 +1292,20 @@ Report generated from Cura EMR System`;
               <Card>
                 <CardContent className="p-12 text-center">
                   <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-600 mb-2">No lab results found</h3>
-                  <p className="text-gray-600">Try adjusting your search terms or filters</p>
+                  <h3 className="text-lg font-medium text-gray-600 mb-2">
+                    No lab results found
+                  </h3>
+                  <p className="text-gray-600">
+                    Try adjusting your search terms or filters
+                  </p>
                 </CardContent>
               </Card>
             ) : (
               filteredResults.map((result) => (
-                <Card key={result.id} className="hover:shadow-md transition-shadow">
+                <Card
+                  key={result.id}
+                  className="hover:shadow-md transition-shadow"
+                >
                   <CardContent className="p-6 relative">
                     {/* Doctor information - Top Right Position */}
                     <div className="absolute top-6 right-6 w-64">
@@ -1162,22 +1313,34 @@ Report generated from Cura EMR System`;
                         <div className="flex items-center gap-2 mb-3">
                           <User className="h-4 w-4 text-blue-600" />
                           <h4 className="font-semibold text-blue-900">
-                            {result.doctorName || 'Dr. Sarah Williams'}
+                            {result.doctorName || "Dr. Sarah Williams"}
                           </h4>
                         </div>
-                        
+
                         <div className="space-y-2">
                           <div className="text-sm">
-                            <span className="font-medium text-gray-800">Main Specialization:</span>
-                            <div className="text-blue-600">{result.mainSpecialty || 'Diagnostic Specialties'}</div>
+                            <span className="font-medium text-gray-800">
+                              Main Specialization:
+                            </span>
+                            <div className="text-blue-600">
+                              {result.mainSpecialty || "Diagnostic Specialties"}
+                            </div>
                           </div>
                           <div className="text-sm">
-                            <span className="font-medium text-gray-800">Sub-Specialization:</span>
-                            <div className="text-blue-600">{result.subSpecialty || 'Neurosurgeon'}</div>
+                            <span className="font-medium text-gray-800">
+                              Sub-Specialization:
+                            </span>
+                            <div className="text-blue-600">
+                              {result.subSpecialty || "Neurosurgeon"}
+                            </div>
                           </div>
                           <div className="text-sm">
-                            <span className="font-medium text-gray-800">Priority:</span>
-                            <div className="text-green-600">{result.priority || 'urgent'}</div>
+                            <span className="font-medium text-gray-800">
+                              Priority:
+                            </span>
+                            <div className="text-green-600">
+                              {result.priority || "urgent"}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1185,12 +1348,17 @@ Report generated from Cura EMR System`;
 
                     {/* Header with patient name and status - with right margin for blue box */}
                     <div className="flex items-center gap-3 mb-4 mr-72">
-                      <h3 className="text-lg font-semibold text-gray-900">{getPatientName(result.patientId)}</h3>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {getPatientName(result.patientId)}
+                      </h3>
                       <Badge className={getStatusColor(result.status)}>
                         {result.status}
                       </Badge>
                       {result.criticalValues && (
-                        <Badge variant="destructive" className="flex items-center gap-1">
+                        <Badge
+                          variant="destructive"
+                          className="flex items-center gap-1"
+                        >
                           <AlertTriangle className="h-3 w-3" />
                           Critical
                         </Badge>
@@ -1203,25 +1371,39 @@ Report generated from Cura EMR System`;
                       <div className="space-y-4">
                         <div className="space-y-2">
                           <div className="text-sm text-gray-600">
-                            <span className="font-medium">Ordered:</span> {format(new Date(result.orderedAt), 'MMM dd, yyyy HH:mm')}
+                            <span className="font-medium">Ordered:</span>{" "}
+                            {format(
+                              new Date(result.orderedAt),
+                              "MMM dd, yyyy HH:mm",
+                            )}
                           </div>
                           <div className="text-sm text-gray-600">
-                            <span className="font-medium">Test:</span> {result.testType}
+                            <span className="font-medium">Test:</span>{" "}
+                            {result.testType}
                           </div>
                           <div className="text-sm text-gray-600">
-                            <span className="font-medium">Test ID:</span> {result.testId}
+                            <span className="font-medium">Test ID:</span>{" "}
+                            {result.testId}
                           </div>
                           {result.completedAt && (
                             <div className="text-sm text-gray-600">
-                              <span className="font-medium">Completed:</span> {format(new Date(result.completedAt), 'MMM dd, yyyy HH:mm')}
+                              <span className="font-medium">Completed:</span>{" "}
+                              {format(
+                                new Date(result.completedAt),
+                                "MMM dd, yyyy HH:mm",
+                              )}
                             </div>
                           )}
                         </div>
-                        
+
                         {/* Notes section */}
                         <div>
-                          <h4 className="font-semibold text-gray-800 mb-2">Notes</h4>
-                          <p className="text-sm text-gray-600">{result.notes || 'no no'}</p>
+                          <h4 className="font-semibold text-gray-800 mb-2">
+                            Notes
+                          </h4>
+                          <p className="text-sm text-gray-600">
+                            {result.notes || "no no"}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -1231,48 +1413,71 @@ Report generated from Cura EMR System`;
                       <div className="mt-6 mr-72">
                         <h4 className="font-medium mb-3">Test Results:</h4>
                         <div className="grid gap-3">
-                          {result.results.map((testResult: any, index: number) => (
-                            <div key={index} className="p-3 rounded-lg border bg-gray-50 border-gray-200">
-                              <div className="flex items-center justify-between">
-                                <span className="font-medium">{testResult.name}</span>
-                                <Badge className={getResultStatusColor(testResult.status)}>
-                                  {testResult.status.replace('_', ' ').toUpperCase()}
-                                </Badge>
+                          {result.results.map(
+                            (testResult: any, index: number) => (
+                              <div
+                                key={index}
+                                className="p-3 rounded-lg border bg-gray-50 border-gray-200"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span className="font-medium">
+                                    {testResult.name}
+                                  </span>
+                                  <Badge
+                                    className={getResultStatusColor(
+                                      testResult.status,
+                                    )}
+                                  >
+                                    {testResult.status
+                                      .replace("_", " ")
+                                      .toUpperCase()}
+                                  </Badge>
+                                </div>
+                                <div className="text-sm text-gray-600 mt-1">
+                                  <span className="font-medium">
+                                    {testResult.value} {testResult.unit}
+                                  </span>
+                                  <span className="ml-2">
+                                    Ref: {testResult.referenceRange}
+                                  </span>
+                                </div>
                               </div>
-                              <div className="text-sm text-gray-600 mt-1">
-                                <span className="font-medium">{testResult.value} {testResult.unit}</span>
-                                <span className="ml-2">Ref: {testResult.referenceRange}</span>
-                              </div>
-                            </div>
-                          ))}
+                            ),
+                          )}
                         </div>
                       </div>
                     )}
 
                     {/* Action buttons at bottom - with right margin for blue box */}
                     <div className="flex gap-2 mt-6 pt-4 border-t border-gray-200 mr-72 justify-end">
-                      <Button variant="outline" size="sm" onClick={() => handleViewResult(result)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewResult(result)}
+                      >
                         <Eye className="h-4 w-4 mr-2" />
                         Edit
                       </Button>
-                      <Button 
+                      <Button
                         variant="outline"
-                        size="sm" 
+                        size="sm"
                         onClick={() => handleGeneratePrescription(result)}
                         className="bg-white hover:bg-gray-50 text-gray-900 border-gray-300"
                       >
                         <FileText className="h-4 w-4 mr-2" />
                         Generate Prescription
                       </Button>
-                      <Button 
+                      <Button
                         variant="outline"
-                        size="sm" 
+                        size="sm"
                         onClick={async () => {
                           setSelectedResult(result);
                           // Temporarily open the prescription dialog to render content
                           setShowPrescriptionDialog(true);
                           // Wait for the content to render
-                          await new Promise(resolve => setTimeout(resolve, 100));
+                          await new Promise((resolve) =>
+                            setTimeout(resolve, 100),
+                          );
                           // Generate the PDF
                           await handleGeneratePDF();
                           // Close the dialog
@@ -1283,14 +1488,20 @@ Report generated from Cura EMR System`;
                         <Download className="h-4 w-4 mr-2" />
                         Download PDF
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleShareResult(result)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleShareResult(result)}
+                      >
                         <User className="h-4 w-4 mr-2" />
                         Review
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => deleteLabResultMutation.mutate(result.id)}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          deleteLabResultMutation.mutate(result.id)
+                        }
                         disabled={deleteLabResultMutation.isPending}
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
@@ -1314,14 +1525,18 @@ Report generated from Cura EMR System`;
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="patient">Select Patient</Label>
-              <Select 
-                value={orderFormData.patientId} 
+              <Select
+                value={orderFormData.patientId}
                 onValueChange={(value) => {
-                  const selectedPatient = Array.isArray(patients) ? patients.find((p: any) => p.id.toString() === value) : null;
-                  setOrderFormData(prev => ({ 
-                    ...prev, 
+                  const selectedPatient = Array.isArray(patients)
+                    ? patients.find((p: any) => p.id.toString() === value)
+                    : null;
+                  setOrderFormData((prev) => ({
+                    ...prev,
                     patientId: value,
-                    patientName: selectedPatient ? `${selectedPatient.firstName} ${selectedPatient.lastName}` : ''
+                    patientName: selectedPatient
+                      ? `${selectedPatient.firstName} ${selectedPatient.lastName}`
+                      : "",
                   }));
                 }}
               >
@@ -1330,29 +1545,44 @@ Report generated from Cura EMR System`;
                 </SelectTrigger>
                 <SelectContent>
                   {patientsLoading ? (
-                    <SelectItem value="loading" disabled>Loading patients...</SelectItem>
-                  ) : patients && Array.isArray(patients) && patients.length > 0 ? (
+                    <SelectItem value="loading" disabled>
+                      Loading patients...
+                    </SelectItem>
+                  ) : patients &&
+                    Array.isArray(patients) &&
+                    patients.length > 0 ? (
                     patients.map((patient: any) => (
-                      <SelectItem key={patient.id} value={patient.id.toString()}>
+                      <SelectItem
+                        key={patient.id}
+                        value={patient.id.toString()}
+                      >
                         {`${patient.firstName} ${patient.lastName} (${patient.patientId})`}
                       </SelectItem>
                     ))
                   ) : (
-                    <SelectItem value="none" disabled>No patients available</SelectItem>
+                    <SelectItem value="none" disabled>
+                      No patients available
+                    </SelectItem>
                   )}
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="mainSpecialty">Medical Specialty Category</Label>
-              <Select 
+              <Select
                 value={selectedSpecialtyCategory}
                 onValueChange={(value) => {
                   setSelectedSpecialtyCategory(value);
                   setSelectedSubSpecialty("");
                   setSelectedSpecificArea("");
-                  setOrderFormData(prev => ({ ...prev, mainSpecialty: value, subSpecialty: "", doctorId: "", doctorName: "" }));
+                  setOrderFormData((prev) => ({
+                    ...prev,
+                    mainSpecialty: value,
+                    subSpecialty: "",
+                    doctorId: "",
+                    doctorName: "",
+                  }));
                 }}
               >
                 <SelectTrigger>
@@ -1367,23 +1597,32 @@ Report generated from Cura EMR System`;
                 </SelectContent>
               </Select>
             </div>
-            
+
             {selectedSpecialtyCategory && (
               <div className="space-y-2">
                 <Label htmlFor="subSpecialty">Sub-Specialty</Label>
-                <Select 
+                <Select
                   value={selectedSubSpecialty}
                   onValueChange={(value) => {
                     setSelectedSubSpecialty(value);
                     setSelectedSpecificArea("");
-                    setOrderFormData(prev => ({ ...prev, subSpecialty: value, doctorId: "", doctorName: "" }));
+                    setOrderFormData((prev) => ({
+                      ...prev,
+                      subSpecialty: value,
+                      doctorId: "",
+                      doctorName: "",
+                    }));
                   }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select sub-specialty" />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.keys(medicalSpecialties[selectedSpecialtyCategory as keyof typeof medicalSpecialties] || {}).map((subSpecialty) => (
+                    {Object.keys(
+                      medicalSpecialties[
+                        selectedSpecialtyCategory as keyof typeof medicalSpecialties
+                      ] || {},
+                    ).map((subSpecialty) => (
                       <SelectItem key={subSpecialty} value={subSpecialty}>
                         {subSpecialty}
                       </SelectItem>
@@ -1395,14 +1634,18 @@ Report generated from Cura EMR System`;
 
             <div className="space-y-2">
               <Label htmlFor="doctor">Select Doctor</Label>
-              <Select 
-                value={orderFormData.doctorId} 
+              <Select
+                value={orderFormData.doctorId}
                 onValueChange={(value) => {
-                  const selectedDoctor = doctors.find((d: any) => d.id.toString() === value);
-                  setOrderFormData(prev => ({ 
-                    ...prev, 
+                  const selectedDoctor = doctors.find(
+                    (d: any) => d.id.toString() === value,
+                  );
+                  setOrderFormData((prev) => ({
+                    ...prev,
                     doctorId: value,
-                    doctorName: selectedDoctor ? `Dr. ${selectedDoctor.firstName} ${selectedDoctor.lastName}` : ''
+                    doctorName: selectedDoctor
+                      ? `Dr. ${selectedDoctor.firstName} ${selectedDoctor.lastName}`
+                      : "",
                   }));
                 }}
               >
@@ -1410,22 +1653,24 @@ Report generated from Cura EMR System`;
                   <SelectValue placeholder="Select a doctor" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(medicalStaffLoading || filteredDoctorsLoading) ? (
-                    <SelectItem value="loading" disabled>Loading doctors...</SelectItem>
+                  {medicalStaffLoading || filteredDoctorsLoading ? (
+                    <SelectItem value="loading" disabled>
+                      Loading doctors...
+                    </SelectItem>
                   ) : doctors.length > 0 ? (
                     doctors.map((doctor: any) => (
                       <SelectItem key={doctor.id} value={doctor.id.toString()}>
                         Dr. {doctor.firstName} {doctor.lastName}
-                        {doctor.medicalSpecialtyCategory && ` - ${doctor.medicalSpecialtyCategory}`}
+                        {doctor.medicalSpecialtyCategory &&
+                          ` - ${doctor.medicalSpecialtyCategory}`}
                         {doctor.subSpecialty && ` (${doctor.subSpecialty})`}
                       </SelectItem>
                     ))
                   ) : (
                     <SelectItem value="none" disabled>
-                      {selectedSpecialtyCategory || selectedSubSpecialty 
-                        ? `No doctors available for ${selectedSubSpecialty || selectedSpecialtyCategory}` 
-                        : "No doctors available"
-                      }
+                      {selectedSpecialtyCategory || selectedSubSpecialty
+                        ? `No doctors available for ${selectedSubSpecialty || selectedSpecialtyCategory}`
+                        : "No doctors available"}
                     </SelectItem>
                   )}
                 </SelectContent>
@@ -1433,17 +1678,32 @@ Report generated from Cura EMR System`;
             </div>
             <div className="space-y-2">
               <Label htmlFor="testType">Test Type</Label>
-              <Select value={orderFormData.testType} onValueChange={(value) => setOrderFormData(prev => ({ ...prev, testType: value }))}>
+              <Select
+                value={orderFormData.testType}
+                onValueChange={(value) =>
+                  setOrderFormData((prev) => ({ ...prev, testType: value }))
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select test type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Complete Blood Count (CBC)">Complete Blood Count (CBC)</SelectItem>
-                  <SelectItem value="Basic Metabolic Panel">Basic Metabolic Panel</SelectItem>
-                  <SelectItem value="Comprehensive Metabolic Panel">Comprehensive Metabolic Panel</SelectItem>
+                  <SelectItem value="Complete Blood Count (CBC)">
+                    Complete Blood Count (CBC)
+                  </SelectItem>
+                  <SelectItem value="Basic Metabolic Panel">
+                    Basic Metabolic Panel
+                  </SelectItem>
+                  <SelectItem value="Comprehensive Metabolic Panel">
+                    Comprehensive Metabolic Panel
+                  </SelectItem>
                   <SelectItem value="Lipid Panel">Lipid Panel</SelectItem>
-                  <SelectItem value="Liver Function Tests">Liver Function Tests</SelectItem>
-                  <SelectItem value="Thyroid Function Tests">Thyroid Function Tests</SelectItem>
+                  <SelectItem value="Liver Function Tests">
+                    Liver Function Tests
+                  </SelectItem>
+                  <SelectItem value="Thyroid Function Tests">
+                    Thyroid Function Tests
+                  </SelectItem>
                   <SelectItem value="Hemoglobin A1C">Hemoglobin A1C</SelectItem>
                   <SelectItem value="Urinalysis">Urinalysis</SelectItem>
                   <SelectItem value="Vitamin D">Vitamin D</SelectItem>
@@ -1453,7 +1713,12 @@ Report generated from Cura EMR System`;
             </div>
             <div className="space-y-2">
               <Label htmlFor="priority">Priority</Label>
-              <Select value={orderFormData.priority} onValueChange={(value) => setOrderFormData(prev => ({ ...prev, priority: value }))}>
+              <Select
+                value={orderFormData.priority}
+                onValueChange={(value) =>
+                  setOrderFormData((prev) => ({ ...prev, priority: value }))
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select priority" />
                 </SelectTrigger>
@@ -1470,30 +1735,48 @@ Report generated from Cura EMR System`;
                 id="notes"
                 placeholder="Enter clinical notes or special instructions"
                 value={orderFormData.notes}
-                onChange={(e) => setOrderFormData(prev => ({ ...prev, notes: e.target.value }))}
+                onChange={(e) =>
+                  setOrderFormData((prev) => ({
+                    ...prev,
+                    notes: e.target.value,
+                  }))
+                }
               />
             </div>
             <div className="flex gap-2 pt-4">
-              <Button variant="outline" onClick={() => setShowOrderDialog(false)} className="flex-1">
+              <Button
+                variant="outline"
+                onClick={() => setShowOrderDialog(false)}
+                className="flex-1"
+              >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={() => {
                   createLabOrderMutation.mutate({
                     patientId: parseInt(orderFormData.patientId),
                     testType: orderFormData.testType,
                     priority: orderFormData.priority,
                     notes: orderFormData.notes,
-                    doctorId: orderFormData.doctorId ? parseInt(orderFormData.doctorId) : null,
+                    doctorId: orderFormData.doctorId
+                      ? parseInt(orderFormData.doctorId)
+                      : null,
                     doctorName: orderFormData.doctorName,
                     mainSpecialty: orderFormData.mainSpecialty,
-                    subSpecialty: orderFormData.subSpecialty
+                    subSpecialty: orderFormData.subSpecialty,
                   });
                 }}
-                disabled={createLabOrderMutation.isPending || !orderFormData.patientId || !orderFormData.testType || !orderFormData.doctorId}
+                disabled={
+                  createLabOrderMutation.isPending ||
+                  !orderFormData.patientId ||
+                  !orderFormData.testType ||
+                  !orderFormData.doctorId
+                }
                 className="flex-1 bg-medical-blue hover:bg-blue-700"
               >
-                {createLabOrderMutation.isPending ? "Ordering..." : "Order Test"}
+                {createLabOrderMutation.isPending
+                  ? "Ordering..."
+                  : "Order Test"}
               </Button>
             </div>
           </div>
@@ -1501,13 +1784,16 @@ Report generated from Cura EMR System`;
       </Dialog>
 
       {/* View Lab Result Dialog */}
-      <Dialog open={showViewDialog} onOpenChange={(open) => {
-        setShowViewDialog(open);
-        if (!open) {
-          setIsEditMode(false);
-          setEditFormData({});
-        }
-      }}>
+      <Dialog
+        open={showViewDialog}
+        onOpenChange={(open) => {
+          setShowViewDialog(open);
+          if (!open) {
+            setIsEditMode(false);
+            setEditFormData({});
+          }
+        }}
+      >
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center justify-between">
@@ -1516,11 +1802,15 @@ Report generated from Cura EMR System`;
                   Lab Result Details
                 </DialogTitle>
                 {selectedResult && (
-                  <Badge 
+                  <Badge
                     variant={
-                      selectedResult.status === 'completed' ? 'default' : 
-                      selectedResult.status === 'pending' ? 'secondary' : 
-                      selectedResult.status === 'processing' ? 'outline' : 'destructive'
+                      selectedResult.status === "completed"
+                        ? "default"
+                        : selectedResult.status === "pending"
+                          ? "secondary"
+                          : selectedResult.status === "processing"
+                            ? "outline"
+                            : "destructive"
                     }
                   >
                     {selectedResult.status}
@@ -1538,24 +1828,49 @@ Report generated from Cura EMR System`;
                     <div>
                       <p className="text-sm text-gray-300">Test:</p>
                       {isEditMode ? (
-                        <Select 
-                          value={editFormData.testType || selectedResult.testType} 
-                          onValueChange={(value) => setEditFormData((prev: any) => ({ ...prev, testType: value }))}
+                        <Select
+                          value={
+                            editFormData.testType || selectedResult.testType
+                          }
+                          onValueChange={(value) =>
+                            setEditFormData((prev: any) => ({
+                              ...prev,
+                              testType: value,
+                            }))
+                          }
                         >
                           <SelectTrigger className="bg-white text-black">
                             <SelectValue placeholder="Select test type" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="Complete Blood Count (CBC)">Complete Blood Count (CBC)</SelectItem>
-                            <SelectItem value="Basic Metabolic Panel">Basic Metabolic Panel</SelectItem>
-                            <SelectItem value="Comprehensive Metabolic Panel">Comprehensive Metabolic Panel</SelectItem>
-                            <SelectItem value="Lipid Panel">Lipid Panel</SelectItem>
-                            <SelectItem value="Liver Function Tests">Liver Function Tests</SelectItem>
-                            <SelectItem value="Thyroid Function Tests">Thyroid Function Tests</SelectItem>
-                            <SelectItem value="Hemoglobin A1C">Hemoglobin A1C</SelectItem>
-                            <SelectItem value="Urinalysis">Urinalysis</SelectItem>
+                            <SelectItem value="Complete Blood Count (CBC)">
+                              Complete Blood Count (CBC)
+                            </SelectItem>
+                            <SelectItem value="Basic Metabolic Panel">
+                              Basic Metabolic Panel
+                            </SelectItem>
+                            <SelectItem value="Comprehensive Metabolic Panel">
+                              Comprehensive Metabolic Panel
+                            </SelectItem>
+                            <SelectItem value="Lipid Panel">
+                              Lipid Panel
+                            </SelectItem>
+                            <SelectItem value="Liver Function Tests">
+                              Liver Function Tests
+                            </SelectItem>
+                            <SelectItem value="Thyroid Function Tests">
+                              Thyroid Function Tests
+                            </SelectItem>
+                            <SelectItem value="Hemoglobin A1C">
+                              Hemoglobin A1C
+                            </SelectItem>
+                            <SelectItem value="Urinalysis">
+                              Urinalysis
+                            </SelectItem>
                             <SelectItem value="Vitamin D">Vitamin D</SelectItem>
-                            <SelectItem value="Iron Studies">Iron Studies</SelectItem>
+                            <SelectItem value="Iron Studies">
+                              Iron Studies
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       ) : (
@@ -1568,7 +1883,12 @@ Report generated from Cura EMR System`;
                     </div>
                     <div>
                       <p className="text-sm text-gray-300">Ordered:</p>
-                      <p className="font-medium">{format(new Date(selectedResult.orderedAt), "MMM dd, yyyy HH:mm")}</p>
+                      <p className="font-medium">
+                        {format(
+                          new Date(selectedResult.orderedAt),
+                          "MMM dd, yyyy HH:mm",
+                        )}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -1578,51 +1898,74 @@ Report generated from Cura EMR System`;
                   <h3 className="font-semibold text-blue-600 mb-2">Notes</h3>
                   {isEditMode ? (
                     <Textarea
-                      value={editFormData.notes !== undefined ? editFormData.notes : (selectedResult.notes || "")}
-                      onChange={(e) => setEditFormData((prev: any) => ({ ...prev, notes: e.target.value }))}
+                      value={
+                        editFormData.notes !== undefined
+                          ? editFormData.notes
+                          : selectedResult.notes || ""
+                      }
+                      onChange={(e) =>
+                        setEditFormData((prev: any) => ({
+                          ...prev,
+                          notes: e.target.value,
+                        }))
+                      }
                       placeholder="Enter clinical notes or special instructions"
                       rows={3}
                       className="w-full"
                     />
                   ) : (
-                    <p className="text-sm">{selectedResult.notes || "No notes"}</p>
+                    <p className="text-sm">
+                      {selectedResult.notes || "No notes"}
+                    </p>
                   )}
                 </div>
 
                 {/* Test Results */}
-                {selectedResult.results && selectedResult.results.length > 0 && (
-                  <div>
-                    <h3 className="font-semibold mb-3">Test Results</h3>
-                    <div className="space-y-3">
-                      {selectedResult.results.map((result: any, index: number) => (
-                        <div key={index} className="border rounded-lg p-4">
-                          <div className="flex justify-between items-center">
-                            <div className="flex-1">
-                              <p className="font-medium">{result.name}</p>
-                              <p className="text-sm text-gray-600">Reference Range: {result.referenceRange}</p>
+                {selectedResult.results &&
+                  selectedResult.results.length > 0 && (
+                    <div>
+                      <h3 className="font-semibold mb-3">Test Results</h3>
+                      <div className="space-y-3">
+                        {selectedResult.results.map(
+                          (result: any, index: number) => (
+                            <div key={index} className="border rounded-lg p-4">
+                              <div className="flex justify-between items-center">
+                                <div className="flex-1">
+                                  <p className="font-medium">{result.name}</p>
+                                  <p className="text-sm text-gray-600">
+                                    Reference Range: {result.referenceRange}
+                                  </p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-lg font-semibold">
+                                    {result.value} {result.unit}
+                                  </p>
+                                  <Badge
+                                    variant={
+                                      result.status === "normal"
+                                        ? "default"
+                                        : result.status === "abnormal_high" ||
+                                            result.status === "abnormal_low"
+                                          ? "secondary"
+                                          : "destructive"
+                                    }
+                                    className="ml-2"
+                                  >
+                                    {result.status.replace("_", " ")}
+                                  </Badge>
+                                </div>
+                              </div>
+                              {result.flag && (
+                                <p className="text-sm text-yellow-600 mt-2">
+                                  ⚠️ {result.flag}
+                                </p>
+                              )}
                             </div>
-                            <div className="text-right">
-                              <p className="text-lg font-semibold">{result.value} {result.unit}</p>
-                              <Badge 
-                                variant={
-                                  result.status === 'normal' ? 'default' : 
-                                  result.status === 'abnormal_high' || result.status === 'abnormal_low' ? 'secondary' : 
-                                  'destructive'
-                                }
-                                className="ml-2"
-                              >
-                                {result.status.replace('_', ' ')}
-                              </Badge>
-                            </div>
-                          </div>
-                          {result.flag && (
-                            <p className="text-sm text-yellow-600 mt-2">⚠️ {result.flag}</p>
-                          )}
-                        </div>
-                      ))}
+                          ),
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </div>
 
               {/* Right Section - Doctor Information */}
@@ -1630,79 +1973,153 @@ Report generated from Cura EMR System`;
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-lg font-bold text-blue-900">
-                      {isEditMode && editFormData.doctorName ? editFormData.doctorName : (selectedResult.doctorName || "Dr. Usman Gardezi")}
+                      {isEditMode && editFormData.doctorName
+                        ? editFormData.doctorName
+                        : selectedResult.doctorName || "Dr. Usman Gardezi"}
                     </h3>
                     {isEditMode && (
-                      <Select 
-                        value={editFormData.doctorName || selectedResult.doctorName || ""} 
-                        onValueChange={(value) => setEditFormData((prev: any) => ({ ...prev, doctorName: value }))}
+                      <Select
+                        value={
+                          editFormData.doctorName ||
+                          selectedResult.doctorName ||
+                          ""
+                        }
+                        onValueChange={(value) =>
+                          setEditFormData((prev: any) => ({
+                            ...prev,
+                            doctorName: value,
+                          }))
+                        }
                       >
                         <SelectTrigger className="mt-2">
                           <SelectValue placeholder="Select doctor" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Dr. Usman Gardezi">Dr. Usman Gardezi</SelectItem>
-                          <SelectItem value="Dr. John Smith">Dr. John Smith</SelectItem>
-                          <SelectItem value="Dr. Sarah Williams">Dr. Sarah Williams</SelectItem>
-                          <SelectItem value="Dr. Ali Raza">Dr. Ali Raza</SelectItem>
-                          <SelectItem value="Dr. Sarah Suleman">Dr. Sarah Suleman</SelectItem>
+                          <SelectItem value="Dr. Usman Gardezi">
+                            Dr. Usman Gardezi
+                          </SelectItem>
+                          <SelectItem value="Dr. John Smith">
+                            Dr. John Smith
+                          </SelectItem>
+                          <SelectItem value="Dr. Sarah Williams">
+                            Dr. Sarah Williams
+                          </SelectItem>
+                          <SelectItem value="Dr. Ali Raza">
+                            Dr. Ali Raza
+                          </SelectItem>
+                          <SelectItem value="Dr. Sarah Suleman">
+                            Dr. Sarah Suleman
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     )}
                   </div>
-                  
+
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Main Specialization:</p>
+                    <p className="text-sm font-medium text-gray-600">
+                      Main Specialization:
+                    </p>
                     {isEditMode ? (
-                      <Select 
-                        value={editFormData.mainSpecialty || selectedResult.mainSpecialty || ""} 
-                        onValueChange={(value) => setEditFormData((prev: any) => ({ ...prev, mainSpecialty: value }))}
+                      <Select
+                        value={
+                          editFormData.mainSpecialty ||
+                          selectedResult.mainSpecialty ||
+                          ""
+                        }
+                        onValueChange={(value) =>
+                          setEditFormData((prev: any) => ({
+                            ...prev,
+                            mainSpecialty: value,
+                          }))
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select main specialization" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Surgical Specialties">Surgical Specialties</SelectItem>
-                          <SelectItem value="Medical Specialties">Medical Specialties</SelectItem>
-                          <SelectItem value="Diagnostic Specialties">Diagnostic Specialties</SelectItem>
-                          <SelectItem value="Emergency Medicine">Emergency Medicine</SelectItem>
-                          <SelectItem value="Primary Care">Primary Care</SelectItem>
+                          <SelectItem value="Surgical Specialties">
+                            Surgical Specialties
+                          </SelectItem>
+                          <SelectItem value="Medical Specialties">
+                            Medical Specialties
+                          </SelectItem>
+                          <SelectItem value="Diagnostic Specialties">
+                            Diagnostic Specialties
+                          </SelectItem>
+                          <SelectItem value="Emergency Medicine">
+                            Emergency Medicine
+                          </SelectItem>
+                          <SelectItem value="Primary Care">
+                            Primary Care
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     ) : (
-                      <p className="text-gray-600 font-medium">{selectedResult.mainSpecialty || "Surgical Specialties"}</p>
+                      <p className="text-gray-600 font-medium">
+                        {selectedResult.mainSpecialty || "Surgical Specialties"}
+                      </p>
                     )}
                   </div>
 
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Sub-Specialization:</p>
+                    <p className="text-sm font-medium text-gray-600">
+                      Sub-Specialization:
+                    </p>
                     {isEditMode ? (
-                      <Select 
-                        value={editFormData.subSpecialty || selectedResult.subSpecialty || ""} 
-                        onValueChange={(value) => setEditFormData((prev: any) => ({ ...prev, subSpecialty: value }))}
+                      <Select
+                        value={
+                          editFormData.subSpecialty ||
+                          selectedResult.subSpecialty ||
+                          ""
+                        }
+                        onValueChange={(value) =>
+                          setEditFormData((prev: any) => ({
+                            ...prev,
+                            subSpecialty: value,
+                          }))
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select sub-specialization" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Orthopedic Surgeon">Orthopedic Surgeon</SelectItem>
-                          <SelectItem value="Cardiovascular Surgeon">Cardiovascular Surgeon</SelectItem>
-                          <SelectItem value="Neurosurgeon">Neurosurgeon</SelectItem>
-                          <SelectItem value="General Surgeon">General Surgeon</SelectItem>
-                          <SelectItem value="Plastic Surgeon">Plastic Surgeon</SelectItem>
+                          <SelectItem value="Orthopedic Surgeon">
+                            Orthopedic Surgeon
+                          </SelectItem>
+                          <SelectItem value="Cardiovascular Surgeon">
+                            Cardiovascular Surgeon
+                          </SelectItem>
+                          <SelectItem value="Neurosurgeon">
+                            Neurosurgeon
+                          </SelectItem>
+                          <SelectItem value="General Surgeon">
+                            General Surgeon
+                          </SelectItem>
+                          <SelectItem value="Plastic Surgeon">
+                            Plastic Surgeon
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     ) : (
-                      <p className="text-gray-600 font-medium">{selectedResult.subSpecialty || "Orthopedic Surgeon"}</p>
+                      <p className="text-gray-600 font-medium">
+                        {selectedResult.subSpecialty || "Orthopedic Surgeon"}
+                      </p>
                     )}
                   </div>
 
                   <div>
-                    <p className="text-sm font-medium text-blue-600">Priority:</p>
+                    <p className="text-sm font-medium text-blue-600">
+                      Priority:
+                    </p>
                     {isEditMode ? (
-                      <Select 
-                        value={editFormData.priority || selectedResult.priority} 
-                        onValueChange={(value) => setEditFormData((prev: any) => ({ ...prev, priority: value }))}
+                      <Select
+                        value={editFormData.priority || selectedResult.priority}
+                        onValueChange={(value) =>
+                          setEditFormData((prev: any) => ({
+                            ...prev,
+                            priority: value,
+                          }))
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select priority" />
@@ -1714,14 +2131,21 @@ Report generated from Cura EMR System`;
                         </SelectContent>
                       </Select>
                     ) : (
-                      <p className="text-green-600 font-medium capitalize">{selectedResult.priority}</p>
+                      <p className="text-green-600 font-medium capitalize">
+                        {selectedResult.priority}
+                      </p>
                     )}
                   </div>
 
                   {selectedResult.criticalValues && (
                     <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-4">
-                      <p className="text-red-800 font-medium text-sm">⚠️ Critical Values Alert</p>
-                      <p className="text-red-600 text-xs">This result contains critical values that require immediate attention.</p>
+                      <p className="text-red-800 font-medium text-sm">
+                        ⚠️ Critical Values Alert
+                      </p>
+                      <p className="text-red-600 text-xs">
+                        This result contains critical values that require
+                        immediate attention.
+                      </p>
                     </div>
                   )}
                 </div>
@@ -1736,17 +2160,22 @@ Report generated from Cura EMR System`;
                 <Button variant="outline" onClick={handleCancelEdit}>
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   onClick={handleSaveEdit}
                   disabled={updateLabResultMutation.isPending}
                   className="bg-medical-blue hover:bg-blue-700"
                 >
-                  {updateLabResultMutation.isPending ? "Saving..." : "Save Changes"}
+                  {updateLabResultMutation.isPending
+                    ? "Saving..."
+                    : "Save Changes"}
                 </Button>
               </>
             ) : (
               <>
-                <Button variant="outline" onClick={() => setShowViewDialog(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowViewDialog(false)}
+                >
                   Close
                 </Button>
                 <Button variant="outline" onClick={handleStartEdit}>
@@ -1769,11 +2198,17 @@ Report generated from Cura EMR System`;
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">{getPatientName(selectedResult.patientId).charAt(0)}</span>
+                    <span className="text-white text-sm font-bold">
+                      {getPatientName(selectedResult.patientId).charAt(0)}
+                    </span>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg">{getPatientName(selectedResult.patientId)}</h3>
-                    <p className="text-sm text-gray-600">Patient ID: {selectedResult.patientId}</p>
+                    <h3 className="font-semibold text-lg">
+                      {getPatientName(selectedResult.patientId)}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Patient ID: {selectedResult.patientId}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1784,18 +2219,25 @@ Report generated from Cura EMR System`;
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Test Type:</span>
-                      <span className="font-medium">{selectedResult.testType}</span>
+                      <span className="font-medium">
+                        {selectedResult.testType}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Ordered By:</span>
-                      <span className="font-medium">{selectedResult.orderedBy}</span>
+                      <span className="font-medium">
+                        {selectedResult.orderedBy}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Status:</span>
-                      <Badge 
+                      <Badge
                         variant={
-                          selectedResult.status === 'completed' ? 'default' : 
-                          selectedResult.status === 'pending' ? 'secondary' : 'outline'
+                          selectedResult.status === "completed"
+                            ? "default"
+                            : selectedResult.status === "pending"
+                              ? "secondary"
+                              : "outline"
                         }
                       >
                         {selectedResult.status}
@@ -1804,7 +2246,9 @@ Report generated from Cura EMR System`;
                     <div className="flex justify-between">
                       <span className="text-gray-600">Completed:</span>
                       <span className="font-medium">
-                        {selectedResult.completedAt ? format(new Date(selectedResult.completedAt), "PPP") : "Not completed"}
+                        {selectedResult.completedAt
+                          ? format(new Date(selectedResult.completedAt), "PPP")
+                          : "Not completed"}
                       </span>
                     </div>
                   </div>
@@ -1814,20 +2258,40 @@ Report generated from Cura EMR System`;
                   <h4 className="font-semibold mb-3">Clinical Review</h4>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <input type="checkbox" id="reviewed" className="rounded" />
-                      <Label htmlFor="reviewed" className="text-sm">Results reviewed by physician</Label>
+                      <input
+                        type="checkbox"
+                        id="reviewed"
+                        className="rounded"
+                      />
+                      <Label htmlFor="reviewed" className="text-sm">
+                        Results reviewed by physician
+                      </Label>
                     </div>
                     <div className="flex items-center gap-2">
-                      <input type="checkbox" id="interpreted" className="rounded" />
-                      <Label htmlFor="interpreted" className="text-sm">Clinical interpretation complete</Label>
+                      <input
+                        type="checkbox"
+                        id="interpreted"
+                        className="rounded"
+                      />
+                      <Label htmlFor="interpreted" className="text-sm">
+                        Clinical interpretation complete
+                      </Label>
                     </div>
                     <div className="flex items-center gap-2">
                       <input type="checkbox" id="actions" className="rounded" />
-                      <Label htmlFor="actions" className="text-sm">Follow-up actions identified</Label>
+                      <Label htmlFor="actions" className="text-sm">
+                        Follow-up actions identified
+                      </Label>
                     </div>
                     <div className="flex items-center gap-2">
-                      <input type="checkbox" id="approved" className="rounded" />
-                      <Label htmlFor="approved" className="text-sm">Approved for patient sharing</Label>
+                      <input
+                        type="checkbox"
+                        id="approved"
+                        className="rounded"
+                      />
+                      <Label htmlFor="approved" className="text-sm">
+                        Approved for patient sharing
+                      </Label>
                     </div>
                   </div>
                 </div>
@@ -1837,27 +2301,41 @@ Report generated from Cura EMR System`;
                 <div>
                   <h4 className="font-semibold mb-3">Test Results Summary</h4>
                   <div className="grid grid-cols-2 gap-4">
-                    {selectedResult.results.slice(0, 4).map((result: any, index: number) => (
-                      <div key={index} className="bg-gray-50 rounded-lg p-3">
-                        <div className="flex justify-between items-center">
-                          <span className="font-medium text-sm">{result.name}</span>
-                          <Badge 
-                            variant={result.status === 'normal' ? 'default' : 'secondary'}
-                            className="text-xs"
-                          >
-                            {result.status}
-                          </Badge>
+                    {selectedResult.results
+                      .slice(0, 4)
+                      .map((result: any, index: number) => (
+                        <div key={index} className="bg-gray-50 rounded-lg p-3">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium text-sm">
+                              {result.name}
+                            </span>
+                            <Badge
+                              variant={
+                                result.status === "normal"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                              className="text-xs"
+                            >
+                              {result.status}
+                            </Badge>
+                          </div>
+                          <div className="text-lg font-semibold mt-1">
+                            {result.value} {result.unit}
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            Ref: {result.referenceRange}
+                          </div>
                         </div>
-                        <div className="text-lg font-semibold mt-1">{result.value} {result.unit}</div>
-                        <div className="text-xs text-gray-600">Ref: {result.referenceRange}</div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 </div>
               )}
 
               <div>
-                <Label htmlFor="physicianNotes" className="text-sm font-medium">Physician Notes</Label>
+                <Label htmlFor="physicianNotes" className="text-sm font-medium">
+                  Physician Notes
+                </Label>
                 <Textarea
                   id="physicianNotes"
                   placeholder="Add clinical interpretation, recommendations, or follow-up instructions..."
@@ -1868,15 +2346,21 @@ Report generated from Cura EMR System`;
 
               <div className="flex justify-between items-center pt-4 border-t">
                 <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => setShowReviewDialog(false)}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowReviewDialog(false)}
+                  >
                     Cancel
                   </Button>
-                  <Button variant="outline" onClick={() => handleDownloadResult(selectedResult.id)}>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleDownloadResult(selectedResult.id)}
+                  >
                     Download Report
                   </Button>
                 </div>
                 <div className="flex gap-2">
-                  <Button 
+                  <Button
                     onClick={() => {
                       setShowReviewDialog(false);
                       setShowShareDialog(true);
@@ -1884,7 +2368,7 @@ Report generated from Cura EMR System`;
                         method: "",
                         email: "",
                         whatsapp: "",
-                        message: `Lab results for ${selectedResult.testType} are now available for review.`
+                        message: `Lab results for ${selectedResult.testType} are now available for review.`,
                       });
                     }}
                     className="bg-medical-blue hover:bg-blue-700"
@@ -1907,7 +2391,8 @@ Report generated from Cura EMR System`;
           {selectedResult && (
             <div className="space-y-4">
               <div className="text-sm text-gray-600">
-                Share results for <strong>{getPatientName(selectedResult.patientId)}</strong>
+                Share results for{" "}
+                <strong>{getPatientName(selectedResult.patientId)}</strong>
               </div>
 
               <div className="space-y-3">
@@ -1920,10 +2405,17 @@ Report generated from Cura EMR System`;
                       name="method"
                       value="email"
                       checked={shareFormData.method === "email"}
-                      onChange={(e) => setShareFormData(prev => ({ ...prev, method: e.target.value }))}
+                      onChange={(e) =>
+                        setShareFormData((prev) => ({
+                          ...prev,
+                          method: e.target.value,
+                        }))
+                      }
                       className="w-4 h-4"
                     />
-                    <Label htmlFor="email" className="text-sm">Email</Label>
+                    <Label htmlFor="email" className="text-sm">
+                      Email
+                    </Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <input
@@ -1932,60 +2424,98 @@ Report generated from Cura EMR System`;
                       name="method"
                       value="whatsapp"
                       checked={shareFormData.method === "whatsapp"}
-                      onChange={(e) => setShareFormData(prev => ({ ...prev, method: e.target.value }))}
+                      onChange={(e) =>
+                        setShareFormData((prev) => ({
+                          ...prev,
+                          method: e.target.value,
+                        }))
+                      }
                       className="w-4 h-4"
                     />
-                    <Label htmlFor="whatsapp" className="text-sm">WhatsApp</Label>
+                    <Label htmlFor="whatsapp" className="text-sm">
+                      WhatsApp
+                    </Label>
                   </div>
                 </div>
               </div>
 
               {shareFormData.method === "email" && (
                 <div className="space-y-2">
-                  <Label htmlFor="emailAddress" className="text-sm font-medium">Email Address</Label>
+                  <Label htmlFor="emailAddress" className="text-sm font-medium">
+                    Email Address
+                  </Label>
                   <Input
                     id="emailAddress"
                     type="email"
                     placeholder="patient@example.com"
                     value={shareFormData.email}
-                    onChange={(e) => setShareFormData(prev => ({ ...prev, email: e.target.value }))}
+                    onChange={(e) =>
+                      setShareFormData((prev) => ({
+                        ...prev,
+                        email: e.target.value,
+                      }))
+                    }
                   />
                 </div>
               )}
 
               {shareFormData.method === "whatsapp" && (
                 <div className="space-y-2">
-                  <Label htmlFor="whatsappNumber" className="text-sm font-medium">WhatsApp Number</Label>
+                  <Label
+                    htmlFor="whatsappNumber"
+                    className="text-sm font-medium"
+                  >
+                    WhatsApp Number
+                  </Label>
                   <Input
                     id="whatsappNumber"
                     type="tel"
                     placeholder="+44 7XXX XXXXXX"
                     value={shareFormData.whatsapp}
-                    onChange={(e) => setShareFormData(prev => ({ ...prev, whatsapp: e.target.value }))}
+                    onChange={(e) =>
+                      setShareFormData((prev) => ({
+                        ...prev,
+                        whatsapp: e.target.value,
+                      }))
+                    }
                   />
                 </div>
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="shareMessage" className="text-sm font-medium">Message</Label>
+                <Label htmlFor="shareMessage" className="text-sm font-medium">
+                  Message
+                </Label>
                 <Textarea
                   id="shareMessage"
                   placeholder="Add a personal message..."
                   value={shareFormData.message}
-                  onChange={(e) => setShareFormData(prev => ({ ...prev, message: e.target.value }))}
+                  onChange={(e) =>
+                    setShareFormData((prev) => ({
+                      ...prev,
+                      message: e.target.value,
+                    }))
+                  }
                   rows={3}
                 />
               </div>
 
               <div className="flex justify-between items-center pt-4 border-t">
-                <Button variant="outline" onClick={() => setShowShareDialog(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowShareDialog(false)}
+                >
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   onClick={() => {
-                    const method = shareFormData.method === "email" ? "email" : "WhatsApp";
-                    const contact = shareFormData.method === "email" ? shareFormData.email : shareFormData.whatsapp;
-                    
+                    const method =
+                      shareFormData.method === "email" ? "email" : "WhatsApp";
+                    const contact =
+                      shareFormData.method === "email"
+                        ? shareFormData.email
+                        : shareFormData.whatsapp;
+
                     toast({
                       title: "Results Shared",
                       description: `Lab results sent to ${getPatientName(selectedResult.patientId)} via ${method} (${contact})`,
@@ -1995,12 +2525,16 @@ Report generated from Cura EMR System`;
                       method: "",
                       email: "",
                       whatsapp: "",
-                      message: ""
+                      message: "",
                     });
                   }}
-                  disabled={!shareFormData.method || 
-                    (shareFormData.method === "email" && !shareFormData.email) ||
-                    (shareFormData.method === "whatsapp" && !shareFormData.whatsapp)}
+                  disabled={
+                    !shareFormData.method ||
+                    (shareFormData.method === "email" &&
+                      !shareFormData.email) ||
+                    (shareFormData.method === "whatsapp" &&
+                      !shareFormData.whatsapp)
+                  }
                   className="bg-medical-blue hover:bg-blue-700"
                 >
                   Send Results
@@ -2012,106 +2546,186 @@ Report generated from Cura EMR System`;
       </Dialog>
 
       {/* Lab Result Prescription Dialog */}
-      <Dialog open={showPrescriptionDialog} onOpenChange={setShowPrescriptionDialog}>
+      <Dialog
+        open={showPrescriptionDialog}
+        onOpenChange={setShowPrescriptionDialog}
+      >
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader className="border-b pb-4">
-            <DialogTitle className="text-xl font-bold">Lab Result Prescription</DialogTitle>
+            <DialogTitle className="text-xl font-bold">
+              Lab Result Prescription
+            </DialogTitle>
           </DialogHeader>
-          
+
           {selectedResult && (
-            <div className="prescription-content space-y-6 py-4" id="prescription-print">
+            <div
+              className="prescription-content space-y-6 py-4"
+              id="prescription-print"
+            >
               {/* Header */}
               <div className="text-center border-b pb-4">
-                <h1 className="text-2xl font-bold text-medical-blue">CURA EMR SYSTEM</h1>
-                <p className="text-sm text-gray-600">Laboratory Test Prescription</p>
+                <span className="text-2xl font-bold text-medical-blue fs-1">
+                  CURA EMR SYSTEM
+                </span>
+                <p className="text-sm text-gray-600">
+                  Laboratory Test Prescription
+                </p>
               </div>
 
               {/* Doctor and Patient Information */}
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-3">
-                  <h3 className="font-semibold text-gray-800 border-b">Physician Information</h3>
+                  <h4 className="font-semibold text-gray-800 border-b fs-6">
+                    Physician Information
+                  </h4>
                   <div className="space-y-1 text-sm">
-                    <p><strong>Name:</strong> {selectedResult.doctorName || 'Doctor'}</p>
+                    <p>
+                      <strong>Name:</strong>{" "}
+                      {selectedResult.doctorName || "Doctor"}
+                    </p>
                     {selectedResult.mainSpecialty && (
-                      <p><strong>Main Specialization:</strong> {selectedResult.mainSpecialty}</p>
+                      <p>
+                        <strong>Main Specialization:</strong>{" "}
+                        {selectedResult.mainSpecialty}
+                      </p>
                     )}
                     {selectedResult.subSpecialty && (
-                      <p><strong>Sub-Specialization:</strong> {selectedResult.subSpecialty}</p>
+                      <p>
+                        <strong>Sub-Specialization:</strong>{" "}
+                        {selectedResult.subSpecialty}
+                      </p>
                     )}
                     {selectedResult.priority && (
-                      <p><strong>Priority:</strong> {selectedResult.priority}</p>
+                      <p>
+                        <strong>Priority:</strong> {selectedResult.priority}
+                      </p>
                     )}
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <h3 className="font-semibold text-gray-800 border-b">Patient Information</h3>
+                  <h4 className="font-semibold text-gray-800 border-b fs-6">
+                    Patient Information
+                  </h4>
                   <div className="space-y-1 text-sm">
-                    <p><strong>Name:</strong> {getPatientName(selectedResult.patientId)}</p>
-                    <p><strong>Patient ID:</strong> {selectedResult.patientId}</p>
-                    <p><strong>Date:</strong> {format(new Date(), 'MMM dd, yyyy')}</p>
-                    <p><strong>Time:</strong> {format(new Date(), 'HH:mm')}</p>
+                    <p>
+                      <strong>Name:</strong>{" "}
+                      {getPatientName(selectedResult.patientId)}
+                    </p>
+                    <p>
+                      <strong>Patient ID:</strong> {selectedResult.patientId}
+                    </p>
+                    <p>
+                      <strong>Date:</strong>{" "}
+                      {format(new Date(), "MMM dd, yyyy")}
+                    </p>
+                    <p>
+                      <strong>Time:</strong> {format(new Date(), "HH:mm")}
+                    </p>
                   </div>
                 </div>
               </div>
 
               {/* Prescription Details */}
               <div className="space-y-4">
-                <h3 className="font-semibold text-gray-800 text-lg border-b pb-2">℞ Laboratory Test Prescription</h3>
-                
+                <h3 className="font-semibold text-gray-800 text-lg border-b pb-2">
+                  ℞ Laboratory Test Prescription
+                </h3>
+
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
-                      <p className="text-sm font-medium text-gray-700">Test ID:</p>
+                      <p className="text-sm font-medium text-gray-700">
+                        Test ID:
+                      </p>
                       <p className="font-mono">{selectedResult.testId}</p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-700">Test Type:</p>
-                      <p className="font-semibold text-blue-800">{selectedResult.testType}</p>
+                      <p className="text-sm font-medium text-gray-700">
+                        Test Type:
+                      </p>
+                      <p className="font-semibold text-blue-800">
+                        {selectedResult.testType}
+                      </p>
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
-                      <p className="text-sm font-medium text-gray-700">Ordered Date:</p>
-                      <p>{format(new Date(selectedResult.orderedAt), 'MMM dd, yyyy HH:mm')}</p>
+                      <p className="text-sm font-medium text-gray-700">
+                        Ordered Date:
+                      </p>
+                      <p>
+                        {format(
+                          new Date(selectedResult.orderedAt),
+                          "MMM dd, yyyy HH:mm",
+                        )}
+                      </p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-700">Status:</p>
+                      <p className="text-sm font-medium text-gray-700">
+                        Status:
+                      </p>
                       <Badge className={getStatusColor(selectedResult.status)}>
                         {selectedResult.status.toUpperCase()}
                       </Badge>
                     </div>
                   </div>
 
-                  {selectedResult.results && selectedResult.results.length > 0 && (
-                    <div className="mt-4">
-                      <p className="text-sm font-medium text-gray-700 mb-3">Test Results:</p>
-                      <div className="space-y-2">
-                        {selectedResult.results.map((testResult: any, index: number) => (
-                          <div key={index} className="bg-white border rounded p-3">
-                            <div className="flex justify-between items-start mb-2">
-                              <span className="font-medium text-gray-900">{testResult.name}</span>
-                              <Badge className={getResultStatusColor(testResult.status)}>
-                                {testResult.status.replace('_', ' ').toUpperCase()}
-                              </Badge>
-                            </div>
-                            <div className="text-sm text-gray-700">
-                              <p><strong>Value:</strong> {testResult.value} {testResult.unit}</p>
-                              <p><strong>Reference Range:</strong> {testResult.referenceRange}</p>
-                              {testResult.flag && (
-                                <p><strong>Flag:</strong> {testResult.flag}</p>
-                              )}
-                            </div>
-                          </div>
-                        ))}
+                  {selectedResult.results &&
+                    selectedResult.results.length > 0 && (
+                      <div className="mt-4">
+                        <p className="text-sm font-medium text-gray-700 mb-3">
+                          Test Results:
+                        </p>
+                        <div className="space-y-2">
+                          {selectedResult.results.map(
+                            (testResult: any, index: number) => (
+                              <div
+                                key={index}
+                                className="bg-white border rounded p-3"
+                              >
+                                <div className="flex justify-between items-start mb-2">
+                                  <span className="font-medium text-gray-900">
+                                    {testResult.name}
+                                  </span>
+                                  <Badge
+                                    className={getResultStatusColor(
+                                      testResult.status,
+                                    )}
+                                  >
+                                    {testResult.status
+                                      .replace("_", " ")
+                                      .toUpperCase()}
+                                  </Badge>
+                                </div>
+                                <div className="text-sm text-gray-700">
+                                  <p>
+                                    <strong>Value:</strong> {testResult.value}{" "}
+                                    {testResult.unit}
+                                  </p>
+                                  <p>
+                                    <strong>Reference Range:</strong>{" "}
+                                    {testResult.referenceRange}
+                                  </p>
+                                  {testResult.flag && (
+                                    <p>
+                                      <strong>Flag:</strong> {testResult.flag}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            ),
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
                   {selectedResult.notes && (
                     <div className="mt-4 pt-4 border-t">
-                      <p className="text-sm font-medium text-gray-700 mb-2">Clinical Notes:</p>
+                      <p className="text-sm font-medium text-gray-700 mb-2">
+                        Clinical Notes:
+                      </p>
                       <p className="text-sm text-gray-800 bg-yellow-50 border-l-4 border-yellow-400 p-3">
                         {selectedResult.notes}
                       </p>
@@ -2123,10 +2737,13 @@ Report generated from Cura EMR System`;
                   <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
                     <div className="flex items-center gap-2 text-red-800">
                       <AlertTriangle className="h-5 w-5" />
-                      <span className="font-semibold">CRITICAL VALUES DETECTED</span>
+                      <span className="font-semibold">
+                        CRITICAL VALUES DETECTED
+                      </span>
                     </div>
                     <p className="text-sm text-red-700 mt-2">
-                      This lab result contains critical values that require immediate attention.
+                      This lab result contains critical values that require
+                      immediate attention.
                     </p>
                   </div>
                 )}
@@ -2136,13 +2753,17 @@ Report generated from Cura EMR System`;
               <div className="border-t pt-4 mt-6">
                 <div className="flex justify-between items-center text-xs text-gray-500">
                   <p>Generated by Cura EMR System</p>
-                  <p>Date: {format(new Date(), 'MMM dd, yyyy HH:mm')}</p>
+                  <p>Date: {format(new Date(), "MMM dd, yyyy HH:mm")}</p>
                 </div>
                 <div className="mt-4 text-center">
                   <div className="border-t border-gray-300 w-64 mx-auto mb-2"></div>
-                  <p className="text-sm font-medium">{selectedResult.doctorName || 'Doctor'}</p>
+                  <p className="text-sm font-medium">
+                    {selectedResult.doctorName || "Doctor"}
+                  </p>
                   {selectedResult.mainSpecialty && (
-                    <p className="text-xs text-gray-600">{selectedResult.mainSpecialty}</p>
+                    <p className="text-xs text-gray-600">
+                      {selectedResult.mainSpecialty}
+                    </p>
                   )}
                 </div>
               </div>
@@ -2150,11 +2771,14 @@ Report generated from Cura EMR System`;
           )}
 
           <div className="flex justify-between items-center pt-4 border-t">
-            <Button variant="outline" onClick={() => setShowPrescriptionDialog(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowPrescriptionDialog(false)}
+            >
               Close
             </Button>
             <div className="flex gap-3">
-              <Button 
+              <Button
                 variant="outline"
                 onClick={handlePrint}
                 className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
@@ -2162,7 +2786,7 @@ Report generated from Cura EMR System`;
                 <Printer className="h-4 w-4 mr-2" />
                 Print
               </Button>
-              <Button 
+              <Button
                 onClick={handleGeneratePDF}
                 className="bg-medical-blue hover:bg-blue-700"
               >
