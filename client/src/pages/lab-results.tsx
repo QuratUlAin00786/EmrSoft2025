@@ -685,7 +685,7 @@ Report generated from Cura EMR System`;
               color: #333;
             }
             .header h1 {
-              font-size: 24px;
+              font-size: 32px;
               font-weight: bold;
               color: #333;
               margin: 0;
@@ -696,7 +696,7 @@ Report generated from Cura EMR System`;
               margin-bottom: 30px;
             }
             .section-title {
-              font-size: 18px;
+              font-size: 14px;
               font-weight: bold;
               margin-bottom: 15px;
               color: #333;
