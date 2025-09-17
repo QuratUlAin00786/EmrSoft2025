@@ -792,6 +792,19 @@ Report generated from Cura EMR System`;
               }
               .prescription-content {
                 box-shadow: none;
+                page-break-before: auto;
+                page-break-after: auto;
+              }
+              .header {
+                page-break-before: avoid;
+                page-break-inside: avoid;
+                page-break-after: avoid;
+              }
+              * {
+                page-break-before: auto;
+              }
+              .prescription-content > *:first-child {
+                page-break-before: avoid;
               }
             }
           </style>
