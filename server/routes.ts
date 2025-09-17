@@ -8570,20 +8570,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     </div>
 
     <div class="info-section">
-        <div class="info-header">PATIENT INFORMATION</div>
-        <div class="info-row">
-            <span><span class="info-label">Name:</span> ${study.patientName || 'N/A'}</span>
-            <span><span class="info-label">ID:</span> ${study.patientId || 'N/A'}</span>
-            <span><span class="info-label">Date:</span> ${currentDate}</span>
-        </div>
-    </div>
-
-    <div class="info-section">
-        <div class="info-header">STUDY INFORMATION</div>
-        <div class="info-row">
-            <span><span class="info-label">Study:</span> ${study.studyType || 'N/A'}</span>
-            <span><span class="info-label">Modality:</span> ${study.modality || 'N/A'}</span>
-            <span><span class="info-label">Body Part:</span> ${study.bodyPart || 'N/A'}</span>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+            <div style="flex: 1; margin-right: 20px;">
+                <div class="info-header">PATIENT INFORMATION</div>
+                <div style="margin-top: 5px;">
+                    <div><span class="info-label">Name:</span> ${study.patientName || 'N/A'}</div>
+                    <div><span class="info-label">ID:</span> ${study.patientId || 'N/A'}</div>
+                    <div><span class="info-label">Date:</span> ${currentDate}</div>
+                </div>
+            </div>
+            <div style="flex: 1;">
+                <div class="info-header">STUDY INFORMATION</div>
+                <div style="margin-top: 5px;">
+                    <div><span class="info-label">Study:</span> ${study.studyType || 'N/A'}</div>
+                    <div><span class="info-label">Modality:</span> ${study.modality || 'N/A'}</div>
+                    <div><span class="info-label">Body Part:</span> ${study.bodyPart || 'N/A'}</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -8599,17 +8602,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     <div class="section-title">IMPRESSION:</div>
     <div class="content">${reportFormData.impression || study.impression || 'Normal study. No acute findings.'}</div>
 
-    <div class="section-title">REPRESENTATIVE IMAGES:</div>
-    <div class="image-placeholder">
-        <div>
-            <div class="image-text">MEDICAL IMAGE</div>
-            <div style="font-size: 7pt; color: #666; margin-top: 5px;">
-                ${study.images && study.images[0] ? study.images[0].fileName || study.images[0].seriesDescription || 'Imaging Study' : 'Medical Study'}<br>
-                Image Available
-            </div>
-        </div>
-    </div>
-
     <div class="signature-section">
         <div class="signature-row">
             <span><span class="info-label">REPORTED BY:</span> ${reportFormData.radiologist || study.radiologist || "Dr. Sarah Johnson"}</span>
@@ -8618,6 +8610,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         <div class="signature-row">
             <span style="margin-left: 80px;">MD, Diagnostic Radiology</span>
             <span>License #: MD-RAD-2024</span>
+        </div>
+    </div>
+
+    <div class="section-title">REPRESENTATIVE IMAGES:</div>
+    <div class="image-placeholder">
+        <div>
+            <div class="image-text">MEDICAL IMAGE</div>
+            <div style="font-size: 7pt; color: #666; margin-top: 5px;">
+                ${study.images && study.images[0] ? study.images[0].fileName || study.images[0].seriesDescription || 'Imaging Study' : 'Medical Study'}<br>
+                Image Available
+            </div>
         </div>
     </div>
 
@@ -8783,87 +8786,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       yPosition -= 50;
       
-      // Medical Image Section
-      let imageHeight = 0;
-      if (study.images && study.images[0] && study.images[0].imageData) {
-        try {
-          // Extract base64 image data
-          const imageData = study.images[0].imageData;
-          const mimeType = study.images[0].mimeType || 'image/jpeg';
-          
-          // Convert base64 to buffer
-          const imageBuffer = Buffer.from(imageData, 'base64');
-          
-          // Embed image based on MIME type
-          let image;
-          if (mimeType.includes('jpeg') || mimeType.includes('jpg')) {
-            image = await pdfDoc.embedJpg(imageBuffer);
-          } else if (mimeType.includes('png')) {
-            image = await pdfDoc.embedPng(imageBuffer);
-          }
-          
-          if (image) {
-            // Calculate image dimensions to fit nicely in the PDF
-            const maxImageWidth = 200;
-            const maxImageHeight = 150;
-            const imageAspectRatio = image.width / image.height;
-            
-            let drawWidth = maxImageWidth;
-            let drawHeight = maxImageWidth / imageAspectRatio;
-            
-            if (drawHeight > maxImageHeight) {
-              drawHeight = maxImageHeight;
-              drawWidth = maxImageHeight * imageAspectRatio;
-            }
-            
-            imageHeight = drawHeight + 60;
-            
-            // Image Section with border
-            drawSectionBox(30, yPosition + 10, width - 60, imageHeight);
-            page.drawText('MEDICAL IMAGE', {
-              x: 40,
-              y: yPosition - 5,
-              size: 12,
-              font: boldFont,
-              color: primaryBlue
-            });
-            
-            // Draw the medical image
-            page.drawImage(image, {
-              x: (width - drawWidth) / 2, // Center the image
-              y: yPosition - drawHeight - 40,
-              width: drawWidth,
-              height: drawHeight
-            });
-            
-            // Image Series information
-            const fileSize = study.images[0].fileSize ? (study.images[0].fileSize / (1024 * 1024)).toFixed(2) : '0.00';
-            const imageSeries = `${study.modality || 'X-Ray'} x ${study.images.length} images • ${fileSize} MB • ${(study.images[0].mimeType || 'image/jpeg').includes('jpeg') ? 'JPEG' : 'PNG'}`;
-            
-            page.drawText(`Image Series: ${imageSeries}`, {
-              x: 50,
-              y: yPosition - imageHeight + 25,
-              size: 9,
-              font,
-              color: darkGray
-            });
-            
-            page.drawText(`Series: ${study.images[0].seriesDescription || study.studyType || 'N/A'}`, {
-              x: 50,
-              y: yPosition - imageHeight + 10,
-              size: 9,
-              font,
-              color: darkGray
-            });
-            
-            yPosition -= imageHeight;
-          }
-        } catch (imageError) {
-          console.log('Could not embed image, continuing without it:', imageError);
-          // Continue without image if there's an error
-        }
-      }
-      
       if (reportFormData) {
         yPosition -= 20;
         
@@ -9003,14 +8925,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
         color: rgb(0.6, 0.6, 0.6)
       });
       
-      // Digital signature placeholder
-      page.drawText('Electronically Signed', { 
-        x: 50, 
-        y: yPosition - 85, 
-        size: 9, 
-        font,
-        color: primaryBlue
-      });
+      // Digital signature placeholder removed
+      
+      // Medical Image Section (moved after radiologist report)
+      yPosition -= 20;
+      let imageHeight = 0;
+      if (study.images && study.images[0] && study.images[0].imageData) {
+        try {
+          // Extract base64 image data
+          const imageData = study.images[0].imageData;
+          const mimeType = study.images[0].mimeType || 'image/jpeg';
+          
+          // Convert base64 to buffer
+          const imageBuffer = Buffer.from(imageData, 'base64');
+          
+          // Embed image based on MIME type
+          let image;
+          if (mimeType.includes('jpeg') || mimeType.includes('jpg')) {
+            image = await pdfDoc.embedJpg(imageBuffer);
+          } else if (mimeType.includes('png')) {
+            image = await pdfDoc.embedPng(imageBuffer);
+          }
+          
+          if (image) {
+            // Calculate image dimensions to fit nicely in the PDF
+            const maxImageWidth = 200;
+            const maxImageHeight = 150;
+            const imageAspectRatio = image.width / image.height;
+            
+            let drawWidth = maxImageWidth;
+            let drawHeight = maxImageWidth / imageAspectRatio;
+            
+            if (drawHeight > maxImageHeight) {
+              drawHeight = maxImageHeight;
+              drawWidth = maxImageHeight * imageAspectRatio;
+            }
+            
+            imageHeight = drawHeight + 60;
+            
+            // Image Section with border
+            drawSectionBox(30, yPosition + 10, width - 60, imageHeight);
+            page.drawText('MEDICAL IMAGE', {
+              x: 40,
+              y: yPosition - 5,
+              size: 12,
+              font: boldFont,
+              color: primaryBlue
+            });
+            
+            // Draw the medical image
+            page.drawImage(image, {
+              x: (width - drawWidth) / 2, // Center the image
+              y: yPosition - drawHeight - 40,
+              width: drawWidth,
+              height: drawHeight
+            });
+            
+            // Image Series information
+            const fileSize = study.images[0].fileSize ? (study.images[0].fileSize / (1024 * 1024)).toFixed(2) : '0.00';
+            const imageSeries = `${study.modality || 'X-Ray'} x ${study.images.length} images • ${fileSize} MB • ${(study.images[0].mimeType || 'image/jpeg').includes('jpeg') ? 'JPEG' : 'PNG'}`;
+            
+            page.drawText(`Image Series: ${imageSeries}`, {
+              x: 50,
+              y: yPosition - imageHeight + 25,
+              size: 9,
+              font,
+              color: darkGray
+            });
+            
+            page.drawText(`Series: ${study.images[0].seriesDescription || study.studyType || 'N/A'}`, {
+              x: 50,
+              y: yPosition - imageHeight + 10,
+              size: 9,
+              font,
+              color: darkGray
+            });
+            
+            yPosition -= imageHeight;
+          }
+        } catch (imageError) {
+          console.log('Could not embed image, continuing without it:', imageError);
+          // Continue without image if there's an error
+        }
+      }
       
       // Professional Footer
       const footerY = 60;
