@@ -5275,31 +5275,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }))
       }).parse(req.body);
 
-      // Define the 15 facial muscle mappings
+      // Define the 32 facial muscle mappings
       const muscleMapping = [
-        "Frontalis (Forehead)",
-        "Temporalis", 
-        "Procerus",
-        "Corrugator Supercilii",
-        "Orbicularis Oculi",
-        "Orbicularis Oculi", 
-        "Orbicularis Oculi",
-        "Zygomaticus Minor",
-        "Zygomaticus Major",
-        "Buccinator",
-        "Depressor Sept Nasi",
-        "Orbicularis Oris",
-        "Depressor Labii Inferioris",
-        "Mentalis",
-        "Platysma"
+        "Frontalis (Forehead)",           // Position 1
+        "Temporalis",                     // Position 2
+        "Procerus",                       // Position 3
+        "Corrugator Supercilii",          // Position 4
+        "Orbicularis Oculi",              // Position 5
+        "Orbicularis Milor",              // Position 6
+        "Orbicularis Oculi",              // Position 7
+        "Zygomaticus Minor",              // Position 8
+        "Zygomaticus Major",              // Position 9
+        "Buccinator",                     // Position 10
+        "Depressor Sept Nasi",            // Position 11
+        "Orbicularis Oris",               // Position 12
+        "Depressor Labii Inferioris",     // Position 13
+        "Mentalis",                       // Position 14
+        "Platysma",                       // Position 15
+        "Frontalis (Forehead)",           // Position 16
+        "Temporalis",                     // Position 17
+        "Procerus",                       // Position 18
+        "Corrugator Supercilii",          // Position 19
+        "Orbicularis Oculi",              // Position 20
+        "Orbicularis Milor",              // Position 21
+        "Orbicularis Oculi",              // Position 22
+        "Zygomaticus Minor",              // Position 23
+        "Zygomaticus Major",              // Position 24
+        "Buccinator",                     // Position 25
+        "Depressor Sept Nasi",            // Position 26
+        "Orbicularis Oris",               // Position 27
+        "Depressor Labii Inferioris",     // Position 28
+        "Mentalis",                       // Position 29
+        "Platysma",                       // Position 30
+        "Mentalis",                       // Position 31
+        "Platysma"                        // Position 32
       ];
 
       const savedPositions = [];
 
-      // Save each detected dot as a muscle position (up to 15)
-      for (let i = 0; i < Math.min(musclePositionData.detectedDots.length, 15); i++) {
+      // Save each detected dot as a muscle position (up to 32)
+      for (let i = 0; i < Math.min(musclePositionData.detectedDots.length, 32); i++) {
         const dot = musclePositionData.detectedDots[i];
-        const position = i + 1; // Positions 1-15
+        const position = i + 1; // Positions 1-32
         const muscleName = muscleMapping[i];
 
         const musclePosition = await storage.saveMusclePosition({
