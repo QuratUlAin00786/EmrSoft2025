@@ -649,6 +649,11 @@ ${
   // CALIBRATION MODE - For precise coordinate mapping
   const [calibrationMode, setCalibrationMode] = useState(false);
   const [calibrationPoints, setCalibrationPoints] = useState<{xPct: number, yPct: number}[]>([]);
+  
+  // BLACK DOT DETECTION - For automatic dot highlighting
+  const [detectedBlackDots, setDetectedBlackDots] = useState<{id: number, xPct: number, yPct: number}[]>([]);
+  const [showBlackDotPolygons, setShowBlackDotPolygons] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // ANATOMICAL MUSCLE POLYGON REGIONS - Vector-based muscle highlighting
   // Polygon coordinates representing actual muscle tissue shapes on the facial diagram
@@ -771,6 +776,115 @@ ${
     const jsArray = JSON.stringify(calibrationPoints, null, 2);
     navigator.clipboard?.writeText(jsArray);
     alert(`Exported ${calibrationPoints.length} points to console and clipboard!`);
+  };
+
+  // BLACK DOT DETECTION FUNCTION
+  const detectBlackDots = () => {
+    if (!imageRef.current || !canvasRef.current || !overlayPosition) return;
+
+    const image = imageRef.current;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    
+    if (!ctx) return;
+
+    // Set canvas dimensions to match image display size
+    canvas.width = overlayPosition.width;
+    canvas.height = overlayPosition.height;
+
+    // Draw the image to canvas for pixel analysis
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+    
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    
+    const detectedDots: {id: number, xPct: number, yPct: number}[] = [];
+    const threshold = 50; // Threshold for "black" (adjust as needed)
+    const minDotSize = 3; // Minimum dot size in pixels
+    const visited = new Set<string>();
+    let dotId = 1;
+
+    // Function to check if a pixel is considered "black"
+    const isBlackPixel = (r: number, g: number, b: number) => {
+      return r < threshold && g < threshold && b < threshold;
+    };
+
+    // Flood fill algorithm to find connected black pixels (dots)
+    const floodFill = (startX: number, startY: number) => {
+      const stack = [{x: startX, y: startY}];
+      const pixels: {x: number, y: number}[] = [];
+      
+      while (stack.length > 0) {
+        const {x, y} = stack.pop()!;
+        const key = `${x},${y}`;
+        
+        if (visited.has(key) || x < 0 || x >= canvas.width || y < 0 || y >= canvas.height) {
+          continue;
+        }
+        
+        const index = (y * canvas.width + x) * 4;
+        const r = data[index];
+        const g = data[index + 1];
+        const b = data[index + 2];
+        
+        if (!isBlackPixel(r, g, b)) continue;
+        
+        visited.add(key);
+        pixels.push({x, y});
+        
+        // Add neighboring pixels to stack
+        stack.push({x: x + 1, y});
+        stack.push({x: x - 1, y});
+        stack.push({x, y: y + 1});
+        stack.push({x, y: y - 1});
+      }
+      
+      return pixels;
+    };
+
+    // Scan image for black dots
+    for (let y = 0; y < canvas.height; y += 2) { // Skip every other pixel for performance
+      for (let x = 0; x < canvas.width; x += 2) {
+        const key = `${x},${y}`;
+        if (visited.has(key)) continue;
+        
+        const index = (y * canvas.width + x) * 4;
+        const r = data[index];
+        const g = data[index + 1];
+        const b = data[index + 2];
+        
+        if (isBlackPixel(r, g, b)) {
+          const dotPixels = floodFill(x, y);
+          
+          // Only consider it a dot if it has minimum size
+          if (dotPixels.length >= minDotSize) {
+            // Calculate center of the dot
+            const centerX = dotPixels.reduce((sum, p) => sum + p.x, 0) / dotPixels.length;
+            const centerY = dotPixels.reduce((sum, p) => sum + p.y, 0) / dotPixels.length;
+            
+            // Convert to percentage coordinates
+            const xPct = centerX / canvas.width;
+            const yPct = centerY / canvas.height;
+            
+            detectedDots.push({
+              id: dotId++,
+              xPct,
+              yPct
+            });
+          }
+        }
+      }
+    }
+
+    setDetectedBlackDots(detectedDots);
+    setShowBlackDotPolygons(true);
+    
+    toast({
+      title: "Black Dots Detected",
+      description: `Found ${detectedDots.length} black dots in the image with unique polygon highlights.`
+    });
+
+    console.log('🔍 DETECTED BLACK DOTS:', detectedDots);
   };
 
   // Handle overlay updates on image change and resize - ROBUST TIMING
@@ -1893,6 +2007,68 @@ Patient should be advised of potential side effects and expected timeline for re
                       </svg>
                     )}
                     
+                    {/* BLACK DOT POLYGON OVERLAY - Yellow polygons around detected black dots */}
+                    {showBlackDotPolygons && detectedBlackDots.length > 0 && overlayPosition && imageLoaded && (
+                      <svg
+                        className="absolute pointer-events-none z-40"
+                        style={{
+                          left: overlayPosition.left,
+                          top: overlayPosition.top,
+                          width: overlayPosition.width,
+                          height: overlayPosition.height,
+                        }}
+                        viewBox={`0 0 ${overlayPosition.width} ${overlayPosition.height}`}
+                      >
+                        {detectedBlackDots.map((dot) => {
+                          const centerX = dot.xPct * overlayPosition.width;
+                          const centerY = dot.yPct * overlayPosition.height;
+                          const radius = 15; // Radius for the circular polygon around each dot
+                          
+                          // Create a hexagonal polygon around each black dot
+                          const hexagonPoints = [];
+                          for (let i = 0; i < 6; i++) {
+                            const angle = (i * Math.PI) / 3;
+                            const x = centerX + radius * Math.cos(angle);
+                            const y = centerY + radius * Math.sin(angle);
+                            hexagonPoints.push(`${x},${y}`);
+                          }
+                          
+                          return (
+                            <g key={dot.id}>
+                              {/* Yellow hexagonal polygon highlight */}
+                              <polygon
+                                points={hexagonPoints.join(' ')}
+                                fill="rgba(255, 255, 0, 0.4)"
+                                stroke="rgba(255, 215, 0, 0.9)"
+                                strokeWidth="2"
+                                style={{ animation: 'pulse 2s ease-in-out infinite' }}
+                              />
+                              
+                              {/* Unique number label for each polygon */}
+                              <circle
+                                cx={centerX}
+                                cy={centerY}
+                                r="12"
+                                fill="rgba(255, 255, 0, 0.8)"
+                                stroke="rgba(255, 215, 0, 1)"
+                                strokeWidth="2"
+                              />
+                              <text
+                                x={centerX}
+                                y={centerY + 4}
+                                textAnchor="middle"
+                                fontSize="12"
+                                fontWeight="bold"
+                                fill="black"
+                              >
+                                {dot.id}
+                              </text>
+                            </g>
+                          );
+                        })}
+                      </svg>
+                    )}
+                    
                     {/* CALIBRATION OVERLAY - For precise coordinate mapping */}
                     {calibrationMode && overlayPosition && imageLoaded && (
                       <svg
@@ -1950,6 +2126,28 @@ Patient should be advised of potential side effects and expected timeline for re
                           {calibrationMode ? '✕ Stop Calibration' : '🎯 Start Calibration'}
                         </button>
                         
+                        {/* Black Dot Detection Button */}
+                        <button
+                          onClick={detectBlackDots}
+                          disabled={!imageLoaded || !overlayPosition}
+                          className="px-3 py-2 bg-yellow-500 text-white rounded text-sm hover:bg-yellow-600 disabled:opacity-50 font-medium"
+                          data-testid="button-detect-black-dots"
+                        >
+                          🔍 Detect Black Dots
+                        </button>
+                        
+                        {showBlackDotPolygons && (
+                          <button
+                            onClick={() => {
+                              setShowBlackDotPolygons(false);
+                              setDetectedBlackDots([]);
+                            }}
+                            className="px-3 py-2 bg-orange-500 text-white rounded text-sm hover:bg-orange-600"
+                          >
+                            Clear Dots ({detectedBlackDots.length})
+                          </button>
+                        )}
+                        
                         {calibrationMode && (
                           <>
                             <button
@@ -1975,8 +2173,20 @@ Patient should be advised of potential side effects and expected timeline for re
                           Click on the Temporalis muscle area to trace its outline
                         </div>
                       )}
+                      
+                      {showBlackDotPolygons && (
+                        <div className="text-sm text-green-700 font-medium">
+                          {detectedBlackDots.length} black dots detected with numbered yellow polygons
+                        </div>
+                      )}
                     </div>
                   </div>
+
+                  {/* Hidden Canvas for Image Analysis */}
+                  <canvas
+                    ref={canvasRef}
+                    style={{ display: 'none' }}
+                  />
 
                   {/* Navigation controls */}
                   <div className="flex justify-between items-center mt-6">
