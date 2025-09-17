@@ -2172,133 +2172,132 @@ Report generated from Cura EMR System`;
           </DialogHeader>
           
           {selectedResult && (
-            <div className="prescription-content space-y-6 py-4" id="prescription-print" style={{fontFamily: 'Arial, sans-serif', maxWidth: '800px', margin: '0 auto', backgroundColor: 'white'}}>
-              {/* Header with Blue Background */}
-              <div style={{backgroundColor: '#5B5FBE', color: 'white', padding: '20px', borderRadius: '8px 8px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                <div style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
-                  <div style={{backgroundColor: 'white', padding: '10px', borderRadius: '8px', width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                    <div style={{color: '#5B5FBE', fontWeight: 'bold', fontSize: '12px', textAlign: 'center'}}>
-                      <div>Cura</div>
-                    </div>
-                  </div>
-                  <div>
-                    <h1 style={{fontSize: '24px', fontWeight: 'bold', margin: '0'}}>Cura Medical Practice</h1>
-                    <p style={{fontSize: '14px', margin: '5px 0 0 0', opacity: '0.9'}}>Excellence in Healthcare • Powered by Halo Group</p>
+            <div className="prescription-content space-y-6 py-4" id="prescription-print">
+              {/* Header */}
+              <div className="text-center border-b pb-4">
+                <h1 className="text-2xl font-bold text-medical-blue">CURA EMR SYSTEM</h1>
+                <p className="text-sm text-gray-600">Laboratory Test Prescription</p>
+              </div>
+
+              {/* Doctor and Patient Information */}
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-gray-800 border-b">Physician Information</h3>
+                  <div className="space-y-1 text-sm">
+                    <p><strong>Name:</strong> {selectedResult.doctorName || 'Doctor'}</p>
+                    {selectedResult.mainSpecialty && (
+                      <p><strong>Main Specialization:</strong> {selectedResult.mainSpecialty}</p>
+                    )}
+                    {selectedResult.subSpecialty && (
+                      <p><strong>Sub-Specialization:</strong> {selectedResult.subSpecialty}</p>
+                    )}
+                    {selectedResult.priority && (
+                      <p><strong>Priority:</strong> {selectedResult.priority}</p>
+                    )}
                   </div>
                 </div>
-                <div>
-                  <h2 style={{fontSize: '36px', fontWeight: 'bold', margin: '0'}}>INVOICE</h2>
+
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-gray-800 border-b">Patient Information</h3>
+                  <div className="space-y-1 text-sm">
+                    <p><strong>Name:</strong> {getPatientName(selectedResult.patientId)}</p>
+                    <p><strong>Patient ID:</strong> {selectedResult.patientId}</p>
+                    <p><strong>Date:</strong> {format(new Date(), 'MMM dd, yyyy')}</p>
+                    <p><strong>Time:</strong> {format(new Date(), 'HH:mm')}</p>
+                  </div>
                 </div>
               </div>
 
-              {/* Bill To and Invoice Details */}
-              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', padding: '20px 0'}}>
-                <div>
-                  <h3 style={{fontSize: '16px', fontWeight: 'bold', marginBottom: '15px', color: '#333'}}>BILL TO</h3>
-                  <div style={{fontSize: '14px', lineHeight: '1.6', color: '#333'}}>
-                    <div style={{fontWeight: 'bold'}}>{getPatientName(selectedResult.patientId)}</div>
-                    <div>Patient ID: {selectedResult.patientId}</div>
-                  </div>
-                </div>
+              {/* Prescription Details */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-gray-800 text-lg border-b pb-2">℞ Laboratory Test Prescription</h3>
                 
-                <div>
-                  <h3 style={{fontSize: '16px', fontWeight: 'bold', marginBottom: '15px', color: '#333'}}>INVOICE DETAILS</h3>
-                  <div style={{fontSize: '14px', lineHeight: '1.6', color: '#333'}}>
-                    <div><strong>Invoice Number:</strong> inv_{selectedResult.testId}</div>
-                    <div><strong>Invoice Date:</strong> {format(new Date(), 'dd/MM/yyyy')}</div>
-                    <div><strong>Due Date:</strong> {format(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), 'dd/MM/yyyy')}</div>
-                    <div><strong>Payment Terms:</strong> Net 30</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Payment Information */}
-              <div style={{backgroundColor: '#E8F4FD', border: '1px solid #B3D9F2', borderRadius: '5px', padding: '15px', margin: '20px 0'}}>
-                <h4 style={{fontSize: '14px', fontWeight: 'bold', color: '#1E40AF', margin: '0 0 8px 0'}}>Payment Information</h4>
-                <p style={{fontSize: '12px', margin: '0', color: '#1E40AF'}}>Multiple payment options available: Credit Card, Bank Transfer, PayPal, or Cash</p>
-              </div>
-
-              {/* Service Description Table */}
-              <div style={{margin: '20px 0'}}>
-                <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '14px'}}>
-                  <thead>
-                    <tr style={{backgroundColor: '#5B5FBE', color: 'white'}}>
-                      <th style={{padding: '12px', textAlign: 'left', fontWeight: 'bold'}}>Service Description</th>
-                      <th style={{padding: '12px', textAlign: 'center', fontWeight: 'bold'}}>Quantity</th>
-                      <th style={{padding: '12px', textAlign: 'right', fontWeight: 'bold'}}>Rate</th>
-                      <th style={{padding: '12px', textAlign: 'right', fontWeight: 'bold'}}>Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr style={{borderBottom: '1px solid #E5E7EB'}}>
-                      <td style={{padding: '12px'}}>
-                        <div style={{fontWeight: 'bold'}}>Office Visit - Established Patient (Level 3)</div>
-                        <div style={{fontSize: '12px', color: '#666'}}>Professional medical consultation</div>
-                      </td>
-                      <td style={{padding: '12px', textAlign: 'center'}}>1</td>
-                      <td style={{padding: '12px', textAlign: 'right'}}>£150.00</td>
-                      <td style={{padding: '12px', textAlign: 'right'}}>£150.00</td>
-                    </tr>
-                    <tr style={{borderBottom: '1px solid #E5E7EB'}}>
-                      <td style={{padding: '12px'}}>
-                        <div style={{fontWeight: 'bold'}}>Complete Blood Count</div>
-                        <div style={{fontSize: '12px', color: '#666'}}>Professional medical consultation</div>
-                      </td>
-                      <td style={{padding: '12px', textAlign: 'center'}}>1</td>
-                      <td style={{padding: '12px', textAlign: 'right'}}>£50.00</td>
-                      <td style={{padding: '12px', textAlign: 'right'}}>£50.00</td>
-                    </tr>
-                    <tr style={{borderBottom: '1px solid #E5E7EB'}}>
-                      <td style={{padding: '12px'}}>
-                        <div style={{fontWeight: 'bold'}}>Comprehensive Metabolic Panel</div>
-                        <div style={{fontSize: '12px', color: '#666'}}>Professional medical consultation</div>
-                      </td>
-                      <td style={{padding: '12px', textAlign: 'center'}}>1</td>
-                      <td style={{padding: '12px', textAlign: 'right'}}>£50.00</td>
-                      <td style={{padding: '12px', textAlign: 'right'}}>£50.00</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Totals Section */}
-              <div style={{marginTop: '30px'}}>
-                <div style={{display: 'flex', justifyContent: 'flex-end'}}>
-                  <div style={{width: '300px'}}>
-                    <div style={{display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontSize: '14px'}}>
-                      <span style={{fontWeight: 'bold'}}>Subtotal:</span>
-                      <span>£250.00</span>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Test ID:</p>
+                      <p className="font-mono">{selectedResult.testId}</p>
                     </div>
-                    <div style={{display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontSize: '14px'}}>
-                      <span style={{fontWeight: 'bold'}}>VAT (0%):</span>
-                      <span>£0.00</span>
-                    </div>
-                    <div style={{borderTop: '2px solid #333', marginTop: '10px', paddingTop: '10px'}}>
-                      <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: 'bold'}}>
-                        <span>Total Amount:</span>
-                        <span>£250.00</span>
-                      </div>
-                    </div>
-                    <div style={{color: '#059669', fontSize: '14px', marginTop: '10px'}}>
-                      <div style={{display: 'flex', justifyContent: 'space-between', padding: '5px 0'}}>
-                        <span style={{fontWeight: 'bold'}}>Amount Paid:</span>
-                        <span>-£250.00</span>
-                      </div>
-                    </div>
-                    <div style={{borderTop: '1px solid #333', marginTop: '10px', paddingTop: '10px'}}>
-                      <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: 'bold', color: '#059669'}}>
-                        <span>Balance Due:</span>
-                        <span>£0.00</span>
-                      </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Test Type:</p>
+                      <p className="font-semibold text-blue-800">{selectedResult.testType}</p>
                     </div>
                   </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Ordered Date:</p>
+                      <p>{format(new Date(selectedResult.orderedAt), 'MMM dd, yyyy HH:mm')}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Status:</p>
+                      <Badge className={getStatusColor(selectedResult.status)}>
+                        {selectedResult.status.toUpperCase()}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {selectedResult.results && selectedResult.results.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-sm font-medium text-gray-700 mb-3">Test Results:</p>
+                      <div className="space-y-2">
+                        {selectedResult.results.map((testResult: any, index: number) => (
+                          <div key={index} className="bg-white border rounded p-3">
+                            <div className="flex justify-between items-start mb-2">
+                              <span className="font-medium text-gray-900">{testResult.name}</span>
+                              <Badge className={getResultStatusColor(testResult.status)}>
+                                {testResult.status.replace('_', ' ').toUpperCase()}
+                              </Badge>
+                            </div>
+                            <div className="text-sm text-gray-700">
+                              <p><strong>Value:</strong> {testResult.value} {testResult.unit}</p>
+                              <p><strong>Reference Range:</strong> {testResult.referenceRange}</p>
+                              {testResult.flag && (
+                                <p><strong>Flag:</strong> {testResult.flag}</p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedResult.notes && (
+                    <div className="mt-4 pt-4 border-t">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Clinical Notes:</p>
+                      <p className="text-sm text-gray-800 bg-yellow-50 border-l-4 border-yellow-400 p-3">
+                        {selectedResult.notes}
+                      </p>
+                    </div>
+                  )}
                 </div>
+
+                {selectedResult.criticalValues && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
+                    <div className="flex items-center gap-2 text-red-800">
+                      <AlertTriangle className="h-5 w-5" />
+                      <span className="font-semibold">CRITICAL VALUES DETECTED</span>
+                    </div>
+                    <p className="text-sm text-red-700 mt-2">
+                      This lab result contains critical values that require immediate attention.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Footer */}
-              <div style={{marginTop: '40px', textAlign: 'center', fontSize: '12px', color: '#666'}}>
-                <p style={{margin: '10px 0'}}>Thank you for choosing Cura Medical Practice for your healthcare needs.</p>
-                <p style={{margin: '5px 0'}}>© 2025 Cura Medical Practice. Powered by Halo Group & Averon Technologies.</p>
+              <div className="border-t pt-4 mt-6">
+                <div className="flex justify-between items-center text-xs text-gray-500">
+                  <p>Generated by Cura EMR System</p>
+                  <p>Date: {format(new Date(), 'MMM dd, yyyy HH:mm')}</p>
+                </div>
+                <div className="mt-4 text-center">
+                  <div className="border-t border-gray-300 w-64 mx-auto mb-2"></div>
+                  <p className="text-sm font-medium">{selectedResult.doctorName || 'Doctor'}</p>
+                  {selectedResult.mainSpecialty && (
+                    <p className="text-xs text-gray-600">{selectedResult.mainSpecialty}</p>
+                  )}
+                </div>
               </div>
             </div>
           )}
