@@ -661,34 +661,36 @@ Report generated from Cura EMR System`;
             
             /* Header Styles */
             .header {
+              text-align: center;
               margin-bottom: 30px;
               border-bottom: 2px solid #333;
               padding-bottom: 20px;
               display: flex;
-              justify-content: space-between;
+              flex-direction: column;
               align-items: center;
-            }
-            .header-left {
-              display: flex;
-              align-items: center;
-              gap: 20px;
             }
             .header-logo {
               width: 60px;
               height: 60px;
-            }
-            .header-right {
-              background: #d3d3d3;
-              padding: 10px 15px;
-              border-radius: 5px;
-              font-size: 16px;
-              color: #333;
+              background: #4A90E2;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: white;
+              font-weight: bold;
+              font-size: 24px;
+              margin-bottom: 15px;
             }
             .header h1 {
               font-size: 24px;
               font-weight: bold;
+              margin-bottom: 5px;
               color: #333;
-              margin: 0;
+            }
+            .header p {
+              font-size: 16px;
+              color: #666;
             }
 
             /* Information Sections */
@@ -800,13 +802,9 @@ Report generated from Cura EMR System`;
           <div class="prescription-content">
             <!-- Header -->
             <div class="header">
-              <div class="header-left">
-                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADwAAAA8CAYAAAA6/NlyAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAANuSURBVHgB7VpdSFtBFJ43LWpr2zRt2icPQSlCH3xooSAIKggVH6QI9qH0SQvSPkhf+kAL9S1PJRS1D7aPfbCtFKsPBetDKYWCf1BsBaXa1tqYNm5i0vRn5s5mdid7k5tk4+7MDxcmd+Yc755vzp07M2cJkBMjkshf6LowQFaGh/L/CrOZvn0cJRKJXnNbgD5cE3aLVT4RBGFDL6YeZNnQnCOKlGT54Jy4p1gHdANaVzAiYd/FJwSCr8iOwAJY4z1gHbAGWAOsAdYAa4A1wBpgDbAGWAOsAdYAa4A1wBpgDbAGWAOsAdYAa4A1wBpgDbAGWAOsAfa7gH8XBgcHfVarlafWcTgcXnUJ6HTan7W1tX9isdiH4+PjHwRBOKguyUzFhYOGF1lXV+dhGKbL6/V6nU5nj9/v7w6HwzH1OELFxgA4Fg0MfnF1e3l5eUdPT08PoMjOzs4L/hCwQVvJG5/P10IpFmvnbGyc5IZvjdzKNzfmf+Lq1mKx+FlZWfmjhkHKhJh3+hXo7+83AtQvBLsLWOzs7DwJSYGGrAbR2tpa1dDQEFSPJVBYWOiOx+O/VQG7dH5+4d7t271tX7++HnHPmgB2sCw7KUmBy2azQW1trTFXoIKiWFCkwqTa2FgP2+29tfXjhzWm7VQ8HnsJzH+YYNljfX29rKys7Gk2AREKhf7xIGnb5eXlm6urq8vLy8s/xWaFVKKwsND1798/yzfvxo1fB4xGYzwXIFFfx8bGvgSj1kTDpKi6vLzc09Qyy+rqamdOoWpqajC4qDfZtGkHCgs6jTXd2SWPJFP23r3Jt69e3X3O8/xHVaHTQTGdOXPmOdGHKBSJxL4aXqOsrOyDhcBOTk7uy7D8QOL5vovUlM9p59N6O3f+AsP17PX29vYrYQcAKzCh5LSOV1dXVzqD0fIvNTU1Nw3bRESzBXmVSNiUgRJGlk4G9pFqmJTatONjY2NmqKR37959rUqBz+eLp2D58JZxJgNuCaXCjzCdST2Dfe4Z4KNVJ/TwQRINs4ZzDaTIJC6JMJmYC8NKgqQy5RsXCQrj6MZsUbCfCKRW+ATGcykDPQJqSQkbNlZPHJsafVXGYW8HWKHo/vQ9iMV+g/wfZdtPyJy+mTsG6/pZ9u9XcfUv4RKz8UZ2VmgAAAAASUVORK5CYII=" class="header-logo" alt="Cura Logo">
-                <h1>CURA EMR SYSTEM</h1>
-              </div>
-              <div class="header-right">
-                Laboratory Test Prescription
-              </div>
+              <div class="header-logo">C</div>
+              <h1>CURA EMR SYSTEM</h1>
+              <p>Laboratory Test Prescription</p>
             </div>
 
             <!-- Physician Information -->
