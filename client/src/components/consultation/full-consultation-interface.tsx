@@ -838,7 +838,7 @@ ${
     
     toast({
       title: "Black Dots Detected",
-      description: `Found ${detectedDots.length} black dots in the image with unique polygon highlights.`
+      description: `Found ${detectedDots.length} black dots in the image with unique circle highlights.`
     });
 
     console.log('🔍 DETECTED BLACK DOTS:', detectedDots);
@@ -2031,7 +2031,7 @@ Patient should be advised of potential side effects and expected timeline for re
                     />
                     
                     
-                    {/* BLACK DOT POLYGON OVERLAY - Yellow polygons around detected black dots */}
+                    {/* BLACK DOT CIRCLE OVERLAY - Yellow circles around detected black dots */}
                     {showBlackDotPolygons && detectedBlackDots.length > 0 && overlayPosition && imageLoaded && (
                       <svg
                         className="absolute pointer-events-none z-40"
@@ -2046,29 +2046,22 @@ Patient should be advised of potential side effects and expected timeline for re
                         {detectedBlackDots.map((dot) => {
                           const centerX = dot.xPct * overlayPosition.width;
                           const centerY = dot.yPct * overlayPosition.height;
-                          const radius = 15; // Radius for the circular polygon around each dot
-                          
-                          // Create a hexagonal polygon around each black dot
-                          const hexagonPoints = [];
-                          for (let i = 0; i < 6; i++) {
-                            const angle = (i * Math.PI) / 3;
-                            const x = centerX + radius * Math.cos(angle);
-                            const y = centerY + radius * Math.sin(angle);
-                            hexagonPoints.push(`${x},${y}`);
-                          }
+                          const radius = 15; // Radius for the circle around each dot
                           
                           return (
                             <g key={dot.id}>
-                              {/* Yellow hexagonal polygon highlight */}
-                              <polygon
-                                points={hexagonPoints.join(' ')}
+                              {/* Yellow circle highlight */}
+                              <circle
+                                cx={centerX}
+                                cy={centerY}
+                                r={radius}
                                 fill="rgba(255, 255, 0, 0.4)"
                                 stroke="rgba(255, 215, 0, 0.9)"
                                 strokeWidth="2"
                                 style={{ animation: 'pulse 2s ease-in-out infinite' }}
                               />
                               
-                              {/* Unique number label for each polygon */}
+                              {/* Unique number label for each circle */}
                               <circle
                                 cx={centerX}
                                 cy={centerY}
@@ -2162,7 +2155,7 @@ Patient should be advised of potential side effects and expected timeline for re
                       </svg>
                     )}
                     
-                    {/* DATABASE HIGHLIGHTED MUSCLE POSITIONS - Yellow polygons from dropdown selection */}
+                    {/* DATABASE HIGHLIGHTED MUSCLE POSITIONS - Yellow circles from dropdown selection */}
                     {highlightedMuscleFromDB.length > 0 && overlayPosition && imageLoaded && (
                       <svg
                         className="absolute pointer-events-none z-35"
@@ -2192,20 +2185,13 @@ Patient should be advised of potential side effects and expected timeline for re
                           const centerY = coordinates.yPct * overlayPosition.height;
                           const radius = 20; // Larger radius for database highlights
                           
-                          // Create a hexagonal polygon around each database position
-                          const hexagonPoints = [];
-                          for (let i = 0; i < 6; i++) {
-                            const angle = (i * Math.PI) / 3;
-                            const x = centerX + radius * Math.cos(angle);
-                            const y = centerY + radius * Math.sin(angle);
-                            hexagonPoints.push(`${x},${y}`);
-                          }
-                          
                           return (
                             <g key={`db-${position.id}`}>
-                              {/* Yellow hexagonal polygon highlight */}
-                              <polygon
-                                points={hexagonPoints.join(' ')}
+                              {/* Yellow circle highlight */}
+                              <circle
+                                cx={centerX}
+                                cy={centerY}
+                                r={radius}
                                 fill="rgba(255, 255, 0, 0.6)"
                                 stroke="rgba(255, 215, 0, 1)"
                                 strokeWidth="3"
@@ -2275,16 +2261,21 @@ Patient should be advised of potential side effects and expected timeline for re
                           />
                         ))}
                         
-                        {/* Calibration Polygon Preview */}
-                        {calibrationPoints.length > 2 && (
-                          <polygon
-                            points={calibrationPoints.map(p => 
-                              `${p.xPct * overlayPosition.width},${p.yPct * overlayPosition.height}`
-                            ).join(' ')}
-                            fill="rgba(255, 0, 0, 0.2)"
-                            stroke="red"
-                            strokeWidth="2"
-                          />
+                        {/* Calibration Circle Preview */}
+                        {calibrationPoints.length > 0 && (
+                          <>
+                            {calibrationPoints.map((point, index) => (
+                              <circle
+                                key={index}
+                                cx={point.xPct * overlayPosition.width}
+                                cy={point.yPct * overlayPosition.height}
+                                r="8"
+                                fill="rgba(255, 0, 0, 0.2)"
+                                stroke="red"
+                                strokeWidth="2"
+                              />
+                            ))}
+                          </>
                         )}
                       </svg>
                     )}
@@ -2358,7 +2349,7 @@ Patient should be advised of potential side effects and expected timeline for re
                       
                       {showBlackDotPolygons && (
                         <div className="text-sm text-green-700 font-medium">
-                          {detectedBlackDots.length} black dots detected with numbered yellow polygons
+                          {detectedBlackDots.length} black dots detected with numbered yellow circles
                         </div>
                       )}
                       
