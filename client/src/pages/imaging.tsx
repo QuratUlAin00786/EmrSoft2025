@@ -1033,14 +1033,47 @@ export default function ImagingPage() {
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            onClick={() => {
-                              const reportUrl = `/api/imaging/reports/${study.reportFileName.replace('.pdf', '')}?download=true`;
-                              const a = document.createElement('a');
-                              a.href = reportUrl;
-                              a.download = study.reportFileName;
-                              document.body.appendChild(a);
-                              a.click();
-                              document.body.removeChild(a);
+                            onClick={async () => {
+                              try {
+                                const token = localStorage.getItem('auth_token');
+                                const headers: Record<string, string> = {
+                                  'X-Tenant-Subdomain': 'demo'
+                                };
+                                
+                                if (token) {
+                                  headers['Authorization'] = `Bearer ${token}`;
+                                }
+                                
+                                const response = await fetch(`/api/imaging/reports/${study.reportFileName.replace('.pdf', '')}?download=true`, {
+                                  headers,
+                                  credentials: 'include'
+                                });
+                                
+                                if (response.ok) {
+                                  const blob = await response.blob();
+                                  const url = URL.createObjectURL(blob);
+                                  const a = document.createElement('a');
+                                  a.href = url;
+                                  a.download = study.reportFileName;
+                                  document.body.appendChild(a);
+                                  a.click();
+                                  document.body.removeChild(a);
+                                  URL.revokeObjectURL(url);
+                                  
+                                  toast({
+                                    title: "PDF Report Downloaded",
+                                    description: "Radiology report PDF has been downloaded successfully",
+                                  });
+                                } else {
+                                  throw new Error('Download failed');
+                                }
+                              } catch (error) {
+                                toast({
+                                  title: "Download Failed",
+                                  description: "Failed to download PDF report. Please try again.",
+                                  variant: "destructive",
+                                });
+                              }
                             }}
                             title="Download PDF Report"
                             data-testid="button-download-pdf-report"
