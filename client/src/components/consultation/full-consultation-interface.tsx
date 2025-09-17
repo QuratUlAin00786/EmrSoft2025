@@ -645,6 +645,58 @@ ${
     scaleY: number;
   } | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
+
+  // DYNAMIC MUSCLE HIGHLIGHTING FUNCTION
+  // Function to programmatically highlight a muscle by name
+  const highlightMuscleByName = (muscleName: string) => {
+    // Normalize the muscle name to match our naming convention
+    const normalizedMuscleName = muscleName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_');
+    
+    // Get available muscle regions
+    const availableMuscles = Object.keys(muscleRegionsByImageIndex[0] || {});
+    
+    // Find matching muscle (exact match first, then partial match)
+    let matchedMuscle = availableMuscles.find(muscle => muscle === normalizedMuscleName);
+    if (!matchedMuscle) {
+      matchedMuscle = availableMuscles.find(muscle => 
+        muscle.includes(normalizedMuscleName) || normalizedMuscleName.includes(muscle)
+      );
+    }
+    
+    if (matchedMuscle) {
+      // Set the selected muscle group (this will trigger the highlighting)
+      setSelectedMuscleGroup(matchedMuscle);
+      
+      // Open the anatomical modal if it's not already open
+      if (!showAnatomicalModal) {
+        setShowAnatomicalModal(true);
+        setAnatomicalStep(1); // Go to the analysis step where highlighting is shown
+      }
+      
+      // Ensure we're on the correct image index (muscle diagram)
+      setCurrentImageIndex(0);
+      
+      // Show success toast
+      toast({
+        title: "Muscle Highlighted",
+        description: `Successfully highlighted the ${matchedMuscle.replace(/_/g, ' ')} muscle.`,
+      });
+      
+      console.log(`✅ Muscle highlighted: ${matchedMuscle} (from input: ${muscleName})`);
+      return true;
+    } else {
+      // Show error toast if muscle not found
+      toast({
+        title: "Muscle Not Found",
+        description: `Could not find muscle "${muscleName}". Available muscles: ${availableMuscles.map(m => m.replace(/_/g, ' ')).join(', ')}`,
+        variant: "destructive",
+      });
+      
+      console.warn(`❌ Muscle not found: ${normalizedMuscleName} (from input: ${muscleName})`);
+      console.log(`Available muscles: ${availableMuscles.join(', ')}`);
+      return false;
+    }
+  };
   
   // CALIBRATION MODE - For precise coordinate mapping
   const [calibrationMode, setCalibrationMode] = useState(false);
@@ -1930,6 +1982,32 @@ Patient should be advised of potential side effects and expected timeline for re
                         )}
                       </svg>
                     )}
+                  </div>
+
+                  {/* Dynamic Muscle Highlighting Controls */}
+                  <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <div className="mb-3">
+                      <h4 className="font-semibold text-yellow-800 mb-2">🎯 Dynamic Muscle Highlighting</h4>
+                      <p className="text-sm text-yellow-700 mb-3">Click any muscle name to automatically highlight it on the anatomy image:</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {Object.keys(muscleRegionsByImageIndex[0] || {}).map((muscle) => (
+                        <button
+                          key={muscle}
+                          onClick={() => highlightMuscleByName(muscle)}
+                          className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                            selectedMuscleGroup === muscle
+                              ? 'bg-yellow-500 text-white shadow-md'
+                              : 'bg-white text-yellow-800 border border-yellow-300 hover:bg-yellow-100'
+                          }`}
+                        >
+                          {muscle.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="mt-3 text-xs text-yellow-600">
+                      💡 You can also call <code className="bg-yellow-200 px-1 rounded">highlightMuscleByName("Temporalis")</code> programmatically
+                    </div>
                   </div>
 
                   {/* Calibration Controls - Development Tool */}
