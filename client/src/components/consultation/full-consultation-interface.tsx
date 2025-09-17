@@ -995,16 +995,18 @@ ${
       console.log('📊 QUERIED ALL MUSCLE POSITIONS:', data);
 
       // Filter positions that match the selected muscle group value field
-      const matchingPositions = data.musclePositions?.filter((position: any) => {
+      const matchingPositions = data.positions?.filter((position: any) => {
         const normalizedSelectedMuscle = selectedMuscleGroup.toLowerCase().replace(/_/g, ' ');
-        const normalizedPositionValue = position.value?.toLowerCase();
+        const normalizedPositionValue = position.value?.toLowerCase().replace(/[()]/g, ''); // Remove parentheses
         
         console.log('🔍 COMPARING:', {
           selectedMuscle: normalizedSelectedMuscle,
           positionValue: normalizedPositionValue,
+          originalValue: position.value,
           match: normalizedPositionValue?.includes(normalizedSelectedMuscle) || normalizedSelectedMuscle.includes(normalizedPositionValue)
         });
 
+        // Handle exact matches and partial matches for muscle names
         return normalizedPositionValue?.includes(normalizedSelectedMuscle) || 
                normalizedSelectedMuscle.includes(normalizedPositionValue);
       }) || [];
