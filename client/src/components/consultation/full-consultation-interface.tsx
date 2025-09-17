@@ -891,7 +891,8 @@ ${
 
   // SAVE MUSCLE POSITIONS TO DATABASE
   const saveMusclePositions = async () => {
-    if (!currentPatient || detectedBlackDots.length === 0) {
+    const currentPatientId = patientId || patient?.id;
+    if (!currentPatientId || detectedBlackDots.length === 0) {
       toast({
         title: "Cannot Save",
         description: "No patient selected or no black dots detected to save.",
@@ -907,7 +908,7 @@ ${
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          patientId: currentPatient.id,
+          patientId: currentPatientId,
           detectedDots: detectedBlackDots
         })
       });
@@ -938,10 +939,11 @@ ${
 
   // LOAD SAVED MUSCLE POSITIONS FROM DATABASE
   const loadSavedMusclePositions = async () => {
-    if (!currentPatient) return;
+    const currentPatientId = patientId || patient?.id;
+    if (!currentPatientId) return;
 
     try {
-      const response = await fetch(`/api/muscle-positions/${currentPatient.id}`);
+      const response = await fetch(`/api/muscle-positions/${currentPatientId}`);
       
       if (!response.ok) {
         throw new Error('Failed to load muscle positions');
@@ -2297,7 +2299,7 @@ Patient should be advised of potential side effects and expected timeline for re
                           <>
                             <button
                               onClick={saveMusclePositions}
-                              disabled={!currentPatient || detectedBlackDots.length === 0}
+                              disabled={!(patientId || patient?.id) || detectedBlackDots.length === 0}
                               className="px-3 py-2 bg-green-500 text-white rounded text-sm hover:bg-green-600 disabled:opacity-50 font-medium"
                               data-testid="button-save-muscle-positions"
                             >
@@ -2319,7 +2321,7 @@ Patient should be advised of potential side effects and expected timeline for re
                         {/* Load Saved Positions Button */}
                         <button
                           onClick={loadSavedMusclePositions}
-                          disabled={!currentPatient}
+                          disabled={!(patientId || patient?.id)}
                           className="px-3 py-2 bg-purple-500 text-white rounded text-sm hover:bg-purple-600 disabled:opacity-50 font-medium"
                           data-testid="button-load-saved-positions"
                         >
