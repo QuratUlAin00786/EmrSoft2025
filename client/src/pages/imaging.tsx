@@ -1011,7 +1011,7 @@ export default function ImagingPage() {
                     
                     <div className="flex items-center gap-2 ml-4">
                       <Button variant="outline" size="sm" onClick={() => handleViewStudy(study)}>
-                        <Eye className="h-4 w-4" />
+                        <Edit2 className="h-4 w-4" />
                       </Button>
                       
                       {/* PDF Report Download and View Icons */}
@@ -1028,7 +1028,7 @@ export default function ImagingPage() {
                             data-testid="button-view-pdf-report"
                             className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
                           >
-                            <FileText className="h-4 w-4" />
+                            <Eye className="h-4 w-4" />
                           </Button>
                           <Button 
                             variant="outline" 
