@@ -9164,7 +9164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Delete the file from the filesystem
-      await fs.unlink(filePath);
+      await fs.remove(filePath);
 
       // Clear the reportFileName from the database
       // Find the study by reportFileName and clear it
