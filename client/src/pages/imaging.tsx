@@ -904,7 +904,7 @@ export default function ImagingPage() {
                 </Select>
 
                 <Button variant="outline" onClick={() => setShowUploadDialog(true)}>
-                  <FileImage className="h-4 w-4 mr-2" />
+                  <Share className="h-4 w-4 mr-2" />
                   Order Study
                 </Button>
               </div>
@@ -1058,7 +1058,7 @@ export default function ImagingPage() {
                             }}
                             title="View PDF Report"
                             data-testid="button-view-pdf-report"
-                            className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
+                            className="border-gray-200 text-black hover:bg-gray-50 hover:border-gray-300"
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
@@ -1109,7 +1109,7 @@ export default function ImagingPage() {
                             }}
                             title="Download PDF Report"
                             data-testid="button-download-pdf-report"
-                            className="border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300"
+                            className="border-gray-200 text-black hover:bg-gray-50 hover:border-gray-300"
                           >
                             <Download className="h-4 w-4" />
                           </Button>
