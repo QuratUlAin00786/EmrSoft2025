@@ -21,12 +21,62 @@ export default function Login() {
     setIsLoading(true);
 
     try {
+      console.log("🔐 Login attempt starting...");
+      console.log("📧 Email/Username:", email);
+      console.log("🌐 Current hostname:", window.location.hostname);
+      console.log("🏢 Detected tenant:", getTenantSubdomain());
+      
       await login(email, password);
+      console.log("✅ Login successful");
     } catch (err: any) {
-      setError(err.message || "Login failed. Please check your credentials.");
+      console.error("❌ Login failed:", err);
+      console.error("📋 Full error details:", {
+        message: err.message,
+        stack: err.stack,
+        name: err.name,
+        cause: err.cause
+      });
+      
+      // Provide more specific error messages
+      let errorMessage = "Login failed. Please check your credentials.";
+      
+      if (err.message) {
+        if (err.message.includes("401")) {
+          errorMessage = "Invalid email/username or password. Please check your credentials.";
+        } else if (err.message.includes("500")) {
+          errorMessage = "Server error. Please try again in a moment.";
+        } else if (err.message.includes("404")) {
+          errorMessage = "Login service not found. Please contact support.";
+        } else if (err.message.includes("Network")) {
+          errorMessage = "Network error. Please check your internet connection and try again.";
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Helper function to get tenant subdomain (same as in other files)
+  const getTenantSubdomain = (): string => {
+    const hostname = window.location.hostname;
+    
+    // For development/replit environments, use 'demo'
+    if (hostname.includes('.replit.app') || hostname.includes('localhost') || hostname.includes('replit.dev') || hostname.includes('127.0.0.1')) {
+      return 'demo';
+    }
+    
+    // For production environments, extract subdomain from hostname
+    const parts = hostname.split('.');
+    if (parts.length >= 2) {
+      return parts[0] || 'demo';
+    }
+    
+    // Fallback to 'demo'
+    return 'demo';
   };
 
 
