@@ -8487,11 +8487,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             color: #000;
         }
         .header { 
-            background-color: #f5f5f5; 
             padding: 8px; 
             text-align: center; 
             margin-bottom: 15px;
-            border-bottom: 2px solid #1e3a8a;
         }
         .header h1 { 
             font-size: 16pt; 
@@ -8505,8 +8503,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             margin: 3px 0;
         }
         .info-section { 
-            background-color: #f8fafc; 
-            border: 1px solid #e2e8f0; 
             padding: 8px; 
             margin-bottom: 12px;
         }
@@ -8535,8 +8531,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             margin-bottom: 8px;
         }
         .image-placeholder {
-            border: 2px solid #1e3a8a;
-            background-color: #f8fafc;
             width: 100px;
             height: 70px;
             margin: 10px auto;
@@ -8551,8 +8545,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             font-weight: bold;
         }
         .footer { 
-            background-color: #1e3a8a; 
-            color: white; 
+            color: #1e3a8a; 
             padding: 6px 10px; 
             font-size: 7pt; 
             margin-top: 20px;
@@ -8560,7 +8553,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             justify-content: space-between;
         }
         .signature-section {
-            border-top: 1px solid #ccc;
             margin-top: 15px;
             padding-top: 8px;
         }
@@ -8634,7 +8626,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         <span>Tel: +44-123-456-7890 | Email: radiology@curamedical.com</span>
     </div>
     
-    <div style="text-align: center; font-size: 6pt; color: white; background-color: #1e3a8a; padding: 3px; margin-top: -10px;">
+    <div style="text-align: center; font-size: 6pt; color: #1e3a8a; padding: 3px; margin-top: -10px;">
         CONFIDENTIAL MEDICAL REPORT - For authorized personnel only
     </div>
 </body>
