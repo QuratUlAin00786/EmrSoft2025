@@ -628,6 +628,7 @@ ${
   const [primarySymptoms, setPrimarySymptoms] = useState<string>("");
   const [severityScale, setSeverityScale] = useState<string>("");
   const [followUpPlan, setFollowUpPlan] = useState<string>("");
+  const [highlightedMuscleFromDB, setHighlightedMuscleFromDB] = useState<any[]>([]);
   const [generatedTreatmentPlan, setGeneratedTreatmentPlan] = useState<string>("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [anatomicalStep, setAnatomicalStep] = useState(1); // 1: Analysis, 2: Configuration, 3: Assessment
@@ -1009,7 +1010,7 @@ ${
     };
   }, [currentImageIndex, anatomicalStep, open]);
 
-  // Show confirmation toast when muscle is selected
+  // Show confirmation toast when muscle is selected AND query database for muscle positions
   useEffect(() => {
     if (selectedMuscleGroup) {
       const muscleName = selectedMuscleGroup.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -1018,8 +1019,67 @@ ${
         description: `${muscleName} highlighted on anatomical diagram`,
         duration: 3000,
       });
+
+      // Query database for saved muscle positions matching this muscle group
+      queryMusclePositionsFromDB();
     }
   }, [selectedMuscleGroup, toast]);
+
+  // Query database for muscle positions based on selected muscle group
+  const queryMusclePositionsFromDB = async () => {
+    const currentPatientId = patientId || patient?.id;
+    if (!currentPatientId || !selectedMuscleGroup) return;
+
+    try {
+      const response = await fetch(`/api/muscle-positions/${currentPatientId}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to load muscle positions');
+      }
+
+      const data = await response.json();
+      console.log('📊 QUERIED ALL MUSCLE POSITIONS:', data);
+
+      // Filter positions that match the selected muscle group value field
+      const matchingPositions = data.musclePositions?.filter((position: any) => {
+        const normalizedSelectedMuscle = selectedMuscleGroup.toLowerCase().replace(/_/g, ' ');
+        const normalizedPositionValue = position.value?.toLowerCase();
+        
+        console.log('🔍 COMPARING:', {
+          selectedMuscle: normalizedSelectedMuscle,
+          positionValue: normalizedPositionValue,
+          match: normalizedPositionValue?.includes(normalizedSelectedMuscle) || normalizedSelectedMuscle.includes(normalizedPositionValue)
+        });
+
+        return normalizedPositionValue?.includes(normalizedSelectedMuscle) || 
+               normalizedSelectedMuscle.includes(normalizedPositionValue);
+      }) || [];
+
+      console.log('🎯 MATCHING POSITIONS FOUND:', matchingPositions);
+      setHighlightedMuscleFromDB(matchingPositions);
+
+      if (matchingPositions.length > 0) {
+        toast({
+          title: "🔍 Database Positions Found",
+          description: `Found ${matchingPositions.length} saved position(s) for ${selectedMuscleGroup.replace(/_/g, ' ')}`,
+          duration: 4000,
+        });
+      } else {
+        toast({
+          title: "📍 No Saved Positions",
+          description: `No saved positions found for ${selectedMuscleGroup.replace(/_/g, ' ')} in database`,
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error('❌ Error querying muscle positions:', error);
+      toast({
+        title: "Database Query Failed",
+        description: "Failed to query muscle positions from database",
+        variant: "destructive"
+      });
+    }
+  };
 
   const [isSavingAnalysis, setIsSavingAnalysis] = useState(false);
 
@@ -2228,6 +2288,95 @@ Patient should be advised of potential side effects and expected timeline for re
                       </svg>
                     )}
                     
+                    {/* DATABASE HIGHLIGHTED MUSCLE POSITIONS - Yellow polygons from dropdown selection */}
+                    {highlightedMuscleFromDB.length > 0 && overlayPosition && imageLoaded && (
+                      <svg
+                        className="absolute pointer-events-none z-35"
+                        style={{
+                          left: overlayPosition.left,
+                          top: overlayPosition.top,
+                          width: overlayPosition.width,
+                          height: overlayPosition.height,
+                        }}
+                        viewBox={`0 0 ${overlayPosition.width} ${overlayPosition.height}`}
+                      >
+                        {highlightedMuscleFromDB.map((position) => {
+                          // Parse coordinates from JSON string
+                          let coordinates;
+                          try {
+                            coordinates = typeof position.coordinates === 'string' 
+                              ? JSON.parse(position.coordinates) 
+                              : position.coordinates;
+                          } catch (e) {
+                            console.error('Error parsing coordinates:', e);
+                            return null;
+                          }
+
+                          if (!coordinates || !coordinates.xPct || !coordinates.yPct) return null;
+
+                          const centerX = coordinates.xPct * overlayPosition.width;
+                          const centerY = coordinates.yPct * overlayPosition.height;
+                          const radius = 20; // Larger radius for database highlights
+                          
+                          // Create a hexagonal polygon around each database position
+                          const hexagonPoints = [];
+                          for (let i = 0; i < 6; i++) {
+                            const angle = (i * Math.PI) / 3;
+                            const x = centerX + radius * Math.cos(angle);
+                            const y = centerY + radius * Math.sin(angle);
+                            hexagonPoints.push(`${x},${y}`);
+                          }
+                          
+                          return (
+                            <g key={`db-${position.id}`}>
+                              {/* Yellow hexagonal polygon highlight */}
+                              <polygon
+                                points={hexagonPoints.join(' ')}
+                                fill="rgba(255, 255, 0, 0.6)"
+                                stroke="rgba(255, 215, 0, 1)"
+                                strokeWidth="3"
+                                style={{ animation: 'pulse 2s ease-in-out infinite' }}
+                              />
+                              
+                              {/* Position label with muscle name */}
+                              <circle
+                                cx={centerX}
+                                cy={centerY}
+                                r="15"
+                                fill="rgba(255, 255, 0, 0.9)"
+                                stroke="rgba(255, 215, 0, 1)"
+                                strokeWidth="2"
+                              />
+                              <text
+                                x={centerX}
+                                y={centerY + 4}
+                                textAnchor="middle"
+                                fontSize="12"
+                                fontWeight="bold"
+                                fill="black"
+                              >
+                                {position.position}
+                              </text>
+                              
+                              {/* Muscle name tooltip */}
+                              <text
+                                x={centerX}
+                                y={centerY - 30}
+                                textAnchor="middle"
+                                fontSize="12"
+                                fontWeight="bold"
+                                fill="rgba(255, 215, 0, 1)"
+                                className="pointer-events-none select-none"
+                                style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}
+                              >
+                                {position.value}
+                              </text>
+                            </g>
+                          );
+                        })}
+                      </svg>
+                    )}
+                    
                     {/* CALIBRATION OVERLAY - For precise coordinate mapping */}
                     {calibrationMode && overlayPosition && imageLoaded && (
                       <svg
@@ -2375,6 +2524,12 @@ Patient should be advised of potential side effects and expected timeline for re
                       {showSavedPositions && (
                         <div className="text-sm text-blue-700 font-medium">
                           {savedMusclePositions.length} saved muscle positions displayed with blue squares
+                        </div>
+                      )}
+                      
+                      {highlightedMuscleFromDB.length > 0 && (
+                        <div className="text-sm text-yellow-700 font-medium">
+                          🎯 {highlightedMuscleFromDB.length} database position(s) highlighted for {selectedMuscleGroup.replace(/_/g, ' ')}
                         </div>
                       )}
                     </div>
