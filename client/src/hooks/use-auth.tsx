@@ -2,6 +2,25 @@ import { createContext, useContext, useEffect, useState } from "react";
 import type { AuthUser } from "@/types";
 import { apiRequest } from "@/lib/queryClient";
 
+// Helper function to get the correct tenant subdomain
+function getTenantSubdomain(): string {
+  const hostname = window.location.hostname;
+  
+  // For development/replit environments, use 'demo'
+  if (hostname.includes('.replit.app') || hostname.includes('localhost') || hostname.includes('replit.dev') || hostname.includes('127.0.0.1')) {
+    return 'demo';
+  }
+  
+  // For production environments, extract subdomain from hostname
+  const parts = hostname.split('.');
+  if (parts.length >= 2) {
+    return parts[0] || 'demo';
+  }
+  
+  // Fallback to 'demo'
+  return 'demo';
+}
+
 interface AuthContextType {
   user: AuthUser | null;
   login: (email: string, password: string) => Promise<void>;
@@ -30,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await fetch('/api/auth/validate', {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo' // In production, extract from hostname
+          'X-Tenant-Subdomain': getTenantSubdomain()
         }
       });
 

@@ -7,6 +7,25 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// Helper function to get the correct tenant subdomain
+function getTenantSubdomain(): string {
+  const hostname = window.location.hostname;
+  
+  // For development/replit environments, use 'demo'
+  if (hostname.includes('.replit.app') || hostname.includes('localhost') || hostname.includes('replit.dev') || hostname.includes('127.0.0.1')) {
+    return 'demo';
+  }
+  
+  // For production environments, extract subdomain from hostname
+  const parts = hostname.split('.');
+  if (parts.length >= 2) {
+    return parts[0] || 'demo';
+  }
+  
+  // Fallback to 'demo'
+  return 'demo';
+}
+
 export async function apiRequest(
   method: string,
   url: string,
@@ -14,7 +33,7 @@ export async function apiRequest(
 ): Promise<Response> {
   const token = localStorage.getItem('auth_token');
   const headers: Record<string, string> = {
-    'X-Tenant-Subdomain': 'demo'
+    'X-Tenant-Subdomain': getTenantSubdomain()
   };
   
   if (data) {
@@ -44,7 +63,7 @@ export const getQueryFn: <T>(options: {
   async ({ queryKey }) => {
     const token = localStorage.getItem('auth_token');
     const headers: Record<string, string> = {
-      'X-Tenant-Subdomain': 'demo'
+      'X-Tenant-Subdomain': getTenantSubdomain()
     };
 
     if (token) {
