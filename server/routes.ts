@@ -8929,8 +8929,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Digital signature placeholder removed
       
+      // Ensure proper spacing between radiologist report and medical image sections
+      yPosition -= 80; // Increased spacing to prevent overlap
+      
       // Medical Image Section (moved after radiologist report)
-      yPosition -= 20;
       let imageHeight = 0;
       if (study.images && study.images[0] && study.images[0].imageData) {
         try {
