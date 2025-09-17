@@ -9166,17 +9166,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Delete the file from the filesystem
       await fs.remove(filePath);
 
-      // Clear the reportFileName from the database
-      // Find the study by reportFileName and clear it
-      const studies = await storage.getMedicalImageStudies(req.user.id, req.tenant!.id);
-      const studyToUpdate = studies.find(study => study.reportFileName === filename);
+      // Clear the reportFileName and reportFilePath from the database
+      // Extract study ID from reportId (format: PatientID_StudyID_Timestamp)
+      let studyId: number | null = null;
+      if (isNewFormat) {
+        const parts = reportId.split('_');
+        studyId = parseInt(parts[1]); // StudyID is the second part
+      }
       
-      if (studyToUpdate) {
-        await storage.updateMedicalImageReportField(
-          studyToUpdate.id,
+      if (studyId) {
+        // Update the database to clear both report fields
+        await storage.updateMedicalImageReport(
+          studyId,
           req.tenant!.id,
-          'reportFileName',
-          null
+          { 
+            reportFileName: null, 
+            reportFilePath: null 
+          }
         );
       }
 
