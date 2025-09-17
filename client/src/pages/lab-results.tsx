@@ -800,13 +800,6 @@ Report generated from Cura EMR System`;
         </head>
         <body>
           <div class="prescription-content">
-            <!-- Header -->
-            <div class="header">
-              <div class="header-logo">C</div>
-              <h1>CURA EMR SYSTEM</h1>
-              <p>Laboratory Test Prescription</p>
-            </div>
-
             <!-- Physician Information -->
             <div class="info-section">
               <h3 class="section-title">Physician Information</h3>
