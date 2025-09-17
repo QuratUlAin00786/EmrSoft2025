@@ -659,6 +659,27 @@ Report generated from Cura EMR System`;
               padding: 20px;
             }
             
+            /* Print Header Styles */
+            .print-header {
+              text-align: center;
+              margin-bottom: 40px;
+              padding-bottom: 20px;
+              border-bottom: 2px solid #333;
+            }
+            .print-header h1 {
+              font-size: 28px;
+              font-weight: bold;
+              color: #333;
+              margin-bottom: 8px;
+              letter-spacing: 1px;
+            }
+            .print-header h2 {
+              font-size: 16px;
+              color: #666;
+              font-weight: normal;
+              margin: 0;
+            }
+
             /* Header Styles */
             .header {
               text-align: center;
@@ -800,6 +821,12 @@ Report generated from Cura EMR System`;
         </head>
         <body>
           <div class="prescription-content">
+            <!-- Print Header -->
+            <div class="print-header">
+              <h1>CURA EMR SYSTEM</h1>
+              <h2>Laboratory Test Prescription</h2>
+            </div>
+            
             <!-- Physician Information -->
             <div class="info-section">
               <h3 class="section-title">Physician Information</h3>
