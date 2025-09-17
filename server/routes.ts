@@ -9159,12 +9159,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const filePath = path.join(process.cwd(), 'uploads', 'reports', filename);
 
       // Check if file exists
-      if (!fs.existsSync(filePath)) {
+      if (!(await fs.pathExists(filePath))) {
         return res.status(404).json({ error: "Report file not found" });
       }
 
       // Delete the file from the filesystem
-      fs.unlinkSync(filePath);
+      await fs.unlink(filePath);
 
       // Clear the reportFileName from the database
       // Find the study by reportFileName and clear it
