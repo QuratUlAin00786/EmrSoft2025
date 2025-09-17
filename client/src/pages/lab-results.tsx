@@ -685,7 +685,7 @@ Report generated from Cura EMR System`;
               color: #333;
             }
             .header h1 {
-              font-size: 14px;
+              font-size: 24px;
               font-weight: bold;
               color: #333;
               margin: 0;
@@ -696,7 +696,7 @@ Report generated from Cura EMR System`;
               margin-bottom: 30px;
             }
             .section-title {
-              font-size: 32px;
+              font-size: 18px;
               font-weight: bold;
               margin-bottom: 15px;
               color: #333;
@@ -792,19 +792,6 @@ Report generated from Cura EMR System`;
               }
               .prescription-content {
                 box-shadow: none;
-                page-break-before: auto;
-                page-break-after: auto;
-              }
-              .header {
-                page-break-before: avoid;
-                page-break-inside: avoid;
-                page-break-after: avoid;
-              }
-              * {
-                page-break-before: auto;
-              }
-              .prescription-content > *:first-child {
-                page-break-before: avoid;
               }
             }
           </style>
