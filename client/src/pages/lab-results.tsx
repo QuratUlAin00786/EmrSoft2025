@@ -631,7 +631,7 @@ Report generated from Cura EMR System`;
       return;
     }
 
-    // Create HTML following the attached prescription image format
+    // Create HTML following the specified format
     const printHTML = `
       <!DOCTYPE html>
       <html>
@@ -647,180 +647,129 @@ Report generated from Cura EMR System`;
               font-family: 'Arial', sans-serif;
               margin: 0;
               padding: 20px;
-              line-height: 1.4;
+              line-height: 1.5;
               color: #333;
               background: white;
-              font-size: 12px;
+              font-size: 14px;
             }
             .prescription-content {
               max-width: 800px;
               margin: 0 auto;
               background: white;
-              border: 2px solid #ccc;
               padding: 20px;
             }
             
             /* Header Styles */
             .header {
-              display: flex;
-              justify-content: space-between;
-              align-items: flex-start;
-              margin-bottom: 20px;
-              border-bottom: 1px solid #ddd;
-              padding-bottom: 15px;
-            }
-            .header-left {
-              flex: 1;
-            }
-            .header-right {
-              background: #4CAF50;
-              color: white;
-              padding: 4px 8px;
-              font-size: 10px;
-              border-radius: 3px;
-            }
-            .org-name {
-              font-size: 14px;
-              font-weight: bold;
-              margin-bottom: 2px;
-            }
-            .license-info {
-              font-size: 10px;
-              color: #666;
-              line-height: 1.2;
-            }
-            
-            /* Doctor Title */
-            .doctor-title {
               text-align: center;
-              font-size: 18px;
-              font-weight: bold;
-              margin: 20px 0;
-              letter-spacing: 1px;
+              margin-bottom: 30px;
+              border-bottom: 2px solid #333;
+              padding-bottom: 20px;
             }
-            .provider-subtitle {
-              text-align: center;
-              font-size: 11px;
-              color: #666;
+            .header h1 {
+              font-size: 24px;
+              font-weight: bold;
               margin-bottom: 5px;
+              color: #333;
             }
-            .clinic-info {
-              text-align: center;
-              font-size: 10px;
+            .header p {
+              font-size: 16px;
               color: #666;
-              line-height: 1.3;
-              margin-bottom: 20px;
             }
 
-            /* Patient Info Section */
-            .patient-info-section {
-              display: flex;
-              justify-content: space-between;
-              align-items: flex-start;
+            /* Information Sections */
+            .info-section {
               margin-bottom: 30px;
-              background: #f8f9fa;
-              padding: 15px;
-              border: 1px solid #ddd;
             }
-            .patient-left {
-              flex: 1;
+            .section-title {
+              font-size: 18px;
+              font-weight: bold;
+              margin-bottom: 15px;
+              color: #333;
+              border-bottom: 1px solid #ddd;
+              padding-bottom: 5px;
             }
-            .patient-right {
-              text-align: right;
+            .info-grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 30px;
+              margin-bottom: 20px;
             }
-            .info-row {
-              margin-bottom: 3px;
-              font-size: 11px;
+            .info-item {
+              margin-bottom: 8px;
+              display: flex;
+              align-items: center;
             }
             .info-label {
               font-weight: bold;
+              margin-right: 10px;
+              min-width: 150px;
+            }
+            .info-value {
+              color: #333;
             }
 
-            /* HHC Watermark Section */
-            .prescription-area {
-              position: relative;
-              min-height: 200px;
-              padding: 20px 0;
+            /* Laboratory Test Prescription Section */
+            .lab-prescription-section {
+              margin: 30px 0;
+              padding: 20px;
+              border: 2px solid #4A90E2;
+              border-radius: 8px;
+              background: #f8f9fa;
             }
-            .watermark {
-              position: absolute;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -50%);
-              font-size: 120px;
-              color: #e0e0e0;
+            .lab-prescription-title {
+              font-size: 20px;
               font-weight: bold;
-              z-index: 1;
-              opacity: 0.3;
+              margin-bottom: 20px;
+              color: #333;
+              text-align: center;
             }
-            .prescription-content-area {
-              position: relative;
-              z-index: 2;
+            .test-details {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 20px;
             }
-
-            /* Medication Section */
-            .medication-section {
-              margin: 20px 0;
-              padding: 15px;
-              border: 1px solid #ddd;
-              background: white;
+            .test-item {
+              margin-bottom: 15px;
             }
-            .medication-name {
-              font-size: 14px;
-              font-weight: bold;
-              margin-bottom: 8px;
-            }
-            .medication-details {
-              font-size: 11px;
-              line-height: 1.4;
-            }
-            .sig-line, .disp-line, .refills-line {
-              margin-bottom: 4px;
-            }
-
-            /* Diagnosis Section */
-            .diagnosis-section {
-              margin: 20px 0;
-              padding: 15px;
-              border: 1px solid #ddd;
-              background: #fafafa;
-            }
-            .diagnosis-label {
-              font-weight: bold;
+            .test-label {
               font-size: 12px;
+              font-weight: bold;
+              color: #666;
+              text-transform: uppercase;
               margin-bottom: 5px;
             }
-
-            /* Footer */
-            .footer {
-              margin-top: 40px;
-              border-top: 1px solid #ddd;
-              padding-top: 20px;
+            .test-value {
+              font-size: 16px;
+              font-weight: 600;
+              color: #333;
             }
-            .signature-area {
-              display: flex;
-              justify-content: space-between;
+
+            /* Test Results Section */
+            .test-results {
               margin-top: 30px;
             }
-            .signature-box {
-              text-align: center;
-              width: 200px;
+            .results-title {
+              font-size: 16px;
+              font-weight: bold;
+              margin-bottom: 15px;
+              color: #333;
             }
-            .signature-line {
-              border-top: 1px solid #000;
-              margin-bottom: 5px;
-              height: 40px;
-              position: relative;
+            .result-item {
+              margin-bottom: 10px;
+              padding: 10px;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+              background: white;
             }
-            .signature-text {
-              font-size: 10px;
-              color: #666;
-            }
-            .pharmacy-info {
-              text-align: center;
-              font-size: 10px;
-              color: #666;
-              margin-top: 20px;
+
+            /* Notes Section */
+            .notes-section {
+              margin-top: 30px;
+              padding: 15px;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+              background: #fffbeb;
             }
 
             @media print {
@@ -829,7 +778,6 @@ Report generated from Cura EMR System`;
                 color-adjust: exact;
               }
               .prescription-content {
-                border: none;
                 box-shadow: none;
               }
             }
@@ -839,118 +787,117 @@ Report generated from Cura EMR System`;
           <div class="prescription-content">
             <!-- Header -->
             <div class="header">
-              <div class="header-left">
-                <div class="org-name">CURA HEALTH EMR</div>
-                <div class="license-info">
-                  License # 123456<br>
-                  NPI # 1234567890
-                </div>
-              </div>
-              <div class="header-right">
-                active
-              </div>
+              <h1>CURA EMR SYSTEM</h1>
+              <p>Laboratory Test Prescription</p>
             </div>
 
-            <!-- Doctor Title -->
-            <div class="doctor-title">RESIDENT PHYSICIAN M.D</div>
-            <div class="provider-subtitle">Provider undefined</div>
-            <div class="clinic-info">
-              Halo Health Clinic<br>
-              Unit 2 Drayton Court, Solihull<br>
-              B90 4NG, UK<br>
-              +44(0)121 827 5531
+            <!-- Physician Information -->
+            <div class="info-section">
+              <h3 class="section-title">Physician Information</h3>
+              <div class="info-item">
+                <span class="info-label">Name:</span>
+                <span class="info-value">${selectedResult.doctorName || 'Doctor'}</span>
+              </div>
+              ${selectedResult.mainSpecialty ? `
+              <div class="info-item">
+                <span class="info-label">Main Specialization:</span>
+                <span class="info-value">${selectedResult.mainSpecialty}</span>
+              </div>
+              ` : ''}
+              ${selectedResult.subSpecialty ? `
+              <div class="info-item">
+                <span class="info-label">Sub-Specialization:</span>
+                <span class="info-value">${selectedResult.subSpecialty}</span>
+              </div>
+              ` : ''}
+              ${selectedResult.priority ? `
+              <div class="info-item">
+                <span class="info-label">Priority:</span>
+                <span class="info-value">${selectedResult.priority.toUpperCase()}</span>
+              </div>
+              ` : ''}
             </div>
 
             <!-- Patient Information -->
-            <div class="patient-info-section">
-              <div class="patient-left">
-                <div class="info-row">
-                  <span class="info-label">Name:</span> ${getPatientName(selectedResult.patientId)}
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Address:</span> Patient Address
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Allergies:</span> NKDA
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Weight:</span> 70 kg
-                </div>
+            <div class="info-section">
+              <h3 class="section-title">Patient Information</h3>
+              <div class="info-item">
+                <span class="info-label">Name:</span>
+                <span class="info-value">${getPatientName(selectedResult.patientId)}</span>
               </div>
-              <div class="patient-right">
-                <div class="info-row">
-                  <span class="info-label">DOB:</span> 01/01/1985
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Age:</span> 39
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Sex:</span> M
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Date:</span> ${format(new Date(), 'dd/MM/yyyy')}
-                </div>
+              <div class="info-item">
+                <span class="info-label">Patient ID:</span>
+                <span class="info-value">${selectedResult.patientId}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Date:</span>
+                <span class="info-value">${format(new Date(), 'MMM dd, yyyy')}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Time:</span>
+                <span class="info-value">${format(new Date(), 'HH:mm')}</span>
               </div>
             </div>
 
-            <!-- Prescription Area with Watermark -->
-            <div class="prescription-area">
-              <div class="watermark">HHC</div>
-              <div class="prescription-content-area">
-                <!-- Medication Section -->
-                <div class="medication-section">
-                  <div class="medication-name">${selectedResult.testType || 'Neuberal 10'}</div>
-                  <div class="medication-details">
-                    <div class="sig-line">
-                      <strong>Sig:</strong> Please visit the doctor after 15 days.
-                    </div>
-                    <div class="disp-line">
-                      <strong>Disp:</strong> 30 (30 days)
-                    </div>
-                    <div class="refills-line">
-                      <strong>Refills:</strong> 1
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Test Results if available -->
-                ${selectedResult.results && selectedResult.results.length > 0 ? `
-                  <div class="medication-section">
-                    <div class="medication-name">Test Results</div>
-                    <div class="medication-details">
-                      ${selectedResult.results.map((testResult: any) => `
-                        <div>${testResult.name}: ${testResult.value} ${testResult.unit} (Ref: ${testResult.referenceRange})</div>
-                      `).join('')}
-                    </div>
-                  </div>
-                ` : ''}
-
-                <!-- Diagnosis Section -->
-                <div class="diagnosis-section">
-                  <div class="diagnosis-label">Diagnosis:</div>
-                  <div>${selectedResult.notes || 'Migraine'}</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Footer with Signatures -->
-            <div class="footer">
-              <div class="signature-area">
-                <div class="signature-box">
-                  <div class="signature-line"></div>
-                  <div class="signature-text">
-                    Resident Physician<br>
-                    (Signature)
-                  </div>
-                </div>
-                <div class="signature-box">
-                  <div class="signature-line"></div>
-                  <div class="signature-text">May Substitute</div>
-                </div>
-              </div>
+            <!-- Laboratory Test Prescription -->
+            <div class="lab-prescription-section">
+              <h2 class="lab-prescription-title">Laboratory Test Prescription</h2>
               
-              <div class="pharmacy-info">
-                Pharmacy: Halo Health • +44(0)121 827 5531
+              <div class="test-details">
+                <div class="test-item">
+                  <div class="test-label">TEST ID</div>
+                  <div class="test-value">${selectedResult.testId}</div>
+                </div>
+                <div class="test-item">
+                  <div class="test-label">TEST TYPE</div>
+                  <div class="test-value">${selectedResult.testType}</div>
+                </div>
+                <div class="test-item">
+                  <div class="test-label">ORDERED DATE</div>
+                  <div class="test-value">${format(new Date(selectedResult.orderedAt), 'MMM dd, yyyy HH:mm')}</div>
+                </div>
+                <div class="test-item">
+                  <div class="test-label">STATUS</div>
+                  <div class="test-value">${selectedResult.status.toUpperCase()}</div>
+                </div>
+              </div>
+
+              ${selectedResult.results && selectedResult.results.length > 0 ? `
+              <div class="test-results">
+                <div class="results-title">Test Results:</div>
+                ${selectedResult.results.map((testResult: any) => `
+                  <div class="result-item">
+                    <strong>${testResult.name}:</strong> ${testResult.value} ${testResult.unit} 
+                    (Reference: ${testResult.referenceRange}) - Status: ${testResult.status.replace('_', ' ').toUpperCase()}
+                  </div>
+                `).join('')}
+              </div>
+              ` : ''}
+
+              ${selectedResult.notes ? `
+              <div class="notes-section">
+                <strong>Clinical Notes:</strong><br>
+                ${selectedResult.notes}
+              </div>
+              ` : ''}
+            </div>
+
+            ${selectedResult.criticalValues ? `
+            <div style="margin-top: 20px; padding: 15px; background: #fef2f2; border: 2px solid #dc2626; border-radius: 8px;">
+              <strong style="color: #dc2626;">⚠️ CRITICAL VALUES DETECTED</strong><br>
+              <span style="color: #991b1b;">This lab result contains critical values that require immediate attention.</span>
+            </div>
+            ` : ''}
+
+            <!-- Footer -->
+            <div style="margin-top: 50px; text-align: center; border-top: 1px solid #ddd; padding-top: 20px;">
+              <div style="margin-bottom: 30px;">
+                <div style="border-top: 2px solid #333; width: 300px; margin: 0 auto 10px;"></div>
+                <div style="font-weight: bold;">${selectedResult.doctorName || 'Doctor'}</div>
+                ${selectedResult.mainSpecialty ? `<div style="font-size: 12px; color: #666;">${selectedResult.mainSpecialty}</div>` : ''}
+              </div>
+              <div style="font-size: 12px; color: #666;">
+                Generated by Cura EMR System - ${format(new Date(), 'MMM dd, yyyy HH:mm')}
               </div>
             </div>
           </div>
