@@ -9138,6 +9138,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete PDF Report
+  app.delete("/api/imaging/reports/:reportId", authMiddleware, requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const { reportId } = req.params;
+      
+      // Validate reportId format (PatientID_ImagingID_Timestamp or legacy UUID)
+      const isLegacyUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(reportId);
+      const isNewFormat = /^.+_.+_\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}$/.test(reportId);
+      
+      if (!isLegacyUUID && !isNewFormat) {
+        return res.status(400).json({ error: "Invalid report ID format" });
+      }
+
+      const filename = `${reportId}.pdf`;
+      const filePath = path.join(process.cwd(), 'uploads', 'reports', filename);
+
+      // Check if file exists
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: "Report file not found" });
+      }
+
+      // Delete the file from the filesystem
+      fs.unlinkSync(filePath);
+
+      // Clear the reportFileName from the database
+      // Find the study by reportFileName and clear it
+      const studies = await storage.getMedicalImageStudies(req.user.id, req.tenant!.id);
+      const studyToUpdate = studies.find(study => study.reportFileName === filename);
+      
+      if (studyToUpdate) {
+        await storage.updateMedicalImageReportField(
+          studyToUpdate.id,
+          req.tenant!.id,
+          'reportFileName',
+          null
+        );
+      }
+
+      console.log(`✅ PDF report deleted successfully: ${filename}`);
+      res.json({ 
+        success: true, 
+        message: "Report deleted successfully",
+        reportId: reportId
+      });
+
+    } catch (error) {
+      console.error("Error deleting PDF report:", error);
+      res.status(500).json({ error: "Failed to delete report" });
+    }
+  });
+
   // Update Individual Report Field
   app.patch("/api/imaging/studies/:studyId/report-field", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {

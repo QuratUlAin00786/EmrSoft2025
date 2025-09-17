@@ -1456,20 +1456,55 @@ export default function ImagingPage() {
                   <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
                     <h4 className="font-medium text-purple-800 mb-2">Saved Reports</h4>
                     <div className="text-sm text-purple-700">
-                      <div className="flex items-center gap-2">
-                        <strong>Report File:</strong>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <strong>Report File:</strong>
+                          <Button
+                            variant="link"
+                            onClick={() => {
+                              if (selectedStudy.reportFileName) {
+                                const reportUrl = `/api/imaging/reports/${selectedStudy.reportFileName.replace('.pdf', '')}`;
+                                window.open(reportUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+                              }
+                            }}
+                            className="p-0 h-auto text-blue-600 hover:text-blue-800 underline"
+                            data-testid="link-saved-report"
+                          >
+                            {selectedStudy.reportFileName}
+                          </Button>
+                        </div>
                         <Button
-                          variant="link"
-                          onClick={() => {
+                          variant="ghost"
+                          size="sm"
+                          onClick={async () => {
                             if (selectedStudy.reportFileName) {
-                              const reportUrl = `/api/imaging/reports/${selectedStudy.reportFileName.replace('.pdf', '')}`;
-                              window.open(reportUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+                              try {
+                                const reportId = selectedStudy.reportFileName.replace('.pdf', '');
+                                await apiRequest(`/api/imaging/reports/${reportId}`, {
+                                  method: 'DELETE'
+                                });
+                                
+                                toast({
+                                  title: "Success",
+                                  description: "Report deleted successfully",
+                                });
+                                
+                                // Refresh the studies data
+                                queryClient.invalidateQueries({ queryKey: ['/api/imaging/studies'] });
+                              } catch (error) {
+                                console.error('Error deleting report:', error);
+                                toast({
+                                  title: "Error",
+                                  description: "Failed to delete report",
+                                  variant: "destructive"
+                                });
+                              }
                             }
                           }}
-                          className="p-0 h-auto text-blue-600 hover:text-blue-800 underline"
-                          data-testid="link-saved-report"
+                          className="text-red-600 hover:text-red-800 hover:bg-red-50 h-8 w-8 p-0"
+                          data-testid="button-delete-report"
                         >
-                          {selectedStudy.reportFileName}
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                       <p className="text-xs text-purple-600 mt-1">Click the file name to view the PDF report</p>
