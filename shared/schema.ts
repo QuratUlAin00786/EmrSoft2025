@@ -2128,6 +2128,30 @@ export const insertVoiceNoteSchema = createInsertSchema(voiceNotes).omit({
   updatedAt: true,
 });
 
+// Muscle Positions - For facial muscle analysis and black dot detection
+export const musclePositions = pgTable("muscles_position", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  patientId: integer("patient_id").notNull(),
+  consultationId: integer("consultation_id"),
+  position: integer("position").notNull(), // 1-15 for the 15 facial muscles
+  value: text("value").notNull(), // Muscle name (e.g., "Frontalis (Forehead)", "Temporalis", etc.)
+  coordinates: jsonb("coordinates").$type<{
+    xPct: number;
+    yPct: number;
+  }>(),
+  isDetected: boolean("is_detected").notNull().default(false),
+  detectedAt: timestamp("detected_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertMusclePositionSchema = createInsertSchema(musclePositions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Messaging Types
 export type Conversation = typeof conversations.$inferSelect;
 export type InsertConversation = z.infer<typeof insertConversationSchema>;
@@ -2169,3 +2193,7 @@ export type InsertSaaSInvoice = z.infer<typeof insertSaaSInvoiceSchema>;
 
 export type SaaSSettings = typeof saasSettings.$inferSelect;
 export type InsertSaaSSettings = typeof saasSettings.$inferInsert;
+
+// Muscle Position Types
+export type MusclePosition = typeof musclePositions.$inferSelect;
+export type InsertMusclePosition = z.infer<typeof insertMusclePositionSchema>;

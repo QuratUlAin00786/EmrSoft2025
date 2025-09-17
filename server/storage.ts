@@ -1,5 +1,5 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics,
+  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics, musclePositions,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Role, type InsertRole,
@@ -37,7 +37,8 @@ import {
   type ChatbotConfig, type InsertChatbotConfig,
   type ChatbotSession, type InsertChatbotSession,
   type ChatbotMessage, type InsertChatbotMessage,
-  type ChatbotAnalytics, type InsertChatbotAnalytics
+  type ChatbotAnalytics, type InsertChatbotAnalytics,
+  type MusclePosition, type InsertMusclePosition
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, count, not, sql, gte, lt, lte, isNotNull, or, ilike, ne } from "drizzle-orm";
@@ -277,6 +278,10 @@ export interface IStorage {
   updateMedicalImageReportField(id: number, organizationId: number, fieldName: string, value: string): Promise<MedicalImage | undefined>;
   updateMedicalImageReport(id: number, organizationId: number, reportData: { reportFileName?: string; reportFilePath?: string; findings?: string | null; impression?: string | null; radiologist?: string | null }): Promise<MedicalImage | undefined>;
   deleteMedicalImage(id: number, organizationId: number): Promise<boolean>;
+
+  // Muscle Positions - For facial muscle analysis
+  saveMusclePosition(musclePosition: InsertMusclePosition): Promise<MusclePosition>;
+  getMusclePositions(organizationId: number, patientId: number): Promise<MusclePosition[]>;
 
   // Documents
   getDocument(id: number, organizationId: number): Promise<Document | undefined>;
@@ -3454,6 +3459,38 @@ export class DatabaseStorage implements IStorage {
       .delete(medicalImages)
       .where(and(eq(medicalImages.id, id), eq(medicalImages.organizationId, organizationId)));
     return (result.rowCount ?? 0) > 0;
+  }
+
+  // Muscle Positions - For facial muscle analysis
+  async saveMusclePosition(musclePosition: InsertMusclePosition): Promise<MusclePosition> {
+    const cleanMusclePosition = {
+      ...musclePosition,
+      coordinates: typeof musclePosition.coordinates === 'object' ? musclePosition.coordinates : {},
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    const [newMusclePosition] = await db
+      .insert(musclePositions)
+      .values(cleanMusclePosition as any)
+      .returning();
+    
+    return newMusclePosition;
+  }
+
+  async getMusclePositions(organizationId: number, patientId: number): Promise<MusclePosition[]> {
+    const positions = await db
+      .select()
+      .from(musclePositions)
+      .where(
+        and(
+          eq(musclePositions.organizationId, organizationId),
+          eq(musclePositions.patientId, patientId)
+        )
+      )
+      .orderBy(asc(musclePositions.position));
+    
+    return positions;
   }
 
   // Lab Results (Database-driven)

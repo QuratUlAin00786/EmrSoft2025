@@ -5258,6 +5258,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Muscle Positions API endpoints - For facial muscle analysis
+  app.post("/api/muscle-positions", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const musclePositionData = z.object({
+        patientId: z.number(),
+        consultationId: z.number().optional(),
+        detectedDots: z.array(z.object({
+          id: z.number(),
+          xPct: z.number(),
+          yPct: z.number()
+        }))
+      }).parse(req.body);
+
+      // Define the 15 facial muscle mappings
+      const muscleMapping = [
+        "Frontalis (Forehead)",
+        "Temporalis", 
+        "Procerus",
+        "Corrugator Supercilii",
+        "Orbicularis Oculi",
+        "Orbicularis Oculi", 
+        "Orbicularis Oculi",
+        "Zygomaticus Minor",
+        "Zygomaticus Major",
+        "Buccinator",
+        "Depressor Sept Nasi",
+        "Orbicularis Oris",
+        "Depressor Labii Inferioris",
+        "Mentalis",
+        "Platysma"
+      ];
+
+      const savedPositions = [];
+
+      // Save each detected dot as a muscle position (up to 15)
+      for (let i = 0; i < Math.min(musclePositionData.detectedDots.length, 15); i++) {
+        const dot = musclePositionData.detectedDots[i];
+        const position = i + 1; // Positions 1-15
+        const muscleName = muscleMapping[i];
+
+        const musclePosition = await storage.saveMusclePosition({
+          organizationId: req.tenant!.id,
+          patientId: musclePositionData.patientId,
+          consultationId: musclePositionData.consultationId,
+          position,
+          value: muscleName,
+          coordinates: {
+            xPct: dot.xPct,
+            yPct: dot.yPct
+          },
+          isDetected: true,
+          detectedAt: new Date()
+        });
+
+        savedPositions.push(musclePosition);
+      }
+
+      console.log(`💾 MUSCLE POSITIONS SAVED: ${savedPositions.length} positions for patient ${musclePositionData.patientId}`);
+
+      res.status(201).json({
+        message: "Muscle positions saved successfully",
+        positions: savedPositions,
+        count: savedPositions.length
+      });
+    } catch (error) {
+      console.error("Error saving muscle positions:", error);
+      handleRouteError(error, "save muscle positions", res);
+    }
+  });
+
+  // Get saved muscle positions for a patient
+  app.get("/api/muscle-positions/:patientId", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const patientId = parseInt(req.params.patientId);
+      if (isNaN(patientId)) {
+        return res.status(400).json({ error: "Invalid patient ID" });
+      }
+
+      const positions = await storage.getMusclePositions(req.tenant!.id, patientId);
+
+      console.log(`📊 MUSCLE POSITIONS RETRIEVED: ${positions.length} positions for patient ${patientId}`);
+
+      res.json({
+        positions,
+        count: positions.length
+      });
+    } catch (error) {
+      console.error("Error retrieving muscle positions:", error);
+      handleRouteError(error, "retrieve muscle positions", res);
+    }
+  });
+
   // Stripe Payment Intent for Subscription
   app.post("/api/create-subscription-payment-intent", authMiddleware, async (req: TenantRequest, res) => {
     try {

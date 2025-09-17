@@ -653,6 +653,8 @@ ${
   // BLACK DOT DETECTION - For automatic dot highlighting
   const [detectedBlackDots, setDetectedBlackDots] = useState<{id: number, xPct: number, yPct: number}[]>([]);
   const [showBlackDotPolygons, setShowBlackDotPolygons] = useState(false);
+  const [savedMusclePositions, setSavedMusclePositions] = useState<{id: number, xPct: number, yPct: number, muscleName: string}[]>([]);
+  const [showSavedPositions, setShowSavedPositions] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // ANATOMICAL MUSCLE POLYGON REGIONS - Vector-based muscle highlighting
@@ -885,6 +887,92 @@ ${
     });
 
     console.log('🔍 DETECTED BLACK DOTS:', detectedDots);
+  };
+
+  // SAVE MUSCLE POSITIONS TO DATABASE
+  const saveMusclePositions = async () => {
+    if (!currentPatient || detectedBlackDots.length === 0) {
+      toast({
+        title: "Cannot Save",
+        description: "No patient selected or no black dots detected to save.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/muscle-positions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          patientId: currentPatient.id,
+          detectedDots: detectedBlackDots
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save muscle positions');
+      }
+
+      const result = await response.json();
+      console.log('💾 MUSCLE POSITIONS SAVED:', result);
+
+      toast({
+        title: "Positions Saved",
+        description: `Successfully saved ${result.count} muscle positions to database.`
+      });
+
+      // Load the saved positions to display them
+      await loadSavedMusclePositions();
+    } catch (error) {
+      console.error('Error saving muscle positions:', error);
+      toast({
+        title: "Save Failed",
+        description: "Failed to save muscle positions to database.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // LOAD SAVED MUSCLE POSITIONS FROM DATABASE
+  const loadSavedMusclePositions = async () => {
+    if (!currentPatient) return;
+
+    try {
+      const response = await fetch(`/api/muscle-positions/${currentPatient.id}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to load muscle positions');
+      }
+
+      const result = await response.json();
+      console.log('📊 LOADED MUSCLE POSITIONS:', result);
+
+      // Convert saved positions back to display format
+      const savedDots = result.positions.map((position: any) => ({
+        id: position.position,
+        xPct: position.coordinates.xPct,
+        yPct: position.coordinates.yPct,
+        muscleName: position.value
+      }));
+
+      setSavedMusclePositions(savedDots);
+      setShowSavedPositions(true);
+
+      toast({
+        title: "Positions Loaded",
+        description: `Loaded ${result.count} saved muscle positions.`
+      });
+    } catch (error) {
+      console.error('Error loading muscle positions:', error);
+      toast({
+        title: "Load Failed",
+        description: "Failed to load saved muscle positions.",
+        variant: "destructive"
+      });
+    }
   };
 
   // Handle overlay updates on image change and resize - ROBUST TIMING
@@ -2069,6 +2157,75 @@ Patient should be advised of potential side effects and expected timeline for re
                       </svg>
                     )}
                     
+                    {/* SAVED MUSCLE POSITIONS OVERLAY - Blue squares showing saved positions */}
+                    {showSavedPositions && savedMusclePositions.length > 0 && overlayPosition && imageLoaded && (
+                      <svg
+                        className="absolute pointer-events-none z-30"
+                        style={{
+                          left: overlayPosition.left,
+                          top: overlayPosition.top,
+                          width: overlayPosition.width,
+                          height: overlayPosition.height,
+                        }}
+                        viewBox={`0 0 ${overlayPosition.width} ${overlayPosition.height}`}
+                      >
+                        {savedMusclePositions.map((position) => {
+                          const centerX = position.xPct * overlayPosition.width;
+                          const centerY = position.yPct * overlayPosition.height;
+                          const size = 16; // Size for the square highlight
+                          
+                          return (
+                            <g key={position.id}>
+                              {/* Blue square highlight for saved positions */}
+                              <rect
+                                x={centerX - size/2}
+                                y={centerY - size/2}
+                                width={size}
+                                height={size}
+                                fill="rgba(59, 130, 246, 0.5)"
+                                stroke="rgba(37, 99, 235, 0.9)"
+                                strokeWidth="2"
+                                style={{ animation: 'pulse 3s ease-in-out infinite' }}
+                              />
+                              
+                              {/* Position number and muscle name label */}
+                              <circle
+                                cx={centerX}
+                                cy={centerY}
+                                r="10"
+                                fill="rgba(59, 130, 246, 0.8)"
+                                stroke="rgba(37, 99, 235, 1)"
+                                strokeWidth="2"
+                              />
+                              <text
+                                x={centerX}
+                                y={centerY + 3}
+                                textAnchor="middle"
+                                fontSize="10"
+                                fontWeight="bold"
+                                fill="white"
+                              >
+                                {position.id}
+                              </text>
+                              
+                              {/* Muscle name tooltip */}
+                              <text
+                                x={centerX}
+                                y={centerY - 25}
+                                textAnchor="middle"
+                                fontSize="10"
+                                fontWeight="bold"
+                                fill="rgba(37, 99, 235, 1)"
+                                className="pointer-events-none select-none"
+                              >
+                                {position.muscleName}
+                              </text>
+                            </g>
+                          );
+                        })}
+                      </svg>
+                    )}
+                    
                     {/* CALIBRATION OVERLAY - For precise coordinate mapping */}
                     {calibrationMode && overlayPosition && imageLoaded && (
                       <svg
@@ -2137,14 +2294,47 @@ Patient should be advised of potential side effects and expected timeline for re
                         </button>
                         
                         {showBlackDotPolygons && (
+                          <>
+                            <button
+                              onClick={saveMusclePositions}
+                              disabled={!currentPatient || detectedBlackDots.length === 0}
+                              className="px-3 py-2 bg-green-500 text-white rounded text-sm hover:bg-green-600 disabled:opacity-50 font-medium"
+                              data-testid="button-save-muscle-positions"
+                            >
+                              💾 Save to Database ({detectedBlackDots.length})
+                            </button>
+                            
+                            <button
+                              onClick={() => {
+                                setShowBlackDotPolygons(false);
+                                setDetectedBlackDots([]);
+                              }}
+                              className="px-3 py-2 bg-orange-500 text-white rounded text-sm hover:bg-orange-600"
+                            >
+                              Clear Dots ({detectedBlackDots.length})
+                            </button>
+                          </>
+                        )}
+                        
+                        {/* Load Saved Positions Button */}
+                        <button
+                          onClick={loadSavedMusclePositions}
+                          disabled={!currentPatient}
+                          className="px-3 py-2 bg-purple-500 text-white rounded text-sm hover:bg-purple-600 disabled:opacity-50 font-medium"
+                          data-testid="button-load-saved-positions"
+                        >
+                          📊 Load Saved Positions
+                        </button>
+                        
+                        {showSavedPositions && (
                           <button
                             onClick={() => {
-                              setShowBlackDotPolygons(false);
-                              setDetectedBlackDots([]);
+                              setShowSavedPositions(false);
+                              setSavedMusclePositions([]);
                             }}
-                            className="px-3 py-2 bg-orange-500 text-white rounded text-sm hover:bg-orange-600"
+                            className="px-3 py-2 bg-red-500 text-white rounded text-sm hover:bg-red-600"
                           >
-                            Clear Dots ({detectedBlackDots.length})
+                            Hide Saved ({savedMusclePositions.length})
                           </button>
                         )}
                         
@@ -2177,6 +2367,12 @@ Patient should be advised of potential side effects and expected timeline for re
                       {showBlackDotPolygons && (
                         <div className="text-sm text-green-700 font-medium">
                           {detectedBlackDots.length} black dots detected with numbered yellow polygons
+                        </div>
+                      )}
+                      
+                      {showSavedPositions && (
+                        <div className="text-sm text-blue-700 font-medium">
+                          {savedMusclePositions.length} saved muscle positions displayed with blue squares
                         </div>
                       )}
                     </div>
