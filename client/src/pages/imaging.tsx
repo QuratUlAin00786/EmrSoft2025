@@ -1480,9 +1480,7 @@ export default function ImagingPage() {
                             if (selectedStudy.reportFileName) {
                               try {
                                 const reportId = selectedStudy.reportFileName.replace('.pdf', '');
-                                await apiRequest(`/api/imaging/reports/${reportId}`, {
-                                  method: 'DELETE'
-                                });
+                                await apiRequest('DELETE', `/api/imaging/reports/${reportId}`);
                                 
                                 toast({
                                   title: "Success",
