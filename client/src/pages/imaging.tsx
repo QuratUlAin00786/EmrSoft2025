@@ -233,7 +233,6 @@ export default function ImagingPage() {
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [selectedImageSeries, setSelectedImageSeries] = useState<any>(null);
   const [deletedStudyIds, setDeletedStudyIds] = useState<Set<string>>(new Set());
-  const [reportDeleted, setReportDeleted] = useState(false);
   const { toast } = useToast();
   
   // Fetch medical images using React Query
@@ -595,7 +594,6 @@ export default function ImagingPage() {
       setReportFindings(study.findings || "");
       setReportImpression(study.impression || "");
       setReportRadiologist(study.radiologist || "Dr. Michael Chen");
-      setReportDeleted(false); // Reset report deleted state when opening dialog
       setShowReportDialog(true);
     }
   };
@@ -1456,7 +1454,7 @@ export default function ImagingPage() {
                 {/* Saved Reports Section */}
                 {selectedStudy.reportFileName && (
                   <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                    <h4 className="font-medium text-purple-800 mb-2">{reportDeleted ? "Delete Reports" : "Saved Reports"}</h4>
+                    <h4 className="font-medium text-purple-800 mb-2">Saved Reports</h4>
                     <div className="text-sm text-purple-700">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -1488,9 +1486,6 @@ export default function ImagingPage() {
                                   title: "Success",
                                   description: "Report deleted successfully",
                                 });
-                                
-                                // Set report deleted state to true
-                                setReportDeleted(true);
                                 
                                 // Refresh the studies data
                                 queryClient.invalidateQueries({ queryKey: ['/api/imaging/studies'] });
@@ -1757,7 +1752,6 @@ export default function ImagingPage() {
                     variant="outline"
                     onClick={() => {
                       setShowViewDialog(false);
-                      setReportDeleted(false); // Reset report deleted state when opening dialog
                       setShowReportDialog(true);
                     }}
                   >
