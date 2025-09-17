@@ -1020,9 +1020,41 @@ export default function ImagingPage() {
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            onClick={() => {
-                              const reportUrl = `/api/imaging/reports/${study.reportFileName.replace('.pdf', '')}`;
-                              window.open(reportUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+                            onClick={async () => {
+                              try {
+                                const token = localStorage.getItem('auth_token');
+                                const headers: Record<string, string> = {
+                                  'X-Tenant-Subdomain': 'demo'
+                                };
+                                
+                                if (token) {
+                                  headers['Authorization'] = `Bearer ${token}`;
+                                }
+                                
+                                const response = await fetch(`/api/imaging/reports/${study.reportFileName.replace('.pdf', '')}`, {
+                                  headers,
+                                  credentials: 'include'
+                                });
+                                
+                                if (response.ok) {
+                                  const blob = await response.blob();
+                                  const url = URL.createObjectURL(blob);
+                                  window.open(url, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+                                  
+                                  // Clean up the blob URL after a delay to allow the window to load
+                                  setTimeout(() => {
+                                    URL.revokeObjectURL(url);
+                                  }, 1000);
+                                } else {
+                                  throw new Error('Failed to view PDF report');
+                                }
+                              } catch (error) {
+                                toast({
+                                  title: "View Failed",
+                                  description: "Failed to view PDF report. Please try again.",
+                                  variant: "destructive",
+                                });
+                              }
                             }}
                             title="View PDF Report"
                             data-testid="button-view-pdf-report"
