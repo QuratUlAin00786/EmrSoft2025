@@ -1746,46 +1746,11 @@ export default function ImagingPage() {
                     variant="outline"
                     onClick={() => {
                       setShowViewDialog(false);
-                      setShowShareDialog(true);
-                    }}
-                  >
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Share Study
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    onClick={() => {
-                      setShowViewDialog(false);
                       setShowReportDialog(true);
                     }}
                   >
                     <FileText className="h-4 w-4 mr-2" />
                     Generate Report
-                  </Button>
-                  <Button 
-                    onClick={() => {
-                      // Download study logic
-                      const studyData = `IMAGING STUDY SUMMARY\n\nPatient: ${selectedStudy.patientName}\nStudy: ${selectedStudy.studyType}\nModality: ${selectedStudy.modality}\nDate: ${new Date(selectedStudy.orderedAt).toLocaleDateString()}\n\nIndication: ${selectedStudy.indication}\n\nFindings: ${selectedStudy.findings || 'Pending'}\n\nImpression: ${selectedStudy.impression || 'Pending'}\n\nRadiologist: ${selectedStudy.radiologist || 'TBD'}`;
-                      
-                      const blob = new Blob([studyData], { type: 'text/plain' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = `imaging-study-${selectedStudy.patientName.replace(' ', '-').toLowerCase()}.txt`;
-                      document.body.appendChild(a);
-                      a.click();
-                      document.body.removeChild(a);
-                      URL.revokeObjectURL(url);
-                      
-                      toast({
-                        title: "Study Downloaded",
-                        description: `Study summary for ${selectedStudy.patientName} downloaded successfully`,
-                      });
-                    }}
-                    className="bg-medical-blue hover:bg-blue-700"
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Study
                   </Button>
                 </div>
               </div>
