@@ -8570,8 +8570,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     </div>
 
     <div class="info-section">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-            <div style="flex: 1; margin-right: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+            <div style="flex: 1; margin-right: 30px;">
                 <div class="info-header">PATIENT INFORMATION</div>
                 <div style="margin-top: 5px;">
                     <div><span class="info-label">Name:</span> ${study.patientName || 'N/A'}</div>
@@ -8613,13 +8613,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         </div>
     </div>
 
-    <div class="section-title">REPRESENTATIVE IMAGES:</div>
-    <div class="image-placeholder">
-        <div>
-            <div class="image-text">MEDICAL IMAGE</div>
-            <div style="font-size: 7pt; color: #666; margin-top: 5px;">
-                ${study.images && study.images[0] ? study.images[0].fileName || study.images[0].seriesDescription || 'Imaging Study' : 'Medical Study'}<br>
-                Image Available
+    <div style="margin-top: 25px; padding-top: 15px; border-top: 1px solid #e5e5e5;">
+        <div class="section-title">REPRESENTATIVE IMAGES:</div>
+        <div class="image-placeholder">
+            <div>
+                <div class="image-text">MEDICAL IMAGE</div>
+                <div style="font-size: 7pt; color: #666; margin-top: 5px;">
+                    ${study.images && study.images[0] ? study.images[0].fileName || study.images[0].seriesDescription || 'Imaging Study' : 'Medical Study'}<br>
+                    Image Available
+                </div>
             </div>
         </div>
     </div>
