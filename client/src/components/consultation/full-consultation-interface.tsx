@@ -857,9 +857,12 @@ ${
     }
 
     try {
+      const token = localStorage.getItem('auth_token');
       const response = await fetch('/api/muscle-positions', {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo',
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -898,7 +901,13 @@ ${
     if (!currentPatientId) return;
 
     try {
-      const response = await fetch(`/api/muscle-positions/${currentPatientId}`);
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/muscle-positions/${currentPatientId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
       
       if (!response.ok) {
         throw new Error('Failed to load muscle positions');
@@ -985,7 +994,13 @@ ${
     if (!currentPatientId || !selectedMuscleGroup) return;
 
     try {
-      const response = await fetch(`/api/muscle-positions/${currentPatientId}`);
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/muscle-positions/${currentPatientId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
       
       if (!response.ok) {
         throw new Error('Failed to load muscle positions');
