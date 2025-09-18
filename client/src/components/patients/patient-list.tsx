@@ -639,7 +639,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
     
     <PatientModal
       open={editModal.open}
-      onOpenChange={(open) => setEditModal(prev => ({ ...prev, open }))}
+      onOpenChange={(open) => setEditModal({open, patient: open ? editModal.patient : null})}
       editMode={true}
       editPatient={editModal.patient}
     />
