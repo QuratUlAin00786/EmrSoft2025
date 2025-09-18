@@ -677,11 +677,8 @@ export default function FinancialIntelligence() {
                       // Submit the claim using the mutation
                       submitClaimMutation.mutate({
                         patientName: claimFormData.patient === 'patient_1' ? 'Sarah Johnson' : 'Michael Chen',
-                        serviceType: 'General Consultation',
                         amount: parseFloat(claimFormData.totalAmount),
                         status: 'pending',
-                        submittedAt: new Date().toISOString(),
-                        providerName: 'Dr. Smith',
                         serviceDate: claimFormData.serviceDate
                       });
 

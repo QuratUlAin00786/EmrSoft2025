@@ -1688,6 +1688,248 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================
+  // FINANCIAL INTELLIGENCE ROUTES
+  // ============================================
+
+  // Get revenue data
+  app.get("/api/financial/revenue", authMiddleware, requireRole(["admin", "finance", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const { dateRange } = req.query;
+      
+      // Mock revenue data - in production this would come from actual billing data
+      const mockRevenueData = [
+        { month: "Jan", revenue: 125000, expenses: 85000, profit: 40000, collections: 118000, target: 130000 },
+        { month: "Feb", revenue: 135000, expenses: 88000, profit: 47000, collections: 128000, target: 130000 },
+        { month: "Mar", revenue: 142000, expenses: 92000, profit: 50000, collections: 135000, target: 135000 },
+        { month: "Apr", revenue: 138000, expenses: 90000, profit: 48000, collections: 132000, target: 135000 },
+        { month: "May", revenue: 155000, expenses: 95000, profit: 60000, collections: 148000, target: 140000 },
+        { month: "Jun", revenue: 162000, expenses: 98000, profit: 64000, collections: 156000, target: 145000 }
+      ];
+      
+      res.json(mockRevenueData);
+    } catch (error) {
+      handleRouteError(error, "fetch revenue data", res);
+    }
+  });
+
+  // Get claims data
+  app.get("/api/financial/claims", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      // Mock claims data - in production this would come from claims management system
+      const mockClaims = [
+        {
+          id: "claim_1",
+          patientId: "patient_1",
+          patientName: "Sarah Johnson",
+          insuranceProvider: "Aetna",
+          claimNumber: "CLM-2024-001234",
+          serviceDate: "2024-06-20",
+          submissionDate: "2024-06-21",
+          amount: 450.00,
+          status: "approved",
+          paymentAmount: 380.00,
+          paymentDate: "2024-06-25",
+          procedures: [
+            { code: "99213", description: "Office visit, established patient", amount: 180.00 },
+            { code: "85025", description: "Complete blood count", amount: 45.00 },
+            { code: "80053", description: "Comprehensive metabolic panel", amount: 65.00 }
+          ]
+        },
+        {
+          id: "claim_2",
+          patientId: "patient_2",
+          patientName: "Michael Chen",
+          insuranceProvider: "Blue Cross Blue Shield",
+          claimNumber: "CLM-2024-001235",
+          serviceDate: "2024-06-22",
+          submissionDate: "2024-06-23",
+          amount: 285.00,
+          status: "denied",
+          denialReason: "Prior authorization required",
+          procedures: [
+            { code: "99214", description: "Office visit, established patient", amount: 220.00 },
+            { code: "85027", description: "Complete blood count with differential", amount: 65.00 }
+          ]
+        },
+        {
+          id: "claim_3",
+          patientId: "patient_3",
+          patientName: "Emma Davis",
+          insuranceProvider: "United Healthcare",
+          claimNumber: "CLM-2024-001236",
+          serviceDate: "2024-06-24",
+          submissionDate: "2024-06-25",
+          amount: 320.00,
+          status: "pending",
+          procedures: [
+            { code: "99215", description: "Office visit, established patient", amount: 280.00 },
+            { code: "36415", description: "Venipuncture", amount: 40.00 }
+          ]
+        }
+      ];
+      
+      res.json(mockClaims);
+    } catch (error) {
+      handleRouteError(error, "fetch claims data", res);
+    }
+  });
+
+  // Submit new claim
+  app.post("/api/financial/claims", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const claimData = z.object({
+        patientName: z.string(),
+        amount: z.number(),
+        status: z.string().optional(),
+        submittedAt: z.string().optional(),
+        providerName: z.string().optional(),
+        serviceDate: z.string()
+      }).parse(req.body);
+
+      // In production, this would create a claim in the database
+      const newClaim = {
+        id: `claim_${Date.now()}`,
+        ...claimData,
+        status: claimData.status || "submitted",
+        submissionDate: new Date().toISOString(),
+        claimNumber: `CLM-${Date.now()}`
+      };
+
+      res.status(201).json(newClaim);
+    } catch (error) {
+      handleRouteError(error, "submit claim", res);
+    }
+  });
+
+  // Get insurance data
+  app.get("/api/financial/insurance", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      // Mock insurance data - in production this would come from patient insurance records
+      const mockInsurances = [
+        {
+          id: "ins_1",
+          patientId: "patient_1",
+          patientName: "Sarah Johnson",
+          provider: "Aetna",
+          policyNumber: "AET123456789",
+          groupNumber: "GRP001",
+          status: "active",
+          coverageType: "primary",
+          eligibilityStatus: "verified",
+          lastVerified: "2024-06-25",
+          benefits: {
+            deductible: 1500,
+            deductibleMet: 850,
+            copay: 25,
+            coinsurance: 20,
+            outOfPocketMax: 5000,
+            outOfPocketMet: 1200
+          }
+        },
+        {
+          id: "ins_2",
+          patientId: "patient_2",
+          patientName: "Michael Chen",
+          provider: "Blue Cross Blue Shield",
+          policyNumber: "BCBS987654321",
+          groupNumber: "GRP002",
+          status: "active",
+          coverageType: "primary",
+          eligibilityStatus: "pending",
+          lastVerified: "2024-06-15",
+          benefits: {
+            deductible: 2000,
+            deductibleMet: 450,
+            copay: 30,
+            coinsurance: 25,
+            outOfPocketMax: 6000,
+            outOfPocketMet: 780
+          }
+        }
+      ];
+      
+      res.json(mockInsurances);
+    } catch (error) {
+      handleRouteError(error, "fetch insurance data", res);
+    }
+  });
+
+  // Verify insurance eligibility - THE MISSING ENDPOINT
+  app.post("/api/financial/insurance/:id/verify", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const insuranceId = req.params.id;
+      
+      console.log(`[FINANCIAL] Insurance verification requested for: ${insuranceId}`);
+      
+      // Simulate insurance verification process
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call delay
+      
+      // Mock verification response - in production this would call insurance provider APIs
+      const verificationResult = {
+        insuranceId,
+        verified: true,
+        eligibilityStatus: "verified",
+        lastVerified: new Date().toISOString(),
+        verificationDetails: {
+          active: true,
+          benefitsAvailable: true,
+          copay: Math.floor(Math.random() * 50) + 10, // Random copay 10-59
+          deductibleRemaining: Math.floor(Math.random() * 1000) + 100, // Random remaining 100-1099
+          outOfNetworkCoverage: Math.random() > 0.5 // Random boolean
+        },
+        message: "Insurance eligibility verification completed successfully"
+      };
+      
+      console.log(`[FINANCIAL] Verification completed for ${insuranceId}:`, verificationResult);
+      
+      res.json(verificationResult);
+    } catch (error) {
+      console.error(`[FINANCIAL] Insurance verification error:`, error);
+      handleRouteError(error, "verify insurance eligibility", res);
+    }
+  });
+
+  // Get financial forecasts
+  app.get("/api/financial/forecasts", authMiddleware, requireRole(["admin", "finance"]), async (req: TenantRequest, res) => {
+    try {
+      // Mock forecast data - in production this would be calculated from historical data
+      const mockForecasts = [
+        {
+          category: "Monthly Revenue",
+          currentMonth: 162000,
+          projectedNext: 168000,
+          variance: 6000,
+          trend: "up",
+          confidence: 85,
+          factors: ["Increased patient volume", "New insurance contracts", "Seasonal trend"]
+        },
+        {
+          category: "Collection Rate",
+          currentMonth: 94,
+          projectedNext: 95,
+          variance: 1,
+          trend: "up",
+          confidence: 78,
+          factors: ["Improved prior authorization process", "Better claim submission timing"]
+        },
+        {
+          category: "Operating Expenses",
+          currentMonth: 98000,
+          projectedNext: 102000,
+          variance: 4000,
+          trend: "up",
+          confidence: 92,
+          factors: ["Staff salary increases", "Equipment maintenance", "Inflation"]
+        }
+      ];
+      
+      res.json(mockForecasts);
+    } catch (error) {
+      handleRouteError(error, "fetch financial forecasts", res);
+    }
+  });
+
   // User management routes (admin only)
   // Medical staff endpoint for appointment booking - accessible to authenticated users
   app.get("/api/medical-staff", authMiddleware, async (req: TenantRequest, res) => {
