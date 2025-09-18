@@ -9,6 +9,8 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   BarChart, 
   Bar, 
@@ -46,7 +48,9 @@ import {
   Calculator,
   Banknote,
   ChevronDown,
-  ArrowLeft
+  ArrowLeft,
+  Check,
+  ChevronsUpDown
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -127,6 +131,7 @@ export default function FinancialIntelligence() {
     serviceDate: '',
     totalAmount: ''
   });
+  const [patientDropdownOpen, setPatientDropdownOpen] = useState(false);
   const { toast } = useToast();
 
   // Scroll functionality
@@ -188,6 +193,23 @@ export default function FinancialIntelligence() {
   // Fetch financial forecasts
   const { data: forecasts, isLoading: forecastsLoading } = useQuery({
     queryKey: ["/api/financial/forecasts"],
+    enabled: true
+  });
+
+  // Fetch patients for claim submission
+  const { data: patients, isLoading: patientsLoading } = useQuery({
+    queryKey: ["/api/patients"],
+    queryFn: async () => {
+      const response = await fetch("/api/patients", {
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
+          "X-Tenant-Subdomain": "demo"
+        },
+        credentials: "include"
+      });
+      if (!response.ok) throw new Error("Failed to fetch patients");
+      return response.json();
+    },
     enabled: true
   });
 
@@ -585,17 +607,57 @@ export default function FinancialIntelligence() {
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Patient</label>
-                    <Select value={claimFormData.patient} onValueChange={(value) => 
-                      setClaimFormData(prev => ({ ...prev, patient: value }))
-                    }>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select patient" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="patient_1">Sarah Johnson</SelectItem>
-                        <SelectItem value="patient_2">Michael Chen</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Popover open={patientDropdownOpen} onOpenChange={setPatientDropdownOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={patientDropdownOpen}
+                          className="w-full justify-between"
+                        >
+                          {claimFormData.patient
+                            ? patients?.find((patient: any) => patient.id.toString() === claimFormData.patient)
+                              ? `${patients.find((patient: any) => patient.id.toString() === claimFormData.patient).firstName} ${patients.find((patient: any) => patient.id.toString() === claimFormData.patient).lastName}`
+                              : "Select patient..."
+                            : "Select patient..."}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0">
+                        <Command>
+                          <CommandInput placeholder="Search patients..." />
+                          <CommandList>
+                            <CommandEmpty>
+                              {patientsLoading ? "Loading patients..." : "No patients found."}
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {patients?.map((patient: any) => (
+                                <CommandItem
+                                  key={patient.id}
+                                  value={`${patient.firstName} ${patient.lastName}`}
+                                  onSelect={() => {
+                                    setClaimFormData(prev => ({
+                                      ...prev,
+                                      patient: patient.id.toString()
+                                    }));
+                                    setPatientDropdownOpen(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={`mr-2 h-4 w-4 ${
+                                      claimFormData.patient === patient.id.toString()
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    }`}
+                                  />
+                                  {patient.firstName} {patient.lastName}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Service Date</label>
@@ -625,9 +687,12 @@ export default function FinancialIntelligence() {
                         return;
                       }
 
+                      const selectedPatient = patients?.find((patient: any) => patient.id.toString() === claimFormData.patient);
+                      const patientName = selectedPatient ? `${selectedPatient.firstName} ${selectedPatient.lastName}` : '';
+
                       // Submit the claim using the mutation
                       submitClaimMutation.mutate({
-                        patientName: claimFormData.patient === 'patient_1' ? 'Sarah Johnson' : 'Michael Chen',
+                        patientName: patientName,
                         amount: parseFloat(claimFormData.totalAmount),
                         status: 'pending',
                         serviceDate: claimFormData.serviceDate
@@ -639,7 +704,7 @@ export default function FinancialIntelligence() {
                       
                       toast({
                         title: "Claim Submitted",
-                        description: `Insurance claim for ${claimFormData.patient === 'patient_1' ? 'Sarah Johnson' : 'Michael Chen'} has been submitted successfully`
+                        description: `Insurance claim for ${patientName} has been submitted successfully`
                       });
                     }}
                     disabled={submitClaimMutation.isPending}
