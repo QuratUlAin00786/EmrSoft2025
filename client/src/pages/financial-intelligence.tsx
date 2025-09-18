@@ -242,7 +242,10 @@ export default function FinancialIntelligence() {
       return response.json();
     },
     onSuccess: () => {
+      console.log("Mutation success - invalidating queries");
       queryClient.invalidateQueries({ queryKey: ["/api/financial/claims"] });
+      // Force refetch the claims data
+      queryClient.refetchQueries({ queryKey: ["/api/financial/claims"] });
       toast({ title: "Claim submitted successfully" });
     }
   });
