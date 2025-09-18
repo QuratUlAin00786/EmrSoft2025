@@ -170,6 +170,17 @@ export default function FinancialIntelligence() {
   // Fetch claims
   const { data: claims, isLoading: claimsLoading } = useQuery({
     queryKey: ["/api/financial/claims"],
+    queryFn: async () => {
+      const response = await fetch("/api/financial/claims", {
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
+          "X-Tenant-Subdomain": "demo"
+        },
+        credentials: "include"
+      });
+      if (!response.ok) throw new Error("Failed to fetch claims");
+      return response.json();
+    },
     enabled: true
   });
 
@@ -212,6 +223,7 @@ export default function FinancialIntelligence() {
     },
     enabled: true
   });
+
 
   // Submit claim mutation
   const submitClaimMutation = useMutation({
@@ -717,111 +729,125 @@ export default function FinancialIntelligence() {
           </div>
 
           <div className="grid gap-4">
-            {mockClaims.map((claim) => (
-              <Card key={claim.id} className={claim.status === 'denied' ? 'border-red-200 dark:border-red-800' : 'dark:border-slate-700'}>
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-lg text-gray-900 dark:text-gray-100">{claim.patientName}</CardTitle>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge className={getStatusColor(claim.status)}>{claim.status}</Badge>
-                        <span className="text-sm text-gray-500 dark:text-gray-400">{claim.claimNumber}</span>
+            {claimsLoading ? (
+              <div className="text-center py-8">
+                <div className="text-gray-500 dark:text-gray-400">Loading claims...</div>
+              </div>
+            ) : claims && claims.length > 0 ? (
+              claims.map((claim: any) => (
+                <Card key={claim.id} className={claim.status === 'denied' ? 'border-red-200 dark:border-red-800' : 'dark:border-slate-700'}>
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="text-lg text-gray-900 dark:text-gray-100">{claim.patientName}</CardTitle>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge className={getStatusColor(claim.status)}>{claim.status}</Badge>
+                          <span className="text-sm text-gray-500 dark:text-gray-400">{claim.claimNumber || `CLM-${new Date().getFullYear()}-${String(claim.id).padStart(6, '0')}`}</span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-blue-600">
+                          {formatCurrency(claim.amount)}
+                        </div>
+                        {claim.paymentAmount && (
+                          <div className="text-sm text-green-600">
+                            Paid: {formatCurrency(claim.paymentAmount)}
+                          </div>
+                        )}
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-blue-600">
-                        {formatCurrency(claim.amount)}
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">Insurance</div>
+                        <div className="font-medium text-gray-900 dark:text-gray-100">{claim.insuranceProvider || 'N/A'}</div>
                       </div>
-                      {claim.paymentAmount && (
-                        <div className="text-sm text-green-600">
-                          Paid: {formatCurrency(claim.paymentAmount)}
+                      <div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">Service Date</div>
+                        <div className="font-medium text-gray-900 dark:text-gray-100">
+                          {format(new Date(claim.serviceDate), 'MMM dd, yyyy')}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">Submitted</div>
+                        <div className="font-medium text-gray-900 dark:text-gray-100">
+                          {format(new Date(claim.submissionDate || claim.serviceDate), 'MMM dd, yyyy')}
+                        </div>
+                      </div>
+                      {claim.paymentDate && (
+                        <div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">Payment Date</div>
+                          <div className="font-medium text-gray-900 dark:text-gray-100">
+                            {format(new Date(claim.paymentDate), 'MMM dd, yyyy')}
+                          </div>
                         </div>
                       )}
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">Insurance</div>
-                      <div className="font-medium text-gray-900 dark:text-gray-100">{claim.insuranceProvider}</div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">Service Date</div>
-                      <div className="font-medium text-gray-900 dark:text-gray-100">
-                        {format(new Date(claim.serviceDate), 'MMM dd, yyyy')}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">Submitted</div>
-                      <div className="font-medium text-gray-900 dark:text-gray-100">
-                        {format(new Date(claim.submissionDate), 'MMM dd, yyyy')}
-                      </div>
-                    </div>
-                    {claim.paymentDate && (
-                      <div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">Payment Date</div>
-                        <div className="font-medium text-gray-900 dark:text-gray-100">
-                          {format(new Date(claim.paymentDate), 'MMM dd, yyyy')}
-                        </div>
-                      </div>
-                    )}
-                  </div>
 
-                  {claim.denialReason && (
-                    <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded">
-                      <div className="flex items-start gap-2">
-                        <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5" />
-                        <div>
-                          <div className="font-medium text-red-800 dark:text-red-200">Claim Denied</div>
-                          <div className="text-sm text-red-700 dark:text-red-300">{claim.denialReason}</div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  <div>
-                    <h4 className="font-medium text-sm mb-2 text-gray-900 dark:text-gray-100">Procedures</h4>
-                    <div className="space-y-2">
-                      {claim.procedures.map((procedure, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-slate-800 rounded">
+                    {claim.denialReason && (
+                      <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded">
+                        <div className="flex items-start gap-2">
+                          <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5" />
                           <div>
-                            <div className="font-medium text-sm text-gray-900 dark:text-gray-100">{procedure.code}</div>
-                            <div className="text-xs text-gray-600 dark:text-gray-300">{procedure.description}</div>
+                            <div className="font-medium text-red-800 dark:text-red-200">Claim Denied</div>
+                            <div className="text-sm text-red-700 dark:text-red-300">{claim.denialReason}</div>
                           </div>
-                          <div className="font-medium text-gray-900 dark:text-gray-100">{formatCurrency(procedure.amount)}</div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={() => {
-                      setSelectedClaim(claim);
-                      setClaimDetailsOpen(true);
-                    }}>
-                      View Details
-                    </Button>
-                    {claim.status === 'denied' && (
-                      <Button size="sm" variant="outline" onClick={() => {
-                        toast({
-                          title: "Claim Resubmission",
-                          description: `Resubmitting claim ${claim.claimNumber} for ${claim.patientName}`
-                        });
-                      }}>
-                        Resubmit
-                      </Button>
+                      </div>
                     )}
-                    <Button size="sm" variant="outline" onClick={() => {
-                      setTrackingClaim(claim);
-                      setTrackStatusOpen(true);
-                    }}>
-                      Track Status
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+
+                    {claim.procedures && claim.procedures.length > 0 && (
+                      <div>
+                        <h4 className="font-medium text-sm mb-2 text-gray-900 dark:text-gray-100">Procedures</h4>
+                        <div className="space-y-2">
+                          {claim.procedures.map((procedure: any, idx: number) => (
+                            <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-slate-800 rounded">
+                              <div>
+                                <div className="font-medium text-sm text-gray-900 dark:text-gray-100">{procedure.code}</div>
+                                <div className="text-xs text-gray-600 dark:text-gray-300">{procedure.description}</div>
+                              </div>
+                              <div className="font-medium text-gray-900 dark:text-gray-100">{formatCurrency(procedure.amount)}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={() => {
+                        setSelectedClaim(claim);
+                        setClaimDetailsOpen(true);
+                      }}>
+                        View Details
+                      </Button>
+                      {claim.status === 'denied' && (
+                        <Button size="sm" variant="outline" onClick={() => {
+                          toast({
+                            title: "Claim Resubmission",
+                            description: `Resubmitting claim ${claim.claimNumber || `CLM-${claim.id}`} for ${claim.patientName}`
+                          });
+                        }}>
+                          Resubmit
+                        </Button>
+                      )}
+                      <Button size="sm" variant="outline" onClick={() => {
+                        setTrackingClaim(claim);
+                        setTrackStatusOpen(true);
+                      }}>
+                        Track Status
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <div className="text-gray-500 dark:text-gray-400">No claims found</div>
+                <div className="text-sm text-gray-400 dark:text-gray-500 mt-1">Submit your first claim to get started</div>
+              </div>
+            )}
           </div>
         </TabsContent>
 
