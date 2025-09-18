@@ -219,6 +219,78 @@ function PatientDetailsModal({ open, onOpenChange, patient }: PatientDetailsModa
     enabled: !!patient?.id && open
   });
 
+  // Fetch health insurance information by patient ID
+  const { data: insuranceInfo = {}, isLoading: insuranceLoading } = useQuery({
+    queryKey: ['/api/patients', patient?.id, 'insurance'],
+    queryFn: async () => {
+      if (!patient?.id) return {};
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/patients/${patient.id}/insurance`, {
+        headers,
+        credentials: 'include'
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    },
+    enabled: !!patient?.id && open
+  });
+
+  // Fetch address information by patient ID
+  const { data: addressInfo = {}, isLoading: addressLoading } = useQuery({
+    queryKey: ['/api/patients', patient?.id, 'address'],
+    queryFn: async () => {
+      if (!patient?.id) return {};
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/patients/${patient.id}/address`, {
+        headers,
+        credentials: 'include'
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    },
+    enabled: !!patient?.id && open
+  });
+
+  // Fetch emergency contact by patient ID
+  const { data: emergencyContact = {}, isLoading: emergencyContactLoading } = useQuery({
+    queryKey: ['/api/patients', patient?.id, 'emergency-contact'],
+    queryFn: async () => {
+      if (!patient?.id) return {};
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/patients/${patient.id}/emergency-contact`, {
+        headers,
+        credentials: 'include'
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    },
+    enabled: !!patient?.id && open
+  });
+
   if (!patient) return null;
 
   return (
@@ -231,13 +303,16 @@ function PatientDetailsModal({ open, onOpenChange, patient }: PatientDetailsModa
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-9">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
             <TabsTrigger value="records">Medical Records</TabsTrigger>
             <TabsTrigger value="history">History</TabsTrigger>
             <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
             <TabsTrigger value="lab">Lab Results</TabsTrigger>
             <TabsTrigger value="imaging">Imaging</TabsTrigger>
+            <TabsTrigger value="insurance">Insurance</TabsTrigger>
+            <TabsTrigger value="address">Address</TabsTrigger>
+            <TabsTrigger value="emergency">Emergency</TabsTrigger>
           </TabsList>
 
           {/* Basic Information Tab */}
@@ -628,6 +703,218 @@ function PatientDetailsModal({ open, onOpenChange, patient }: PatientDetailsModa
                         </CardContent>
                       </Card>
                     ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Health Insurance Information Tab */}
+          <TabsContent value="insurance" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Health Insurance Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {insuranceLoading ? (
+                  <div className="text-center py-4">Loading insurance information...</div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Insurance Provider</p>
+                        <p className="text-lg">{insuranceInfo.provider || patient.insuranceInfo?.provider || 'Not available'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Policy Number</p>
+                        <p className="text-lg">{insuranceInfo.policyNumber || patient.insuranceInfo?.policyNumber || 'Not available'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Group Number</p>
+                        <p>{insuranceInfo.groupNumber || patient.insuranceInfo?.groupNumber || 'Not available'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Member ID</p>
+                        <p>{insuranceInfo.memberId || patient.insuranceInfo?.memberId || 'Not available'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Coverage Type</p>
+                        <p>{insuranceInfo.coverageType || patient.insuranceInfo?.coverageType || 'Not available'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Plan Type</p>
+                        <p>{insuranceInfo.planType || patient.insuranceInfo?.planType || 'Not available'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Effective Date</p>
+                        <p>{insuranceInfo.effectiveDate ? format(new Date(insuranceInfo.effectiveDate), 'MMM dd, yyyy') : (patient.insuranceInfo?.effectiveDate ? format(new Date(patient.insuranceInfo.effectiveDate), 'MMM dd, yyyy') : 'Not available')}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Expiration Date</p>
+                        <p>{insuranceInfo.expirationDate ? format(new Date(insuranceInfo.expirationDate), 'MMM dd, yyyy') : (patient.insuranceInfo?.expirationDate ? format(new Date(patient.insuranceInfo.expirationDate), 'MMM dd, yyyy') : 'Not available')}</p>
+                      </div>
+                    </div>
+                    
+                    {(insuranceInfo.copayAmount || patient.insuranceInfo?.copayAmount) && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Copay Amount</p>
+                        <p className="text-lg font-semibold text-green-600">${insuranceInfo.copayAmount || patient.insuranceInfo?.copayAmount}</p>
+                      </div>
+                    )}
+
+                    {(insuranceInfo.deductible || patient.insuranceInfo?.deductible) && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Deductible</p>
+                        <p className="text-lg">${insuranceInfo.deductible || patient.insuranceInfo?.deductible}</p>
+                      </div>
+                    )}
+
+                    {(insuranceInfo.notes || patient.insuranceInfo?.notes) && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Notes</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">{insuranceInfo.notes || patient.insuranceInfo?.notes}</p>
+                      </div>
+                    )}
+
+                    {(!insuranceInfo.provider && !patient.insuranceInfo?.provider) && (
+                      <div className="text-center py-8 text-gray-500">
+                        <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>No insurance information available</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Address Information Tab */}
+          <TabsContent value="address" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  Address Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {addressLoading ? (
+                  <div className="text-center py-4">Loading address information...</div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="md:col-span-2">
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Street Address</p>
+                        <p className="text-lg">{addressInfo.street || patient.address?.street || 'Not available'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">City</p>
+                        <p>{addressInfo.city || patient.address?.city || 'Not available'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">State/County</p>
+                        <p>{addressInfo.state || addressInfo.county || patient.address?.state || patient.address?.county || 'Not available'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Postal Code</p>
+                        <p>{addressInfo.postcode || addressInfo.zipCode || patient.address?.postcode || 'Not available'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Country</p>
+                        <p>{addressInfo.country || patient.address?.country || 'Not available'}</p>
+                      </div>
+                    </div>
+
+                    {(addressInfo.apartment || addressInfo.unit || patient.address?.apartment) && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Apartment/Unit</p>
+                        <p>{addressInfo.apartment || addressInfo.unit || patient.address?.apartment}</p>
+                      </div>
+                    )}
+
+                    {(addressInfo.addressType || patient.address?.type) && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Address Type</p>
+                        <Badge variant="outline">{addressInfo.addressType || patient.address?.type}</Badge>
+                      </div>
+                    )}
+
+                    {(!addressInfo.street && !patient.address?.street) && (
+                      <div className="text-center py-8 text-gray-500">
+                        <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>No address information available</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Emergency Contact Tab */}
+          <TabsContent value="emergency" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Phone className="h-5 w-5" />
+                  Emergency Contact
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {emergencyContactLoading ? (
+                  <div className="text-center py-4">Loading emergency contact...</div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Contact Name</p>
+                        <p className="text-lg">{emergencyContact.name || emergencyContact.contactName || patient.emergencyContact?.name || 'Not available'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Relationship</p>
+                        <p>{emergencyContact.relationship || patient.emergencyContact?.relationship || 'Not available'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Primary Phone</p>
+                        <p>{emergencyContact.phone || emergencyContact.primaryPhone || patient.emergencyContact?.phone || 'Not available'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Secondary Phone</p>
+                        <p>{emergencyContact.secondaryPhone || emergencyContact.alternatePhone || patient.emergencyContact?.secondaryPhone || 'Not available'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Email</p>
+                        <p>{emergencyContact.email || patient.emergencyContact?.email || 'Not available'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Preferred Contact Method</p>
+                        <p>{emergencyContact.preferredContactMethod || patient.emergencyContact?.preferredContactMethod || 'Not available'}</p>
+                      </div>
+                    </div>
+
+                    {(emergencyContact.address || patient.emergencyContact?.address) && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Address</p>
+                        <p>{emergencyContact.address || patient.emergencyContact?.address}</p>
+                      </div>
+                    )}
+
+                    {(emergencyContact.notes || patient.emergencyContact?.notes) && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Notes</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">{emergencyContact.notes || patient.emergencyContact?.notes}</p>
+                      </div>
+                    )}
+
+                    {(!emergencyContact.name && !emergencyContact.contactName && !patient.emergencyContact?.name) && (
+                      <div className="text-center py-8 text-gray-500">
+                        <Phone className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>No emergency contact information available</p>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
