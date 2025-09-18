@@ -4,10 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
-import { Calendar, Eye, User, Phone, MapPin, AlertTriangle, Clock, Bell, FileText, Flag, Trash2, Hash, Edit } from "lucide-react";
+import { Calendar, Eye, User, Phone, MapPin, AlertTriangle, Clock, Bell, FileText, Flag, Trash2, Hash, Edit, X, Stethoscope, Pill, Activity, Camera } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "wouter";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 import { PatientSearch, SearchFilters } from "./patient-search";
 import { PatientCommunicationDialog } from "./patient-communication-dialog";
 import { PatientModal } from "./patient-modal";
@@ -86,6 +88,557 @@ interface PatientListProps {
   onSelectPatient?: (patient: any) => void;
 }
 
+interface PatientDetailsModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  patient: any | null;
+}
+
+// Comprehensive Patient Details Modal Component
+function PatientDetailsModal({ open, onOpenChange, patient }: PatientDetailsModalProps) {
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("basic");
+
+  // Fetch medical records by patient ID
+  const { data: medicalRecords = [], isLoading: recordsLoading } = useQuery({
+    queryKey: ['/api/patients', patient?.id, 'records'],
+    queryFn: async () => {
+      if (!patient?.id) return [];
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/patients/${patient.id}/records`, {
+        headers,
+        credentials: 'include'
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    },
+    enabled: !!patient?.id && open
+  });
+
+  // Fetch patient history by patient ID
+  const { data: patientHistory = {}, isLoading: historyLoading } = useQuery({
+    queryKey: ['/api/patients', patient?.id, 'history'],
+    queryFn: async () => {
+      if (!patient?.id) return {};
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/patients/${patient.id}/history`, {
+        headers,
+        credentials: 'include'
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    },
+    enabled: !!patient?.id && open
+  });
+
+  // Fetch prescriptions by patient ID
+  const { data: prescriptions = [], isLoading: prescriptionsLoading } = useQuery({
+    queryKey: ['/api/patients', patient?.id, 'prescriptions'],
+    queryFn: async () => {
+      if (!patient?.id) return [];
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/patients/${patient.id}/prescriptions`, {
+        headers,
+        credentials: 'include'
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    },
+    enabled: !!patient?.id && open
+  });
+
+  // Fetch lab results by patient ID
+  const { data: labResults = [], isLoading: labResultsLoading } = useQuery({
+    queryKey: ['/api/patients', patient?.id, 'lab-results'],
+    queryFn: async () => {
+      if (!patient?.id) return [];
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/patients/${patient.id}/lab-results`, {
+        headers,
+        credentials: 'include'
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    },
+    enabled: !!patient?.id && open
+  });
+
+  // Fetch medical imaging by patient ID
+  const { data: medicalImaging = [], isLoading: imagingLoading } = useQuery({
+    queryKey: ['/api/patients', patient?.id, 'medical-imaging'],
+    queryFn: async () => {
+      if (!patient?.id) return [];
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/patients/${patient.id}/medical-imaging`, {
+        headers,
+        credentials: 'include'
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    },
+    enabled: !!patient?.id && open
+  });
+
+  if (!patient) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold">
+            Patient Details - {patient.firstName} {patient.lastName}
+          </DialogTitle>
+        </DialogHeader>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="basic">Basic Info</TabsTrigger>
+            <TabsTrigger value="records">Medical Records</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
+            <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
+            <TabsTrigger value="lab">Lab Results</TabsTrigger>
+            <TabsTrigger value="imaging">Imaging</TabsTrigger>
+          </TabsList>
+
+          {/* Basic Information Tab */}
+          <TabsContent value="basic" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Basic Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Name</p>
+                    <p className="text-lg">{patient.firstName} {patient.lastName}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Patient ID</p>
+                    <p className="text-lg">{patient.patientId}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Date of Birth</p>
+                    <p>{patient.dateOfBirth ? format(new Date(patient.dateOfBirth), 'MMM dd, yyyy') : 'Not available'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Age</p>
+                    <p>{calculateAge(patient.dateOfBirth)}y</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Phone</p>
+                    <p>{patient.phone || 'Not available'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Email</p>
+                    <p>{patient.email || 'Not available'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">NHS Number</p>
+                    <p>{patient.nhsNumber || 'Not available'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Risk Level</p>
+                    <Badge className={getRiskLevelColor(patient.riskLevel)} style={{ backgroundColor: getRiskLevelBgColor(patient.riskLevel) }}>
+                      {patient.riskLevel || 'Not assessed'}
+                    </Badge>
+                  </div>
+                </div>
+                
+                {patient.address && (
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Address</p>
+                    <p>{patient.address.street || ''} {patient.address.city || ''} {patient.address.postcode || ''}</p>
+                  </div>
+                )}
+
+                {patient.medicalHistory?.allergies && patient.medicalHistory.allergies.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Allergies</p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {patient.medicalHistory.allergies.map((allergy: string, index: number) => (
+                        <Badge key={index} variant="destructive" className="text-xs">
+                          {allergy}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {patient.medicalHistory?.chronicConditions && patient.medicalHistory.chronicConditions.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Chronic Conditions</p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {patient.medicalHistory.chronicConditions.map((condition: string, index: number) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {condition}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Medical Records Tab */}
+          <TabsContent value="records" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Stethoscope className="h-5 w-5" />
+                  Medical Records ({medicalRecords.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {recordsLoading ? (
+                  <div className="text-center py-4">Loading medical records...</div>
+                ) : medicalRecords.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No medical records found</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {medicalRecords.map((record: any) => (
+                      <Card key={record.id} className="border-l-4" style={{ borderLeftColor: '#4A7DFF' }}>
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <h4 className="font-semibold">{record.title}</h4>
+                            <Badge variant="outline">{record.type}</Badge>
+                          </div>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                            {format(new Date(record.createdAt), "MMM d, yyyy 'at' h:mm a")}
+                          </p>
+                          {record.notes && (
+                            <p className="text-sm">{record.notes}</p>
+                          )}
+                          {record.diagnosis && (
+                            <div className="mt-2">
+                              <p className="text-sm font-medium">Diagnosis:</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">{record.diagnosis}</p>
+                            </div>
+                          )}
+                          {record.treatment && (
+                            <div className="mt-2">
+                              <p className="text-sm font-medium">Treatment:</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">{record.treatment}</p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Complete Patient History Tab */}
+          <TabsContent value="history" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  Complete Patient History
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {historyLoading ? (
+                  <div className="text-center py-4">Loading patient history...</div>
+                ) : (
+                  <div className="space-y-4">
+                    {patientHistory?.familyHistory && (
+                      <div>
+                        <h4 className="font-semibold mb-2">Family History</h4>
+                        <div className="space-y-2">
+                          {Object.entries(patientHistory.familyHistory).map(([relation, conditions]: [string, any]) => (
+                            <div key={relation} className="border rounded p-3">
+                              <p className="font-medium capitalize">{relation}</p>
+                              {Array.isArray(conditions) && conditions.length > 0 ? (
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {conditions.map((condition: string, index: number) => (
+                                    <Badge key={index} variant="outline" className="text-xs">
+                                      {condition}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-sm text-gray-500">No conditions reported</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {patientHistory?.socialHistory && (
+                      <div>
+                        <h4 className="font-semibold mb-2">Social History</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {Object.entries(patientHistory.socialHistory).map(([key, value]: [string, any]) => (
+                            <div key={key}>
+                              <p className="text-sm font-medium capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">{value || 'Not specified'}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {(!patientHistory?.familyHistory && !patientHistory?.socialHistory) && (
+                      <div className="text-center py-8 text-gray-500">
+                        <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>No patient history available</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Prescriptions Tab */}
+          <TabsContent value="prescriptions" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Pill className="h-5 w-5" />
+                  Prescriptions ({prescriptions.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {prescriptionsLoading ? (
+                  <div className="text-center py-4">Loading prescriptions...</div>
+                ) : prescriptions.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Pill className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No prescriptions found</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {prescriptions.map((prescription: any) => (
+                      <Card key={prescription.id} className="border-l-4" style={{ borderLeftColor: '#7279FB' }}>
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <h4 className="font-semibold">{prescription.medicationName}</h4>
+                            <Badge style={{ backgroundColor: '#7279FB', color: 'white' }}>
+                              {prescription.status || 'Active'}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                            Prescribed: {format(new Date(prescription.createdAt || prescription.prescribedDate), "MMM d, yyyy")}
+                          </p>
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <p className="font-medium">Dosage:</p>
+                              <p>{prescription.dosage || 'Not specified'}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium">Frequency:</p>
+                              <p>{prescription.frequency || 'Not specified'}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium">Duration:</p>
+                              <p>{prescription.duration || 'Not specified'}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium">Prescribed by:</p>
+                              <p>{prescription.prescribedBy || 'Not specified'}</p>
+                            </div>
+                          </div>
+                          {prescription.instructions && (
+                            <div className="mt-2">
+                              <p className="font-medium text-sm">Instructions:</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">{prescription.instructions}</p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Lab Results Tab */}
+          <TabsContent value="lab" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5" />
+                  Lab Results ({labResults.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {labResultsLoading ? (
+                  <div className="text-center py-4">Loading lab results...</div>
+                ) : labResults.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No lab results found</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {labResults.map((result: any) => (
+                      <Card key={result.id} className="border-l-4" style={{ borderLeftColor: '#6CFFEB' }}>
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <h4 className="font-semibold">{result.testName || result.name}</h4>
+                            <Badge style={{ backgroundColor: '#6CFFEB', color: '#162B61' }}>
+                              {result.status || 'Completed'}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                            Test Date: {format(new Date(result.testDate || result.createdAt), "MMM d, yyyy")}
+                          </p>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <p className="font-medium">Result:</p>
+                              <p>{result.result || result.value || 'Pending'}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium">Reference Range:</p>
+                              <p>{result.referenceRange || 'Not specified'}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium">Units:</p>
+                              <p>{result.units || 'Not specified'}</p>
+                            </div>
+                          </div>
+                          {result.notes && (
+                            <div className="mt-2">
+                              <p className="font-medium text-sm">Notes:</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">{result.notes}</p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Medical Imaging Tab */}
+          <TabsContent value="imaging" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Camera className="h-5 w-5" />
+                  Medical Imaging ({medicalImaging.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {imagingLoading ? (
+                  <div className="text-center py-4">Loading medical imaging...</div>
+                ) : medicalImaging.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Camera className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No medical imaging found</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {medicalImaging.map((imaging: any) => (
+                      <Card key={imaging.id} className="border-l-4" style={{ borderLeftColor: '#C073FF' }}>
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <h4 className="font-semibold">{imaging.studyType || imaging.type}</h4>
+                            <Badge style={{ backgroundColor: '#C073FF', color: 'white' }}>
+                              {imaging.status || 'Completed'}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                            Study Date: {format(new Date(imaging.studyDate || imaging.createdAt), "MMM d, yyyy")}
+                          </p>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <p className="font-medium">Body Part:</p>
+                              <p>{imaging.bodyPart || imaging.anatomicalSite || 'Not specified'}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium">Modality:</p>
+                              <p>{imaging.modality || 'Not specified'}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium">Radiologist:</p>
+                              <p>{imaging.radiologist || imaging.performedBy || 'Not specified'}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium">Priority:</p>
+                              <p>{imaging.priority || 'Routine'}</p>
+                            </div>
+                          </div>
+                          {imaging.findings && (
+                            <div className="mt-2">
+                              <p className="font-medium text-sm">Findings:</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">{imaging.findings}</p>
+                            </div>
+                          )}
+                          {imaging.impression && (
+                            <div className="mt-2">
+                              <p className="font-medium text-sm">Impression:</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">{imaging.impression}</p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function PatientList({ onSelectPatient }: PatientListProps = {}) {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -106,6 +659,14 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
   });
 
   const [editModal, setEditModal] = useState<{
+    open: boolean;
+    patient: any | null;
+  }>({
+    open: false,
+    patient: null
+  });
+
+  const [patientDetailsModal, setPatientDetailsModal] = useState<{
     open: boolean;
     patient: any | null;
   }>({
@@ -254,7 +815,10 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
     if (onSelectPatient) {
       onSelectPatient(patient);
     } else {
-      setLocation(`/patients/${patient.id}`);
+      setPatientDetailsModal({
+        open: true,
+        patient: patient
+      });
     }
   };
 
@@ -662,6 +1226,13 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
       onOpenChange={(open) => setEditModal({open, patient: open ? editModal.patient : null})}
       editMode={true}
       editPatient={editModal.patient}
+    />
+
+    {/* Comprehensive Patient Details Modal */}
+    <PatientDetailsModal
+      open={patientDetailsModal.open}
+      onOpenChange={(open) => setPatientDetailsModal({open, patient: open ? patientDetailsModal.patient : null})}
+      patient={patientDetailsModal.patient}
     />
   </div>
 );
