@@ -464,7 +464,7 @@ function PatientDetailsModal({ open, onOpenChange, patient }: PatientDetailsModa
                 {historyLoading ? (
                   <div className="text-center py-4">Loading patient history...</div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
                     {patientHistory?.familyHistory && (
                       <div>
                         <h4 className="font-semibold mb-2">Family History</h4>
