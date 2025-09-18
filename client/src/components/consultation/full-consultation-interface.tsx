@@ -147,9 +147,12 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
   const saveHistoryMutation = useMutation({
     mutationFn: async (historyData: any) => {
       const currentPatientId = patientId || patient?.id;
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`/api/patients/${currentPatientId}/records`, {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo',
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
