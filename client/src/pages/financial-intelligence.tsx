@@ -171,6 +171,17 @@ export default function FinancialIntelligence() {
   // Fetch insurance verifications
   const { data: insurances, isLoading: insuranceLoading } = useQuery({
     queryKey: ["/api/financial/insurance"],
+    queryFn: async () => {
+      const response = await fetch("/api/financial/insurance", {
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
+          "X-Tenant-Subdomain": "demo"
+        },
+        credentials: "include"
+      });
+      if (!response.ok) throw new Error("Failed to fetch insurance data");
+      return response.json();
+    },
     enabled: true
   });
 
@@ -203,14 +214,28 @@ export default function FinancialIntelligence() {
     mutationFn: async (insuranceId: string) => {
       const response = await fetch(`/api/financial/insurance/${insuranceId}/verify`, {
         method: "POST",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
+          "X-Tenant-Subdomain": "demo"
+        },
         credentials: "include"
       });
       if (!response.ok) throw new Error("Failed to verify insurance");
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/financial/insurance"] });
-      toast({ title: "Insurance verification completed" });
+      toast({ 
+        title: "Insurance verification completed",
+        description: data.message || "Eligibility status updated successfully"
+      });
+    },
+    onError: (error) => {
+      toast({ 
+        title: "Insurance verification failed", 
+        description: error.message || "Failed to verify insurance eligibility",
+        variant: "destructive" 
+      });
     }
   });
 
@@ -811,7 +836,7 @@ export default function FinancialIntelligence() {
 
         <TabsContent value="insurance" className="space-y-4">
           <div className="grid gap-4">
-            {mockInsurances.map((insurance) => (
+            {(insurances || mockInsurances).map((insurance) => (
               <Card key={insurance.id}>
                 <CardHeader>
                   <div className="flex justify-between items-start">
