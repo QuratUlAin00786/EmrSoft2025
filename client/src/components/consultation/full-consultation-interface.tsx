@@ -2070,16 +2070,6 @@ Patient should be advised of potential side effects and expected timeline for re
                                 stroke="rgba(255, 215, 0, 1)"
                                 strokeWidth="2"
                               />
-                              <text
-                                x={centerX}
-                                y={centerY + 4}
-                                textAnchor="middle"
-                                fontSize="12"
-                                fontWeight="bold"
-                                fill="black"
-                              >
-                                {dot.id}
-                              </text>
                             </g>
                           );
                         })}
@@ -2126,16 +2116,6 @@ Patient should be advised of potential side effects and expected timeline for re
                                 stroke="rgba(37, 99, 235, 1)"
                                 strokeWidth="2"
                               />
-                              <text
-                                x={centerX}
-                                y={centerY + 3}
-                                textAnchor="middle"
-                                fontSize="10"
-                                fontWeight="bold"
-                                fill="white"
-                              >
-                                {position.id}
-                              </text>
                               
                               {/* Muscle name tooltip */}
                               <text
@@ -2207,16 +2187,6 @@ Patient should be advised of potential side effects and expected timeline for re
                                 stroke="rgba(255, 215, 0, 1)"
                                 strokeWidth="2"
                               />
-                              <text
-                                x={centerX}
-                                y={centerY + 4}
-                                textAnchor="middle"
-                                fontSize="12"
-                                fontWeight="bold"
-                                fill="black"
-                              >
-                                {position.position}
-                              </text>
                               
                               {/* Muscle name tooltip */}
                               <text
