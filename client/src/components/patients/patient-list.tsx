@@ -229,6 +229,26 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
     }
   }, [patients, searchQuery, searchFilters]);
 
+  // Sync editModal.patient with fresh data after cache invalidation
+  useEffect(() => {
+    if (editModal.open && editModal.patient && patients && Array.isArray(patients)) {
+      const updatedPatient = patients.find(p => p.id === editModal.patient.id);
+      if (updatedPatient) {
+        // Only update if the data has actually changed to avoid unnecessary re-renders
+        const currentPatientData = JSON.stringify(editModal.patient);
+        const updatedPatientData = JSON.stringify(updatedPatient);
+        
+        if (currentPatientData !== updatedPatientData) {
+          console.log('Syncing editModal.patient with fresh data for patient:', updatedPatient.id);
+          setEditModal(prev => ({
+            ...prev,
+            patient: updatedPatient
+          }));
+        }
+      }
+    }
+  }, [patients, editModal.open, editModal.patient?.id]);
+
 
   const handleViewPatient = (patient: any) => {
     if (onSelectPatient) {
