@@ -4,11 +4,32 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Users, Heart, AlertTriangle, Edit, Trash2, Activity, Save } from "lucide-react";
+import {
+  Plus,
+  Users,
+  Heart,
+  AlertTriangle,
+  Edit,
+  Trash2,
+  Activity,
+  Save,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -65,25 +86,69 @@ interface Immunization {
 }
 
 const commonConditions = [
-  "Heart Disease", "Diabetes", "Cancer", "Hypertension", "Stroke", "Depression",
-  "Anxiety", "Asthma", "COPD", "Kidney Disease", "Liver Disease", "Arthritis",
-  "Osteoporosis", "Alzheimer's", "Parkinson's", "Epilepsy", "Thyroid Disease"
+  "Heart Disease",
+  "Diabetes",
+  "Cancer",
+  "Hypertension",
+  "Stroke",
+  "Depression",
+  "Anxiety",
+  "Asthma",
+  "COPD",
+  "Kidney Disease",
+  "Liver Disease",
+  "Arthritis",
+  "Osteoporosis",
+  "Alzheimer's",
+  "Parkinson's",
+  "Epilepsy",
+  "Thyroid Disease",
 ];
 
 const relatives = [
-  "Mother", "Father", "Maternal Grandmother", "Maternal Grandfather",
-  "Paternal Grandmother", "Paternal Grandfather", "Sister", "Brother",
-  "Maternal Aunt", "Maternal Uncle", "Paternal Aunt", "Paternal Uncle",
-  "Daughter", "Son", "Other"
+  "Mother",
+  "Father",
+  "Maternal Grandmother",
+  "Maternal Grandfather",
+  "Paternal Grandmother",
+  "Paternal Grandfather",
+  "Sister",
+  "Brother",
+  "Maternal Aunt",
+  "Maternal Uncle",
+  "Paternal Aunt",
+  "Paternal Uncle",
+  "Daughter",
+  "Son",
+  "Other",
 ];
 
 const commonVaccines = [
-  "COVID-19", "Influenza", "Tetanus", "Diphtheria", "Pertussis", "MMR (Measles, Mumps, Rubella)",
-  "Polio", "Hepatitis A", "Hepatitis B", "Varicella (Chickenpox)", "Pneumococcal", "Meningococcal",
-  "HPV", "Shingles", "Tdap", "IPV", "Rotavirus", "Hib", "BCG"
+  "COVID-19",
+  "Influenza",
+  "Tetanus",
+  "Diphtheria",
+  "Pertussis",
+  "MMR (Measles, Mumps, Rubella)",
+  "Polio",
+  "Hepatitis A",
+  "Hepatitis B",
+  "Varicella (Chickenpox)",
+  "Pneumococcal",
+  "Meningococcal",
+  "HPV",
+  "Shingles",
+  "Tdap",
+  "IPV",
+  "Rotavirus",
+  "Hib",
+  "BCG",
 ];
 
-export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamilyHistoryProps) {
+export default function PatientFamilyHistory({
+  patient,
+  onUpdate,
+}: PatientFamilyHistoryProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
@@ -91,33 +156,48 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
   const [newCondition, setNewCondition] = useState<Partial<FamilyCondition>>({
     relative: "",
     condition: "",
-    severity: "mild"
+    severity: "mild",
   });
   const [showImmunizationForm, setShowImmunizationForm] = useState(false);
-  const [newImmunization, setNewImmunization] = useState<Partial<Immunization>>({
-    vaccine: "",
-    date: "",
-    provider: "",
-    lot: "",
-    site: "",
-    notes: ""
-  });
+  const [newImmunization, setNewImmunization] = useState<Partial<Immunization>>(
+    {
+      vaccine: "",
+      date: "",
+      provider: "",
+      lot: "",
+      site: "",
+      notes: "",
+    },
+  );
   const [newAllergy, setNewAllergy] = useState("");
   const [newChronicCondition, setNewChronicCondition] = useState("");
-  const [editingCondition, setEditingCondition] = useState<FamilyCondition | null>(null);
+  const [editingCondition, setEditingCondition] =
+    useState<FamilyCondition | null>(null);
 
   const updateMedicalHistoryMutation = useMutation({
     mutationFn: async (medicalHistory: any) => {
-      console.log("MUTATION - Sending medical history:", JSON.stringify(medicalHistory, null, 2));
-      console.log("MUTATION - Family history being sent:", medicalHistory.familyHistory);
-      const response = await apiRequest('PATCH', `/api/patients/${patient.id}/medical-history`, medicalHistory);
+      console.log(
+        "MUTATION - Sending medical history:",
+        JSON.stringify(medicalHistory, null, 2),
+      );
+      console.log(
+        "MUTATION - Family history being sent:",
+        medicalHistory.familyHistory,
+      );
+      const response = await apiRequest(
+        "PATCH",
+        `/api/patients/${patient.id}/medical-history`,
+        medicalHistory,
+      );
       return response.json();
     },
     onSuccess: (updatedPatient) => {
       // Update the local patient state with the response from the API
       onUpdate(updatedPatient);
       queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
-      queryClient.invalidateQueries({ queryKey: [`/api/patients/${patient.id}`] });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/patients/${patient.id}`],
+      });
       toast({
         title: "Medical history updated",
         description: "Patient medical information has been saved successfully",
@@ -129,7 +209,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
         description: "Failed to save medical information. Please try again.",
         variant: "destructive",
       });
-    }
+    },
   });
 
   // Make familyHistory reactive to patient data changes
@@ -137,7 +217,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
     father: [],
     mother: [],
     siblings: [],
-    grandparents: []
+    grandparents: [],
   };
 
   const defaultSocialHistory: SocialHistory = {
@@ -147,21 +227,25 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
     occupation: "",
     maritalStatus: "single",
     education: "",
-    exercise: { frequency: "none" }
+    exercise: { frequency: "none" },
   };
 
-  const [editedSocialHistory, setEditedSocialHistory] = useState<SocialHistory>(() => {
-    const currentSocialHistory = patient.medicalHistory?.socialHistory;
-    // Check if the social history has the correct structure
-    if (currentSocialHistory && 
-        typeof currentSocialHistory === 'object' && 
-        (currentSocialHistory as any).smoking && 
-        typeof (currentSocialHistory as any).smoking === 'object' &&
-        'status' in (currentSocialHistory as any).smoking) {
-      return currentSocialHistory as unknown as SocialHistory;
-    }
-    return defaultSocialHistory;
-  });
+  const [editedSocialHistory, setEditedSocialHistory] = useState<SocialHistory>(
+    () => {
+      const currentSocialHistory = patient.medicalHistory?.socialHistory;
+      // Check if the social history has the correct structure
+      if (
+        currentSocialHistory &&
+        typeof currentSocialHistory === "object" &&
+        (currentSocialHistory as any).smoking &&
+        typeof (currentSocialHistory as any).smoking === "object" &&
+        "status" in (currentSocialHistory as any).smoking
+      ) {
+        return currentSocialHistory as unknown as SocialHistory;
+      }
+      return defaultSocialHistory;
+    },
+  );
 
   const saveSocialHistory = () => {
     try {
@@ -171,7 +255,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
         medications: patient.medicalHistory?.medications || [],
         familyHistory: patient.medicalHistory?.familyHistory || {},
         socialHistory: editedSocialHistory as any,
-        immunizations: patient.medicalHistory?.immunizations || []
+        immunizations: patient.medicalHistory?.immunizations || [],
       });
     } catch (error) {
       toast({
@@ -186,21 +270,21 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
     if (newAllergy.trim()) {
       const currentAllergies = patient.medicalHistory?.allergies || [];
       const updatedAllergies = [...currentAllergies, newAllergy.trim()];
-      
+
       updateMedicalHistoryMutation.mutate({
         allergies: updatedAllergies,
         chronicConditions: patient.medicalHistory?.chronicConditions || [],
         medications: patient.medicalHistory?.medications || [],
         familyHistory: patient.medicalHistory?.familyHistory || {},
         socialHistory: patient.medicalHistory?.socialHistory || {},
-        immunizations: patient.medicalHistory?.immunizations || []
+        immunizations: patient.medicalHistory?.immunizations || [],
       });
-      
+
       onUpdate({
         medicalHistory: {
           ...patient.medicalHistory,
-          allergies: updatedAllergies
-        }
+          allergies: updatedAllergies,
+        },
       });
       setNewAllergy("");
     }
@@ -209,55 +293,60 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
   const removeAllergy = (index: number) => {
     // Get combined allergies just like in display logic
     const medicalAllergies = patient.medicalHistory?.allergies || [];
-    const flagAllergies = patient.flags 
+    const flagAllergies = patient.flags
       ? patient.flags
-          .filter(flag => typeof flag === 'string' && flag.includes(':'))
-          .map(flag => flag.split(':')[2])
-          .filter(allergy => allergy && allergy.trim().length > 0)
+          .filter((flag) => typeof flag === "string" && flag.includes(":"))
+          .map((flag) => flag.split(":")[2])
+          .filter((allergy) => allergy && allergy.trim().length > 0)
       : [];
-    
+
     const allAllergies = [...medicalAllergies, ...flagAllergies];
     const allergyToRemove = allAllergies[index];
-    
+
     // Only remove from medicalHistory.allergies if it exists there
-    const updatedAllergies = medicalAllergies.filter(allergy => allergy !== allergyToRemove);
-    
+    const updatedAllergies = medicalAllergies.filter(
+      (allergy) => allergy !== allergyToRemove,
+    );
+
     updateMedicalHistoryMutation.mutate({
       allergies: updatedAllergies,
       chronicConditions: patient.medicalHistory?.chronicConditions || [],
       medications: patient.medicalHistory?.medications || [],
       familyHistory: patient.medicalHistory?.familyHistory || {},
       socialHistory: patient.medicalHistory?.socialHistory || {},
-      immunizations: patient.medicalHistory?.immunizations || []
+      immunizations: patient.medicalHistory?.immunizations || [],
     });
-    
+
     onUpdate({
       medicalHistory: {
         ...patient.medicalHistory,
-        allergies: updatedAllergies
-      }
+        allergies: updatedAllergies,
+      },
     });
   };
 
   const addChronicCondition = () => {
     if (newChronicCondition.trim()) {
       const currentConditions = patient.medicalHistory?.chronicConditions || [];
-      const updatedConditions = [...currentConditions, newChronicCondition.trim()];
-      
+      const updatedConditions = [
+        ...currentConditions,
+        newChronicCondition.trim(),
+      ];
+
       updateMedicalHistoryMutation.mutate({
         allergies: patient.medicalHistory?.allergies || [],
         chronicConditions: updatedConditions,
         medications: patient.medicalHistory?.medications || [],
         familyHistory: patient.medicalHistory?.familyHistory || {},
         socialHistory: patient.medicalHistory?.socialHistory || {},
-        immunizations: patient.medicalHistory?.immunizations || []
+        immunizations: patient.medicalHistory?.immunizations || [],
       });
-      
+
       onUpdate({
         medicalHistory: {
           ...patient.medicalHistory,
-          chronicConditions: updatedConditions
-        }
+          chronicConditions: updatedConditions,
+        },
       });
       setNewChronicCondition("");
     }
@@ -266,21 +355,21 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
   const removeChronicCondition = (index: number) => {
     const currentConditions = patient.medicalHistory?.chronicConditions || [];
     const updatedConditions = currentConditions.filter((_, i) => i !== index);
-    
+
     updateMedicalHistoryMutation.mutate({
       allergies: patient.medicalHistory?.allergies || [],
       chronicConditions: updatedConditions,
       medications: patient.medicalHistory?.medications || [],
       familyHistory: patient.medicalHistory?.familyHistory || {},
       socialHistory: patient.medicalHistory?.socialHistory || {},
-      immunizations: patient.medicalHistory?.immunizations || []
+      immunizations: patient.medicalHistory?.immunizations || [],
     });
-    
+
     onUpdate({
       medicalHistory: {
         ...patient.medicalHistory,
-        chronicConditions: updatedConditions
-      }
+        chronicConditions: updatedConditions,
+      },
     });
   };
 
@@ -294,7 +383,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
       medications: patient.medicalHistory?.medications || [],
       familyHistory: patient.medicalHistory?.familyHistory || {},
       socialHistory: patient.medicalHistory?.socialHistory || {},
-      immunizations: patient.medicalHistory?.immunizations || []
+      immunizations: patient.medicalHistory?.immunizations || [],
     });
     setIsEditing(false);
   };
@@ -305,30 +394,39 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
     }
 
     // Build the condition string
-    const conditionText = `${newCondition.condition}${newCondition.ageOfOnset ? ` (age ${newCondition.ageOfOnset})` : ''}${newCondition.notes ? ` - ${newCondition.notes}` : ''}`;
-    
+    const conditionText = `${newCondition.condition}${newCondition.ageOfOnset ? ` (age ${newCondition.ageOfOnset})` : ""}${newCondition.notes ? ` - ${newCondition.notes}` : ""}`;
+
     // Get current family history and create a copy
     const currentHistory = patient.medicalHistory?.familyHistory || {
       father: [],
       mother: [],
       siblings: [],
-      grandparents: []
+      grandparents: [],
     };
 
     // Determine which relative category this belongs to
-    let relativeCategory: 'father' | 'mother' | 'siblings' | 'grandparents' = 'father';
+    let relativeCategory: "father" | "mother" | "siblings" | "grandparents" =
+      "father";
     const relativeText = newCondition.relative.toLowerCase().trim();
-    
-    if (relativeText === 'mother') {
-      relativeCategory = 'mother';
-    } else if (relativeText === 'father') {
-      relativeCategory = 'father';
-    } else if (relativeText.includes('sibling') || relativeText.includes('sister') || relativeText.includes('brother')) {
-      relativeCategory = 'siblings';
-    } else if (relativeText.includes('grandparent') || relativeText.includes('grandmother') || relativeText.includes('grandfather')) {
-      relativeCategory = 'grandparents';
+
+    if (relativeText === "mother") {
+      relativeCategory = "mother";
+    } else if (relativeText === "father") {
+      relativeCategory = "father";
+    } else if (
+      relativeText.includes("sibling") ||
+      relativeText.includes("sister") ||
+      relativeText.includes("brother")
+    ) {
+      relativeCategory = "siblings";
+    } else if (
+      relativeText.includes("grandparent") ||
+      relativeText.includes("grandmother") ||
+      relativeText.includes("grandfather")
+    ) {
+      relativeCategory = "grandparents";
     } else {
-      relativeCategory = 'father'; // default to father
+      relativeCategory = "father"; // default to father
     }
 
     // Create the updated family history object
@@ -336,7 +434,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
       father: [...(currentHistory.father || [])],
       mother: [...(currentHistory.mother || [])],
       siblings: [...(currentHistory.siblings || [])],
-      grandparents: [...(currentHistory.grandparents || [])]
+      grandparents: [...(currentHistory.grandparents || [])],
     };
 
     // Add the new condition to the appropriate category
@@ -349,16 +447,16 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
       familyHistory: updatedFamilyHistory,
       immunizations: patient.medicalHistory?.immunizations || [],
       socialHistory: patient.medicalHistory?.socialHistory || {},
-      chronicConditions: patient.medicalHistory?.chronicConditions || []
+      chronicConditions: patient.medicalHistory?.chronicConditions || [],
     };
 
     // Save to database using the updated data
     updateMedicalHistoryMutation.mutate(newMedicalHistory);
-    
+
     // Update local state immediately for instant UI feedback
     onUpdate({
       ...patient,
-      medicalHistory: newMedicalHistory
+      medicalHistory: newMedicalHistory,
     });
 
     // Reset form only after successful local update
@@ -366,7 +464,12 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
   };
 
   const addImmunization = () => {
-    if (!newImmunization.vaccine || !newImmunization.date || !newImmunization.provider) return;
+    if (
+      !newImmunization.vaccine ||
+      !newImmunization.date ||
+      !newImmunization.provider
+    )
+      return;
 
     const immunization: Immunization = {
       id: Date.now().toString(),
@@ -375,7 +478,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
       provider: newImmunization.provider!,
       lot: newImmunization.lot,
       site: newImmunization.site,
-      notes: newImmunization.notes
+      notes: newImmunization.notes,
     };
 
     const updatedImmunizations = [...immunizations, immunization];
@@ -386,14 +489,14 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
       medications: patient.medicalHistory?.medications || [],
       familyHistory: patient.medicalHistory?.familyHistory || {},
       socialHistory: patient.medicalHistory?.socialHistory || {},
-      immunizations: updatedImmunizations
+      immunizations: updatedImmunizations,
     });
 
     onUpdate({
       medicalHistory: {
         ...patient.medicalHistory,
-        immunizations: updatedImmunizations
-      }
+        immunizations: updatedImmunizations,
+      },
     });
 
     setNewImmunization({
@@ -402,17 +505,21 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
       provider: "",
       lot: "",
       site: "",
-      notes: ""
+      notes: "",
     });
     setShowImmunizationForm(false);
   };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case "mild": return "bg-yellow-100 text-yellow-800";
-      case "moderate": return "bg-orange-100 text-orange-800";
-      case "severe": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "mild":
+        return "bg-yellow-100 text-yellow-800";
+      case "moderate":
+        return "bg-orange-100 text-orange-800";
+      case "severe":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -426,7 +533,8 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
               Complete Patient History
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
-              {patient.firstName} {patient.lastName} • Patient ID: {patient.patientId}
+              {patient.firstName} {patient.lastName} • Patient ID:{" "}
+              {patient.patientId}
             </p>
           </div>
           <Dialog open={isEditing} onOpenChange={setIsEditing}>
@@ -440,47 +548,69 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
               <DialogHeader>
                 <DialogTitle>Complete Medical History</DialogTitle>
               </DialogHeader>
-              
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+
+              <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="w-full"
+              >
                 <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="family">Family History</TabsTrigger>
                   <TabsTrigger value="social">Social History</TabsTrigger>
                   <TabsTrigger value="immunizations">Immunizations</TabsTrigger>
-                  <TabsTrigger value="allergies">Allergies & Conditions</TabsTrigger>
+                  <TabsTrigger value="allergies">
+                    Allergies & Conditions
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="family" className="space-y-6">
                   <div className="border rounded-lg p-4">
-                    <h4 className="font-medium mb-4">Add Family Medical Condition</h4>
+                    <h4 className="font-medium mb-4">
+                      Add Family Medical Condition
+                    </h4>
                     <div className="grid grid-cols-2 gap-4 mb-4">
                       <div>
                         <Label>Family Member</Label>
-                        <Select 
-                          value={newCondition.relative} 
-                          onValueChange={(value) => setNewCondition({ ...newCondition, relative: value })}
+                        <Select
+                          value={newCondition.relative}
+                          onValueChange={(value) =>
+                            setNewCondition({
+                              ...newCondition,
+                              relative: value,
+                            })
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select relative" />
                           </SelectTrigger>
                           <SelectContent>
-                            {relatives.map(rel => (
-                              <SelectItem key={rel} value={rel}>{rel}</SelectItem>
+                            {relatives.map((rel) => (
+                              <SelectItem key={rel} value={rel}>
+                                {rel}
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </div>
                       <div>
                         <Label>Medical Condition</Label>
-                        <Select 
-                          value={newCondition.condition} 
-                          onValueChange={(value) => setNewCondition({ ...newCondition, condition: value })}
+                        <Select
+                          value={newCondition.condition}
+                          onValueChange={(value) =>
+                            setNewCondition({
+                              ...newCondition,
+                              condition: value,
+                            })
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select condition" />
                           </SelectTrigger>
                           <SelectContent>
-                            {commonConditions.map(condition => (
-                              <SelectItem key={condition} value={condition}>{condition}</SelectItem>
+                            {commonConditions.map((condition) => (
+                              <SelectItem key={condition} value={condition}>
+                                {condition}
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -489,17 +619,27 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                     <div className="grid grid-cols-3 gap-4 mb-4">
                       <div>
                         <Label>Age of Onset</Label>
-                        <Input 
+                        <Input
                           placeholder="e.g., 45"
                           value={newCondition.ageOfOnset || ""}
-                          onChange={(e) => setNewCondition({ ...newCondition, ageOfOnset: e.target.value })}
+                          onChange={(e) =>
+                            setNewCondition({
+                              ...newCondition,
+                              ageOfOnset: e.target.value,
+                            })
+                          }
                         />
                       </div>
                       <div>
                         <Label>Severity</Label>
-                        <Select 
-                          value={newCondition.severity} 
-                          onValueChange={(value: any) => setNewCondition({ ...newCondition, severity: value })}
+                        <Select
+                          value={newCondition.severity}
+                          onValueChange={(value: any) =>
+                            setNewCondition({
+                              ...newCondition,
+                              severity: value,
+                            })
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue />
@@ -512,10 +652,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                         </Select>
                       </div>
                       <div className="flex items-end">
-                        <Button 
-                          onClick={addFamilyCondition}
-                          className="w-full"
-                        >
+                        <Button onClick={addFamilyCondition} className="w-full">
                           <Plus className="h-4 w-4 mr-2" />
                           Add
                         </Button>
@@ -523,34 +660,52 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                     </div>
                     <div>
                       <Label>Additional Notes</Label>
-                      <Input 
+                      <Input
                         placeholder="Additional details about the condition"
                         value={newCondition.notes || ""}
-                        onChange={(e) => setNewCondition({ ...newCondition, notes: e.target.value })}
+                        onChange={(e) =>
+                          setNewCondition({
+                            ...newCondition,
+                            notes: e.target.value,
+                          })
+                        }
                       />
                     </div>
                   </div>
 
                   <div className="space-y-4">
-                    {Object.entries(familyHistory).map(([relationship, conditions]) => (
-                      <div key={relationship} className="border rounded-lg p-4">
-                        <h5 className="font-medium mb-2 capitalize flex items-center gap-2">
-                          <Heart className="h-4 w-4" />
-                          {relationship === 'siblings' ? 'Siblings' : relationship}
-                        </h5>
-                        {conditions.length === 0 ? (
-                          <p className="text-sm text-gray-500">No conditions reported</p>
-                        ) : (
-                          <div className="flex flex-wrap gap-2">
-                            {conditions.map((condition, index) => (
-                              <Badge key={index} variant="outline" className="text-sm">
-                                {condition}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                    {Object.entries(familyHistory).map(
+                      ([relationship, conditions]) => (
+                        <div
+                          key={relationship}
+                          className="border rounded-lg p-4"
+                        >
+                          <h5 className="font-medium mb-2 capitalize flex items-center gap-2">
+                            <Heart className="h-4 w-4" />
+                            {relationship === "siblings"
+                              ? "Siblings"
+                              : relationship}
+                          </h5>
+                          {conditions.length === 0 ? (
+                            <p className="text-sm text-gray-500">
+                              No conditions reported
+                            </p>
+                          ) : (
+                            <div className="flex flex-wrap gap-2">
+                              {conditions.map((condition, index) => (
+                                <Badge
+                                  key={index}
+                                  variant="outline"
+                                  className="text-sm"
+                                >
+                                  {condition}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ),
+                    )}
                   </div>
                 </TabsContent>
 
@@ -559,12 +714,15 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                     <div className="space-y-4">
                       <div>
                         <Label>Smoking Status</Label>
-                        <Select 
+                        <Select
                           value={editedSocialHistory.smoking.status}
-                          onValueChange={(value: any) => 
+                          onValueChange={(value: any) =>
                             setEditedSocialHistory({
                               ...editedSocialHistory,
-                              smoking: { ...editedSocialHistory.smoking, status: value }
+                              smoking: {
+                                ...editedSocialHistory.smoking,
+                                status: value,
+                              },
                             })
                           }
                         >
@@ -573,19 +731,26 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="never">Never smoked</SelectItem>
-                            <SelectItem value="former">Former smoker</SelectItem>
-                            <SelectItem value="current">Current smoker</SelectItem>
+                            <SelectItem value="former">
+                              Former smoker
+                            </SelectItem>
+                            <SelectItem value="current">
+                              Current smoker
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                       <div>
                         <Label>Alcohol Consumption</Label>
-                        <Select 
+                        <Select
                           value={editedSocialHistory.alcohol.status}
-                          onValueChange={(value: any) => 
+                          onValueChange={(value: any) =>
                             setEditedSocialHistory({
                               ...editedSocialHistory,
-                              alcohol: { ...editedSocialHistory.alcohol, status: value }
+                              alcohol: {
+                                ...editedSocialHistory.alcohol,
+                                status: value,
+                              },
                             })
                           }
                         >
@@ -594,7 +759,9 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="never">Never</SelectItem>
-                            <SelectItem value="occasional">Occasional</SelectItem>
+                            <SelectItem value="occasional">
+                              Occasional
+                            </SelectItem>
                             <SelectItem value="moderate">Moderate</SelectItem>
                             <SelectItem value="heavy">Heavy</SelectItem>
                           </SelectContent>
@@ -602,12 +769,15 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                       </div>
                       <div>
                         <Label>Exercise Frequency</Label>
-                        <Select 
+                        <Select
                           value={editedSocialHistory.exercise.frequency}
-                          onValueChange={(value: any) => 
+                          onValueChange={(value: any) =>
                             setEditedSocialHistory({
                               ...editedSocialHistory,
-                              exercise: { ...editedSocialHistory.exercise, frequency: value }
+                              exercise: {
+                                ...editedSocialHistory.exercise,
+                                frequency: value,
+                              },
                             })
                           }
                         >
@@ -616,8 +786,12 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="none">No exercise</SelectItem>
-                            <SelectItem value="occasional">Occasional</SelectItem>
-                            <SelectItem value="regular">Regular (2-3x/week)</SelectItem>
+                            <SelectItem value="occasional">
+                              Occasional
+                            </SelectItem>
+                            <SelectItem value="regular">
+                              Regular (2-3x/week)
+                            </SelectItem>
                             <SelectItem value="daily">Daily</SelectItem>
                           </SelectContent>
                         </Select>
@@ -626,25 +800,25 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                     <div className="space-y-4">
                       <div>
                         <Label>Occupation</Label>
-                        <Input 
+                        <Input
                           value={editedSocialHistory.occupation}
-                          onChange={(e) => 
+                          onChange={(e) =>
                             setEditedSocialHistory({
                               ...editedSocialHistory,
-                              occupation: e.target.value
+                              occupation: e.target.value,
                             })
                           }
-                          placeholder="Current or former occupation" 
+                          placeholder="Current or former occupation"
                         />
                       </div>
                       <div>
                         <Label>Marital Status</Label>
-                        <Select 
+                        <Select
                           value={editedSocialHistory.maritalStatus}
-                          onValueChange={(value: any) => 
+                          onValueChange={(value: any) =>
                             setEditedSocialHistory({
                               ...editedSocialHistory,
-                              maritalStatus: value
+                              maritalStatus: value,
                             })
                           }
                         >
@@ -662,15 +836,15 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                       </div>
                       <div>
                         <Label>Education Level</Label>
-                        <Input 
+                        <Input
                           value={editedSocialHistory.education}
-                          onChange={(e) => 
+                          onChange={(e) =>
                             setEditedSocialHistory({
                               ...editedSocialHistory,
-                              education: e.target.value
+                              education: e.target.value,
                             })
                           }
-                          placeholder="Highest education level" 
+                          placeholder="Highest education level"
                         />
                       </div>
                     </div>
@@ -688,12 +862,19 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                     <h4 className="font-medium mb-4">Immunization Record</h4>
                     <div className="space-y-3">
                       {immunizations.length === 0 ? (
-                        <p className="text-sm text-gray-500">No immunization records</p>
+                        <p className="text-sm text-gray-500">
+                          No immunization records
+                        </p>
                       ) : (
                         immunizations.map((immunization, index) => (
-                          <div key={index} className="flex items-center justify-between p-3 border rounded">
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-3 border rounded"
+                          >
                             <div>
-                              <div className="font-medium">{immunization.vaccine}</div>
+                              <div className="font-medium">
+                                {immunization.vaccine}
+                              </div>
                               <div className="text-sm text-gray-500">
                                 {immunization.date} - {immunization.provider}
                               </div>
@@ -705,8 +886,8 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                         ))
                       )}
                     </div>
-                    <Button 
-                      className="w-full mt-4" 
+                    <Button
+                      className="w-full mt-4"
                       variant="outline"
                       onClick={() => setShowImmunizationForm(true)}
                     >
@@ -716,13 +897,20 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
 
                     {showImmunizationForm && (
                       <div className="mt-4 p-4 border rounded-lg bg-gray-50">
-                        <h5 className="font-medium mb-3">New Immunization Record</h5>
+                        <h5 className="font-medium mb-3">
+                          New Immunization Record
+                        </h5>
                         <div className="grid grid-cols-2 gap-3">
                           <div>
                             <Label>Vaccine</Label>
                             <Select
                               value={newImmunization.vaccine}
-                              onValueChange={(value) => setNewImmunization({...newImmunization, vaccine: value})}
+                              onValueChange={(value) =>
+                                setNewImmunization({
+                                  ...newImmunization,
+                                  vaccine: value,
+                                })
+                              }
                             >
                               <SelectTrigger>
                                 <SelectValue placeholder="Select vaccine" />
@@ -741,7 +929,12 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                             <Input
                               type="date"
                               value={newImmunization.date}
-                              onChange={(e) => setNewImmunization({...newImmunization, date: e.target.value})}
+                              onChange={(e) =>
+                                setNewImmunization({
+                                  ...newImmunization,
+                                  date: e.target.value,
+                                })
+                              }
                             />
                           </div>
                           <div>
@@ -749,7 +942,12 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                             <Input
                               placeholder="Provider name or clinic"
                               value={newImmunization.provider}
-                              onChange={(e) => setNewImmunization({...newImmunization, provider: e.target.value})}
+                              onChange={(e) =>
+                                setNewImmunization({
+                                  ...newImmunization,
+                                  provider: e.target.value,
+                                })
+                              }
                             />
                           </div>
                           <div>
@@ -757,23 +955,41 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                             <Input
                               placeholder="Vaccine lot number"
                               value={newImmunization.lot}
-                              onChange={(e) => setNewImmunization({...newImmunization, lot: e.target.value})}
+                              onChange={(e) =>
+                                setNewImmunization({
+                                  ...newImmunization,
+                                  lot: e.target.value,
+                                })
+                              }
                             />
                           </div>
                           <div>
                             <Label>Administration Site (Optional)</Label>
                             <Select
                               value={newImmunization.site}
-                              onValueChange={(value) => setNewImmunization({...newImmunization, site: value})}
+                              onValueChange={(value) =>
+                                setNewImmunization({
+                                  ...newImmunization,
+                                  site: value,
+                                })
+                              }
                             >
                               <SelectTrigger>
                                 <SelectValue placeholder="Select site" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="left-arm">Left Arm</SelectItem>
-                                <SelectItem value="right-arm">Right Arm</SelectItem>
-                                <SelectItem value="left-thigh">Left Thigh</SelectItem>
-                                <SelectItem value="right-thigh">Right Thigh</SelectItem>
+                                <SelectItem value="left-arm">
+                                  Left Arm
+                                </SelectItem>
+                                <SelectItem value="right-arm">
+                                  Right Arm
+                                </SelectItem>
+                                <SelectItem value="left-thigh">
+                                  Left Thigh
+                                </SelectItem>
+                                <SelectItem value="right-thigh">
+                                  Right Thigh
+                                </SelectItem>
                                 <SelectItem value="oral">Oral</SelectItem>
                                 <SelectItem value="nasal">Nasal</SelectItem>
                               </SelectContent>
@@ -784,7 +1000,12 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                             <Textarea
                               placeholder="Additional notes or reactions"
                               value={newImmunization.notes}
-                              onChange={(e) => setNewImmunization({...newImmunization, notes: e.target.value})}
+                              onChange={(e) =>
+                                setNewImmunization({
+                                  ...newImmunization,
+                                  notes: e.target.value,
+                                })
+                              }
                               rows={2}
                             />
                           </div>
@@ -793,8 +1014,8 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                           <Button onClick={addImmunization} size="sm">
                             Add Record
                           </Button>
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
                             onClick={() => {
                               setShowImmunizationForm(false);
@@ -804,7 +1025,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                                 provider: "",
                                 lot: "",
                                 site: "",
-                                notes: ""
+                                notes: "",
                               });
                             }}
                           >
@@ -823,20 +1044,27 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                     </h4>
                     <div className="space-y-2 mb-4">
                       {(patient.medicalHistory?.allergies || []).length > 0 ? (
-                        (patient.medicalHistory?.allergies || []).map((allergy, index) => (
-                          <div key={index} className="flex items-center justify-between p-2 bg-red-50 rounded">
-                            <span className="text-red-800">{allergy}</span>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => removeAllergy(index)}
+                        (patient.medicalHistory?.allergies || []).map(
+                          (allergy, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-between p-2 bg-red-50 rounded"
                             >
-                              <Trash2 className="h-4 w-4 text-red-600" />
-                            </Button>
-                          </div>
-                        ))
+                              <span className="text-red-800">{allergy}</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeAllergy(index)}
+                              >
+                                <Trash2 className="h-4 w-4 text-red-600" />
+                              </Button>
+                            </div>
+                          ),
+                        )
                       ) : (
-                        <p className="text-sm text-gray-500">No known allergies</p>
+                        <p className="text-sm text-gray-500">
+                          No known allergies
+                        </p>
                       )}
                     </div>
                     <div className="flex gap-2">
@@ -844,7 +1072,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                         placeholder="Add allergy"
                         value={newAllergy}
                         onChange={(e) => setNewAllergy(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && addAllergy()}
+                        onKeyPress={(e) => e.key === "Enter" && addAllergy()}
                       />
                       <Button onClick={addAllergy} size="sm">
                         <Plus className="h-4 w-4" />
@@ -859,21 +1087,29 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                       Chronic Conditions
                     </h4>
                     <div className="space-y-2 mb-4">
-                      {(patient.medicalHistory?.chronicConditions || []).length > 0 ? (
-                        (patient.medicalHistory?.chronicConditions || []).map((condition, index) => (
-                          <div key={index} className="flex items-center justify-between p-2 bg-blue-50 rounded">
-                            <span className="text-blue-800">{condition}</span>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => removeChronicCondition(index)}
+                      {(patient.medicalHistory?.chronicConditions || [])
+                        .length > 0 ? (
+                        (patient.medicalHistory?.chronicConditions || []).map(
+                          (condition, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-between p-2 bg-blue-50 rounded"
                             >
-                              <Trash2 className="h-4 w-4 text-blue-600" />
-                            </Button>
-                          </div>
-                        ))
+                              <span className="text-blue-800">{condition}</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeChronicCondition(index)}
+                              >
+                                <Trash2 className="h-4 w-4 text-blue-600" />
+                              </Button>
+                            </div>
+                          ),
+                        )
                       ) : (
-                        <p className="text-sm text-gray-500">No chronic conditions</p>
+                        <p className="text-sm text-gray-500">
+                          No chronic conditions
+                        </p>
                       )}
                     </div>
                     <div className="flex gap-2">
@@ -881,7 +1117,9 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                         placeholder="Add chronic condition"
                         value={newChronicCondition}
                         onChange={(e) => setNewChronicCondition(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && addChronicCondition()}
+                        onKeyPress={(e) =>
+                          e.key === "Enter" && addChronicCondition()
+                        }
                       />
                       <Button onClick={addChronicCondition} size="sm">
                         <Plus className="h-4 w-4" />
@@ -900,22 +1138,36 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                       <div className="space-y-2 mb-4">
                         {(() => {
                           // Combine allergies from medicalHistory and extract from flags
-                          const medicalAllergies = patient.medicalHistory?.allergies || [];
-                          const flagAllergies = patient.flags 
+                          const medicalAllergies =
+                            patient.medicalHistory?.allergies || [];
+                          const flagAllergies = patient.flags
                             ? patient.flags
-                                .filter(flag => typeof flag === 'string' && flag.includes(':'))
-                                .map(flag => flag.split(':')[2]) // Extract the allergy text after "general:medium:"
-                                .filter(allergy => allergy && allergy.trim().length > 0)
+                                .filter(
+                                  (flag) =>
+                                    typeof flag === "string" &&
+                                    flag.includes(":"),
+                                )
+                                .map((flag) => flag.split(":")[2]) // Extract the allergy text after "general:medium:"
+                                .filter(
+                                  (allergy) =>
+                                    allergy && allergy.trim().length > 0,
+                                )
                             : [];
-                          
-                          const allAllergies = [...medicalAllergies, ...flagAllergies];
-                          
+
+                          const allAllergies = [
+                            ...medicalAllergies,
+                            ...flagAllergies,
+                          ];
+
                           return allAllergies.length > 0 ? (
                             allAllergies.map((allergy, index) => (
-                              <div key={index} className="flex items-center justify-between p-2 bg-red-50 rounded">
+                              <div
+                                key={index}
+                                className="flex items-center justify-between p-2 bg-red-50 rounded"
+                              >
                                 <span className="text-red-800">{allergy}</span>
-                                <Button 
-                                  variant="ghost" 
+                                <Button
+                                  variant="ghost"
                                   size="sm"
                                   onClick={() => removeAllergy(index)}
                                 >
@@ -924,7 +1176,9 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                               </div>
                             ))
                           ) : (
-                            <p className="text-sm text-gray-500">No known allergies</p>
+                            <p className="text-sm text-gray-500">
+                              No known allergies
+                            </p>
                           );
                         })()}
                       </div>
@@ -933,7 +1187,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                           placeholder="Add new allergy"
                           value={newAllergy}
                           onChange={(e) => setNewAllergy(e.target.value)}
-                          onKeyPress={(e) => e.key === 'Enter' && addAllergy()}
+                          onKeyPress={(e) => e.key === "Enter" && addAllergy()}
                         />
                         <Button onClick={addAllergy} size="sm">
                           <Plus className="h-4 w-4" />
@@ -946,29 +1200,43 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                         Chronic Conditions
                       </h4>
                       <div className="space-y-2 mb-4">
-                        {patient.medicalHistory?.chronicConditions && patient.medicalHistory.chronicConditions.length > 0 ? (
-                          patient.medicalHistory.chronicConditions.map((condition, index) => (
-                            <div key={index} className="flex items-center justify-between p-2 bg-blue-50 rounded">
-                              <span className="text-blue-800">{condition}</span>
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={() => removeChronicCondition(index)}
+                        {patient.medicalHistory?.chronicConditions &&
+                        patient.medicalHistory.chronicConditions.length > 0 ? (
+                          patient.medicalHistory.chronicConditions.map(
+                            (condition, index) => (
+                              <div
+                                key={index}
+                                className="flex items-center justify-between p-2 bg-blue-50 rounded"
                               >
-                                <Trash2 className="h-4 w-4 text-blue-600" />
-                              </Button>
-                            </div>
-                          ))
+                                <span className="text-blue-800">
+                                  {condition}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeChronicCondition(index)}
+                                >
+                                  <Trash2 className="h-4 w-4 text-blue-600" />
+                                </Button>
+                              </div>
+                            ),
+                          )
                         ) : (
-                          <p className="text-sm text-gray-500">No chronic conditions</p>
+                          <p className="text-sm text-gray-500">
+                            No chronic conditions
+                          </p>
                         )}
                       </div>
                       <div className="flex gap-2">
                         <Input
                           placeholder="Add new condition"
                           value={newChronicCondition}
-                          onChange={(e) => setNewChronicCondition(e.target.value)}
-                          onKeyPress={(e) => e.key === 'Enter' && addChronicCondition()}
+                          onChange={(e) =>
+                            setNewChronicCondition(e.target.value)
+                          }
+                          onKeyPress={(e) =>
+                            e.key === "Enter" && addChronicCondition()
+                          }
                         />
                         <Button onClick={addChronicCondition} size="sm">
                           <Plus className="h-4 w-4" />
@@ -983,8 +1251,13 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                 <Button variant="outline" onClick={() => setIsEditing(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleSaveAllChanges} disabled={updateMedicalHistoryMutation.isPending}>
-                  {updateMedicalHistoryMutation.isPending ? "Saving..." : "Save Changes"}
+                <Button
+                  onClick={handleSaveAllChanges}
+                  disabled={updateMedicalHistoryMutation.isPending}
+                >
+                  {updateMedicalHistoryMutation.isPending
+                    ? "Saving..."
+                    : "Save Changes"}
                 </Button>
               </div>
             </DialogContent>
@@ -994,7 +1267,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
       <CardContent>
         <Tabs defaultValue="overview" className="w-full">
           <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="overview">Overview2</TabsTrigger>
             <TabsTrigger value="family">Family History</TabsTrigger>
             <TabsTrigger value="social">Social History</TabsTrigger>
             <TabsTrigger value="immunizations">Immunizations</TabsTrigger>
@@ -1009,12 +1282,20 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                 </h4>
                 {(() => {
                   // Extract allergies from both medicalHistory and flags
-                  const medicalAllergies = patient.medicalHistory?.allergies || [];
-                  const flagAllergies = (patient as any).flags?.filter((flag: string) => 
-                    flag.includes(':') && flag.split(':')[2]
-                  ).map((flag: string) => flag.split(':')[2]) || [];
-                  const allAllergies = [...medicalAllergies, ...flagAllergies].filter(Boolean);
-                  
+                  const medicalAllergies =
+                    patient.medicalHistory?.allergies || [];
+                  const flagAllergies =
+                    (patient as any).flags
+                      ?.filter(
+                        (flag: string) =>
+                          flag.includes(":") && flag.split(":")[2],
+                      )
+                      .map((flag: string) => flag.split(":")[2]) || [];
+                  const allAllergies = [
+                    ...medicalAllergies,
+                    ...flagAllergies,
+                  ].filter(Boolean);
+
                   return allAllergies.length > 0 ? (
                     <div className="flex flex-wrap gap-1">
                       {allAllergies.map((allergy, index) => (
@@ -1035,11 +1316,16 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                 </h4>
                 {patient.medicalHistory?.chronicConditions?.length ? (
                   <div className="flex flex-wrap gap-1">
-                    {patient.medicalHistory.chronicConditions.map((condition, index) => (
-                      <Badge key={index} className="bg-blue-100 text-blue-800">
-                        {condition}
-                      </Badge>
-                    ))}
+                    {patient.medicalHistory.chronicConditions.map(
+                      (condition, index) => (
+                        <Badge
+                          key={index}
+                          className="bg-blue-100 text-blue-800"
+                        >
+                          {condition}
+                        </Badge>
+                      ),
+                    )}
                   </div>
                 ) : (
                   <p className="text-sm text-gray-500">No chronic conditions</p>
@@ -1053,10 +1339,12 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
               <div key={relationship} className="border rounded-lg p-4">
                 <h4 className="font-medium mb-2 capitalize flex items-center gap-2">
                   <Heart className="h-4 w-4" />
-                  {relationship === 'siblings' ? 'Siblings' : relationship}
+                  {relationship === "siblings" ? "Siblings" : relationship}
                 </h4>
                 {conditions.length === 0 ? (
-                  <p className="text-sm text-gray-500">No conditions reported</p>
+                  <p className="text-sm text-gray-500">
+                    No conditions reported
+                  </p>
                 ) : (
                   <div className="flex flex-wrap gap-2">
                     {conditions.map((condition, index) => (
@@ -1076,7 +1364,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                 <div className="border rounded-lg p-3">
                   <div className="font-medium text-sm">Smoking</div>
                   <div className="text-sm text-gray-600 capitalize">
-                    {editedSocialHistory.smoking.status.replace('_', ' ')}
+                    {editedSocialHistory.smoking.status.replace("_", " ")}
                   </div>
                 </div>
                 <div className="border rounded-lg p-3">
@@ -1088,7 +1376,7 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                 <div className="border rounded-lg p-3">
                   <div className="font-medium text-sm">Exercise</div>
                   <div className="text-sm text-gray-600 capitalize">
-                    {editedSocialHistory.exercise.frequency.replace('_', ' ')}
+                    {editedSocialHistory.exercise.frequency.replace("_", " ")}
                   </div>
                 </div>
               </div>
@@ -1127,7 +1415,9 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                   <div key={index} className="border rounded-lg p-3">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="font-medium">{immunization.vaccine}</div>
+                        <div className="font-medium">
+                          {immunization.vaccine}
+                        </div>
                         <div className="text-sm text-gray-500">
                           {immunization.date} - {immunization.provider}
                         </div>
@@ -1144,35 +1434,44 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
               {/* Allergies Section */}
               <div className="relative overflow-hidden bg-gradient-to-br from-red-50 to-red-100/30 border border-red-200 rounded p-1.5 shadow-sm hover:shadow transition-all duration-200">
                 <div className="absolute top-0 right-0 w-6 h-6 bg-red-500/5 rounded-full -translate-y-3 translate-x-3"></div>
-                
+
                 <div className="relative z-10">
                   <div className="flex items-center gap-1 mb-1.5">
                     <div className="p-0.5 bg-red-500/10 rounded">
                       <AlertTriangle className="h-2.5 w-2.5 text-red-600" />
                     </div>
                     <div>
-                      <h4 className="font-medium text-red-900 text-xs">Allergies</h4>
+                      <h4 className="font-medium text-red-900 text-xs">
+                        Allergies
+                      </h4>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-1 mb-1.5">
                     {(patient.medicalHistory?.allergies || []).length > 0 ? (
-                      (patient.medicalHistory?.allergies || []).map((allergy, index) => (
-                        <div key={index} className="group flex items-center justify-between p-1 bg-white/70 backdrop-blur-sm rounded border border-red-100 hover:bg-white/90 transition-all duration-200">
-                          <div className="flex items-center gap-1">
-                            <div className="w-0.5 h-0.5 bg-red-500 rounded-full"></div>
-                            <span className="text-xs font-medium text-red-900 truncate">{allergy}</span>
-                          </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => removeAllergy(index)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-100 text-red-600 h-4 w-4 p-0"
+                      (patient.medicalHistory?.allergies || []).map(
+                        (allergy, index) => (
+                          <div
+                            key={index}
+                            className="group flex items-center justify-between p-1 bg-white/70 backdrop-blur-sm rounded border border-red-100 hover:bg-white/90 transition-all duration-200"
                           >
-                            <Trash2 className="h-2 w-2" />
-                          </Button>
-                        </div>
-                      ))
+                            <div className="flex items-center gap-1">
+                              <div className="w-0.5 h-0.5 bg-red-500 rounded-full"></div>
+                              <span className="text-xs font-medium text-red-900 truncate">
+                                {allergy}
+                              </span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeAllergy(index)}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-100 text-red-600 h-4 w-4 p-0"
+                            >
+                              <Trash2 className="h-2 w-2" />
+                            </Button>
+                          </div>
+                        ),
+                      )
                     ) : (
                       <div className="text-center py-1">
                         <div className="w-4 h-4 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-1">
@@ -1182,17 +1481,17 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="flex gap-1">
                     <Input
                       placeholder="Add allergy"
                       value={newAllergy}
                       onChange={(e) => setNewAllergy(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && addAllergy()}
+                      onKeyPress={(e) => e.key === "Enter" && addAllergy()}
                       className="bg-white/80 border-red-200 focus:border-red-400 focus:ring-red-400/20 placeholder:text-red-400/60 text-xs h-6"
                     />
-                    <Button 
-                      onClick={addAllergy} 
+                    <Button
+                      onClick={addAllergy}
                       size="sm"
                       className="bg-red-500 hover:bg-red-600 text-white shadow-sm hover:shadow transition-all duration-200 h-6 px-1.5 text-xs"
                     >
@@ -1205,55 +1504,69 @@ export default function PatientFamilyHistory({ patient, onUpdate }: PatientFamil
               {/* Chronic Conditions Section */}
               <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100/30 border border-blue-200 rounded p-1.5 shadow-sm hover:shadow transition-all duration-200">
                 <div className="absolute top-0 right-0 w-6 h-6 bg-blue-500/5 rounded-full -translate-y-3 translate-x-3"></div>
-                
+
                 <div className="relative z-10">
                   <div className="flex items-center gap-1 mb-1.5">
                     <div className="p-0.5 bg-blue-500/10 rounded">
                       <Activity className="h-2.5 w-2.5 text-blue-600" />
                     </div>
                     <div>
-                      <h4 className="font-medium text-blue-900 text-xs">Chronic Conditions</h4>
+                      <h4 className="font-medium text-blue-900 text-xs">
+                        Chronic Conditions
+                      </h4>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-1 mb-1.5">
-                    {(patient.medicalHistory?.chronicConditions || []).length > 0 ? (
-                      (patient.medicalHistory?.chronicConditions || []).map((condition, index) => (
-                        <div key={index} className="group flex items-center justify-between p-1 bg-white/70 backdrop-blur-sm rounded border border-blue-100 hover:bg-white/90 transition-all duration-200">
-                          <div className="flex items-center gap-1">
-                            <div className="w-0.5 h-0.5 bg-blue-500 rounded-full"></div>
-                            <span className="text-xs font-medium text-blue-900 truncate">{condition}</span>
-                          </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => removeChronicCondition(index)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-blue-100 text-blue-600 h-4 w-4 p-0"
+                    {(patient.medicalHistory?.chronicConditions || []).length >
+                    0 ? (
+                      (patient.medicalHistory?.chronicConditions || []).map(
+                        (condition, index) => (
+                          <div
+                            key={index}
+                            className="group flex items-center justify-between p-1 bg-white/70 backdrop-blur-sm rounded border border-blue-100 hover:bg-white/90 transition-all duration-200"
                           >
-                            <Trash2 className="h-2 w-2" />
-                          </Button>
-                        </div>
-                      ))
+                            <div className="flex items-center gap-1">
+                              <div className="w-0.5 h-0.5 bg-blue-500 rounded-full"></div>
+                              <span className="text-xs font-medium text-blue-900 truncate">
+                                {condition}
+                              </span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeChronicCondition(index)}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-blue-100 text-blue-600 h-4 w-4 p-0"
+                            >
+                              <Trash2 className="h-2 w-2" />
+                            </Button>
+                          </div>
+                        ),
+                      )
                     ) : (
                       <div className="text-center py-1">
                         <div className="w-4 h-4 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-1">
                           <Activity className="h-2 w-2 text-blue-400" />
                         </div>
-                        <p className="text-xs text-blue-600/70">No conditions</p>
+                        <p className="text-xs text-blue-600/70">
+                          No conditions
+                        </p>
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="flex gap-1">
                     <Input
                       placeholder="Add condition"
                       value={newChronicCondition}
                       onChange={(e) => setNewChronicCondition(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && addChronicCondition()}
+                      onKeyPress={(e) =>
+                        e.key === "Enter" && addChronicCondition()
+                      }
                       className="bg-white/80 border-blue-200 focus:border-blue-400 focus:ring-blue-400/20 placeholder:text-blue-400/60 text-xs h-6"
                     />
-                    <Button 
-                      onClick={addChronicCondition} 
+                    <Button
+                      onClick={addChronicCondition}
                       size="sm"
                       className="bg-blue-500 hover:bg-blue-600 text-white shadow-sm hover:shadow transition-all duration-200 h-6 px-1.5 text-xs"
                     >
