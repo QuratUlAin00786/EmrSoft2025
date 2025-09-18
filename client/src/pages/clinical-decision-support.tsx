@@ -71,8 +71,42 @@ export default function ClinicalDecisionSupport() {
   const [guidelineViewOpen, setGuidelineViewOpen] = useState(false);
   const [symptoms, setSymptoms] = useState<string>("");
   const [history, setHistory] = useState<string>("");
+  const [patientSearchOpen, setPatientSearchOpen] = useState(false);
+  const [patientSearch, setPatientSearch] = useState<string>("");
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
+
+  // Fetch patients for the searchable dropdown
+  const { data: patients = [], isLoading: patientsLoading } = useQuery({
+    queryKey: ["/api/patients"],
+    queryFn: async () => {
+      const response = await fetch("/api/patients", {
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
+          "X-Tenant-Subdomain": "demo"
+        },
+        credentials: "include"
+      });
+      if (!response.ok) throw new Error("Failed to fetch patients");
+      return response.json();
+    },
+    retry: false,
+    staleTime: 30000
+  });
+
+  // Filter patients based on search
+  const filteredPatients = patients.filter((patient: any) => {
+    const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
+    const patientId = patient.patientId?.toLowerCase() || "";
+    const searchTerm = patientSearch.toLowerCase();
+    return fullName.includes(searchTerm) || patientId.includes(searchTerm);
+  });
+
+  // Get selected patient name for display
+  const selectedPatientData = patients.find((p: any) => p.id.toString() === selectedPatient);
+  const selectedPatientName = selectedPatientData 
+    ? `${selectedPatientData.firstName} ${selectedPatientData.lastName} (${selectedPatientData.patientId})`
+    : "Select patient";
 
   // Guidelines data
   const guidelines = {
@@ -385,14 +419,43 @@ export default function ClinicalDecisionSupport() {
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium">Patient</label>
-                  <Select value={selectedPatient} onValueChange={setSelectedPatient}>
+                  <Select open={patientSearchOpen} onOpenChange={setPatientSearchOpen} value={selectedPatient} onValueChange={setSelectedPatient}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select patient" />
+                      <SelectValue placeholder="Search and select patient">
+                        {selectedPatientName}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="patient_1">Sarah Johnson</SelectItem>
-                      <SelectItem value="patient_2">Michael Chen</SelectItem>
-                      <SelectItem value="patient_3">Emma Davis</SelectItem>
+                      <div className="p-2">
+                        <Input
+                          placeholder="Search patients..."
+                          value={patientSearch}
+                          onChange={(e) => setPatientSearch(e.target.value)}
+                          className="mb-2"
+                        />
+                      </div>
+                      {patientsLoading ? (
+                        <SelectItem value="loading" disabled>
+                          Loading patients...
+                        </SelectItem>
+                      ) : filteredPatients.length === 0 ? (
+                        <SelectItem value="no-results" disabled>
+                          {patientSearch ? "No patients found" : "No patients available"}
+                        </SelectItem>
+                      ) : (
+                        filteredPatients.map((patient: any) => (
+                          <SelectItem key={patient.id} value={patient.id.toString()}>
+                            <div className="flex flex-col">
+                              <span className="font-medium">
+                                {patient.firstName} {patient.lastName}
+                              </span>
+                              <span className="text-sm text-muted-foreground">
+                                ID: {patient.patientId} • {new Date(patient.dateOfBirth).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -421,7 +484,7 @@ export default function ClinicalDecisionSupport() {
                     symptoms: symptoms,
                     history: history
                   })}
-                  disabled={generateInsightMutation.isPending || !selectedPatient || !symptoms}
+                  disabled={generateInsightMutation.isPending || !selectedPatient || !symptoms || selectedPatient === "loading" || selectedPatient === "no-results"}
                 >
                   {generateInsightMutation.isPending ? "Analyzing..." : "Generate Insight"}
                 </Button>
