@@ -901,26 +901,16 @@ ${
     }
   };
 
-  // LOAD SAVED MUSCLE POSITIONS FROM DATABASE
+  // LOAD SAVED MUSCLE POSITIONS FROM STATIC DATA (replaces database query)
   const loadSavedMusclePositions = async () => {
-    const currentPatientId = patientId || patient?.id;
-    if (!currentPatientId) return;
-
     try {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch(`/api/muscle-positions/${currentPatientId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo'
-        }
-      });
+      // Use static data instead of database query
+      const result = { 
+        positions: getStaticMusclePositions(), 
+        count: getStaticMusclePositions().length 
+      };
       
-      if (!response.ok) {
-        throw new Error('Failed to load muscle positions');
-      }
-
-      const result = await response.json();
-      console.log('📊 LOADED MUSCLE POSITIONS:', result);
+      console.log('📊 LOADED MUSCLE POSITIONS (STATIC DATA):', result);
 
       // Convert saved positions back to display format
       const savedDots = result.positions.map((position: any) => ({
@@ -934,14 +924,14 @@ ${
       setShowSavedPositions(true);
 
       toast({
-        title: "Positions Loaded",
-        description: `Loaded ${result.count} saved muscle positions.`
+        title: "Positions Loaded from Static Data",
+        description: `Loaded ${result.count} muscle positions from static data.`
       });
     } catch (error) {
       console.error('Error loading muscle positions:', error);
       toast({
         title: "Load Failed",
-        description: "Failed to load saved muscle positions.",
+        description: "Failed to load muscle positions from static data.",
         variant: "destructive"
       });
     }
@@ -994,26 +984,56 @@ ${
     }
   }, [selectedMuscleGroup, toast]);
 
-  // Query database for muscle positions based on selected muscle group
+  // Static muscle positions data - replaces database queries
+  const getStaticMusclePositions = () => {
+    return [
+      { id: 91, organizationId: 2, patientId: 17, position: 1, value: "1", coordinates: { xPct: 0.42231457800511507, yPct: 0.026161641127039052 }, isDetected: true, detectedAt: "2025-09-17 17:19:27.418" },
+      { id: 92, organizationId: 2, patientId: 17, position: 2, value: "2", coordinates: { xPct: 0.29788352576958277, yPct: 0.14298810433264217 }, isDetected: true, detectedAt: "2025-09-17 17:19:27.643" },
+      { id: 93, organizationId: 2, patientId: 17, position: 3, value: "Frontalis (Forehead)", coordinates: { xPct: 0.2414753214525742, yPct: 0.16075671647969533 }, isDetected: true, detectedAt: "2025-09-17 17:19:27.857" },
+      { id: 94, organizationId: 2, patientId: 17, position: 4, value: "Temporalis", coordinates: { xPct: 0.2368376481215459, yPct: 0.2487324636967758 }, isDetected: true, detectedAt: "2025-09-17 17:19:28.07" },
+      { id: 95, organizationId: 2, patientId: 17, position: 5, value: "Procerus", coordinates: { xPct: 0.500465983224604, yPct: 0.28018558774861296 }, isDetected: true, detectedAt: "2025-09-17 17:19:28.284" },
+      { id: 96, organizationId: 2, patientId: 17, position: 6, value: "Corrugator Supercilii", coordinates: { xPct: 0.6367311044124581, yPct: 0.2824242064316893 }, isDetected: true, detectedAt: "2025-09-17 17:19:28.498" },
+      { id: 97, organizationId: 2, patientId: 17, position: 7, value: "7", coordinates: { xPct: 0.32614382463940444, yPct: 0.3185395537525355 }, isDetected: true, detectedAt: "2025-09-17 17:19:28.712" },
+      { id: 98, organizationId: 2, patientId: 17, position: 8, value: "Levalor Palpebrae Supereilia", coordinates: { xPct: 0.6100398076823657, yPct: 0.3647960333558711 }, isDetected: true, detectedAt: "2025-09-17 17:19:28.927" },
+      { id: 99, organizationId: 2, patientId: 17, position: 9, value: "Orbicularis Milor", coordinates: { xPct: 0.24072071107303492, yPct: 0.37573229291716687 }, isDetected: true, detectedAt: "2025-09-17 17:19:29.14" },
+      { id: 100, organizationId: 2, patientId: 17, position: 10, value: "Levator Labii Superioris", coordinates: { xPct: 0.5097786302379537, yPct: 0.4526266372470776 }, isDetected: true, detectedAt: "2025-09-17 17:19:29.355" },
+      { id: 101, organizationId: 2, patientId: 17, position: 11, value: "Zygomaticus Minor", coordinates: { xPct: 0.2595126165730694, yPct: 0.4769064235863837 }, isDetected: true, detectedAt: "2025-09-17 17:19:29.569" },
+      { id: 102, organizationId: 2, patientId: 17, position: 12, value: "12", coordinates: { xPct: 0.4394909286929569, yPct: 0.48992540836559345 }, isDetected: true, detectedAt: "2025-09-17 17:19:29.783" },
+      { id: 103, organizationId: 2, patientId: 17, position: 13, value: "13", coordinates: { xPct: 0.37330278522710475, yPct: 0.5024263226417327 }, isDetected: true, detectedAt: "2025-09-17 17:19:29.997" },
+      { id: 104, organizationId: 2, patientId: 17, position: 14, value: "Zygomaticus Major", coordinates: { xPct: 0.2863568215892054, yPct: 0.5277310924369748 }, isDetected: true, detectedAt: "2025-09-17 17:19:30.213" },
+      { id: 105, organizationId: 2, patientId: 17, position: 15, value: "15", coordinates: { xPct: 0.3227905697806119, yPct: 0.5279145719423141 }, isDetected: true, detectedAt: "2025-09-17 17:19:30.427" },
+      { id: 106, organizationId: 2, patientId: 17, position: 16, value: "Masseter", coordinates: { xPct: 0.2555479017248133, yPct: 0.5721856310091604 }, isDetected: true, detectedAt: "2025-09-17 17:19:30.641" },
+      { id: 107, organizationId: 2, patientId: 17, position: 17, value: "Buccinator", coordinates: { xPct: 0.6556538244639148, yPct: 0.5732634338138924 }, isDetected: true, detectedAt: "2025-09-17 17:19:30.855" },
+      { id: 108, organizationId: 2, patientId: 17, position: 18, value: "18", coordinates: { xPct: 0.4880021129331707, yPct: 0.5943571210867767 }, isDetected: true, detectedAt: "2025-09-17 17:19:31.069" },
+      { id: 109, organizationId: 2, patientId: 17, position: 19, value: "19", coordinates: { xPct: 0.35082458770614694, yPct: 0.6596638655462185 }, isDetected: true, detectedAt: "2025-09-17 17:19:31.284" },
+      { id: 110, organizationId: 2, patientId: 17, position: 20, value: "Depressor Sept Nasi", coordinates: { xPct: 0.6432598917932338, yPct: 0.6691085129704055 }, isDetected: true, detectedAt: "2025-09-17 17:19:31.498" },
+      { id: 111, organizationId: 2, patientId: 17, position: 21, value: "Orbicularis Oculi", coordinates: { xPct: 0.5466415144076313, yPct: 0.694320805245175 }, isDetected: true, detectedAt: "2025-09-17 17:19:31.712" },
+      { id: 112, organizationId: 2, patientId: 17, position: 22, value: "22", coordinates: { xPct: 0.444527736131934, yPct: 0.7111435878699306 }, isDetected: true, detectedAt: "2025-09-17 17:19:31.927" },
+      { id: 113, organizationId: 2, patientId: 17, position: 23, value: "Depressor Anguli Oris", coordinates: { xPct: 0.6100185201516889, yPct: 0.7132970835392981 }, isDetected: true, detectedAt: "2025-09-17 17:19:32.145" },
+      { id: 114, organizationId: 2, patientId: 17, position: 24, value: "Depressor Labii Inferioris", coordinates: { xPct: 0.3166781095433592, yPct: 0.7210869394486767 }, isDetected: true, detectedAt: "2025-09-17 17:19:32.456" },
+      { id: 115, organizationId: 2, patientId: 17, position: 25, value: "Orbicularis Oris", coordinates: { xPct: 0.5705017446433733, yPct: 0.725259072238761 }, isDetected: true, detectedAt: "2025-09-17 17:19:32.671" },
+      { id: 116, organizationId: 2, patientId: 17, position: 26, value: "26", coordinates: { xPct: 0.38957444354745707, yPct: 0.7432350454974889 }, isDetected: true, detectedAt: "2025-09-17 17:19:32.885" },
+      { id: 117, organizationId: 2, patientId: 17, position: 27, value: "27", coordinates: { xPct: 0.49737904770242614, yPct: 0.7806538673863705 }, isDetected: true, detectedAt: "2025-09-17 17:19:33.099" },
+      { id: 118, organizationId: 2, patientId: 17, position: 28, value: "Mentalis", coordinates: { xPct: 0.4295352323838081, yPct: 0.7915966386554621 }, isDetected: true, detectedAt: "2025-09-17 17:19:33.313" },
+      { id: 119, organizationId: 2, patientId: 17, position: 29, value: "29", coordinates: { xPct: 0.46181105251570026, yPct: 0.793312569783158 }, isDetected: true, detectedAt: "2025-09-17 17:19:33.528" },
+      { id: 120, organizationId: 2, patientId: 17, position: 30, value: "Platysma", coordinates: { xPct: 0.2969329814730644, yPct: 0.8217726909768432 }, isDetected: true, detectedAt: "2025-09-17 17:19:33.744" },
+      { id: 121, organizationId: 2, patientId: 17, position: 31, value: "31", coordinates: { xPct: 0.4107946026986507, yPct: 0.8581019364267446 }, isDetected: true, detectedAt: "2025-09-17 17:19:33.959" },
+      { id: 122, organizationId: 2, patientId: 17, position: 32, value: "32", coordinates: { xPct: 0.31419030744368076, yPct: 0.8776601549710793 }, isDetected: true, detectedAt: "2025-09-17 17:19:34.173" }
+    ];
+  };
+
+  // Query static muscle positions based on selected muscle group (replaces database query)
   const queryMusclePositionsFromDB = async () => {
-    const currentPatientId = patientId || patient?.id;
-    if (!currentPatientId || !selectedMuscleGroup) return;
+    if (!selectedMuscleGroup) return;
 
     try {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch(`/api/muscle-positions/${currentPatientId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo'
-        }
-      });
+      // Use static data instead of database query
+      const data = { 
+        positions: getStaticMusclePositions(), 
+        count: getStaticMusclePositions().length 
+      };
       
-      if (!response.ok) {
-        throw new Error('Failed to load muscle positions');
-      }
-
-      const data = await response.json();
-      console.log('📊 QUERIED ALL MUSCLE POSITIONS:', data);
+      console.log('📊 QUERIED ALL MUSCLE POSITIONS (STATIC DATA):', data);
 
       // Filter positions that match the selected muscle group value field
       const matchingPositions = data.positions?.filter((position: any) => {
@@ -1037,22 +1057,22 @@ ${
 
       if (matchingPositions.length > 0) {
         toast({
-          title: "🔍 Database Positions Found",
-          description: `Found ${matchingPositions.length} saved position(s) for ${selectedMuscleGroup.replace(/_/g, ' ')}`,
+          title: "🔍 Static Data Positions Found",
+          description: `Found ${matchingPositions.length} position(s) for ${selectedMuscleGroup.replace(/_/g, ' ')}`,
           duration: 4000,
         });
       } else {
         toast({
-          title: "📍 No Saved Positions",
-          description: `No saved positions found for ${selectedMuscleGroup.replace(/_/g, ' ')} in database`,
+          title: "📍 No Matching Positions",
+          description: `No matching positions found for ${selectedMuscleGroup.replace(/_/g, ' ')} in static data`,
           duration: 3000,
         });
       }
     } catch (error) {
       console.error('❌ Error querying muscle positions:', error);
       toast({
-        title: "Database Query Failed",
-        description: "Failed to query muscle positions from database",
+        title: "Query Failed",
+        description: "Failed to query muscle positions from static data",
         variant: "destructive"
       });
     }
