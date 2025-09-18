@@ -738,7 +738,9 @@ export default function FinancialIntelligence() {
                 <div className="text-gray-500 dark:text-gray-400">Loading claims...</div>
               </div>
             ) : claims && claims.length > 0 ? (
-              claims.map((claim: any) => (
+              claims
+                .sort((a: any, b: any) => new Date(b.submissionDate || b.serviceDate).getTime() - new Date(a.submissionDate || a.serviceDate).getTime())
+                .map((claim: any) => (
                 <Card key={claim.id} className={claim.status === 'denied' ? 'border-red-200 dark:border-red-800' : 'dark:border-slate-700'}>
                   <CardHeader>
                     <div className="flex justify-between items-start">
