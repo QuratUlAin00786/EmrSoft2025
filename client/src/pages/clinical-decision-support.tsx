@@ -69,6 +69,8 @@ export default function ClinicalDecisionSupport() {
   const [filterType, setFilterType] = useState<string>("all");
   const [selectedGuideline, setSelectedGuideline] = useState<any>(null);
   const [guidelineViewOpen, setGuidelineViewOpen] = useState(false);
+  const [symptoms, setSymptoms] = useState<string>("");
+  const [history, setHistory] = useState<string>("");
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
 
@@ -289,7 +291,11 @@ export default function ClinicalDecisionSupport() {
     mutationFn: async (data: { patientId: string; symptoms: string; history: string }) => {
       const response = await fetch("/api/clinical/generate-insight", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
+          "X-Tenant-Subdomain": "demo"
+        },
         body: JSON.stringify(data),
         credentials: "include"
       });
@@ -395,6 +401,8 @@ export default function ClinicalDecisionSupport() {
                   <Textarea 
                     placeholder="Enter patient symptoms or clinical concerns"
                     className="mt-1"
+                    value={symptoms}
+                    onChange={(e) => setSymptoms(e.target.value)}
                   />
                 </div>
                 <div>
@@ -402,16 +410,18 @@ export default function ClinicalDecisionSupport() {
                   <Textarea 
                     placeholder="Enter relevant medical history"
                     className="mt-1"
+                    value={history}
+                    onChange={(e) => setHistory(e.target.value)}
                   />
                 </div>
                 <Button 
                   className="w-full"
                   onClick={() => generateInsightMutation.mutate({
                     patientId: selectedPatient,
-                    symptoms: "Sample symptoms",
-                    history: "Sample history"
+                    symptoms: symptoms,
+                    history: history
                   })}
-                  disabled={generateInsightMutation.isPending}
+                  disabled={generateInsightMutation.isPending || !selectedPatient || !symptoms}
                 >
                   {generateInsightMutation.isPending ? "Analyzing..." : "Generate Insight"}
                 </Button>
