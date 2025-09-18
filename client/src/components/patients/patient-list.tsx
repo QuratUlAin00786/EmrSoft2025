@@ -4,15 +4,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
-import { Calendar, Eye, User, Phone, MapPin, AlertTriangle, Clock, Bell, FileText, Flag, Trash2, Hash } from "lucide-react";
+import { Calendar, Eye, User, Phone, MapPin, AlertTriangle, Clock, Bell, FileText, Flag, Trash2, Hash, Edit } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLocation } from "wouter";
 import { formatDistanceToNow } from "date-fns";
 import { PatientSearch, SearchFilters } from "./patient-search";
 import { PatientCommunicationDialog } from "./patient-communication-dialog";
+import { PatientModal } from "./patient-modal";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { useTenant } from "@/hooks/use-tenant";
 
 function getPatientInitials(firstName: string, lastName: string): string {
   return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
@@ -88,6 +90,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { tenant } = useTenant();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({ searchType: 'all' });
@@ -100,6 +103,14 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
     open: false,
     patient: null,
     mode: "reminder"
+  });
+
+  const [editModal, setEditModal] = useState<{
+    open: boolean;
+    patient: any | null;
+  }>({
+    open: false,
+    patient: null
   });
 
 
@@ -119,6 +130,13 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
       open: true,
       patient,
       mode: "flag"
+    });
+  };
+
+  const handleEditPatient = (patient: any) => {
+    setEditModal({
+      open: true,
+      patient
     });
   };
 
@@ -168,7 +186,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
       try {
         const token = localStorage.getItem('auth_token');
         const headers: Record<string, string> = {
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': tenant?.subdomain || 'demo'
         };
         
         if (token) {
@@ -532,21 +550,35 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                   </div>
                   
                   {/* Secondary actions */}
-                  <div className="grid grid-cols-4 gap-1">
+                  <div className={`grid ${user?.role === 'admin' ? 'grid-cols-5' : (user?.role === 'admin' || user?.role === 'doctor' || user?.role === 'nurse') ? 'grid-cols-4' : 'grid-cols-3'} gap-1`}>
                     <Button 
                       size="sm" 
                       variant="ghost"
                       onClick={() => handleViewPatient(patient)}
                       className="flex-1 text-xs h-7"
+                      data-testid={`button-view-${patient.id}`}
                     >
                       <Eye className="h-3 w-3 mr-1" />
                       View
                     </Button>
+                    {(user?.role === 'admin' || user?.role === 'doctor' || user?.role === 'nurse') && (
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        onClick={() => handleEditPatient(patient)}
+                        className="flex-1 text-xs h-7"
+                        data-testid={`button-edit-${patient.id}`}
+                      >
+                        <Edit className="h-3 w-3 mr-1" />
+                        Edit
+                      </Button>
+                    )}
                     <Button 
                       size="sm" 
                       variant="ghost"
                       onClick={() => handleRemindPatient(patient)}
                       className="flex-1 text-xs h-7"
+                      data-testid={`button-remind-${patient.id}`}
                     >
                       <Bell className="h-3 w-3 mr-1" />
                       Remind
@@ -556,6 +588,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                       variant="ghost"
                       onClick={() => handleFlagPatient(patient)}
                       className="flex-1 text-xs h-7"
+                      data-testid={`button-flag-${patient.id}`}
                     >
                       <Flag className="h-3 w-3 mr-1" />
                       Flag
@@ -567,6 +600,7 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                         onClick={() => handleDeletePatient(patient)}
                         disabled={deletePatientMutation.isPending}
                         className="flex-1 text-xs h-7 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 dark:text-red-400 dark:hover:text-red-300"
+                        data-testid={`button-delete-${patient.id}`}
                       >
                         <Trash2 className="h-3 w-3 mr-1" />
                         Delete
@@ -601,6 +635,13 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
       onOpenChange={(open) => setCommunicationDialog(prev => ({ ...prev, open }))}
       patient={communicationDialog.patient}
       mode={communicationDialog.mode}
+    />
+    
+    <PatientModal
+      open={editModal.open}
+      onOpenChange={(open) => setEditModal(prev => ({ ...prev, open }))}
+      editMode={true}
+      editPatient={editModal.patient}
     />
   </div>
 );

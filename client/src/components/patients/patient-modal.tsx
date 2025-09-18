@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -68,9 +68,11 @@ type PatientFormData = z.infer<typeof patientSchema>;
 interface PatientModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editMode?: boolean;
+  editPatient?: any;
 }
 
-export function PatientModal({ open, onOpenChange }: PatientModalProps) {
+export function PatientModal({ open, onOpenChange, editMode = false, editPatient }: PatientModalProps) {
   const { tenant } = useTenant();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -98,7 +100,48 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
 
   const form = useForm<PatientFormData>({
     resolver: zodResolver(patientSchema),
-    defaultValues: {
+    defaultValues: editMode && editPatient ? {
+      firstName: editPatient.firstName || "",
+      lastName: editPatient.lastName || "",
+      dateOfBirth: editPatient.dateOfBirth || "",
+      email: editPatient.email || "",
+      phone: editPatient.phone || "",
+      nhsNumber: editPatient.nhsNumber || "",
+      address: {
+        street: editPatient.address?.street || "",
+        city: editPatient.address?.city || "",
+        postcode: editPatient.address?.postcode || "",
+        country: editPatient.address?.country || (tenant?.region === "UK" ? "United Kingdom" : "")
+      },
+      insuranceInfo: {
+        provider: editPatient.insuranceInfo?.provider || "",
+        policyNumber: editPatient.insuranceInfo?.policyNumber || "",
+        groupNumber: editPatient.insuranceInfo?.groupNumber || "",
+        memberNumber: editPatient.insuranceInfo?.memberNumber || "",
+        planType: editPatient.insuranceInfo?.planType || "",
+        effectiveDate: editPatient.insuranceInfo?.effectiveDate || "",
+        expirationDate: editPatient.insuranceInfo?.expirationDate || "",
+        copay: editPatient.insuranceInfo?.copay || 0,
+        deductible: editPatient.insuranceInfo?.deductible || 0,
+        isActive: editPatient.insuranceInfo?.isActive ?? true
+      },
+      emergencyContact: {
+        name: editPatient.emergencyContact?.name || "",
+        relationship: editPatient.emergencyContact?.relationship || "",
+        phone: editPatient.emergencyContact?.phone || ""
+      },
+      medicalHistory: {
+        allergies: Array.isArray(editPatient.medicalHistory?.allergies) 
+          ? editPatient.medicalHistory.allergies.join(", ") 
+          : "",
+        chronicConditions: Array.isArray(editPatient.medicalHistory?.chronicConditions) 
+          ? editPatient.medicalHistory.chronicConditions.join(", ") 
+          : "",
+        medications: Array.isArray(editPatient.medicalHistory?.medications) 
+          ? editPatient.medicalHistory.medications.join(", ") 
+          : ""
+      }
+    } : {
       firstName: "",
       lastName: "",
       dateOfBirth: "",
@@ -140,7 +183,90 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
   const watchedDateOfBirth = form.watch("dateOfBirth");
   const calculatedAge = useMemo(() => calculateAge(watchedDateOfBirth), [watchedDateOfBirth]);
 
-  const createPatientMutation = useMutation({
+  // Reset form when editPatient, editMode, or open state changes
+  useEffect(() => {
+    const formValues = editMode && editPatient ? {
+      firstName: editPatient.firstName || "",
+      lastName: editPatient.lastName || "",
+      dateOfBirth: editPatient.dateOfBirth || "",
+      email: editPatient.email || "",
+      phone: editPatient.phone || "",
+      nhsNumber: editPatient.nhsNumber || "",
+      address: {
+        street: editPatient.address?.street || "",
+        city: editPatient.address?.city || "",
+        postcode: editPatient.address?.postcode || "",
+        country: editPatient.address?.country || (tenant?.region === "UK" ? "United Kingdom" : "")
+      },
+      insuranceInfo: {
+        provider: editPatient.insuranceInfo?.provider || "",
+        policyNumber: editPatient.insuranceInfo?.policyNumber || "",
+        groupNumber: editPatient.insuranceInfo?.groupNumber || "",
+        memberNumber: editPatient.insuranceInfo?.memberNumber || "",
+        planType: editPatient.insuranceInfo?.planType || "",
+        effectiveDate: editPatient.insuranceInfo?.effectiveDate || "",
+        expirationDate: editPatient.insuranceInfo?.expirationDate || "",
+        copay: editPatient.insuranceInfo?.copay || 0,
+        deductible: editPatient.insuranceInfo?.deductible || 0,
+        isActive: editPatient.insuranceInfo?.isActive ?? true
+      },
+      emergencyContact: {
+        name: editPatient.emergencyContact?.name || "",
+        relationship: editPatient.emergencyContact?.relationship || "",
+        phone: editPatient.emergencyContact?.phone || ""
+      },
+      medicalHistory: {
+        allergies: Array.isArray(editPatient.medicalHistory?.allergies) 
+          ? editPatient.medicalHistory.allergies.join(", ") 
+          : "",
+        chronicConditions: Array.isArray(editPatient.medicalHistory?.chronicConditions) 
+          ? editPatient.medicalHistory.chronicConditions.join(", ") 
+          : "",
+        medications: Array.isArray(editPatient.medicalHistory?.medications) 
+          ? editPatient.medicalHistory.medications.join(", ") 
+          : ""
+      }
+    } : {
+      firstName: "",
+      lastName: "",
+      dateOfBirth: "",
+      email: "",
+      phone: "",
+      nhsNumber: "",
+      address: {
+        street: "",
+        city: "",
+        postcode: "",
+        country: tenant?.region === "UK" ? "United Kingdom" : ""
+      },
+      insuranceInfo: {
+        provider: "",
+        policyNumber: "",
+        groupNumber: "",
+        memberNumber: "",
+        planType: "",
+        effectiveDate: "",
+        expirationDate: "",
+        copay: 0,
+        deductible: 0,
+        isActive: true
+      },
+      emergencyContact: {
+        name: "",
+        relationship: "",
+        phone: ""
+      },
+      medicalHistory: {
+        allergies: "",
+        chronicConditions: "",
+        medications: ""
+      }
+    };
+
+    form.reset(formValues);
+  }, [editPatient, editMode, open, tenant?.region, form]);
+
+  const patientMutation = useMutation({
     mutationFn: async (data: PatientFormData) => {
       const transformedData = {
         ...data,
@@ -152,14 +278,18 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
         }
       };
 
-      return apiRequest('POST', '/api/patients', transformedData);
+      if (editMode && editPatient) {
+        return apiRequest('PATCH', `/api/patients/${editPatient.id}`, transformedData);
+      } else {
+        return apiRequest('POST', '/api/patients', transformedData);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
       toast({
-        title: "Patient created successfully",
-        description: "The patient has been added to your records.",
+        title: editMode ? "Patient updated successfully" : "Patient created successfully",
+        description: editMode ? "The patient information has been updated." : "The patient has been added to your records.",
       });
       onOpenChange(false);
       form.reset();
@@ -167,15 +297,15 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
     },
     onError: (error: any) => {
       toast({
-        title: "Error creating patient",
-        description: error.message || "Failed to create patient. Please try again.",
+        title: editMode ? "Error updating patient" : "Error creating patient",
+        description: error.message || (editMode ? "Failed to update patient. Please try again." : "Failed to create patient. Please try again."),
         variant: "destructive",
       });
     }
   });
 
   const onSubmit = (data: PatientFormData) => {
-    createPatientMutation.mutate(data);
+    patientMutation.mutate(data);
   };
 
   const handleClose = () => {
@@ -214,7 +344,7 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle>
-            Add New Patient
+            {editMode ? `Edit ${editPatient?.firstName} ${editPatient?.lastName}` : "Add New Patient"}
           </DialogTitle>
         </DialogHeader>
         
@@ -633,24 +763,24 @@ export function PatientModal({ open, onOpenChange }: PatientModalProps) {
                   type="button" 
                   variant="outline" 
                   onClick={handleClose}
-                  disabled={createPatientMutation.isPending}
+                  disabled={patientMutation.isPending}
                 >
                   Cancel
                 </Button>
                 <Button 
                   type="submit" 
-                  disabled={createPatientMutation.isPending}
+                  disabled={patientMutation.isPending}
                   className="bg-medical-blue hover:bg-blue-700"
                 >
-                  {createPatientMutation.isPending ? (
+                  {patientMutation.isPending ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Creating...
+                      {editMode ? "Updating..." : "Creating..."}
                     </>
                   ) : (
                     <>
                       <Save className="h-4 w-4 mr-2" />
-                      Create Patient
+                      {editMode ? "Update Patient" : "Create Patient"}
                     </>
                   )}
                 </Button>

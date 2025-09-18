@@ -1233,14 +1233,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update patient data (including flags)
+  // Update patient data (comprehensive schema)
   app.patch("/api/patients/:id", authMiddleware, requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
     try {
       const patientId = parseInt(req.params.id);
       
       const updateData = z.object({
+        firstName: z.string().trim().min(1, "First name is required").optional(),
+        lastName: z.string().trim().min(1, "Last name is required").optional(),
+        dateOfBirth: z.string().trim().min(1, "Date of birth is required").refine(
+          (val) => !isNaN(Date.parse(val)),
+          { message: "Please enter a valid date" }
+        ).optional(),
+        email: z.string().trim().email("Please enter a valid email address").optional().or(z.literal("")),
+        phone: z.string().trim().min(1, "Phone number is required").regex(
+          /^[\+]?[0-9\s\-\(\)]{10,}$/,
+          "Please enter a valid phone number"
+        ).optional(),
+        nhsNumber: z.string().trim().optional(),
+        address: z.object({
+          street: z.string().trim().optional(),
+          city: z.string().trim().optional(),
+          state: z.string().trim().optional(),
+          postcode: z.string().trim().optional(),
+          country: z.string().trim().optional()
+        }).optional(),
+        insuranceInfo: z.object({
+          provider: z.string().trim().optional(),
+          policyNumber: z.string().trim().optional(),
+          groupNumber: z.string().trim().optional(),
+          memberNumber: z.string().trim().optional(),
+          planType: z.string().trim().optional(),
+          effectiveDate: z.string().trim().optional(),
+          expirationDate: z.string().trim().optional(),
+          copay: z.coerce.number({ invalid_type_error: "Must be a number" }).min(0, "Cannot be negative").optional(),
+          deductible: z.coerce.number({ invalid_type_error: "Must be a number" }).min(0, "Cannot be negative").optional(),
+          isActive: z.boolean().optional()
+        }).optional(),
+        emergencyContact: z.object({
+          name: z.string().trim().optional(),
+          relationship: z.string().trim().optional(),
+          phone: z.string().trim().regex(
+            /^[\+]?[0-9\s\-\(\)]{10,}$/,
+            "Please enter a valid phone number"
+          ).optional(),
+          email: z.string().trim().email("Please enter a valid email address").optional().or(z.literal(""))
+        }).optional(),
+        medicalHistory: z.object({
+          allergies: z.array(z.string()).optional(),
+          chronicConditions: z.array(z.string()).optional(),
+          medications: z.array(z.string()).optional(),
+          familyHistory: z.object({
+            father: z.array(z.string()).optional(),
+            mother: z.array(z.string()).optional(),
+            siblings: z.array(z.string()).optional(),
+            grandparents: z.array(z.string()).optional()
+          }).optional(),
+          socialHistory: z.object({
+            smoking: z.object({ status: z.string() }).optional(),
+            alcohol: z.object({ status: z.string() }).optional(),
+            drugs: z.object({ status: z.string() }).optional(),
+            exercise: z.object({ frequency: z.string() }).optional(),
+            education: z.string().optional(),
+            occupation: z.string().optional(),
+            maritalStatus: z.string().optional()
+          }).optional(),
+          immunizations: z.array(z.string()).optional()
+        }).optional(),
+        communicationPreferences: z.object({
+          preferredMethod: z.enum(["email", "sms", "phone"]).optional(),
+          language: z.string().optional(),
+          marketingConsent: z.boolean().optional()
+        }).optional(),
         flags: z.array(z.string()).optional(),
-        riskLevel: z.enum(["low", "medium", "high"]).optional(),
+        riskLevel: z.enum(["low", "medium", "high", "critical"]).optional(),
         isActive: z.boolean().optional()
       }).parse(req.body);
 
@@ -1249,7 +1315,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Patient not found" });
       }
 
-      const updatedPatient = await storage.updatePatient(patientId, req.tenant!.id, updateData);
+      // Convert dateOfBirth string to proper format for storage
+      const storageUpdateData: any = { ...updateData };
+      if (updateData.dateOfBirth) {
+        // Since the database uses { mode: 'string' }, we keep it as string but ensure it's in YYYY-MM-DD format
+        const parsedDate = new Date(updateData.dateOfBirth);
+        storageUpdateData.dateOfBirth = parsedDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+      }
+
+      const updatedPatient = await storage.updatePatient(patientId, req.tenant!.id, storageUpdateData);
 
       if (!updatedPatient) {
         return res.status(404).json({ error: "Failed to update patient" });
@@ -1257,8 +1331,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(updatedPatient);
     } catch (error) {
-      console.error("Error updating patient:", error);
-      res.status(500).json({ error: "Failed to update patient" });
+      handleRouteError(error, "Update patient", res);
     }
   });
 
