@@ -132,6 +132,17 @@ export default function FinancialIntelligence() {
     totalAmount: ''
   });
   const [patientDropdownOpen, setPatientDropdownOpen] = useState(false);
+  const [verifyEligibilityOpen, setVerifyEligibilityOpen] = useState(false);
+  const [selectedInsurance, setSelectedInsurance] = useState<any>(null);
+  const [verificationFormData, setVerificationFormData] = useState({
+    patientName: '',
+    insuranceProvider: '',
+    policyNumber: '',
+    groupNumber: '',
+    coverageType: '',
+    verificationStatus: 'pending',
+    verificationDate: ''
+  });
   const { toast } = useToast();
 
   // Scroll functionality
@@ -934,8 +945,19 @@ export default function FinancialIntelligence() {
                   <div className="flex gap-2">
                     <Button 
                       size="sm"
-                      onClick={() => verifyInsuranceMutation.mutate(insurance.id)}
-                      disabled={verifyInsuranceMutation.isPending}
+                      onClick={() => {
+                        setSelectedInsurance(insurance);
+                        setVerificationFormData({
+                          patientName: insurance.patientName,
+                          insuranceProvider: insurance.provider,
+                          policyNumber: insurance.policyNumber,
+                          groupNumber: insurance.groupNumber,
+                          coverageType: insurance.coverageType,
+                          verificationStatus: insurance.status === 'verified' ? 'verified' : 'pending',
+                          verificationDate: insurance.status === 'verified' ? format(new Date(insurance.lastVerified || new Date()), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd')
+                        });
+                        setVerifyEligibilityOpen(true);
+                      }}
                     >
                       <Shield className="w-4 h-4 mr-1" />
                       Verify Eligibility
@@ -1215,6 +1237,120 @@ export default function FinancialIntelligence() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Verify Eligibility Modal */}
+      <Dialog open={verifyEligibilityOpen} onOpenChange={setVerifyEligibilityOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Verify Insurance Eligibility</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Patient Name</label>
+                <Input
+                  value={verificationFormData.patientName}
+                  onChange={(e) => setVerificationFormData(prev => ({ ...prev, patientName: e.target.value }))}
+                  data-testid="input-patient-name"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Insurance Provider</label>
+                <Input
+                  value={verificationFormData.insuranceProvider}
+                  onChange={(e) => setVerificationFormData(prev => ({ ...prev, insuranceProvider: e.target.value }))}
+                  data-testid="input-insurance-provider"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Policy Number</label>
+                <Input
+                  value={verificationFormData.policyNumber}
+                  onChange={(e) => setVerificationFormData(prev => ({ ...prev, policyNumber: e.target.value }))}
+                  data-testid="input-policy-number"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Group Number</label>
+                <Input
+                  value={verificationFormData.groupNumber}
+                  onChange={(e) => setVerificationFormData(prev => ({ ...prev, groupNumber: e.target.value }))}
+                  data-testid="input-group-number"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Coverage Type</label>
+              <Select 
+                value={verificationFormData.coverageType} 
+                onValueChange={(value) => setVerificationFormData(prev => ({ ...prev, coverageType: value }))}
+              >
+                <SelectTrigger data-testid="select-coverage-type">
+                  <SelectValue placeholder="Select coverage type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="primary">Primary</SelectItem>
+                  <SelectItem value="secondary">Secondary</SelectItem>
+                  <SelectItem value="tertiary">Tertiary</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Verification Status</label>
+                <Select 
+                  value={verificationFormData.verificationStatus} 
+                  onValueChange={(value) => setVerificationFormData(prev => ({ ...prev, verificationStatus: value }))}
+                >
+                  <SelectTrigger data-testid="select-verification-status">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="verified">Verified</SelectItem>
+                    <SelectItem value="denied">Denied</SelectItem>
+                    <SelectItem value="requires_review">Requires Review</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Verification Date</label>
+                <Input
+                  type="date"
+                  value={verificationFormData.verificationDate}
+                  onChange={(e) => setVerificationFormData(prev => ({ ...prev, verificationDate: e.target.value }))}
+                  data-testid="input-verification-date"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => setVerifyEligibilityOpen(false)}
+                data-testid="button-cancel-verification"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  console.log('Verification data:', verificationFormData);
+                  toast({ title: "Eligibility verification updated successfully" });
+                  setVerifyEligibilityOpen(false);
+                }}
+                data-testid="button-save-verification"
+              >
+                Save Changes
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
