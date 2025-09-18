@@ -678,7 +678,7 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
       </CardHeader>
 
       <CardContent>
-        <div className="space-y-4" style={{ height: '600px', overflowY: 'auto' }}>
+        <div className="space-y-4" style={{ height: '350px', overflowY: 'auto' }}>
           {medicalRecords.length === 0 ? (
             <div className="text-center py-8 text-gray-500 dark:text-neutral-400">
               <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
