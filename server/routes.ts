@@ -1006,9 +1006,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const patientId = parseInt(req.params.id);
       
       const recordData = z.object({
-        type: z.string(),
-        title: z.string(),
-        notes: z.string(),
+        type: z.enum(["consultation", "prescription", "lab_result", "imaging", "history", "examination", "assessment", "summary", "vitals"]),
+        title: z.string().min(1),
+        notes: z.string().optional(),
         diagnosis: z.string().optional(),
         treatment: z.string().optional(),
         prescription: z.object({
@@ -1030,15 +1030,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }).parse(req.body);
 
       const record = await storage.createMedicalRecord({
-        patientId,
+        ...recordData,
         organizationId: req.tenant!.id,
-        providerId: req.user!.id, // Use the authenticated user as the provider
-        type: recordData.type,
-        title: recordData.title,
-        notes: recordData.notes,
-        diagnosis: recordData.diagnosis,
-        treatment: recordData.treatment,
-        prescription: recordData.prescription || {}
+        patientId,
+        providerId: req.user!.id,
+        recordType: recordData.type, // Add required recordType
+        content: recordData.notes || recordData.title, // Add required content
+        prescription: recordData.prescription || {},
+        attachments: [],
+        aiSuggestions: {}
       });
 
       res.status(201).json(record);
@@ -1262,45 +1262,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Medical records routes
-  app.post("/api/patients/:id/records", requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
-    try {
-      const patientId = parseInt(req.params.id);
-      
-      const recordData = z.object({
-        type: z.enum(["consultation", "prescription", "lab_result", "imaging"]),
-        title: z.string().min(1),
-        notes: z.string().optional(),
-        diagnosis: z.string().optional(),
-        treatment: z.string().optional(),
-        prescription: z.object({
-          medications: z.array(z.object({
-            name: z.string(),
-            dosage: z.string(),
-            frequency: z.string(),
-            duration: z.string()
-          })).optional()
-        }).optional()
-      }).parse(req.body);
-
-      const record = await storage.createMedicalRecord({
-        ...recordData,
-        organizationId: req.tenant!.id,
-        patientId,
-        providerId: req.user!.id,
-        recordType: recordData.type, // Add required recordType
-        content: recordData.notes || recordData.title, // Add required content
-        prescription: recordData.prescription || {},
-        attachments: [],
-        aiSuggestions: {}
-      });
-
-      res.status(201).json(record);
-    } catch (error) {
-      console.error("Medical record creation error:", error);
-      res.status(500).json({ error: "Failed to create medical record" });
-    }
-  });
 
   // Update medical record endpoint
   app.patch("/api/patients/:patientId/records/:recordId", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
@@ -1309,7 +1270,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const recordId = parseInt(req.params.recordId);
       
       const updateData = z.object({
-        type: z.enum(["consultation", "prescription", "lab_result", "imaging"]).optional(),
+        type: z.enum(["consultation", "prescription", "lab_result", "imaging", "history", "examination", "assessment", "summary", "vitals"]).optional(),
         title: z.string().optional(),
         notes: z.string().optional(),
         diagnosis: z.string().optional(),
