@@ -1034,6 +1034,146 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get patient history by ID
+  app.get("/api/patients/:id/history", async (req: TenantRequest, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      const patient = await storage.getPatient(patientId, req.tenant!.id);
+      
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+
+      // Return patient's medical history and family history
+      const history = {
+        familyHistory: patient.medicalHistory?.familyHistory || {},
+        socialHistory: patient.medicalHistory?.socialHistory || {},
+        allergies: patient.medicalHistory?.allergies || [],
+        chronicConditions: patient.medicalHistory?.chronicConditions || [],
+        medications: patient.medicalHistory?.medications || [],
+        immunizations: patient.medicalHistory?.immunizations || []
+      };
+
+      res.json(history);
+    } catch (error) {
+      console.error("Patient history fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch patient history" });
+    }
+  });
+
+  // Get patient prescriptions by ID
+  app.get("/api/patients/:id/prescriptions", async (req: TenantRequest, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      
+      // Get prescriptions for this patient from medical records
+      const records = await storage.getMedicalRecordsByPatient(patientId, req.tenant!.id);
+      const prescriptions = records
+        .filter(record => record.type === 'prescription' || record.prescription)
+        .map(record => ({
+          id: record.id,
+          medicationName: record.title,
+          dosage: record.prescription?.medications?.[0]?.dosage || 'Not specified',
+          frequency: record.prescription?.medications?.[0]?.frequency || 'Not specified',
+          duration: record.prescription?.medications?.[0]?.duration || 'Not specified',
+          instructions: record.notes || 'No instructions',
+          prescribedBy: 'Dr. ' + (record.providerId || 'Unknown'),
+          prescribedDate: record.createdAt,
+          status: 'Active',
+          createdAt: record.createdAt
+        }));
+
+      res.json(prescriptions);
+    } catch (error) {
+      console.error("Patient prescriptions fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch patient prescriptions" });
+    }
+  });
+
+  // Get patient lab results by ID
+  app.get("/api/patients/:id/lab-results", async (req: TenantRequest, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      
+      // Get lab results for this patient
+      const labResults = await storage.getLabResultsByPatient(patientId, req.tenant!.id);
+      
+      res.json(labResults || []);
+    } catch (error) {
+      console.error("Patient lab results fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch patient lab results" });
+    }
+  });
+
+  // Get patient medical imaging by ID
+  app.get("/api/patients/:id/medical-imaging", async (req: TenantRequest, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      
+      // Get medical imaging for this patient
+      const imaging = await storage.getMedicalImagesByPatient(patientId, req.tenant!.id);
+      
+      res.json(imaging || []);
+    } catch (error) {
+      console.error("Patient medical imaging fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch patient medical imaging" });
+    }
+  });
+
+  // Get patient insurance information by ID
+  app.get("/api/patients/:id/insurance", async (req: TenantRequest, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      const patient = await storage.getPatient(patientId, req.tenant!.id);
+      
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+
+      // Return patient's insurance information
+      res.json(patient.insuranceInfo || {});
+    } catch (error) {
+      console.error("Patient insurance fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch patient insurance information" });
+    }
+  });
+
+  // Get patient address information by ID
+  app.get("/api/patients/:id/address", async (req: TenantRequest, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      const patient = await storage.getPatient(patientId, req.tenant!.id);
+      
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+
+      // Return patient's address information
+      res.json(patient.address || {});
+    } catch (error) {
+      console.error("Patient address fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch patient address information" });
+    }
+  });
+
+  // Get patient emergency contact by ID
+  app.get("/api/patients/:id/emergency-contact", async (req: TenantRequest, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      const patient = await storage.getPatient(patientId, req.tenant!.id);
+      
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+
+      // Return patient's emergency contact information
+      res.json(patient.emergencyContact || {});
+    } catch (error) {
+      console.error("Patient emergency contact fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch patient emergency contact information" });
+    }
+  });
+
   // Create medical record for patient
   app.post("/api/patients/:id/records", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
