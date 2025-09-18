@@ -230,7 +230,11 @@ export default function FinancialIntelligence() {
     mutationFn: async (claimData: Partial<Claim>) => {
       const response = await fetch("/api/financial/claims", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
+          "X-Tenant-Subdomain": "demo"
+        },
         body: JSON.stringify(claimData),
         credentials: "include"
       });
