@@ -74,8 +74,8 @@ app.use((req, res, next) => {
 
   // Run database seeding in background AFTER server is listening
   // This prevents health check timeouts during deployment
-  // PRODUCTION FIX: Only seed in development to preserve production data
-  if (process.env.NODE_ENV !== 'production' && process.env.FORCE_SEED !== 'false') {
+  // Environment-based seeding: Development OR production with ENABLE_PRODUCTION_SEEDING=true
+  if ((process.env.NODE_ENV !== 'production' || process.env.ENABLE_PRODUCTION_SEEDING === 'true') && process.env.FORCE_SEED !== 'false') {
     console.log("🚀 BACKGROUND SEEDING: Starting database seeding process...");
     console.log(`Environment: ${process.env.NODE_ENV}`);
     
@@ -113,7 +113,8 @@ app.use((req, res, next) => {
     });
   } else {
     console.log("🚀 PRODUCTION MODE: Skipping database seeding for faster startup");
-    console.log("💡 Set FORCE_SEED=true environment variable if seeding is needed");
+    console.log("💡 Set ENABLE_PRODUCTION_SEEDING=true to enable automatic seeding in production");
+    console.log("💡 Or set FORCE_SEED=true environment variable if seeding is needed");
     
     // PRODUCTION DEMO USERS: Ensure demo credentials work in production
     console.log("🎯 PRODUCTION DEMO: Creating essential demo users for login screen...");
