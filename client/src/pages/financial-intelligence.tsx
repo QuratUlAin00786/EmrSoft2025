@@ -251,40 +251,6 @@ export default function FinancialIntelligence() {
 
   const mockClaims: Claim[] = [
     {
-      id: "claim_1",
-      patientId: "patient_1",
-      patientName: "Sarah Johnson",
-      insuranceProvider: "Aetna",
-      claimNumber: "CLM-2024-001234",
-      serviceDate: "2024-06-20",
-      submissionDate: "2024-06-21",
-      amount: 450.00,
-      status: "approved",
-      paymentAmount: 380.00,
-      paymentDate: "2024-06-25",
-      procedures: [
-        { code: "99213", description: "Office visit, established patient", amount: 180.00 },
-        { code: "85025", description: "Complete blood count", amount: 45.00 },
-        { code: "80053", description: "Comprehensive metabolic panel", amount: 65.00 }
-      ]
-    },
-    {
-      id: "claim_2",
-      patientId: "patient_2",
-      patientName: "Michael Chen",
-      insuranceProvider: "Blue Cross Blue Shield",
-      claimNumber: "CLM-2024-001235",
-      serviceDate: "2024-06-22",
-      submissionDate: "2024-06-23",
-      amount: 285.00,
-      status: "denied",
-      denialReason: "Prior authorization required",
-      procedures: [
-        { code: "99214", description: "Office visit, established patient", amount: 220.00 },
-        { code: "85027", description: "Complete blood count with differential", amount: 65.00 }
-      ]
-    },
-    {
       id: "claim_3",
       patientId: "patient_3",
       patientName: "Emma Davis",
@@ -302,46 +268,6 @@ export default function FinancialIntelligence() {
   ];
 
   const mockInsurances: Insurance[] = [
-    {
-      id: "ins_1",
-      patientId: "patient_1",
-      patientName: "Sarah Johnson",
-      provider: "Aetna",
-      policyNumber: "AET123456789",
-      groupNumber: "GRP001",
-      status: "active",
-      coverageType: "primary",
-      eligibilityStatus: "verified",
-      lastVerified: "2024-06-25",
-      benefits: {
-        deductible: 1500,
-        deductibleMet: 850,
-        copay: 25,
-        coinsurance: 20,
-        outOfPocketMax: 5000,
-        outOfPocketMet: 1200
-      }
-    },
-    {
-      id: "ins_2",
-      patientId: "patient_2",
-      patientName: "Michael Chen",
-      provider: "Blue Cross Blue Shield",
-      policyNumber: "BCBS987654321",
-      groupNumber: "GRP002",
-      status: "active",
-      coverageType: "primary",
-      eligibilityStatus: "pending",
-      lastVerified: "2024-06-15",
-      benefits: {
-        deductible: 2000,
-        deductibleMet: 450,
-        copay: 30,
-        coinsurance: 25,
-        outOfPocketMax: 6000,
-        outOfPocketMet: 780
-      }
-    }
   ];
 
   const mockForecasts: FinancialForecast[] = [
