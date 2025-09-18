@@ -289,14 +289,14 @@ export default function ClinicalDecisionSupport() {
   // Generate new insight mutation
   const generateInsightMutation = useMutation({
     mutationFn: async (data: { patientId: string; symptoms: string; history: string }) => {
-      const response = await fetch("/api/clinical/generate-insight", {
+      const response = await fetch("/api/ai/generate-insights", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
           "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
           "X-Tenant-Subdomain": "demo"
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ patientId: data.patientId }),
         credentials: "include"
       });
       if (!response.ok) throw new Error("Failed to generate insight");
