@@ -1866,6 +1866,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // FINANCIAL INTELLIGENCE ROUTES
   // ============================================
 
+  // In-memory storage for submitted claims
+  let submittedClaims: any[] = [];
+
   // Get revenue data
   app.get("/api/financial/revenue", authMiddleware, requireRole(["admin", "finance", "doctor"]), async (req: TenantRequest, res) => {
     try {
@@ -1943,7 +1946,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       ];
       
-      res.json(mockClaims);
+      // Combine mock claims with submitted claims
+      const allClaims = [...mockClaims, ...submittedClaims];
+      res.json(allClaims);
     } catch (error) {
       handleRouteError(error, "fetch claims data", res);
     }
@@ -1965,10 +1970,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const newClaim = {
         id: `claim_${Date.now()}`,
         ...claimData,
-        status: claimData.status || "submitted",
+        status: claimData.status || "pending",
         submissionDate: new Date().toISOString(),
-        claimNumber: `CLM-${Date.now()}`
+        claimNumber: `CLM-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`
       };
+
+      // Add the new claim to the in-memory storage
+      submittedClaims.push(newClaim);
 
       res.status(201).json(newClaim);
     } catch (error) {
