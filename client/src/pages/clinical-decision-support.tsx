@@ -336,9 +336,22 @@ export default function ClinicalDecisionSupport() {
       if (!response.ok) throw new Error("Failed to generate insight");
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/clinical/insights"] });
-      toast({ title: "AI insight generated successfully" });
+      
+      if (data.generated && data.generated > 0) {
+        const fallbackMessage = data.usingFallbackData ? " (using fallback data)" : "";
+        toast({ 
+          title: "AI insights generated successfully",
+          description: `Generated ${data.generated} clinical insight${data.generated > 1 ? 's' : ''} for ${data.patientName}${fallbackMessage}`
+        });
+      } else {
+        toast({ 
+          title: "No insights generated", 
+          description: "No new insights were generated for this patient.",
+          variant: "destructive" 
+        });
+      }
     },
     onError: () => {
       toast({ title: "Failed to generate insight", variant: "destructive" });
