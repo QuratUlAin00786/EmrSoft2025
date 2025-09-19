@@ -1963,7 +1963,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: z.string().optional(),
         submittedAt: z.string().optional(),
         providerName: z.string().optional(),
-        serviceDate: z.string()
+        serviceDate: z.string(),
+        procedures: z.array(z.object({
+          code: z.string(),
+          description: z.string(),
+          amount: z.number()
+        })).optional(),
+        patientId: z.number().optional(),
+        claimNumber: z.string().optional(),
+        insuranceProvider: z.string().optional(),
+        submissionDate: z.string().optional()
       }).parse(req.body);
 
       // In production, this would create a claim in the database
