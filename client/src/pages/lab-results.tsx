@@ -1274,15 +1274,14 @@ Report generated from Cura EMR System`;
                     <SelectItem value="cancelled">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
-                <div className="">
-                  <Button
-                    onClick={handleOrderTest}
-                    className="bg-medical-blue hover:bg-blue-700 flex justify-end mb-4"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Order Lab Test
-                  </Button>{" "}
-                </div>
+                {/* Right Side: Button */}
+                <Button
+                  onClick={handleOrderTest}
+                  className="bg-medical-blue hover:bg-blue-700 ml-auto"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Order Lab Test
+                </Button>
               </div>
             </CardContent>
           </Card>
