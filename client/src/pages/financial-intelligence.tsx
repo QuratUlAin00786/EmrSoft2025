@@ -133,6 +133,7 @@ export default function FinancialIntelligence() {
   });
   const [patientDropdownOpen, setPatientDropdownOpen] = useState(false);
   const [verifyEligibilityOpen, setVerifyEligibilityOpen] = useState(false);
+  const [priorAuthOpen, setPriorAuthOpen] = useState(false);
   const [selectedInsurance, setSelectedInsurance] = useState<any>(null);
   const [verificationFormData, setVerificationFormData] = useState({
     patientName: '',
@@ -1015,9 +1016,10 @@ export default function FinancialIntelligence() {
                       size="sm" 
                       variant="outline"
                       onClick={() => {
-                        console.log('Prior Authorization clicked for:', insurance.patientName);
-                        alert(`Prior Authorization: Process initiated for ${insurance.patientName}. A request will be submitted to ${insurance.provider} within 24 hours.`);
+                        setSelectedInsurance(insurance);
+                        setPriorAuthOpen(true);
                       }}
+                      data-testid="button-prior-authorization"
                     >
                       Prior Authorization
                     </Button>
@@ -1271,6 +1273,61 @@ export default function FinancialIntelligence() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Prior Authorization Modal */}
+      <Dialog open={priorAuthOpen} onOpenChange={setPriorAuthOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Prior Authorization Request</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedInsurance && (
+              <>
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-blue-800 mb-2">Request Details</h4>
+                  <div className="space-y-2 text-sm">
+                    <div><span className="font-medium">Patient:</span> {selectedInsurance.patientName}</div>
+                    <div><span className="font-medium">Insurance Provider:</span> {selectedInsurance.provider}</div>
+                    <div><span className="font-medium">Policy Number:</span> {selectedInsurance.policyNumber}</div>
+                    <div><span className="font-medium">Group Number:</span> {selectedInsurance.groupNumber}</div>
+                  </div>
+                </div>
+                
+                <div className="border-l-4 border-green-400 bg-green-50 p-4">
+                  <div className="flex">
+                    <CheckCircle className="h-5 w-5 text-green-400 mr-2 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-green-800">Request Initiated</h4>
+                      <p className="text-green-700 text-sm mt-1">
+                        Prior authorization request has been submitted to {selectedInsurance.provider}. 
+                        You will receive a response within 24-48 hours.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded">
+                  <strong>Next Steps:</strong>
+                  <ul className="list-disc list-inside mt-1 space-y-1">
+                    <li>Authorization request sent to {selectedInsurance.provider}</li>
+                    <li>Patient will be notified via phone/email</li>
+                    <li>Follow up if no response within 48 hours</li>
+                  </ul>
+                </div>
+              </>
+            )}
+
+            <div className="flex justify-end pt-4">
+              <Button 
+                onClick={() => setPriorAuthOpen(false)}
+                data-testid="button-close-prior-auth"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
