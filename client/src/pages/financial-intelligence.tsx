@@ -1197,6 +1197,15 @@ export default function FinancialIntelligence() {
                   <Button
                     className="w-full"
                     onClick={() => {
+                      // Debug logging
+                      console.log("Form submission attempted with data:", claimFormData);
+                      console.log("Validation checks:");
+                      console.log("Patient:", claimFormData.patient ? "✓" : "✗");
+                      console.log("Service Date:", claimFormData.serviceDate ? "✓" : "✗");
+                      console.log("Insurance Provider:", claimFormData.insuranceProvider ? "✓" : "✗");
+                      console.log("Procedures count:", claimFormData.procedures.length);
+                      console.log("Procedures details:", claimFormData.procedures);
+                      
                       // Validation
                       if (
                         !claimFormData.patient ||
@@ -1205,6 +1214,7 @@ export default function FinancialIntelligence() {
                         claimFormData.procedures.length === 0 ||
                         claimFormData.procedures.some(proc => !proc.code || !proc.description || !proc.amount)
                       ) {
+                        console.log("Validation failed!");
                         toast({
                           title: "Missing Information",
                           description: "Please fill in all required fields including at least one complete procedure",
@@ -1212,6 +1222,8 @@ export default function FinancialIntelligence() {
                         });
                         return;
                       }
+                      
+                      console.log("Validation passed, submitting claim...");
 
                       const selectedPatient = patients?.find(
                         (patient: any) =>
