@@ -3061,10 +3061,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Prepare metadata with symptoms and history
       const { symptoms, history, ...insightData } = validatedData;
+      
+      // Generate suggested actions based on insight type and severity
+      const generateSuggestedActions = (type: string, severity: string, actionRequired: boolean) => {
+        const actions = [];
+        
+        if (actionRequired) {
+          switch (type) {
+            case 'risk_alert':
+              if (severity === 'critical') {
+                actions.push('Immediate patient evaluation required', 'Contact primary physician within 2 hours', 'Document findings in medical record');
+              } else if (severity === 'high') {
+                actions.push('Schedule follow-up appointment within 1 week', 'Monitor patient closely', 'Review medication interactions');
+              } else {
+                actions.push('Schedule routine follow-up', 'Patient education on risk factors', 'Consider preventive measures');
+              }
+              break;
+            case 'drug_interaction':
+              actions.push('Review medication list with pharmacist', 'Monitor for adverse effects', 'Consider alternative medications', 'Educate patient on interaction signs');
+              break;
+            case 'treatment_suggestion':
+              actions.push('Discuss treatment options with patient', 'Obtain informed consent', 'Monitor treatment response', 'Schedule follow-up assessment');
+              break;
+            case 'diagnostic':
+              actions.push('Order appropriate diagnostic tests', 'Review results with specialist', 'Monitor symptoms progression', 'Document clinical findings');
+              break;
+            case 'preventive':
+              actions.push('Implement preventive care plan', 'Patient lifestyle counseling', 'Schedule regular monitoring', 'Educate on risk reduction');
+              break;
+            default:
+              actions.push('Review clinical findings', 'Follow standard care protocols', 'Document assessment', 'Monitor patient status');
+          }
+        } else {
+          actions.push('Review and acknowledge findings', 'Consider for future reference', 'Update patient care plan if needed');
+        }
+        
+        return actions;
+      };
+
+      const suggestedActions = generateSuggestedActions(insightData.type, insightData.severity, insightData.actionRequired || false);
+      
       const metadata = {
         ...insightData.metadata,
         ...(symptoms && { symptoms }),
-        ...(history && { history })
+        ...(history && { history }),
+        suggestedActions
       };
 
       // Convert confidence from number to string for DB storage
