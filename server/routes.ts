@@ -1894,57 +1894,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/financial/claims", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
       // Mock claims data - in production this would come from claims management system
-      const mockClaims = [
-        {
-          id: "claim_1",
-          patientId: "patient_1",
-          patientName: "Sarah Johnson",
-          insuranceProvider: "Aetna",
-          claimNumber: "CLM-2024-001234",
-          serviceDate: "2024-06-20",
-          submissionDate: "2024-06-21",
-          amount: 450.00,
-          status: "approved",
-          paymentAmount: 380.00,
-          paymentDate: "2024-06-25",
-          procedures: [
-            { code: "99213", description: "Office visit, established patient", amount: 180.00 },
-            { code: "85025", description: "Complete blood count", amount: 45.00 },
-            { code: "80053", description: "Comprehensive metabolic panel", amount: 65.00 }
-          ]
-        },
-        {
-          id: "claim_2",
-          patientId: "patient_2",
-          patientName: "Michael Chen",
-          insuranceProvider: "Blue Cross Blue Shield",
-          claimNumber: "CLM-2024-001235",
-          serviceDate: "2024-06-22",
-          submissionDate: "2024-06-23",
-          amount: 285.00,
-          status: "denied",
-          denialReason: "Prior authorization required",
-          procedures: [
-            { code: "99214", description: "Office visit, established patient", amount: 220.00 },
-            { code: "85027", description: "Complete blood count with differential", amount: 65.00 }
-          ]
-        },
-        {
-          id: "claim_3",
-          patientId: "patient_3",
-          patientName: "Emma Davis",
-          insuranceProvider: "United Healthcare",
-          claimNumber: "CLM-2024-001236",
-          serviceDate: "2024-06-24",
-          submissionDate: "2024-06-25",
-          amount: 320.00,
-          status: "pending",
-          procedures: [
-            { code: "99215", description: "Office visit, established patient", amount: 280.00 },
-            { code: "36415", description: "Venipuncture", amount: 40.00 }
-          ]
-        }
-      ];
+      const mockClaims: any[] = [];
       
       // Combine mock claims with submitted claims
       const allClaims = [...mockClaims, ...submittedClaims];
