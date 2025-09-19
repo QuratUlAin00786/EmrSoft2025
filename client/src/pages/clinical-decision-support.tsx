@@ -361,7 +361,7 @@ export default function ClinicalDecisionSupport() {
         title: "Insight Created",
         description: "Successfully created new AI insight.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/ai-insights", selectedPatient] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ai-insights"] });
       form.reset();
       setCreateInsightOpen(false);
     },
@@ -384,7 +384,7 @@ export default function ClinicalDecisionSupport() {
         title: "Insight Deleted",
         description: "Successfully deleted AI insight.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/ai-insights", selectedPatient] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ai-insights"] });
     },
     onError: (error: any) => {
       toast({
@@ -412,7 +412,7 @@ export default function ClinicalDecisionSupport() {
       return response.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/ai-insights", selectedPatient] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ai-insights"] });
       
       if (data.success && data.insights && data.insights.length > 0) {
         const fallbackMessage = data.usingFallbackData ? " (using fallback data)" : "";
@@ -439,7 +439,7 @@ export default function ClinicalDecisionSupport() {
       return apiRequest("PATCH", `/api/ai/insights/${data.insightId}`, { status: data.status, notes: data.notes });
     },
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/ai-insights", selectedPatient] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ai-insights"] });
       toast({ 
         title: "Insight updated successfully", 
         description: `Status changed to ${variables.status}` 
