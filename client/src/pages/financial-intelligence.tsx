@@ -310,8 +310,6 @@ export default function FinancialIntelligence() {
     onSuccess: (data) => {
       console.log("Insurance update success:", data);
       queryClient.invalidateQueries({ queryKey: ["/api/financial/insurance"] });
-      // Force refetch to ensure fresh data is displayed
-      queryClient.refetchQueries({ queryKey: ["/api/financial/insurance"] });
       toast({ 
         title: "Insurance updated successfully",
         description: data.message || "Insurance verification data updated"
@@ -1376,13 +1374,19 @@ export default function FinancialIntelligence() {
                 Cancel
               </Button>
               <Button 
-                onClick={() => {
+                onClick={async () => {
                   if (selectedInsurance) {
-                    updateInsuranceMutation.mutate({
-                      insuranceId: selectedInsurance.id,
-                      data: verificationFormData
-                    });
-                    setVerifyEligibilityOpen(false);
+                    try {
+                      await updateInsuranceMutation.mutateAsync({
+                        insuranceId: selectedInsurance.id,
+                        data: verificationFormData
+                      });
+                      // Wait for the refetch to complete before closing modal
+                      await queryClient.refetchQueries({ queryKey: ["/api/financial/insurance"] });
+                      setVerifyEligibilityOpen(false);
+                    } catch (error) {
+                      console.error("Failed to update insurance:", error);
+                    }
                   }
                 }}
                 disabled={updateInsuranceMutation.isPending}
