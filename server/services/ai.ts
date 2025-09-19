@@ -1189,7 +1189,7 @@ Provide intelligent, contextually aware responses that demonstrate advanced lang
       return this.formatAiInsights(result);
     } catch (error) {
       console.error("AI analysis error:", error);
-      return [];
+      throw error; // Re-throw the error so routes.ts can handle fallback logic
     }
   }
 
