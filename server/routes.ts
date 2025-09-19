@@ -3101,11 +3101,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const suggestedActions = generateSuggestedActions(insightData.type, insightData.severity, insightData.actionRequired || false);
       
+      // Generate related conditions based on insight type and content
+      const generateRelatedConditions = (type: string, title: string, description: string) => {
+        const conditions = [];
+        const lowerTitle = title.toLowerCase();
+        const lowerDesc = description.toLowerCase();
+        
+        switch (type) {
+          case 'risk_alert':
+            if (lowerTitle.includes('cardiac') || lowerDesc.includes('heart')) {
+              conditions.push('Cardiovascular Disease', 'Hypertension', 'Coronary Artery Disease');
+            } else if (lowerTitle.includes('diabetic') || lowerDesc.includes('diabetes')) {
+              conditions.push('Type 2 Diabetes', 'Insulin Resistance', 'Metabolic Syndrome');
+            } else if (lowerTitle.includes('respiratory') || lowerDesc.includes('lung')) {
+              conditions.push('COPD', 'Asthma', 'Pulmonary Disease');
+            } else {
+              conditions.push('Chronic Disease Risk', 'Lifestyle Factors', 'Preventive Care Needed');
+            }
+            break;
+          case 'drug_interaction':
+            conditions.push('Polypharmacy', 'Drug-Drug Interactions', 'Medication Side Effects', 'Pharmacokinetic Changes');
+            break;
+          case 'treatment_suggestion':
+            if (lowerDesc.includes('pain')) {
+              conditions.push('Chronic Pain', 'Pain Management', 'Inflammation');
+            } else if (lowerDesc.includes('infection')) {
+              conditions.push('Bacterial Infection', 'Antibiotic Therapy', 'Immune Response');
+            } else {
+              conditions.push('Treatment Response', 'Therapeutic Options', 'Clinical Guidelines');
+            }
+            break;
+          case 'diagnostic':
+            conditions.push('Differential Diagnosis', 'Clinical Assessment', 'Diagnostic Testing');
+            break;
+          case 'preventive':
+            conditions.push('Preventive Medicine', 'Health Maintenance', 'Risk Reduction', 'Screening Guidelines');
+            break;
+          default:
+            conditions.push('Clinical Assessment', 'Patient Care', 'Medical Evaluation');
+        }
+        
+        return conditions.slice(0, 4); // Limit to 4 conditions max
+      };
+
+      const relatedConditions = generateRelatedConditions(insightData.type, insightData.title, insightData.description);
+      
       const metadata = {
         ...insightData.metadata,
         ...(symptoms && { symptoms }),
         ...(history && { history }),
-        suggestedActions
+        suggestedActions,
+        relatedConditions
       };
 
       // Convert confidence from number to string for DB storage
