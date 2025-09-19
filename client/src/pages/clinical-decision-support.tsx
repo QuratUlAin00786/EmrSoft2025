@@ -361,7 +361,9 @@ export default function ClinicalDecisionSupport() {
         title: "Insight Created",
         description: "Successfully created new AI insight.",
       });
+      // Invalidate and refetch immediately to show new data
       queryClient.invalidateQueries({ queryKey: ["/api/ai-insights"] });
+      queryClient.refetchQueries({ queryKey: ["/api/ai-insights"] });
       form.reset();
       setCreateInsightOpen(false);
     },
