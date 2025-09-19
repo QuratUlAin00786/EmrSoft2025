@@ -1995,26 +1995,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const organizationId = req.organizationId;
       console.log(`[FINANCIAL] Fetching insurance data for organization: ${organizationId}`);
 
-      // Fetch patients with insurance information from database
-      const patientsWithInsurance = await db
-        .select({
-          id: patients.id,
-          patientId: patients.patientId,
-          firstName: patients.firstName,
-          lastName: patients.lastName,
-          phone: patients.phone,
-          email: patients.email,
-          insuranceInfo: patients.insuranceInfo,
-          createdAt: patients.createdAt,
-        })
-        .from(patients)
-        .where(eq(patients.organizationId, organizationId));
+      // Get all patients for this organization to check their insurance info
+      const allPatients = await storage.getAllPatients(req.tenant!.id);
+      console.log(`[FINANCIAL] Found ${allPatients.length} patients in organization ${organizationId}`);
 
-      // Transform data to match the expected insurance verification format
-      const insuranceVerifications = patientsWithInsurance
+      // Transform patients with insurance information
+      const insuranceVerifications = allPatients
         .filter(patient => {
           const insurance = patient.insuranceInfo as any;
-          return insurance && (insurance.provider || insurance.policyNumber);
+          const hasInsurance = insurance && (insurance.provider || insurance.policyNumber);
+          if (hasInsurance) {
+            console.log(`[FINANCIAL] Patient ${patient.firstName} ${patient.lastName} has insurance: ${insurance.provider || 'Unknown'}`);
+          }
+          return hasInsurance;
         })
         .map(patient => {
           const insurance = patient.insuranceInfo as any;
@@ -2046,7 +2039,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Also include any manually added insurance records from mock data
       const allInsuranceData = [...insuranceVerifications, ...mockInsurances];
 
-      console.log(`[FINANCIAL] Found ${allInsuranceData.length} insurance verifications (${insuranceVerifications.length} from DB, ${mockInsurances.length} manual)`);
+      console.log(`[FINANCIAL] Total insurance verifications: ${allInsuranceData.length} (${insuranceVerifications.length} from patients, ${mockInsurances.length} manual)`);
       res.json(allInsuranceData);
     } catch (error) {
       console.error(`[FINANCIAL] Error fetching insurance data:`, error);
