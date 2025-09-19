@@ -1081,6 +1081,7 @@ ${
   const [isSavingAnalysis, setIsSavingAnalysis] = useState(false);
   const [isSavingPhysicalExam, setIsSavingPhysicalExam] = useState(false);
   const [isSavingRespiratoryExam, setIsSavingRespiratoryExam] = useState(false);
+  const [isSavingCardiovascularExam, setIsSavingCardiovascularExam] = useState(false);
 
   // Respiratory examination state
   const [respiratoryExamData, setRespiratoryExamData] = useState({
@@ -1090,6 +1091,16 @@ ${
     percussion: "",
     palpation: "",
     oxygenSaturation: ""
+  });
+
+  // Cardiovascular examination state
+  const [cardiovascularExamData, setCardiovascularExamData] = useState({
+    heartRateRhythm: "",
+    heartSounds: "",
+    bloodPressure: "",
+    peripheralPulses: "",
+    edemaAssessment: "",
+    chestInspection: ""
   });
 
   // Speech recognition state
@@ -1349,6 +1360,73 @@ Patient should be advised of potential side effects and expected timeline for re
       });
     } finally {
       setIsSavingRespiratoryExam(false);
+    }
+  };
+
+  const saveCardiovascularExamination = async () => {
+    setIsSavingCardiovascularExam(true);
+    
+    try {
+      const currentPatientId = patientId || patient?.id;
+      if (!currentPatientId) {
+        throw new Error("No patient selected");
+      }
+
+      // Build comprehensive cardiovascular examination data
+      const examNotes = Object.entries(cardiovascularExamData)
+        .filter(([_, value]) => value && value.trim()) // Only include filled fields
+        .map(([field, value]) => {
+          const fieldName = field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+          return `${fieldName}: ${value}`;
+        })
+        .join('\n\n');
+
+      const cardiovascularExamRecord = {
+        type: "consultation",
+        title: "Clinical Examination - Cardiovascular",
+        notes: `Comprehensive cardiovascular examination completed.\n\n${examNotes || 'No cardiovascular examination findings recorded.'}`,
+        diagnosis: `Cardiovascular examination findings - ${Object.keys(cardiovascularExamData).filter(key => cardiovascularExamData[key]).join(', ') || 'Multiple parameters evaluated'}`,
+        treatment: "Cardiovascular examination completed - refer to detailed findings for treatment recommendations"
+      };
+
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/patients/${currentPatientId}/records`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'X-Tenant-Subdomain': 'demo'
+        },
+        body: JSON.stringify(cardiovascularExamRecord)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const savedRecord = await response.json();
+      
+      toast({
+        title: "Cardiovascular Examination Saved",
+        description: "Cardiovascular examination findings have been saved to patient medical records."
+      });
+      
+      // Invalidate and refetch medical records
+      queryClient.invalidateQueries({ queryKey: ['/api/patients', currentPatientId, 'records'] });
+      
+      // Close the modal
+      setShowCardiovascularExamModal(false);
+      
+    } catch (error) {
+      console.error('Failed to save cardiovascular examination:', error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to save cardiovascular examination. Please try again.";
+      toast({
+        title: "Save Failed", 
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
+      setIsSavingCardiovascularExam(false);
     }
   };
 
