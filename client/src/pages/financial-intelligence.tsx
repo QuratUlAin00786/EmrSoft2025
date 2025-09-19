@@ -137,6 +137,7 @@ export default function FinancialIntelligence() {
   const [priorAuthOpen, setPriorAuthOpen] = useState(false);
   const [viewBenefitsOpen, setViewBenefitsOpen] = useState(false);
   const [addInsuranceOpen, setAddInsuranceOpen] = useState(false);
+  const [patientSearchOpen, setPatientSearchOpen] = useState(false);
   const [selectedInsurance, setSelectedInsurance] = useState<any>(null);
   const [verificationFormData, setVerificationFormData] = useState({
     patientName: '',
@@ -1633,12 +1634,53 @@ export default function FinancialIntelligence() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">Patient Name</label>
-                <Input
-                  value={newInsuranceFormData.patientName}
-                  onChange={(e) => setNewInsuranceFormData(prev => ({ ...prev, patientName: e.target.value }))}
-                  placeholder="Enter patient name"
-                  data-testid="input-new-patient-name"
-                />
+                <Popover open={patientSearchOpen} onOpenChange={setPatientSearchOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={patientSearchOpen}
+                      className="w-full justify-between"
+                      data-testid="button-patient-search"
+                    >
+                      {newInsuranceFormData.patientName || "Select patient..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0">
+                    <Command>
+                      <CommandInput placeholder="Search patients..." />
+                      <CommandEmpty>No patients found.</CommandEmpty>
+                      <CommandList>
+                        <CommandGroup>
+                          {patients?.map((patient: any) => (
+                            <CommandItem
+                              key={patient.id}
+                              value={`${patient.firstName} ${patient.lastName}`}
+                              onSelect={() => {
+                                setNewInsuranceFormData(prev => ({ 
+                                  ...prev, 
+                                  patientName: `${patient.firstName} ${patient.lastName}` 
+                                }));
+                                setPatientSearchOpen(false);
+                              }}
+                              data-testid={`option-patient-${patient.id}`}
+                            >
+                              <Check
+                                className={`mr-2 h-4 w-4 ${
+                                  newInsuranceFormData.patientName === `${patient.firstName} ${patient.lastName}`
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                }`}
+                              />
+                              {patient.firstName} {patient.lastName}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               <div>
                 <label className="text-sm font-medium">Insurance Provider</label>
