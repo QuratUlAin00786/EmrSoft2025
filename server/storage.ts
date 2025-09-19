@@ -189,6 +189,7 @@ export interface IStorage {
   getAiInsightsByPatient(patientId: number, organizationId: number): Promise<AiInsight[]>;
   createAiInsight(insight: InsertAiInsight): Promise<AiInsight>;
   updateAiInsight(id: number, organizationId: number, updates: Partial<InsertAiInsight>): Promise<AiInsight | undefined>;
+  deleteAiInsight(id: number, organizationId: number): Promise<boolean>;
 
   // Subscriptions
   getSubscription(organizationId: number): Promise<Subscription | undefined>;
@@ -1128,6 +1129,13 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(aiInsights.id, id), eq(aiInsights.organizationId, organizationId)))
       .returning();
     return updated || undefined;
+  }
+
+  async deleteAiInsight(id: number, organizationId: number): Promise<boolean> {
+    const result = await db.delete(aiInsights)
+      .where(and(eq(aiInsights.id, id), eq(aiInsights.organizationId, organizationId)))
+      .returning();
+    return result.length > 0;
   }
 
   // Subscriptions

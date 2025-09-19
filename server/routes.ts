@@ -16,7 +16,7 @@ import { initializeMultiTenantPackage, getMultiTenantPackage } from "./packages/
 import { messagingService } from "./messaging-service";
 import { createPaypalOrder, capturePaypalOrder, loadPaypalDefault } from "./paypal";
 import { gdprComplianceService } from "./services/gdpr-compliance";
-import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema } from "../shared/schema";
+import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema } from "../shared/schema";
 import { processAppointmentBookingChat, generateAppointmentSummary } from "./anthropic";
 import { inventoryService } from "./services/inventory";
 import { emailService } from "./services/email";
@@ -3005,37 +3005,129 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Clinical insights routes
+  // AI Insights CRUD Routes
+  
+  // GET /api/ai-insights - List insights with optional patient filter
+  app.get("/api/ai-insights", requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      const patientId = req.query.patientId ? parseInt(req.query.patientId as string) : undefined;
+      
+      let insights;
+      if (patientId) {
+        // Validate that patient belongs to the same organization
+        const patient = await storage.getPatient(patientId, req.tenant!.id);
+        if (!patient) {
+          return res.status(404).json({ error: "Patient not found" });
+        }
+        insights = await storage.getAiInsightsByPatient(patientId, req.tenant!.id);
+      } else {
+        insights = await storage.getAiInsightsByOrganization(req.tenant!.id, 50);
+      }
+
+      // Transform confidence from string to number for frontend
+      const transformedInsights = insights.map(insight => ({
+        ...insight,
+        confidence: insight.confidence ? parseFloat(insight.confidence) : 0
+      }));
+
+      res.json(transformedInsights);
+    } catch (error) {
+      handleRouteError(error, "list AI insights", res);
+    }
+  });
+
+  // POST /api/ai-insights - Create new insight
+  app.post("/api/ai-insights", requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      // Extend the insert schema to include symptoms and history
+      const createInsightSchema = insertAiInsightSchema.extend({
+        symptoms: z.string().optional(),
+        history: z.string().optional()
+      });
+
+      const validatedData = createInsightSchema.parse(req.body);
+      
+      // Validate that patient belongs to the same organization if patientId is provided
+      if (validatedData.patientId) {
+        const patient = await storage.getPatient(validatedData.patientId, req.tenant!.id);
+        if (!patient) {
+          return res.status(404).json({ error: "Patient not found" });
+        }
+      }
+
+      // Prepare metadata with symptoms and history
+      const { symptoms, history, ...insightData } = validatedData;
+      const metadata = {
+        ...insightData.metadata,
+        ...(symptoms && { symptoms }),
+        ...(history && { history })
+      };
+
+      // Convert confidence from number to string for DB storage
+      const insightToCreate = {
+        ...insightData,
+        organizationId: req.tenant!.id,
+        confidence: insightData.confidence ? insightData.confidence.toString() : "0",
+        metadata
+      };
+
+      const newInsight = await storage.createAiInsight(insightToCreate);
+      
+      // Transform confidence back to number for frontend response
+      const transformedInsight = {
+        ...newInsight,
+        confidence: newInsight.confidence ? parseFloat(newInsight.confidence) : 0
+      };
+
+      res.status(201).json(transformedInsight);
+    } catch (error) {
+      handleRouteError(error, "create AI insight", res);
+    }
+  });
+
+  // DELETE /api/ai-insights/:id - Delete insight with org-scoped security
+  app.delete("/api/ai-insights/:id", requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      const insightId = parseInt(req.params.id);
+      
+      if (isNaN(insightId)) {
+        return res.status(400).json({ error: "Invalid insight ID" });
+      }
+
+      // Check if insight exists and belongs to organization
+      const existingInsight = await storage.getAiInsight(insightId, req.tenant!.id);
+      if (!existingInsight) {
+        return res.status(404).json({ error: "AI insight not found" });
+      }
+
+      const deleted = await storage.deleteAiInsight(insightId, req.tenant!.id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "AI insight not found" });
+      }
+
+      res.json({ success: true, message: "AI insight deleted successfully" });
+    } catch (error) {
+      handleRouteError(error, "delete AI insight", res);
+    }
+  });
+
+  // Keep the existing clinical insights route for backward compatibility but use real data
   app.get("/api/clinical/insights", requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
     try {
-      // Return mock clinical insights data for the Clinical Decision Support page
-      const mockInsights = [
-        {
-          id: "insight_1",
-          patientId: "patient_1",
-          patientName: "Sarah Johnson",
-          type: "drug_interaction",
-          priority: "high",
-          title: "Potential Drug Interaction Alert",
-          description: "Warfarin and Amoxicillin combination may increase bleeding risk",
-          recommendations: [
-            "Monitor INR more frequently (every 2-3 days)",
-            "Consider alternative antibiotic if possible",
-            "Educate patient on bleeding signs",
-            "Document interaction in patient record"
-          ],
-          confidence: 92,
-          evidenceLevel: "A",
-          createdAt: "2024-06-26T14:30:00Z",
-          status: "active",
-          provider: "Dr. Emily Watson",
-          relatedConditions: ["Atrial Fibrillation", "Upper Respiratory Infection"]
-        }
-      ];
-      res.json(mockInsights);
+      const insights = await storage.getAiInsightsByOrganization(req.tenant!.id, 50);
+      
+      // Transform to match the expected clinical insights format
+      const transformedInsights = insights.map(insight => ({
+        ...insight,
+        confidence: insight.confidence ? parseFloat(insight.confidence) : 0,
+        priority: insight.severity, // Map severity to priority for backward compatibility
+        patientName: `Patient ${insight.patientId}` // Will be enriched with real patient data in frontend
+      }));
+
+      res.json(transformedInsights);
     } catch (error) {
-      console.error("Clinical insights error:", error);
-      res.status(500).json({ error: "Failed to fetch clinical insights" });
+      handleRouteError(error, "fetch clinical insights", res);
     }
   });
 

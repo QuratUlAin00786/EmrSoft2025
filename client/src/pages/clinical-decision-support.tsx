@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { queryClient } from "@/lib/queryClient";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { AiInsight, insertAiInsightSchema } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +16,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
 import { 
   Brain,
   AlertTriangle,
@@ -27,32 +35,26 @@ import {
   Filter,
   Download,
   Settings,
-  ArrowLeft
+  ArrowLeft,
+  Plus,
+  Trash2,
+  Save
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 
-interface ClinicalInsight {
-  id: string;
-  patientId: string;
-  patientName: string;
-  type: 'diagnostic' | 'treatment' | 'drug_interaction' | 'risk_assessment' | 'preventive';
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  title: string;
-  description: string;
-  recommendations: string[];
-  confidence: number;
-  evidenceLevel: 'A' | 'B' | 'C' | 'D';
-  createdAt: string;
-  status: 'active' | 'reviewed' | 'dismissed' | 'implemented';
-  provider?: string;
-  relatedConditions: string[];
-  supportingData: {
-    labValues?: Array<{ name: string; value: string; reference: string; status: 'normal' | 'abnormal' | 'critical' }>;
-    medications?: Array<{ name: string; dosage: string; frequency: string; interactions?: string[] }>;
-    vitalSigns?: Array<{ parameter: string; value: string; trend: 'stable' | 'improving' | 'worsening' }>;
-  };
-}
+// Use the actual database schema for form validation
+const createInsightSchema = insertAiInsightSchema.extend({
+  symptoms: z.string().optional(),
+  history: z.string().optional()
+});
+
+type CreateInsightForm = z.infer<typeof createInsightSchema>;
+
+// Use the actual database type with additional fields for UI
+type ClinicalInsight = AiInsight & {
+  patientName?: string; // Add computed field for display
+};
 
 interface RiskScore {
   category: string;
@@ -65,16 +67,30 @@ interface RiskScore {
 export default function ClinicalDecisionSupport() {
   const [selectedPatient, setSelectedPatient] = useState<string>("");
   const [activeTab, setActiveTab] = useState("insights");
-  const [filterPriority, setFilterPriority] = useState<string>("all");
+  const [filterSeverity, setFilterSeverity] = useState<string>("all");
   const [filterType, setFilterType] = useState<string>("all");
   const [selectedGuideline, setSelectedGuideline] = useState<any>(null);
   const [guidelineViewOpen, setGuidelineViewOpen] = useState(false);
-  const [symptoms, setSymptoms] = useState<string>("");
-  const [history, setHistory] = useState<string>("");
   const [patientSearchOpen, setPatientSearchOpen] = useState(false);
   const [patientSearch, setPatientSearch] = useState<string>("");
+  const [createInsightOpen, setCreateInsightOpen] = useState(false);
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
+
+  // Form for creating insights
+  const form = useForm<CreateInsightForm>({
+    resolver: zodResolver(createInsightSchema),
+    defaultValues: {
+      type: "risk_alert",
+      title: "",
+      description: "",
+      severity: "medium",
+      actionRequired: false,
+      confidence: "0.8", // String as per database schema
+      symptoms: "",
+      history: ""
+    }
+  });
 
   // Fetch patients for the searchable dropdown
   const { data: patients = [], isLoading: patientsLoading } = useQuery({
@@ -265,29 +281,36 @@ export default function ClinicalDecisionSupport() {
     }
   ];
 
-  // Fetch clinical insights
-  const { data: insights = mockInsights, isLoading: insightsLoading } = useQuery<ClinicalInsight[]>({
-    queryKey: ["/api/clinical/insights", filterPriority, filterType],
+  // Fetch AI insights with real data
+  const { data: insights = [], isLoading: insightsLoading } = useQuery<ClinicalInsight[]>({
+    queryKey: ["/api/ai-insights", selectedPatient, filterSeverity, filterType],
     queryFn: async () => {
-      try {
-        const response = await fetch("/api/clinical/insights", {
-          headers: { 
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
-            "X-Tenant-Subdomain": "demo"
-          },
-          credentials: "include"
-        });
-        if (!response.ok) throw new Error("Failed to fetch insights");
-        return response.json();
-      } catch (error) {
-        // If API fails, return mock data as fallback
-        console.warn("Using mock insights data:", error);
-        return mockInsights.filter(insight => 
-          (filterPriority === 'all' || insight.priority === filterPriority) &&
-          (filterType === 'all' || insight.type === filterType)
-        );
+      const params = new URLSearchParams();
+      if (selectedPatient && selectedPatient !== "") {
+        params.append("patientId", selectedPatient);
       }
+      
+      const response = await fetch(`/api/ai-insights?${params}`, {
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
+          "X-Tenant-Subdomain": "demo"
+        },
+        credentials: "include"
+      });
+      if (!response.ok) throw new Error("Failed to fetch insights");
+      const data = await response.json();
+      
+      // Transform data to match AiInsight type and apply filters
+      return data.filter((insight: any) => 
+        (filterSeverity === 'all' || insight.severity === filterSeverity) &&
+        (filterType === 'all' || insight.type === filterType)
+      ).map((insight: any) => ({
+        ...insight,
+        id: insight.id.toString(),
+        patientId: insight.patientId?.toString() || "",
+        patientName: selectedPatientData ? `${selectedPatientData.firstName} ${selectedPatientData.lastName}` : `Patient ${insight.patientId}`,
+      }));
     },
     retry: false,
     staleTime: 30000,
@@ -320,7 +343,56 @@ export default function ClinicalDecisionSupport() {
     enabled: true
   });
 
-  // Generate new insight mutation
+  // Create new insight mutation
+  const createInsightMutation = useMutation({
+    mutationFn: async (data: CreateInsightForm) => {
+      return apiRequest(`/api/ai-insights`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Insight Created",
+        description: "Successfully created new AI insight.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/ai-insights", selectedPatient] });
+      form.reset();
+      setCreateInsightOpen(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Creation Failed",
+        description: error.message || "Failed to create AI insight",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Delete insight mutation
+  const deleteInsightMutation = useMutation({
+    mutationFn: async (insightId: string) => {
+      return apiRequest(`/api/ai-insights/${insightId}`, {
+        method: "DELETE"
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Insight Deleted",
+        description: "Successfully deleted AI insight.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/ai-insights", selectedPatient] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Deletion Failed",
+        description: error.message || "Failed to delete AI insight",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Generate new insight mutation (keep existing for AI generation)
   const generateInsightMutation = useMutation({
     mutationFn: async (data: { patientId: string; symptoms: string; history: string }) => {
       const response = await fetch("/api/ai/generate-insights", {
@@ -337,7 +409,7 @@ export default function ClinicalDecisionSupport() {
       return response.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/clinical/insights"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ai-insights", selectedPatient] });
       
       if (data.success && data.insights && data.insights.length > 0) {
         const fallbackMessage = data.usingFallbackData ? " (using fallback data)" : "";
@@ -361,26 +433,29 @@ export default function ClinicalDecisionSupport() {
   // Update insight status mutation
   const updateInsightMutation = useMutation({
     mutationFn: async (data: { insightId: string; status: string; notes?: string }) => {
-      const response = await fetch(`/api/clinical/insights/${data.insightId}`, {
+      return apiRequest(`/api/ai/insights/${data.insightId}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: data.status, notes: data.notes }),
-        credentials: "include"
+        body: JSON.stringify({ status: data.status, notes: data.notes })
       });
-      if (!response.ok) throw new Error("Failed to update insight");
-      return response.json();
     },
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/clinical/insights"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ai-insights", selectedPatient] });
       toast({ 
         title: "Insight updated successfully", 
         description: `Status changed to ${variables.status}` 
       });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update insight",
+        variant: "destructive"
+      });
     }
   });
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
       case "critical": return "bg-red-100 text-red-800 border-red-200";
       case "high": return "bg-orange-100 text-orange-800 border-orange-200";
       case "medium": return "bg-yellow-100 text-yellow-800 border-yellow-200";
@@ -418,11 +493,263 @@ export default function ClinicalDecisionSupport() {
           </div>
         </div>
         <div className="flex gap-3">
+          <Dialog open={createInsightOpen} onOpenChange={setCreateInsightOpen}>
+            <DialogTrigger asChild>
+              <Button data-testid="button-create-insight">
+                <Plus className="w-4 h-4 mr-2" />
+                Create Insight
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Create New AI Insight</DialogTitle>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit((data) => createInsightMutation.mutate(data))} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="patientId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Patient</FormLabel>
+                          <Select open={patientSearchOpen} onOpenChange={setPatientSearchOpen} 
+                                  value={field.value?.toString()} 
+                                  onValueChange={(value) => field.onChange(value ? parseInt(value) : undefined)}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-patient">
+                                <SelectValue placeholder="Select patient">
+                                  {patients.find(p => p.id === field.value) 
+                                    ? `${patients.find(p => p.id === field.value)?.firstName} ${patients.find(p => p.id === field.value)?.lastName}` 
+                                    : "Select patient"}
+                                </SelectValue>
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <div className="p-2">
+                                <Input
+                                  placeholder="Search patients..."
+                                  value={patientSearch}
+                                  onChange={(e) => setPatientSearch(e.target.value)}
+                                  className="mb-2"
+                                  data-testid="input-patient-search"
+                                />
+                              </div>
+                              {patientsLoading ? (
+                                <SelectItem value="loading" disabled>Loading patients...</SelectItem>
+                              ) : (
+                                filteredPatients.map((patient: any) => (
+                                  <SelectItem key={patient.id} value={patient.id.toString()}>
+                                    {`${patient.firstName} ${patient.lastName} (${patient.patientId})`}
+                                  </SelectItem>
+                                ))
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Type</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-type">
+                                <SelectValue placeholder="Select type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="risk_alert">Risk Alert</SelectItem>
+                              <SelectItem value="drug_interaction">Drug Interaction</SelectItem>
+                              <SelectItem value="treatment_suggestion">Treatment Suggestion</SelectItem>
+                              <SelectItem value="preventive_care">Preventive Care</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Title</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter insight title" {...field} data-testid="input-title" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Enter detailed description" 
+                            {...field} 
+                            data-testid="textarea-description"
+                            rows={3}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="severity"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Severity</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-severity">
+                                <SelectValue placeholder="Select severity" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="low">Low</SelectItem>
+                              <SelectItem value="medium">Medium</SelectItem>
+                              <SelectItem value="high">High</SelectItem>
+                              <SelectItem value="critical">Critical</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="actionRequired"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">Action Required</FormLabel>
+                            <div className="text-sm text-muted-foreground">
+                              Does this insight require immediate action?
+                            </div>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              data-testid="switch-action-required"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <FormField
+                    control={form.control}
+                    name="confidence"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Confidence Level: {Math.round(field.value * 100)}%</FormLabel>
+                        <FormControl>
+                          <Slider
+                            min={0}
+                            max={1}
+                            step={0.01}
+                            value={[field.value]}
+                            onValueChange={(value) => field.onChange(value[0])}
+                            className="w-full"
+                            data-testid="slider-confidence"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="symptoms"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Symptoms (Optional)</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Enter symptoms..." 
+                              {...field} 
+                              data-testid="textarea-symptoms"
+                              rows={3}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="history"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>History (Optional)</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Enter medical history..." 
+                              {...field} 
+                              data-testid="textarea-history"
+                              rows={3}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <div className="flex justify-end gap-2 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setCreateInsightOpen(false)}
+                      data-testid="button-cancel"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={createInsightMutation.isPending}
+                      data-testid="button-submit"
+                    >
+                      {createInsightMutation.isPending && (
+                        <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      )}
+                      <Save className="w-4 h-4 mr-2" />
+                      Create Insight
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+          
           <Dialog>
             <DialogTrigger asChild>
-              <Button>
+              <Button variant="outline" data-testid="button-generate-insight">
                 <Brain className="w-4 h-4 mr-2" />
-                Generate Insight
+                Generate AI Insight
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
@@ -615,12 +942,12 @@ export default function ClinicalDecisionSupport() {
         <TabsContent value="insights" className="space-y-4">
           <div className="flex gap-4 items-center">
             <div className="flex gap-2">
-              <Select value={filterPriority} onValueChange={setFilterPriority}>
+              <Select value={filterSeverity} onValueChange={setFilterSeverity}>
                 <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Priority" />
+                  <SelectValue placeholder="Severity" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Priority</SelectItem>
+                  <SelectItem value="all">All Severity</SelectItem>
                   <SelectItem value="critical">Critical</SelectItem>
                   <SelectItem value="high">High</SelectItem>
                   <SelectItem value="medium">Medium</SelectItem>
@@ -633,10 +960,10 @@ export default function ClinicalDecisionSupport() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="diagnostic">Diagnostic</SelectItem>
-                  <SelectItem value="treatment">Treatment</SelectItem>
+                  <SelectItem value="risk_alert">Risk Alert</SelectItem>
                   <SelectItem value="drug_interaction">Drug Interaction</SelectItem>
-                  <SelectItem value="risk_assessment">Risk Assessment</SelectItem>
+                  <SelectItem value="treatment_suggestion">Treatment Suggestion</SelectItem>
+                  <SelectItem value="preventive_care">Preventive Care</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -649,80 +976,73 @@ export default function ClinicalDecisionSupport() {
                   <div className="flex justify-between items-start">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <Badge className={getPriorityColor(insight.priority)}>
-                          {insight.priority.toUpperCase()}
+                        <Badge className={getSeverityColor(insight.severity)}>
+                          {insight.severity.toUpperCase()}
                         </Badge>
                         <Badge variant="outline">{insight.type.replace('_', ' ')}</Badge>
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                          Evidence Level {insight.evidenceLevel}
-                        </span>
+                        {insight.actionRequired && (
+                          <Badge variant="destructive" className="text-xs">
+                            Action Required
+                          </Badge>
+                        )}
                       </div>
                       <h3 className="text-lg font-semibold">{insight.title}</h3>
                       <p className="text-sm text-gray-600 dark:text-gray-300">
                         {insight.patientName} • {format(new Date(insight.createdAt), 'MMM dd, yyyy HH:mm')}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       <div className="text-right">
                         <div className="text-sm font-medium">Confidence</div>
-                        <div className="text-2xl font-bold text-blue-600">{insight.confidence}%</div>
+                        <div className="text-2xl font-bold text-blue-600">{Math.round(parseFloat(insight.confidence || '0') * 100)}%</div>
                       </div>
-                      <Progress value={insight.confidence} className="w-16" />
+                      <Progress value={parseFloat(insight.confidence || '0') * 100} className="w-16" />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => deleteInsightMutation.mutate(insight.id)}
+                        disabled={deleteInsightMutation.isPending}
+                        data-testid={`button-delete-insight-${insight.id}`}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        {deleteInsightMutation.isPending ? (
+                          <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
+                      </Button>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-gray-700 dark:text-gray-300">{insight.description}</p>
                   
-                  {insight.supportingData?.medications && (
+                  {insight.metadata?.suggestedActions && insight.metadata.suggestedActions.length > 0 && (
                     <div>
-                      <h4 className="font-medium text-sm mb-2">Medications Involved</h4>
-                      <div className="space-y-1">
-                        {insight.supportingData?.medications?.map((med, idx) => (
-                          <div key={idx} className="flex items-center gap-2 text-sm">
-                            <Pill className="w-4 h-4 text-blue-500" />
-                            <span>{med.name} {med.dosage} {med.frequency}</span>
-                            {med.interactions && med.interactions.length > 0 && (
-                              <Badge variant="destructive" className="text-xs">
-                                Interaction
-                              </Badge>
-                            )}
-                          </div>
+                      <h4 className="font-medium text-sm mb-2">Suggested Actions</h4>
+                      <ul className="space-y-1">
+                        {insight.metadata.suggestedActions.map((action, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-sm">
+                            <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                            <span>{action}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {insight.metadata?.relatedConditions && insight.metadata.relatedConditions.length > 0 && (
+                    <div>
+                      <h4 className="font-medium text-sm mb-2">Related Conditions</h4>
+                      <div className="flex flex-wrap gap-1">
+                        {insight.metadata.relatedConditions.map((condition, idx) => (
+                          <Badge key={idx} variant="secondary" className="text-xs">
+                            {condition}
+                          </Badge>
                         ))}
                       </div>
                     </div>
                   )}
-
-                  {insight.supportingData?.labValues && (
-                    <div>
-                      <h4 className="font-medium text-sm mb-2">Lab Values</h4>
-                      <div className="space-y-1">
-                        {insight.supportingData?.labValues?.map((lab, idx) => (
-                          <div key={idx} className="flex items-center justify-between text-sm">
-                            <span>{lab.name}</span>
-                            <div className="flex items-center gap-2">
-                              <span className={lab.status === 'abnormal' ? 'text-red-600' : 'text-green-600'}>
-                                {lab.value}
-                              </span>
-                              <span className="text-gray-500 dark:text-gray-400">({lab.reference})</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div>
-                    <h4 className="font-medium text-sm mb-2">Recommendations</h4>
-                    <ul className="space-y-1">
-                      {insight.recommendations.map((rec, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-sm">
-                          <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                          <span>{rec}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
 
                   <div className="flex gap-2 pt-2">
                     <Button 
@@ -771,7 +1091,7 @@ export default function ClinicalDecisionSupport() {
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <span>{risk.category}</span>
-                    <Badge className={getPriorityColor(risk.risk)}>
+                    <Badge className={getSeverityColor(risk.risk)}>
                       {risk.risk.toUpperCase()}
                     </Badge>
                   </CardTitle>
