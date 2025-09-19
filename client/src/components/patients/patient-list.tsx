@@ -493,12 +493,19 @@ function PatientDetailsModal({ open, onOpenChange, patient }: PatientDetailsModa
                       <div>
                         <h4 className="font-semibold mb-2">Social History</h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {Object.entries(patientHistory.socialHistory).map(([key, value]: [string, any]) => (
-                            <div key={key}>
-                              <p className="text-sm font-medium capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</p>
-                              <p className="text-sm text-gray-600 dark:text-gray-300">{value || 'Not specified'}</p>
-                            </div>
-                          ))}
+                          {Object.entries(patientHistory.socialHistory).map(([key, value]: [string, any]) => {
+                            // Handle nested objects (like {"status": "never"}) and strings
+                            const displayValue = typeof value === 'object' && value !== null 
+                              ? Object.values(value).join(', ') || 'Not specified'
+                              : value || 'Not specified';
+                            
+                            return (
+                              <div key={key}>
+                                <p className="text-sm font-medium capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-300">{displayValue}</p>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
