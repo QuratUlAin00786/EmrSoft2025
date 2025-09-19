@@ -74,6 +74,8 @@ export default function ClinicalDecisionSupport() {
   const [patientSearchOpen, setPatientSearchOpen] = useState(false);
   const [patientSearch, setPatientSearch] = useState<string>("");
   const [createInsightOpen, setCreateInsightOpen] = useState(false);
+  const [symptoms, setSymptoms] = useState<string>("");
+  const [history, setHistory] = useState<string>("");
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
 
@@ -346,10 +348,7 @@ export default function ClinicalDecisionSupport() {
   // Create new insight mutation
   const createInsightMutation = useMutation({
     mutationFn: async (data: CreateInsightForm) => {
-      return apiRequest(`/api/ai-insights`, {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      return apiRequest(`/api/ai-insights`, "POST", data);
     },
     onSuccess: (data) => {
       toast({
@@ -372,9 +371,7 @@ export default function ClinicalDecisionSupport() {
   // Delete insight mutation
   const deleteInsightMutation = useMutation({
     mutationFn: async (insightId: string) => {
-      return apiRequest(`/api/ai-insights/${insightId}`, {
-        method: "DELETE"
-      });
+      return apiRequest(`/api/ai-insights/${insightId}`, "DELETE");
     },
     onSuccess: () => {
       toast({
@@ -433,10 +430,7 @@ export default function ClinicalDecisionSupport() {
   // Update insight status mutation
   const updateInsightMutation = useMutation({
     mutationFn: async (data: { insightId: string; status: string; notes?: string }) => {
-      return apiRequest(`/api/ai/insights/${data.insightId}`, {
-        method: "PATCH",
-        body: JSON.stringify({ status: data.status, notes: data.notes })
-      });
+      return apiRequest(`/api/ai/insights/${data.insightId}`, "PATCH", { status: data.status, notes: data.notes });
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/ai-insights", selectedPatient] });
@@ -847,16 +841,16 @@ export default function ClinicalDecisionSupport() {
                 activeInsights: validInsights.filter(insight => insight.status === 'active').length,
                 totalInsights: validInsights.length,
                 riskAssessments: validRiskScores.length,
-                criticalAlerts: validInsights.filter(insight => insight.priority === 'critical').length,
+                criticalAlerts: validInsights.filter(insight => insight.severity === 'critical').length,
                 insights: validInsights.map(insight => ({
                   patient: insight.patientName || 'Unknown Patient',
                   type: insight.type || 'General',
-                  priority: insight.priority || 'Medium',
+                  priority: insight.severity || 'medium',
                   title: insight.title || 'Clinical Insight',
                   description: insight.description || 'No description available',
                   confidence: insight.confidence || 0,
                   status: insight.status || 'Pending',
-                  recommendations: insight.recommendations || []
+                  recommendations: []
                 })),
                 riskScores: validRiskScores.map(risk => ({
                   category: risk.category || 'General Risk',
