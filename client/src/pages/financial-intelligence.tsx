@@ -291,6 +291,39 @@ export default function FinancialIntelligence() {
     }
   });
 
+  // Update insurance mutation
+  const updateInsuranceMutation = useMutation({
+    mutationFn: async ({ insuranceId, data }: { insuranceId: string; data: any }) => {
+      const response = await fetch(`/api/financial/insurance/${insuranceId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
+          "X-Tenant-Subdomain": "demo"
+        },
+        credentials: "include",
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error("Failed to update insurance");
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/financial/insurance"] });
+      toast({ 
+        title: "Insurance updated successfully",
+        description: data.message || "Insurance verification data updated"
+      });
+    },
+    onError: (error) => {
+      console.error("Insurance update error:", error);
+      toast({ 
+        title: "Update failed",
+        description: "Failed to update insurance verification data",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Mock data
   const mockRevenueData: RevenueData[] = [
     { month: "Jan", revenue: 125000, expenses: 85000, profit: 40000, collections: 118000, target: 130000 },
@@ -1341,13 +1374,18 @@ export default function FinancialIntelligence() {
               </Button>
               <Button 
                 onClick={() => {
-                  console.log('Verification data:', verificationFormData);
-                  toast({ title: "Eligibility verification updated successfully" });
-                  setVerifyEligibilityOpen(false);
+                  if (selectedInsurance) {
+                    updateInsuranceMutation.mutate({
+                      insuranceId: selectedInsurance.id,
+                      data: verificationFormData
+                    });
+                    setVerifyEligibilityOpen(false);
+                  }
                 }}
+                disabled={updateInsuranceMutation.isPending}
                 data-testid="button-save-verification"
               >
-                Save Changes
+                {updateInsuranceMutation.isPending ? "Saving..." : "Save Changes"}
               </Button>
             </div>
           </div>
