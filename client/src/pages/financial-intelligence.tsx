@@ -1303,14 +1303,14 @@ export default function FinancialIntelligence() {
 
           <div className="grid gap-4">
             {(insurances || mockInsurances)
-              .sort((a, b) => {
+              .sort((a: any, b: any) => {
                 // Sort by createdAt in descending order (newest first)
                 // If createdAt doesn't exist, fallback to sorting by id (which contains timestamp)
                 const aDate = a.createdAt || a.id;
                 const bDate = b.createdAt || b.id;
                 return String(bDate).localeCompare(String(aDate));
               })
-              .map((insurance) => (
+              .map((insurance: any) => (
               <Card key={insurance.id}>
                 <CardHeader>
                   <div className="flex justify-between items-start">

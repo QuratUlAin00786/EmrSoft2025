@@ -549,7 +549,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log(`[BOOTSTRAP] Starting medical records bootstrap for organization: ${orgSubdomain}`);
-      console.log(`[BOOTSTRAP] Initiated by admin user: ${req.user?.username} (ID: ${req.user?.id})`);
+      console.log(`[BOOTSTRAP] Initiated by admin user: ${req.user?.email} (ID: ${req.user?.id})`);
       
       // Call the refactored function with proper scoping
       const result = await seedProductionMedicalRecords({
@@ -1985,7 +1985,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Persistent insurance data for demo purposes (in production this would be in database)
-  let mockInsurances = [
+  let mockInsurances: any[] = [
     // Records removed as requested - Sarah Johnson (ins_1) and Michael Chen (ins_2) deleted
   ];
 
@@ -7430,6 +7430,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/mobile/doctor/appointments", authMiddleware, async (req: TenantRequest, res) => {
     try {
       const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "User authentication required" });
+      }
       const { date } = req.query as { date?: string };
       
       let appointments = await storage.getAppointmentsByProvider(userId, req.tenant!.id);
@@ -7510,6 +7513,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/mobile/doctor/prescriptions", authMiddleware, async (req: TenantRequest, res) => {
     try {
       const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "User authentication required" });
+      }
       const prescriptions = await storage.getPrescriptionsByProvider(userId, req.tenant!.id);
       const patients = await storage.getPatientsByOrganization(req.tenant!.id);
       
@@ -7539,6 +7545,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/mobile/doctor/prescriptions", authMiddleware, async (req: TenantRequest, res) => {
     try {
       const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "User authentication required" });
+      }
       const prescriptionData = {
         ...req.body,
         doctorId: userId,
@@ -7600,6 +7609,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/mobile/patient/appointments", authMiddleware, async (req: TenantRequest, res) => {
     try {
       const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "User authentication required" });
+      }
       const patient = await storage.getPatientByUserId(userId, req.tenant!.id);
       if (!patient) return res.status(404).json({ error: "Patient not found" });
 
@@ -7632,6 +7644,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/mobile/patient/appointments", authMiddleware, async (req: TenantRequest, res) => {
     try {
       const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "User authentication required" });
+      }
       const patient = await storage.getPatientByUserId(userId, req.tenant!.id);
       if (!patient) return res.status(404).json({ error: "Patient not found" });
 
@@ -7653,6 +7668,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/mobile/patient/prescriptions", authMiddleware, async (req: TenantRequest, res) => {
     try {
       const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "User authentication required" });
+      }
       const patient = await storage.getPatientByUserId(userId, req.tenant!.id);
       if (!patient) return res.status(404).json({ error: "Patient not found" });
 
@@ -7684,6 +7702,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/mobile/patient/medical-records", authMiddleware, async (req: TenantRequest, res) => {
     try {
       const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "User authentication required" });
+      }
       const patient = await storage.getPatientByUserId(userId, req.tenant!.id);
       if (!patient) return res.status(404).json({ error: "Patient not found" });
 
@@ -8265,11 +8286,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           specialty: doctor.department || 'General Medicine'
         }));
 
+      // Get full user data for patient info
+      const fullUser = await storage.getUser(req.user.id, req.tenant!.id);
+      
       res.json({
         availableDoctors,
         patientInfo: {
           id: req.user.id,
-          name: `${req.user.firstName} ${req.user.lastName}`,
+          name: fullUser ? `${fullUser.firstName} ${fullUser.lastName}` : req.user.email,
           email: req.user.email
         }
       });
