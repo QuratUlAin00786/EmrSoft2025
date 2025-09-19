@@ -2037,6 +2037,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create new insurance record
+  app.post("/api/financial/insurance", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const insuranceData = req.body;
+      
+      console.log(`[FINANCIAL] New insurance record creation requested:`, insuranceData);
+      
+      // Create new insurance record
+      const newInsurance = {
+        id: insuranceData.id,
+        patientId: `patient_${Date.now()}`,
+        patientName: insuranceData.patientName,
+        provider: insuranceData.provider,
+        policyNumber: insuranceData.policyNumber,
+        groupNumber: insuranceData.groupNumber,
+        status: insuranceData.status || "active",
+        coverageType: insuranceData.coverageType || "primary",
+        eligibilityStatus: insuranceData.eligibilityStatus || "pending",
+        lastVerified: insuranceData.lastVerified || new Date().toISOString().split('T')[0],
+        benefits: insuranceData.benefits || {
+          deductible: 0,
+          deductibleMet: 0,
+          copay: 0,
+          coinsurance: 0,
+          outOfPocketMax: 0,
+          outOfPocketMet: 0
+        },
+        createdAt: new Date().toISOString(),
+        lastUpdated: new Date().toISOString()
+      };
+      
+      // Add to mock data
+      mockInsurances.push(newInsurance);
+      
+      console.log(`[FINANCIAL] New insurance record created:`, newInsurance);
+      
+      res.json({
+        success: true,
+        message: "Insurance record created successfully",
+        insurance: newInsurance
+      });
+    } catch (error) {
+      console.error(`[FINANCIAL] Insurance creation error:`, error);
+      handleRouteError(error, "create insurance record", res);
+    }
+  });
+
   // Verify insurance eligibility - THE MISSING ENDPOINT
   app.post("/api/financial/insurance/:id/verify", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
