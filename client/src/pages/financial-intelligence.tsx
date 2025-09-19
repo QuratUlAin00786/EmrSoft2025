@@ -404,8 +404,9 @@ export default function FinancialIntelligence() {
       if (!response.ok) throw new Error("Failed to add insurance");
       return response.json();
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/financial/insurance"] });
+    onSuccess: async (data) => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/financial/insurance"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/financial/insurance"] });
       toast({
         title: "Insurance added successfully",
         description: "New insurance information has been added to the system",

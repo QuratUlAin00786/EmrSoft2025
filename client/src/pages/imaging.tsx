@@ -1036,15 +1036,15 @@ export default function ImagingPage() {
                     <SelectItem value="Mammography">Mammography</SelectItem>
                   </SelectContent>
                 </Select>
-
-                <Button
-                  variant="outline"
-                  onClick={() => setShowUploadDialog(true)}
-                  className="bg-medical-blue hover:bg-blue-700 text-white"
-                >
-                  <Share className="h-4 w-4 mr-2" />
-                  Order Study
-                </Button>
+                <div className="">
+                  <Button
+                    onClick={() => setShowUploadDialog(true)}
+                    className="bg-medical-blue hover:bg-blue-700 text-white ml-auto"
+                  >
+                    <Share className="h-4 w-4 mr-2" />
+                    Order Study
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
