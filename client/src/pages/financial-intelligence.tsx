@@ -35,6 +35,17 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   BarChart,
   Bar,
   XAxis,
@@ -346,20 +357,26 @@ export default function FinancialIntelligence() {
         },
         credentials: "include",
       });
-      if (!response.ok) throw new Error("Failed to delete claim");
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Failed to delete claim: ${errorData}`);
+      }
       return response.json();
     },
     onSuccess: () => {
-      // Immediately invalidate and refetch claims data
+      // Invalidate and refetch the claims data
       queryClient.invalidateQueries({ queryKey: ["/api/financial/claims"] });
-      queryClient.refetchQueries({ 
-        queryKey: ["/api/financial/claims"],
-        type: 'active'
-      });
       
       toast({ 
         title: "Claim deleted successfully",
         description: "The claim has been removed from the system"
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to delete claim",
+        description: error.message,
+        variant: "destructive",
       });
     },
   });
@@ -1260,7 +1277,7 @@ export default function FinancialIntelligence() {
 
                       // Submit the claim using the mutation
                       submitClaimMutation.mutate({
-                        patientId: parseInt(claimFormData.patient),
+                        patientId: claimFormData.patient,
                         patientName: patientName,
                         claimNumber: claimNumber,
                         insuranceProvider: claimFormData.insuranceProvider,
@@ -1467,19 +1484,35 @@ export default function FinancialIntelligence() {
                         >
                           Track Status
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => {
-                            if (window.confirm(`Are you sure you want to delete claim ${claim.claimNumber || `CLM-${claim.id}`}? This action cannot be undone.`)) {
-                              deleteClaimMutation.mutate(claim.id);
-                            }
-                          }}
-                          disabled={deleteClaimMutation.isPending}
-                          data-testid="button-delete-claim"
-                        >
-                          {deleteClaimMutation.isPending ? "Deleting..." : "Delete"}
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              disabled={deleteClaimMutation.isPending}
+                              data-testid="button-delete-claim"
+                            >
+                              {deleteClaimMutation.isPending ? "Deleting..." : "Delete"}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Claim</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete claim {claim.claimNumber || `CLM-${claim.id}`}? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deleteClaimMutation.mutate(claim.id.toString())}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </CardContent>
                   </Card>
