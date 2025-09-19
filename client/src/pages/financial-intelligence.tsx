@@ -302,12 +302,32 @@ export default function FinancialIntelligence() {
       if (!response.ok) throw new Error("Failed to submit claim");
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       console.log("Mutation success - invalidating queries");
       queryClient.invalidateQueries({ queryKey: ["/api/financial/claims"] });
       // Force refetch the claims data
       queryClient.refetchQueries({ queryKey: ["/api/financial/claims"] });
-      toast({ title: "Claim submitted successfully" });
+      
+      // Close dialog and reset form only after successful submission
+      setSubmitClaimOpen(false);
+      setClaimFormData({
+        patient: "",
+        serviceDate: "",
+        totalAmount: "",
+        insuranceProvider: "",
+        procedures: [
+          {
+            code: "",
+            description: "",
+            amount: "",
+          }
+        ],
+      });
+      
+      toast({ 
+        title: "Claim submitted successfully",
+        description: `Insurance claim ${data.claimNumber} has been submitted successfully`
+      });
     },
   });
 
@@ -1220,27 +1240,6 @@ export default function FinancialIntelligence() {
                           description: proc.description,
                           amount: parseFloat(proc.amount)
                         }))
-                      });
-
-                      // Reset form and close dialog
-                      setClaimFormData({
-                        patient: "",
-                        serviceDate: "",
-                        totalAmount: "",
-                        insuranceProvider: "",
-                        procedures: [
-                          {
-                            code: "",
-                            description: "",
-                            amount: "",
-                          }
-                        ],
-                      });
-                      setSubmitClaimOpen(false);
-
-                      toast({
-                        title: "Claim Submitted",
-                        description: `Insurance claim ${claimNumber} for ${patientName} has been submitted successfully`,
                       });
                     }}
                     disabled={submitClaimMutation.isPending}
