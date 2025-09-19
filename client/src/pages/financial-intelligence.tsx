@@ -314,14 +314,17 @@ export default function FinancialIntelligence() {
       return response.json();
     },
     onSuccess: (data) => {
-      console.log("Mutation success - invalidating queries");
+      console.log("Mutation success - updating cache with new claim");
       
-      // Immediately invalidate and refetch claims data
-      queryClient.invalidateQueries({ queryKey: ["/api/financial/claims"] });
-      queryClient.refetchQueries({ 
-        queryKey: ["/api/financial/claims"],
-        type: 'active' // Only refetch active queries
+      // Immediately update the cache by adding the new claim
+      queryClient.setQueryData(["/api/financial/claims"], (oldData: any) => {
+        if (!oldData) return [data];
+        console.log("Adding new claim to cache:", data);
+        return [data, ...oldData]; // Add new claim at the beginning
       });
+      
+      // Also invalidate to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/financial/claims"] });
       
       // Close dialog and reset form only after successful submission
       setSubmitClaimOpen(false);
