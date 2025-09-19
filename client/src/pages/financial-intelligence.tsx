@@ -134,6 +134,7 @@ export default function FinancialIntelligence() {
   const [patientDropdownOpen, setPatientDropdownOpen] = useState(false);
   const [verifyEligibilityOpen, setVerifyEligibilityOpen] = useState(false);
   const [priorAuthOpen, setPriorAuthOpen] = useState(false);
+  const [viewBenefitsOpen, setViewBenefitsOpen] = useState(false);
   const [selectedInsurance, setSelectedInsurance] = useState<any>(null);
   const [verificationFormData, setVerificationFormData] = useState({
     patientName: '',
@@ -1001,14 +1002,10 @@ export default function FinancialIntelligence() {
                       size="sm" 
                       variant="outline"
                       onClick={() => {
-                        console.log('View Benefits clicked for:', insurance.patientName);
-                        alert(`Benefits Information for ${insurance.patientName}:
-• Deductible: $${insurance.benefits.deductible} (Met: $${insurance.benefits.deductibleMet})
-• Out-of-Pocket Max: $${insurance.benefits.outOfPocketMax} (Met: $${insurance.benefits.outOfPocketMet})
-• Coverage: ${insurance.coverageType}
-• Copay: $${insurance.benefits.copay}
-• Coinsurance: ${insurance.benefits.coinsurance}%`);
+                        setSelectedInsurance(insurance);
+                        setViewBenefitsOpen(true);
                       }}
+                      data-testid="button-view-benefits"
                     >
                       View Benefits
                     </Button>
@@ -1273,6 +1270,71 @@ export default function FinancialIntelligence() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* View Benefits Modal */}
+      <Dialog open={viewBenefitsOpen} onOpenChange={setViewBenefitsOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Benefits Information</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedInsurance && (
+              <>
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-blue-800 mb-2">{selectedInsurance.patientName}</h4>
+                  <div className="text-sm text-blue-700">
+                    <div><span className="font-medium">Provider:</span> {selectedInsurance.provider}</div>
+                    <div><span className="font-medium">Coverage:</span> {selectedInsurance.coverageType}</div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="border-l-4 border-green-400 bg-green-50 p-3">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium text-green-800">Deductible</span>
+                      <span className="text-green-700">${selectedInsurance.benefits.deductible}</span>
+                    </div>
+                    <div className="text-sm text-green-600 mt-1">
+                      Met: ${selectedInsurance.benefits.deductibleMet}
+                    </div>
+                  </div>
+
+                  <div className="border-l-4 border-blue-400 bg-blue-50 p-3">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium text-blue-800">Out-of-Pocket Max</span>
+                      <span className="text-blue-700">${selectedInsurance.benefits.outOfPocketMax}</span>
+                    </div>
+                    <div className="text-sm text-blue-600 mt-1">
+                      Met: ${selectedInsurance.benefits.outOfPocketMet}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="border-l-4 border-orange-400 bg-orange-50 p-3">
+                      <div className="font-medium text-orange-800">Copay</div>
+                      <div className="text-orange-700">${selectedInsurance.benefits.copay}</div>
+                    </div>
+
+                    <div className="border-l-4 border-purple-400 bg-purple-50 p-3">
+                      <div className="font-medium text-purple-800">Coinsurance</div>
+                      <div className="text-purple-700">{selectedInsurance.benefits.coinsurance}%</div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            <div className="flex justify-end pt-4">
+              <Button 
+                onClick={() => setViewBenefitsOpen(false)}
+                data-testid="button-close-benefits"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
