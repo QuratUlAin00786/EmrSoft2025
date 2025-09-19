@@ -1080,6 +1080,17 @@ ${
 
   const [isSavingAnalysis, setIsSavingAnalysis] = useState(false);
   const [isSavingPhysicalExam, setIsSavingPhysicalExam] = useState(false);
+  const [isSavingRespiratoryExam, setIsSavingRespiratoryExam] = useState(false);
+
+  // Respiratory examination state
+  const [respiratoryExamData, setRespiratoryExamData] = useState({
+    respiratoryRate: "",
+    chestInspection: "",
+    auscultation: "",
+    percussion: "",
+    palpation: "",
+    oxygenSaturation: ""
+  });
 
   // Speech recognition state
   const [isRecording, setIsRecording] = useState(false);
@@ -1271,6 +1282,73 @@ Patient should be advised of potential side effects and expected timeline for re
       });
     } finally {
       setIsSavingPhysicalExam(false);
+    }
+  };
+
+  const saveRespiratoryExamination = async () => {
+    setIsSavingRespiratoryExam(true);
+    
+    try {
+      const currentPatientId = patientId || patient?.id;
+      if (!currentPatientId) {
+        throw new Error("No patient selected");
+      }
+
+      // Build comprehensive respiratory examination data
+      const examNotes = Object.entries(respiratoryExamData)
+        .filter(([_, value]) => value && value.trim()) // Only include filled fields
+        .map(([field, value]) => {
+          const fieldName = field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+          return `${fieldName}: ${value}`;
+        })
+        .join('\n\n');
+
+      const respiratoryExamRecord = {
+        type: "consultation",
+        title: "Clinical Examination - Respiratory",
+        notes: `Comprehensive respiratory examination completed.\n\n${examNotes || 'No respiratory examination findings recorded.'}`,
+        diagnosis: `Respiratory examination findings - ${Object.keys(respiratoryExamData).filter(key => respiratoryExamData[key]).join(', ') || 'Multiple parameters evaluated'}`,
+        treatment: "Respiratory examination completed - refer to detailed findings for treatment recommendations"
+      };
+
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/patients/${currentPatientId}/records`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'X-Tenant-Subdomain': 'demo'
+        },
+        body: JSON.stringify(respiratoryExamRecord)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const savedRecord = await response.json();
+      
+      toast({
+        title: "Respiratory Examination Saved",
+        description: "Respiratory examination findings have been saved to patient medical records."
+      });
+      
+      // Invalidate and refetch medical records
+      queryClient.invalidateQueries({ queryKey: ['/api/patients', currentPatientId, 'records'] });
+      
+      // Close the modal
+      setShowRespiratoryExamModal(false);
+      
+    } catch (error) {
+      console.error('Failed to save respiratory examination:', error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to save respiratory examination. Please try again.";
+      toast({
+        title: "Save Failed", 
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
+      setIsSavingRespiratoryExam(false);
     }
   };
 
@@ -3266,27 +3344,57 @@ Patient should be advised of potential side effects and expected timeline for re
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Respiratory Rate</Label>
-                <Textarea placeholder="Rate, depth, pattern..." className="h-20" />
+                <Textarea 
+                  placeholder="Rate, depth, pattern..." 
+                  className="h-20"
+                  value={respiratoryExamData.respiratoryRate}
+                  onChange={(e) => setRespiratoryExamData(prev => ({...prev, respiratoryRate: e.target.value}))}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Chest Inspection</Label>
-                <Textarea placeholder="Shape, symmetry, expansion..." className="h-20" />
+                <Textarea 
+                  placeholder="Shape, symmetry, expansion..." 
+                  className="h-20"
+                  value={respiratoryExamData.chestInspection}
+                  onChange={(e) => setRespiratoryExamData(prev => ({...prev, chestInspection: e.target.value}))}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Auscultation</Label>
-                <Textarea placeholder="Breath sounds, adventitious sounds..." className="h-20" />
+                <Textarea 
+                  placeholder="Breath sounds, adventitious sounds..." 
+                  className="h-20"
+                  value={respiratoryExamData.auscultation}
+                  onChange={(e) => setRespiratoryExamData(prev => ({...prev, auscultation: e.target.value}))}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Percussion</Label>
-                <Textarea placeholder="Resonance, dullness..." className="h-20" />
+                <Textarea 
+                  placeholder="Resonance, dullness..." 
+                  className="h-20"
+                  value={respiratoryExamData.percussion}
+                  onChange={(e) => setRespiratoryExamData(prev => ({...prev, percussion: e.target.value}))}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Palpation</Label>
-                <Textarea placeholder="Chest expansion, tactile fremitus..." className="h-20" />
+                <Textarea 
+                  placeholder="Chest expansion, tactile fremitus..." 
+                  className="h-20"
+                  value={respiratoryExamData.palpation}
+                  onChange={(e) => setRespiratoryExamData(prev => ({...prev, palpation: e.target.value}))}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Oxygen Saturation</Label>
-                <Textarea placeholder="SpO2 measurements..." className="h-20" />
+                <Textarea 
+                  placeholder="SpO2 measurements..." 
+                  className="h-20"
+                  value={respiratoryExamData.oxygenSaturation}
+                  onChange={(e) => setRespiratoryExamData(prev => ({...prev, oxygenSaturation: e.target.value}))}
+                />
               </div>
             </div>
           </div>
@@ -3294,8 +3402,19 @@ Patient should be advised of potential side effects and expected timeline for re
             <Button variant="outline" onClick={() => setShowRespiratoryExamModal(false)}>
               Cancel
             </Button>
-            <Button onClick={() => setShowRespiratoryExamModal(false)} className="bg-blue-600 hover:bg-blue-700">
-              Save
+            <Button 
+              onClick={saveRespiratoryExamination} 
+              disabled={isSavingRespiratoryExam}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isSavingRespiratoryExam ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Saving...
+                </>
+              ) : (
+                'Save'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
