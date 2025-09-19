@@ -1146,16 +1146,61 @@ Patient should be advised of potential side effects and expected timeline for re
     setIsSavingAnalysis(true);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const currentPatientId = patientId || patient?.id;
+      if (!currentPatientId) {
+        throw new Error("No patient selected");
+      }
+
+      // Build comprehensive analysis data
+      const analysisData = {
+        type: "consultation",
+        title: "Clinical Examination - Professional Anatomical Analysis",
+        notes: `Comprehensive facial muscle analysis completed.\n\n` +
+               `Target Muscle Group: ${selectedMuscleGroup || 'Not specified'}\n` +
+               `Analysis Type: ${selectedAnalysisType || 'Not specified'}\n` +
+               `Primary Treatment: ${selectedTreatment || 'Not specified'}\n` +
+               `Treatment Intensity: ${selectedTreatmentIntensity || 'Not specified'}\n` +
+               `Session Frequency: ${selectedSessionFrequency || 'Not specified'}\n` +
+               `Primary Symptoms: ${selectedSymptom || 'Not specified'}\n` +
+               `Severity Scale: ${selectedSeverity || 'Not specified'}\n` +
+               `Follow-up Plan: ${selectedFollowUp || 'Not specified'}\n\n` +
+               `${generatedTreatmentPlan ? 'Generated Treatment Plan:\n' + generatedTreatmentPlan : 'No treatment plan generated.'}`,
+        diagnosis: `Professional anatomical analysis - ${selectedMuscleGroup ? selectedMuscleGroup.replace(/_/g, ' ') : 'General assessment'}`,
+        treatment: selectedTreatment ? selectedTreatment.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : undefined,
+        followUpRequired: selectedFollowUp && selectedFollowUp !== "no_followup",
+        followUpDate: selectedFollowUp && selectedFollowUp !== "no_followup" ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : undefined
+      };
+
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/patients/${currentPatientId}/records`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'X-Tenant-Subdomain': 'demo'
+        },
+        body: JSON.stringify(analysisData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const savedRecord = await response.json();
       
       toast({
         title: "Analysis Saved",
-        description: "Anatomical analysis has been saved to patient record."
+        description: "Professional anatomical analysis has been saved to patient medical records."
       });
+      
+      // Invalidate and refetch medical records
+      queryClient.invalidateQueries({ queryKey: ['/api/patients', currentPatientId, 'records'] });
+      
     } catch (error) {
+      console.error('Failed to save analysis:', error);
       toast({
-        title: "Error",
-        description: "Failed to save analysis. Please try again.",
+        title: "Save Failed", 
+        description: error.message || "Failed to save analysis. Please try again.",
         variant: "destructive"
       });
     } finally {
