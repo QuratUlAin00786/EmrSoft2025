@@ -199,6 +199,7 @@ import {
   Printer,
   ChevronsUpDown,
   X,
+  Edit,
 } from "lucide-react";
 
 interface DatabaseLabResult {
@@ -290,6 +291,7 @@ export default function LabResultsPage() {
   });
   const [patientSearchOpen, setPatientSearchOpen] = useState(false);
   const [testTypeOpen, setTestTypeOpen] = useState(false);
+  const [editingStatusId, setEditingStatusId] = useState<number | null>(null);
 
   const { data: labResults = [], isLoading } = useQuery({
     queryKey: ["/api/lab-results"],
@@ -1382,9 +1384,47 @@ Report generated from Cura EMR System`;
                       <h3 className="text-lg font-semibold text-gray-900">
                         {getPatientName(result.patientId)}
                       </h3>
-                      <Badge className={getStatusColor(result.status)}>
-                        {result.status}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        {editingStatusId === result.id ? (
+                          <Select
+                            value={result.status}
+                            onValueChange={(newStatus) => {
+                              updateLabResultMutation.mutate({
+                                id: result.id,
+                                data: { status: newStatus }
+                              });
+                              setEditingStatusId(null);
+                            }}
+                          >
+                            <SelectTrigger className="w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pending">pending</SelectItem>
+                              <SelectItem value="collected">collected</SelectItem>
+                              <SelectItem value="processing">processing</SelectItem>
+                              <SelectItem value="completed">completed</SelectItem>
+                              <SelectItem value="cancelled">cancelled</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <>
+                            <Badge className={getStatusColor(result.status)}>
+                              {result.status}
+                            </Badge>
+                            {result.status === "pending" && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setEditingStatusId(result.id)}
+                                className="h-6 w-6 p-0"
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </>
+                        )}
+                      </div>
                       {result.criticalValues && (
                         <Badge
                           variant="destructive"
