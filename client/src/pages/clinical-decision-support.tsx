@@ -339,11 +339,11 @@ export default function ClinicalDecisionSupport() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/clinical/insights"] });
       
-      if (data.generated && data.generated > 0) {
+      if (data.success && data.insights && data.insights.length > 0) {
         const fallbackMessage = data.usingFallbackData ? " (using fallback data)" : "";
         toast({ 
           title: "AI insights generated successfully",
-          description: `Generated ${data.generated} clinical insight${data.generated > 1 ? 's' : ''} for ${data.patientName}${fallbackMessage}`
+          description: `Generated ${data.insights.length} clinical insight${data.insights.length > 1 ? 's' : ''} for ${data.patientName}${fallbackMessage}`
         });
       } else {
         toast({ 
