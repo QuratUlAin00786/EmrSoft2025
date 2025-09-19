@@ -1984,53 +1984,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Persistent insurance data for demo purposes (in production this would be in database)
+  let mockInsurances = [
+    {
+      id: "ins_1",
+      patientId: "patient_1",
+      patientName: "Sarah Johnson",
+      provider: "Aetna",
+      policyNumber: "AET123456789",
+      groupNumber: "GRP001",
+      status: "active",
+      coverageType: "primary",
+      eligibilityStatus: "verified",
+      lastVerified: "2024-06-25",
+      benefits: {
+        deductible: 1500,
+        deductibleMet: 850,
+        copay: 25,
+        coinsurance: 20,
+        outOfPocketMax: 5000,
+        outOfPocketMet: 1200
+      }
+    },
+    {
+      id: "ins_2",
+      patientId: "patient_2",
+      patientName: "Michael Chen",
+      provider: "Blue Cross Blue Shield",
+      policyNumber: "BCBS987654321",
+      groupNumber: "GRP002",
+      status: "active",
+      coverageType: "primary",
+      eligibilityStatus: "pending",
+      lastVerified: "2024-06-15",
+      benefits: {
+        deductible: 2000,
+        deductibleMet: 450,
+        copay: 30,
+        coinsurance: 25,
+        outOfPocketMax: 6000,
+        outOfPocketMet: 780
+      }
+    }
+  ];
+
   // Get insurance data
   app.get("/api/financial/insurance", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
-      // Mock insurance data - in production this would come from patient insurance records
-      const mockInsurances = [
-        {
-          id: "ins_1",
-          patientId: "patient_1",
-          patientName: "Sarah Johnson",
-          provider: "Aetna",
-          policyNumber: "AET123456789",
-          groupNumber: "GRP001",
-          status: "active",
-          coverageType: "primary",
-          eligibilityStatus: "verified",
-          lastVerified: "2024-06-25",
-          benefits: {
-            deductible: 1500,
-            deductibleMet: 850,
-            copay: 25,
-            coinsurance: 20,
-            outOfPocketMax: 5000,
-            outOfPocketMet: 1200
-          }
-        },
-        {
-          id: "ins_2",
-          patientId: "patient_2",
-          patientName: "Michael Chen",
-          provider: "Blue Cross Blue Shield",
-          policyNumber: "BCBS987654321",
-          groupNumber: "GRP002",
-          status: "active",
-          coverageType: "primary",
-          eligibilityStatus: "pending",
-          lastVerified: "2024-06-15",
-          benefits: {
-            deductible: 2000,
-            deductibleMet: 450,
-            copay: 30,
-            coinsurance: 25,
-            outOfPocketMax: 6000,
-            outOfPocketMet: 780
-          }
-        }
-      ];
-      
       res.json(mockInsurances);
     } catch (error) {
       handleRouteError(error, "fetch insurance data", res);
@@ -2080,16 +2080,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[FINANCIAL] Insurance update requested for: ${insuranceId}`, updateData);
       
-      // In production, this would update the actual insurance record in the database
-      // For now, we'll simulate the update and return success
+      // Find the insurance record to update
+      const insuranceIndex = mockInsurances.findIndex(ins => ins.id === insuranceId);
       
+      if (insuranceIndex === -1) {
+        return res.status(404).json({
+          success: false,
+          message: "Insurance record not found"
+        });
+      }
+      
+      // Update the insurance record
+      const originalInsurance = mockInsurances[insuranceIndex];
       const updatedInsurance = {
-        id: insuranceId,
-        ...updateData,
+        ...originalInsurance,
+        patientName: updateData.patientName || originalInsurance.patientName,
+        provider: updateData.insuranceProvider || originalInsurance.provider,
+        policyNumber: updateData.policyNumber || originalInsurance.policyNumber,
+        groupNumber: updateData.groupNumber || originalInsurance.groupNumber,
+        coverageType: updateData.coverageType || originalInsurance.coverageType,
+        eligibilityStatus: updateData.verificationStatus || originalInsurance.eligibilityStatus,
+        lastVerified: updateData.verificationDate || new Date().toISOString().split('T')[0],
         lastUpdated: new Date().toISOString()
       };
       
-      console.log(`[FINANCIAL] Insurance updated:`, updatedInsurance);
+      // Replace the record in the array
+      mockInsurances[insuranceIndex] = updatedInsurance;
+      
+      console.log(`[FINANCIAL] Insurance updated successfully:`, updatedInsurance);
       
       res.json({
         success: true,

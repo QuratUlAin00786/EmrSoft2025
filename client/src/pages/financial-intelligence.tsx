@@ -308,7 +308,10 @@ export default function FinancialIntelligence() {
       return response.json();
     },
     onSuccess: (data) => {
+      console.log("Insurance update success:", data);
       queryClient.invalidateQueries({ queryKey: ["/api/financial/insurance"] });
+      // Force refetch to ensure fresh data is displayed
+      queryClient.refetchQueries({ queryKey: ["/api/financial/insurance"] });
       toast({ 
         title: "Insurance updated successfully",
         description: data.message || "Insurance verification data updated"
