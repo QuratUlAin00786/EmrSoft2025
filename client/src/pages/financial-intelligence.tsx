@@ -413,8 +413,13 @@ export default function FinancialIntelligence() {
       return response.json();
     },
     onSuccess: async (data) => {
+      // Invalidate and refetch the insurance data
       await queryClient.invalidateQueries({ queryKey: ["/api/financial/insurance"] });
       await queryClient.refetchQueries({ queryKey: ["/api/financial/insurance"] });
+      
+      // Add a small delay to ensure refetch completes
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       toast({
         title: "Insurance added successfully",
         description: "New insurance information has been added to the system",
@@ -1477,15 +1482,22 @@ export default function FinancialIntelligence() {
           </div>
 
           <div className="grid gap-4">
-            {(insurances || mockInsurances)
-              .sort((a: any, b: any) => {
-                // Sort by createdAt in descending order (newest first)
-                // If createdAt doesn't exist, fallback to sorting by id (which contains timestamp)
-                const aDate = a.createdAt || a.id;
-                const bDate = b.createdAt || b.id;
-                return String(bDate).localeCompare(String(aDate));
-              })
-              .map((insurance: any) => (
+            {insuranceLoading ? (
+              <div className="text-center py-8">
+                <div className="text-gray-500 dark:text-gray-400">
+                  Loading insurance verifications...
+                </div>
+              </div>
+            ) : (insurances && insurances.length > 0) ? (
+              insurances
+                .sort((a: any, b: any) => {
+                  // Sort by createdAt in descending order (newest first)
+                  // If createdAt doesn't exist, fallback to sorting by id (which contains timestamp)
+                  const aDate = a.createdAt || a.id;
+                  const bDate = b.createdAt || b.id;
+                  return String(bDate).localeCompare(String(aDate));
+                })
+                .map((insurance: any) => (
               <Card key={insurance.id}>
                 <CardHeader>
                   <div className="flex justify-between items-start">
@@ -1649,7 +1661,18 @@ export default function FinancialIntelligence() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            ))
+            ) : (
+              <div className="text-center py-8">
+                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <div className="text-gray-500 dark:text-gray-400">
+                  No insurance verifications found
+                </div>
+                <div className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                  Add your first insurance verification to get started
+                </div>
+              </div>
+            )}
           </div>
         </TabsContent>
 
