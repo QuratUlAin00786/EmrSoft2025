@@ -235,15 +235,31 @@ export default function PrescriptionsPage() {
       name: "",
       dosage: "",
       frequency: "",
+      duration: "",
       quantity: "",
       refills: "",
       instructions: "",
+      genericAllowed: true,
     }],
     pharmacyName: "Halo Health",
     pharmacyAddress: "Unit 2 Drayton Court, Solihull, B90 4NG",
     pharmacyPhone: "+44(0)121 827 5531",
     pharmacyEmail: "pharmacy@halohealth.co.uk",
   });
+
+  // Form validation errors
+  const [formErrors, setFormErrors] = useState<{
+    medications: Array<{
+      name?: string;
+      dosage?: string;
+      frequency?: string;
+      duration?: string;
+      quantity?: string;
+      refills?: string;
+      instructions?: string;
+    }>;
+    general?: string;
+  }>({ medications: [] });
 
   // Update form data when selectedPrescription changes
   useEffect(() => {
@@ -253,11 +269,16 @@ export default function PrescriptionsPage() {
             name: med.name || "",
             dosage: med.dosage || "",
             frequency: med.frequency || "",
+            duration: med.duration || "",
             quantity: med.quantity?.toString() || "",
             refills: med.refills?.toString() || "",
             instructions: med.instructions || "",
+            genericAllowed: med.genericAllowed !== undefined ? med.genericAllowed : true,
           })) 
-        : [{ name: "", dosage: "", frequency: "", quantity: "", refills: "", instructions: "" }];
+        : [{ name: "", dosage: "", frequency: "", duration: "", quantity: "", refills: "", instructions: "", genericAllowed: true }];
+      
+      // Clear form errors when editing
+      setFormErrors({ medications: [] });
       
       setFormData({
         patientId: selectedPrescription.patientId?.toString() || "",
@@ -284,15 +305,19 @@ export default function PrescriptionsPage() {
           name: "",
           dosage: "",
           frequency: "",
+          duration: "",
           quantity: "",
           refills: "",
           instructions: "",
+          genericAllowed: true,
         }],
         pharmacyName: "Halo Health",
         pharmacyAddress: "Unit 2 Drayton Court, Solihull, B90 4NG",
         pharmacyPhone: "+44(0)121 827 5531",
         pharmacyEmail: "pharmacy@halohealth.co.uk",
       });
+      // Clear form errors when creating new
+      setFormErrors({ medications: [] });
     }
   }, [selectedPrescription]);
 
@@ -606,6 +631,74 @@ export default function PrescriptionsPage() {
 
   const { toast } = useToast();
 
+  // Form validation helper functions
+  const validateMedication = (medication: any, index: number) => {
+    const errors: any = {};
+    
+    if (!medication.name.trim()) {
+      errors.name = "Medication name is required";
+    }
+    
+    if (!medication.dosage.trim()) {
+      errors.dosage = "Dosage is required";
+    }
+    
+    if (!medication.frequency.trim()) {
+      errors.frequency = "Frequency is required";
+    }
+    
+    if (!medication.duration.trim()) {
+      errors.duration = "Duration is required";
+    }
+    
+    if (!medication.quantity || isNaN(parseInt(medication.quantity)) || parseInt(medication.quantity) <= 0) {
+      errors.quantity = "Quantity must be a positive number";
+    }
+    
+    if (medication.refills && (isNaN(parseInt(medication.refills)) || parseInt(medication.refills) < 0)) {
+      errors.refills = "Refills must be a non-negative number";
+    }
+    
+    return errors;
+  };
+
+  const validateForm = () => {
+    const errors: any = { medications: [] };
+    
+    // Validate medications
+    formData.medications.forEach((med, index) => {
+      const medErrors = validateMedication(med, index);
+      errors.medications[index] = medErrors;
+    });
+    
+    // Check if at least one medication has a name
+    const hasValidMedication = formData.medications.some(med => med.name.trim());
+    if (!hasValidMedication) {
+      errors.general = "At least one medication with a name is required";
+    }
+    
+    // Check required fields
+    if (!formData.patientId) {
+      errors.general = errors.general || "Patient is required";
+    }
+    
+    if (!formData.providerId) {
+      errors.general = errors.general || "Provider is required";
+    }
+    
+    if (!formData.diagnosis.trim()) {
+      errors.general = errors.general || "Diagnosis is required";
+    }
+    
+    setFormErrors(errors);
+    
+    // Return true if no errors
+    const hasErrors = errors.general || 
+      errors.medications.some((medError: any) => Object.keys(medError).length > 0);
+    
+    return !hasErrors;
+  };
+
   // Medication management helper functions
   const addMedication = () => {
     setFormData(prev => ({
@@ -616,11 +709,19 @@ export default function PrescriptionsPage() {
           name: "",
           dosage: "",
           frequency: "",
+          duration: "",
           quantity: "",
           refills: "",
           instructions: "",
+          genericAllowed: true,
         }
       ]
+    }));
+    
+    // Add empty error state for new medication
+    setFormErrors(prev => ({
+      ...prev,
+      medications: [...prev.medications, {}]
     }));
   };
 
@@ -630,16 +731,32 @@ export default function PrescriptionsPage() {
         ...prev,
         medications: prev.medications.filter((_, i) => i !== index)
       }));
+      
+      // Remove corresponding error state
+      setFormErrors(prev => ({
+        ...prev,
+        medications: prev.medications.filter((_, i) => i !== index)
+      }));
     }
   };
 
-  const updateMedication = (index: number, field: string, value: string) => {
+  const updateMedication = (index: number, field: string, value: string | boolean) => {
     setFormData(prev => ({
       ...prev,
       medications: prev.medications.map((med, i) => 
         i === index ? { ...med, [field]: value } : med
       )
     }));
+    
+    // Clear error for this field when user starts typing
+    if (formErrors.medications[index] && formErrors.medications[index][field as keyof typeof formErrors.medications[0]]) {
+      setFormErrors(prev => ({
+        ...prev,
+        medications: prev.medications.map((medError, i) => 
+          i === index ? { ...medError, [field as keyof typeof medError]: undefined } : medError
+        )
+      }));
+    }
   };
 
   // E-signature functions
@@ -1460,7 +1577,7 @@ export default function PrescriptionsPage() {
                               }))
                             }
                           >
-                            <SelectTrigger>
+                            <SelectTrigger data-testid="select-patient">
                               <SelectValue placeholder="Select patient" />
                             </SelectTrigger>
                             <SelectContent>
@@ -1487,7 +1604,7 @@ export default function PrescriptionsPage() {
                               }))
                             }
                           >
-                            <SelectTrigger>
+                            <SelectTrigger data-testid="select-provider">
                               <SelectValue placeholder="Select doctor" />
                             </SelectTrigger>
                             <SelectContent>
@@ -1505,8 +1622,9 @@ export default function PrescriptionsPage() {
                       </div>
 
                       <div>
-                        <Label htmlFor="diagnosis">Diagnosis</Label>
+                        <Label htmlFor="diagnosis">Diagnosis *</Label>
                         <Input
+                          id="diagnosis"
                           placeholder="Enter diagnosis"
                           value={formData.diagnosis}
                           onChange={(e) =>
@@ -1515,7 +1633,14 @@ export default function PrescriptionsPage() {
                               diagnosis: e.target.value,
                             }))
                           }
+                          data-testid="input-diagnosis"
+                          className={formErrors.general && !formData.diagnosis.trim() ? "border-red-500" : ""}
                         />
+                        {formErrors.general && !formData.diagnosis.trim() && (
+                          <p className="text-red-500 text-sm mt-1" data-testid="error-diagnosis">
+                            Diagnosis is required
+                          </p>
+                        )}
                       </div>
 
                       <div className="space-y-4">
@@ -1554,35 +1679,47 @@ export default function PrescriptionsPage() {
                             
                             <div className="grid grid-cols-2 gap-4">
                               <div>
-                                <Label htmlFor={`medication-name-${index}`}>Medication Name</Label>
+                                <Label htmlFor={`medication-name-${index}`}>Medication Name *</Label>
                                 <Input
                                   id={`medication-name-${index}`}
                                   placeholder="Enter medication"
                                   value={medication.name}
                                   onChange={(e) => updateMedication(index, 'name', e.target.value)}
                                   data-testid={`input-medication-name-${index}`}
+                                  className={formErrors.medications[index]?.name ? "border-red-500" : ""}
                                 />
+                                {formErrors.medications[index]?.name && (
+                                  <p className="text-red-500 text-sm mt-1" data-testid={`error-medication-name-${index}`}>
+                                    {formErrors.medications[index].name}
+                                  </p>
+                                )}
                               </div>
                               <div>
-                                <Label htmlFor={`medication-dosage-${index}`}>Dosage</Label>
+                                <Label htmlFor={`medication-dosage-${index}`}>Dosage *</Label>
                                 <Input
                                   id={`medication-dosage-${index}`}
                                   placeholder="e.g., 10mg"
                                   value={medication.dosage}
                                   onChange={(e) => updateMedication(index, 'dosage', e.target.value)}
-                                  data-testid={`input-medication-dosage-${index}`}
+                                  data-testid={`input-dosage-${index}`}
+                                  className={formErrors.medications[index]?.dosage ? "border-red-500" : ""}
                                 />
+                                {formErrors.medications[index]?.dosage && (
+                                  <p className="text-red-500 text-sm mt-1" data-testid={`error-medication-dosage-${index}`}>
+                                    {formErrors.medications[index].dosage}
+                                  </p>
+                                )}
                               </div>
                             </div>
                             
-                            <div className="grid grid-cols-3 gap-4">
+                            <div className="grid grid-cols-2 gap-4">
                               <div>
-                                <Label htmlFor={`medication-frequency-${index}`}>Frequency</Label>
+                                <Label htmlFor={`medication-frequency-${index}`}>Frequency *</Label>
                                 <Select
                                   value={medication.frequency}
                                   onValueChange={(value) => updateMedication(index, 'frequency', value)}
                                 >
-                                  <SelectTrigger data-testid={`select-frequency-${index}`}>
+                                  <SelectTrigger data-testid={`select-frequency-${index}`} className={formErrors.medications[index]?.frequency ? "border-red-500" : ""}>
                                     <SelectValue placeholder="Select frequency" />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -1590,30 +1727,93 @@ export default function PrescriptionsPage() {
                                     <SelectItem value="Twice daily">Twice daily</SelectItem>
                                     <SelectItem value="Three times daily">Three times daily</SelectItem>
                                     <SelectItem value="Four times daily">Four times daily</SelectItem>
+                                    <SelectItem value="Every other day">Every other day</SelectItem>
+                                    <SelectItem value="As needed">As needed</SelectItem>
                                   </SelectContent>
                                 </Select>
+                                {formErrors.medications[index]?.frequency && (
+                                  <p className="text-red-500 text-sm mt-1" data-testid={`error-medication-frequency-${index}`}>
+                                    {formErrors.medications[index].frequency}
+                                  </p>
+                                )}
                               </div>
                               <div>
-                                <Label htmlFor={`medication-quantity-${index}`}>Quantity</Label>
+                                <Label htmlFor={`medication-duration-${index}`}>Duration *</Label>
+                                <Select
+                                  value={medication.duration}
+                                  onValueChange={(value) => updateMedication(index, 'duration', value)}
+                                >
+                                  <SelectTrigger data-testid={`select-duration-${index}`} className={formErrors.medications[index]?.duration ? "border-red-500" : ""}>
+                                    <SelectValue placeholder="Select duration" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="7 days">7 days</SelectItem>
+                                    <SelectItem value="14 days">14 days</SelectItem>
+                                    <SelectItem value="30 days">30 days</SelectItem>
+                                    <SelectItem value="60 days">60 days</SelectItem>
+                                    <SelectItem value="90 days">90 days</SelectItem>
+                                    <SelectItem value="6 months">6 months</SelectItem>
+                                    <SelectItem value="1 year">1 year</SelectItem>
+                                    <SelectItem value="Ongoing">Ongoing</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                {formErrors.medications[index]?.duration && (
+                                  <p className="text-red-500 text-sm mt-1" data-testid={`error-medication-duration-${index}`}>
+                                    {formErrors.medications[index].duration}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-3 gap-4">
+                              <div>
+                                <Label htmlFor={`medication-quantity-${index}`}>Quantity *</Label>
                                 <Input
                                   id={`medication-quantity-${index}`}
                                   type="number"
+                                  min="1"
                                   placeholder="30"
                                   value={medication.quantity}
                                   onChange={(e) => updateMedication(index, 'quantity', e.target.value)}
-                                  data-testid={`input-medication-quantity-${index}`}
+                                  data-testid={`input-quantity-${index}`}
+                                  className={formErrors.medications[index]?.quantity ? "border-red-500" : ""}
                                 />
+                                {formErrors.medications[index]?.quantity && (
+                                  <p className="text-red-500 text-sm mt-1" data-testid={`error-medication-quantity-${index}`}>
+                                    {formErrors.medications[index].quantity}
+                                  </p>
+                                )}
                               </div>
                               <div>
                                 <Label htmlFor={`medication-refills-${index}`}>Refills</Label>
                                 <Input
                                   id={`medication-refills-${index}`}
                                   type="number"
+                                  min="0"
                                   placeholder="3"
                                   value={medication.refills}
                                   onChange={(e) => updateMedication(index, 'refills', e.target.value)}
-                                  data-testid={`input-medication-refills-${index}`}
+                                  data-testid={`input-refills-${index}`}
+                                  className={formErrors.medications[index]?.refills ? "border-red-500" : ""}
                                 />
+                                {formErrors.medications[index]?.refills && (
+                                  <p className="text-red-500 text-sm mt-1" data-testid={`error-medication-refills-${index}`}>
+                                    {formErrors.medications[index].refills}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex items-center space-x-2 pt-6">
+                                <input
+                                  type="checkbox"
+                                  id={`medication-generic-${index}`}
+                                  checked={medication.genericAllowed}
+                                  onChange={(e) => updateMedication(index, 'genericAllowed', e.target.checked)}
+                                  data-testid={`checkbox-generic-allowed-${index}`}
+                                  className="h-4 w-4"
+                                />
+                                <Label htmlFor={`medication-generic-${index}`} className="text-sm font-medium">
+                                  Generic allowed
+                                </Label>
                               </div>
                             </div>
                             
@@ -1621,10 +1821,11 @@ export default function PrescriptionsPage() {
                               <Label htmlFor={`medication-instructions-${index}`}>Instructions</Label>
                               <Textarea
                                 id={`medication-instructions-${index}`}
-                                placeholder="Special instructions for patient"
+                                placeholder="Special instructions for patient (e.g., take with food, before bedtime)"
                                 value={medication.instructions}
                                 onChange={(e) => updateMedication(index, 'instructions', e.target.value)}
-                                data-testid={`textarea-medication-instructions-${index}`}
+                                data-testid={`input-instructions-${index}`}
+                                rows={2}
                               />
                             </div>
                           </div>
@@ -1640,6 +1841,7 @@ export default function PrescriptionsPage() {
                           <div>
                             <Label htmlFor="pharmacyName">Pharmacy Name</Label>
                             <Input
+                              id="pharmacyName"
                               placeholder="Pharmacy name"
                               value={formData.pharmacyName}
                               onChange={(e) =>
@@ -1648,11 +1850,13 @@ export default function PrescriptionsPage() {
                                   pharmacyName: e.target.value,
                                 }))
                               }
+                              data-testid="input-pharmacy-name"
                             />
                           </div>
                           <div>
                             <Label htmlFor="pharmacyPhone">Phone Number</Label>
                             <Input
+                              id="pharmacyPhone"
                               placeholder="Phone number"
                               value={formData.pharmacyPhone}
                               onChange={(e) =>
@@ -1661,12 +1865,14 @@ export default function PrescriptionsPage() {
                                   pharmacyPhone: e.target.value,
                                 }))
                               }
+                              data-testid="input-pharmacy-phone"
                             />
                           </div>
                         </div>
                         <div>
                           <Label htmlFor="pharmacyAddress">Address</Label>
                           <Input
+                            id="pharmacyAddress"
                             placeholder="Pharmacy address"
                             value={formData.pharmacyAddress}
                             onChange={(e) =>
@@ -1675,11 +1881,13 @@ export default function PrescriptionsPage() {
                                 pharmacyAddress: e.target.value,
                               }))
                             }
+                            data-testid="input-pharmacy-address"
                           />
                         </div>
                         <div>
                           <Label htmlFor="pharmacyEmail">Email</Label>
                           <Input
+                            id="pharmacyEmail"
                             type="email"
                             placeholder="pharmacy@example.com"
                             value={formData.pharmacyEmail}
@@ -1689,6 +1897,7 @@ export default function PrescriptionsPage() {
                                 pharmacyEmail: e.target.value,
                               }))
                             }
+                            data-testid="input-pharmacy-email"
                           />
                         </div>
                       </div>
@@ -1696,7 +1905,11 @@ export default function PrescriptionsPage() {
                       <div className="flex justify-end gap-2">
                         <Button
                           variant="outline"
-                          onClick={() => setShowNewPrescription(false)}
+                          onClick={() => {
+                            setShowNewPrescription(false);
+                            setFormErrors({ medications: [] });
+                          }}
+                          data-testid="button-cancel-prescription"
                         >
                           Cancel
                         </Button>
@@ -1707,63 +1920,52 @@ export default function PrescriptionsPage() {
                               return;
                             }
 
-                            // Validation
-                            if (
-                              !formData.patientId ||
-                              !formData.providerId ||
-                              !formData.medications.some(med => med.name.trim())
-                            ) {
-                              alert(
-                                "Please fill in all required fields (Patient, Doctor, and at least one Medication Name)",
-                              );
+                            // Run comprehensive validation
+                            if (!validateForm()) {
+                              toast({
+                                title: "Validation Error",
+                                description: "Please fix the errors in the form before submitting",
+                                variant: "destructive",
+                              });
                               return;
                             }
 
-                            // Filter out empty medications and prepare data
+                            // Filter out empty medications and prepare data with proper type conversion
                             const validMedications = formData.medications
                               .filter(med => med.name.trim())
                               .map(med => ({
                                 name: med.name.trim(),
                                 dosage: med.dosage.trim(),
                                 frequency: med.frequency.trim(),
-                                duration: "30 days", // Default for now
+                                duration: med.duration.trim(),
                                 quantity: parseInt(med.quantity) || 0,
                                 refills: parseInt(med.refills) || 0,
                                 instructions: med.instructions.trim(),
-                                genericAllowed: true,
+                                genericAllowed: med.genericAllowed,
                               }));
                             
                             const prescriptionData = {
                               patientId: parseInt(formData.patientId),
                               providerId: parseInt(formData.providerId),
-                              diagnosis: formData.diagnosis,
+                              diagnosis: formData.diagnosis.trim(),
                               pharmacy: {
-                                name: formData.pharmacyName,
-                                address: formData.pharmacyAddress,
-                                phone: formData.pharmacyPhone,
-                                email: formData.pharmacyEmail,
+                                name: formData.pharmacyName.trim(),
+                                address: formData.pharmacyAddress.trim(),
+                                phone: formData.pharmacyPhone.trim(),
+                                email: formData.pharmacyEmail.trim(),
                               },
                               medications: validMedications,
                             };
 
                             console.log("=== FRONTEND PRESCRIPTION DEBUG ===");
                             console.log("Form data before parsing:", formData);
-                            console.log(
-                              "Selected patient ID:",
-                              formData.patientId,
-                            );
-                            console.log(
-                              "Selected provider ID:",
-                              formData.providerId,
-                            );
-                            console.log("Available providers:", providers);
-                            console.log(
-                              "Final prescription data:",
-                              prescriptionData,
-                            );
+                            console.log("Final prescription data:", prescriptionData);
+                            console.log("Valid medications count:", validMedications.length);
+                            
                             createPrescriptionMutation.mutate(prescriptionData);
                           }}
                           disabled={createPrescriptionMutation.isPending}
+                          data-testid="button-submit-prescription"
                         >
                           {createPrescriptionMutation.isPending
                             ? selectedPrescription
