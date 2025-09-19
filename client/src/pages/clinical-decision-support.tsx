@@ -43,8 +43,12 @@ import {
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 
-// Use the actual database schema for form validation
-const createInsightSchema = insertAiInsightSchema.extend({
+// Use the actual database schema for form validation, excluding server-managed fields
+const createInsightSchema = insertAiInsightSchema.omit({
+  organizationId: true,
+  id: true,
+  createdAt: true
+}).extend({
   symptoms: z.string().optional(),
   history: z.string().optional(),
   confidence: z.string().transform((val) => val.toString()) // Ensure confidence is always a string
