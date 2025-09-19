@@ -593,66 +593,134 @@ function PatientDetailsModal({ open, onOpenChange, patient }: PatientDetailsModa
 
           {/* Prescriptions Tab */}
           <TabsContent value="prescriptions" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Pill className="h-5 w-5" />
-                  Prescriptions ({prescriptions.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {prescriptionsLoading ? (
-                  <div className="text-center py-4">Loading prescriptions...</div>
-                ) : prescriptions.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <Pill className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No prescriptions found</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
-                    {prescriptions.map((prescription: any) => (
-                      <Card key={prescription.id} className="border-l-4" style={{ borderLeftColor: '#7279FB' }}>
-                        <CardContent className="p-4">
-                          <div className="flex justify-between items-start mb-2">
-                            <h4 className="font-semibold">{prescription.medicationName}</h4>
-                            <Badge style={{ backgroundColor: '#7279FB', color: 'white' }}>
-                              {prescription.status || 'Active'}
-                            </Badge>
+            {prescriptionsLoading ? (
+              <div className="text-center py-4">Loading prescriptions...</div>
+            ) : prescriptions.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <Pill className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No prescriptions found</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {prescriptions.map((prescription: any) => (
+                  <div key={prescription.id} className="space-y-6 border rounded-lg p-6 bg-gray-50 dark:bg-gray-800">
+                    {/* Patient & Provider Info */}
+                    <div className="grid grid-cols-2 gap-6">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            <User className="h-5 w-5" />
+                            Patient Information
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">Name</p>
+                            <p className="font-medium">{patient?.firstName} {patient?.lastName}</p>
                           </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-                            Prescribed: {format(new Date(prescription.createdAt || prescription.prescribedDate), "MMM d, yyyy")}
-                          </p>
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <p className="font-medium">Dosage:</p>
-                              <p>{prescription.dosage || 'Not specified'}</p>
-                            </div>
-                            <div>
-                              <p className="font-medium">Frequency:</p>
-                              <p>{prescription.frequency || 'Not specified'}</p>
-                            </div>
-                            <div>
-                              <p className="font-medium">Duration:</p>
-                              <p>{prescription.duration || 'Not specified'}</p>
-                            </div>
-                            <div>
-                              <p className="font-medium">Prescribed by:</p>
-                              <p>{prescription.prescribedBy || 'Not specified'}</p>
-                            </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">Patient ID</p>
+                            <p className="font-mono text-sm">{patient?.id}</p>
                           </div>
-                          {prescription.instructions && (
-                            <div className="mt-2">
-                              <p className="font-medium text-sm">Instructions:</p>
-                              <p className="text-sm text-gray-600 dark:text-gray-300">{prescription.instructions}</p>
-                            </div>
-                          )}
                         </CardContent>
                       </Card>
-                    ))}
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            <User className="h-5 w-5" />
+                            Provider Information
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">Provider</p>
+                            <p className="font-medium">{prescription.prescribedBy || 'Provider undefined'}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">Provider ID</p>
+                            <p className="font-mono text-sm">{prescription.providerId || 'N/A'}</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Prescription Overview */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <FileText className="h-5 w-5" />
+                          Prescription Overview
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-3 gap-4">
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">Status</p>
+                            <Badge style={{ backgroundColor: '#7279FB', color: 'white' }}>
+                              {prescription.status || 'signed'}
+                            </Badge>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">Prescribed Date</p>
+                            <p className="font-medium">
+                              {prescription.createdAt ? format(new Date(prescription.createdAt), "dd/MM/yyyy") : '01/01/1970'}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">Prescription ID</p>
+                            <p className="font-mono text-sm">{prescription.id}</p>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Diagnosis</p>
+                          <p className="font-medium">{prescription.diagnosis || 'e'}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Medications */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Pill className="h-5 w-5" />
+                          Medications (0)
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-center py-4 text-gray-500">
+                          <p>No detailed medication information available</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Pharmacy Information */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <FileText className="h-5 w-5" />
+                          Pharmacy Information
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Pharmacy Name</p>
+                          <p className="font-medium">Halo Health</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Address</p>
+                          <p>Unit 2 Drayton Court, Solihull, B90 4NG</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Phone</p>
+                          <p>+44(0)121 827 5531</p>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           {/* Lab Results Tab */}
