@@ -50,7 +50,8 @@ import {
   ChevronDown,
   ArrowLeft,
   Check,
-  ChevronsUpDown
+  ChevronsUpDown,
+  Plus
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -135,6 +136,7 @@ export default function FinancialIntelligence() {
   const [verifyEligibilityOpen, setVerifyEligibilityOpen] = useState(false);
   const [priorAuthOpen, setPriorAuthOpen] = useState(false);
   const [viewBenefitsOpen, setViewBenefitsOpen] = useState(false);
+  const [addInsuranceOpen, setAddInsuranceOpen] = useState(false);
   const [selectedInsurance, setSelectedInsurance] = useState<any>(null);
   const [verificationFormData, setVerificationFormData] = useState({
     patientName: '',
@@ -144,6 +146,21 @@ export default function FinancialIntelligence() {
     coverageType: '',
     verificationStatus: 'pending',
     verificationDate: ''
+  });
+  const [newInsuranceFormData, setNewInsuranceFormData] = useState({
+    patientName: '',
+    provider: '',
+    policyNumber: '',
+    groupNumber: '',
+    coverageType: 'primary',
+    status: 'active',
+    eligibilityStatus: 'pending',
+    copay: '',
+    deductible: '',
+    deductibleMet: '',
+    outOfPocketMax: '',
+    outOfPocketMet: '',
+    coinsurance: ''
   });
   const { toast } = useToast();
 
@@ -322,6 +339,66 @@ export default function FinancialIntelligence() {
       toast({ 
         title: "Update failed",
         description: "Failed to update insurance verification data",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Add insurance mutation
+  const addInsuranceMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch("/api/financial/insurance", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
+          "X-Tenant-Subdomain": "demo"
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          ...data,
+          lastVerified: new Date().toISOString(),
+          id: `ins_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          benefits: {
+            deductible: parseFloat(data.deductible) || 0,
+            deductibleMet: parseFloat(data.deductibleMet) || 0,
+            outOfPocketMax: parseFloat(data.outOfPocketMax) || 0,
+            outOfPocketMet: parseFloat(data.outOfPocketMet) || 0,
+            copay: parseFloat(data.copay) || 0,
+            coinsurance: parseFloat(data.coinsurance) || 0
+          }
+        })
+      });
+      if (!response.ok) throw new Error("Failed to add insurance");
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/financial/insurance"] });
+      toast({ 
+        title: "Insurance added successfully",
+        description: "New insurance information has been added to the system"
+      });
+      setAddInsuranceOpen(false);
+      setNewInsuranceFormData({
+        patientName: '',
+        provider: '',
+        policyNumber: '',
+        groupNumber: '',
+        coverageType: 'primary',
+        status: 'active',
+        eligibilityStatus: 'pending',
+        copay: '',
+        deductible: '',
+        deductibleMet: '',
+        outOfPocketMax: '',
+        outOfPocketMet: '',
+        coinsurance: ''
+      });
+    },
+    onError: (error) => {
+      toast({ 
+        title: "Failed to add insurance",
+        description: "There was an error adding the insurance information",
         variant: "destructive"
       });
     }
@@ -908,6 +985,32 @@ export default function FinancialIntelligence() {
         </TabsContent>
 
         <TabsContent value="insurance" className="space-y-4">
+          <div className="mb-4">
+            <Button 
+              onClick={() => {
+                setNewInsuranceFormData({
+                  patientName: '',
+                  provider: '',
+                  policyNumber: '',
+                  groupNumber: '',
+                  coverageType: 'primary',
+                  status: 'active',
+                  eligibilityStatus: 'pending',
+                  copay: '',
+                  deductible: '',
+                  deductibleMet: '',
+                  outOfPocketMax: '',
+                  outOfPocketMet: '',
+                  coinsurance: ''
+                });
+                setAddInsuranceOpen(true);
+              }}
+              data-testid="button-add-insurance"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Insurance Info
+            </Button>
+          </div>
           <div className="grid gap-4">
             {(insurances || mockInsurances).map((insurance) => (
               <Card key={insurance.id}>
@@ -1514,6 +1617,187 @@ export default function FinancialIntelligence() {
                 data-testid="button-save-verification"
               >
                 {updateInsuranceMutation.isPending ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Insurance Info Modal */}
+      <Dialog open={addInsuranceOpen} onOpenChange={setAddInsuranceOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add Insurance Information</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Patient Name</label>
+                <Input
+                  value={newInsuranceFormData.patientName}
+                  onChange={(e) => setNewInsuranceFormData(prev => ({ ...prev, patientName: e.target.value }))}
+                  placeholder="Enter patient name"
+                  data-testid="input-new-patient-name"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Insurance Provider</label>
+                <Input
+                  value={newInsuranceFormData.provider}
+                  onChange={(e) => setNewInsuranceFormData(prev => ({ ...prev, provider: e.target.value }))}
+                  placeholder="Enter insurance provider"
+                  data-testid="input-new-provider"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Policy Number</label>
+                <Input
+                  value={newInsuranceFormData.policyNumber}
+                  onChange={(e) => setNewInsuranceFormData(prev => ({ ...prev, policyNumber: e.target.value }))}
+                  placeholder="Enter policy number"
+                  data-testid="input-new-policy-number"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Group Number</label>
+                <Input
+                  value={newInsuranceFormData.groupNumber}
+                  onChange={(e) => setNewInsuranceFormData(prev => ({ ...prev, groupNumber: e.target.value }))}
+                  placeholder="Enter group number"
+                  data-testid="input-new-group-number"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="text-sm font-medium">Coverage Type</label>
+                <Select value={newInsuranceFormData.coverageType} onValueChange={(value) => setNewInsuranceFormData(prev => ({ ...prev, coverageType: value }))}>
+                  <SelectTrigger data-testid="select-new-coverage-type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="primary">Primary</SelectItem>
+                    <SelectItem value="secondary">Secondary</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Status</label>
+                <Select value={newInsuranceFormData.status} onValueChange={(value) => setNewInsuranceFormData(prev => ({ ...prev, status: value }))}>
+                  <SelectTrigger data-testid="select-new-status">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="expired">Expired</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Eligibility Status</label>
+                <Select value={newInsuranceFormData.eligibilityStatus} onValueChange={(value) => setNewInsuranceFormData(prev => ({ ...prev, eligibilityStatus: value }))}>
+                  <SelectTrigger data-testid="select-new-eligibility-status">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="verified">Verified</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="expired">Expired</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Copay ($)</label>
+                <Input
+                  type="number"
+                  value={newInsuranceFormData.copay}
+                  onChange={(e) => setNewInsuranceFormData(prev => ({ ...prev, copay: e.target.value }))}
+                  placeholder="Enter copay amount"
+                  data-testid="input-new-copay"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Coinsurance (%)</label>
+                <Input
+                  type="number"
+                  value={newInsuranceFormData.coinsurance}
+                  onChange={(e) => setNewInsuranceFormData(prev => ({ ...prev, coinsurance: e.target.value }))}
+                  placeholder="Enter coinsurance percentage"
+                  data-testid="input-new-coinsurance"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Deductible ($)</label>
+                <Input
+                  type="number"
+                  value={newInsuranceFormData.deductible}
+                  onChange={(e) => setNewInsuranceFormData(prev => ({ ...prev, deductible: e.target.value }))}
+                  placeholder="Enter deductible amount"
+                  data-testid="input-new-deductible"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Deductible Met ($)</label>
+                <Input
+                  type="number"
+                  value={newInsuranceFormData.deductibleMet}
+                  onChange={(e) => setNewInsuranceFormData(prev => ({ ...prev, deductibleMet: e.target.value }))}
+                  placeholder="Enter deductible met amount"
+                  data-testid="input-new-deductible-met"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Out-of-Pocket Max ($)</label>
+                <Input
+                  type="number"
+                  value={newInsuranceFormData.outOfPocketMax}
+                  onChange={(e) => setNewInsuranceFormData(prev => ({ ...prev, outOfPocketMax: e.target.value }))}
+                  placeholder="Enter out-of-pocket maximum"
+                  data-testid="input-new-out-of-pocket-max"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Out-of-Pocket Met ($)</label>
+                <Input
+                  type="number"
+                  value={newInsuranceFormData.outOfPocketMet}
+                  onChange={(e) => setNewInsuranceFormData(prev => ({ ...prev, outOfPocketMet: e.target.value }))}
+                  placeholder="Enter out-of-pocket met amount"
+                  data-testid="input-new-out-of-pocket-met"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => setAddInsuranceOpen(false)}
+                data-testid="button-cancel-add-insurance"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  addInsuranceMutation.mutate(newInsuranceFormData);
+                }}
+                disabled={addInsuranceMutation.isPending}
+                data-testid="button-save-add-insurance"
+              >
+                {addInsuranceMutation.isPending ? "Saving..." : "Save Insurance"}
               </Button>
             </div>
           </div>
