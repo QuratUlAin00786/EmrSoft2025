@@ -3039,8 +3039,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // POST /api/ai-insights - Create new insight
   app.post("/api/ai-insights", requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
     try {
-      // Extend the insert schema to include symptoms and history
-      const createInsightSchema = insertAiInsightSchema.extend({
+      // Create schema that excludes server-managed fields (organizationId, id, createdAt)
+      const createInsightSchema = insertAiInsightSchema.omit({
+        organizationId: true,
+        id: true,
+        createdAt: true
+      }).extend({
         symptoms: z.string().optional(),
         history: z.string().optional()
       });

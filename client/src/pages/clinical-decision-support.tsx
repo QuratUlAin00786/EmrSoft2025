@@ -505,11 +505,7 @@ export default function ClinicalDecisionSupport() {
                 <DialogTitle>Create New AI Insight</DialogTitle>
               </DialogHeader>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit((data) => {
-                  console.log("Form submitted with data:", data);
-                  console.log("Form errors:", form.formState.errors);
-                  createInsightMutation.mutate(data);
-                })} className="space-y-4">
+                <form onSubmit={form.handleSubmit((data) => createInsightMutation.mutate(data))} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -736,13 +732,6 @@ export default function ClinicalDecisionSupport() {
                       type="submit"
                       disabled={createInsightMutation.isPending}
                       data-testid="button-submit"
-                      onClick={() => {
-                        console.log("Button clicked - form state:", form.formState);
-                        console.log("Form values:", form.getValues());
-                        console.log("Form errors:", form.formState.errors);
-                        console.log("Is form valid:", form.formState.isValid);
-                        console.log("Mutation pending:", createInsightMutation.isPending);
-                      }}
                     >
                       {createInsightMutation.isPending && (
                         <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
