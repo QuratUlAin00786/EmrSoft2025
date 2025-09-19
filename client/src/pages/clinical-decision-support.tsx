@@ -499,7 +499,7 @@ export default function ClinicalDecisionSupport() {
             <DialogTrigger asChild>
               <Button data-testid="button-create-insight">
                 <Plus className="w-4 h-4 mr-2" />
-                Create Insight
+                Generate AI Insight
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -739,98 +739,11 @@ export default function ClinicalDecisionSupport() {
                         <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       )}
                       <Save className="w-4 h-4 mr-2" />
-                      Create Insight
+                      Generate AI Insight
                     </Button>
                   </div>
                 </form>
               </Form>
-            </DialogContent>
-          </Dialog>
-          
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" data-testid="button-generate-insight">
-                <Brain className="w-4 h-4 mr-2" />
-                Generate AI Insight
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Generate AI Clinical Insight</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">Patient</label>
-                  <Select open={patientSearchOpen} onOpenChange={setPatientSearchOpen} value={selectedPatient} onValueChange={setSelectedPatient}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Search and select patient">
-                        {selectedPatientName}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <div className="p-2">
-                        <Input
-                          placeholder="Search patients..."
-                          value={patientSearch}
-                          onChange={(e) => setPatientSearch(e.target.value)}
-                          className="mb-2"
-                        />
-                      </div>
-                      {patientsLoading ? (
-                        <SelectItem value="loading" disabled>
-                          Loading patients...
-                        </SelectItem>
-                      ) : filteredPatients.length === 0 ? (
-                        <SelectItem value="no-results" disabled>
-                          {patientSearch ? "No patients found" : "No patients available"}
-                        </SelectItem>
-                      ) : (
-                        filteredPatients.map((patient: any) => (
-                          <SelectItem key={patient.id} value={patient.id.toString()}>
-                            <div className="flex flex-col">
-                              <span className="font-medium">
-                                {patient.firstName} {patient.lastName}
-                              </span>
-                              <span className="text-sm text-muted-foreground">
-                                ID: {patient.patientId} • {new Date(patient.dateOfBirth).toLocaleDateString()}
-                              </span>
-                            </div>
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Symptoms/Concerns</label>
-                  <Textarea 
-                    placeholder="Enter patient symptoms or clinical concerns"
-                    className="mt-1"
-                    value={symptoms}
-                    onChange={(e) => setSymptoms(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Relevant History</label>
-                  <Textarea 
-                    placeholder="Enter relevant medical history"
-                    className="mt-1"
-                    value={history}
-                    onChange={(e) => setHistory(e.target.value)}
-                  />
-                </div>
-                <Button 
-                  className="w-full"
-                  onClick={() => generateInsightMutation.mutate({
-                    patientId: selectedPatient,
-                    symptoms: symptoms,
-                    history: history
-                  })}
-                  disabled={generateInsightMutation.isPending || !selectedPatient || !symptoms || selectedPatient === "loading" || selectedPatient === "no-results"}
-                >
-                  {generateInsightMutation.isPending ? "Analyzing..." : "Generate Insight"}
-                </Button>
-              </div>
             </DialogContent>
           </Dialog>
           <Button 
