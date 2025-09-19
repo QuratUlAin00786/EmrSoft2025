@@ -730,7 +730,7 @@ export default function ClinicalDecisionSupport() {
                     </Button>
                     <Button
                       type="submit"
-                      disabled={createInsightMutation.isPending || !form.formState.isValid}
+                      disabled={createInsightMutation.isPending}
                       data-testid="button-submit"
                       onClick={() => {
                         console.log("Button clicked - form state:", form.formState);
