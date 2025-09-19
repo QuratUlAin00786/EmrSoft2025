@@ -91,7 +91,8 @@ export default function ClinicalDecisionSupport() {
       actionRequired: false,
       confidence: "0.8", // String as per database schema
       symptoms: "",
-      history: ""
+      history: "",
+      patientId: undefined // Required field for form validation
     }
   });
 
@@ -500,7 +501,11 @@ export default function ClinicalDecisionSupport() {
                 <DialogTitle>Create New AI Insight</DialogTitle>
               </DialogHeader>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit((data) => createInsightMutation.mutate(data))} className="space-y-4">
+                <form onSubmit={form.handleSubmit((data) => {
+                  console.log("Form submitted with data:", data);
+                  console.log("Form errors:", form.formState.errors);
+                  createInsightMutation.mutate(data);
+                })} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
