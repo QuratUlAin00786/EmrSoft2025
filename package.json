@@ -49,6 +49,7 @@
     "@stripe/stripe-js": "^7.8.0",
     "@tanstack/react-query": "^5.60.5",
     "@types/bcrypt": "^5.0.2",
+    "@types/fs-extra": "^11.0.4",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/memoizee": "^0.4.12",
     "@types/multer": "^2.0.0",
