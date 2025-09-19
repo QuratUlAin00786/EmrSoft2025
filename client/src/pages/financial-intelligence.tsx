@@ -349,6 +349,7 @@ export default function FinancialIntelligence() {
   // Delete claim mutation
   const deleteClaimMutation = useMutation({
     mutationFn: async (claimId: string) => {
+      console.log("🗑️ DELETE: Starting delete operation for claim ID:", claimId);
       const response = await fetch(`/api/financial/claims/${claimId}`, {
         method: "DELETE",
         headers: {
@@ -357,19 +358,28 @@ export default function FinancialIntelligence() {
         },
         credentials: "include",
       });
+      console.log("🗑️ DELETE: Response status:", response.status);
       if (!response.ok) {
         const errorData = await response.text();
+        console.error("🗑️ DELETE: Error response:", errorData);
         throw new Error(`Failed to delete claim: ${errorData}`);
       }
-      return response.json();
+      const result = await response.json();
+      console.log("🗑️ DELETE: Success response:", result);
+      return result;
     },
-    onSuccess: () => {
-      // Immediately invalidate and refetch claims data
-      queryClient.invalidateQueries({ queryKey: ["/api/financial/claims"] });
-      queryClient.refetchQueries({ 
-        queryKey: ["/api/financial/claims"],
-        type: 'active' // Only refetch active queries
+    onSuccess: (data, claimId) => {
+      console.log("🗑️ DELETE: Mutation success - updating cache");
+      
+      // Immediately update the cache by removing the deleted claim
+      queryClient.setQueryData(["/api/financial/claims"], (oldData: any) => {
+        if (!oldData) return oldData;
+        console.log("🗑️ DELETE: Updating cache - removing claim ID:", claimId);
+        return oldData.filter((claim: any) => claim.id.toString() !== claimId);
       });
+      
+      // Also invalidate to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/financial/claims"] });
       
       toast({ 
         title: "Claim deleted successfully",
@@ -377,6 +387,7 @@ export default function FinancialIntelligence() {
       });
     },
     onError: (error) => {
+      console.error("🗑️ DELETE: Mutation error:", error);
       toast({
         title: "Failed to delete claim",
         description: error.message,
@@ -1509,7 +1520,10 @@ export default function FinancialIntelligence() {
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => deleteClaimMutation.mutate(claim.id.toString())}
+                                onClick={() => {
+                                  console.log("🗑️ DELETE: AlertDialog Delete clicked for claim:", claim.id);
+                                  deleteClaimMutation.mutate(claim.id.toString());
+                                }}
                                 className="bg-red-600 hover:bg-red-700"
                               >
                                 Delete
