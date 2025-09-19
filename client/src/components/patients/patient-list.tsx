@@ -510,7 +510,76 @@ function PatientDetailsModal({ open, onOpenChange, patient }: PatientDetailsModa
                       </div>
                     )}
 
-                    {(!patientHistory?.familyHistory && !patientHistory?.socialHistory) && (
+                    {patientHistory?.allergies && patientHistory.allergies.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold mb-2">Allergies</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {patientHistory.allergies.map((allergy: string, index: number) => (
+                            <Badge key={index} variant="destructive" className="text-xs">
+                              {allergy}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {patientHistory?.chronicConditions && patientHistory.chronicConditions.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold mb-2">Chronic Conditions</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {patientHistory.chronicConditions.map((condition: string, index: number) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {condition}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {patientHistory?.medications && patientHistory.medications.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold mb-2">Current Medications</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {patientHistory.medications.map((medication: string, index: number) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {medication}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {patientHistory?.immunizations && patientHistory.immunizations.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold mb-2">Immunizations</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {patientHistory.immunizations.map((immunization: any, index: number) => (
+                            <div key={index} className="border rounded p-3">
+                              <p className="font-medium text-sm">
+                                {typeof immunization === 'string' ? immunization : immunization.vaccine || immunization.name || 'Unknown Vaccine'}
+                              </p>
+                              {typeof immunization === 'object' && immunization.date && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                  Date: {format(new Date(immunization.date), "MMM d, yyyy")}
+                                </p>
+                              )}
+                              {typeof immunization === 'object' && immunization.nextDue && (
+                                <p className="text-xs text-blue-600 mt-1">
+                                  Next due: {format(new Date(immunization.nextDue), "MMM d, yyyy")}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {(!patientHistory?.familyHistory && 
+                      !patientHistory?.socialHistory && 
+                      (!patientHistory?.allergies || patientHistory.allergies.length === 0) &&
+                      (!patientHistory?.chronicConditions || patientHistory.chronicConditions.length === 0) &&
+                      (!patientHistory?.medications || patientHistory.medications.length === 0) &&
+                      (!patientHistory?.immunizations || patientHistory.immunizations.length === 0)) && (
                       <div className="text-center py-8 text-gray-500">
                         <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
                         <p>No patient history available</p>
