@@ -1262,9 +1262,6 @@ export default function FinancialIntelligence() {
                   <Button
                     className="w-full"
                     onClick={() => {
-                      console.log("📋 SUBMIT: Submit Claim button clicked");
-                      console.log("📋 SUBMIT: Form data:", claimFormData);
-                      
                       // Validation
                       if (
                         !claimFormData.patient ||
@@ -1273,18 +1270,6 @@ export default function FinancialIntelligence() {
                         claimFormData.procedures.length === 0 ||
                         claimFormData.procedures.some(proc => !proc.code || !proc.description || !proc.amount)
                       ) {
-                        console.log("📋 SUBMIT: Validation failed");
-                        console.log("📋 SUBMIT: Validation details:", {
-                          patient: claimFormData.patient,
-                          serviceDate: claimFormData.serviceDate,
-                          insuranceProvider: claimFormData.insuranceProvider,
-                          proceduresLength: claimFormData.procedures.length,
-                          proceduresValid: claimFormData.procedures.map(proc => ({
-                            code: !!proc.code,
-                            description: !!proc.description,
-                            amount: !!proc.amount
-                          }))
-                        });
                         toast({
                           title: "Missing Information",
                           description: "Please fill in all required fields including at least one complete procedure",
@@ -1305,10 +1290,9 @@ export default function FinancialIntelligence() {
                       const currentYear = new Date().getFullYear();
                       const claimNumber = `CLM-${currentYear}-${Date.now().toString().slice(-6)}`;
 
-                      console.log("📋 SUBMIT: Validation passed, submitting claim");
                       // Submit the claim using the mutation
                       submitClaimMutation.mutate({
-                        patientId: claimFormData.patient,
+                        patientId: parseInt(claimFormData.patient),
                         patientName: patientName,
                         claimNumber: claimNumber,
                         insuranceProvider: claimFormData.insuranceProvider,
