@@ -1996,7 +1996,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[FINANCIAL] Fetching insurance data for organization: ${organizationId}`);
 
       // Get all patients for this organization to check their insurance info
-      const allPatients = await storage.getAllPatients(req.tenant!.id);
+      const allPatients = await storage.getPatientsByOrganization(organizationId);
       console.log(`[FINANCIAL] Found ${allPatients.length} patients in organization ${organizationId}`);
 
       // Transform patients with insurance information
