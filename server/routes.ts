@@ -1986,46 +1986,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Persistent insurance data for demo purposes (in production this would be in database)
   let mockInsurances = [
-    {
-      id: "ins_1",
-      patientId: "patient_1",
-      patientName: "Sarah Johnson",
-      provider: "Aetna",
-      policyNumber: "AET123456789",
-      groupNumber: "GRP001",
-      status: "active",
-      coverageType: "primary",
-      eligibilityStatus: "verified",
-      lastVerified: "2024-06-25",
-      benefits: {
-        deductible: 1500,
-        deductibleMet: 850,
-        copay: 25,
-        coinsurance: 20,
-        outOfPocketMax: 5000,
-        outOfPocketMet: 1200
-      }
-    },
-    {
-      id: "ins_2",
-      patientId: "patient_2",
-      patientName: "Michael Chen",
-      provider: "Blue Cross Blue Shield",
-      policyNumber: "BCBS987654321",
-      groupNumber: "GRP002",
-      status: "active",
-      coverageType: "primary",
-      eligibilityStatus: "pending",
-      lastVerified: "2024-06-15",
-      benefits: {
-        deductible: 2000,
-        deductibleMet: 450,
-        copay: 30,
-        coinsurance: 25,
-        outOfPocketMax: 6000,
-        outOfPocketMet: 780
-      }
-    }
+    // Records removed as requested - Sarah Johnson (ins_1) and Michael Chen (ins_2) deleted
   ];
 
   // Get insurance data
@@ -2164,6 +2125,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error(`[FINANCIAL] Insurance update error:`, error);
       handleRouteError(error, "update insurance verification data", res);
+    }
+  });
+
+  // Delete insurance record
+  app.delete("/api/financial/insurance/:id", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const insuranceId = req.params.id;
+      
+      console.log(`[FINANCIAL] Insurance deletion requested for: ${insuranceId}`);
+      
+      // Find the insurance record to delete
+      const insuranceIndex = mockInsurances.findIndex(ins => ins.id === insuranceId);
+      
+      if (insuranceIndex === -1) {
+        return res.status(404).json({
+          success: false,
+          message: "Insurance record not found"
+        });
+      }
+      
+      // Remove the insurance record from the array
+      const deletedInsurance = mockInsurances.splice(insuranceIndex, 1)[0];
+      
+      console.log(`[FINANCIAL] Insurance deleted successfully:`, deletedInsurance);
+      
+      res.json({
+        success: true,
+        message: "Insurance record deleted successfully",
+        deletedRecord: deletedInsurance
+      });
+    } catch (error) {
+      console.error(`[FINANCIAL] Insurance deletion error:`, error);
+      handleRouteError(error, "delete insurance record", res);
     }
   });
 
