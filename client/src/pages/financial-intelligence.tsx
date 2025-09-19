@@ -304,9 +304,13 @@ export default function FinancialIntelligence() {
     },
     onSuccess: (data) => {
       console.log("Mutation success - invalidating queries");
+      
+      // Immediately invalidate and refetch claims data
       queryClient.invalidateQueries({ queryKey: ["/api/financial/claims"] });
-      // Force refetch the claims data
-      queryClient.refetchQueries({ queryKey: ["/api/financial/claims"] });
+      queryClient.refetchQueries({ 
+        queryKey: ["/api/financial/claims"],
+        type: 'active' // Only refetch active queries
+      });
       
       // Close dialog and reset form only after successful submission
       setSubmitClaimOpen(false);
@@ -326,7 +330,7 @@ export default function FinancialIntelligence() {
       
       toast({ 
         title: "Claim submitted successfully",
-        description: `Insurance claim ${data.claimNumber} has been submitted successfully`
+        description: `New claim ${data.claimNumber} has been added and will appear at the top of the list`
       });
     },
   });
