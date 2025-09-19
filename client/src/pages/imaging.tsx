@@ -7,17 +7,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  FileImage, 
-  Plus, 
-  Search, 
-  Download, 
-  Eye, 
-  Calendar, 
+import {
+  FileImage,
+  Plus,
+  Search,
+  Download,
+  Eye,
+  Calendar,
   User,
   FileText,
   Monitor,
@@ -31,7 +42,7 @@ import {
   Edit2,
   Check,
   X,
-  Loader2
+  Loader2,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -40,14 +51,27 @@ interface ImagingStudy {
   patientId: string;
   patientName: string;
   studyType: string;
-  modality: 'X-Ray' | 'CT' | 'MRI' | 'Ultrasound' | 'Nuclear Medicine' | 'Mammography';
+  modality:
+    | "X-Ray"
+    | "CT"
+    | "MRI"
+    | "Ultrasound"
+    | "Nuclear Medicine"
+    | "Mammography";
   bodyPart: string;
   orderedBy: string;
   orderedAt: string;
   scheduledAt?: string;
   performedAt?: string;
-  status: 'ordered' | 'scheduled' | 'in_progress' | 'completed' | 'preliminary' | 'final' | 'cancelled';
-  priority: 'routine' | 'urgent' | 'stat';
+  status:
+    | "ordered"
+    | "scheduled"
+    | "in_progress"
+    | "completed"
+    | "preliminary"
+    | "final"
+    | "cancelled";
+  priority: "routine" | "urgent" | "stat";
   indication: string;
   findings?: string;
   impression?: string;
@@ -56,7 +80,7 @@ interface ImagingStudy {
   reportFilePath?: string;
   images: Array<{
     id: string;
-    type: 'DICOM' | 'JPEG' | 'PNG';
+    type: "DICOM" | "JPEG" | "PNG";
     seriesDescription: string;
     imageCount: number;
     size: string;
@@ -64,7 +88,7 @@ interface ImagingStudy {
     mimeType?: string;
   }>;
   report?: {
-    status: 'preliminary' | 'final';
+    status: "preliminary" | "final";
     content: string;
     dictatedAt: string;
     signedAt?: string;
@@ -86,7 +110,8 @@ const mockImagingStudies: ImagingStudy[] = [
     status: "final",
     priority: "routine",
     indication: "Chronic cough, rule out pneumonia",
-    findings: "Lungs are clear bilaterally. No acute cardiopulmonary abnormality. Heart size normal.",
+    findings:
+      "Lungs are clear bilaterally. No acute cardiopulmonary abnormality. Heart size normal.",
     impression: "Normal chest X-ray.",
     radiologist: "Dr. Michael Chen",
     images: [
@@ -95,22 +120,23 @@ const mockImagingStudies: ImagingStudy[] = [
         type: "DICOM",
         seriesDescription: "PA View",
         imageCount: 1,
-        size: "2.1 MB"
+        size: "2.1 MB",
       },
       {
         id: "series_002",
         type: "DICOM",
         seriesDescription: "Lateral View",
         imageCount: 1,
-        size: "2.3 MB"
-      }
+        size: "2.3 MB",
+      },
     ],
     report: {
       status: "final",
-      content: "EXAMINATION: Chest X-ray PA and Lateral\n\nINDICATION: Chronic cough, rule out pneumonia\n\nFINDINGS: The lungs are clear bilaterally without focal consolidation, pleural effusion, or pneumothorax. The cardiac silhouette is normal in size and configuration. The mediastinal contours are normal. No acute bony abnormalities are identified.\n\nIMPRESSION: Normal chest X-ray.",
+      content:
+        "EXAMINATION: Chest X-ray PA and Lateral\n\nINDICATION: Chronic cough, rule out pneumonia\n\nFINDINGS: The lungs are clear bilaterally without focal consolidation, pleural effusion, or pneumothorax. The cardiac silhouette is normal in size and configuration. The mediastinal contours are normal. No acute bony abnormalities are identified.\n\nIMPRESSION: Normal chest X-ray.",
       dictatedAt: "2024-01-15T15:30:00Z",
-      signedAt: "2024-01-15T15:45:00Z"
-    }
+      signedAt: "2024-01-15T15:45:00Z",
+    },
   },
   {
     id: "img_002",
@@ -125,7 +151,7 @@ const mockImagingStudies: ImagingStudy[] = [
     status: "scheduled",
     priority: "urgent",
     indication: "Abdominal pain, rule out appendicitis",
-    images: []
+    images: [],
   },
   {
     id: "img_003",
@@ -147,29 +173,30 @@ const mockImagingStudies: ImagingStudy[] = [
         type: "DICOM",
         seriesDescription: "T1 Sagittal",
         imageCount: 25,
-        size: "45.2 MB"
+        size: "45.2 MB",
       },
       {
         id: "series_004",
         type: "DICOM",
         seriesDescription: "T2 Axial",
         imageCount: 30,
-        size: "52.8 MB"
+        size: "52.8 MB",
       },
       {
         id: "series_005",
         type: "DICOM",
         seriesDescription: "FLAIR Axial",
         imageCount: 28,
-        size: "48.6 MB"
-      }
+        size: "48.6 MB",
+      },
     ],
     report: {
       status: "preliminary",
-      content: "PRELIMINARY REPORT - AWAITING FINAL REVIEW\n\nEXAMINATION: Brain MRI without contrast\n\nINDICATION: Headaches, rule out structural abnormality\n\nFINDINGS: Preliminary review shows no acute intracranial abnormality. No mass lesion, hemorrhage, or midline shift identified. Ventricular system appears normal.\n\nIMPRESSION: Preliminary - No acute intracranial abnormality.",
-      dictatedAt: "2024-01-14T16:00:00Z"
-    }
-  }
+      content:
+        "PRELIMINARY REPORT - AWAITING FINAL REVIEW\n\nEXAMINATION: Brain MRI without contrast\n\nINDICATION: Headaches, rule out structural abnormality\n\nFINDINGS: Preliminary review shows no acute intracranial abnormality. No mass lesion, hemorrhage, or midline shift identified. Ventricular system appears normal.\n\nIMPRESSION: Preliminary - No acute intracranial abnormality.",
+      dictatedAt: "2024-01-14T16:00:00Z",
+    },
+  },
 ];
 
 export default function ImagingPage() {
@@ -187,30 +214,34 @@ export default function ImagingPage() {
     method: "",
     email: "",
     whatsapp: "",
-    message: ""
+    message: "",
   });
   const [patients, setPatients] = useState<any[]>([]);
   const [patientsLoading, setPatientsLoading] = useState(false);
   const [reportFindings, setReportFindings] = useState("");
   const [reportImpression, setReportImpression] = useState("");
   const [reportRadiologist, setReportRadiologist] = useState("");
-  
+
   // Edit mode states for individual fields
   const [editModes, setEditModes] = useState({
     findings: false,
     impression: false,
-    radiologist: false
+    radiologist: false,
   });
 
   // Saving states for individual fields
   const [saving, setSaving] = useState({
     findings: false,
     impression: false,
-    radiologist: false
+    radiologist: false,
   });
 
-  const [generatedReportId, setGeneratedReportId] = useState<string | null>(null);
-  const [generatedReportFileName, setGeneratedReportFileName] = useState<string | null>(null);
+  const [generatedReportId, setGeneratedReportId] = useState<string | null>(
+    null,
+  );
+  const [generatedReportFileName, setGeneratedReportFileName] = useState<
+    string | null
+  >(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [uploadFormData, setUploadFormData] = useState({
     patientId: "",
@@ -218,7 +249,7 @@ export default function ImagingPage() {
     modality: "X-Ray",
     bodyPart: "",
     indication: "",
-    priority: "routine"
+    priority: "routine",
   });
   const [orderFormData, setOrderFormData] = useState({
     patientId: "",
@@ -227,53 +258,74 @@ export default function ImagingPage() {
     bodyPart: "",
     indication: "",
     priority: "routine",
-    specialInstructions: ""
+    specialInstructions: "",
   });
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [selectedImageSeries, setSelectedImageSeries] = useState<any>(null);
-  const [deletedStudyIds, setDeletedStudyIds] = useState<Set<string>>(new Set());
+  const [deletedStudyIds, setDeletedStudyIds] = useState<Set<string>>(
+    new Set(),
+  );
   const { toast } = useToast();
-  
+
   // Fetch medical images using React Query
-  const { data: medicalImages = [], isLoading: imagesLoading, refetch: refetchImages } = useQuery({
-    queryKey: ['/api/medical-images'],
+  const {
+    data: medicalImages = [],
+    isLoading: imagesLoading,
+    refetch: refetchImages,
+  } = useQuery({
+    queryKey: ["/api/medical-images"],
     queryFn: async () => {
       try {
-        const response = await apiRequest('GET', '/api/medical-images');
+        const response = await apiRequest("GET", "/api/medical-images");
         const data = await response.json();
         return Array.isArray(data) ? data : [];
       } catch (error) {
-        console.error('Error fetching medical images:', error);
+        console.error("Error fetching medical images:", error);
         return [];
       }
-    }
+    },
   });
 
   // Individual field update mutations
   const updateFieldMutation = useMutation({
-    mutationFn: async ({ studyId, fieldName, value }: { studyId: string; fieldName: string; value: string }) => {
-      const response = await apiRequest('PATCH', `/api/imaging/studies/${studyId}/report-field`, {
-        fieldName,
-        value
-      });
+    mutationFn: async ({
+      studyId,
+      fieldName,
+      value,
+    }: {
+      studyId: string;
+      fieldName: string;
+      value: string;
+    }) => {
+      const response = await apiRequest(
+        "PATCH",
+        `/api/imaging/studies/${studyId}/report-field`,
+        {
+          fieldName,
+          value,
+        },
+      );
       return response.json();
     },
     onSuccess: (data, variables) => {
       // Update local state
-      if (variables.fieldName === 'findings') setReportFindings(variables.value);
-      if (variables.fieldName === 'impression') setReportImpression(variables.value);  
-      if (variables.fieldName === 'radiologist') setReportRadiologist(variables.value);
-      
+      if (variables.fieldName === "findings")
+        setReportFindings(variables.value);
+      if (variables.fieldName === "impression")
+        setReportImpression(variables.value);
+      if (variables.fieldName === "radiologist")
+        setReportRadiologist(variables.value);
+
       // Exit edit mode
-      setEditModes(prev => ({
+      setEditModes((prev) => ({
         ...prev,
-        [variables.fieldName]: false
+        [variables.fieldName]: false,
       }));
-      
+
       // Invalidate related queries
-      queryClient.invalidateQueries({ queryKey: ['/api/imaging/studies'] });
-      
+      queryClient.invalidateQueries({ queryKey: ["/api/imaging/studies"] });
+
       toast({
         title: "Field Updated",
         description: `${variables.fieldName.charAt(0).toUpperCase() + variables.fieldName.slice(1)} saved successfully`,
@@ -288,54 +340,63 @@ export default function ImagingPage() {
     },
     onMutate: (variables) => {
       // Set saving state
-      setSaving(prev => ({
+      setSaving((prev) => ({
         ...prev,
-        [variables.fieldName]: true
+        [variables.fieldName]: true,
       }));
     },
     onSettled: (data, error, variables) => {
       // Clear saving state
-      setSaving(prev => ({
+      setSaving((prev) => ({
         ...prev,
-        [variables.fieldName]: false
+        [variables.fieldName]: false,
       }));
-    }
+    },
   });
 
   // Helper functions for individual field editing
-  const handleFieldEdit = (fieldName: 'findings' | 'impression' | 'radiologist') => {
-    setEditModes(prev => ({
+  const handleFieldEdit = (
+    fieldName: "findings" | "impression" | "radiologist",
+  ) => {
+    setEditModes((prev) => ({
       ...prev,
-      [fieldName]: true
+      [fieldName]: true,
     }));
   };
 
-  const handleFieldCancel = (fieldName: 'findings' | 'impression' | 'radiologist') => {
-    setEditModes(prev => ({
+  const handleFieldCancel = (
+    fieldName: "findings" | "impression" | "radiologist",
+  ) => {
+    setEditModes((prev) => ({
       ...prev,
-      [fieldName]: false
+      [fieldName]: false,
     }));
-    
+
     // Reset field to original value
     if (selectedStudy) {
-      if (fieldName === 'findings') setReportFindings(selectedStudy.findings || "");
-      if (fieldName === 'impression') setReportImpression(selectedStudy.impression || "");
-      if (fieldName === 'radiologist') setReportRadiologist(selectedStudy.radiologist || "Dr. Michael Chen");
+      if (fieldName === "findings")
+        setReportFindings(selectedStudy.findings || "");
+      if (fieldName === "impression")
+        setReportImpression(selectedStudy.impression || "");
+      if (fieldName === "radiologist")
+        setReportRadiologist(selectedStudy.radiologist || "Dr. Michael Chen");
     }
   };
 
-  const handleFieldSave = (fieldName: 'findings' | 'impression' | 'radiologist') => {
+  const handleFieldSave = (
+    fieldName: "findings" | "impression" | "radiologist",
+  ) => {
     if (!selectedStudy) return;
-    
+
     let value = "";
-    if (fieldName === 'findings') value = reportFindings;
-    if (fieldName === 'impression') value = reportImpression;
-    if (fieldName === 'radiologist') value = reportRadiologist;
-    
+    if (fieldName === "findings") value = reportFindings;
+    if (fieldName === "impression") value = reportImpression;
+    if (fieldName === "radiologist") value = reportRadiologist;
+
     updateFieldMutation.mutate({
       studyId: selectedStudy.id,
       fieldName,
-      value
+      value,
     });
   };
 
@@ -343,29 +404,32 @@ export default function ImagingPage() {
   const fetchPatients = async () => {
     try {
       setPatientsLoading(true);
-      const token = localStorage.getItem('auth_token');
+      const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': 'demo'
+        "X-Tenant-Subdomain": "demo",
       };
-      
+
       if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+        headers["Authorization"] = `Bearer ${token}`;
       }
-      
-      const response = await fetch('/api/patients', {
+
+      const response = await fetch("/api/patients", {
         headers,
-        credentials: 'include'
+        credentials: "include",
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
-      
+
       const data = await response.json();
       // Remove duplicates based on patient ID
-      const uniquePatients = data ? data.filter((patient: any, index: number, self: any[]) => 
-        index === self.findIndex((p: any) => p.id === patient.id)
-      ) : [];
+      const uniquePatients = data
+        ? data.filter(
+            (patient: any, index: number, self: any[]) =>
+              index === self.findIndex((p: any) => p.id === patient.id),
+          )
+        : [];
       setPatients(uniquePatients);
     } catch (err) {
       console.error("Error fetching patients:", err);
@@ -390,10 +454,15 @@ export default function ImagingPage() {
   };
 
   const handleUploadSubmit = async () => {
-    if (!uploadFormData.patientId || !uploadFormData.studyType || selectedFiles.length === 0) {
+    if (
+      !uploadFormData.patientId ||
+      !uploadFormData.studyType ||
+      selectedFiles.length === 0
+    ) {
       toast({
         title: "Upload Failed",
-        description: "Please fill in all required fields and select images to upload",
+        description:
+          "Please fill in all required fields and select images to upload",
         variant: "destructive",
       });
       return;
@@ -401,7 +470,9 @@ export default function ImagingPage() {
 
     try {
       // Find the selected patient to get the numeric ID
-      const selectedPatient = patients.find(p => p.id.toString() === uploadFormData.patientId);
+      const selectedPatient = patients.find(
+        (p) => p.id.toString() === uploadFormData.patientId,
+      );
       if (!selectedPatient) {
         toast({
           title: "Upload Failed",
@@ -414,20 +485,20 @@ export default function ImagingPage() {
       // Upload each file
       for (let i = 0; i < selectedFiles.length; i++) {
         const file = selectedFiles[i];
-        
+
         // Convert file to base64
         const base64Data = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = () => {
             const result = reader.result as string;
             // Remove the data URL prefix to get just the base64 data
-            const base64 = result.split(',')[1];
+            const base64 = result.split(",")[1];
             resolve(base64);
           };
           reader.onerror = reject;
           reader.readAsDataURL(file);
         });
-        
+
         const imageData = {
           patientId: selectedPatient.id, // Use the numeric database ID
           imageType: uploadFormData.studyType,
@@ -438,7 +509,7 @@ export default function ImagingPage() {
           fileSize: file.size,
           uploadedBy: 348, // Current user ID (admin)
           imageData: base64Data, // Include the base64 image data
-          mimeType: file.type
+          mimeType: file.type,
         };
 
         await apiRequest("POST", "/api/medical-images", imageData);
@@ -459,14 +530,13 @@ export default function ImagingPage() {
         modality: "X-Ray",
         bodyPart: "",
         indication: "",
-        priority: "routine"
+        priority: "routine",
       });
       setSelectedFiles([]);
       setShowUploadDialog(false);
-      
+
       // Refresh the medical images list
       refetchImages();
-      
     } catch (error) {
       console.error("Upload error:", error);
       toast({
@@ -478,7 +548,12 @@ export default function ImagingPage() {
   };
 
   const handleOrderSubmit = async () => {
-    if (!orderFormData.patientId || !orderFormData.studyType || !orderFormData.modality || !orderFormData.bodyPart) {
+    if (
+      !orderFormData.patientId ||
+      !orderFormData.studyType ||
+      !orderFormData.modality ||
+      !orderFormData.bodyPart
+    ) {
       toast({
         title: "Order Failed",
         description: "Please fill in all required fields",
@@ -489,7 +564,9 @@ export default function ImagingPage() {
 
     try {
       // Find the selected patient to get the numeric ID
-      const selectedPatient = patients.find(p => p.id.toString() === orderFormData.patientId);
+      const selectedPatient = patients.find(
+        (p) => p.id.toString() === orderFormData.patientId,
+      );
       if (!selectedPatient) {
         toast({
           title: "Order Failed",
@@ -514,7 +591,7 @@ export default function ImagingPage() {
         imageData: "", // Empty for orders
         mimeType: "application/dicom", // Standard DICOM MIME type
         status: "ordered", // Set status as ordered instead of uploaded
-        notes: orderFormData.specialInstructions || ""
+        notes: orderFormData.specialInstructions || "",
       };
 
       await apiRequest("POST", "/api/medical-images", orderData);
@@ -532,13 +609,12 @@ export default function ImagingPage() {
         bodyPart: "",
         indication: "",
         priority: "routine",
-        specialInstructions: ""
+        specialInstructions: "",
       });
       setShowNewOrder(false);
-      
+
       // Refresh the medical images list to show the new order
       refetchImages();
-      
     } catch (error) {
       console.error("Order error:", error);
       toast({
@@ -555,20 +631,24 @@ export default function ImagingPage() {
   };
 
   const handleDownloadStudy = (studyId: string) => {
-    const study = (studies as any || []).find((s: any) => s.id === studyId);
+    const study = ((studies as any) || []).find((s: any) => s.id === studyId);
     if (study) {
       toast({
         title: "Download Study",
         description: `DICOM images for ${study.patientName} downloaded successfully`,
       });
-      
+
       // Simulate DICOM download
-      const blob = new Blob([`DICOM Study Report\n\nPatient: ${study.patientName}\nStudy: ${study.studyType}\nModality: ${study.modality}\nDate: ${new Date(study.orderedAt).toLocaleDateString()}\n\nImages: ${study.images?.length || 0} series available`], 
-        { type: 'text/plain' });
+      const blob = new Blob(
+        [
+          `DICOM Study Report\n\nPatient: ${study.patientName}\nStudy: ${study.studyType}\nModality: ${study.modality}\nDate: ${new Date(study.orderedAt).toLocaleDateString()}\n\nImages: ${study.images?.length || 0} series available`,
+        ],
+        { type: "text/plain" },
+      );
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
-      a.download = `dicom-study-${study.patientName.replace(' ', '-').toLowerCase()}.txt`;
+      a.download = `dicom-study-${study.patientName.replace(" ", "-").toLowerCase()}.txt`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -583,12 +663,12 @@ export default function ImagingPage() {
       method: "",
       email: "",
       whatsapp: "",
-      message: `Imaging study results for ${study.studyType} are now available for review.`
+      message: `Imaging study results for ${study.studyType} are now available for review.`,
     });
   };
 
   const handleGenerateReport = (studyId: string) => {
-    const study = (studies as any || []).find((s: any) => s.id === studyId);
+    const study = ((studies as any) || []).find((s: any) => s.id === studyId);
     if (study) {
       setSelectedStudy(study);
       setReportFindings(study.findings || "");
@@ -604,24 +684,28 @@ export default function ImagingPage() {
       setGeneratedReportId(null);
 
       // Call server-side PDF generation endpoint
-      const response = await apiRequest('POST', '/api/imaging/generate-report', {
-        study,
-        reportFormData: {
-          findings: reportFindings,
-          impression: reportImpression,
-          radiologist: reportRadiologist
-        }
-      });
+      const response = await apiRequest(
+        "POST",
+        "/api/imaging/generate-report",
+        {
+          study,
+          reportFormData: {
+            findings: reportFindings,
+            impression: reportImpression,
+            radiologist: reportRadiologist,
+          },
+        },
+      );
 
       const data = await response.json();
 
       if (data.success && data.reportId) {
         setGeneratedReportId(data.reportId);
         setGeneratedReportFileName(data.fileName || `${data.reportId}.pdf`);
-        
+
         // Refresh the medical images to get updated data
         refetchImages();
-        
+
         toast({
           title: "PDF Report Generated Successfully",
           description: `Report saved as: ${data.fileName || `${data.reportId}.pdf`}`,
@@ -633,13 +717,12 @@ export default function ImagingPage() {
           setGeneratedReportFileName(null);
         }, 2000);
       } else {
-        throw new Error('Failed to generate PDF report');
+        throw new Error("Failed to generate PDF report");
       }
-
     } catch (error) {
       console.error("PDF generation error:", error);
       toast({
-        title: "Report Generation Failed", 
+        title: "Report Generation Failed",
         description: "Failed to generate PDF report. Please try again.",
         variant: "destructive",
       });
@@ -650,18 +733,22 @@ export default function ImagingPage() {
 
   const viewPDFReport = (reportId: string) => {
     const reportUrl = `/api/imaging/reports/${reportId}`;
-    window.open(reportUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+    window.open(
+      reportUrl,
+      "_blank",
+      "width=800,height=600,scrollbars=yes,resizable=yes",
+    );
   };
 
   const downloadPDFReport = (reportId: string) => {
     const reportUrl = `/api/imaging/reports/${reportId}`;
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = reportUrl;
     a.download = `radiology-report-${reportId}.pdf`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    
+
     toast({
       title: "PDF Report Downloaded",
       description: "Radiology report PDF has been downloaded successfully",
@@ -669,24 +756,23 @@ export default function ImagingPage() {
   };
 
   const handleDeleteStudy = async (studyId: string) => {
-    const study = (studies as any || []).find((s: any) => s.id === studyId);
+    const study = ((studies as any) || []).find((s: any) => s.id === studyId);
     if (!study) return;
 
     const confirmDelete = window.confirm(
-      `Are you sure you want to delete the ${study.studyType} study for ${study.patientName}? This action cannot be undone.`
+      `Are you sure you want to delete the ${study.studyType} study for ${study.patientName}? This action cannot be undone.`,
     );
 
     if (!confirmDelete) return;
 
     try {
       // Add the study ID to the deleted set to remove it from the display
-      setDeletedStudyIds(prev => new Set([...prev, studyId]));
-      
+      setDeletedStudyIds((prev) => new Set([...prev, studyId]));
+
       toast({
         title: "Study Deleted",
         description: `${study.studyType} study for ${study.patientName} has been deleted successfully`,
       });
-      
     } catch (error) {
       console.error("Delete error:", error);
       toast({
@@ -699,7 +785,7 @@ export default function ImagingPage() {
 
   // Transform medical images data to match ImagingStudy format
   let studies: any[] = [];
-  
+
   if (medicalImages && Array.isArray(medicalImages)) {
     studies = medicalImages.map((image: any) => ({
       id: image.id.toString(),
@@ -716,76 +802,103 @@ export default function ImagingPage() {
       priority: image.priority || "routine",
       indication: image.indication || "No indication provided",
       findings: image.findings || `Medical image uploaded: ${image.fileName}`,
-      impression: image.impression || `File: ${image.fileName} (${(image.fileSize / (1024 * 1024)).toFixed(2)} MB)`,
+      impression:
+        image.impression ||
+        `File: ${image.fileName} (${(image.fileSize / (1024 * 1024)).toFixed(2)} MB)`,
       radiologist: image.radiologist || image.uploadedByName || "Unknown",
       reportFileName: image.reportFileName, // Include PDF report file name
       reportFilePath: image.reportFilePath, // Include PDF report file path
-      images: [{
-        id: image.id.toString(),
-        type: image.mimeType?.includes('jpeg') ? 'JPEG' : 'DICOM',
-        seriesDescription: `${image.modality} ${image.bodyPart}`,
-        imageCount: 1,
-        size: `${(image.fileSize / (1024 * 1024)).toFixed(2)} MB`,
-        imageData: image.imageData, // Include the base64 image data
-        mimeType: image.mimeType // Include the MIME type
-      }]
+      images: [
+        {
+          id: image.id.toString(),
+          type: image.mimeType?.includes("jpeg") ? "JPEG" : "DICOM",
+          seriesDescription: `${image.modality} ${image.bodyPart}`,
+          imageCount: 1,
+          size: `${(image.fileSize / (1024 * 1024)).toFixed(2)} MB`,
+          imageData: image.imageData, // Include the base64 image data
+          mimeType: image.mimeType, // Include the MIME type
+        },
+      ],
     }));
   }
 
-  const filteredStudies = (studies as any || []).filter((study: any) => {
+  const filteredStudies = ((studies as any) || []).filter((study: any) => {
     // First check if this study has been deleted
     if (deletedStudyIds.has(study.id)) {
       return false;
     }
-    
-    const matchesSearch = !searchQuery || 
+
+    const matchesSearch =
+      !searchQuery ||
       study.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       study.studyType.toLowerCase().includes(searchQuery.toLowerCase()) ||
       study.bodyPart.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" || study.status === statusFilter;
-    const matchesModality = modalityFilter === "all" || study.modality === modalityFilter;
-    
+
+    const matchesStatus =
+      statusFilter === "all" || study.status === statusFilter;
+    const matchesModality =
+      modalityFilter === "all" || study.modality === modalityFilter;
+
     return matchesSearch && matchesStatus && matchesModality;
   });
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'final': return 'bg-green-100 text-green-800';
-      case 'preliminary': return 'bg-yellow-100 text-yellow-800';
-      case 'completed': return 'bg-blue-100 text-blue-800';
-      case 'in_progress': return 'bg-purple-100 text-purple-800';
-      case 'scheduled': return 'bg-cyan-100 text-cyan-800';
-      case 'ordered': return 'bg-gray-100 text-gray-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "final":
+        return "bg-green-100 text-green-800";
+      case "preliminary":
+        return "bg-yellow-100 text-yellow-800";
+      case "completed":
+        return "bg-blue-100 text-blue-800";
+      case "in_progress":
+        return "bg-purple-100 text-purple-800";
+      case "scheduled":
+        return "bg-cyan-100 text-cyan-800";
+      case "ordered":
+        return "bg-gray-100 text-gray-800";
+      case "cancelled":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'stat': return 'bg-red-100 text-red-800';
-      case 'urgent': return 'bg-orange-100 text-orange-800';
-      case 'routine': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "stat":
+        return "bg-red-100 text-red-800";
+      case "urgent":
+        return "bg-orange-100 text-orange-800";
+      case "routine":
+        return "bg-gray-100 text-gray-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getModalityIcon = (modality: string) => {
     switch (modality) {
-      case 'X-Ray': return <Camera className="h-4 w-4" />;
-      case 'CT': return <Monitor className="h-4 w-4" />;
-      case 'MRI': return <Zap className="h-4 w-4" />;
-      case 'Ultrasound': return <FileImage className="h-4 w-4" />;
-      default: return <FileImage className="h-4 w-4" />;
+      case "X-Ray":
+        return <Camera className="h-4 w-4" />;
+      case "CT":
+        return <Monitor className="h-4 w-4" />;
+      case "MRI":
+        return <Zap className="h-4 w-4" />;
+      case "Ultrasound":
+        return <FileImage className="h-4 w-4" />;
+      default:
+        return <FileImage className="h-4 w-4" />;
     }
   };
 
   if (imagesLoading) {
     return (
       <div className="space-y-6">
-        {[1, 2, 3].map(i => (
-          <Card key={i} className="bg-white dark:bg-slate-800 border dark:border-slate-600">
+        {[1, 2, 3].map((i) => (
+          <Card
+            key={i}
+            className="bg-white dark:bg-slate-800 border dark:border-slate-600"
+          >
             <CardContent className="p-6">
               <div className="animate-pulse space-y-4">
                 <div className="h-4 bg-gray-200 dark:bg-slate-600 rounded w-1/4"></div>
@@ -801,11 +914,11 @@ export default function ImagingPage() {
 
   return (
     <>
-      <Header 
-        title="Medical Imaging" 
+      <Header
+        title="Medical Imaging"
         subtitle="View and manage radiology studies and reports"
       />
-      
+
       <div className="flex-1 overflow-auto p-6">
         <div className="space-y-6">
           {/* Quick Stats */}
@@ -814,8 +927,12 @@ export default function ImagingPage() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Pending Reports</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">5</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                      Pending Reports
+                    </p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                      5
+                    </p>
                   </div>
                   <FileText className="h-8 w-8 text-yellow-600" />
                 </div>
@@ -826,8 +943,12 @@ export default function ImagingPage() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Today's Studies</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">8</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                      Today's Studies
+                    </p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                      8
+                    </p>
                   </div>
                   <Calendar className="h-8 w-8 text-blue-600" />
                 </div>
@@ -838,8 +959,12 @@ export default function ImagingPage() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Urgent Studies</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">3</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                      Urgent Studies
+                    </p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                      3
+                    </p>
                   </div>
                   <Zap className="h-8 w-8 text-red-600" />
                 </div>
@@ -850,8 +975,12 @@ export default function ImagingPage() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">This Month</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">142</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                      This Month
+                    </p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                      142
+                    </p>
                   </div>
                   <FileImage className="h-8 w-8 text-green-600" />
                 </div>
@@ -872,7 +1001,7 @@ export default function ImagingPage() {
                     className="pl-9"
                   />
                 </div>
-                
+
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="w-40">
                     <SelectValue placeholder="Filter by status" />
@@ -888,7 +1017,10 @@ export default function ImagingPage() {
                   </SelectContent>
                 </Select>
 
-                <Select value={modalityFilter} onValueChange={setModalityFilter}>
+                <Select
+                  value={modalityFilter}
+                  onValueChange={setModalityFilter}
+                >
                   <SelectTrigger className="w-40">
                     <SelectValue placeholder="Filter by modality" />
                   </SelectTrigger>
@@ -898,12 +1030,17 @@ export default function ImagingPage() {
                     <SelectItem value="CT">CT Scan</SelectItem>
                     <SelectItem value="MRI">MRI</SelectItem>
                     <SelectItem value="Ultrasound">Ultrasound</SelectItem>
-                    <SelectItem value="Nuclear Medicine">Nuclear Medicine</SelectItem>
+                    <SelectItem value="Nuclear Medicine">
+                      Nuclear Medicine
+                    </SelectItem>
                     <SelectItem value="Mammography">Mammography</SelectItem>
                   </SelectContent>
                 </Select>
 
-                <Button variant="outline" onClick={() => setShowUploadDialog(true)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowUploadDialog(true)}
+                >
                   <Share className="h-4 w-4 mr-2" />
                   Order Study
                 </Button>
@@ -914,14 +1051,19 @@ export default function ImagingPage() {
           {/* Imaging Studies List */}
           <div className="space-y-4">
             {filteredStudies.map((study: any) => (
-              <Card key={study.id} className="hover:shadow-md transition-shadow bg-white dark:bg-slate-800 border dark:border-slate-600">
+              <Card
+                key={study.id}
+                className="hover:shadow-md transition-shadow bg-white dark:bg-slate-800 border dark:border-slate-600"
+              >
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-3">
                         <div className="flex items-center gap-2">
                           {getModalityIcon(study.modality)}
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{study.patientName}</h3>
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                            {study.patientName}
+                          </h3>
                         </div>
                         <Badge className={getStatusColor(study.status)}>
                           {study.status}
@@ -930,31 +1072,66 @@ export default function ImagingPage() {
                           {study.priority}
                         </Badge>
                       </div>
-                      
+
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
                         <div>
-                          <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Study Information</h4>
+                          <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">
+                            Study Information
+                          </h4>
                           <div className="space-y-1 text-sm text-gray-800 dark:text-gray-200">
-                            <div><strong>Study:</strong> {study.studyType}</div>
-                            <div><strong>Modality:</strong> {study.modality}</div>
-                            <div><strong>Body Part:</strong> {study.bodyPart}</div>
-                            <div><strong>Ordered by:</strong> {study.orderedBy}</div>
-                            <div><strong>Indication:</strong> {study.indication}</div>
+                            <div>
+                              <strong>Study:</strong> {study.studyType}
+                            </div>
+                            <div>
+                              <strong>Modality:</strong> {study.modality}
+                            </div>
+                            <div>
+                              <strong>Body Part:</strong> {study.bodyPart}
+                            </div>
+                            <div>
+                              <strong>Ordered by:</strong> {study.orderedBy}
+                            </div>
+                            <div>
+                              <strong>Indication:</strong> {study.indication}
+                            </div>
                           </div>
                         </div>
-                        
+
                         <div>
-                          <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Timeline</h4>
+                          <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">
+                            Timeline
+                          </h4>
                           <div className="space-y-1 text-sm text-gray-800 dark:text-gray-200">
-                            <div><strong>Ordered:</strong> {format(new Date(study.orderedAt), 'MMM d, yyyy HH:mm')}</div>
+                            <div>
+                              <strong>Ordered:</strong>{" "}
+                              {format(
+                                new Date(study.orderedAt),
+                                "MMM d, yyyy HH:mm",
+                              )}
+                            </div>
                             {study.scheduledAt && (
-                              <div><strong>Scheduled:</strong> {format(new Date(study.scheduledAt), 'MMM d, yyyy HH:mm')}</div>
+                              <div>
+                                <strong>Scheduled:</strong>{" "}
+                                {format(
+                                  new Date(study.scheduledAt),
+                                  "MMM d, yyyy HH:mm",
+                                )}
+                              </div>
                             )}
                             {study.performedAt && (
-                              <div><strong>Performed:</strong> {format(new Date(study.performedAt), 'MMM d, yyyy HH:mm')}</div>
+                              <div>
+                                <strong>Performed:</strong>{" "}
+                                {format(
+                                  new Date(study.performedAt),
+                                  "MMM d, yyyy HH:mm",
+                                )}
+                              </div>
                             )}
                             {study.radiologist && (
-                              <div><strong>Radiologist:</strong> {study.radiologist}</div>
+                              <div>
+                                <strong>Radiologist:</strong>{" "}
+                                {study.radiologist}
+                              </div>
                             )}
                           </div>
                         </div>
@@ -962,13 +1139,21 @@ export default function ImagingPage() {
 
                       {study.images && study.images.length > 0 && (
                         <div className="mb-4">
-                          <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Image Series</h4>
+                          <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">
+                            Image Series
+                          </h4>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                             {study.images.map((series: any) => (
-                              <div key={series.id} className="bg-gray-50 dark:bg-slate-600 p-3 rounded-lg border dark:border-slate-500">
-                                <div className="font-medium text-sm text-gray-900 dark:text-gray-100">{series.seriesDescription}</div>
+                              <div
+                                key={series.id}
+                                className="bg-gray-50 dark:bg-slate-600 p-3 rounded-lg border dark:border-slate-500"
+                              >
+                                <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
+                                  {series.seriesDescription}
+                                </div>
                                 <div className="text-xs text-gray-600 dark:text-gray-300">
-                                  {series.imageCount} images • {series.size} • {series.type}
+                                  {series.imageCount} images • {series.size} •{" "}
+                                  {series.type}
                                 </div>
                               </div>
                             ))}
@@ -978,12 +1163,20 @@ export default function ImagingPage() {
 
                       {study.findings && (
                         <div className="bg-blue-50 dark:bg-slate-700 border-l-4 border-blue-400 dark:border-blue-500 p-3 mb-4">
-                          <h4 className="font-medium text-blue-800 dark:text-blue-300 text-sm mb-1">Findings</h4>
-                          <p className="text-sm text-blue-700 dark:text-blue-200">{study.findings}</p>
+                          <h4 className="font-medium text-blue-800 dark:text-blue-300 text-sm mb-1">
+                            Findings
+                          </h4>
+                          <p className="text-sm text-blue-700 dark:text-blue-200">
+                            {study.findings}
+                          </p>
                           {study.impression && (
                             <>
-                              <h4 className="font-medium text-blue-800 dark:text-blue-300 text-sm mb-1 mt-2">Impression</h4>
-                              <p className="text-sm text-blue-700 dark:text-blue-200">{study.impression}</p>
+                              <h4 className="font-medium text-blue-800 dark:text-blue-300 text-sm mb-1 mt-2">
+                                Impression
+                              </h4>
+                              <p className="text-sm text-blue-700 dark:text-blue-200">
+                                {study.impression}
+                              </p>
                             </>
                           )}
                         </div>
@@ -992,66 +1185,95 @@ export default function ImagingPage() {
                       {study.report && (
                         <div className="bg-green-50 dark:bg-slate-700 border-l-4 border-green-400 dark:border-green-500 p-3">
                           <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-green-800 dark:text-green-300 text-sm">Report</h4>
-                            <Badge className={study.report.status === 'final' ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100'}>
+                            <h4 className="font-medium text-green-800 dark:text-green-300 text-sm">
+                              Report
+                            </h4>
+                            <Badge
+                              className={
+                                study.report.status === "final"
+                                  ? "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100"
+                                  : "bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100"
+                              }
+                            >
                               {study.report.status}
                             </Badge>
                           </div>
                           <div className="text-sm text-green-700 dark:text-green-200">
-                            <strong>Dictated:</strong> {format(new Date(study.report.dictatedAt), 'MMM d, yyyy HH:mm')}
+                            <strong>Dictated:</strong>{" "}
+                            {format(
+                              new Date(study.report.dictatedAt),
+                              "MMM d, yyyy HH:mm",
+                            )}
                             {study.report.signedAt && (
                               <span className="ml-4">
-                                <strong>Signed:</strong> {format(new Date(study.report.signedAt), 'MMM d, yyyy HH:mm')}
+                                <strong>Signed:</strong>{" "}
+                                {format(
+                                  new Date(study.report.signedAt),
+                                  "MMM d, yyyy HH:mm",
+                                )}
                               </span>
                             )}
                           </div>
                         </div>
                       )}
                     </div>
-                    
+
                     <div className="flex items-center gap-2 ml-4">
-                      <Button variant="outline" size="sm" onClick={() => handleViewStudy(study)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewStudy(study)}
+                      >
                         <Edit2 className="h-4 w-4" />
                       </Button>
-                      
+
                       {/* PDF Report Download and View Icons */}
                       {study.reportFileName && (
                         <>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             onClick={async () => {
                               try {
-                                const token = localStorage.getItem('auth_token');
+                                const token =
+                                  localStorage.getItem("auth_token");
                                 const headers: Record<string, string> = {
-                                  'X-Tenant-Subdomain': 'demo'
+                                  "X-Tenant-Subdomain": "demo",
                                 };
-                                
+
                                 if (token) {
-                                  headers['Authorization'] = `Bearer ${token}`;
+                                  headers["Authorization"] = `Bearer ${token}`;
                                 }
-                                
-                                const response = await fetch(`/api/imaging/reports/${study.reportFileName.replace('.pdf', '')}`, {
-                                  headers,
-                                  credentials: 'include'
-                                });
-                                
+
+                                const response = await fetch(
+                                  `/api/imaging/reports/${study.reportFileName.replace(".pdf", "")}`,
+                                  {
+                                    headers,
+                                    credentials: "include",
+                                  },
+                                );
+
                                 if (response.ok) {
                                   const blob = await response.blob();
                                   const url = URL.createObjectURL(blob);
-                                  window.open(url, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
-                                  
+                                  window.open(
+                                    url,
+                                    "_blank",
+                                    "width=800,height=600,scrollbars=yes,resizable=yes",
+                                  );
+
                                   // Clean up the blob URL after a delay to allow the window to load
                                   setTimeout(() => {
                                     URL.revokeObjectURL(url);
                                   }, 1000);
                                 } else {
-                                  throw new Error('Failed to view PDF report');
+                                  throw new Error("Failed to view PDF report");
                                 }
                               } catch (error) {
                                 toast({
                                   title: "View Failed",
-                                  description: "Failed to view PDF report. Please try again.",
+                                  description:
+                                    "Failed to view PDF report. Please try again.",
                                   variant: "destructive",
                                 });
                               }
@@ -1062,47 +1284,53 @@ export default function ImagingPage() {
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             onClick={async () => {
                               try {
-                                const token = localStorage.getItem('auth_token');
+                                const token =
+                                  localStorage.getItem("auth_token");
                                 const headers: Record<string, string> = {
-                                  'X-Tenant-Subdomain': 'demo'
+                                  "X-Tenant-Subdomain": "demo",
                                 };
-                                
+
                                 if (token) {
-                                  headers['Authorization'] = `Bearer ${token}`;
+                                  headers["Authorization"] = `Bearer ${token}`;
                                 }
-                                
-                                const response = await fetch(`/api/imaging/reports/${study.reportFileName.replace('.pdf', '')}?download=true`, {
-                                  headers,
-                                  credentials: 'include'
-                                });
-                                
+
+                                const response = await fetch(
+                                  `/api/imaging/reports/${study.reportFileName.replace(".pdf", "")}?download=true`,
+                                  {
+                                    headers,
+                                    credentials: "include",
+                                  },
+                                );
+
                                 if (response.ok) {
                                   const blob = await response.blob();
                                   const url = URL.createObjectURL(blob);
-                                  const a = document.createElement('a');
+                                  const a = document.createElement("a");
                                   a.href = url;
                                   a.download = study.reportFileName;
                                   document.body.appendChild(a);
                                   a.click();
                                   document.body.removeChild(a);
                                   URL.revokeObjectURL(url);
-                                  
+
                                   toast({
                                     title: "PDF Report Downloaded",
-                                    description: "Radiology report PDF has been downloaded successfully",
+                                    description:
+                                      "Radiology report PDF has been downloaded successfully",
                                   });
                                 } else {
-                                  throw new Error('Download failed');
+                                  throw new Error("Download failed");
                                 }
                               } catch (error) {
                                 toast({
                                   title: "Download Failed",
-                                  description: "Failed to download PDF report. Please try again.",
+                                  description:
+                                    "Failed to download PDF report. Please try again.",
                                   variant: "destructive",
                                 });
                               }
@@ -1115,16 +1343,24 @@ export default function ImagingPage() {
                           </Button>
                         </>
                       )}
-                      
-                      <Button variant="outline" size="sm" onClick={() => handleShareStudy(study)}>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleShareStudy(study)}
+                      >
                         <Share2 className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleGenerateReport(study.id)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleGenerateReport(study.id)}
+                      >
                         <FileText className="h-4 w-4" />
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => handleDeleteStudy(study.id)}
                         className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
                       >
@@ -1140,8 +1376,12 @@ export default function ImagingPage() {
           {filteredStudies.length === 0 && (
             <div className="text-center py-12 text-gray-500 dark:text-gray-400">
               <FileImage className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-500" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No imaging studies found</h3>
-              <p className="text-gray-600 dark:text-gray-300">Try adjusting your search terms or filters</p>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                No imaging studies found
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                Try adjusting your search terms or filters
+              </p>
             </div>
           )}
         </div>
@@ -1163,7 +1403,12 @@ export default function ImagingPage() {
                 <Label htmlFor="method" className="text-sm font-medium">
                   Contact Method
                 </Label>
-                <Select value={shareFormData.method} onValueChange={(value) => setShareFormData({...shareFormData, method: value})}>
+                <Select
+                  value={shareFormData.method}
+                  onValueChange={(value) =>
+                    setShareFormData({ ...shareFormData, method: value })
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select contact method" />
                   </SelectTrigger>
@@ -1184,7 +1429,12 @@ export default function ImagingPage() {
                     type="email"
                     placeholder="Enter email address"
                     value={shareFormData.email}
-                    onChange={(e) => setShareFormData({...shareFormData, email: e.target.value})}
+                    onChange={(e) =>
+                      setShareFormData({
+                        ...shareFormData,
+                        email: e.target.value,
+                      })
+                    }
                   />
                 </div>
               )}
@@ -1199,7 +1449,12 @@ export default function ImagingPage() {
                     type="tel"
                     placeholder="Enter WhatsApp number"
                     value={shareFormData.whatsapp}
-                    onChange={(e) => setShareFormData({...shareFormData, whatsapp: e.target.value})}
+                    onChange={(e) =>
+                      setShareFormData({
+                        ...shareFormData,
+                        whatsapp: e.target.value,
+                      })
+                    }
                   />
                 </div>
               )}
@@ -1212,20 +1467,32 @@ export default function ImagingPage() {
                   id="message"
                   placeholder="Add a custom message..."
                   value={shareFormData.message}
-                  onChange={(e) => setShareFormData({...shareFormData, message: e.target.value})}
+                  onChange={(e) =>
+                    setShareFormData({
+                      ...shareFormData,
+                      message: e.target.value,
+                    })
+                  }
                   rows={3}
                 />
               </div>
 
               <div className="flex justify-between items-center pt-4 border-t">
-                <Button variant="outline" onClick={() => setShowShareDialog(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowShareDialog(false)}
+                >
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   onClick={() => {
-                    const method = shareFormData.method === "email" ? "email" : "WhatsApp";
-                    const contact = shareFormData.method === "email" ? shareFormData.email : shareFormData.whatsapp;
-                    
+                    const method =
+                      shareFormData.method === "email" ? "email" : "WhatsApp";
+                    const contact =
+                      shareFormData.method === "email"
+                        ? shareFormData.email
+                        : shareFormData.whatsapp;
+
                     toast({
                       title: "Study Shared",
                       description: `Imaging study sent to ${selectedStudy.patientName} via ${method} (${contact})`,
@@ -1235,12 +1502,16 @@ export default function ImagingPage() {
                       method: "",
                       email: "",
                       whatsapp: "",
-                      message: ""
+                      message: "",
                     });
                   }}
-                  disabled={!shareFormData.method || 
-                    (shareFormData.method === "email" && !shareFormData.email) ||
-                    (shareFormData.method === "whatsapp" && !shareFormData.whatsapp)}
+                  disabled={
+                    !shareFormData.method ||
+                    (shareFormData.method === "email" &&
+                      !shareFormData.email) ||
+                    (shareFormData.method === "whatsapp" &&
+                      !shareFormData.whatsapp)
+                  }
                   className="bg-medical-blue hover:bg-blue-700"
                 >
                   <Share className="h-4 w-4 mr-2" />
@@ -1263,18 +1534,32 @@ export default function ImagingPage() {
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">{selectedStudy.patientName?.charAt(0) || 'P'}</span>
+                    <span className="text-white text-sm font-bold">
+                      {selectedStudy.patientName?.charAt(0) || "P"}
+                    </span>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg">{selectedStudy.patientName}</h3>
-                    <p className="text-sm text-gray-600">Patient ID: {selectedStudy.patientId}</p>
+                    <h3 className="font-semibold text-lg">
+                      {selectedStudy.patientName}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Patient ID: {selectedStudy.patientId}
+                    </p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div><strong>Study:</strong> {selectedStudy.studyType}</div>
-                  <div><strong>Modality:</strong> {selectedStudy.modality}</div>
-                  <div><strong>Body Part:</strong> {selectedStudy.bodyPart}</div>
-                  <div><strong>Indication:</strong> {selectedStudy.indication}</div>
+                  <div>
+                    <strong>Study:</strong> {selectedStudy.studyType}
+                  </div>
+                  <div>
+                    <strong>Modality:</strong> {selectedStudy.modality}
+                  </div>
+                  <div>
+                    <strong>Body Part:</strong> {selectedStudy.bodyPart}
+                  </div>
+                  <div>
+                    <strong>Indication:</strong> {selectedStudy.indication}
+                  </div>
                 </div>
               </div>
 
@@ -1288,7 +1573,7 @@ export default function ImagingPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleFieldEdit('findings')}
+                        onClick={() => handleFieldEdit("findings")}
                         className="h-6 w-6 p-0"
                         data-testid="button-edit-findings"
                       >
@@ -1299,17 +1584,21 @@ export default function ImagingPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleFieldSave('findings')}
+                          onClick={() => handleFieldSave("findings")}
                           disabled={saving.findings}
                           className="h-6 w-6 p-0 text-green-600 hover:text-green-700"
                           data-testid="button-save-findings"
                         >
-                          {saving.findings ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                          {saving.findings ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Check className="h-3 w-3" />
+                          )}
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleFieldCancel('findings')}
+                          onClick={() => handleFieldCancel("findings")}
                           disabled={saving.findings}
                           className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
                           data-testid="button-cancel-findings"
@@ -1331,7 +1620,10 @@ export default function ImagingPage() {
                       data-testid="textarea-findings"
                     />
                   ) : (
-                    <div className="mt-1 min-h-[100px] p-3 bg-gray-50 dark:bg-gray-800 rounded-md border text-sm" data-testid="display-findings">
+                    <div
+                      className="mt-1 min-h-[100px] p-3 bg-gray-50 dark:bg-gray-800 rounded-md border text-sm"
+                      data-testid="display-findings"
+                    >
                       {reportFindings || "Click edit to add findings..."}
                     </div>
                   )}
@@ -1346,7 +1638,7 @@ export default function ImagingPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleFieldEdit('impression')}
+                        onClick={() => handleFieldEdit("impression")}
                         className="h-6 w-6 p-0"
                         data-testid="button-edit-impression"
                       >
@@ -1357,17 +1649,21 @@ export default function ImagingPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleFieldSave('impression')}
+                          onClick={() => handleFieldSave("impression")}
                           disabled={saving.impression}
                           className="h-6 w-6 p-0 text-green-600 hover:text-green-700"
                           data-testid="button-save-impression"
                         >
-                          {saving.impression ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                          {saving.impression ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Check className="h-3 w-3" />
+                          )}
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleFieldCancel('impression')}
+                          onClick={() => handleFieldCancel("impression")}
                           disabled={saving.impression}
                           className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
                           data-testid="button-cancel-impression"
@@ -1389,7 +1685,10 @@ export default function ImagingPage() {
                       data-testid="textarea-impression"
                     />
                   ) : (
-                    <div className="mt-1 min-h-[75px] p-3 bg-gray-50 dark:bg-gray-800 rounded-md border text-sm" data-testid="display-impression">
+                    <div
+                      className="mt-1 min-h-[75px] p-3 bg-gray-50 dark:bg-gray-800 rounded-md border text-sm"
+                      data-testid="display-impression"
+                    >
                       {reportImpression || "Click edit to add impression..."}
                     </div>
                   )}
@@ -1397,14 +1696,17 @@ export default function ImagingPage() {
 
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <Label htmlFor="radiologist" className="text-sm font-medium">
+                    <Label
+                      htmlFor="radiologist"
+                      className="text-sm font-medium"
+                    >
                       Radiologist
                     </Label>
                     {!editModes.radiologist ? (
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleFieldEdit('radiologist')}
+                        onClick={() => handleFieldEdit("radiologist")}
                         className="h-6 w-6 p-0"
                         data-testid="button-edit-radiologist"
                       >
@@ -1415,17 +1717,21 @@ export default function ImagingPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleFieldSave('radiologist')}
+                          onClick={() => handleFieldSave("radiologist")}
                           disabled={saving.radiologist}
                           className="h-6 w-6 p-0 text-green-600 hover:text-green-700"
                           data-testid="button-save-radiologist"
                         >
-                          {saving.radiologist ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                          {saving.radiologist ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Check className="h-3 w-3" />
+                          )}
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleFieldCancel('radiologist')}
+                          onClick={() => handleFieldCancel("radiologist")}
                           disabled={saving.radiologist}
                           className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
                           data-testid="button-cancel-radiologist"
@@ -1445,99 +1751,143 @@ export default function ImagingPage() {
                       data-testid="input-radiologist"
                     />
                   ) : (
-                    <div className="mt-1 min-h-[40px] p-3 bg-gray-50 dark:bg-gray-800 rounded-md border text-sm flex items-center" data-testid="display-radiologist">
+                    <div
+                      className="mt-1 min-h-[40px] p-3 bg-gray-50 dark:bg-gray-800 rounded-md border text-sm flex items-center"
+                      data-testid="display-radiologist"
+                    >
                       {reportRadiologist || "Click edit to add radiologist..."}
                     </div>
                   )}
                 </div>
 
                 {/* Saved Reports Section */}
-                {selectedStudy.reportFileName && !deletedStudyIds.has(selectedStudy.id) && (
-                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                    <h4 className="font-medium text-purple-800 mb-2">Saved Reports</h4>
-                    <div className="text-sm text-purple-700">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <strong>Report File:</strong>
+                {selectedStudy.reportFileName &&
+                  !deletedStudyIds.has(selectedStudy.id) && (
+                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                      <h4 className="font-medium text-purple-800 mb-2">
+                        Saved Reports
+                      </h4>
+                      <div className="text-sm text-purple-700">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <strong>Report File:</strong>
+                            <Button
+                              variant="link"
+                              onClick={() => {
+                                if (selectedStudy.reportFileName) {
+                                  const reportUrl = `/api/imaging/reports/${selectedStudy.reportFileName.replace(".pdf", "")}`;
+                                  window.open(
+                                    reportUrl,
+                                    "_blank",
+                                    "width=800,height=600,scrollbars=yes,resizable=yes",
+                                  );
+                                }
+                              }}
+                              className="p-0 h-auto text-blue-600 hover:text-blue-800 underline"
+                              data-testid="link-saved-report"
+                            >
+                              {selectedStudy.reportFileName}
+                            </Button>
+                          </div>
                           <Button
-                            variant="link"
-                            onClick={() => {
+                            variant="ghost"
+                            size="sm"
+                            onClick={async () => {
                               if (selectedStudy.reportFileName) {
-                                const reportUrl = `/api/imaging/reports/${selectedStudy.reportFileName.replace('.pdf', '')}`;
-                                window.open(reportUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+                                try {
+                                  const reportId =
+                                    selectedStudy.reportFileName.replace(
+                                      ".pdf",
+                                      "",
+                                    );
+                                  const response = await apiRequest(
+                                    "DELETE",
+                                    `/api/imaging/reports/${reportId}`,
+                                  );
+
+                                  toast({
+                                    title: "Success",
+                                    description: "Report deleted successfully",
+                                  });
+
+                                  // Update the selectedStudy to remove reportFileName, hiding the "Saved Reports" box
+                                  if (selectedStudy) {
+                                    setSelectedStudy({
+                                      ...selectedStudy,
+                                      reportFileName: undefined,
+                                      reportFilePath: undefined,
+                                    });
+                                  }
+
+                                  // Refresh the studies data
+                                  queryClient.invalidateQueries({
+                                    queryKey: ["/api/imaging/studies"],
+                                  });
+                                  refetchImages();
+                                } catch (error: any) {
+                                  console.error(
+                                    "Error deleting report:",
+                                    error,
+                                  );
+
+                                  // Check if the error is due to file not existing
+                                  if (
+                                    error?.message?.includes("404") ||
+                                    error?.response?.status === 404
+                                  ) {
+                                    toast({
+                                      title: "Error",
+                                      description:
+                                        "File not existing on server",
+                                      variant: "destructive",
+                                    });
+                                  } else {
+                                    toast({
+                                      title: "Error",
+                                      description: "Failed to delete report",
+                                      variant: "destructive",
+                                    });
+                                  }
+                                }
                               }
                             }}
-                            className="p-0 h-auto text-blue-600 hover:text-blue-800 underline"
-                            data-testid="link-saved-report"
+                            className="text-red-600 hover:text-red-800 hover:bg-red-50 h-8 w-8 p-0"
+                            data-testid="button-delete-report"
                           >
-                            {selectedStudy.reportFileName}
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={async () => {
-                            if (selectedStudy.reportFileName) {
-                              try {
-                                const reportId = selectedStudy.reportFileName.replace('.pdf', '');
-                                const response = await apiRequest('DELETE', `/api/imaging/reports/${reportId}`);
-                                
-                                toast({
-                                  title: "Success",
-                                  description: "Report deleted successfully",
-                                });
-                                
-                                // Update the selectedStudy to remove reportFileName, hiding the "Saved Reports" box
-                                if (selectedStudy) {
-                                  setSelectedStudy({
-                                    ...selectedStudy,
-                                    reportFileName: undefined,
-                                    reportFilePath: undefined
-                                  });
-                                }
-                                
-                                // Refresh the studies data
-                                queryClient.invalidateQueries({ queryKey: ['/api/imaging/studies'] });
-                                refetchImages();
-                              } catch (error: any) {
-                                console.error('Error deleting report:', error);
-                                
-                                // Check if the error is due to file not existing
-                                if (error?.message?.includes('404') || error?.response?.status === 404) {
-                                  toast({
-                                    title: "Error",
-                                    description: "File not existing on server",
-                                    variant: "destructive"
-                                  });
-                                } else {
-                                  toast({
-                                    title: "Error",
-                                    description: "Failed to delete report",
-                                    variant: "destructive"
-                                  });
-                                }
-                              }
-                            }
-                          }}
-                          className="text-red-600 hover:text-red-800 hover:bg-red-50 h-8 w-8 p-0"
-                          data-testid="button-delete-report"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <p className="text-xs text-purple-600 mt-1">
+                          Click the file name to view the PDF report
+                        </p>
                       </div>
-                      <p className="text-xs text-purple-600 mt-1">Click the file name to view the PDF report</p>
                     </div>
-                  </div>
-                )}
+                  )}
 
                 {selectedStudy.report && (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <h4 className="font-medium text-green-800 mb-2">Existing Report</h4>
+                    <h4 className="font-medium text-green-800 mb-2">
+                      Existing Report
+                    </h4>
                     <div className="text-sm text-green-700 space-y-2">
-                      <div><strong>Status:</strong> {selectedStudy.report.status}</div>
-                      <div><strong>Dictated:</strong> {format(new Date(selectedStudy.report.dictatedAt), "PPpp")}</div>
+                      <div>
+                        <strong>Status:</strong> {selectedStudy.report.status}
+                      </div>
+                      <div>
+                        <strong>Dictated:</strong>{" "}
+                        {format(
+                          new Date(selectedStudy.report.dictatedAt),
+                          "PPpp",
+                        )}
+                      </div>
                       {selectedStudy.report.signedAt && (
-                        <div><strong>Signed:</strong> {format(new Date(selectedStudy.report.signedAt), "PPpp")}</div>
+                        <div>
+                          <strong>Signed:</strong>{" "}
+                          {format(
+                            new Date(selectedStudy.report.signedAt),
+                            "PPpp",
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -1545,7 +1895,10 @@ export default function ImagingPage() {
               </div>
 
               <div className="flex justify-between items-center pt-4 border-t">
-                <Button variant="outline" onClick={() => setShowReportDialog(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowReportDialog(false)}
+                >
                   Close
                 </Button>
                 <div className="flex gap-2">
@@ -1556,26 +1909,31 @@ export default function ImagingPage() {
                         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                           <div className="flex items-center gap-2 mb-2">
                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span className="text-green-700 font-medium">Report Generated Successfully!</span>
+                            <span className="text-green-700 font-medium">
+                              Report Generated Successfully!
+                            </span>
                           </div>
                           <div className="text-sm text-green-600">
-                            <strong>Report File:</strong> 
+                            <strong>Report File:</strong>
                             <Button
                               variant="link"
                               onClick={() => viewPDFReport(generatedReportId)}
                               className="p-0 h-auto ml-2 text-blue-600 hover:text-blue-800 underline"
                               data-testid="link-report-view"
                             >
-                              {generatedReportFileName || `${generatedReportId.slice(0, 8)}...`}
+                              {generatedReportFileName ||
+                                `${generatedReportId.slice(0, 8)}...`}
                             </Button>
                           </div>
-                          <p className="text-xs text-green-600 mt-1">Click the file name to view the PDF</p>
+                          <p className="text-xs text-green-600 mt-1">
+                            Click the file name to view the PDF
+                          </p>
                         </div>
                       </div>
                     ) : (
-                      <Button 
+                      <Button
                         onClick={() => {
-                          if (selectedStudy.status === 'final') {
+                          if (selectedStudy.status === "final") {
                             setShowReportDialog(false);
                             setShowFinalReportDialog(true);
                           } else {
@@ -1587,17 +1945,20 @@ export default function ImagingPage() {
                         data-testid="button-generate-report"
                       >
                         <FileText className="h-4 w-4 mr-2" />
-                        {isGeneratingPDF 
-                          ? 'Generating...' 
-                          : selectedStudy.status === 'final' ? 'View Final Report' : 'Generate Report'
-                        }
+                        {isGeneratingPDF
+                          ? "Generating..."
+                          : selectedStudy.status === "final"
+                            ? "View Final Report"
+                            : "Generate Report"}
                       </Button>
                     )
                   ) : (
                     <div className="flex items-center justify-center py-8">
                       <div className="flex items-center gap-3 text-blue-600">
                         <Loader2 className="h-5 w-5 animate-spin" />
-                        <span className="text-sm font-medium">Generating PDF Report...</span>
+                        <span className="text-sm font-medium">
+                          Generating PDF Report...
+                        </span>
                       </div>
                     </div>
                   )}
@@ -1619,57 +1980,103 @@ export default function ImagingPage() {
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-lg font-bold">{selectedStudy.patientName?.charAt(0) || 'P'}</span>
+                    <span className="text-white text-lg font-bold">
+                      {selectedStudy.patientName?.charAt(0) || "P"}
+                    </span>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-xl">{selectedStudy.patientName}</h3>
-                    <p className="text-sm text-gray-600">Patient ID: {selectedStudy.patientId}</p>
+                    <h3 className="font-semibold text-xl">
+                      {selectedStudy.patientName}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Patient ID: {selectedStudy.patientId}
+                    </p>
                   </div>
                   <div className="ml-auto">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      selectedStudy.status === 'completed' ? 'bg-green-100 text-green-800' :
-                      selectedStudy.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
-                      selectedStudy.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {selectedStudy.status?.charAt(0).toUpperCase() + selectedStudy.status?.slice(1).replace('_', ' ') || 'Unknown'}
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        selectedStudy.status === "completed"
+                          ? "bg-green-100 text-green-800"
+                          : selectedStudy.status === "in_progress"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : selectedStudy.status === "scheduled"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {selectedStudy.status?.charAt(0).toUpperCase() +
+                        selectedStudy.status?.slice(1).replace("_", " ") ||
+                        "Unknown"}
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-                  <div><strong>Study Type:</strong> {selectedStudy.studyType}</div>
-                  <div><strong>Modality:</strong> {selectedStudy.modality}</div>
-                  <div><strong>Body Part:</strong> {selectedStudy.bodyPart}</div>
-                  <div><strong>Priority:</strong> {selectedStudy.priority}</div>
-                  <div><strong>Ordered By:</strong> {selectedStudy.orderedBy}</div>
-                  <div><strong>Ordered:</strong> {format(new Date(selectedStudy.orderedAt), "MMM dd, yyyy")}</div>
+                  <div>
+                    <strong>Study Type:</strong> {selectedStudy.studyType}
+                  </div>
+                  <div>
+                    <strong>Modality:</strong> {selectedStudy.modality}
+                  </div>
+                  <div>
+                    <strong>Body Part:</strong> {selectedStudy.bodyPart}
+                  </div>
+                  <div>
+                    <strong>Priority:</strong> {selectedStudy.priority}
+                  </div>
+                  <div>
+                    <strong>Ordered By:</strong> {selectedStudy.orderedBy}
+                  </div>
+                  <div>
+                    <strong>Ordered:</strong>{" "}
+                    {format(new Date(selectedStudy.orderedAt), "MMM dd, yyyy")}
+                  </div>
                   {selectedStudy.scheduledAt && (
-                    <div><strong>Scheduled:</strong> {format(new Date(selectedStudy.scheduledAt), "MMM dd, yyyy")}</div>
+                    <div>
+                      <strong>Scheduled:</strong>{" "}
+                      {format(
+                        new Date(selectedStudy.scheduledAt),
+                        "MMM dd, yyyy",
+                      )}
+                    </div>
                   )}
                   {selectedStudy.performedAt && (
-                    <div><strong>Performed:</strong> {format(new Date(selectedStudy.performedAt), "MMM dd, yyyy")}</div>
+                    <div>
+                      <strong>Performed:</strong>{" "}
+                      {format(
+                        new Date(selectedStudy.performedAt),
+                        "MMM dd, yyyy",
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-medium text-lg mb-2">Clinical Indication</h4>
-                  <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{selectedStudy.indication}</p>
+                  <h4 className="font-medium text-lg mb-2">
+                    Clinical Indication
+                  </h4>
+                  <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">
+                    {selectedStudy.indication}
+                  </p>
                 </div>
 
                 {selectedStudy.findings && (
                   <div>
                     <h4 className="font-medium text-lg mb-2">Findings</h4>
-                    <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{selectedStudy.findings}</p>
+                    <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">
+                      {selectedStudy.findings}
+                    </p>
                   </div>
                 )}
 
                 {selectedStudy.impression && (
                   <div>
                     <h4 className="font-medium text-lg mb-2">Impression</h4>
-                    <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{selectedStudy.impression}</p>
+                    <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">
+                      {selectedStudy.impression}
+                    </p>
                   </div>
                 )}
 
@@ -1685,21 +2092,27 @@ export default function ImagingPage() {
                 <h4 className="font-medium text-lg mb-3">Image Series</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {selectedStudy.images.map((image, index) => (
-                    <div key={index} className="border border-gray-200 rounded-lg p-4">
+                    <div
+                      key={index}
+                      className="border border-gray-200 rounded-lg p-4"
+                    >
                       <div className="flex items-center justify-between mb-2">
-                        <h5 className="font-medium">{image.seriesDescription}</h5>
-                        <span className="text-xs bg-gray-100 px-2 py-1 rounded">{image.type}</span>
+                        <h5 className="font-medium">
+                          {image.seriesDescription}
+                        </h5>
+                        <span className="text-xs bg-gray-100 px-2 py-1 rounded">
+                          {image.type}
+                        </span>
                       </div>
                       <div className="text-sm text-gray-600 space-y-1">
                         <div>Images: {image.imageCount}</div>
                         <div>Size: {image.size}</div>
                       </div>
                       <div className="mt-3">
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="sm"
                           onClick={() => {
-                            
                             // Convert the uploaded medical image to the viewer format
                             const imageForViewer = {
                               seriesDescription: image.seriesDescription,
@@ -1707,7 +2120,7 @@ export default function ImagingPage() {
                               imageCount: image.imageCount,
                               size: image.size,
                               imageData: image.imageData, // This should come from the database
-                              mimeType: image.mimeType || 'image/jpeg'
+                              mimeType: image.mimeType || "image/jpeg",
                             };
                             setSelectedImageSeries(imageForViewer);
                             setShowImageViewer(true);
@@ -1724,25 +2137,44 @@ export default function ImagingPage() {
 
               {selectedStudy.report && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <h4 className="font-medium text-green-800 mb-3">Report Status</h4>
+                  <h4 className="font-medium text-green-800 mb-3">
+                    Report Status
+                  </h4>
                   <div className="text-sm text-green-700 space-y-2">
                     <div className="flex justify-between">
-                      <span><strong>Status:</strong> {selectedStudy.report.status}</span>
-                      <span><strong>Dictated:</strong> {format(new Date(selectedStudy.report.dictatedAt), "PPpp")}</span>
+                      <span>
+                        <strong>Status:</strong> {selectedStudy.report.status}
+                      </span>
+                      <span>
+                        <strong>Dictated:</strong>{" "}
+                        {format(
+                          new Date(selectedStudy.report.dictatedAt),
+                          "PPpp",
+                        )}
+                      </span>
                     </div>
                     {selectedStudy.report.signedAt && (
-                      <div><strong>Signed:</strong> {format(new Date(selectedStudy.report.signedAt), "PPpp")}</div>
+                      <div>
+                        <strong>Signed:</strong>{" "}
+                        {format(
+                          new Date(selectedStudy.report.signedAt),
+                          "PPpp",
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
               )}
 
               <div className="flex justify-between items-center pt-4 border-t">
-                <Button variant="outline" onClick={() => setShowViewDialog(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowViewDialog(false)}
+                >
                   Close
                 </Button>
                 <div className="flex gap-2">
-                  <Button 
+                  <Button
                     variant="outline"
                     onClick={() => {
                       setShowViewDialog(false);
@@ -1771,21 +2203,40 @@ export default function ImagingPage() {
                 <Label htmlFor="patient" className="text-sm font-medium">
                   Patient
                 </Label>
-                <Select value={orderFormData.patientId} onValueChange={(value) => setOrderFormData(prev => ({ ...prev, patientId: value }))}>
+                <Select
+                  value={orderFormData.patientId}
+                  onValueChange={(value) =>
+                    setOrderFormData((prev) => ({ ...prev, patientId: value }))
+                  }
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder={patientsLoading ? "Loading patients..." : "Select patient"} />
+                    <SelectValue
+                      placeholder={
+                        patientsLoading
+                          ? "Loading patients..."
+                          : "Select patient"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {patientsLoading ? (
-                      <SelectItem value="loading" disabled>Loading patients...</SelectItem>
+                      <SelectItem value="loading" disabled>
+                        Loading patients...
+                      </SelectItem>
                     ) : patients.length > 0 ? (
                       patients.map((patient: any) => (
-                        <SelectItem key={patient.id} value={patient.id.toString()}>
-                          {patient.firstName} {patient.lastName} ({patient.patientId})
+                        <SelectItem
+                          key={patient.id}
+                          value={patient.id.toString()}
+                        >
+                          {patient.firstName} {patient.lastName} (
+                          {patient.patientId})
                         </SelectItem>
                       ))
                     ) : (
-                      <SelectItem value="no-patients" disabled>No patients found</SelectItem>
+                      <SelectItem value="no-patients" disabled>
+                        No patients found
+                      </SelectItem>
                     )}
                   </SelectContent>
                 </Select>
@@ -1795,7 +2246,12 @@ export default function ImagingPage() {
                 <Label htmlFor="modality" className="text-sm font-medium">
                   Modality
                 </Label>
-                <Select value={orderFormData.modality} onValueChange={(value) => setOrderFormData(prev => ({ ...prev, modality: value }))}>
+                <Select
+                  value={orderFormData.modality}
+                  onValueChange={(value) =>
+                    setOrderFormData((prev) => ({ ...prev, modality: value }))
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select imaging type" />
                   </SelectTrigger>
@@ -1804,7 +2260,9 @@ export default function ImagingPage() {
                     <SelectItem value="CT">CT Scan</SelectItem>
                     <SelectItem value="MRI">MRI</SelectItem>
                     <SelectItem value="Ultrasound">Ultrasound</SelectItem>
-                    <SelectItem value="Nuclear Medicine">Nuclear Medicine</SelectItem>
+                    <SelectItem value="Nuclear Medicine">
+                      Nuclear Medicine
+                    </SelectItem>
                     <SelectItem value="Mammography">Mammography</SelectItem>
                   </SelectContent>
                 </Select>
@@ -1820,7 +2278,12 @@ export default function ImagingPage() {
                   id="bodyPart"
                   placeholder="e.g., Chest, Abdomen, Head"
                   value={orderFormData.bodyPart}
-                  onChange={(e) => setOrderFormData(prev => ({ ...prev, bodyPart: e.target.value }))}
+                  onChange={(e) =>
+                    setOrderFormData((prev) => ({
+                      ...prev,
+                      bodyPart: e.target.value,
+                    }))
+                  }
                 />
               </div>
 
@@ -1828,7 +2291,12 @@ export default function ImagingPage() {
                 <Label htmlFor="priority" className="text-sm font-medium">
                   Priority
                 </Label>
-                <Select value={orderFormData.priority} onValueChange={(value) => setOrderFormData(prev => ({ ...prev, priority: value }))}>
+                <Select
+                  value={orderFormData.priority}
+                  onValueChange={(value) =>
+                    setOrderFormData((prev) => ({ ...prev, priority: value }))
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select priority" />
                   </SelectTrigger>
@@ -1849,7 +2317,12 @@ export default function ImagingPage() {
                 id="studyType"
                 placeholder="e.g., Chest X-Ray PA and Lateral"
                 value={orderFormData.studyType}
-                onChange={(e) => setOrderFormData(prev => ({ ...prev, studyType: e.target.value }))}
+                onChange={(e) =>
+                  setOrderFormData((prev) => ({
+                    ...prev,
+                    studyType: e.target.value,
+                  }))
+                }
               />
             </div>
 
@@ -1862,7 +2335,12 @@ export default function ImagingPage() {
                 placeholder="Reason for imaging study..."
                 rows={3}
                 value={orderFormData.indication}
-                onChange={(e) => setOrderFormData(prev => ({ ...prev, indication: e.target.value }))}
+                onChange={(e) =>
+                  setOrderFormData((prev) => ({
+                    ...prev,
+                    indication: e.target.value,
+                  }))
+                }
               />
             </div>
 
@@ -1875,7 +2353,12 @@ export default function ImagingPage() {
                 placeholder="Any special instructions for the imaging technologist..."
                 rows={2}
                 value={orderFormData.specialInstructions}
-                onChange={(e) => setOrderFormData(prev => ({ ...prev, specialInstructions: e.target.value }))}
+                onChange={(e) =>
+                  setOrderFormData((prev) => ({
+                    ...prev,
+                    specialInstructions: e.target.value,
+                  }))
+                }
               />
             </div>
 
@@ -1883,7 +2366,7 @@ export default function ImagingPage() {
               <Button variant="outline" onClick={() => setShowNewOrder(false)}>
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={handleOrderSubmit}
                 className="bg-medical-blue hover:bg-blue-700"
               >
@@ -1896,7 +2379,10 @@ export default function ImagingPage() {
       </Dialog>
 
       {/* Final Report Viewer Dialog */}
-      <Dialog open={showFinalReportDialog} onOpenChange={setShowFinalReportDialog}>
+      <Dialog
+        open={showFinalReportDialog}
+        onOpenChange={setShowFinalReportDialog}
+      >
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Final Radiology Report</DialogTitle>
@@ -1905,49 +2391,66 @@ export default function ImagingPage() {
             <div className="space-y-6">
               {/* Patient Information */}
               <div className="border-b pb-4">
-                <h3 className="font-semibold text-lg mb-3">Patient Information</h3>
+                <h3 className="font-semibold text-lg mb-3">
+                  Patient Information
+                </h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="font-medium">Patient Name:</span> {selectedStudy.patientName}
+                    <span className="font-medium">Patient Name:</span>{" "}
+                    {selectedStudy.patientName}
                   </div>
                   <div>
-                    <span className="font-medium">Patient ID:</span> {selectedStudy.patientId}
+                    <span className="font-medium">Patient ID:</span>{" "}
+                    {selectedStudy.patientId}
                   </div>
                   <div>
-                    <span className="font-medium">Study Date:</span> {format(new Date(selectedStudy.orderedAt), "PPP")}
+                    <span className="font-medium">Study Date:</span>{" "}
+                    {format(new Date(selectedStudy.orderedAt), "PPP")}
                   </div>
                   <div>
-                    <span className="font-medium">Study Type:</span> {selectedStudy.studyType}
+                    <span className="font-medium">Study Type:</span>{" "}
+                    {selectedStudy.studyType}
                   </div>
                   <div>
-                    <span className="font-medium">Modality:</span> {selectedStudy.modality}
+                    <span className="font-medium">Modality:</span>{" "}
+                    {selectedStudy.modality}
                   </div>
                   <div>
-                    <span className="font-medium">Body Part:</span> {selectedStudy.bodyPart}
+                    <span className="font-medium">Body Part:</span>{" "}
+                    {selectedStudy.bodyPart}
                   </div>
                   <div>
-                    <span className="font-medium">Ordering Physician:</span> {selectedStudy.orderedBy}
+                    <span className="font-medium">Ordering Physician:</span>{" "}
+                    {selectedStudy.orderedBy}
                   </div>
                   <div>
-                    <span className="font-medium">Radiologist:</span> {selectedStudy.radiologist || "Dr. Michael Chen"}
+                    <span className="font-medium">Radiologist:</span>{" "}
+                    {selectedStudy.radiologist || "Dr. Michael Chen"}
                   </div>
                 </div>
               </div>
 
               {/* Clinical Information */}
               <div className="border-b pb-4">
-                <h3 className="font-semibold text-lg mb-3">Clinical Information</h3>
+                <h3 className="font-semibold text-lg mb-3">
+                  Clinical Information
+                </h3>
                 <div className="text-sm">
                   <div className="mb-2">
-                    <span className="font-medium">Indication:</span> {selectedStudy.indication}
+                    <span className="font-medium">Indication:</span>{" "}
+                    {selectedStudy.indication}
                   </div>
                   <div>
-                    <span className="font-medium">Priority:</span> 
-                    <span className={`ml-2 px-2 py-1 rounded text-xs ${
-                      selectedStudy.priority === 'stat' ? 'bg-red-100 text-red-800' :
-                      selectedStudy.priority === 'urgent' ? 'bg-orange-100 text-orange-800' :
-                      'bg-blue-100 text-blue-800'
-                    }`}>
+                    <span className="font-medium">Priority:</span>
+                    <span
+                      className={`ml-2 px-2 py-1 rounded text-xs ${
+                        selectedStudy.priority === "stat"
+                          ? "bg-red-100 text-red-800"
+                          : selectedStudy.priority === "urgent"
+                            ? "bg-orange-100 text-orange-800"
+                            : "bg-blue-100 text-blue-800"
+                      }`}
+                    >
                       {selectedStudy.priority.toUpperCase()}
                     </span>
                   </div>
@@ -1957,7 +2460,7 @@ export default function ImagingPage() {
               {/* Report Content */}
               <div className="space-y-4">
                 <h3 className="font-semibold text-lg">Report</h3>
-                
+
                 {selectedStudy.findings && (
                   <div>
                     <h4 className="font-medium mb-2">FINDINGS:</h4>
@@ -1989,43 +2492,66 @@ export default function ImagingPage() {
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="font-medium text-green-800">Report Status: FINAL</span>
+                    <span className="font-medium text-green-800">
+                      Report Status: FINAL
+                    </span>
                   </div>
                   <div className="text-sm text-green-700 space-y-1">
                     {selectedStudy.report?.dictatedAt && (
-                      <div><strong>Dictated:</strong> {format(new Date(selectedStudy.report.dictatedAt), "PPpp")}</div>
+                      <div>
+                        <strong>Dictated:</strong>{" "}
+                        {format(
+                          new Date(selectedStudy.report.dictatedAt),
+                          "PPpp",
+                        )}
+                      </div>
                     )}
                     {selectedStudy.report?.signedAt && (
-                      <div><strong>Signed:</strong> {format(new Date(selectedStudy.report.signedAt), "PPpp")}</div>
+                      <div>
+                        <strong>Signed:</strong>{" "}
+                        {format(
+                          new Date(selectedStudy.report.signedAt),
+                          "PPpp",
+                        )}
+                      </div>
                     )}
-                    <div><strong>Radiologist:</strong> {selectedStudy.radiologist || "Dr. Michael Chen"}</div>
+                    <div>
+                      <strong>Radiologist:</strong>{" "}
+                      {selectedStudy.radiologist || "Dr. Michael Chen"}
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Action Buttons */}
               <div className="flex justify-between items-center pt-4 border-t">
-                <Button variant="outline" onClick={() => setShowFinalReportDialog(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowFinalReportDialog(false)}
+                >
                   Close
                 </Button>
                 <div className="flex gap-2">
-                  <Button 
+                  <Button
                     variant="outline"
                     onClick={() => {
                       // Download report logic
-                      const reportContent = selectedStudy.report?.content || 
+                      const reportContent =
+                        selectedStudy.report?.content ||
                         `RADIOLOGY REPORT\n\nPatient: ${selectedStudy.patientName}\nPatient ID: ${selectedStudy.patientId}\nStudy: ${selectedStudy.studyType}\nModality: ${selectedStudy.modality}\nDate: ${format(new Date(selectedStudy.orderedAt), "PPP")}\nBody Part: ${selectedStudy.bodyPart}\nOrdering Physician: ${selectedStudy.orderedBy}\nRadiologist: ${selectedStudy.radiologist || "Dr. Michael Chen"}\n\nCLINICAL INDICATION:\n${selectedStudy.indication}\n\nFINDINGS:\n${selectedStudy.findings || "Normal findings"}\n\nIMPRESSION:\n${selectedStudy.impression || "No acute abnormalities"}`;
-                      
-                      const blob = new Blob([reportContent], { type: 'text/plain' });
+
+                      const blob = new Blob([reportContent], {
+                        type: "text/plain",
+                      });
                       const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
+                      const a = document.createElement("a");
                       a.href = url;
-                      a.download = `radiology-report-${selectedStudy.patientName.replace(/\s+/g, '-').toLowerCase()}-${format(new Date(selectedStudy.orderedAt), "yyyy-MM-dd")}.txt`;
+                      a.download = `radiology-report-${selectedStudy.patientName.replace(/\s+/g, "-").toLowerCase()}-${format(new Date(selectedStudy.orderedAt), "yyyy-MM-dd")}.txt`;
                       document.body.appendChild(a);
                       a.click();
                       document.body.removeChild(a);
                       URL.revokeObjectURL(url);
-                      
+
                       toast({
                         title: "Report Downloaded",
                         description: `Final report for ${selectedStudy.patientName} downloaded successfully`,
@@ -2035,7 +2561,7 @@ export default function ImagingPage() {
                     <Download className="h-4 w-4 mr-2" />
                     Download Report
                   </Button>
-                  <Button 
+                  <Button
                     onClick={() => {
                       setShowFinalReportDialog(false);
                       setShowShareDialog(true);
@@ -2062,7 +2588,12 @@ export default function ImagingPage() {
             {/* Patient Selection */}
             <div>
               <Label htmlFor="upload-patient">Patient *</Label>
-              <Select value={uploadFormData.patientId} onValueChange={(value) => setUploadFormData({...uploadFormData, patientId: value})}>
+              <Select
+                value={uploadFormData.patientId}
+                onValueChange={(value) =>
+                  setUploadFormData({ ...uploadFormData, patientId: value })
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select patient" />
                 </SelectTrigger>
@@ -2070,11 +2601,17 @@ export default function ImagingPage() {
                   {patientsLoading ? (
                     <SelectItem value="loading">Loading patients...</SelectItem>
                   ) : patients.length === 0 ? (
-                    <SelectItem value="no-patients">No patients available</SelectItem>
+                    <SelectItem value="no-patients">
+                      No patients available
+                    </SelectItem>
                   ) : (
                     patients.map((patient) => (
-                      <SelectItem key={patient.id} value={patient.id.toString()}>
-                        {patient.firstName} {patient.lastName} ({patient.patientId})
+                      <SelectItem
+                        key={patient.id}
+                        value={patient.id.toString()}
+                      >
+                        {patient.firstName} {patient.lastName} (
+                        {patient.patientId})
                       </SelectItem>
                     ))
                   )}
@@ -2086,7 +2623,12 @@ export default function ImagingPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="upload-modality">Modality *</Label>
-                <Select value={uploadFormData.modality} onValueChange={(value) => setUploadFormData({...uploadFormData, modality: value})}>
+                <Select
+                  value={uploadFormData.modality}
+                  onValueChange={(value) =>
+                    setUploadFormData({ ...uploadFormData, modality: value })
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -2095,14 +2637,21 @@ export default function ImagingPage() {
                     <SelectItem value="CT">CT Scan</SelectItem>
                     <SelectItem value="MRI">MRI</SelectItem>
                     <SelectItem value="Ultrasound">Ultrasound</SelectItem>
-                    <SelectItem value="Nuclear Medicine">Nuclear Medicine</SelectItem>
+                    <SelectItem value="Nuclear Medicine">
+                      Nuclear Medicine
+                    </SelectItem>
                     <SelectItem value="Mammography">Mammography</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
                 <Label htmlFor="upload-priority">Priority</Label>
-                <Select value={uploadFormData.priority} onValueChange={(value) => setUploadFormData({...uploadFormData, priority: value})}>
+                <Select
+                  value={uploadFormData.priority}
+                  onValueChange={(value) =>
+                    setUploadFormData({ ...uploadFormData, priority: value })
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -2120,7 +2669,12 @@ export default function ImagingPage() {
               <Input
                 id="upload-study-type"
                 value={uploadFormData.studyType}
-                onChange={(e) => setUploadFormData({...uploadFormData, studyType: e.target.value})}
+                onChange={(e) =>
+                  setUploadFormData({
+                    ...uploadFormData,
+                    studyType: e.target.value,
+                  })
+                }
                 placeholder="e.g., Chest X-Ray PA and Lateral"
               />
             </div>
@@ -2130,7 +2684,12 @@ export default function ImagingPage() {
               <Input
                 id="upload-body-part"
                 value={uploadFormData.bodyPart}
-                onChange={(e) => setUploadFormData({...uploadFormData, bodyPart: e.target.value})}
+                onChange={(e) =>
+                  setUploadFormData({
+                    ...uploadFormData,
+                    bodyPart: e.target.value,
+                  })
+                }
                 placeholder="e.g., Chest, Abdomen, Left Hand"
               />
             </div>
@@ -2140,7 +2699,12 @@ export default function ImagingPage() {
               <Textarea
                 id="upload-indication"
                 value={uploadFormData.indication}
-                onChange={(e) => setUploadFormData({...uploadFormData, indication: e.target.value})}
+                onChange={(e) =>
+                  setUploadFormData({
+                    ...uploadFormData,
+                    indication: e.target.value,
+                  })
+                }
                 placeholder="Reason for imaging study..."
                 rows={2}
               />
@@ -2164,7 +2728,9 @@ export default function ImagingPage() {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => document.getElementById('upload-files')?.click()}
+                      onClick={() =>
+                        document.getElementById("upload-files")?.click()
+                      }
                     >
                       Select Images
                     </Button>
@@ -2173,26 +2739,31 @@ export default function ImagingPage() {
                     Select X-ray images, DICOM files, or other medical images
                   </p>
                   <p className="text-xs text-gray-400">
-                    Supported formats: All image formats (JPEG, PNG, GIF, BMP, TIFF, WebP, SVG), DICOM (.dcm), and medical imaging files
+                    Supported formats: All image formats (JPEG, PNG, GIF, BMP,
+                    TIFF, WebP, SVG), DICOM (.dcm), and medical imaging files
                   </p>
                 </div>
               </div>
-              
+
               {/* Selected Files Display */}
               {selectedFiles.length > 0 && (
                 <div className="mt-4 space-y-2">
                   <Label>Selected Files ({selectedFiles.length}):</Label>
                   <div className="max-h-32 overflow-y-auto space-y-1">
                     {selectedFiles.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                      <div
+                        key={index}
+                        className="flex items-center justify-between bg-gray-50 p-2 rounded"
+                      >
                         <span className="text-sm truncate">{file.name}</span>
                         <span className="text-xs text-gray-500">
-                          {file.size ? 
-                            file.size < 1024 ? `${file.size} B` :
-                            file.size < 1024 * 1024 ? `${(file.size / 1024).toFixed(1)} KB` :
-                            `${(file.size / (1024 * 1024)).toFixed(1)} MB`
-                            : 'Unknown size'
-                          }
+                          {file.size
+                            ? file.size < 1024
+                              ? `${file.size} B`
+                              : file.size < 1024 * 1024
+                                ? `${(file.size / 1024).toFixed(1)} KB`
+                                : `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+                            : "Unknown size"}
                         </span>
                       </div>
                     ))}
@@ -2202,13 +2773,20 @@ export default function ImagingPage() {
             </div>
 
             <div className="flex justify-between items-center pt-4 border-t">
-              <Button variant="outline" onClick={() => setShowUploadDialog(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setShowUploadDialog(false)}
+              >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={handleUploadSubmit}
                 className="bg-medical-blue hover:bg-blue-700"
-                disabled={!uploadFormData.patientId || !uploadFormData.studyType || selectedFiles.length === 0}
+                disabled={
+                  !uploadFormData.patientId ||
+                  !uploadFormData.studyType ||
+                  selectedFiles.length === 0
+                }
               >
                 <FileImage className="h-4 w-4 mr-2" />
                 Save Images
@@ -2225,21 +2803,31 @@ export default function ImagingPage() {
             <DialogTitle>Medical Image Viewer</DialogTitle>
             {selectedImageSeries && (
               <p className="text-sm text-gray-600">
-                {selectedImageSeries.seriesDescription} - {selectedImageSeries.imageCount} images
+                {selectedImageSeries.seriesDescription} -{" "}
+                {selectedImageSeries.imageCount} images
               </p>
             )}
           </DialogHeader>
-          
+
           <div className="flex-1 overflow-auto">
             {selectedImageSeries && (
               <div className="space-y-4">
                 {/* Series Information */}
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div><strong>Series:</strong> {selectedImageSeries.seriesDescription}</div>
-                    <div><strong>Type:</strong> {selectedImageSeries.type}</div>
-                    <div><strong>Images:</strong> {selectedImageSeries.imageCount}</div>
-                    <div><strong>Size:</strong> {selectedImageSeries.size}</div>
+                    <div>
+                      <strong>Series:</strong>{" "}
+                      {selectedImageSeries.seriesDescription}
+                    </div>
+                    <div>
+                      <strong>Type:</strong> {selectedImageSeries.type}
+                    </div>
+                    <div>
+                      <strong>Images:</strong> {selectedImageSeries.imageCount}
+                    </div>
+                    <div>
+                      <strong>Size:</strong> {selectedImageSeries.size}
+                    </div>
                   </div>
                 </div>
 
@@ -2247,11 +2835,11 @@ export default function ImagingPage() {
                 <div className="bg-black rounded-lg p-4 min-h-[400px] flex items-center justify-center">
                   {selectedImageSeries.imageData ? (
                     <div className="w-full h-full flex items-center justify-center">
-                      <img 
-                        src={`data:${selectedImageSeries.mimeType || 'image/png'};base64,${selectedImageSeries.imageData}`}
+                      <img
+                        src={`data:${selectedImageSeries.mimeType || "image/png"};base64,${selectedImageSeries.imageData}`}
                         alt={`Medical Image - ${selectedImageSeries.seriesDescription}`}
                         className="max-w-full max-h-96 object-contain rounded-lg border border-gray-600"
-                        style={{ maxHeight: '400px' }}
+                        style={{ maxHeight: "400px" }}
                       />
                     </div>
                   ) : (
@@ -2264,8 +2852,12 @@ export default function ImagingPage() {
                             </div>
                             <div className="text-gray-400">
                               <p className="font-medium">Medical Image</p>
-                              <p className="text-sm">{selectedImageSeries.seriesDescription}</p>
-                              <p className="text-xs mt-2">Upload a new image to view it here</p>
+                              <p className="text-sm">
+                                {selectedImageSeries.seriesDescription}
+                              </p>
+                              <p className="text-xs mt-2">
+                                Upload a new image to view it here
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -2277,19 +2869,19 @@ export default function ImagingPage() {
                 {/* Image Tools */}
                 <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
                   <div className="flex space-x-2">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={() => {
                         if (selectedImageSeries?.imageData) {
                           // Create download link for base64 image
-                          const link = document.createElement('a');
-                          link.href = `data:${selectedImageSeries.mimeType || 'image/jpeg'};base64,${selectedImageSeries.imageData}`;
-                          link.download = `medical-image-${selectedImageSeries.id}.${selectedImageSeries.mimeType?.includes('png') ? 'png' : 'jpg'}`;
+                          const link = document.createElement("a");
+                          link.href = `data:${selectedImageSeries.mimeType || "image/jpeg"};base64,${selectedImageSeries.imageData}`;
+                          link.download = `medical-image-${selectedImageSeries.id}.${selectedImageSeries.mimeType?.includes("png") ? "png" : "jpg"}`;
                           document.body.appendChild(link);
                           link.click();
                           document.body.removeChild(link);
-                          
+
                           toast({
                             title: "Download Started",
                             description: "Medical image download has begun.",
@@ -2297,7 +2889,8 @@ export default function ImagingPage() {
                         } else {
                           toast({
                             title: "Download Failed",
-                            description: "Image data not available for download.",
+                            description:
+                              "Image data not available for download.",
                             variant: "destructive",
                           });
                         }
@@ -2306,45 +2899,61 @@ export default function ImagingPage() {
                       <Download className="h-4 w-4 mr-2" />
                       Download
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={() => {
                         if (navigator.share && selectedImageSeries?.imageData) {
                           // Use Web Share API if available
-                          fetch(`data:${selectedImageSeries.mimeType || 'image/jpeg'};base64,${selectedImageSeries.imageData}`)
-                            .then(res => res.blob())
-                            .then(blob => {
-                              const file = new File([blob], `medical-image-${selectedImageSeries.id}.jpg`, { type: selectedImageSeries.mimeType || 'image/jpeg' });
+                          fetch(
+                            `data:${selectedImageSeries.mimeType || "image/jpeg"};base64,${selectedImageSeries.imageData}`,
+                          )
+                            .then((res) => res.blob())
+                            .then((blob) => {
+                              const file = new File(
+                                [blob],
+                                `medical-image-${selectedImageSeries.id}.jpg`,
+                                {
+                                  type:
+                                    selectedImageSeries.mimeType ||
+                                    "image/jpeg",
+                                },
+                              );
                               navigator.share({
-                                title: 'Medical Image',
+                                title: "Medical Image",
                                 text: `Medical Image - ${selectedImageSeries.seriesDescription}`,
-                                files: [file]
+                                files: [file],
                               });
                             })
-                            .catch(err => {
+                            .catch((err) => {
                               toast({
                                 title: "Share Failed",
-                                description: "Unable to share image. Try downloading instead.",
+                                description:
+                                  "Unable to share image. Try downloading instead.",
                                 variant: "destructive",
                               });
                             });
                         } else {
                           // Fallback: copy image data URL to clipboard
                           if (selectedImageSeries?.imageData) {
-                            const imageDataUrl = `data:${selectedImageSeries.mimeType || 'image/jpeg'};base64,${selectedImageSeries.imageData}`;
-                            navigator.clipboard.writeText(imageDataUrl).then(() => {
-                              toast({
-                                title: "Image Data Copied",
-                                description: "Image data URL copied to clipboard.",
+                            const imageDataUrl = `data:${selectedImageSeries.mimeType || "image/jpeg"};base64,${selectedImageSeries.imageData}`;
+                            navigator.clipboard
+                              .writeText(imageDataUrl)
+                              .then(() => {
+                                toast({
+                                  title: "Image Data Copied",
+                                  description:
+                                    "Image data URL copied to clipboard.",
+                                });
+                              })
+                              .catch(() => {
+                                toast({
+                                  title: "Share Failed",
+                                  description:
+                                    "Unable to share or copy image data.",
+                                  variant: "destructive",
+                                });
                               });
-                            }).catch(() => {
-                              toast({
-                                title: "Share Failed",
-                                description: "Unable to share or copy image data.",
-                                variant: "destructive",
-                              });
-                            });
                           }
                         }
                       }}
