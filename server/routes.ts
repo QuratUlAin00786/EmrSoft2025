@@ -936,18 +936,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Store new insights in database
       const savedInsights = [];
       for (const insightData of aiInsightsData) {
-        const insight = await storage.createAiInsight({
-          organizationId: req.tenant!.id,
-          patientId: parseInt(patientId),
-          type: insightData.type,
-          title: insightData.title,
-          description: insightData.description,
-          severity: insightData.severity,
-          actionRequired: insightData.actionRequired,
-          confidence: insightData.confidence.toString(),
-          status: "active"
-        });
-        savedInsights.push(insight);
+        try {
+          console.log('Creating AI insight with data:', {
+            organizationId: req.tenant!.id,
+            patientId: parseInt(patientId),
+            type: insightData.type,
+            title: insightData.title,
+            severity: insightData.severity
+          });
+          
+          const insight = await storage.createAiInsight({
+            organizationId: req.tenant!.id,
+            patientId: parseInt(patientId),
+            type: insightData.type,
+            title: insightData.title,
+            description: insightData.description,
+            severity: insightData.severity,
+            actionRequired: insightData.actionRequired,
+            confidence: insightData.confidence.toString(),
+            status: "active"
+          });
+          
+          console.log('Successfully created AI insight:', insight.id);
+          savedInsights.push(insight);
+        } catch (insertError) {
+          console.error('Failed to create AI insight:', insertError, 'Data:', insightData);
+          // Continue with other insights even if one fails
+        }
       }
 
       res.json({ 
