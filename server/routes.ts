@@ -897,12 +897,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get medical records
       const medicalRecords = await storage.getMedicalRecordsByPatient(parseInt(patientId), req.tenant!.id);
 
+      console.log(`[GENERATE-INSIGHTS] Starting AI insight generation for patient ${patientId}`);
+      
       let aiInsightsData = [];
       try {
         // Generate AI insights using OpenAI
         aiInsightsData = await aiService.analyzePatientRisk(patient, medicalRecords);
+        console.log(`[GENERATE-INSIGHTS] OpenAI succeeded with ${aiInsightsData.length} insights`);
       } catch (aiError) {
-        console.log("OpenAI failed, using fallback mock insights:", aiError);
+        console.log(`[GENERATE-INSIGHTS] OpenAI failed, using fallback mock insights for patient ${patient.firstName} ${patient.lastName}`);
+        console.error(`[GENERATE-INSIGHTS] OpenAI Error:`, aiError.message);
         
         // Fallback to mock insights when OpenAI fails
         aiInsightsData = [
@@ -931,6 +935,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             confidence: 72
           }
         ];
+        console.log(`[GENERATE-INSIGHTS] Created ${aiInsightsData.length} fallback insights`);
       }
 
       // Store new insights in database
