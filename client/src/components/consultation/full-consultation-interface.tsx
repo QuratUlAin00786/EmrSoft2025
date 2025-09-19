@@ -1079,6 +1079,7 @@ ${
   };
 
   const [isSavingAnalysis, setIsSavingAnalysis] = useState(false);
+  const [isSavingPhysicalExam, setIsSavingPhysicalExam] = useState(false);
 
   // Speech recognition state
   const [isRecording, setIsRecording] = useState(false);
@@ -1198,13 +1199,78 @@ Patient should be advised of potential side effects and expected timeline for re
       
     } catch (error) {
       console.error('Failed to save analysis:', error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to save analysis. Please try again.";
       toast({
         title: "Save Failed", 
-        description: error.message || "Failed to save analysis. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
       setIsSavingAnalysis(false);
+    }
+  };
+
+  const savePhysicalExamination = async () => {
+    setIsSavingPhysicalExam(true);
+    
+    try {
+      const currentPatientId = patientId || patient?.id;
+      if (!currentPatientId) {
+        throw new Error("No patient selected");
+      }
+
+      // Build comprehensive examination data from consultationData.examination
+      const examinationNotes = Object.entries(consultationData.examination)
+        .filter(([_, value]) => value && value.trim()) // Only include filled fields
+        .map(([system, value]) => `${system.replace('_', ' ').toUpperCase()}: ${value}`)
+        .join('\n\n');
+
+      const physicalExamData = {
+        type: "consultation",
+        title: "Clinical Examination - Physical Examination Findings",
+        notes: `Comprehensive physical examination completed.\n\n${examinationNotes || 'No examination findings recorded.'}`,
+        diagnosis: `Physical examination findings - ${Object.keys(consultationData.examination).filter(key => consultationData.examination[key]).join(', ') || 'Multiple systems evaluated'}`,
+        treatment: "Physical examination completed - refer to detailed findings for treatment recommendations"
+      };
+
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/patients/${currentPatientId}/records`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'X-Tenant-Subdomain': 'demo'
+        },
+        body: JSON.stringify(physicalExamData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const savedRecord = await response.json();
+      
+      toast({
+        title: "Physical Examination Saved",
+        description: "Physical examination findings have been saved to patient medical records."
+      });
+      
+      // Invalidate and refetch medical records
+      queryClient.invalidateQueries({ queryKey: ['/api/patients', currentPatientId, 'records'] });
+      
+      // Close the modal
+      setShowPhysicalExamModal(false);
+      
+    } catch (error) {
+      console.error('Failed to save physical examination:', error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to save physical examination. Please try again.";
+      toast({
+        title: "Save Failed", 
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
+      setIsSavingPhysicalExam(false);
     }
   };
 
@@ -3081,8 +3147,19 @@ Patient should be advised of potential side effects and expected timeline for re
             <Button variant="outline" onClick={() => setShowPhysicalExamModal(false)}>
               Cancel
             </Button>
-            <Button onClick={() => setShowPhysicalExamModal(false)} className="bg-blue-600 hover:bg-blue-700">
-              Save
+            <Button 
+              onClick={savePhysicalExamination} 
+              disabled={isSavingPhysicalExam}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isSavingPhysicalExam ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Saving...
+                </>
+              ) : (
+                'Save'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
