@@ -364,8 +364,12 @@ export default function FinancialIntelligence() {
       return response.json();
     },
     onSuccess: () => {
-      // Invalidate and refetch the claims data
+      // Immediately invalidate and refetch claims data
       queryClient.invalidateQueries({ queryKey: ["/api/financial/claims"] });
+      queryClient.refetchQueries({ 
+        queryKey: ["/api/financial/claims"],
+        type: 'active' // Only refetch active queries
+      });
       
       toast({ 
         title: "Claim deleted successfully",
